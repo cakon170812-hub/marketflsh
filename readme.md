@@ -1,0 +1,1 @@
+“# Market Flash”. “Plataforma para gestionar ventas e inventario de celulares.” Luego “Funciones: control de inventario, registro de ventas, generación de recibos, control de precios.” Después de escribirlo, no cierres la página. Baja hasta el final y dime si ves un botón verde que dice “Commit changes” o “Confirm changes”. Ese será el siguiente paso.
