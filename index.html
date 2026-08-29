@@ -8,291 +8,445 @@
 <title>Market Flash</title>
 
 <style>
-* {
-box-sizing: border-box;
+
+*{
+box-sizing:border-box;
 }
 
-body {
-margin: 0;
-font-family: Arial, sans-serif;
-background: #f4f5f7;
-color: #171717;
+body{
+margin:0;
+font-family:Arial,Helvetica,sans-serif;
+background:#f4f5f7;
+color:#171717;
 }
 
-header {
-background: #111;
-color: white;
-padding: 18px 16px;
-position: sticky;
-top: 0;
-z-index: 10;
+/* ENCABEZADO */
+
+header{
+background:#111;
+color:white;
+padding:15px;
+position:sticky;
+top:0;
+z-index:100;
+box-shadow:0 3px 15px rgba(0,0,0,.25);
 }
 
-.top {
-max-width: 1100px;
-margin: auto;
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 12px;
+.top{
+max-width:1150px;
+margin:auto;
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
 }
 
-.logo {
-font-size: 25px;
-font-weight: 800;
+.brand{
+display:flex;
+align-items:center;
+gap:10px;
 }
 
-.tag {
-font-size: 12px;
-opacity: .75;
+.logo{
+font-size:25px;
+font-weight:900;
 }
 
-button {
-border: 0;
-border-radius: 10px;
-padding: 11px 15px;
-font-weight: 700;
-cursor: pointer;
+.owner{
+font-size:10px;
+color:#f5d76e;
+margin-top:3px;
+animation:lights 1.5s infinite alternate;
 }
 
-.primary {
-background: #111;
-color: white;
+@keyframes lights{
+from{
+opacity:.55;
+}
+to{
+opacity:1;
+text-shadow:0 0 8px #f5d76e;
+}
 }
 
-.light {
-background: white;
-color: #111;
-border: 1px solid #ddd;
+.header-buttons{
+display:flex;
+gap:7px;
 }
 
-main {
-max-width: 1100px;
-margin: auto;
-padding: 18px;
+button{
+border:0;
+border-radius:10px;
+padding:11px 14px;
+font-weight:bold;
+cursor:pointer;
 }
 
-.hero {
-background: white;
-border-radius: 18px;
-padding: 28px;
-margin-bottom: 18px;
-box-shadow: 0 3px 15px rgba(0,0,0,.06);
+.publish-btn{
+background:white;
+color:#111;
 }
 
-.hero h1 {
-margin: 0 0 8px;
-font-size: 34px;
+.claim-btn{
+background:#ffefef;
+color:#b00000;
 }
 
-.hero p {
-color: #666;
-margin: 0 0 18px;
+/* CONTENIDO */
+
+main{
+max-width:1150px;
+margin:auto;
+padding:18px;
 }
 
-.search {
-display: flex;
-gap: 8px;
+.hero{
+background:white;
+border-radius:20px;
+padding:28px;
+margin-bottom:18px;
+box-shadow:0 4px 18px rgba(0,0,0,.07);
 }
 
-.search input {
-flex: 1;
-padding: 13px;
-border: 1px solid #ddd;
-border-radius: 10px;
-font-size: 16px;
+.hero h1{
+margin:0 0 8px;
+font-size:34px;
 }
 
-.categories {
-display: flex;
-gap: 8px;
-overflow-x: auto;
-padding: 4px 0 18px;
+.hero p{
+color:#666;
+margin:0 0 20px;
 }
 
-.cat {
-white-space: nowrap;
-background: white;
-border: 1px solid #ddd;
+.search{
+display:flex;
+gap:8px;
 }
 
-.cat.active {
-background: #111;
-color: white;
+.search input{
+flex:1;
+padding:14px;
+border:1px solid #ddd;
+border-radius:11px;
+font-size:16px;
+outline:none;
 }
 
-.grid {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-gap: 16px;
+.search input:focus{
+border-color:#111;
 }
 
-.card {
-background: white;
-border-radius: 16px;
-overflow: hidden;
-box-shadow: 0 3px 15px rgba(0,0,0,.06);
+/* CATEGORÍAS */
+
+.section-title{
+font-size:22px;
+margin:20px 0 12px;
 }
 
-.photo {
-height: 180px;
-background: #e9eaec;
-display: flex;
-align-items: center;
-justify-content: center;
-font-size: 50px;
-overflow: hidden;
+.categories{
+display:flex;
+gap:8px;
+overflow-x:auto;
+padding-bottom:8px;
 }
 
-.photo img {
-width: 100%;
-height: 100%;
-object-fit: cover;
+.cat{
+background:white;
+border:1px solid #ddd;
+white-space:nowrap;
 }
 
-.info {
-padding: 15px;
+.cat.active{
+background:#111;
+color:white;
 }
 
-.info h3 {
-margin: 0 0 7px;
+/* PRODUCTOS */
+
+.grid{
+display:grid;
+grid-template-columns:
+repeat(auto-fill,minmax(220px,1fr));
+gap:16px;
 }
 
-.price {
-font-size: 20px;
-font-weight: 800;
-margin: 7px 0;
+.card{
+background:white;
+border-radius:17px;
+overflow:hidden;
+box-shadow:0 3px 15px rgba(0,0,0,.07);
 }
 
-.meta {
-color: #777;
-font-size: 13px;
+.photo{
+height:185px;
+background:#e9eaec;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:55px;
+overflow:hidden;
 }
 
-.actions {
-display: flex;
-gap: 8px;
-margin-top: 12px;
+.photo img{
+width:100%;
+height:100%;
+object-fit:cover;
 }
 
-.empty {
-text-align: center;
-padding: 40px;
-color: #777;
-background: white;
-border-radius: 16px;
+.info{
+padding:15px;
 }
 
-.modal {
-display: none;
-position: fixed;
-inset: 0;
-background: rgba(0,0,0,.55);
-z-index: 30;
-padding: 18px;
-overflow: auto;
+.info h3{
+margin:0 0 7px;
 }
 
-.modal.show {
-display: block;
+.price{
+font-size:21px;
+font-weight:900;
+margin:7px 0;
 }
 
-.modalbox {
-max-width: 560px;
-background: white;
-margin: 30px auto;
-border-radius: 18px;
-padding: 22px;
+.meta{
+color:#777;
+font-size:13px;
 }
 
-.modalbox h2 {
-margin-top: 0;
+.description{
+color:#555;
+font-size:14px;
+line-height:1.4;
 }
 
-.close {
-float: right;
-background: #eee;
+.actions{
+display:flex;
+gap:7px;
+margin-top:12px;
 }
 
-.field {
-margin: 12px 0;
+.whatsapp{
+background:#25D366;
+color:white;
+flex:1;
 }
 
-.field label {
-display: block;
-font-weight: 700;
-margin-bottom: 6px;
+.messenger{
+background:#0084FF;
+color:white;
+flex:1;
+}
+
+.delete{
+background:#eee;
+color:#222;
+}
+
+.empty{
+background:white;
+border-radius:16px;
+padding:45px 20px;
+text-align:center;
+color:#777;
+}
+
+/* MODALES */
+
+.modal{
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.6);
+z-index:500;
+padding:15px;
+overflow:auto;
+}
+
+.modal.show{
+display:block;
+}
+
+.modal-box{
+max-width:600px;
+margin:25px auto;
+background:white;
+border-radius:20px;
+padding:22px;
+box-shadow:0 10px 40px rgba(0,0,0,.25);
+}
+
+.modal-box h2{
+margin-top:0;
+}
+
+.close{
+float:right;
+background:#eee;
+padding:8px 11px;
+}
+
+.field{
+margin:13px 0;
+}
+
+.field label{
+display:block;
+font-weight:bold;
+margin-bottom:6px;
 }
 
 .field input,
 .field select,
-.field textarea {
-width: 100%;
-padding: 12px;
-border: 1px solid #ddd;
-border-radius: 9px;
-font-size: 15px;
+.field textarea{
+width:100%;
+padding:12px;
+border:1px solid #ddd;
+border-radius:10px;
+font-size:15px;
 }
 
-.row {
-display: flex;
-gap: 8px;
+.row{
+display:flex;
+gap:10px;
 }
 
-.row > * {
-flex: 1;
+.row > *{
+flex:1;
 }
 
-.notice {
-background: #fff7d6;
-border: 1px solid #eadb8a;
-padding: 12px;
-border-radius: 10px;
-margin-bottom: 15px;
-font-size: 13px;
+/* FOTOS */
+
+.photo-options{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
 }
 
-footer {
-text-align: center;
-padding: 30px;
-color: #777;
+.photo-option{
+padding:18px 10px;
+background:#f4f5f7;
+border:1px solid #ddd;
+border-radius:13px;
+text-align:center;
+cursor:pointer;
+font-weight:bold;
 }
 
-@media (max-width: 600px) {
-
-.hero h1 {
-font-size: 28px;
+.photo-option span{
+display:block;
+font-size:30px;
+margin-bottom:5px;
 }
 
-.tag {
-display: none;
+.preview{
+display:flex;
+gap:8px;
+overflow-x:auto;
+margin-top:10px;
 }
 
-.search {
-flex-direction: column;
+.preview img{
+width:90px;
+height:90px;
+object-fit:cover;
+border-radius:10px;
 }
 
-.grid {
-grid-template-columns: repeat(2, minmax(0, 1fr));
-gap: 10px;
+/* CONTACTO */
+
+.contact-options{
+display:grid;
+grid-template-columns:
+repeat(2,1fr);
+gap:10px;
 }
 
-.photo {
-height: 135px;
+.contact-option{
+border:2px solid #ddd;
+padding:15px;
+border-radius:12px;
+text-align:center;
+cursor:pointer;
 }
 
-.info {
-padding: 11px;
+.contact-option.selected{
+border-color:#111;
+background:#f5f5f5;
 }
 
-.actions {
-flex-direction: column;
+/* AVISOS */
+
+.notice{
+background:#fff7d6;
+border:1px solid #eadb8a;
+padding:12px;
+border-radius:11px;
+margin-bottom:15px;
+font-size:13px;
 }
 
-.actions button {
-width: 100%;
+footer{
+text-align:center;
+padding:35px 15px;
+color:#777;
+}
+
+/* MÓVIL */
+
+@media(max-width:650px){
+
+.logo{
+font-size:21px;
+}
+
+.owner{
+font-size:8px;
+}
+
+.header-buttons button{
+padding:9px 10px;
+font-size:12px;
+}
+
+.hero{
+padding:22px;
+}
+
+.hero h1{
+font-size:28px;
+}
+
+.search{
+flex-direction:column;
+}
+
+.grid{
+grid-template-columns:
+repeat(2,minmax(0,1fr));
+gap:10px;
+}
+
+.photo{
+height:140px;
+}
+
+.info{
+padding:11px;
+}
+
+.actions{
+flex-direction:column;
+}
+
+.row{
+flex-direction:column;
+gap:0;
+}
+
+.contact-options{
+grid-template-columns:1fr;
 }
 }
+
 </style>
 </head>
 
@@ -302,39 +456,71 @@ width: 100%;
 
 <div class="top">
 
+<div class="brand">
+
 <div>
-<div class="logo">⚡ Market Flash</div>
-<div class="tag">Compra • Vende • Publica</div>
+
+<div class="logo">
+⚡ Market Flash
 </div>
 
-<button class="light" onclick="openModal()">
-+ Publicar
+<div class="owner">
+✦ Propiedad de Julio Alcántara Gomera ✦
+</div>
+
+</div>
+
+</div>
+
+<div class="header-buttons">
+
+<button
+class="claim-btn"
+onclick="openClaims()"
+>
+⚠️ Reclamos
 </button>
+
+<button
+class="publish-btn"
+onclick="openPublish()"
+>
+＋ Publicar
+</button>
+
+</div>
 
 </div>
 
 </header>
 
+
 <main>
 
 <section class="hero">
 
-<h1>Compra y vende fácil</h1>
+<h1>
+Compra y vende de todo
+</h1>
 
 <p>
-Encuentra teléfonos, computadoras y otros productos en Market Flash.
+Market Flash — tu marketplace para publicar,
+buscar y encontrar productos.
 </p>
 
 <div class="search">
 
 <input
 id="search"
-type="text"
-placeholder="¿Qué estás buscando?"
+type="search"
+placeholder="🔎 Buscar productos..."
 oninput="renderProducts()"
 >
 
-<button class="primary" onclick="renderProducts()">
+<button
+class="publish-btn"
+onclick="openPublish()"
+>
 Buscar
 </button>
 
@@ -342,77 +528,171 @@ Buscar
 
 </section>
 
+
 <div class="notice">
 
-⚡ Market Flash está comenzando. Aquí podrás publicar y encontrar productos fácilmente.
+⚡ Publica tus productos y permite que los compradores
+te contacten por WhatsApp o Messenger.
 
 </div>
 
+
+<h2 class="section-title">
+Categorías
+</h2>
+
+
 <div class="categories">
 
-<button class="cat active" onclick="setCategory('Todos', this)">
+<button
+class="cat active"
+onclick="setCategory('Todos',this)"
+>
 Todos
 </button>
 
-<button class="cat" onclick="setCategory('Teléfonos', this)">
+<button
+class="cat"
+onclick="setCategory('Teléfonos',this)"
+>
 📱 Teléfonos
 </button>
 
-<button class="cat" onclick="setCategory('Computadoras', this)">
+<button
+class="cat"
+onclick="setCategory('Computadoras',this)"
+>
 💻 Computadoras
 </button>
 
-<button class="cat" onclick="setCategory('Accesorios', this)">
+<button
+class="cat"
+onclick="setCategory('Accesorios',this)"
+>
 🎧 Accesorios
 </button>
 
-<button class="cat" onclick="setCategory('Otros', this)">
+<button
+class="cat"
+onclick="setCategory('Vehículos',this)"
+>
+🏍️ Vehículos
+</button>
+
+<button
+class="cat"
+onclick="setCategory('Casas',this)"
+>
+🏠 Casas
+</button>
+
+<button
+class="cat"
+onclick="setCategory('Ropa',this)"
+>
+👕 Ropa
+</button>
+
+<button
+class="cat"
+onclick="setCategory('Joyas',this)"
+>
+💍 Oro y Joyas
+</button>
+
+<button
+class="cat"
+onclick="setCategory('Videojuegos',this)"
+>
+🎮 Videojuegos
+</button>
+
+<button
+class="cat"
+onclick="setCategory('Otros',this)"
+>
 🛒 Otros
 </button>
 
 </div>
 
-<div id="products" class="grid"></div>
+
+<h2 class="section-title">
+Publicaciones
+</h2>
+
+
+<div
+id="products"
+class="grid"
+>
+</div>
 
 </main>
+
 
 <footer>
 
 © 2026 Market Flash
 
+<br>
+
+Compra • Vende • Conecta
+
 </footer>
 
-<div id="modal" class="modal">
 
-<div class="modalbox">
+<!-- VENTANA PUBLICAR -->
 
-<button class="close" onclick="closeModal()">✕</button>
+<div
+id="publishModal"
+class="modal"
+>
 
-<h2>Publicar producto</h2>
+<div class="modal-box">
+
+<button
+class="close"
+onclick="closePublish()"
+>
+✕
+</button>
+
+<h2>
+📦 Publicar producto
+</h2>
+
 
 <form id="productForm">
 
+
 <div class="field">
 
-<label>Nombre del producto</label>
+<label>
+Nombre del producto
+</label>
 
 <input
-id="name"
+id="productName"
 type="text"
-placeholder="Ej. iPhone 13"
+placeholder="Ej. iPhone 15 Pro"
 required
 >
 
 </div>
 
+
 <div class="row">
+
 
 <div class="field">
 
-<label>Precio RD$</label>
+<label>
+Precio RD$
+</label>
 
 <input
-id="price"
+id="productPrice"
 type="number"
 min="0"
 placeholder="25000"
@@ -421,15 +701,31 @@ required
 
 </div>
 
+
 <div class="field">
 
-<label>Categoría</label>
+<label>
+Categoría
+</label>
 
-<select id="category">
+<select id="productCategory">
 
 <option>Teléfonos</option>
+
 <option>Computadoras</option>
+
 <option>Accesorios</option>
+
+<option>Vehículos</option>
+
+<option>Casas</option>
+
+<option>Ropa</option>
+
+<option>Joyas</option>
+
+<option>Videojuegos</option>
+
 <option>Otros</option>
 
 </select>
@@ -438,100 +734,530 @@ required
 
 </div>
 
+
 <div class="field">
 
-<label>Descripción</label>
+<label>
+Descripción
+</label>
 
 <textarea
-id="description"
-rows="3"
-placeholder="Describe el producto"
+id="productDescription"
+rows="4"
+placeholder="Describe el producto..."
 ></textarea>
 
 </div>
 
+
 <div class="field">
 
-<label>Teléfono de contacto</label>
+<label>
+📸 Fotos del producto
+</label>
+
+
+<div class="photo-options">
+
+<label class="photo-option">
+
+<span>📷</span>
+
+Tomar foto
 
 <input
-id="phone"
+id="cameraInput"
+type="file"
+accept="image/*"
+capture="environment"
+multiple
+style="display:none"
+>
+
+</label>
+
+
+<label class="photo-option">
+
+<span>🖼️</span>
+
+Galería
+
+<input
+id="galleryInput"
+type="file"
+accept="image/*"
+multiple
+style="display:none"
+>
+
+</label>
+
+</div>
+
+
+<div
+id="preview"
+class="preview"
+>
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label>
+📞 ¿Cómo quieres que te contacten?
+</label>
+
+
+<div class="contact-options">
+
+
+<div
+class="contact-option selected"
+data-contact="whatsapp"
+onclick="selectContact('whatsapp',this)"
+>
+🟢 WhatsApp
+</div>
+
+
+<div
+class="contact-option"
+data-contact="messenger"
+onclick="selectContact('messenger',this)"
+>
+🔵 Messenger
+</div>
+
+
+<div
+class="contact-option"
+data-contact="both"
+onclick="selectContact('both',this)"
+>
+🟢🔵 Ambos
+</div>
+
+
+</div>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Número de WhatsApp
+</label>
+
+<input
+id="sellerPhone"
 type="tel"
 placeholder="809-000-0000"
 >
 
 </div>
 
+
 <div class="field">
 
-<label>Foto del producto</label>
+<label>
+Enlace de Messenger (opcional)
+</label>
 
 <input
-id="image"
-type="file"
-accept="image/*"
+id="sellerMessenger"
+type="url"
+placeholder="https://m.me/..."
 >
 
 </div>
 
-<button class="primary" type="submit">
 
-Publicar producto
-
+<button
+class="primary"
+type="submit"
+style="width:100%;"
+>
+🚀 Publicar producto
 </button>
+
 
 </form>
 
 </div>
 
 </div>
+
+
+<!-- VENTANA RECLAMOS -->
+
+<div
+id="claimsModal"
+class="modal"
+>
+
+<div class="modal-box">
+
+<button
+class="close"
+onclick="closeClaims()"
+>
+✕
+</button>
+
+<h2>
+⚠️ Reclamos y soporte
+</h2>
+
+<p>
+¿Tienes un problema con una publicación,
+un vendedor o una compra?
+</p>
+
+
+<div class="field">
+
+<label>
+Motivo
+</label>
+
+<select id="claimReason">
+
+<option>
+Problema con un vendedor
+</option>
+
+<option>
+Problema con una publicación
+</option>
+
+<option>
+Posible estafa
+</option>
+
+<option>
+Producto diferente al anunciado
+</option>
+
+<option>
+Otro problema
+</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>
+Explica lo ocurrido
+</label>
+
+<textarea
+id="claimText"
+rows="5"
+placeholder="Escribe aquí tu reclamo..."
+></textarea>
+
+</div>
+
+
+<button
+class="primary"
+style="width:100%;"
+onclick="sendClaim()"
+>
+📤 Enviar reclamo
+</button>
+
+
+<hr style="margin:22px 0;border:0;border-top:1px solid #eee;">
+
+
+<h3>
+🆘 Soporte Market Flash
+</h3>
+
+<p>
+También podrás comunicarte directamente
+con el soporte de Market Flash.
+</p>
+
+
+<button
+class="primary"
+style="width:100%;"
+onclick="openSupport()"
+>
+💬 Hablar con soporte
+</button>
+
+</div>
+
+</div>
+
+
+<!-- VENTANA SOPORTE -->
+
+<div
+id="supportModal"
+class="modal"
+>
+
+<div class="modal-box">
+
+<button
+class="close"
+onclick="closeSupport()"
+>
+✕
+</button>
+
+<h2>
+💬 Soporte Market Flash
+</h2>
+
+<div class="field">
+
+<label>
+Tu nombre
+</label>
+
+<input
+id="supportName"
+type="text"
+placeholder="Tu nombre"
+>
+
+</div>
+
+<div class="field">
+
+<label>
+Tu mensaje
+</label>
+
+<textarea
+id="supportMessage"
+rows="5"
+placeholder="¿En qué podemos ayudarte?"
+></textarea>
+
+</div>
+
+<button
+class="primary"
+style="width:100%;"
+onclick="sendSupport()"
+>
+📤 Enviar mensaje
+</button>
+
+</div>
+
+</div>
+
+
 <script>
-
-let currentCategory = "Todos";
-
+  let currentCategory = "Todos";
+let selectedContact = "whatsapp";
+let selectedImages = [];
 let products = JSON.parse(
 localStorage.getItem("marketFlashProducts") || "[]"
 );
 
 
-/* ABRIR VENTANA DE PUBLICAR */
+/* =========================
+PUBLICAR
+========================= */
 
-function openModal() {
+function openPublish() {
+document.getElementById("publishModal").classList.add("show");
+}
 
-document.getElementById("modal").classList.add("show");
-
+function closePublish() {
+document.getElementById("publishModal").classList.remove("show");
 }
 
 
-/* CERRAR VENTANA */
+/* =========================
+RECLAMOS
+========================= */
 
-function closeModal() {
+function openClaims() {
+document.getElementById("claimsModal").classList.add("show");
+}
 
-document.getElementById("modal").classList.remove("show");
-
+function closeClaims() {
+document.getElementById("claimsModal").classList.remove("show");
 }
 
 
-/* CAMBIAR CATEGORÍA */
+/* =========================
+SOPORTE
+========================= */
+
+function openSupport() {
+closeClaims();
+document.getElementById("supportModal").classList.add("show");
+}
+
+function closeSupport() {
+document.getElementById("supportModal").classList.remove("show");
+}
+
+
+/* =========================
+CATEGORÍAS
+========================= */
 
 function setCategory(category, button) {
 
 currentCategory = category;
 
 document.querySelectorAll(".cat").forEach(function(btn) {
-
 btn.classList.remove("active");
-
 });
 
 button.classList.add("active");
 
 renderProducts();
+}
+
+
+/* =========================
+CONTACTO
+========================= */
+
+function selectContact(type, element) {
+
+selectedContact = type;
+
+document.querySelectorAll(".contact-option").forEach(function(option) {
+option.classList.remove("selected");
+});
+
+element.classList.add("selected");
+}
+
+
+/* =========================
+FOTOS
+========================= */
+
+function handleImages(files) {
+
+Array.from(files).forEach(function(file) {
+
+if (!file.type.startsWith("image/")) {
+return;
+}
+
+const reader = new FileReader();
+
+reader.onload = function(event) {
+
+selectedImages.push(event.target.result);
+
+renderPreview();
+
+};
+
+reader.readAsDataURL(file);
+
+});
 
 }
 
 
-/* FORMULARIO DE PUBLICAR */
+document.getElementById("cameraInput").addEventListener(
+"change",
+function() {
+
+handleImages(this.files);
+
+this.value = "";
+
+}
+);
+
+
+document.getElementById("galleryInput").addEventListener(
+"change",
+function() {
+
+handleImages(this.files);
+
+this.value = "";
+
+}
+);
+
+
+function renderPreview() {
+
+const preview =
+document.getElementById("preview");
+
+if (selectedImages.length === 0) {
+
+preview.innerHTML = "";
+
+return;
+
+}
+
+preview.innerHTML = selectedImages.map(function(image, index) {
+
+return `
+<div style="position:relative;min-width:90px;">
+
+<img
+src="${image}"
+alt="Foto ${index + 1}"
+>
+
+<button
+type="button"
+onclick="removeImage(${index})"
+style="
+position:absolute;
+top:3px;
+right:3px;
+padding:4px 7px;
+background:#111;
+color:white;
+border-radius:50%;
+"
+>
+✕
+</button>
+
+</div>
+`;
+
+}).join("");
+
+}
+
+
+function removeImage(index) {
+
+selectedImages.splice(index, 1);
+
+renderPreview();
+
+}
+
+
+/* =========================
+FORMULARIO
+========================= */
 
 document.getElementById("productForm").addEventListener(
 "submit",
@@ -540,34 +1266,64 @@ function(event) {
 event.preventDefault();
 
 const name =
-document.getElementById("name").value.trim();
+document.getElementById("productName").value.trim();
 
 const price =
-document.getElementById("price").value;
+document.getElementById("productPrice").value;
 
 const category =
-document.getElementById("category").value;
+document.getElementById("productCategory").value;
 
 const description =
-document.getElementById("description").value.trim();
+document.getElementById("productDescription").value.trim();
 
 const phone =
-document.getElementById("phone").value.trim();
+document.getElementById("sellerPhone").value.trim();
 
-const imageInput =
-document.getElementById("image");
+const messenger =
+document.getElementById("sellerMessenger").value.trim();
 
 
 if (!name || !price) {
 
-alert("Completa el nombre y el precio.");
+alert(
+"Debes colocar el nombre y el precio del producto."
+);
 
 return;
 
 }
 
 
-const createProduct = function(imageData) {
+if (
+(selectedContact === "whatsapp" ||
+selectedContact === "both") &&
+!phone
+) {
+
+alert(
+"Coloca tu número de WhatsApp para poder contactarte."
+);
+
+return;
+
+}
+
+
+if (
+(selectedContact === "messenger" ||
+selectedContact === "both") &&
+!messenger
+) {
+
+alert(
+"Coloca tu enlace de Messenger para poder contactarte."
+);
+
+return;
+
+}
+
 
 const product = {
 
@@ -583,9 +1339,18 @@ description: description,
 
 phone: phone,
 
-image: imageData || "",
+messenger: messenger,
 
-createdAt: new Date().toLocaleDateString("es-DO")
+contact: selectedContact,
+
+images: selectedImages.slice(),
+
+createdAt:
+new Date().toLocaleDateString("es-DO"),
+
+rating: 0,
+
+comments: []
 
 };
 
@@ -601,43 +1366,44 @@ JSON.stringify(products)
 
 document.getElementById("productForm").reset();
 
-closeModal();
+
+selectedImages = [];
+
+selectedContact = "whatsapp";
+
+
+document.querySelectorAll(
+".contact-option"
+).forEach(function(option) {
+
+option.classList.remove("selected");
+
+});
+
+
+document.querySelector(
+'[data-contact="whatsapp"]'
+).classList.add("selected");
+
+
+renderPreview();
+
+closePublish();
 
 renderProducts();
 
 
-alert("¡Producto publicado correctamente!");
-
-};
-
-
-if (imageInput.files.length > 0) {
-
-const file = imageInput.files[0];
-
-const reader = new FileReader();
-
-
-reader.onload = function(e) {
-
-createProduct(e.target.result);
-
-};
-
-
-reader.readAsDataURL(file);
-
-} else {
-
-createProduct("");
-
-}
+alert(
+"🎉 ¡Producto publicado correctamente!"
+);
 
 }
 );
 
 
-/* MOSTRAR PRODUCTOS */
+/* =========================
+MOSTRAR PRODUCTOS
+========================= */
 
 function renderProducts() {
 
@@ -651,9 +1417,10 @@ document.getElementById("search")
 .trim();
 
 
-let filtered = products.filter(function(product) {
+let filtered =
+products.filter(function(product) {
 
-const matchesCategory =
+const categoryMatch =
 currentCategory === "Todos" ||
 product.category === currentCategory;
 
@@ -668,11 +1435,11 @@ product.category
 ).toLowerCase();
 
 
-const matchesSearch =
+const searchMatch =
 text.includes(search);
 
 
-return matchesCategory && matchesSearch;
+return categoryMatch && searchMatch;
 
 });
 
@@ -683,11 +1450,13 @@ container.innerHTML = `
 
 <div class="empty">
 
-<div style="font-size:45px;">
+<div style="font-size:50px;">
 🛍️
 </div>
 
-<h3>No hay productos todavía</h3>
+<h3>
+No hay publicaciones todavía
+</h3>
 
 <p>
 Sé el primero en publicar un producto.
@@ -695,9 +1464,9 @@ Sé el primero en publicar un producto.
 
 <button
 class="primary"
-onclick="openModal()"
+onclick="openPublish()"
 >
-+ Publicar producto
+＋ Publicar producto
 </button>
 
 </div>
@@ -709,32 +1478,92 @@ return;
 }
 
 
-container.innerHTML = filtered.map(function(product) {
+container.innerHTML =
+filtered.map(function(product) {
 
-const imageHTML = product.image
+return createProductCard(product);
 
-? `
+}).join("");
+
+}
+
+
+/* =========================
+TARJETA DEL PRODUCTO
+========================= */
+
+function createProductCard(product) {
+
+let photo = "🛍️";
+
+
+if (
+product.images &&
+product.images.length > 0
+) {
+
+photo = `
 <img
-src="${product.image}"
+src="${product.images[0]}"
 alt="${escapeHTML(product.name)}"
 >
-`
+`;
 
-: getEmoji(product.category);
+} else {
+
+photo =
+getCategoryEmoji(product.category);
+
+}
 
 
-const phoneButton = product.phone
+let contactButtons = "";
 
-? `
+
+if (
+product.contact === "whatsapp" ||
+product.contact === "both"
+) {
+
+if (product.phone) {
+
+contactButtons += `
+
 <button
-class="primary"
-onclick="contactSeller('${escapeJS(product.phone)}')"
+class="whatsapp"
+onclick="contactWhatsApp('${escapeJS(product.phone)}')"
 >
-📞 Contactar
+🟢 WhatsApp
 </button>
-`
 
-: "";
+`;
+
+}
+
+}
+
+
+if (
+product.contact === "messenger" ||
+product.contact === "both"
+) {
+
+if (product.messenger) {
+
+contactButtons += `
+
+<button
+class="messenger"
+onclick="contactMessenger('${escapeJS(product.messenger)}')"
+>
+🔵 Messenger
+</button>
+
+`;
+
+}
+
+}
 
 
 return `
@@ -742,11 +1571,8 @@ return `
 <article class="card">
 
 <div class="photo">
-
-${imageHTML}
-
+${photo}
 </div>
-
 
 <div class="info">
 
@@ -754,30 +1580,21 @@ ${imageHTML}
 ${escapeHTML(product.name)}
 </h3>
 
-
 <div class="price">
-
 RD$ ${formatPrice(product.price)}
-
 </div>
-
 
 <div class="meta">
-
 ${escapeHTML(product.category)}
-
 ·
-
 ${product.createdAt}
-
 </div>
-
 
 ${
 product.description
 ?
 `
-<p>
+<p class="description">
 ${escapeHTML(product.description)}
 </p>
 `
@@ -785,16 +1602,15 @@ ${escapeHTML(product.description)}
 ""
 }
 
-
 <div class="actions">
 
-${phoneButton}
+${contactButtons}
 
 <button
-class="light"
+class="delete"
 onclick="deleteProduct(${product.id})"
 >
-🗑️ Eliminar
+🗑️
 </button>
 
 </div>
@@ -805,85 +1621,75 @@ onclick="deleteProduct(${product.id})"
 
 `;
 
-}).join("");
+}
+
+
+/* =========================
+WHATSAPP
+========================= */
+
+function contactWhatsApp(phone) {
+
+let number =
+String(phone).replace(/\D/g, "");
+
+
+if (number.length === 10) {
+
+number = "1" + number;
 
 }
 
 
-/* PRECIO */
-
-function formatPrice(price) {
-
-return Number(price).toLocaleString("es-DO");
-
-}
-
-
-/* EMOJIS DE CATEGORÍAS */
-
-function getEmoji(category) {
-
-if (category === "Teléfonos") {
-
-return "📱";
-
-}
-
-if (category === "Computadoras") {
-
-return "💻";
-
-}
-
-if (category === "Accesorios") {
-
-return "🎧";
-
-}
-
-return "🛒";
+window.open(
+"https://wa.me/" +
+number +
+"?text=Hola%2C%20vi%20tu%20producto%20en%20Market%20Flash.",
+"_blank"
+);
 
 }
 
 
-/* CONTACTAR */
+/* =========================
+MESSENGER
+========================= */
 
-function contactSeller(phone) {
+function contactMessenger(link) {
 
-const cleanPhone =
-phone.replace(/\D/g, "");
+if (!link) {
 
-
-if (!cleanPhone) {
-
-alert("Este vendedor no agregó un teléfono.");
+alert(
+"Este vendedor no agregó Messenger."
+);
 
 return;
 
 }
 
 
-window.location.href =
-"https://wa.me/" +
-cleanPhone +
-"?text=Hola%2C%20vi%20tu%20producto%20en%20Market%20Flash.";
-
+window.open(
+link,
+"_blank"
+);
 
 }
 
 
-/* ELIMINAR PRODUCTO */
+/* =========================
+ELIMINAR
+========================= */
 
 function deleteProduct(id) {
 
 const confirmDelete =
-confirm("¿Quieres eliminar este producto?");
+confirm(
+"¿Seguro que quieres eliminar esta publicación?"
+);
 
 
 if (!confirmDelete) {
-
 return;
-
 }
 
 
@@ -906,7 +1712,192 @@ renderProducts();
 }
 
 
-/* SEGURIDAD DEL TEXTO */
+/* =========================
+EMOJIS
+========================= */
+
+function getCategoryEmoji(category) {
+
+if (category === "Teléfonos") {
+return "📱";
+}
+
+if (category === "Computadoras") {
+return "💻";
+}
+
+if (category === "Accesorios") {
+return "🎧";
+}
+
+if (category === "Vehículos") {
+return "🏍️";
+}
+
+if (category === "Casas") {
+return "🏠";
+}
+
+if (category === "Ropa") {
+return "👕";
+}
+
+if (category === "Joyas") {
+return "💍";
+}
+
+if (category === "Videojuegos") {
+return "🎮";
+}
+
+return "🛒";
+
+}
+
+
+/* =========================
+PRECIO
+========================= */
+
+function formatPrice(price) {
+
+return Number(price).toLocaleString("es-DO");
+
+}
+
+
+/* =========================
+RECLAMO
+========================= */
+
+function sendClaim() {
+
+const reason =
+document.getElementById("claimReason").value;
+
+const text =
+document.getElementById("claimText").value.trim();
+
+
+if (!text) {
+
+alert(
+"Escribe el problema antes de enviar el reclamo."
+);
+
+return;
+
+}
+
+
+const claims =
+JSON.parse(
+localStorage.getItem("marketFlashClaims") || "[]"
+);
+
+
+claims.unshift({
+
+id: Date.now(),
+
+reason: reason,
+
+message: text,
+
+date:
+new Date().toLocaleString("es-DO"),
+
+status: "Pendiente"
+
+});
+
+
+localStorage.setItem(
+"marketFlashClaims",
+JSON.stringify(claims)
+);
+
+
+document.getElementById("claimText").value = "";
+
+
+alert(
+"⚠️ Reclamo enviado correctamente."
+);
+
+}
+
+
+/* =========================
+SOPORTE
+========================= */
+
+function sendSupport() {
+
+const name =
+document.getElementById("supportName").value.trim();
+
+const message =
+document.getElementById("supportMessage").value.trim();
+
+
+if (!message) {
+
+alert(
+"Escribe tu mensaje para soporte."
+);
+
+return;
+
+}
+
+
+const messages =
+JSON.parse(
+localStorage.getItem("marketFlashSupport") || "[]"
+);
+
+
+messages.unshift({
+
+id: Date.now(),
+
+name: name,
+
+message: message,
+
+date:
+new Date().toLocaleString("es-DO"),
+
+status: "Nuevo"
+
+});
+
+
+localStorage.setItem(
+"marketFlashSupport",
+JSON.stringify(messages)
+);
+
+
+document.getElementById("supportName").value = "";
+
+document.getElementById("supportMessage").value = "";
+
+
+alert(
+"💬 Mensaje enviado a soporte."
+);
+
+
+closeSupport();
+
+}
+
+
+/* =========================
+SEGURIDAD
+========================= */
 
 function escapeHTML(text) {
 
@@ -938,15 +1929,40 @@ return String(text)
 }
 
 
-/* CERRAR MODAL AL TOCAR AFUERA */
+/* =========================
+CERRAR MODALES
+========================= */
 
-document.getElementById("modal").addEventListener(
+window.addEventListener(
 "click",
 function(event) {
 
-if (event.target === this) {
+if (
+event.target ===
+document.getElementById("publishModal")
+) {
 
-closeModal();
+closePublish();
+
+}
+
+
+if (
+event.target ===
+document.getElementById("claimsModal")
+) {
+
+closeClaims();
+
+}
+
+
+if (
+event.target ===
+document.getElementById("supportModal")
+) {
+
+closeSupport();
 
 }
 
@@ -954,11 +1970,12 @@ closeModal();
 );
 
 
-/* CARGAR PRODUCTOS AL ABRIR */
+/* =========================
+INICIAR
+========================= */
 
 renderProducts();
-
-</script>
+  </script>
 
 </body>
 </html>
