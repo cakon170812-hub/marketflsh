@@ -1,1 +1,1 @@
-<h1>Bienvenido a Market Flash</h1>2 <p>Esta es la primera versión de mi plataforma.</p> <h2>¿Qué podrás hacer aquí?</h2> <ul> <li>Publicar productos.</li> <li>Comprar y vender.</li> <li>Administrar tu tienda.</li> <li> Ver inventario.</li> <ul> <body> <html> Cuando lo pegues, haz clic en el botón verde que dice “Commit changes”. Luego me dices y continuamos
+``` html DOCTYPE html, todo desde DOCTYPE hasta el cierre final de html.
