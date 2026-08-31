@@ -1,182 +1,206 @@
 /* =========================================================
    MARKET FLASH
-   SCRIPT.JS COMPLETO
-   SUPABASE + AUTENTICACIÓN + PRODUCTOS + PERFIL
+   SCRIPT.JS
+   VERSION LIMPIA + SUPABASE
    ========================================================= */
 
 "use strict";
 
-
 /* =========================================================
-   1. CONFIGURACIÓN DE SUPABASE
+   1. SUPABASE
    ========================================================= */
 
-const SUPABASE_URL =
+const MARKET_FLASH_URL =
     "https://osxuhmgnpgbxfopqdhqr.supabase.co";
 
-const SUPABASE_PUBLISHABLE_KEY =
+const MARKET_FLASH_KEY =
     "sb_publishable_6qLmRFGHrwGq_CKqsIH7jA_Oz8TTlQZ";
 
-
-if (
-    typeof window.supabase === "undefined" ||
-    typeof window.supabase.createClient !== "function"
-) {
-    console.error(
-        "No se pudo cargar la librería de Supabase."
+const marketFlashClient =
+    window.supabase.createClient(
+        MARKET_FLASH_URL,
+        MARKET_FLASH_KEY
     );
-} else {
-
-    window.marketFlashSupabase =
-        window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_PUBLISHABLE_KEY,
-            {
-                auth: {
-                    autoRefreshToken: true,
-                    persistSession: true,
-                    detectSessionInUrl: true
-                }
-            }
-        );
-
-}
-
-
-const supabase =
-    window.marketFlashSupabase;
 
 
 /* =========================================================
-   2. CONFIGURACIÓN DE MARKET FLASH
+   2. CONFIGURACIÓN
    ========================================================= */
 
-const MARKET_FLASH_CONFIG = {
-
-    currency: "RD$",
+const APP = {
 
     publicationFee: 100,
 
-    supportWhatsApp:
-        "",
+    publicationMode: "paid",
 
-    supportMessenger:
-        "",
+    promotionsActive: true,
 
-    paypalAccount:
-        "",
+    supportWhatsApp: "",
 
-    binanceAddress:
-        "",
+    supportMessenger: "",
 
-    defaultPublicationMode:
-        "paid"
+    binanceAddress: "",
+
+    paypalAccount: ""
 
 };
 
 
 /* =========================================================
-   3. ESTADO GLOBAL
+   3. ESTADO
    ========================================================= */
 
-const state = {
+const STATE = {
 
     user: null,
 
     profile: null,
 
+    isAdmin: false,
+
     products: [],
 
     favorites: new Set(),
 
-    currentCategory: "Todos",
+    selectedProduct: null,
 
-    currentSearch: "",
+    selectedCategory: "Todos",
 
-    currentProduct: null,
+    search: "",
 
-    isAdmin: false,
-
-    publicationMode: "paid"
+    currentPage: "inicio"
 
 };
 
 
 /* =========================================================
-   4. SELECTORES
+   4. UTILIDADES
    ========================================================= */
 
-const $ = (selector) =>
-    document.querySelector(selector);
+function $(selector) {
+    return document.querySelector(selector);
+}
 
 
-const $$ = (selector) =>
-    Array.from(document.querySelectorAll(selector));
+function $all(selector) {
+    return Array.from(
+        document.querySelectorAll(selector)
+    );
+}
 
 
-/* =========================================================
-   5. MENSAJES
-   ========================================================= */
-
-function showMessage(
-    message,
+function message(
+    text,
     type = "info"
 ) {
 
-    const container =
+    const box =
         $("#app-message");
 
-    if (!container) {
+    if (!box) {
 
-        alert(message);
+        alert(text);
 
         return;
+
     }
 
+    box.textContent =
+        text;
 
-    container.textContent =
-        message;
-
-    container.className =
+    box.className =
         "app-message show";
 
-
     if (type === "success") {
-        container.classList.add("success");
+        box.classList.add("success");
     }
 
     if (type === "error") {
-        container.classList.add("error");
+        box.classList.add("error");
     }
 
     if (type === "warning") {
-        container.classList.add("warning");
+        box.classList.add("warning");
     }
 
-
     clearTimeout(
-        container._timer
+        box._timer
     );
 
+    box._timer =
+        setTimeout(
+            () => {
 
-    container._timer =
-        setTimeout(() => {
+                box.classList.remove(
+                    "show"
+                );
 
-            container.classList.remove(
-                "show"
-            );
+            },
+            4000
+        );
 
-        }, 4000);
+}
+
+
+function formatPrice(value) {
+
+    const number =
+        Number(value);
+
+    if (
+        Number.isNaN(number)
+    ) {
+
+        return "0.00";
+
+    }
+
+    return number.toLocaleString(
+        "es-DO",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+
+}
+
+
+function formatDate(value) {
+
+    if (!value) {
+        return "";
+    }
+
+    const date =
+        new Date(value);
+
+    if (
+        Number.isNaN(
+            date.getTime()
+        )
+    ) {
+
+        return "";
+
+    }
+
+    return date.toLocaleString(
+        "es-DO",
+        {
+            dateStyle: "medium",
+            timeStyle: "short"
+        }
+    );
 
 }
 
 
 /* =========================================================
-   6. NAVEGACIÓN
+   5. NAVEGACIÓN
    ========================================================= */
 
-const SECTION_IDS = [
-
+const PAGES = [
     "inicio",
     "categorias",
     "registro",
@@ -193,53 +217,110 @@ const SECTION_IDS = [
     "contactar-vendedor",
     "administrador",
     "politicas"
-
 ];
 
 
-function showSection(
-    sectionId
+function showPage(
+    pageId
 ) {
 
-    SECTION_IDS.forEach((id) => {
+    PAGES.forEach(
+        id => {
 
-        const section =
-            document.getElementById(id);
+            const page =
+                document.getElementById(id);
 
-        if (!section) {
-            return;
-        }
+            if (!page) {
+                return;
+            }
 
-
-        section.classList.toggle(
-            "active",
-            id === sectionId
-        );
-
-    });
-
-
-    $$("[data-section]").forEach(
-        (button) => {
-
-            button.classList.toggle(
+            page.classList.toggle(
                 "active",
-                button.dataset.section === sectionId
+                id === pageId
             );
 
         }
     );
 
 
-    const section =
-        document.getElementById(sectionId);
+    $all("[data-section]")
+        .forEach(
+            button => {
 
-    if (section) {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.section ===
+                    pageId
+                );
 
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
+            }
+        );
+
+
+    STATE.currentPage =
+        pageId;
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+
+    if (
+        pageId === "perfil"
+    ) {
+
+        if (!STATE.user) {
+
+            showPage(
+                "inicio-sesion"
+            );
+
+            message(
+                "Debes iniciar sesión para entrar a tu perfil.",
+                "warning"
+            );
+
+            return;
+
+        }
+
+        renderProfile();
+        renderMyProducts();
+        renderFavorites();
+        renderSoldProducts();
+
+    }
+
+
+    if (
+        pageId === "administrador"
+    ) {
+
+        if (!STATE.isAdmin) {
+
+            showPage("inicio");
+
+            message(
+                "No tienes permisos de administrador.",
+                "error"
+            );
+
+            return;
+
+        }
+
+        loadAdmin();
+
+    }
+
+
+    if (
+        pageId === "notificaciones"
+    ) {
+
+        loadNotifications();
 
     }
 
@@ -248,86 +329,104 @@ function showSection(
 
 function setupNavigation() {
 
-    $$("[data-section]")
-        .forEach((button) => {
+    $all("[data-section]")
+        .forEach(
+            button => {
 
-            button.addEventListener(
-                "click",
-                async () => {
+                button.addEventListener(
+                    "click",
+                    () => {
 
-                    const sectionId =
-                        button.dataset.section;
+                        const target =
+                            button.dataset.section;
 
-                    if (
-                        sectionId ===
-                        "publicar"
-                    ) {
 
-                        if (!state.user) {
+                        if (
+                            target ===
+                            "publicar" &&
+                            !STATE.user
+                        ) {
 
-                            showMessage(
-                                "Debes iniciar sesión para publicar.",
+                            message(
+                                "Inicia sesión para publicar.",
                                 "warning"
                             );
 
-                            showSection(
+                            showPage(
                                 "inicio-sesion"
                             );
 
                             return;
+
                         }
 
-                    }
 
-
-                    if (
-                        sectionId ===
-                        "perfil"
-                    ) {
-
-                        if (!state.user) {
-
-                            showMessage(
-                                "Inicia sesión para acceder a tu perfil.",
-                                "warning"
-                            );
-
-                            showSection(
-                                "inicio-sesion"
-                            );
-
-                            return;
-                        }
+                        showPage(
+                            target
+                        );
 
                     }
+                );
+
+            }
+        );
+
+}
 
 
-                    if (
-                        sectionId ===
-                        "administrador"
-                    ) {
+/* =========================================================
+   6. BOTONES DEL ENCABEZADO
+   ========================================================= */
 
-                        if (!state.isAdmin) {
+function setupHeader() {
 
-                            showMessage(
-                                "No tienes permisos de administrador.",
-                                "error"
-                            );
+    $("#btn-registrarse")
+        ?.addEventListener(
+            "click",
+            () => {
 
-                            return;
-                        }
+                showPage(
+                    "registro"
+                );
 
-                    }
+            }
+        );
 
 
-                    showSection(
-                        sectionId
+    $("#btn-iniciar-sesion")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                showPage(
+                    "inicio-sesion"
+                );
+
+            }
+        );
+
+
+    $("#btn-perfil")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (!STATE.user) {
+
+                    showPage(
+                        "inicio-sesion"
                     );
 
-                }
-            );
+                    return;
 
-        });
+                }
+
+                showPage(
+                    "perfil"
+                );
+
+            }
+        );
 
 }
 
@@ -336,139 +435,122 @@ function setupNavigation() {
    7. REGISTRO
    ========================================================= */
 
-async function registerUser(
+async function register(
     event
 ) {
 
     event.preventDefault();
 
 
-    if (!supabase) {
-
-        showMessage(
-            "Supabase no está disponible.",
-            "error"
-        );
-
-        return;
-    }
-
-
     const form =
         event.currentTarget;
 
 
-    const formData =
-        new FormData(form);
+    const name =
+        $("#registro-nombre")
+            ?.value
+            .trim();
 
 
-    const nombre =
-        String(
-            formData.get("nombre") || ""
-        ).trim();
-
-
-    const correo =
-        String(
-            formData.get("correo") || ""
-        ).trim();
+    const email =
+        $("#registro-correo")
+            ?.value
+            .trim();
 
 
     const documento =
-        String(
-            formData.get("documento") || ""
-        ).trim();
+        $("#registro-documento")
+            ?.value
+            .trim();
 
 
-    const telefono =
-        String(
-            formData.get("telefono") || ""
-        ).trim();
+    const phone =
+        $("#registro-telefono")
+            ?.value
+            .trim();
 
 
     const whatsapp =
-        String(
-            formData.get("whatsapp") || ""
-        ).trim();
+        $("#registro-whatsapp")
+            ?.value
+            .trim();
 
 
     const messenger =
-        String(
-            formData.get("messenger") || ""
-        ).trim();
+        $("#registro-messenger")
+            ?.value
+            .trim();
 
 
     const password =
-        String(
-            formData.get("password") || ""
-        );
+        $("#registro-password")
+            ?.value;
 
 
     if (
-        !nombre ||
-        !correo ||
+        !name ||
+        !email ||
         !documento ||
-        !telefono ||
+        !phone ||
         !password
     ) {
 
-        showMessage(
+        message(
             "Completa todos los campos obligatorios.",
             "warning"
         );
 
         return;
+
     }
 
 
-    if (password.length < 6) {
+    if (
+        password.length < 6
+    ) {
 
-        showMessage(
+        message(
             "La contraseña debe tener al menos 6 caracteres.",
             "warning"
         );
 
         return;
+
     }
 
 
-    const submitButton =
+    const button =
         form.querySelector(
             'button[type="submit"]'
         );
 
 
-    if (submitButton) {
-        submitButton.disabled = true;
+    if (button) {
+        button.disabled = true;
     }
 
 
     try {
 
-        const {
-            data,
-            error
-        } =
-            await supabase.auth.signUp({
+        const result =
+            await marketFlashClient.auth.signUp({
 
-                email:
-                    correo,
+                email: email,
 
-                password:
-                    password,
+                password: password,
 
                 options: {
 
                     data: {
 
                         full_name:
-                            nombre,
+                            name,
 
                         documento:
                             documento,
 
                         phone:
-                            telefono,
+                            phone,
 
                         whatsapp:
                             whatsapp,
@@ -483,26 +565,11 @@ async function registerUser(
             });
 
 
-        if (error) {
-            throw error;
-        }
+        if (
+            result.error
+        ) {
 
-
-        /*
-         * En este punto Supabase puede:
-         *
-         * 1. Iniciar la sesión inmediatamente,
-         * o
-         * 2. Pedir confirmación por correo.
-         */
-
-
-        if (data.user) {
-
-            showMessage(
-                "Cuenta creada correctamente.",
-                "success"
-            );
+            throw result.error;
 
         }
 
@@ -510,22 +577,27 @@ async function registerUser(
         form.reset();
 
 
-        /*
-         * Si el proyecto tiene confirmación por correo,
-         * mostramos un mensaje apropiado.
-         */
-
         if (
-            data.user &&
-            !data.session
+            result.data.session
         ) {
 
-            showMessage(
-                "Revisa tu correo para confirmar tu cuenta.",
+            message(
+                "Cuenta creada correctamente.",
                 "success"
             );
 
-            showSection(
+            showPage(
+                "inicio"
+            );
+
+        } else {
+
+            message(
+                "Cuenta creada. Revisa tu correo para confirmar la cuenta.",
+                "success"
+            );
+
+            showPage(
                 "inicio-sesion"
             );
 
@@ -534,11 +606,11 @@ async function registerUser(
     } catch (error) {
 
         console.error(
-            "Error durante el registro:",
+            "Registro:",
             error
         );
 
-        showMessage(
+        message(
             error.message ||
             "No se pudo crear la cuenta.",
             "error"
@@ -546,8 +618,8 @@ async function registerUser(
 
     } finally {
 
-        if (submitButton) {
-            submitButton.disabled = false;
+        if (button) {
+            button.disabled = false;
         }
 
     }
@@ -559,114 +631,106 @@ async function registerUser(
    8. INICIO DE SESIÓN
    ========================================================= */
 
-async function loginUser(
+async function login(
     event
 ) {
 
     event.preventDefault();
 
 
-    if (!supabase) {
-
-        showMessage(
-            "Supabase no está disponible.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const form =
-        event.currentTarget;
-
-
-    const correo =
-        String(
-            form.querySelector(
-                "#login-correo"
-            )?.value || ""
-        ).trim();
+    const email =
+        $("#login-correo")
+            ?.value
+            .trim();
 
 
     const password =
-        form.querySelector(
-            "#login-password"
-        )?.value || "";
+        $("#login-password")
+            ?.value;
 
 
-    if (!correo || !password) {
+    if (
+        !email ||
+        !password
+    ) {
 
-        showMessage(
+        message(
             "Escribe tu correo y contraseña.",
             "warning"
         );
 
         return;
+
     }
 
 
-    const submitButton =
-        form.querySelector(
-            'button[type="submit"]'
-        );
+    const button =
+        event.currentTarget
+            .querySelector(
+                'button[type="submit"]'
+            );
 
 
-    if (submitButton) {
-        submitButton.disabled = true;
+    if (button) {
+        button.disabled = true;
     }
 
 
     try {
 
-        const {
-            data,
-            error
-        } =
-            await supabase.auth.signInWithPassword({
+        const result =
+            await marketFlashClient.auth
+                .signInWithPassword({
 
-                email:
-                    correo,
+                    email:
+                        email,
 
-                password:
-                    password
+                    password:
+                        password
 
-            });
+                });
 
 
-        if (error) {
-            throw error;
+        if (
+            result.error
+        ) {
+
+            throw result.error;
+
         }
 
 
-        state.user =
-            data.user;
-
-
-        showMessage(
-            "Has iniciado sesión correctamente.",
-            "success"
-        );
-
-
-        form.reset();
+        STATE.user =
+            result.data.user;
 
 
         await loadUserData();
 
 
-        showSection(
+        event.currentTarget.reset();
+
+
+        message(
+            "Sesión iniciada correctamente.",
+            "success"
+        );
+
+
+        showPage(
             "inicio"
         );
+
+
+        await updateInterface();
 
     } catch (error) {
 
         console.error(
-            "Error al iniciar sesión:",
+            "Inicio de sesión:",
             error
         );
 
-        showMessage(
+        message(
             error.message ||
             "No se pudo iniciar sesión.",
             "error"
@@ -674,8 +738,8 @@ async function loginUser(
 
     } finally {
 
-        if (submitButton) {
-            submitButton.disabled = false;
+        if (button) {
+            button.disabled = false;
         }
 
     }
@@ -687,62 +751,55 @@ async function loginUser(
    9. CERRAR SESIÓN
    ========================================================= */
 
-async function logoutUser() {
+async function logout() {
 
-    if (!supabase) {
-        return;
-    }
-
-
-    const {
-        error
-    } =
-        await supabase.auth.signOut();
+    const result =
+        await marketFlashClient
+            .auth
+            .signOut();
 
 
-    if (error) {
+    if (
+        result.error
+    ) {
 
-        console.error(
-            "Error al cerrar sesión:",
-            error
-        );
-
-        showMessage(
-            "No se pudo cerrar la sesión.",
+        message(
+            result.error.message,
             "error"
         );
 
         return;
+
     }
 
 
-    state.user =
+    STATE.user =
         null;
 
-    state.profile =
+    STATE.profile =
         null;
 
-    state.products =
+    STATE.isAdmin =
+        false;
+
+    STATE.products =
         [];
 
-    state.favorites =
+    STATE.favorites =
         new Set();
-
-    state.isAdmin =
-        false;
 
 
     updateInterface();
 
 
-    showMessage(
-        "Sesión cerrada correctamente.",
-        "success"
+    showPage(
+        "inicio"
     );
 
 
-    showSection(
-        "inicio"
+    message(
+        "Sesión cerrada.",
+        "success"
     );
 
 }
@@ -754,51 +811,49 @@ async function logoutUser() {
 
 async function recoverPassword() {
 
-    if (!supabase) {
-        return;
-    }
-
-
-    const correo =
+    const email =
         prompt(
             "Escribe tu correo electrónico:"
         );
 
 
-    if (!correo) {
+    if (!email) {
         return;
     }
 
 
-    const redirectUrl =
-        `${window.location.origin}${window.location.pathname}`;
+    const redirect =
+        window.location.origin +
+        window.location.pathname;
 
 
-    const {
-        error
-    } =
-        await supabase.auth.resetPasswordForEmail(
-            correo.trim(),
-            {
-                redirectTo:
-                    redirectUrl
-            }
-        );
+    const result =
+        await marketFlashClient.auth
+            .resetPasswordForEmail(
+                email.trim(),
+                {
+                    redirectTo:
+                        redirect
+                }
+            );
 
 
-    if (error) {
+    if (
+        result.error
+    ) {
 
-        showMessage(
-            error.message,
+        message(
+            result.error.message,
             "error"
         );
 
         return;
+
     }
 
 
-    showMessage(
-        "Revisa tu correo para recuperar tu contraseña.",
+    message(
+        "Revisa tu correo para recuperar la contraseña.",
         "success"
     );
 
@@ -806,87 +861,17 @@ async function recoverPassword() {
 
 
 /* =========================================================
-   11. CARGAR SESIÓN
-   ========================================================= */
-
-async function loadCurrentSession() {
-
-    if (!supabase) {
-        return;
-    }
-
-
-    const {
-        data,
-        error
-    } =
-        await supabase.auth.getSession();
-
-
-    if (error) {
-
-        console.error(
-            "Error obteniendo sesión:",
-            error
-        );
-
-        return;
-    }
-
-
-    state.user =
-        data.session?.user ||
-        null;
-
-
-    await loadUserData();
-
-
-    supabase.auth.onAuthStateChange(
-        async (
-            event,
-            session
-        ) => {
-
-            state.user =
-                session?.user ||
-                null;
-
-
-            /*
-             * No usamos operaciones complejas
-             * de Supabase dentro del callback.
-             */
-
-            setTimeout(
-                async () => {
-
-                    await loadUserData();
-
-                    updateInterface();
-
-                },
-                0
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   12. PERFIL
+   11. DATOS DEL USUARIO
    ========================================================= */
 
 async function loadUserData() {
 
-    if (!state.user) {
+    if (!STATE.user) {
 
-        state.profile =
+        STATE.profile =
             null;
 
-        state.isAdmin =
+        STATE.isAdmin =
             false;
 
         return;
@@ -898,155 +883,61 @@ async function loadUserData() {
 
     await loadFavorites();
 
-    await loadProducts();
-
-
-    state.isAdmin =
-        state.profile?.role ===
+    STATE.isAdmin =
+        STATE.profile?.role ===
         "admin";
 
 }
 
 
-/* =========================================================
-   13. CARGAR PERFIL DESDE SUPABASE
-   ========================================================= */
-
 async function loadProfile() {
 
-    if (!supabase || !state.user) {
+    if (!STATE.user) {
         return;
     }
 
 
-    try {
-
-        const {
-            data,
-            error
-        } =
-            await supabase
-                .from("profiles")
-                .select(
-                    "id,full_name,documento,phone,whatsapp,messenger,role"
-                )
-                .eq(
-                    "id",
-                    state.user.id
-                )
-                .maybeSingle();
+    const result =
+        await marketFlashClient
+            .from("profiles")
+            .select(
+                "id,full_name,documento,phone,whatsapp,messenger,role"
+            )
+            .eq(
+                "id",
+                STATE.user.id
+            )
+            .maybeSingle();
 
 
-        if (error) {
-
-            console.error(
-                "Error cargando perfil:",
-                error
-            );
-
-            return;
-        }
-
-
-        state.profile =
-            data ||
-            {
-
-                id:
-                    state.user.id,
-
-                full_name:
-                    state.user.user_metadata?.full_name ||
-                    "",
-
-                documento:
-                    state.user.user_metadata?.documento ||
-                    "",
-
-                phone:
-                    state.user.user_metadata?.phone ||
-                    "",
-
-                whatsapp:
-                    state.user.user_metadata?.whatsapp ||
-                    "",
-
-                messenger:
-                    state.user.user_metadata?.messenger ||
-                    "",
-
-                role:
-                    "user"
-
-            };
-
-
-        if (!data) {
-
-            /*
-             * Intentamos crear el perfil si el
-             * proyecto tiene la tabla preparada.
-             */
-
-            const {
-                data:
-                    insertedProfile,
-                error:
-                    insertError
-            } =
-                await supabase
-                    .from("profiles")
-                    .insert({
-
-                        id:
-                            state.user.id,
-
-                        full_name:
-                            state.profile.full_name,
-
-                        documento:
-                            state.profile.documento,
-
-                        phone:
-                            state.profile.phone,
-
-                        whatsapp:
-                            state.profile.whatsapp,
-
-                        messenger:
-                            state.profile.messenger,
-
-                        role:
-                            "user"
-
-                    })
-                    .select()
-                    .single();
-
-
-            if (!insertError) {
-
-                state.profile =
-                    insertedProfile;
-
-            }
-
-        }
-
-    } catch (error) {
+    if (
+        result.error
+    ) {
 
         console.error(
-            "Error inesperado cargando perfil:",
-            error
+            "Perfil:",
+            result.error
         );
 
+        return;
+
     }
+
+
+    STATE.profile =
+        result.data;
+
+
+    /*
+     * Si el trigger creó el perfil,
+     * aquí ya tendremos los datos.
+     */
 
 }
 
 
 /* =========================================================
-   14. ACTUALIZAR INTERFAZ DE USUARIO
+   12. INTERFAZ SEGÚN SESIÓN
    ========================================================= */
 
 function updateInterface() {
@@ -1054,14 +945,18 @@ function updateInterface() {
     const registerButton =
         $("#btn-registrarse");
 
+
     const loginButton =
         $("#btn-iniciar-sesion");
+
 
     const profileButton =
         $("#btn-perfil");
 
 
-    if (state.user) {
+    if (
+        STATE.user
+    ) {
 
         if (registerButton) {
             registerButton.style.display =
@@ -1100,132 +995,113 @@ function updateInterface() {
 
     renderProfile();
 
-    renderProducts();
+}
 
-    renderFavorites();
 
-    updatePublicationSettings();
+/* =========================================================
+   13. PERFIL
+   ========================================================= */
+
+function renderProfile() {
+
+    if (!STATE.profile) {
+        return;
+    }
+
+
+    $("#perfil-nombre")
+        ?.replaceChildren(
+            document.createTextNode(
+                STATE.profile.full_name ||
+                "Usuario"
+            )
+        );
+
+
+    $("#perfil-correo")
+        ?.replaceChildren(
+            document.createTextNode(
+                STATE.user?.email ||
+                "-"
+            )
+        );
+
+
+    $("#perfil-telefono")
+        ?.replaceChildren(
+            document.createTextNode(
+                STATE.profile.phone ||
+                "-"
+            )
+        );
+
+
+    $("#perfil-whatsapp")
+        ?.replaceChildren(
+            document.createTextNode(
+                STATE.profile.whatsapp ||
+                "-"
+            )
+        );
+
+
+    $("#perfil-messenger")
+        ?.replaceChildren(
+            document.createTextNode(
+                STATE.profile.messenger ||
+                "-"
+            )
+        );
+
+
+    $("#perfil-documento")
+        ?.replaceChildren(
+            document.createTextNode(
+                STATE.profile.documento ||
+                "-"
+            )
+        );
 
 }
 
 
 /* =========================================================
-   15. MOSTRAR PERFIL
+   14. EDITAR PERFIL
    ========================================================= */
 
-function renderProfile() {
+async function editProfile() {
 
-    if (!state.profile) {
+    if (!STATE.user) {
         return;
     }
 
 
     const name =
-        $("#perfil-nombre");
-
-    const email =
-        $("#perfil-correo");
-
-    const phone =
-        $("#perfil-telefono");
-
-    const whatsapp =
-        $("#perfil-whatsapp");
-
-    const messenger =
-        $("#perfil-messenger");
-
-    const documentField =
-        $("#perfil-documento");
-
-
-    if (name) {
-        name.textContent =
-            state.profile.full_name ||
-            "Usuario";
-    }
-
-
-    if (email) {
-        email.textContent =
-            state.user?.email ||
-            "-";
-    }
-
-
-    if (phone) {
-        phone.textContent =
-            state.profile.phone ||
-            "-";
-    }
-
-
-    if (whatsapp) {
-        whatsapp.textContent =
-            state.profile.whatsapp ||
-            "-";
-    }
-
-
-    if (messenger) {
-        messenger.textContent =
-            state.profile.messenger ||
-            "-";
-    }
-
-
-    if (documentField) {
-        documentField.textContent =
-            state.profile.documento ||
-            "-";
-    }
-
-}
-
-
-/* =========================================================
-   16. EDITAR PERFIL
-   ========================================================= */
-
-async function editProfile() {
-
-    if (!state.user) {
-
-        showMessage(
-            "Debes iniciar sesión.",
-            "warning"
-        );
-
-        showSection(
-            "inicio-sesion"
-        );
-
-        return;
-    }
-
-
-    const nombre =
         prompt(
             "Nombre completo:",
-            state.profile?.full_name ||
+            STATE.profile?.full_name ||
             ""
         );
 
 
-    if (nombre === null) {
+    if (
+        name === null
+    ) {
         return;
     }
 
 
-    const telefono =
+    const phone =
         prompt(
             "Teléfono:",
-            state.profile?.phone ||
+            STATE.profile?.phone ||
             ""
         );
 
 
-    if (telefono === null) {
+    if (
+        phone === null
+    ) {
         return;
     }
 
@@ -1233,12 +1109,14 @@ async function editProfile() {
     const whatsapp =
         prompt(
             "WhatsApp:",
-            state.profile?.whatsapp ||
+            STATE.profile?.whatsapp ||
             ""
         );
 
 
-    if (whatsapp === null) {
+    if (
+        whatsapp === null
+    ) {
         return;
     }
 
@@ -1246,29 +1124,28 @@ async function editProfile() {
     const messenger =
         prompt(
             "Messenger:",
-            state.profile?.messenger ||
+            STATE.profile?.messenger ||
             ""
         );
 
 
-    if (messenger === null) {
+    if (
+        messenger === null
+    ) {
         return;
     }
 
 
-    const {
-        data,
-        error
-    } =
-        await supabase
+    const result =
+        await marketFlashClient
             .from("profiles")
             .update({
 
                 full_name:
-                    nombre.trim(),
+                    name.trim(),
 
                 phone:
-                    telefono.trim(),
+                    phone.trim(),
 
                 whatsapp:
                     whatsapp.trim(),
@@ -1279,31 +1156,34 @@ async function editProfile() {
             })
             .eq(
                 "id",
-                state.user.id
+                STATE.user.id
             )
             .select()
             .single();
 
 
-    if (error) {
+    if (
+        result.error
+    ) {
 
-        showMessage(
-            error.message,
+        message(
+            result.error.message,
             "error"
         );
 
         return;
+
     }
 
 
-    state.profile =
-        data;
+    STATE.profile =
+        result.data;
 
 
     renderProfile();
 
 
-    showMessage(
+    message(
         "Perfil actualizado.",
         "success"
     );
@@ -1312,103 +1192,92 @@ async function editProfile() {
 
 
 /* =========================================================
-   17. CATEGORÍAS
+   15. CATEGORÍAS
    ========================================================= */
 
 function setupCategories() {
 
-    $$(".category-card")
-        .forEach((button) => {
+    $all(
+        ".category-card"
+    )
+    .forEach(
+        button => {
 
             button.addEventListener(
                 "click",
-                async () => {
+                () => {
 
-                    state.currentCategory =
+                    STATE.selectedCategory =
                         button.dataset.category ||
                         "Todos";
 
 
-                    $$(".category-card")
-                        .forEach(
-                            (item) => {
+                    $all(
+                        ".category-card"
+                    )
+                    .forEach(
+                        item => {
 
-                                item.classList.toggle(
-                                    "active",
-                                    item === button
-                                );
+                            item.classList.toggle(
+                                "active",
+                                item === button
+                            );
 
-                            }
-                        );
+                        }
+                    );
 
 
                     renderProducts();
 
 
-                    const results =
-                        $("#resultados-categoria");
-
-
-                    if (results) {
-
-                        results.scrollIntoView({
-                            behavior:
-                                "smooth",
-                            block:
-                                "start"
-                        });
-
-                    }
+                    showPage(
+                        "inicio"
+                    );
 
                 }
             );
 
-        });
+        }
+    );
 
 }
 
 
 /* =========================================================
-   18. BÚSQUEDA
+   16. BÚSQUEDA
    ========================================================= */
 
 function setupSearch() {
 
-    const form =
-        $("#form-busqueda");
+    $("#form-busqueda")
+        ?.addEventListener(
+            "submit",
+            event => {
+
+                event.preventDefault();
 
 
-    const input =
-        $("#buscar");
+                STATE.search =
+                    $("#buscar")
+                        ?.value
+                        .trim()
+                        .toLowerCase() ||
+                    "";
 
 
-    if (!form || !input) {
-        return;
-    }
+                STATE.selectedCategory =
+                    "Todos";
 
 
-    form.addEventListener(
-        "submit",
-        (event) => {
-
-            event.preventDefault();
+                renderProducts();
 
 
-            state.currentSearch =
-                input.value
-                    .trim()
-                    .toLowerCase();
+                showPage(
+                    "inicio"
+                );
 
-
-            showSection(
-                "inicio"
-            );
-
-
-            renderProducts();
-
-        }
-    );
+            }
+        );
 
 
     $("#btn-limpiar-busqueda")
@@ -1416,11 +1285,15 @@ function setupSearch() {
             "click",
             () => {
 
-                input.value =
+                $("#buscar").value =
                     "";
 
-                state.currentSearch =
+                STATE.search =
                     "";
+
+                STATE.selectedCategory =
+                    "Todos";
+
 
                 renderProducts();
 
@@ -1431,77 +1304,66 @@ function setupSearch() {
 
 
 /* =========================================================
-   19. CARGAR PRODUCTOS
+   17. PRODUCTOS
    ========================================================= */
 
 async function loadProducts() {
 
-    if (!supabase) {
+    const result =
+        await marketFlashClient
+            .from("products")
+            .select(
+                `
+                id,
+                user_id,
+                nombre,
+                categoria,
+                precio,
+                cantidad,
+                descripcion,
+                contacto,
+                status,
+                image_urls,
+                views,
+                created_at
+                `
+            )
+            .order(
+                "created_at",
+                {
+                    ascending:
+                        false
+                }
+            );
+
+
+    if (
+        result.error
+    ) {
+
+        console.error(
+            "Productos:",
+            result.error
+        );
+
         return;
+
     }
 
 
-    try {
-
-        const {
-            data,
-            error
-        } =
-            await supabase
-                .from("products")
-                .select(
-                    `
-                    id,
-                    user_id,
-                    nombre,
-                    categoria,
-                    precio,
-                    cantidad,
-                    descripcion,
-                    contacto,
-                    status,
-                    image_urls,
-                    views,
-                    created_at
-                    `
-                )
-                .order(
-                    "created_at",
-                    {
-                        ascending:
-                            false
-                    }
-                );
+    STATE.products =
+        result.data ||
+        [];
 
 
-        if (error) {
-
-            console.error(
-                "Error cargando productos:",
-                error
-            );
-
-            return;
-        }
+    renderProducts();
 
 
-        state.products =
-            data ||
-            [];
-
-
-        renderProducts();
+    if (STATE.user) {
 
         renderMyProducts();
 
-        renderAdminProducts();
-
-    } catch (error) {
-
-        console.error(
-            "Error cargando productos:",
-            error
-        );
+        renderSoldProducts();
 
     }
 
@@ -1509,58 +1371,50 @@ async function loadProducts() {
 
 
 /* =========================================================
-   20. FILTRAR PRODUCTOS
+   18. FILTRO DE PRODUCTOS
    ========================================================= */
 
-function getFilteredProducts() {
+function getPublicProducts() {
 
     let products =
-        [...state.products];
-
-
-    /*
-     * Solo mostramos productos aprobados
-     * en el marketplace público.
-     */
-
-    products =
-        products.filter(
-            (product) =>
+        STATE.products.filter(
+            product =>
                 product.status ===
                 "approved"
         );
 
 
     if (
-        state.currentCategory &&
-        state.currentCategory !==
+        STATE.selectedCategory !==
         "Todos"
     ) {
 
         products =
             products.filter(
-                (product) =>
+                product =>
                     String(
                         product.categoria ||
                         ""
-                    ).toLowerCase() ===
+                    )
+                    .toLowerCase() ===
                     String(
-                        state.currentCategory
-                    ).toLowerCase()
+                        STATE.selectedCategory
+                    )
+                    .toLowerCase()
             );
 
     }
 
 
     if (
-        state.currentSearch
+        STATE.search
     ) {
 
         products =
             products.filter(
-                (product) => {
+                product => {
 
-                    const searchable =
+                    const content =
                         [
                             product.nombre,
                             product.categoria,
@@ -1571,8 +1425,8 @@ function getFilteredProducts() {
                             .toLowerCase();
 
 
-                    return searchable.includes(
-                        state.currentSearch
+                    return content.includes(
+                        STATE.search
                     );
 
                 }
@@ -1587,7 +1441,7 @@ function getFilteredProducts() {
 
 
 /* =========================================================
-   21. CREAR TARJETA DE PRODUCTO
+   19. TARJETA DE PRODUCTO
    ========================================================= */
 
 function createProductCard(
@@ -1605,17 +1459,17 @@ function createProductCard(
         "product-card";
 
 
-    const image =
+    const imageBox =
         document.createElement(
             "div"
         );
 
 
-    image.className =
+    imageBox.className =
         "product-image";
 
 
-    const imageUrls =
+    const urls =
         Array.isArray(
             product.image_urls
         )
@@ -1624,32 +1478,37 @@ function createProductCard(
 
 
     if (
-        imageUrls.length
+        urls.length > 0
     ) {
 
-        const img =
+        const image =
             document.createElement(
                 "img"
             );
 
 
-        img.src =
-            imageUrls[0];
+        image.src =
+            urls[0];
 
-        img.alt =
+
+        image.alt =
             product.nombre ||
             "Producto";
 
 
-        image.appendChild(
-            img
+        image.loading =
+            "lazy";
+
+
+        imageBox.appendChild(
+            image
         );
 
     } else {
 
         const placeholder =
             document.createElement(
-                "div"
+                "span"
             );
 
 
@@ -1661,7 +1520,7 @@ function createProductCard(
             "Sin imagen";
 
 
-        image.appendChild(
+        imageBox.appendChild(
             placeholder
         );
 
@@ -1734,7 +1593,7 @@ function createProductCard(
 
 
     price.textContent =
-        `${MARKET_FLASH_CONFIG.currency} ${formatPrice(
+        `RD$ ${formatPrice(
             product.precio
         )}`;
 
@@ -1757,7 +1616,8 @@ function createProductCard(
 
     quantity.textContent =
         `Cantidad: ${
-            product.cantidad ?? 0
+            product.cantidad ??
+            0
         }`;
 
 
@@ -1769,7 +1629,8 @@ function createProductCard(
 
     views.textContent =
         `Vistas: ${
-            product.views ?? 0
+            product.views ??
+            0
         }`;
 
 
@@ -1780,28 +1641,6 @@ function createProductCard(
     meta.appendChild(
         views
     );
-
-
-    const status =
-        document.createElement(
-            "span"
-        );
-
-
-    status.className =
-        "product-status";
-
-
-    applyStatusClass(
-        status,
-        product.status
-    );
-
-
-    status.textContent =
-        getStatusLabel(
-            product.status
-        );
 
 
     const actions =
@@ -1823,19 +1662,20 @@ function createProductCard(
     viewButton.type =
         "button";
 
+
     viewButton.className =
         "secondary-button";
 
 
     viewButton.textContent =
-        "Ver";
+        "Ver producto";
 
 
     viewButton.addEventListener(
         "click",
         () => {
 
-            openProductDetails(
+            selectProduct(
                 product
             );
 
@@ -1866,14 +1706,10 @@ function createProductCard(
             "secondary-button";
 
 
-        const isFavorite =
-            state.favorites.has(
-                product.id
-            );
-
-
         favoriteButton.textContent =
-            isFavorite
+            STATE.favorites.has(
+                product.id
+            )
                 ? "★ Favorito"
                 : "☆ Favorito";
 
@@ -1883,8 +1719,7 @@ function createProductCard(
             async () => {
 
                 await toggleFavorite(
-                    product,
-                    favoriteButton
+                    product.id
                 );
 
             }
@@ -1918,6 +1753,23 @@ function createProductCard(
         meta
     );
 
+
+    const status =
+        document.createElement(
+            "span"
+        );
+
+
+    status.className =
+        "product-status";
+
+
+    applyStatus(
+        status,
+        product.status
+    );
+
+
     body.appendChild(
         status
     );
@@ -1928,7 +1780,7 @@ function createProductCard(
 
 
     card.appendChild(
-        image
+        imageBox
     );
 
     card.appendChild(
@@ -1942,43 +1794,11 @@ function createProductCard(
 
 
 /* =========================================================
-   22. FORMATEAR PRECIO
+   20. ESTADO PRODUCTO
    ========================================================= */
 
-function formatPrice(
-    value
-) {
-
-    const number =
-        Number(value);
-
-
-    if (
-        Number.isNaN(number)
-    ) {
-        return "0.00";
-    }
-
-
-    return number.toLocaleString(
-        "es-DO",
-        {
-            minimumFractionDigits:
-                2,
-
-            maximumFractionDigits:
-                2
-        }
-    );
-
-}
-
-
-/* =========================================================
-   23. ESTADOS DE PRODUCTO
-   ========================================================= */
-
-function getStatusLabel(
+function applyStatus(
+    element,
     status
 ) {
 
@@ -1999,28 +1819,7 @@ function getStatusLabel(
     };
 
 
-    return labels[
-        status
-    ] ||
-    "Pendiente";
-
-}
-
-
-function applyStatusClass(
-    element,
-    status
-) {
-
-    element.classList.remove(
-        "pendiente",
-        "aprobado",
-        "rechazado",
-        "vendido"
-    );
-
-
-    const className = {
+    const classes = {
 
         pending:
             "pendiente",
@@ -2034,21 +1833,24 @@ function applyStatusClass(
         sold:
             "vendido"
 
-    }[
-        status
-    ] ||
-    "pendiente";
+    };
+
+
+    element.textContent =
+        labels[status] ||
+        "Pendiente";
 
 
     element.classList.add(
-        className
+        classes[status] ||
+        "pendiente"
     );
 
 }
 
 
 /* =========================================================
-   24. MOSTRAR PRODUCTOS
+   21. RENDER PRODUCTOS
    ========================================================= */
 
 function renderProducts() {
@@ -2057,7 +1859,7 @@ function renderProducts() {
         $("#lista-productos");
 
 
-    const emptyState =
+    const empty =
         $("#sin-productos");
 
 
@@ -2071,72 +1873,29 @@ function renderProducts() {
 
 
     const products =
-        getFilteredProducts();
+        getPublicProducts();
 
 
     if (!products.length) {
 
-        if (emptyState) {
-            emptyState.style.display =
+        if (empty) {
+            empty.style.display =
                 "grid";
         }
 
         return;
+
     }
 
 
-    if (emptyState) {
-        emptyState.style.display =
+    if (empty) {
+        empty.style.display =
             "none";
     }
 
 
     products.forEach(
-        (product) => {
-
-            container.appendChild(
-                createProductCard(
-                    product
-                )
-            );
-
-        }
-    );
-
-
-    renderCategoryResults(
-        products
-    );
-
-}
-
-
-/* =========================================================
-   25. RESULTADOS DE CATEGORÍA
-   ========================================================= */
-
-function renderCategoryResults(
-    products
-) {
-
-    const container =
-        $("#resultados-categoria");
-
-
-    if (!container) {
-        return;
-    }
-
-
-    container.innerHTML =
-        "";
-
-
-    products.slice(
-        0,
-        12
-    ).forEach(
-        (product) => {
+        product => {
 
             container.appendChild(
                 createProductCard(
@@ -2151,68 +1910,63 @@ function renderCategoryResults(
 
 
 /* =========================================================
-   26. DETALLES DE PRODUCTO
+   22. SELECCIONAR PRODUCTO
    ========================================================= */
 
-async function openProductDetails(
+async function selectProduct(
     product
 ) {
 
-    state.currentProduct =
+    STATE.selectedProduct =
         product;
 
 
-    /*
-     * Aumentamos vistas si el usuario no es
-     * el mismo vendedor.
-     */
-
     if (
-        supabase &&
-        product.user_id !==
-        state.user?.id
+        STATE.user?.id !==
+        product.user_id
     ) {
 
-        await supabase
+        await marketFlashClient
             .from("products")
             .update({
+
                 views:
                     Number(
                         product.views ||
                         0
                     ) + 1
+
             })
             .eq(
                 "id",
                 product.id
             );
 
-    }
 
-
-    const contactSection =
-        $("#contactar-vendedor");
-
-
-    if (contactSection) {
-
-        const name =
-            $("#contacto-vendedor-nombre");
-
-
-        if (name) {
-
-            name.textContent =
-                `Contacto para: ${
-                    product.nombre
-                }`;
-
-        }
+        product.views =
+            Number(
+                product.views ||
+                0
+            ) + 1;
 
     }
 
 
-    showSection(
+    const name =
+        $("#contacto-vendedor-nombre");
+
+
+    if (name) {
+
+        name.textContent =
+            `Producto seleccionado: ${
+                product.nombre
+            }`;
+
+    }
+
+
+    showPage(
         "contactar-vendedor"
     );
 
@@ -2220,174 +1974,164 @@ async function openProductDetails(
 
 
 /* =========================================================
-   27. FAVORITOS
+   23. FAVORITOS
    ========================================================= */
 
 async function loadFavorites() {
 
-    if (
-        !supabase ||
-        !state.user
-    ) {
+    if (!STATE.user) {
         return;
     }
 
 
-    const {
-        data,
-        error
-    } =
-        await supabase
+    const result =
+        await marketFlashClient
             .from("favorites")
             .select(
                 "product_id"
             )
             .eq(
                 "user_id",
-                state.user.id
+                STATE.user.id
             );
 
 
-    if (error) {
+    if (
+        result.error
+    ) {
 
         console.error(
-            "Error cargando favoritos:",
-            error
+            "Favoritos:",
+            result.error
         );
 
         return;
+
     }
 
 
-    state.favorites =
+    STATE.favorites =
         new Set(
-            (data || []).map(
-                item =>
-                    item.product_id
-            )
+            (result.data || [])
+                .map(
+                    item =>
+                        item.product_id
+                )
         );
-
-
-    renderFavorites();
 
 }
 
 
 async function toggleFavorite(
-    product,
-    button
+    productId
 ) {
 
-    if (!state.user) {
+    if (!STATE.user) {
 
-        showMessage(
+        message(
             "Inicia sesión para guardar favoritos.",
             "warning"
         );
 
-        showSection(
+        showPage(
             "inicio-sesion"
         );
 
         return;
+
     }
 
 
-    const isFavorite =
-        state.favorites.has(
-            product.id
+    const exists =
+        STATE.favorites.has(
+            productId
         );
 
 
-    if (isFavorite) {
+    if (exists) {
 
-        const {
-            error
-        } =
-            await supabase
+        const result =
+            await marketFlashClient
                 .from("favorites")
                 .delete()
                 .eq(
                     "user_id",
-                    state.user.id
+                    STATE.user.id
                 )
                 .eq(
                     "product_id",
-                    product.id
+                    productId
                 );
 
 
-        if (error) {
+        if (
+            result.error
+        ) {
 
-            showMessage(
-                error.message,
+            message(
+                result.error.message,
                 "error"
             );
 
             return;
+
         }
 
 
-        state.favorites.delete(
-            product.id
+        STATE.favorites.delete(
+            productId
         );
 
 
-        button.textContent =
-            "☆ Favorito";
-
-
-        showMessage(
-            "Producto eliminado de favoritos.",
+        message(
+            "Eliminado de favoritos.",
             "success"
         );
 
-
     } else {
 
-        const {
-            error
-        } =
-            await supabase
+        const result =
+            await marketFlashClient
                 .from("favorites")
                 .insert({
 
                     user_id:
-                        state.user.id,
+                        STATE.user.id,
 
                     product_id:
-                        product.id
+                        productId
 
                 });
 
 
-        if (error) {
+        if (
+            result.error
+        ) {
 
-            showMessage(
-                error.message,
+            message(
+                result.error.message,
                 "error"
             );
 
             return;
+
         }
 
 
-        state.favorites.add(
-            product.id
+        STATE.favorites.add(
+            productId
         );
 
 
-        button.textContent =
-            "★ Favorito";
-
-
-        showMessage(
-            "Producto añadido a favoritos.",
+        message(
+            "Añadido a favoritos.",
             "success"
         );
 
     }
 
+
+    renderProducts();
 
     renderFavorites();
 
@@ -2395,7 +2139,7 @@ async function toggleFavorite(
 
 
 /* =========================================================
-   28. RENDERIZAR FAVORITOS
+   24. RENDER FAVORITOS
    ========================================================= */
 
 function renderFavorites() {
@@ -2413,16 +2157,15 @@ function renderFavorites() {
         "";
 
 
-    if (!state.user) {
-
+    if (!STATE.user) {
         return;
     }
 
 
     const favorites =
-        state.products.filter(
+        STATE.products.filter(
             product =>
-                state.favorites.has(
+                STATE.favorites.has(
                     product.id
                 )
         );
@@ -2430,34 +2173,26 @@ function renderFavorites() {
 
     if (!favorites.length) {
 
-        const empty =
-            document.createElement(
-                "div"
-            );
-
-
-        empty.className =
-            "empty-state";
-
-
-        empty.textContent =
-            "Todavía no tienes favoritos.";
-
-
-        container.appendChild(
-            empty
+        renderEmpty(
+            container,
+            "No tienes productos favoritos."
         );
 
         return;
+
     }
 
 
     favorites.forEach(
-        (product) => {
+        product => {
 
             container.appendChild(
                 createProductCard(
-                    product
+                    product,
+                    {
+                        hideFavorite:
+                            false
+                    }
                 )
             );
 
@@ -2468,7 +2203,342 @@ function renderFavorites() {
 
 
 /* =========================================================
-   29. VISTA PREVIA DE IMÁGENES
+   25. MIS PUBLICACIONES
+   ========================================================= */
+
+function renderMyProducts() {
+
+    const container =
+        $("#mis-publicaciones");
+
+
+    if (
+        !container ||
+        !STATE.user
+    ) {
+        return;
+    }
+
+
+    container.innerHTML =
+        "";
+
+
+    const mine =
+        STATE.products.filter(
+            product =>
+                product.user_id ===
+                STATE.user.id
+        );
+
+
+    if (!mine.length) {
+
+        renderEmpty(
+            container,
+            "Todavía no tienes publicaciones."
+        );
+
+        return;
+
+    }
+
+
+    mine.forEach(
+        product => {
+
+            const card =
+                createProductCard(
+                    product,
+                    {
+                        hideFavorite:
+                            true
+                    }
+                );
+
+
+            if (
+                product.status !==
+                "sold"
+            ) {
+
+                const actions =
+                    card.querySelector(
+                        ".product-actions"
+                    );
+
+
+                if (actions) {
+
+                    const soldButton =
+                        document.createElement(
+                            "button"
+                        );
+
+
+                    soldButton.type =
+                        "button";
+
+
+                    soldButton.className =
+                        "secondary-button";
+
+
+                    soldButton.textContent =
+                        "Marcar vendido";
+
+
+                    soldButton.addEventListener(
+                        "click",
+                        () =>
+                            markSold(
+                                product.id
+                            )
+                    );
+
+
+                    actions.appendChild(
+                        soldButton
+                    );
+
+                }
+
+            }
+
+
+            container.appendChild(
+                card
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   26. MARCAR VENDIDO
+   ========================================================= */
+
+async function markSold(
+    productId
+) {
+
+    const result =
+        await marketFlashClient
+            .from("products")
+            .update({
+                status:
+                    "sold"
+            })
+            .eq(
+                "id",
+                productId
+            )
+            .eq(
+                "user_id",
+                STATE.user.id
+            );
+
+
+    if (
+        result.error
+    ) {
+
+        message(
+            result.error.message,
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    message(
+        "Producto marcado como vendido.",
+        "success"
+    );
+
+
+    await loadProducts();
+
+    renderMyProducts();
+
+    renderSoldProducts();
+
+}
+
+
+/* =========================================================
+   27. PRODUCTOS VENDIDOS
+   ========================================================= */
+
+function renderSoldProducts() {
+
+    const container =
+        $("#lista-vendidos");
+
+
+    if (
+        !container ||
+        !STATE.user
+    ) {
+        return;
+    }
+
+
+    container.innerHTML =
+        "";
+
+
+    const sold =
+        STATE.products.filter(
+            product =>
+                product.user_id ===
+                STATE.user.id &&
+                product.status ===
+                "sold"
+        );
+
+
+    if (!sold.length) {
+
+        renderEmpty(
+            container,
+            "No tienes productos vendidos."
+        );
+
+        return;
+
+    }
+
+
+    sold.forEach(
+        product => {
+
+            container.appendChild(
+                createProductCard(
+                    product,
+                    {
+                        hideFavorite:
+                            true
+                    }
+                )
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   28. SUBIR IMÁGENES
+   ========================================================= */
+
+async function uploadImages(
+    files
+) {
+
+    const urls = [];
+
+
+    for (
+        const file of files
+    ) {
+
+        if (
+            !file.type.startsWith(
+                "image/"
+            )
+        ) {
+            continue;
+        }
+
+
+        const extension =
+            file.name
+                .split(".")
+                .pop()
+                .toLowerCase();
+
+
+        const name =
+            `${crypto.randomUUID()}.${extension}`;
+
+
+        const path =
+            `${STATE.user.id}/${name}`;
+
+
+        const result =
+            await marketFlashClient
+                .storage
+                .from(
+                    "product-images"
+                )
+                .upload(
+                    path,
+                    file,
+                    {
+                        cacheControl:
+                            "3600",
+
+                        upsert:
+                            false,
+
+                        contentType:
+                            file.type
+                    }
+                );
+
+
+        if (
+            result.error
+        ) {
+
+            console.error(
+                "Imagen:",
+                result.error
+            );
+
+            continue;
+
+        }
+
+
+        const publicUrl =
+            marketFlashClient
+                .storage
+                .from(
+                    "product-images"
+                )
+                .getPublicUrl(
+                    path
+                );
+
+
+        if (
+            publicUrl.data?.publicUrl
+        ) {
+
+            urls.push(
+                publicUrl.data.publicUrl
+            );
+
+        }
+
+    }
+
+
+    return urls;
+
+}
+
+
+/* =========================================================
+   29. VISTA PREVIA
    ========================================================= */
 
 function setupImagePreview() {
@@ -2494,15 +2564,11 @@ function setupImagePreview() {
                 "";
 
 
-            const files =
-                Array.from(
-                    input.files ||
-                    []
-                );
-
-
-            files.forEach(
-                (file) => {
+            Array.from(
+                input.files || []
+            )
+            .forEach(
+                file => {
 
                     if (
                         !file.type.startsWith(
@@ -2523,24 +2589,24 @@ function setupImagePreview() {
                         "image-preview-item";
 
 
-                    const img =
+                    const image =
                         document.createElement(
                             "img"
                         );
 
 
-                    img.src =
+                    image.src =
                         URL.createObjectURL(
                             file
                         );
 
 
-                    img.alt =
+                    image.alt =
                         "Vista previa";
 
 
                     wrapper.appendChild(
-                        img
+                        image
                     );
 
 
@@ -2558,266 +2624,7 @@ function setupImagePreview() {
 
 
 /* =========================================================
-   30. SUBIR IMÁGENES A SUPABASE STORAGE
-   ========================================================= */
-
-async function uploadProductImages(
-    files
-) {
-
-    if (
-        !supabase ||
-        !state.user
-    ) {
-        return [];
-    }
-
-
-    const urls = [];
-
-
-    for (
-        const file of files
-    ) {
-
-        if (
-            !file.type.startsWith(
-                "image/"
-            )
-        ) {
-            continue;
-        }
-
-
-        const extension =
-            getFileExtension(
-                file.name
-            );
-
-
-        const fileName =
-            `${crypto.randomUUID()}.${extension}`;
-
-
-        const path =
-            `${state.user.id}/${fileName}`;
-
-
-        const {
-            error
-        } =
-            await supabase
-                .storage
-                .from(
-                    "product-images"
-                )
-                .upload(
-                    path,
-                    file,
-                    {
-
-                        cacheControl:
-                            "3600",
-
-                        upsert:
-                            false,
-
-                        contentType:
-                            file.type
-
-                    }
-                );
-
-
-        if (error) {
-
-            console.error(
-                "Error subiendo imagen:",
-                error
-            );
-
-            continue;
-        }
-
-
-        const {
-            data
-        } =
-            supabase
-                .storage
-                .from(
-                    "product-images"
-                )
-                .getPublicUrl(
-                    path
-                );
-
-
-        if (
-            data?.publicUrl
-        ) {
-
-            urls.push(
-                data.publicUrl
-            );
-
-        }
-
-    }
-
-
-    return urls;
-
-}
-
-
-/* =========================================================
-   31. EXTENSIÓN
-   ========================================================= */
-
-function getFileExtension(
-    fileName
-) {
-
-    const parts =
-        fileName.split(".");
-
-
-    return (
-        parts.pop() ||
-        "bin"
-    ).toLowerCase();
-
-}
-
-
-/* =========================================================
-   32. CONFIGURACIÓN DE PUBLICACIONES
-   ========================================================= */
-
-async function loadPublicationSettings() {
-
-    /*
-     * Primero intentamos obtener la configuración
-     * desde una tabla settings.
-     */
-
-    if (
-        !supabase
-    ) {
-        return;
-    }
-
-
-    try {
-
-        const {
-            data,
-            error
-        } =
-            await supabase
-                .from("settings")
-                .select(
-                    "key,value"
-                );
-
-
-        if (
-            !error &&
-            Array.isArray(data)
-        ) {
-
-            const settings =
-                Object.fromEntries(
-                    data.map(
-                        item => [
-                            item.key,
-                            item.value
-                        ]
-                    )
-                );
-
-
-            if (
-                settings.publications_mode
-            ) {
-
-                state.publicationMode =
-                    settings.publications_mode;
-
-            }
-
-        }
-
-    } catch (error) {
-
-        console.error(
-            "No se pudo cargar settings:",
-            error
-        );
-
-    }
-
-
-    updatePublicationSettings();
-
-}
-
-
-function updatePublicationSettings() {
-
-    const text =
-        $("#texto-estado-publicacion");
-
-
-    const adminText =
-        $("#admin-texto-publicaciones");
-
-
-    let message =
-        "Publicaciones de pago.";
-
-
-    if (
-        state.publicationMode ===
-        "free"
-    ) {
-
-        message =
-            "Las publicaciones son gratuitas.";
-
-    }
-
-
-    if (
-        state.publicationMode ===
-        "paid"
-    ) {
-
-        message =
-            `La publicación requiere un pago de RD$ ${formatPrice(
-            MARKET_FLASH_CONFIG.publicationFee
-        )}.`;
-
-    }
-
-
-    if (text) {
-        text.textContent =
-            message;
-    }
-
-
-    if (adminText) {
-        adminText.textContent =
-            message;
-    }
-
-}
-
-
-/* =========================================================
-   33. PUBLICAR PRODUCTO
+   30. CREAR PRODUCTO
    ========================================================= */
 
 async function createProduct(
@@ -2827,170 +2634,136 @@ async function createProduct(
     event.preventDefault();
 
 
-    if (!state.user) {
+    if (!STATE.user) {
 
-        showMessage(
-            "Debes iniciar sesión para publicar.",
+        message(
+            "Debes iniciar sesión.",
             "warning"
         );
 
-        showSection(
+        showPage(
             "inicio-sesion"
         );
 
         return;
+
     }
 
 
-    const form =
-        event.currentTarget;
-
-
-    const nombre =
+    const name =
         $("#producto-nombre")
-            ?.value.trim();
+            ?.value
+            .trim();
 
 
-    const categoria =
+    const category =
         $("#producto-categoria")
             ?.value;
 
 
-    const precio =
+    const price =
         Number(
             $("#producto-precio")
                 ?.value
         );
 
 
-    const cantidad =
+    const quantity =
         Number(
             $("#producto-cantidad")
                 ?.value
         );
 
 
-    const descripcion =
+    const description =
         $("#producto-descripcion")
-            ?.value.trim();
+            ?.value
+            .trim();
 
 
-    const contacto =
+    const contact =
         $("#producto-contacto")
             ?.value;
 
 
-    const imageInput =
+    const input =
         $("#producto-imagen");
 
 
     if (
-        !nombre ||
-        !categoria ||
-        !precio ||
-        cantidad < 1 ||
-        !descripcion ||
-        !contacto
+        !name ||
+        !category ||
+        !price ||
+        !quantity ||
+        !description ||
+        !contact
     ) {
 
-        showMessage(
-            "Completa correctamente todos los campos.",
+        message(
+            "Completa todos los datos del producto.",
             "warning"
         );
 
         return;
+
     }
 
 
-    const files =
-        Array.from(
-            imageInput?.files ||
-            []
-        );
+    const button =
+        event.currentTarget
+            .querySelector(
+                'button[type="submit"]'
+            );
 
 
-    const submitButton =
-        form.querySelector(
-            'button[type="submit"]'
-        );
-
-
-    if (submitButton) {
-        submitButton.disabled = true;
+    if (button) {
+        button.disabled = true;
     }
 
 
     try {
 
-        let imageUrls = [];
+        const files =
+            Array.from(
+                input?.files ||
+                []
+            );
 
 
-        if (
-            files.length
-        ) {
-
-            imageUrls =
-                await uploadProductImages(
-                    files
-                );
-
-        }
+        const imageUrls =
+            await uploadImages(
+                files
+            );
 
 
-        let status =
-            "pending";
-
-
-        /*
-         * Si las publicaciones son gratuitas,
-         * podrían aprobarse directamente.
-         *
-         * Para mantener la revisión administrativa,
-         * dejamos pending.
-         */
-
-        if (
-            state.publicationMode ===
-            "free"
-        ) {
-
-            status =
-                "pending";
-
-        }
-
-
-        const {
-            data,
-            error
-        } =
-            await supabase
+        const result =
+            await marketFlashClient
                 .from("products")
                 .insert({
 
                     user_id:
-                        state.user.id,
+                        STATE.user.id,
 
                     nombre:
-                        nombre,
+                        name,
 
                     categoria:
-                        categoria,
+                        category,
 
                     precio:
-                        precio,
+                        price,
 
                     cantidad:
-                        cantidad,
+                        quantity,
 
                     descripcion:
-                        descripcion,
+                        description,
 
                     contacto:
-                        contacto,
+                        contact,
 
                     status:
-                        status,
+                        "pending",
 
                     image_urls:
                         imageUrls,
@@ -3003,23 +2776,20 @@ async function createProduct(
                 .single();
 
 
-        if (error) {
-            throw error;
-        }
-
-
         if (
-            data
+            result.error
         ) {
 
-            state.products.unshift(
-                data
-            );
+            throw result.error;
 
         }
 
 
-        form.reset();
+        STATE.selectedProduct =
+            result.data;
+
+
+        event.currentTarget.reset();
 
 
         const preview =
@@ -3032,33 +2802,27 @@ async function createProduct(
         }
 
 
-        showMessage(
-            state.publicationMode === "paid"
-                ? "Publicación creada. Ahora debes enviar el comprobante de pago."
-                : "Publicación enviada para revisión.",
+        await loadProducts();
+
+
+        message(
+            "Producto creado y enviado para revisión.",
             "success"
         );
 
 
-        await loadProducts();
-
-
         if (
-            state.publicationMode ===
+            APP.publicationMode ===
             "paid"
         ) {
 
-            state.currentProduct =
-                data;
-
-
-            showSection(
+            showPage(
                 "pago"
             );
 
         } else {
 
-            showSection(
+            showPage(
                 "perfil"
             );
 
@@ -3067,20 +2831,20 @@ async function createProduct(
     } catch (error) {
 
         console.error(
-            "Error creando producto:",
+            "Producto:",
             error
         );
 
-        showMessage(
+        message(
             error.message ||
-            "No se pudo crear la publicación.",
+            "No se pudo publicar el producto.",
             "error"
         );
 
     } finally {
 
-        if (submitButton) {
-            submitButton.disabled = false;
+        if (button) {
+            button.disabled = false;
         }
 
     }
@@ -3089,319 +2853,35 @@ async function createProduct(
 
 
 /* =========================================================
-   34. MIS PUBLICACIONES
-   ========================================================= */
-
-function renderMyProducts() {
-
-    const container =
-        $("#mis-publicaciones");
-
-
-    if (!container) {
-        return;
-    }
-
-
-    container.innerHTML =
-        "";
-
-
-    if (!state.user) {
-        return;
-    }
-
-
-    const myProducts =
-        state.products.filter(
-            product =>
-                product.user_id ===
-                state.user.id
-        );
-
-
-    if (!myProducts.length) {
-
-        const empty =
-            document.createElement(
-                "div"
-            );
-
-
-        empty.className =
-            "empty-state";
-
-
-        empty.textContent =
-            "Todavía no tienes publicaciones.";
-
-
-        container.appendChild(
-            empty
-        );
-
-        return;
-    }
-
-
-    myProducts.forEach(
-        (product) => {
-
-            const card =
-                createProductCard(
-                    product,
-                    {
-                        hideFavorite:
-                            true
-                    }
-                );
-
-
-            const actions =
-                card.querySelector(
-                    ".product-actions"
-                );
-
-
-            if (
-                actions &&
-                product.status !==
-                "sold"
-            ) {
-
-                const soldButton =
-                    document.createElement(
-                        "button"
-                    );
-
-
-                soldButton.type =
-                    "button";
-
-
-                soldButton.className =
-                    "secondary-button";
-
-
-                soldButton.textContent =
-                    "Marcar vendido";
-
-
-                soldButton.addEventListener(
-                    "click",
-                    async () => {
-
-                        await markProductSold(
-                            product.id
-                        );
-
-                    }
-                );
-
-
-                actions.appendChild(
-                    soldButton
-                );
-
-            }
-
-
-            container.appendChild(
-                card
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   35. MARCAR VENDIDO
-   ========================================================= */
-
-async function markProductSold(
-    productId
-) {
-
-    if (
-        !state.user ||
-        !supabase
-    ) {
-        return;
-    }
-
-
-    const {
-        error
-    } =
-        await supabase
-            .from("products")
-            .update({
-
-                status:
-                    "sold"
-
-            })
-            .eq(
-                "id",
-                productId
-            )
-            .eq(
-                "user_id",
-                state.user.id
-            );
-
-
-    if (error) {
-
-        showMessage(
-            error.message,
-            "error"
-        );
-
-        return;
-    }
-
-
-    showMessage(
-        "Producto marcado como vendido.",
-        "success"
-    );
-
-
-    await loadProducts();
-
-    renderMyProducts();
-
-    renderProducts();
-
-}
-
-
-/* =========================================================
-   36. PRODUCTOS VENDIDOS
-   ========================================================= */
-
-function renderSoldProducts() {
-
-    const container =
-        $("#lista-vendidos");
-
-
-    if (!container) {
-        return;
-    }
-
-
-    container.innerHTML =
-        "";
-
-
-    if (!state.user) {
-        return;
-    }
-
-
-    const sold =
-        state.products.filter(
-            product =>
-                product.user_id ===
-                state.user.id &&
-                product.status ===
-                "sold"
-        );
-
-
-    if (!sold.length) {
-
-        const empty =
-            document.createElement(
-                "div"
-            );
-
-
-        empty.className =
-            "empty-state";
-
-
-        empty.textContent =
-            "Todavía no tienes productos vendidos.";
-
-
-        container.appendChild(
-            empty
-        );
-
-        return;
-    }
-
-
-    sold.forEach(
-        product => {
-
-            container.appendChild(
-                createProductCard(
-                    product,
-                    {
-                        hideFavorite:
-                            true
-                    }
-                )
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   37. COMPROBANTES
+   31. PAGO
    ========================================================= */
 
 function setupPayment() {
 
-    $$(
+    $all(
         'input[name="metodo-pago"]'
-    ).forEach(
+    )
+    .forEach(
         radio => {
 
             radio.addEventListener(
                 "change",
                 () => {
 
-                    const binance =
-                        $("#bloque-binance");
-
-                    const paypal =
-                        $("#bloque-paypal");
-
-
-                    if (
-                        binance
-                    ) {
-
-                        binance.classList.toggle(
+                    $("#bloque-binance")
+                        ?.classList.toggle(
                             "hidden",
                             radio.value !==
                             "binance"
                         );
 
-                    }
 
-
-                    if (
-                        paypal
-                    ) {
-
-                        paypal.classList.toggle(
+                    $("#bloque-paypal")
+                        ?.classList.toggle(
                             "hidden",
                             radio.value !==
                             "paypal"
                         );
-
-                    }
 
                 }
             );
@@ -3410,204 +2890,162 @@ function setupPayment() {
     );
 
 
-    updatePaymentInformation();
+    $("#btn-copiar-binance")
+        ?.addEventListener(
+            "click",
+            copyBinance
+        );
+
+
+    $("#btn-enviar-comprobante")
+        ?.addEventListener(
+            "click",
+            submitPayment
+        );
+
+
+    $("#comprobante-pago")
+        ?.addEventListener(
+            "change",
+            previewReceipt
+        );
 
 }
 
 
-function updatePaymentInformation() {
+function copyBinance() {
 
-    const binance =
-        $("#direccion-binance");
+    if (
+        !APP.binanceAddress
+    ) {
 
-
-    const paypal =
-        $("#cuenta-paypal");
-
-
-    if (binance) {
-
-        binance.textContent =
-            MARKET_FLASH_CONFIG.binanceAddress ||
-            "Pendiente de configuración";
-
-    }
-
-
-    if (paypal) {
-
-        paypal.textContent =
-            MARKET_FLASH_CONFIG.paypalAccount ||
-            "Pendiente de configuración";
-
-    }
-
-}
-
-
-/* =========================================================
-   38. COPIAR BINANCE
-   ========================================================= */
-
-async function copyBinanceAddress() {
-
-    const address =
-        MARKET_FLASH_CONFIG.binanceAddress;
-
-
-    if (!address) {
-
-        showMessage(
+        message(
             "La dirección de Binance todavía no está configurada.",
             "warning"
         );
 
         return;
-    }
-
-
-    try {
-
-        await navigator.clipboard.writeText(
-            address
-        );
-
-
-        showMessage(
-            "Dirección de Binance copiada.",
-            "success"
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Error copiando dirección:",
-            error
-        );
-
-        showMessage(
-            "No se pudo copiar la dirección.",
-            "error"
-        );
 
     }
+
+
+    navigator.clipboard
+        .writeText(
+            APP.binanceAddress
+        )
+        .then(
+            () => {
+
+                message(
+                    "Dirección de Binance copiada.",
+                    "success"
+                );
+
+            }
+        )
+        .catch(
+            () => {
+
+                message(
+                    "No se pudo copiar.",
+                    "error"
+                );
+
+            }
+        );
 
 }
 
 
-/* =========================================================
-   39. PREVISUALIZACIÓN DE COMPROBANTE
-   ========================================================= */
+function previewReceipt(
+    event
+) {
 
-function setupReceiptPreview() {
-
-    const input =
-        $("#comprobante-pago");
+    const file =
+        event.currentTarget.files?.[0];
 
 
     const preview =
         $("#preview-comprobante");
 
 
-    if (!input || !preview) {
+    if (!preview) {
         return;
     }
 
 
-    input.addEventListener(
-        "change",
-        () => {
-
-            preview.innerHTML =
-                "";
+    preview.innerHTML =
+        "";
 
 
-            const file =
-                input.files?.[0];
+    if (!file) {
+        return;
+    }
 
 
-            if (!file) {
-                return;
-            }
+    if (
+        file.type.startsWith(
+            "image/"
+        )
+    ) {
+
+        const image =
+            document.createElement(
+                "img"
+            );
 
 
-            if (
-                file.type.startsWith(
-                    "image/"
-                )
-            ) {
-
-                const img =
-                    document.createElement(
-                        "img"
-                    );
+        image.src =
+            URL.createObjectURL(
+                file
+            );
 
 
-                img.src =
-                    URL.createObjectURL(
-                        file
-                    );
+        image.alt =
+            "Comprobante";
 
 
-                img.alt =
-                    "Comprobante";
+        preview.appendChild(
+            image
+        );
 
+    } else {
 
-                preview.appendChild(
-                    img
-                );
+        preview.textContent =
+            `Archivo: ${
+                file.name
+            }`;
 
-            } else {
-
-                preview.textContent =
-                    `Archivo seleccionado: ${
-                        file.name
-                    }`;
-
-            }
-
-        }
-    );
+    }
 
 }
 
 
 /* =========================================================
-   40. SUBIR COMPROBANTE
+   32. SUBIR COMPROBANTE
    ========================================================= */
 
 async function uploadReceipt(
     file
 ) {
 
-    if (
-        !supabase ||
-        !state.user
-    ) {
-        throw new Error(
-            "Usuario no autenticado."
-        );
-    }
-
-
     const extension =
-        getFileExtension(
-            file.name
-        );
+        file.name
+            .split(".")
+            .pop()
+            .toLowerCase();
 
 
-    const fileName =
+    const name =
         `${crypto.randomUUID()}.${extension}`;
 
 
     const path =
-        `${state.user.id}/${fileName}`;
+        `${STATE.user.id}/${name}`;
 
 
-    const {
-        error
-    } =
-        await supabase
+    const result =
+        await marketFlashClient
             .storage
             .from(
                 "payment-receipts"
@@ -3630,15 +3068,17 @@ async function uploadReceipt(
             );
 
 
-    if (error) {
-        throw error;
+    if (
+        result.error
+    ) {
+
+        throw result.error;
+
     }
 
 
-    const {
-        data
-    } =
-        supabase
+    const url =
+        marketFlashClient
             .storage
             .from(
                 "payment-receipts"
@@ -3648,41 +3088,30 @@ async function uploadReceipt(
             );
 
 
-    return data?.publicUrl ||
+    return url.data?.publicUrl ||
         null;
 
 }
 
 
 /* =========================================================
-   41. ENVIAR COMPROBANTE
+   33. ENVIAR PAGO
    ========================================================= */
 
-async function submitPaymentReceipt() {
+async function submitPayment() {
 
-    if (!state.user) {
+    if (
+        !STATE.user ||
+        !STATE.selectedProduct
+    ) {
 
-        showMessage(
-            "Debes iniciar sesión.",
-            "warning"
-        );
-
-        showSection(
-            "inicio-sesion"
-        );
-
-        return;
-    }
-
-
-    if (!state.currentProduct) {
-
-        showMessage(
-            "Primero debes seleccionar una publicación.",
+        message(
+            "Primero selecciona un producto.",
             "warning"
         );
 
         return;
+
     }
 
 
@@ -3692,33 +3121,32 @@ async function submitPaymentReceipt() {
         )?.value;
 
 
-    const input =
-        $("#comprobante-pago");
-
-
     const file =
-        input?.files?.[0];
+        $("#comprobante-pago")
+            ?.files?.[0];
 
 
     if (!method) {
 
-        showMessage(
+        message(
             "Selecciona un método de pago.",
             "warning"
         );
 
         return;
+
     }
 
 
     if (!file) {
 
-        showMessage(
+        message(
             "Selecciona el comprobante.",
             "warning"
         );
 
         return;
+
     }
 
 
@@ -3739,26 +3167,22 @@ async function submitPaymentReceipt() {
             );
 
 
-        const {
-            error
-        } =
-            await supabase
-                .from(
-                    "payments"
-                )
+        const result =
+            await marketFlashClient
+                .from("payments")
                 .insert({
 
                     user_id:
-                        state.user.id,
+                        STATE.user.id,
 
                     product_id:
-                        state.currentProduct.id,
+                        STATE.selectedProduct.id,
 
                     method:
                         method,
 
                     amount:
-                        MARKET_FLASH_CONFIG.publicationFee,
+                        APP.publicationFee,
 
                     receipt_url:
                         receiptUrl,
@@ -3769,57 +3193,44 @@ async function submitPaymentReceipt() {
                 });
 
 
-        if (error) {
-            throw error;
-        }
+        if (
+            result.error
+        ) {
 
-
-        const statusBox =
-            $("#estado-pago");
-
-
-        if (statusBox) {
-
-            statusBox.textContent =
-                "Estado: comprobante enviado y pendiente de revisión.";
+            throw result.error;
 
         }
 
 
-        if (input) {
-            input.value =
-                "";
-        }
+        $("#comprobante-pago").value =
+            "";
 
 
-        const preview =
-            $("#preview-comprobante");
+        $("#preview-comprobante").innerHTML =
+            "";
 
 
-        if (preview) {
-            preview.innerHTML =
-                "";
-        }
+        $("#estado-pago")
+            .textContent =
+                "Estado: comprobante enviado para revisión.";
 
 
-        showMessage(
-            "Comprobante enviado correctamente.",
+        message(
+            "Comprobante enviado.",
             "success"
         );
 
 
         await loadNotifications();
 
-
     } catch (error) {
 
         console.error(
-            "Error enviando comprobante:",
+            "Pago:",
             error
         );
 
-
-        showMessage(
+        message(
             error.message ||
             "No se pudo enviar el comprobante.",
             "error"
@@ -3837,39 +3248,75 @@ async function submitPaymentReceipt() {
 
 
 /* =========================================================
-   42. PROMOCIONES
+   34. PROMOCIONES
    ========================================================= */
+
+function setupPromotions() {
+
+    $all(
+        "[data-promotion]"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                async () => {
+
+                    await requestPromotion(
+                        button.dataset.promotion
+                    );
+
+                }
+            );
+
+        }
+    );
+
+}
+
 
 async function requestPromotion(
     type
 ) {
 
-    if (!state.user) {
+    if (!STATE.user) {
 
-        showMessage(
+        message(
             "Inicia sesión para solicitar una promoción.",
             "warning"
         );
 
-        showSection(
+        showPage(
             "inicio-sesion"
         );
 
         return;
+
     }
 
 
-    const {
-        error
-    } =
-        await supabase
-            .from(
-                "promotions"
-            )
+    if (
+        !APP.promotionsActive
+    ) {
+
+        message(
+            "Las promociones están temporalmente desactivadas.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    const result =
+        await marketFlashClient
+            .from("promotions")
             .insert({
 
                 user_id:
-                    state.user.id,
+                    STATE.user.id,
 
                 promotion_type:
                     type,
@@ -3880,56 +3327,47 @@ async function requestPromotion(
             });
 
 
-    if (error) {
+    if (
+        result.error
+    ) {
 
-        showMessage(
-            error.message,
+        message(
+            result.error.message,
             "error"
         );
 
         return;
+
     }
 
 
-    showMessage(
+    message(
         "Solicitud de promoción enviada.",
         "success"
     );
 
 
-    await loadPromotions();
+    loadPromotions();
 
 }
 
 
-/* =========================================================
-   43. CARGAR PROMOCIONES
-   ========================================================= */
-
 async function loadPromotions() {
 
-    if (
-        !supabase ||
-        !state.user
-    ) {
+    if (!STATE.user) {
         return;
     }
 
 
-    const {
-        data,
-        error
-    } =
-        await supabase
-            .from(
-                "promotions"
-            )
+    const result =
+        await marketFlashClient
+            .from("promotions")
             .select(
                 "id,promotion_type,status,created_at"
             )
             .eq(
                 "user_id",
-                state.user.id
+                STATE.user.id
             )
             .order(
                 "created_at",
@@ -3940,32 +3378,12 @@ async function loadPromotions() {
             );
 
 
-    if (error) {
-
-        console.error(
-            "Error cargando promociones:",
-            error
-        );
-
+    if (
+        result.error
+    ) {
         return;
     }
 
-
-    renderPromotions(
-        data ||
-        []
-    );
-
-}
-
-
-/* =========================================================
-   44. MOSTRAR PROMOCIONES
-   ========================================================= */
-
-function renderPromotions(
-    promotions
-) {
 
     const container =
         $("#lista-promociones");
@@ -3980,31 +3398,21 @@ function renderPromotions(
         "";
 
 
-    if (!promotions.length) {
+    if (
+        !result.data?.length
+    ) {
 
-        const empty =
-            document.createElement(
-                "div"
-            );
-
-
-        empty.className =
-            "empty-state";
-
-
-        empty.textContent =
-            "No tienes solicitudes de promoción.";
-
-
-        container.appendChild(
-            empty
+        renderEmpty(
+            container,
+            "No tienes solicitudes de promoción."
         );
 
         return;
+
     }
 
 
-    promotions.forEach(
+    result.data.forEach(
         promotion => {
 
             const item =
@@ -4034,90 +3442,19 @@ function renderPromotions(
 
 
 /* =========================================================
-   45. VÍDEOS
+   35. VÍDEOS
    ========================================================= */
 
-async function uploadVideo(
-    file
-) {
+function setupVideos() {
 
-    if (
-        !supabase ||
-        !state.user
-    ) {
-        throw new Error(
-            "Usuario no autenticado."
+    $("#form-video")
+        ?.addEventListener(
+            "submit",
+            createVideo
         );
-    }
-
-
-    const extension =
-        getFileExtension(
-            file.name
-        );
-
-
-    const fileName =
-        `${crypto.randomUUID()}.${extension}`;
-
-
-    const path =
-        `${state.user.id}/${fileName}`;
-
-
-    const {
-        error
-    } =
-        await supabase
-            .storage
-            .from(
-                "market-videos"
-            )
-            .upload(
-                path,
-                file,
-                {
-
-                    cacheControl:
-                        "3600",
-
-                    upsert:
-                        false,
-
-                    contentType:
-                        file.type
-
-                }
-            );
-
-
-    if (error) {
-        throw error;
-    }
-
-
-    const {
-        data
-    } =
-        supabase
-            .storage
-            .from(
-                "market-videos"
-            )
-            .getPublicUrl(
-                path
-            );
-
-
-    return data?.publicUrl ||
-        null;
 
 }
 
-
-/* =========================================================
-   46. PUBLICAR VIDEO
-   ========================================================= */
 
 async function createVideo(
     event
@@ -4126,25 +3463,28 @@ async function createVideo(
     event.preventDefault();
 
 
-    if (!state.user) {
+    if (!STATE.user) {
 
-        showMessage(
+        message(
             "Inicia sesión para publicar un vídeo.",
             "warning"
         );
 
         return;
+
     }
 
 
     const title =
         $("#video-titulo")
-            ?.value.trim();
+            ?.value
+            .trim();
 
 
     const description =
         $("#video-descripcion")
-            ?.value.trim();
+            ?.value
+            .trim();
 
 
     const file =
@@ -4152,14 +3492,18 @@ async function createVideo(
             ?.files?.[0];
 
 
-    if (!title || !file) {
+    if (
+        !title ||
+        !file
+    ) {
 
-        showMessage(
-            "Completa el título y selecciona un vídeo.",
+        message(
+            "Escribe un título y selecciona un vídeo.",
             "warning"
         );
 
         return;
+
     }
 
 
@@ -4169,34 +3513,82 @@ async function createVideo(
         )
     ) {
 
-        showMessage(
-            "Selecciona un archivo de vídeo válido.",
+        message(
+            "Selecciona un vídeo válido.",
             "warning"
         );
 
         return;
+
     }
 
 
     try {
 
-        const videoUrl =
-            await uploadVideo(
-                file
-            );
+        const extension =
+            file.name
+                .split(".")
+                .pop()
+                .toLowerCase();
 
 
-        const {
-            error
-        } =
-            await supabase
+        const name =
+            `${crypto.randomUUID()}.${extension}`;
+
+
+        const path =
+            `${STATE.user.id}/${name}`;
+
+
+        const upload =
+            await marketFlashClient
+                .storage
                 .from(
-                    "videos"
+                    "market-videos"
                 )
+                .upload(
+                    path,
+                    file,
+                    {
+                        cacheControl:
+                            "3600",
+
+                        upsert:
+                            false,
+
+                        contentType:
+                            file.type
+                    }
+                );
+
+
+        if (
+            upload.error
+        ) {
+
+            throw upload.error;
+
+        }
+
+
+        const publicUrl =
+            marketFlashClient
+                .storage
+                .from(
+                    "market-videos"
+                )
+                .getPublicUrl(
+                    path
+                );
+
+
+        const result =
+            await marketFlashClient
+                .from("videos")
                 .insert({
 
                     user_id:
-                        state.user.id,
+                        STATE.user.id,
 
                     title:
                         title,
@@ -4205,7 +3597,7 @@ async function createVideo(
                         description,
 
                     video_url:
-                        videoUrl,
+                        publicUrl.data?.publicUrl,
 
                     status:
                         "pending"
@@ -4213,32 +3605,33 @@ async function createVideo(
                 });
 
 
-        if (error) {
-            throw error;
+        if (
+            result.error
+        ) {
+
+            throw result.error;
+
         }
 
 
         event.currentTarget.reset();
 
 
-        showMessage(
+        message(
             "Vídeo enviado para revisión.",
             "success"
         );
 
-
-        await loadVideos();
-
     } catch (error) {
 
         console.error(
-            "Error publicando vídeo:",
+            "Vídeo:",
             error
         );
 
-        showMessage(
+        message(
             error.message ||
-            "No se pudo publicar el vídeo.",
+            "No se pudo enviar el vídeo.",
             "error"
         );
 
@@ -4248,24 +3641,14 @@ async function createVideo(
 
 
 /* =========================================================
-   47. CARGAR VÍDEOS
+   36. CARGAR VÍDEOS
    ========================================================= */
 
 async function loadVideos() {
 
-    if (!supabase) {
-        return;
-    }
-
-
-    const {
-        data,
-        error
-    } =
-        await supabase
-            .from(
-                "videos"
-            )
+    const result =
+        await marketFlashClient
+            .from("videos")
             .select(
                 "id,user_id,title,description,video_url,status,created_at"
             )
@@ -4282,32 +3665,12 @@ async function loadVideos() {
             );
 
 
-    if (error) {
-
-        console.error(
-            "Error cargando vídeos:",
-            error
-        );
-
+    if (
+        result.error
+    ) {
         return;
     }
 
-
-    renderVideos(
-        data ||
-        []
-    );
-
-}
-
-
-/* =========================================================
-   48. MOSTRAR VÍDEOS
-   ========================================================= */
-
-function renderVideos(
-    videos
-) {
 
     const container =
         $("#lista-videos");
@@ -4322,330 +3685,115 @@ function renderVideos(
         "";
 
 
-    videos.forEach(
-        video => {
+    (result.data || [])
+        .forEach(
+            video => {
 
-            const card =
-                document.createElement(
-                    "article"
+                const card =
+                    document.createElement(
+                        "article"
+                    );
+
+
+                card.className =
+                    "video-card";
+
+
+                const player =
+                    document.createElement(
+                        "video"
+                    );
+
+
+                player.controls =
+                    true;
+
+                player.preload =
+                    "metadata";
+
+                player.src =
+                    video.video_url;
+
+
+                const content =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                content.className =
+                    "video-card-content";
+
+
+                const title =
+                    document.createElement(
+                        "h3"
+                    );
+
+
+                title.textContent =
+                    video.title;
+
+
+                const description =
+                    document.createElement(
+                        "p"
+                    );
+
+
+                description.textContent =
+                    video.description ||
+                    "";
+
+
+                content.appendChild(
+                    title
+                );
+
+                content.appendChild(
+                    description
                 );
 
 
-            card.className =
-                "video-card";
+                card.appendChild(
+                    player
+                );
 
-
-            const player =
-                document.createElement(
-                    "video"
+                card.appendChild(
+                    content
                 );
 
 
-            player.controls =
-                true;
-
-
-            player.src =
-                video.video_url;
-
-
-            player.preload =
-                "metadata";
-
-
-            const content =
-                document.createElement(
-                    "div"
+                container.appendChild(
+                    card
                 );
 
-
-            content.className =
-                "video-card-content";
-
-
-            const title =
-                document.createElement(
-                    "h3"
-                );
-
-
-            title.textContent =
-                video.title ||
-                "Vídeo";
-
-
-            const description =
-                document.createElement(
-                    "p"
-                );
-
-
-            description.textContent =
-                video.description ||
-                "";
-
-
-            content.appendChild(
-                title
-            );
-
-            content.appendChild(
-                description
-            );
-
-
-            card.appendChild(
-                player
-            );
-
-            card.appendChild(
-                content
-            );
-
-
-            container.appendChild(
-                card
-            );
-
-        }
-    );
+            }
+        );
 
 }
 
 
 /* =========================================================
-   49. CALIFICACIONES
-   ========================================================= */
-
-async function submitReview(
-    event
-) {
-
-    event.preventDefault();
-
-
-    if (!state.user) {
-
-        showMessage(
-            "Inicia sesión para calificar.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    if (!state.currentProduct) {
-
-        showMessage(
-            "Selecciona un producto primero.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    const stars =
-        Number(
-            $("#calificacion-estrellas")
-                ?.value
-        );
-
-
-    const comment =
-        $("#calificacion-comentario")
-            ?.value.trim();
-
-
-    if (
-        !stars ||
-        stars < 1 ||
-        stars > 5
-    ) {
-
-        showMessage(
-            "Selecciona una calificación válida.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    const {
-        error
-    } =
-        await supabase
-            .from(
-                "reviews"
-            )
-            .insert({
-
-                reviewer_id:
-                    state.user.id,
-
-                product_id:
-                    state.currentProduct.id,
-
-                seller_id:
-                    state.currentProduct.user_id,
-
-                rating:
-                    stars,
-
-                comment:
-                    comment ||
-                    ""
-
-            });
-
-
-    if (error) {
-
-        showMessage(
-            error.message,
-            "error"
-        );
-
-        return;
-    }
-
-
-    event.currentTarget.reset();
-
-
-    showMessage(
-        "Calificación enviada.",
-        "success"
-    );
-
-}
-
-
-/* =========================================================
-   50. RECLAMOS
-   ========================================================= */
-
-async function submitClaim(
-    event
-) {
-
-    event.preventDefault();
-
-
-    if (!state.user) {
-
-        showMessage(
-            "Inicia sesión para enviar un reclamo.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    const motivo =
-        $("#reclamo-motivo")
-            ?.value;
-
-
-    const detalle =
-        $("#reclamo-detalle")
-            ?.value.trim();
-
-
-    if (
-        !motivo ||
-        !detalle
-    ) {
-
-        showMessage(
-            "Completa el motivo y los detalles.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    const {
-        error
-    } =
-        await supabase
-            .from(
-                "reports"
-            )
-            .insert({
-
-                user_id:
-                    state.user.id,
-
-                reason:
-                    motivo,
-
-                details:
-                    detalle,
-
-                status:
-                    "pending"
-
-            });
-
-
-    if (error) {
-
-        showMessage(
-            error.message,
-            "error"
-        );
-
-        return;
-    }
-
-
-    event.currentTarget.reset();
-
-
-    showMessage(
-        "Reclamo enviado correctamente.",
-        "success"
-    );
-
-
-    await loadNotifications();
-
-}
-
-
-/* =========================================================
-   51. NOTIFICACIONES
+   37. NOTIFICACIONES
    ========================================================= */
 
 async function loadNotifications() {
 
-    if (
-        !supabase ||
-        !state.user
-    ) {
+    if (!STATE.user) {
         return;
     }
 
 
-    const {
-        data,
-        error
-    } =
-        await supabase
-            .from(
-                "notifications"
-            )
+    const result =
+        await marketFlashClient
+            .from("notifications")
             .select(
                 "id,title,message,read,created_at"
             )
             .eq(
                 "user_id",
-                state.user.id
+                STATE.user.id
             )
             .order(
                 "created_at",
@@ -4659,32 +3807,12 @@ async function loadNotifications() {
             );
 
 
-    if (error) {
-
-        console.error(
-            "Error cargando notificaciones:",
-            error
-        );
-
+    if (
+        result.error
+    ) {
         return;
     }
 
-
-    renderNotifications(
-        data ||
-        []
-    );
-
-}
-
-
-/* =========================================================
-   52. MOSTRAR NOTIFICACIONES
-   ========================================================= */
-
-function renderNotifications(
-    notifications
-) {
 
     const container =
         $("#lista-notificaciones");
@@ -4699,32 +3827,22 @@ function renderNotifications(
         "";
 
 
-    if (!notifications.length) {
+    if (
+        !result.data?.length
+    ) {
 
-        const empty =
-            document.createElement(
-                "div"
-            );
-
-
-        empty.className =
-            "empty-state";
-
-
-        empty.textContent =
-            "No tienes notificaciones.";
-
-
-        container.appendChild(
-            empty
+        renderEmpty(
+            container,
+            "No tienes notificaciones."
         );
 
         return;
+
     }
 
 
-    notifications.forEach(
-        notification => {
+    result.data.forEach(
+        item => {
 
             const card =
                 document.createElement(
@@ -4736,7 +3854,7 @@ function renderNotifications(
                 "notification-card";
 
 
-            if (!notification.read) {
+            if (!item.read) {
 
                 card.classList.add(
                     "unread"
@@ -4752,34 +3870,32 @@ function renderNotifications(
 
 
             title.textContent =
-                notification.title ||
-                "Notificación";
+                item.title;
 
 
-            const message =
+            const text =
                 document.createElement(
                     "p"
                 );
 
 
-            message.textContent =
-                notification.message ||
-                "";
+            text.textContent =
+                item.message;
 
 
-            const time =
+            const date =
                 document.createElement(
                     "span"
                 );
 
 
-            time.className =
+            date.className =
                 "notification-time";
 
 
-            time.textContent =
+            date.textContent =
                 formatDate(
-                    notification.created_at
+                    item.created_at
                 );
 
 
@@ -4788,11 +3904,11 @@ function renderNotifications(
             );
 
             card.appendChild(
-                message
+                text
             );
 
             card.appendChild(
-                time
+                date
             );
 
 
@@ -4807,50 +3923,369 @@ function renderNotifications(
 
 
 /* =========================================================
-   53. ADMINISTRADOR
+   38. CALIFICACIONES
    ========================================================= */
 
-async function loadAdminData() {
+function setupReviews() {
+
+    $("#form-calificacion")
+        ?.addEventListener(
+            "submit",
+            submitReview
+        );
+
+}
+
+
+async function submitReview(
+    event
+) {
+
+    event.preventDefault();
+
 
     if (
-        !state.isAdmin ||
-        !supabase
+        !STATE.user ||
+        !STATE.selectedProduct
     ) {
+
+        message(
+            "Selecciona un producto e inicia sesión.",
+            "warning"
+        );
+
         return;
+
     }
 
 
-    await Promise.all([
-        loadAdminStats(),
-        loadAdminPayments(),
-        loadAdminPendingProducts(),
-        loadAdminActiveProducts(),
-        loadAdminUsers(),
-        loadAdminReports()
-    ]);
+    const rating =
+        Number(
+            $("#calificacion-estrellas")
+                ?.value
+        );
+
+
+    const comment =
+        $("#calificacion-comentario")
+            ?.value
+            .trim();
+
+
+    if (
+        rating < 1 ||
+        rating > 5
+    ) {
+
+        message(
+            "Selecciona una calificación válida.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    const result =
+        await marketFlashClient
+            .from("reviews")
+            .insert({
+
+                reviewer_id:
+                    STATE.user.id,
+
+                product_id:
+                    STATE.selectedProduct.id,
+
+                seller_id:
+                    STATE.selectedProduct.user_id,
+
+                rating:
+                    rating,
+
+                comment:
+                    comment ||
+                    ""
+
+            });
+
+
+    if (
+        result.error
+    ) {
+
+        message(
+            result.error.message,
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    event.currentTarget.reset();
+
+
+    message(
+        "Calificación enviada.",
+        "success"
+    );
 
 }
 
 
 /* =========================================================
-   54. ESTADÍSTICAS ADMIN
+   39. RECLAMOS
    ========================================================= */
+
+function setupClaims() {
+
+    $("#form-reclamo")
+        ?.addEventListener(
+            "submit",
+            submitClaim
+        );
+
+}
+
+
+async function submitClaim(
+    event
+) {
+
+    event.preventDefault();
+
+
+    if (!STATE.user) {
+
+        message(
+            "Inicia sesión para enviar un reclamo.",
+            "warning"
+        );
+
+        showPage(
+            "inicio-sesion"
+        );
+
+        return;
+
+    }
+
+
+    const reason =
+        $("#reclamo-motivo")
+            ?.value;
+
+
+    const details =
+        $("#reclamo-detalle")
+            ?.value
+            .trim();
+
+
+    if (
+        !reason ||
+        !details
+    ) {
+
+        message(
+            "Completa el motivo y los detalles.",
+            "warning"
+        );
+
+        return;
+
+    }
+
+
+    const result =
+        await marketFlashClient
+            .from("reports")
+            .insert({
+
+                user_id:
+                    STATE.user.id,
+
+                reason:
+                    reason,
+
+                details:
+                    details,
+
+                status:
+                    "pending"
+
+            });
+
+
+    if (
+        result.error
+    ) {
+
+        message(
+            result.error.message,
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    event.currentTarget.reset();
+
+
+    message(
+        "Reclamo enviado correctamente.",
+        "success"
+    );
+
+}
+
+
+/* =========================================================
+   40. CONTACTO CON VENDEDOR
+   ========================================================= */
+
+function setupSellerContact() {
+
+    $("#btn-contactar-whatsapp")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    !STATE.selectedProduct
+                ) {
+
+                    message(
+                        "No hay un producto seleccionado.",
+                        "warning"
+                    );
+
+                    return;
+
+                }
+
+
+                const contact =
+                    STATE.selectedProduct
+                        .contacto;
+
+
+                if (
+                    contact !==
+                    "WhatsApp"
+                ) {
+
+                    message(
+                        "Este vendedor no seleccionó WhatsApp.",
+                        "warning"
+                    );
+
+                    return;
+
+                }
+
+
+                const seller =
+                    STATE.products
+                        .find(
+                            product =>
+                                product.id ===
+                                STATE.selectedProduct.id
+                        );
+
+
+                if (
+                    !seller
+                ) {
+                    return;
+                }
+
+
+                message(
+                    "El contacto de WhatsApp se conectará con los datos del vendedor almacenados en su perfil.",
+                    "info"
+                );
+
+            }
+        );
+
+
+    $("#btn-contactar-messenger")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    !STATE.selectedProduct
+                ) {
+
+                    message(
+                        "No hay un producto seleccionado.",
+                        "warning"
+                    );
+
+                    return;
+
+                }
+
+
+                message(
+                    "El contacto de Messenger se conectará con el perfil del vendedor.",
+                    "info"
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   41. ADMIN
+   ========================================================= */
+
+async function loadAdmin() {
+
+    if (
+        !STATE.isAdmin
+    ) {
+        return;
+    }
+
+
+    await loadAdminStats();
+
+    await loadAdminPayments();
+
+    await loadAdminPendingProducts();
+
+    await loadAdminActiveProducts();
+
+    await loadAdminUsers();
+
+    await loadAdminReports();
+
+    await loadAdminSettings();
+
+}
+
 
 async function loadAdminStats() {
 
-    /*
-     * Se utilizan consultas COUNT.
-     */
-
     const [
-        usersResult,
-        pendingResult,
-        paymentsResult,
-        activeResult
+        users,
+        pending,
+        payments,
+        active
     ] =
         await Promise.all([
 
-            supabase
+            marketFlashClient
                 .from("profiles")
                 .select(
                     "id",
@@ -4862,7 +4297,7 @@ async function loadAdminStats() {
                     }
                 ),
 
-            supabase
+            marketFlashClient
                 .from("products")
                 .select(
                     "id",
@@ -4878,7 +4313,7 @@ async function loadAdminStats() {
                     "pending"
                 ),
 
-            supabase
+            marketFlashClient
                 .from("payments")
                 .select(
                     "id",
@@ -4894,7 +4329,7 @@ async function loadAdminStats() {
                     "pending"
                 ),
 
-            supabase
+            marketFlashClient
                 .from("products")
                 .select(
                     "id",
@@ -4913,38 +4348,54 @@ async function loadAdminStats() {
         ]);
 
 
-    setText(
-        "#admin-total-usuarios",
-        usersResult.count ??
-        0
-    );
+    $("#admin-total-usuarios")
+        ?.replaceChildren(
+            document.createTextNode(
+                String(
+                    users.count ??
+                    0
+                )
+            )
+        );
 
 
-    setText(
-        "#admin-total-pendientes",
-        pendingResult.count ??
-        0
-    );
+    $("#admin-total-pendientes")
+        ?.replaceChildren(
+            document.createTextNode(
+                String(
+                    pending.count ??
+                    0
+                )
+            )
+        );
 
 
-    setText(
-        "#admin-total-pagos",
-        paymentsResult.count ??
-        0
-    );
+    $("#admin-total-pagos")
+        ?.replaceChildren(
+            document.createTextNode(
+                String(
+                    payments.count ??
+                    0
+                )
+            )
+        );
 
 
-    setText(
-        "#admin-total-activas",
-        activeResult.count ??
-        0
-    );
+    $("#admin-total-activas")
+        ?.replaceChildren(
+            document.createTextNode(
+                String(
+                    active.count ??
+                    0
+                )
+            )
+        );
 
 }
 
 
 /* =========================================================
-   55. ADMIN — PAGOS
+   42. ADMIN — PAGOS
    ========================================================= */
 
 async function loadAdminPayments() {
@@ -4953,31 +4404,16 @@ async function loadAdminPayments() {
         $("#admin-comprobantes");
 
 
-    if (
-        !container ||
-        !state.isAdmin
-    ) {
+    if (!container) {
         return;
     }
 
 
-    const {
-        data,
-        error
-    } =
-        await supabase
+    const result =
+        await marketFlashClient
             .from("payments")
             .select(
-                `
-                id,
-                user_id,
-                product_id,
-                method,
-                amount,
-                receipt_url,
-                status,
-                created_at
-                `
+                "id,user_id,product_id,method,amount,receipt_url,status,created_at"
             )
             .eq(
                 "status",
@@ -4992,13 +4428,9 @@ async function loadAdminPayments() {
             );
 
 
-    if (error) {
-
-        console.error(
-            "Error cargando pagos admin:",
-            error
-        );
-
+    if (
+        result.error
+    ) {
         return;
     }
 
@@ -5007,18 +4439,21 @@ async function loadAdminPayments() {
         "";
 
 
-    if (!data?.length) {
+    if (
+        !result.data?.length
+    ) {
 
-        renderAdminEmpty(
+        renderEmpty(
             container,
-            "No hay comprobantes pendientes."
+            "No hay pagos pendientes."
         );
 
         return;
+
     }
 
 
-    data.forEach(
+    result.data.forEach(
         payment => {
 
             const item =
@@ -5183,26 +4618,23 @@ async function loadAdminPayments() {
 
 
 /* =========================================================
-   56. REVISAR PAGO
+   43. REVISAR PAGO
    ========================================================= */
 
 async function reviewPayment(
     paymentId,
-    status
+    newStatus
 ) {
 
-    if (!state.isAdmin) {
+    if (
+        !STATE.isAdmin
+    ) {
         return;
     }
 
 
-    const {
-        data:
-            payment,
-        error:
-            paymentError
-    } =
-        await supabase
+    const payment =
+        await marketFlashClient
             .from("payments")
             .select(
                 "id,product_id,user_id"
@@ -5214,26 +4646,31 @@ async function reviewPayment(
             .single();
 
 
-    if (paymentError) {
+    if (
+        payment.error
+    ) {
 
-        showMessage(
-            paymentError.message,
+        message(
+            payment.error.message,
             "error"
         );
 
         return;
+
     }
 
 
-    const {
-        error:
-            updatePaymentError
-    } =
-        await supabase
+    const updated =
+        await marketFlashClient
             .from("payments")
             .update({
+
                 status:
-                    status
+                    newStatus,
+
+                reviewed_at:
+                    new Date().toISOString()
+
             })
             .eq(
                 "id",
@@ -5241,64 +4678,69 @@ async function reviewPayment(
             );
 
 
-    if (updatePaymentError) {
+    if (
+        updated.error
+    ) {
 
-        showMessage(
-            updatePaymentError.message,
+        message(
+            updated.error.message,
             "error"
         );
 
         return;
+
     }
 
 
     if (
-        status ===
+        newStatus ===
         "approved"
     ) {
 
-        await supabase
+        await marketFlashClient
             .from("products")
             .update({
+
                 status:
                     "approved"
+
             })
             .eq(
                 "id",
-                payment.product_id
+                payment.data.product_id
             );
 
     }
 
 
     await createNotification(
-        payment.user_id,
-        status === "approved"
+        payment.data.user_id,
+        newStatus === "approved"
             ? "Pago aprobado"
             : "Pago rechazado",
-        status === "approved"
-            ? "Tu comprobante fue aprobado y tu publicación puede ser activada."
-            : "Tu comprobante fue rechazado. Revisa la información y vuelve a intentarlo."
+        newStatus === "approved"
+            ? "Tu pago fue aprobado y tu publicación puede aparecer en Market Flash."
+            : "Tu comprobante fue rechazado."
     );
 
 
-    showMessage(
-        status === "approved"
+    message(
+        newStatus === "approved"
             ? "Pago aprobado."
             : "Pago rechazado.",
         "success"
     );
 
 
-    await loadAdminData();
-
     await loadProducts();
+
+    await loadAdmin();
 
 }
 
 
 /* =========================================================
-   57. ADMIN — PRODUCTOS PENDIENTES
+   44. ADMIN — PRODUCTOS PENDIENTES
    ========================================================= */
 
 async function loadAdminPendingProducts() {
@@ -5307,34 +4749,16 @@ async function loadAdminPendingProducts() {
         $("#admin-publicaciones-pendientes");
 
 
-    if (
-        !container ||
-        !state.isAdmin
-    ) {
+    if (!container) {
         return;
     }
 
 
-    const {
-        data,
-        error
-    } =
-        await supabase
+    const result =
+        await marketFlashClient
             .from("products")
             .select(
-                `
-                id,
-                user_id,
-                nombre,
-                categoria,
-                precio,
-                cantidad,
-                descripcion,
-                contacto,
-                status,
-                image_urls,
-                created_at
-                `
+                "id,user_id,nombre,categoria,precio,cantidad,descripcion,status,created_at"
             )
             .eq(
                 "status",
@@ -5349,13 +4773,9 @@ async function loadAdminPendingProducts() {
             );
 
 
-    if (error) {
-
-        console.error(
-            "Error cargando pendientes:",
-            error
-        );
-
+    if (
+        result.error
+    ) {
         return;
     }
 
@@ -5364,18 +4784,21 @@ async function loadAdminPendingProducts() {
         "";
 
 
-    if (!data?.length) {
+    if (
+        !result.data?.length
+    ) {
 
-        renderAdminEmpty(
+        renderEmpty(
             container,
             "No hay publicaciones pendientes."
         );
 
         return;
+
     }
 
 
-    data.forEach(
+    result.data.forEach(
         product => {
 
             const item =
@@ -5412,13 +4835,13 @@ async function loadAdminPendingProducts() {
                 }`;
 
 
-            const details =
+            const description =
                 document.createElement(
                     "p"
                 );
 
 
-            details.textContent =
+            description.textContent =
                 product.descripcion ||
                 "";
 
@@ -5448,14 +4871,14 @@ async function loadAdminPendingProducts() {
 
 
             approve.textContent =
-                "Aprobar publicación";
+                "Aprobar";
 
 
             approve.addEventListener(
                 "click",
                 () =>
                     reviewProduct(
-                        product.id,
+                        product,
                         "approved"
                     )
             );
@@ -5483,7 +4906,7 @@ async function loadAdminPendingProducts() {
                 "click",
                 () =>
                     reviewProduct(
-                        product.id,
+                        product,
                         "rejected"
                     )
             );
@@ -5507,7 +4930,7 @@ async function loadAdminPendingProducts() {
             );
 
             item.appendChild(
-                details
+                description
             );
 
             item.appendChild(
@@ -5526,52 +4949,23 @@ async function loadAdminPendingProducts() {
 
 
 /* =========================================================
-   58. ADMIN — REVISAR PRODUCTO
+   45. REVISAR PRODUCTO
    ========================================================= */
 
 async function reviewProduct(
-    productId,
+    product,
     status
 ) {
 
-    if (!state.isAdmin) {
+    if (
+        !STATE.isAdmin
+    ) {
         return;
     }
 
 
-    const {
-        data:
-            product,
-        error:
-            productError
-    } =
-        await supabase
-            .from("products")
-            .select(
-                "id,user_id,nombre"
-            )
-            .eq(
-                "id",
-                productId
-            )
-            .single();
-
-
-    if (productError) {
-
-        showMessage(
-            productError.message,
-            "error"
-        );
-
-        return;
-    }
-
-
-    const {
-        error
-    } =
-        await supabase
+    const result =
+        await marketFlashClient
             .from("products")
             .update({
                 status:
@@ -5579,18 +4973,21 @@ async function reviewProduct(
             })
             .eq(
                 "id",
-                productId
+                product.id
             );
 
 
-    if (error) {
+    if (
+        result.error
+    ) {
 
-        showMessage(
-            error.message,
+        message(
+            result.error.message,
             "error"
         );
 
         return;
+
     }
 
 
@@ -5605,7 +5002,7 @@ async function reviewProduct(
     );
 
 
-    showMessage(
+    message(
         status === "approved"
             ? "Publicación aprobada."
             : "Publicación rechazada.",
@@ -5615,49 +5012,47 @@ async function reviewProduct(
 
     await loadProducts();
 
-    await loadAdminData();
+    await loadAdmin();
 
 }
 
 
 /* =========================================================
-   59. ADMIN — PRODUCTOS ACTIVOS
+   46. ADMIN — PRODUCTOS ACTIVOS
    ========================================================= */
 
-function renderAdminProducts() {
+async function loadAdminActiveProducts() {
 
     const container =
         $("#admin-publicaciones-activas");
 
 
-    if (
-        !container ||
-        !state.isAdmin
-    ) {
+    if (!container) {
         return;
     }
 
 
-    container.innerHTML =
-        "";
-
-
     const active =
-        state.products.filter(
+        STATE.products.filter(
             product =>
                 product.status ===
                 "approved"
         );
 
 
+    container.innerHTML =
+        "";
+
+
     if (!active.length) {
 
-        renderAdminEmpty(
+        renderEmpty(
             container,
             "No hay publicaciones activas."
         );
 
         return;
+
     }
 
 
@@ -5681,7 +5076,7 @@ function renderAdminProducts() {
 
 
 /* =========================================================
-   60. ADMIN — USUARIOS
+   47. ADMIN — USUARIOS
    ========================================================= */
 
 async function loadAdminUsers() {
@@ -5690,19 +5085,13 @@ async function loadAdminUsers() {
         $("#admin-usuarios");
 
 
-    if (
-        !container ||
-        !state.isAdmin
-    ) {
+    if (!container) {
         return;
     }
 
 
-    const {
-        data,
-        error
-    } =
-        await supabase
+    const result =
+        await marketFlashClient
             .from("profiles")
             .select(
                 "id,full_name,documento,phone,whatsapp,messenger,role"
@@ -5716,13 +5105,9 @@ async function loadAdminUsers() {
             );
 
 
-    if (error) {
-
-        console.error(
-            "Error cargando usuarios:",
-            error
-        );
-
+    if (
+        result.error
+    ) {
         return;
     }
 
@@ -5731,18 +5116,21 @@ async function loadAdminUsers() {
         "";
 
 
-    if (!data?.length) {
+    if (
+        !result.data?.length
+    ) {
 
-        renderAdminEmpty(
+        renderEmpty(
             container,
-            "No hay usuarios registrados."
+            "No hay usuarios."
         );
 
         return;
+
     }
 
 
-    data.forEach(
+    result.data.forEach(
         user => {
 
             const item =
@@ -5755,24 +5143,24 @@ async function loadAdminUsers() {
                 "admin-item";
 
 
-            const title =
+            const name =
                 document.createElement(
                     "h4"
                 );
 
 
-            title.textContent =
+            name.textContent =
                 user.full_name ||
                 "Usuario";
 
 
-            const info =
+            const phone =
                 document.createElement(
                     "p"
                 );
 
 
-            info.textContent =
+            phone.textContent =
                 `Teléfono: ${
                     user.phone ||
                     "-"
@@ -5793,11 +5181,11 @@ async function loadAdminUsers() {
 
 
             item.appendChild(
-                title
+                name
             );
 
             item.appendChild(
-                info
+                phone
             );
 
             item.appendChild(
@@ -5816,7 +5204,7 @@ async function loadAdminUsers() {
 
 
 /* =========================================================
-   61. ADMIN — REPORTES
+   48. ADMIN — RECLAMOS
    ========================================================= */
 
 async function loadAdminReports() {
@@ -5825,19 +5213,13 @@ async function loadAdminReports() {
         $("#admin-reclamos");
 
 
-    if (
-        !container ||
-        !state.isAdmin
-    ) {
+    if (!container) {
         return;
     }
 
 
-    const {
-        data,
-        error
-    } =
-        await supabase
+    const result =
+        await marketFlashClient
             .from("reports")
             .select(
                 "id,user_id,reason,details,status,created_at"
@@ -5851,13 +5233,9 @@ async function loadAdminReports() {
             );
 
 
-    if (error) {
-
-        console.error(
-            "Error cargando reclamos:",
-            error
-        );
-
+    if (
+        result.error
+    ) {
         return;
     }
 
@@ -5866,18 +5244,21 @@ async function loadAdminReports() {
         "";
 
 
-    if (!data?.length) {
+    if (
+        !result.data?.length
+    ) {
 
-        renderAdminEmpty(
+        renderEmpty(
             container,
             "No hay reclamos."
         );
 
         return;
+
     }
 
 
-    data.forEach(
+    result.data.forEach(
         report => {
 
             const item =
@@ -5946,27 +5327,118 @@ async function loadAdminReports() {
 
 
 /* =========================================================
-   62. CONFIGURACIÓN ADMIN
+   49. ADMIN — CONFIGURACIÓN
    ========================================================= */
 
-async function togglePublicationMode() {
+async function loadAdminSettings() {
 
-    if (!state.isAdmin) {
+    const result =
+        await marketFlashClient
+            .from("settings")
+            .select(
+                "key,value"
+            );
+
+
+    if (
+        result.error
+    ) {
         return;
     }
 
 
-    const newMode =
-        state.publicationMode ===
+    const settings =
+        Object.fromEntries(
+            (result.data || [])
+                .map(
+                    item => [
+                        item.key,
+                        item.value
+                    ]
+                )
+        );
+
+
+    APP.publicationMode =
+        settings.publications_mode ||
+        "paid";
+
+
+    APP.promotionsActive =
+        settings.promotions_active !==
+        "false";
+
+
+    const publicationText =
+        $("#admin-texto-publicaciones");
+
+
+    const promotionText =
+        $("#admin-texto-promociones");
+
+
+    if (
+        publicationText
+    ) {
+
+        publicationText.textContent =
+            APP.publicationMode ===
+            "paid"
+                ? "Las publicaciones requieren pago."
+                : "Las publicaciones son gratuitas.";
+
+    }
+
+
+    if (
+        promotionText
+    ) {
+
+        promotionText.textContent =
+            APP.promotionsActive
+                ? "Las promociones están activas."
+                : "Las promociones están desactivadas.";
+
+    }
+
+
+    const statusText =
+        $("#texto-estado-publicacion");
+
+
+    if (
+        statusText
+    ) {
+
+        statusText.textContent =
+            APP.publicationMode ===
+            "paid"
+                ? `La publicación requiere un pago de RD$ ${formatPrice(
+                    APP.publicationFee
+                )}.`
+                : "La publicación es gratuita.";
+
+    }
+
+}
+
+
+async function togglePublicationMode() {
+
+    if (!STATE.isAdmin) {
+        return;
+    }
+
+
+    const next =
+        APP.publicationMode ===
         "paid"
             ? "free"
             : "paid";
 
 
-    const {
-        error
-    } =
-        await supabase
+    const result =
+        await marketFlashClient
             .from("settings")
             .upsert({
 
@@ -5974,91 +5446,55 @@ async function togglePublicationMode() {
                     "publications_mode",
 
                 value:
-                    newMode
+                    next
 
             });
 
 
-    if (error) {
+    if (
+        result.error
+    ) {
 
-        showMessage(
-            error.message,
+        message(
+            result.error.message,
             "error"
         );
 
         return;
+
     }
 
 
-    state.publicationMode =
-        newMode;
+    APP.publicationMode =
+        next;
 
 
-    updatePublicationSettings();
+    await loadAdminSettings();
 
 
-    showMessage(
-        newMode === "paid"
-            ? "Las publicaciones ahora requieren pago."
-            : "Las publicaciones ahora son gratuitas.",
+    message(
+        next === "paid"
+            ? "Publicaciones de pago activadas."
+            : "Publicaciones gratuitas activadas.",
         "success"
     );
 
 }
 
 
-/* =========================================================
-   63. CONFIGURACIÓN DE PROMOCIONES
-   ========================================================= */
-
 async function togglePromotions() {
 
-    if (!state.isAdmin) {
+    if (!STATE.isAdmin) {
         return;
     }
-
-
-    const {
-        data,
-        error
-    } =
-        await supabase
-            .from("settings")
-            .select(
-                "value"
-            )
-            .eq(
-                "key",
-                "promotions_active"
-            )
-            .maybeSingle();
-
-
-    if (error) {
-
-        showMessage(
-            error.message,
-            "error"
-        );
-
-        return;
-    }
-
-
-    const current =
-        data?.value ===
-        "true";
 
 
     const next =
-        !current;
+        !APP.promotionsActive;
 
 
-    const {
-        error:
-            updateError
-    } =
-        await supabase
+    const result =
+        await marketFlashClient
             .from("settings")
             .upsert({
 
@@ -6071,32 +5507,28 @@ async function togglePromotions() {
             });
 
 
-    if (updateError) {
+    if (
+        result.error
+    ) {
 
-        showMessage(
-            updateError.message,
+        message(
+            result.error.message,
             "error"
         );
 
         return;
-    }
-
-
-    const text =
-        $("#admin-texto-promociones");
-
-
-    if (text) {
-
-        text.textContent =
-            next
-                ? "Las promociones están activas."
-                : "Las promociones están desactivadas.";
 
     }
 
 
-    showMessage(
+    APP.promotionsActive =
+        next;
+
+
+    await loadAdminSettings();
+
+
+    message(
         next
             ? "Promociones activadas."
             : "Promociones desactivadas.",
@@ -6107,30 +5539,30 @@ async function togglePromotions() {
 
 
 /* =========================================================
-   64. CREAR NOTIFICACIÓN
+   50. NOTIFICACIONES INTERNAS
    ========================================================= */
 
 async function createNotification(
     userId,
     title,
-    message
+    text
 ) {
 
     if (
-        !supabase ||
-        !userId
+        !STATE.isAdmin
     ) {
-        return;
+
+        /*
+         * Esta función puede ser llamada por el
+         * administrador desde la interfaz.
+         */
+
     }
 
 
-    const {
-        error
-    } =
-        await supabase
-            .from(
-                "notifications"
-            )
+    const result =
+        await marketFlashClient
+            .from("notifications")
             .insert({
 
                 user_id:
@@ -6140,7 +5572,7 @@ async function createNotification(
                     title,
 
                 message:
-                    message,
+                    text,
 
                 read:
                     false
@@ -6148,107 +5580,14 @@ async function createNotification(
             });
 
 
-    if (error) {
-
-        console.error(
-            "Error creando notificación:",
-            error
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   65. ADMIN EMPTY
-   ========================================================= */
-
-function renderAdminEmpty(
-    container,
-    message
-) {
-
-    const empty =
-        document.createElement(
-            "div"
-        );
-
-
-    empty.className =
-        "empty-state";
-
-
-    empty.textContent =
-        message;
-
-
-    container.appendChild(
-        empty
-    );
-
-}
-
-
-/* =========================================================
-   66. FECHAS
-   ========================================================= */
-
-function formatDate(
-    value
-) {
-
-    if (!value) {
-        return "";
-    }
-
-
-    const date =
-        new Date(value);
-
-
     if (
-        Number.isNaN(
-            date.getTime()
-        )
+        result.error
     ) {
 
-        return "";
-
-    }
-
-
-    return date.toLocaleString(
-        "es-DO",
-        {
-            dateStyle:
-                "medium",
-
-            timeStyle:
-                "short"
-        }
-    );
-
-}
-
-
-/* =========================================================
-   67. TEXTO
-   ========================================================= */
-
-function setText(
-    selector,
-    value
-) {
-
-    const element =
-        $(selector);
-
-
-    if (element) {
-
-        element.textContent =
-            String(value);
+        console.error(
+            "Notificación:",
+            result.error
+        );
 
     }
 
@@ -6256,403 +5595,7 @@ function setText(
 
 
 /* =========================================================
-   68. SOPORTE WHATSAPP
-   ========================================================= */
-
-function openWhatsApp(
-    phone
-) {
-
-    if (!phone) {
-
-        showMessage(
-            "El WhatsApp de soporte todavía no está configurado.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    const clean =
-        phone.replace(
-            /\D/g,
-            ""
-        );
-
-
-    const url =
-        `https://wa.me/${clean}`;
-
-
-    window.open(
-        url,
-        "_blank",
-        "noopener"
-    );
-
-}
-
-
-/* =========================================================
-   69. SOPORTE MESSENGER
-   ========================================================= */
-
-function openMessenger(
-    username
-) {
-
-    if (!username) {
-
-        showMessage(
-            "Messenger de soporte todavía no está configurado.",
-            "warning"
-        );
-
-        return;
-    }
-
-
-    const url =
-        username.startsWith(
-            "http"
-        )
-            ? username
-            : `https://m.me/${username}`;
-
-
-    window.open(
-        url,
-        "_blank",
-        "noopener"
-    );
-
-}
-
-
-/* =========================================================
-   70. AYUDA
-   ========================================================= */
-
-function showHelp() {
-
-    showMessage(
-        "Market Flash permite comprar, vender, publicar, promocionar y contactar con otros usuarios.",
-        "info"
-    );
-
-}
-
-
-/* =========================================================
-   71. BOTONES DEL HEADER
-   ========================================================= */
-
-function setupHeaderButtons() {
-
-    $("#btn-registrarse")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                showSection(
-                    "registro"
-                );
-
-            }
-        );
-
-
-    $("#btn-iniciar-sesion")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                showSection(
-                    "inicio-sesion"
-                );
-
-            }
-        );
-
-
-    $("#btn-perfil")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                if (!state.user) {
-
-                    showSection(
-                        "inicio-sesion"
-                    );
-
-                    return;
-                }
-
-
-                showSection(
-                    "perfil"
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   72. REGISTRO / LOGIN
-   ========================================================= */
-
-function setupAuthForms() {
-
-    $("#formulario-registro")
-        ?.addEventListener(
-            "submit",
-            registerUser
-        );
-
-
-    $("#formulario-login")
-        ?.addEventListener(
-            "submit",
-            loginUser
-        );
-
-
-    $("#btn-ir-login")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                showSection(
-                    "inicio-sesion"
-                );
-
-            }
-        );
-
-
-    $("#btn-ir-registro")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                showSection(
-                    "registro"
-                );
-
-            }
-        );
-
-
-    $("#btn-recuperar-password")
-        ?.addEventListener(
-            "click",
-            recoverPassword
-        );
-
-
-    $("#btn-editar-perfil")
-        ?.addEventListener(
-            "click",
-            editProfile
-        );
-
-
-    $("#btn-cerrar-sesion")
-        ?.addEventListener(
-            "click",
-            logoutUser
-        );
-
-}
-
-
-/* =========================================================
-   73. FORMULARIO DE PRODUCTOS
-   ========================================================= */
-
-function setupProductForm() {
-
-    $("#form-publicacion")
-        ?.addEventListener(
-            "submit",
-            createProduct
-        );
-
-}
-
-
-/* =========================================================
-   74. PROMOCIONES
-   ========================================================= */
-
-function setupPromotionButtons() {
-
-    $$(
-        "[data-promotion]"
-    ).forEach(
-        button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    requestPromotion(
-                        button.dataset.promotion
-                    );
-
-                }
-            );
-
-        }
-    );
-
-}
-
-
-/* =========================================================
-   75. VIDEO
-   ========================================================= */
-
-function setupVideoForm() {
-
-    $("#form-video")
-        ?.addEventListener(
-            "submit",
-            createVideo
-        );
-
-}
-
-
-/* =========================================================
-   76. CALIFICACIÓN
-   ========================================================= */
-
-function setupReviewForm() {
-
-    $("#form-calificacion")
-        ?.addEventListener(
-            "submit",
-            submitReview
-        );
-
-}
-
-
-/* =========================================================
-   77. RECLAMOS
-   ========================================================= */
-
-function setupClaimForm() {
-
-    $("#form-reclamo")
-        ?.addEventListener(
-            "submit",
-            submitClaim
-        );
-
-}
-
-
-/* =========================================================
-   78. PAGO
-   ========================================================= */
-
-function setupPaymentButtons() {
-
-    $("#btn-copiar-binance")
-        ?.addEventListener(
-            "click",
-            copyBinanceAddress
-        );
-
-
-    $("#btn-enviar-comprobante")
-        ?.addEventListener(
-            "click",
-            submitPaymentReceipt
-        );
-
-}
-
-
-/* =========================================================
-   79. SOPORTE
-   ========================================================= */
-
-function setupSupportButtons() {
-
-    $("#soporte-whatsapp")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                openWhatsApp(
-                    MARKET_FLASH_CONFIG
-                        .supportWhatsApp
-                );
-
-            }
-        );
-
-
-    $("#soporte-messenger")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                openMessenger(
-                    MARKET_FLASH_CONFIG
-                        .supportMessenger
-                );
-
-            }
-        );
-
-
-    $("#soporte-ayuda")
-        ?.addEventListener(
-            "click",
-            showHelp
-        );
-
-
-    $("#footer-whatsapp")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                openWhatsApp(
-                    MARKET_FLASH_CONFIG
-                        .supportWhatsApp
-                );
-
-            }
-        );
-
-
-    $("#footer-messenger")
-        ?.addEventListener(
-            "click",
-            () => {
-
-                openMessenger(
-                    MARKET_FLASH_CONFIG
-                        .supportMessenger
-                );
-
-            }
-        );
-
-}
-
-
-/* =========================================================
-   80. ADMIN
+   51. ADMIN — BOTONES
    ========================================================= */
 
 function setupAdminButtons() {
@@ -6674,84 +5617,479 @@ function setupAdminButtons() {
 
 
 /* =========================================================
-   81. ESTADO DE PROMOCIONES
+   52. PERFIL
    ========================================================= */
 
-async function updateAdminPromotionText() {
+function setupProfileButtons() {
 
-    const element =
-        $("#admin-texto-promociones");
-
-
-    if (
-        !element ||
-        !supabase
-    ) {
-        return;
-    }
+    $("#btn-editar-perfil")
+        ?.addEventListener(
+            "click",
+            editProfile
+        );
 
 
-    const {
-        data,
-        error
-    } =
-        await supabase
-            .from("settings")
-            .select(
-                "value"
-            )
-            .eq(
-                "key",
-                "promotions_active"
-            )
-            .maybeSingle();
-
-
-    if (error) {
-
-        element.textContent =
-            "Configuración pendiente.";
-
-        return;
-    }
-
-
-    element.textContent =
-        data?.value ===
-        "true"
-            ? "Las promociones están activas."
-            : "Las promociones están desactivadas.";
+    $("#btn-cerrar-sesion")
+        ?.addEventListener(
+            "click",
+            logout
+        );
 
 }
 
 
 /* =========================================================
-   82. INICIO DE LA APLICACIÓN
+   53. SOPORTE
    ========================================================= */
 
-async function initializeMarketFlash() {
+function setupSupport() {
+
+    $("#soporte-ayuda")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                message(
+                    "Market Flash permite comprar, vender, publicar, promocionar y contactar con vendedores.",
+                    "info"
+                );
+
+            }
+        );
+
+
+    $("#soporte-whatsapp")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    !APP.supportWhatsApp
+                ) {
+
+                    message(
+                        "El WhatsApp de soporte todavía no está configurado.",
+                        "warning"
+                    );
+
+                    return;
+
+                }
+
+
+                window.open(
+                    `https://wa.me/${
+                        APP.supportWhatsApp.replace(
+                            /\D/g,
+                            ""
+                        )
+                    }`,
+                    "_blank"
+                );
+
+            }
+        );
+
+
+    $("#soporte-messenger")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    !APP.supportMessenger
+                ) {
+
+                    message(
+                        "Messenger de soporte todavía no está configurado.",
+                        "warning"
+                    );
+
+                    return;
+
+                }
+
+
+                window.open(
+                    APP.supportMessenger,
+                    "_blank"
+                );
+
+            }
+        );
+
+
+    $("#footer-whatsapp")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    APP.supportWhatsApp
+                ) {
+
+                    window.open(
+                        `https://wa.me/${
+                            APP.supportWhatsApp.replace(
+                                /\D/g,
+                                ""
+                            )
+                        }`,
+                        "_blank"
+                    );
+
+                } else {
+
+                    message(
+                        "WhatsApp de soporte no está configurado.",
+                        "warning"
+                    );
+
+                }
+
+            }
+        );
+
+
+    $("#footer-messenger")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    APP.supportMessenger
+                ) {
+
+                    window.open(
+                        APP.supportMessenger,
+                        "_blank"
+                    );
+
+                } else {
+
+                    message(
+                        "Messenger de soporte no está configurado.",
+                        "warning"
+                    );
+
+                }
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   54. PERFIL Y CAMBIO DE FORMULARIOS
+   ========================================================= */
+
+function setupAuthLinks() {
+
+    $("#btn-ir-login")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                showPage(
+                    "inicio-sesion"
+                );
+
+            }
+        );
+
+
+    $("#btn-ir-registro")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                showPage(
+                    "registro"
+                );
+
+            }
+        );
+
+
+    $("#btn-recuperar-password")
+        ?.addEventListener(
+            "click",
+            recoverPassword
+        );
+
+}
+
+
+/* =========================================================
+   55. PUBLICIDAD
+   ========================================================= */
+
+function setupAdvertisement() {
+
+    const slider =
+        $("#contenedor-publicidad");
+
+
+    if (!slider) {
+        return;
+    }
+
+
+    const cards =
+        Array.from(
+            slider.children
+        );
+
+
+    let index =
+        0;
+
+
+    function goTo(
+        value
+    ) {
+
+        if (!cards.length) {
+            return;
+        }
+
+
+        index =
+            (
+                value +
+                cards.length
+            ) %
+            cards.length;
+
+
+        cards[index]
+            .scrollIntoView({
+                behavior:
+                    "smooth",
+
+                block:
+                    "nearest",
+
+                inline:
+                    "center"
+            });
+
+    }
+
+
+    $("#publicidad-anterior")
+        ?.addEventListener(
+            "click",
+            () =>
+                goTo(
+                    index - 1
+                )
+        );
+
+
+    $("#publicidad-siguiente")
+        ?.addEventListener(
+            "click",
+            () =>
+                goTo(
+                    index + 1
+                )
+        );
+
+
+    $all(
+        "[data-ad-id]"
+    )
+    .forEach(
+        button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    message(
+                        "Este espacio está reservado para publicidad patrocinada.",
+                        "info"
+                    );
+
+                }
+            );
+
+        }
+    );
+
+
+    if (cards.length > 1) {
+
+        setInterval(
+            () => {
+
+                goTo(
+                    index + 1
+                );
+
+            },
+            6000
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   56. EMPTY STATE
+   ========================================================= */
+
+function renderEmpty(
+    container,
+    text
+) {
+
+    const empty =
+        document.createElement(
+            "div"
+        );
+
+
+    empty.className =
+        "empty-state";
+
+
+    empty.textContent =
+        text;
+
+
+    container.appendChild(
+        empty
+    );
+
+}
+
+
+/* =========================================================
+   57. SESIÓN INICIAL
+   ========================================================= */
+
+async function restoreSession() {
+
+    const result =
+        await marketFlashClient
+            .auth
+            .getSession();
+
+
+    if (
+        result.error
+    ) {
+
+        console.error(
+            "Sesión:",
+            result.error
+        );
+
+        return;
+
+    }
+
+
+    STATE.user =
+        result.data.session?.user ||
+        null;
+
+
+    if (STATE.user) {
+
+        await loadUserData();
+
+    }
+
+
+    updateInterface();
+
+}
+
+
+/* =========================================================
+   58. CAMBIO DE SESIÓN
+   ========================================================= */
+
+function setupAuthListener() {
+
+    marketFlashClient.auth
+        .onAuthStateChange(
+            (
+                event,
+                session
+            ) => {
+
+                setTimeout(
+                    async () => {
+
+                        STATE.user =
+                            session?.user ||
+                            null;
+
+
+                        if (
+                            STATE.user
+                        ) {
+
+                            await loadUserData();
+
+                        } else {
+
+                            STATE.profile =
+                                null;
+
+                            STATE.isAdmin =
+                                false;
+
+                        }
+
+
+                        updateInterface();
+
+                    },
+                    0
+                );
+
+            }
+        );
+
+}
+
+
+/* =========================================================
+   59. INICIALIZACIÓN
+   ========================================================= */
+
+async function initialize() {
 
     console.log(
         "Market Flash iniciando..."
     );
 
 
-    if (!supabase) {
+    if (
+        !window.supabase
+    ) {
 
-        showMessage(
-            "No se pudo conectar con Supabase.",
-            "error"
+        console.error(
+            "La librería de Supabase no está cargada."
         );
 
         return;
+
     }
 
 
     setupNavigation();
 
-    setupHeaderButtons();
+    setupHeader();
 
-    setupAuthForms();
+    setupAuthLinks();
 
     setupCategories();
 
@@ -6759,37 +6097,41 @@ async function initializeMarketFlash() {
 
     setupImagePreview();
 
+    setupAdvertisement();
+
+    setupAuthListener();
+
+    setupProfileButtons();
+
     setupProductForm();
 
     setupPayment();
 
-    setupReceiptPreview();
+    setupPromotions();
 
-    setupPaymentButtons();
+    setupVideos();
 
-    setupPromotionButtons();
+    setupReviews();
 
-    setupVideoForm();
+    setupClaims();
 
-    setupReviewForm();
-
-    setupClaimForm();
-
-    setupSupportButtons();
+    setupSellerContact();
 
     setupAdminButtons();
 
+    setupSupport();
 
-    await loadCurrentSession();
 
-    await loadPublicationSettings();
+    await restoreSession();
+
+    await loadAdminSettings();
 
     await loadProducts();
 
     await loadVideos();
 
 
-    if (state.user) {
+    if (STATE.user) {
 
         await loadFavorites();
 
@@ -6799,24 +6141,14 @@ async function initializeMarketFlash() {
 
         renderMyProducts();
 
+        renderFavorites();
+
         renderSoldProducts();
 
     }
 
 
-    updateInterface();
-
-
-    if (state.isAdmin) {
-
-        await loadAdminData();
-
-        await updateAdminPromotionText();
-
-    }
-
-
-    showSection(
+    showPage(
         "inicio"
     );
 
@@ -6829,14 +6161,25 @@ async function initializeMarketFlash() {
 
 
 /* =========================================================
-   83. EJECUTAR
+   60. FORMULARIO DE PRODUCTO
+   ========================================================= */
+
+function setupProductForm() {
+
+    $("#form-publicacion")
+        ?.addEventListener(
+            "submit",
+            createProduct
+        );
+
+}
+
+
+/* =========================================================
+   61. EJECUTAR
    ========================================================= */
 
 document.addEventListener(
     "DOMContentLoaded",
-    () => {
-
-        initializeMarketFlash();
-
-    }
+    initialize
 );
