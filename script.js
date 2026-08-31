@@ -1770,4 +1770,1195 @@ document.addEventListener("DOMContentLoaded", () => {
 
     actualizarMetodoPago();
 
+});// ==========================================
+// CARRUSEL DE PUBLICIDAD
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const contenedor = document.querySelector(
+        "#contenedor-anuncios"
+    );
+
+    const botonAnterior = document.querySelector(
+        "#anuncio-anterior"
+    );
+
+    const botonSiguiente = document.querySelector(
+        "#anuncio-siguiente"
+    );
+
+    if (
+        !contenedor ||
+        !botonAnterior ||
+        !botonSiguiente
+    ) {
+        return;
+    }
+
+
+    const anuncios = contenedor.querySelectorAll(
+        ".anuncio-publicitario"
+    );
+
+    if (!anuncios.length) {
+        return;
+    }
+
+
+    let indiceActual = 0;
+
+
+    function mostrarAnuncio(indice) {
+
+        if (indice < 0) {
+            indiceActual = anuncios.length - 1;
+        } else if (indice >= anuncios.length) {
+            indiceActual = 0;
+        } else {
+            indiceActual = indice;
+        }
+
+        const anuncio = anuncios[indiceActual];
+
+        if (!anuncio) {
+            return;
+        }
+
+        anuncio.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "center"
+        });
+
+    }
+
+
+    botonAnterior.addEventListener(
+        "click",
+        () => {
+            mostrarAnuncio(indiceActual - 1);
+        }
+    );
+
+
+    botonSiguiente.addEventListener(
+        "click",
+        () => {
+            mostrarAnuncio(indiceActual + 1);
+        }
+    );
+
+
+    // Cambio automático cada 5 segundos
+    setInterval(() => {
+        mostrarAnuncio(indiceActual + 1);
+    }, 5000);
+
+});// ==========================================
+// BOTONES DE CONTACTO
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonWhatsApp = document.querySelector(
+        "#contacto-whatsapp"
+    );
+
+    const botonMessenger = document.querySelector(
+        "#contacto-messenger"
+    );
+
+    const botonSoporte = document.querySelector(
+        "#contacto-soporte"
+    );
+
+
+    botonWhatsApp?.addEventListener("click", () => {
+
+        alert(
+            "Más adelante conectaremos este botón " +
+            "con el WhatsApp oficial de Market Flash."
+        );
+
+    });
+
+
+    botonMessenger?.addEventListener("click", () => {
+
+        alert(
+            "Más adelante conectaremos este botón " +
+            "con Messenger de Market Flash."
+        );
+
+    });
+
+
+    botonSoporte?.addEventListener("click", () => {
+
+        const seccionSoporte = document.querySelector(
+            "#soporte"
+        );
+
+        if (!seccionSoporte) {
+            return;
+        }
+
+        seccionSoporte.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    });
+
+});// ==========================================
+// ACTUALIZAR PANEL DE ADMINISTRADOR
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const pendientesElemento = document.querySelector(
+        "#total-pendientes"
+    );
+
+    const pagosPendientesElemento = document.querySelector(
+        "#total-pagos-pendientes"
+    );
+
+    const activasElemento = document.querySelector(
+        "#total-publicaciones-activas"
+    );
+
+    const usuariosElemento = document.querySelector(
+        "#total-usuarios"
+    );
+
+
+    function leerDatos(clave) {
+
+        try {
+
+            return JSON.parse(
+                localStorage.getItem(clave)
+            ) || [];
+
+        } catch (error) {
+
+            console.error(
+                `Error al leer ${clave}:`,
+                error
+            );
+
+            return [];
+        }
+    }
+
+
+    const publicaciones = leerDatos(
+        "marketFlashPublicaciones"
+    );
+
+    const usuariosGuardados =
+        localStorage.getItem(
+            "marketFlashUsuario"
+        );
+
+    const comprobantes = leerDatos(
+        "marketFlashComprobantes"
+    );
+
+
+    const pendientes = publicaciones.filter(
+        (publicacion) =>
+            publicacion.estado ===
+            "Pendiente de aprobación"
+    );
+
+
+    const activas = publicaciones.filter(
+        (publicacion) =>
+            publicacion.estado === "Aprobada"
+    );
+
+
+    const pagosPendientes = comprobantes.filter(
+        (comprobante) =>
+            comprobante.estado ===
+            "Pendiente de revisión"
+    );
+
+
+    if (pendientesElemento) {
+        pendientesElemento.textContent =
+            pendientes.length;
+    }
+
+
+    if (pagosPendientesElemento) {
+        pagosPendientesElemento.textContent =
+            pagosPendientes.length;
+    }
+
+
+    if (activasElemento) {
+        activasElemento.textContent =
+            activas.length;
+    }
+
+
+    if (usuariosElemento) {
+        usuariosElemento.textContent =
+            usuariosGuardados ? 1 : 0;
+    }
+
+});// ==========================================
+// ESTADO DE SESIÓN
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const sesionActiva = localStorage.getItem(
+        "marketFlashSesion"
+    ) === "activa";
+
+
+    const perfil = document.querySelector(
+        "#perfil-usuario"
+    );
+
+    const registro = document.querySelector(
+        "#registro"
+    );
+
+    const inicioSesion = document.querySelector(
+        "#inicio-sesion"
+    );
+
+    const formularioPublicar = document.querySelector(
+        "#formulario-publicar"
+    );
+
+    const pagoPublicacion = document.querySelector(
+        "#pago-publicacion"
+    );
+
+
+    if (sesionActiva) {
+
+        if (registro) {
+            registro.style.display = "none";
+        }
+
+        if (inicioSesion) {
+            inicioSesion.style.display = "none";
+        }
+
+        if (perfil) {
+            perfil.style.display = "block";
+        }
+
+        if (formularioPublicar) {
+            formularioPublicar.style.display = "block";
+        }
+
+        if (pagoPublicacion) {
+            pagoPublicacion.style.display = "block";
+        }
+
+    } else {
+
+        if (perfil) {
+            perfil.style.display = "none";
+        }
+
+        if (formularioPublicar) {
+            formularioPublicar.style.display = "none";
+        }
+
+        if (pagoPublicacion) {
+            pagoPublicacion.style.display = "none";
+        }
+
+    }
+
+});// ==========================================
+// VERIFICAR USUARIO ANTES DE PUBLICAR
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const formularioPublicacion = document.querySelector(
+        "#form-publicacion"
+    );
+
+    if (!formularioPublicacion) {
+        return;
+    }
+
+    formularioPublicacion.addEventListener(
+        "submit",
+        (evento) => {
+
+            const usuario = localStorage.getItem(
+                "marketFlashUsuario"
+            );
+
+            const sesionActiva =
+                localStorage.getItem(
+                    "marketFlashSesion"
+                ) === "activa";
+
+            if (!usuario || !sesionActiva) {
+
+                evento.preventDefault();
+
+                alert(
+                    "Debes iniciar sesión antes de publicar."
+                );
+
+            }
+
+        },
+        true
+    );
+
+});// ==========================================
+// ACTUALIZAR NOTIFICACIONES AUTOMÁTICAMENTE
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const listaNotificaciones = document.querySelector(
+        "#lista-notificaciones"
+    );
+
+    if (!listaNotificaciones) {
+        return;
+    }
+
+
+    function obtenerPublicaciones() {
+
+        try {
+
+            return JSON.parse(
+                localStorage.getItem(
+                    "marketFlashPublicaciones"
+                )
+            ) || [];
+
+        } catch (error) {
+
+            console.error(
+                "Error al cargar publicaciones:",
+                error
+            );
+
+            return [];
+        }
+    }
+
+
+    function actualizarNotificaciones() {
+
+        const publicaciones =
+            obtenerPublicaciones();
+
+        const pendientes = publicaciones.filter(
+            (publicacion) =>
+                publicacion.estado ===
+                "Pendiente de aprobación"
+        );
+
+        listaNotificaciones.innerHTML = "";
+
+
+        if (pendientes.length === 0) {
+
+            listaNotificaciones.innerHTML = `
+                <article class="notificacion">
+
+                    <h3>
+                        Todo está al día
+                    </h3>
+
+                    <p>
+                        No hay publicaciones pendientes
+                        de aprobación.
+                    </p>
+
+                </article>
+            `;
+
+            return;
+        }
+
+
+        pendientes.forEach((publicacion) => {
+
+            const notificacion =
+                document.createElement("article");
+
+            notificacion.className =
+                "notificacion";
+
+            notificacion.innerHTML = `
+                <h3>
+                    Nueva publicación pendiente
+                </h3>
+
+                <p>
+                    <strong>
+                        ${publicacion.nombre}
+                    </strong>
+                    necesita revisión.
+                </p>
+
+                <p>
+                    <strong>Precio:</strong>
+                    RD$ ${publicacion.precio}
+                </p>
+
+                <p>
+                    <strong>Estado:</strong>
+                    ${publicacion.estado}
+                </p>
+
+            `;
+
+            listaNotificaciones.appendChild(
+                notificacion
+            );
+
+        });
+
+    }
+
+
+    actualizarNotificaciones();
+
+
+    window.addEventListener(
+        "storage",
+        (evento) => {
+
+            if (
+                evento.key ===
+                "marketFlashPublicaciones"
+            ) {
+                actualizarNotificaciones();
+            }
+
+        }
+    );
+
+});// ==========================================
+// VALIDAR MÉTODO DE PAGO
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonComprobante = document.querySelector(
+        "#enviar-comprobante"
+    );
+
+    if (!botonComprobante) {
+        return;
+    }
+
+
+    botonComprobante.addEventListener("click", () => {
+
+        const metodoSeleccionado =
+            document.querySelector(
+                'input[name="metodo-pago"]:checked'
+            );
+
+
+        if (!metodoSeleccionado) {
+
+            alert(
+                "Selecciona primero un método de pago."
+            );
+
+            return;
+        }
+
+
+        const comprobante =
+            document.querySelector(
+                "#captura-pago"
+            );
+
+
+        if (!comprobante || !comprobante.files.length) {
+
+            alert(
+                "Debes seleccionar la captura del comprobante."
+            );
+
+            return;
+        }
+
+
+        const metodo =
+            metodoSeleccionado.value === "binance"
+                ? "Binance"
+                : "PayPal";
+
+
+        alert(
+            `Método seleccionado: ${metodo}\n\n` +
+            "El comprobante está listo para ser " +
+            "enviado a revisión."
+        );
+
+    });
+
+});// ==========================================
+// PUBLICAR VÍDEOS
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const formularioVideo = document.querySelector(
+        "#form-video"
+    );
+
+    const listaVideos = document.querySelector(
+        "#lista-videos"
+    );
+
+    if (!formularioVideo || !listaVideos) {
+        return;
+    }
+
+
+    formularioVideo.addEventListener(
+        "submit",
+        (evento) => {
+
+            evento.preventDefault();
+
+            const titulo = document.querySelector(
+                "#titulo-video"
+            )?.value.trim();
+
+            const descripcion = document.querySelector(
+                "#descripcion-video"
+            )?.value.trim();
+
+            const archivoVideo = document.querySelector(
+                "#archivo-video"
+            )?.files[0];
+
+
+            if (!titulo || !archivoVideo) {
+
+                alert(
+                    "Escribe un título y selecciona un vídeo."
+                );
+
+                return;
+            }
+
+
+            if (!archivoVideo.type.startsWith("video/")) {
+
+                alert(
+                    "El archivo seleccionado no es un vídeo válido."
+                );
+
+                return;
+            }
+
+
+            const videoURL =
+                URL.createObjectURL(archivoVideo);
+
+
+            const articulo =
+                document.createElement("article");
+
+            articulo.className =
+                "video-publicado";
+
+
+            articulo.innerHTML = `
+                <h3>
+                    ${titulo}
+                </h3>
+
+                <video
+                    controls
+                    width="100%"
+                >
+                    <source
+                        src="${videoURL}"
+                        type="${archivoVideo.type}"
+                    >
+
+                    Tu navegador no puede reproducir
+                    este vídeo.
+                </video>
+
+                <p>
+                    ${descripcion || "Sin descripción."}
+                </p>
+            `;
+
+
+            listaVideos.prepend(articulo);
+
+
+            formularioVideo.reset();
+
+
+            alert(
+                "Vídeo publicado correctamente en esta sesión."
+            );
+
+        }
+    );
+
+});// ==========================================
+// VER DETALLES DE UNA PUBLICACIÓN
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const listaPublicaciones = document.querySelector(
+        "#lista-publicaciones"
+    );
+
+    if (!listaPublicaciones) {
+        return;
+    }
+
+
+    listaPublicaciones.addEventListener(
+        "click",
+        (evento) => {
+
+            const boton = evento.target.closest(
+                ".informacion-publicacion button"
+            );
+
+            if (!boton) {
+                return;
+            }
+
+
+            if (
+                boton.classList.contains(
+                    "boton-favorito"
+                )
+            ) {
+                return;
+            }
+
+
+            const publicacion =
+                boton.closest(".publicacion");
+
+            if (!publicacion) {
+                return;
+            }
+
+
+            const titulo =
+                publicacion.querySelector("h3")
+                    ?.textContent.trim() ||
+                "Producto";
+
+
+            const informacion =
+                publicacion.querySelector(
+                    ".informacion-publicacion"
+                );
+
+
+            const detalles =
+                informacion?.innerText.trim() ||
+                "No hay información disponible.";
+
+
+            alert(
+                `${titulo}\n\n${detalles}`
+            );
+
+        }
+    );
+
+});// ==========================================
+// CONTACTAR AL VENDEDOR
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const seccionContacto = document.querySelector(
+        "#contactar-vendedor"
+    );
+
+    if (!seccionContacto) {
+        return;
+    }
+
+
+    const botonWhatsApp = seccionContacto.querySelector(
+        "button:first-child"
+    );
+
+    const botonMessenger = seccionContacto.querySelector(
+        "button:last-child"
+    );
+
+
+    botonWhatsApp?.addEventListener(
+        "click",
+        () => {
+
+            const usuarioGuardado =
+                localStorage.getItem(
+                    "marketFlashUsuario"
+                );
+
+            if (!usuarioGuardado) {
+
+                alert(
+                    "Debes iniciar sesión para contactar al vendedor."
+                );
+
+                return;
+            }
+
+            alert(
+                "Aquí conectaremos posteriormente " +
+                "el botón con el WhatsApp del vendedor."
+            );
+
+        }
+    );
+
+
+    botonMessenger?.addEventListener(
+        "click",
+        () => {
+
+            const usuarioGuardado =
+                localStorage.getItem(
+                    "marketFlashUsuario"
+                );
+
+            if (!usuarioGuardado) {
+
+                alert(
+                    "Debes iniciar sesión para contactar al vendedor."
+                );
+
+                return;
+            }
+
+            alert(
+                "Aquí conectaremos posteriormente " +
+                "el botón con el Messenger del vendedor."
+            );
+
+        }
+    );
+
+});// ==========================================
+// EDITAR PERFIL DEL USUARIO
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonesPerfil = document.querySelectorAll(
+        "#opciones-perfil button"
+    );
+
+    if (!botonesPerfil.length) {
+        return;
+    }
+
+    botonesPerfil.forEach((boton) => {
+
+        if (
+            boton.textContent
+                .trim()
+                .toLowerCase() !== "editar perfil"
+        ) {
+            return;
+        }
+
+        boton.addEventListener("click", () => {
+
+            const datosGuardados = localStorage.getItem(
+                "marketFlashUsuario"
+            );
+
+            if (!datosGuardados) {
+
+                alert(
+                    "No hay datos de perfil guardados."
+                );
+
+                return;
+            }
+
+            try {
+
+                const usuario =
+                    JSON.parse(datosGuardados);
+
+                const nombreActual =
+                    prompt(
+                        "Nombre completo:",
+                        usuario.nombre || ""
+                    );
+
+                if (nombreActual === null) {
+                    return;
+                }
+
+                const telefonoActual =
+                    prompt(
+                        "Número de teléfono:",
+                        usuario.telefono || ""
+                    );
+
+                if (telefonoActual === null) {
+                    return;
+                }
+
+                const whatsappActual =
+                    prompt(
+                        "WhatsApp:",
+                        usuario.whatsapp || ""
+                    );
+
+                if (whatsappActual === null) {
+                    return;
+                }
+
+                const messengerActual =
+                    prompt(
+                        "Messenger:",
+                        usuario.messenger || ""
+                    );
+
+                if (messengerActual === null) {
+                    return;
+                }
+
+                usuario.nombre =
+                    nombreActual.trim();
+
+                usuario.telefono =
+                    telefonoActual.trim();
+
+                usuario.whatsapp =
+                    whatsappActual.trim();
+
+                usuario.messenger =
+                    messengerActual.trim();
+
+                localStorage.setItem(
+                    "marketFlashUsuario",
+                    JSON.stringify(usuario)
+                );
+
+                alert(
+                    "Perfil actualizado correctamente."
+                );
+
+                window.location.reload();
+
+            } catch (error) {
+
+                console.error(
+                    "No se pudo actualizar el perfil:",
+                    error
+                );
+
+                alert(
+                    "No se pudo actualizar el perfil."
+                );
+
+            }
+
+        });
+
+    });
+
+});// ==========================================
+// DATOS DEL PANEL DE ADMINISTRADOR
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const listaUsuarios = document.querySelector(
+        "#lista-usuarios"
+    );
+
+    const listaPublicacionesActivas = document.querySelector(
+        "#lista-publicaciones-activas"
+    );
+
+    function leerDatos(clave) {
+
+        try {
+
+            return JSON.parse(
+                localStorage.getItem(clave)
+            ) || [];
+
+        } catch (error) {
+
+            console.error(
+                `No se pudieron leer los datos de ${clave}:`,
+                error
+            );
+
+            return [];
+        }
+    }
+
+
+    // -------------------------------
+    // USUARIOS
+    // -------------------------------
+
+    if (listaUsuarios) {
+
+        const usuarioGuardado =
+            localStorage.getItem(
+                "marketFlashUsuario"
+            );
+
+        listaUsuarios.innerHTML = "";
+
+        if (!usuarioGuardado) {
+
+            listaUsuarios.innerHTML = `
+                <p>
+                    No hay usuarios registrados todavía.
+                </p>
+            `;
+
+        } else {
+
+            try {
+
+                const usuario =
+                    JSON.parse(usuarioGuardado);
+
+                const elemento =
+                    document.createElement("article");
+
+                elemento.className =
+                    "mi-publicacion";
+
+                elemento.innerHTML = `
+                    <h4>
+                        ${usuario.nombre || "Usuario"}
+                    </h4>
+
+                    <p>
+                        <strong>Correo:</strong>
+                        ${usuario.correo || "No registrado"}
+                    </p>
+
+                    <p>
+                        <strong>Teléfono:</strong>
+                        ${usuario.telefono || "No registrado"}
+                    </p>
+
+                    <p>
+                        <strong>Cédula:</strong>
+                        ${usuario.cedula || "No registrada"}
+                    </p>
+                `;
+
+                listaUsuarios.appendChild(elemento);
+
+            } catch (error) {
+
+                console.error(
+                    "No se pudo cargar el usuario:",
+                    error
+                );
+
+            }
+
+        }
+
+    }
+
+
+    // -------------------------------
+    // PUBLICACIONES ACTIVAS
+    // -------------------------------
+
+    if (listaPublicacionesActivas) {
+
+        const publicaciones = leerDatos(
+            "marketFlashPublicaciones"
+        );
+
+        const activas = publicaciones.filter(
+            (publicacion) =>
+                publicacion.estado === "Aprobada"
+        );
+
+        listaPublicacionesActivas.innerHTML = "";
+
+        if (activas.length === 0) {
+
+            listaPublicacionesActivas.innerHTML = `
+                <p>
+                    No hay publicaciones activas.
+                </p>
+            `;
+
+        } else {
+
+            activas.forEach((publicacion) => {
+
+                const elemento =
+                    document.createElement("article");
+
+                elemento.className =
+                    "mi-publicacion";
+
+                elemento.innerHTML = `
+                    <h4>
+                        ${publicacion.nombre}
+                    </h4>
+
+                    <p>
+                        <strong>Precio:</strong>
+                        RD$ ${publicacion.precio}
+                    </p>
+
+                    <p>
+                        <strong>Categoría:</strong>
+                        ${publicacion.categoria}
+                    </p>
+
+                    <p>
+                        <strong>Estado:</strong>
+                        ${publicacion.estado}
+                    </p>
+                `;
+
+                listaPublicacionesActivas.appendChild(
+                    elemento
+                );
+
+            });
+
+        }
+
+    }
+
+});// ==========================================
+// CONFIGURACIÓN: PUBLICACIONES GRATIS O DE PAGO
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonConfiguracion = document.querySelector(
+        "#configuracion-administrador button"
+    );
+
+    if (!botonConfiguracion) {
+        return;
+    }
+
+    const CLAVE_CONFIGURACION =
+        "marketFlashPublicacionesDePago";
+
+
+    function obtenerConfiguracion() {
+
+        const valor = localStorage.getItem(
+            CLAVE_CONFIGURACION
+        );
+
+        // Por defecto, las publicaciones requieren pago.
+        if (valor === null) {
+            return true;
+        }
+
+        return valor === "true";
+    }
+
+
+    function guardarConfiguracion(requierePago) {
+
+        localStorage.setItem(
+            CLAVE_CONFIGURACION,
+            String(requierePago)
+        );
+
+    }
+
+
+    function actualizarBoton() {
+
+        const requierePago =
+            obtenerConfiguracion();
+
+        if (requierePago) {
+
+            botonConfiguracion.textContent =
+                "Cambiar a publicaciones gratis";
+
+        } else {
+
+            botonConfiguracion.textContent =
+                "Cambiar a publicaciones de pago";
+
+        }
+
+    }
+
+
+    botonConfiguracion.addEventListener(
+        "click",
+        () => {
+
+            const estadoActual =
+                obtenerConfiguracion();
+
+            const nuevoEstado =
+                !estadoActual;
+
+            guardarConfiguracion(
+                nuevoEstado
+            );
+
+            if (nuevoEstado) {
+
+                alert(
+                    "Las publicaciones ahora requieren pago."
+                );
+
+            } else {
+
+                alert(
+                    "Las publicaciones ahora son gratis."
+                );
+
+            }
+
+            actualizarBoton();
+
+        }
+    );
+
+
+    actualizarBoton();
+
 });
