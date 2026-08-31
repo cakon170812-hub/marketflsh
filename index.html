@@ -2,526 +2,594 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+>
+
+<meta
+name="description"
+content="Market Flash - Plataforma de compra y venta"
+>
+
+<meta name="theme-color" content="#111827">
+
 <title>Market Flash</title>
-<link rel="stylesheet" href="style.css">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#FF6B35">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-<nav class="navbar">
-<div class="container">
-<h1 class="logo">⚡<span>Flash</span></h1>
-<div class="nav-actions">
-<button class="btn-icon" onclick="window.location='notificaciones.html'">🔔</button>
-<button class="btn-icon" onclick="window.location='perfil.html'">👤</button>
-<button class="btn-add" onclick="window.location='publicar.html'">+</button>
-</div>
-</div>
-</nav>
 
-<main class="container">
-<section class="hero">
-<h2>Compra y vende en segundos</h2>
-<div class="search-bar">
-<input type="text" id="busqueda" placeholder="🔍 Buscar productos...">
-<button onclick="abrirFiltros()">⚙️</button>
-</div>
-</section>
+<!-- =========================================================
+MARKET FLASH
+Aplicación de compra y venta
+BLOQUE 1 - ESTRUCTURA PRINCIPAL
+========================================================= -->
 
-<section class="categorias-scroll">
-<button class="cat-chip active" data-cat="todos">Todos</button>
-<button class="cat-chip" data-cat="telefonos">📱 Telefonos</button>
-<button class="cat-chip" data-cat="computadoras">💻 Tech</button>
-<button class="cat-chip" data-cat="ropa">👗 Ropa</button>
-<button class="cat-chip" data-cat="hogar">🏠 Hogar</button>
-</section>
+<style>
+/* =====================================================
+VARIABLES PRINCIPALES
+===================================================== */
 
-<section>
-<div class="section-header">
-<h3>Productos Destacados</h3>
-</div>
-<div id="grid-destacados" class="grid-productos"></div>
-</section>
-
-<section>
-<div class="section-header">
-<h3>Recientes</h3>
-</div>
-<div id="grid-productos" class="grid-productos"></div>
-</section>
-</main>
-
-<nav class="bottom-nav">
-<button class="nav-item active" onclick="window.location='index.html'">🏠<span>Inicio</span></button>
-<button class="nav-item" onclick="window.location='buscar.html'">🔍<span>Buscar</span></button>
-<button class="nav-item" onclick="window.location='publicar.html'">➕<span>Publicar</span></button>
-<button class="nav-item" onclick="window.location='chat.html'">💬<span>Chat</span></button>
-<button class="nav-item" onclick="window.location='perfil.html'">👤<span>Yo</span></button>
-</nav>
-
-<script src="supabase.js"></script>
-<script src="app.js"></script>
-</body>
-</html>:root {
---bg: #F8F9FA;
---card: #FFFFFF;
---text: #1A1A1A;
---text-gray: #6B7280;
---primary: #FF6B35;
---primary-dark: #E55722;
---border: #E5E7EB;
---success: #25D366;
---radius: 16px;
---shadow: 0 2px 8px rgba(0,0,0,0.06);
---font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+:root {
+--mf-bg: #f5f7fb;
+--mf-white: #ffffff;
+--mf-dark: #111827;
+--mf-dark-2: #1f2937;
+--mf-gray: #6b7280;
+--mf-light-gray: #e5e7eb;
+--mf-primary: #2563eb;
+--mf-primary-dark: #1d4ed8;
+--mf-success: #16a34a;
+--mf-danger: #dc2626;
+--mf-warning: #f59e0b;
+--mf-radius: 16px;
+--mf-shadow: 0 8px 30px rgba(0,0,0,.08);
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { font-family: var(--font); background: var(--bg); color: var(--text); padding-bottom: 80px; }
-.container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+/* =====================================================
+RESET
+===================================================== */
 
-/* NAVBAR */
-.navbar { background: var(--card); padding:// CONFIGURACION SUPABASE
-const SUPABASE_URL = 'TU_URL_AQUI';
-const SUPABASE_ANON_KEY = 'TU_ANON_KEY_AQUI';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// AUTH
-async function registrar(email, password, nombre) {
-const { data, error } = await supabase.auth.signUp({ email, password });
-if (error) throw error;
-await supabase.from('perfiles').insert([{ id: data.user.id, nombre, email }]);
-return data;
+* {
+margin: 0;
+padding: 0;
+box-sizing: border-box;
+-webkit-tap-highlight-color: transparent;
 }
 
-async function iniciarSesion(email, password) {
-const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-if (error) throw error;
-return data;
+html {
+scroll-behavior: smooth;
 }
 
-async function cerrarSesion() {
-await supabase.auth.signOut();
-window.location = 'index.html';
+body {
+font-family:
+-apple-system,
+BlinkMacSystemFont,
+"Segoe UI",
+Roboto,
+Helvetica,
+Arial,
+sans-serif;
+
+background: var(--mf-bg);
+color: var(--mf-dark);
+min-height: 100vh;
 }
 
-async function recuperarPassword(email) {
-const { error } = await supabase.auth.resetPasswordForEmail(email);
-if (error) throw error;
-alert('Revisa tu correo para recuperar la contraseña');
+button,
+input,
+textarea,
+select {
+font: inherit;
 }
 
-async function obtenerUsuario() {
-const { data: { user } } = await supabase.auth.getUser();
-return user;
+button {
+cursor: pointer;
 }
 
-// PRODUCTOS
-async function obtenerProductos(filtro = {}) {
-let query = supabasedocument.addEventListener('DOMContentLoaded', init);
-
-let categoriaActual = 'todos';
-let productos = [];
-
-async function init() {
-cargarDestacados();
-cargarProductos();
-activarFiltros();
-activarBusqueda();
+img {
+max-width: 100%;
+display: block;
 }
 
-// CARGAR PRODUCTOS DESTACADOS
-async function cargarDestacados() {
-const grid = document.getElementById('grid-destacados');
-const data = await obtenerDestacados();
-
-if (!data || data.length === 0) {
-grid.innerHTML = '';
-return;
+a {
+text-decoration: none;
+color: inherit;
 }
 
-grid.innerHTML = data.map(p => crearCard(p)).join('');
+/* =====================================================
+PANTALLA DE CARGA
+===================================================== */
+
+#loadingScreen {
+position: fixed;
+inset: 0;
+z-index: 99999;
+background: var(--mf-dark);
+display: flex;
+align-items: center;
+justify-content: center;
+flex-direction: column;
+gap: 18px;
+color: white;
 }
 
-// CARGAR TODOS LOS PRODUCTOS
-async function cargarProductos() {
-const grid = document.getElementById('grid-productos');
-const { data, error } = await obtenerProductos({ categoria: categoriaActual });
-
-if (error) return console.error(error);
-productos = data || [];
-
-if (productos.length === 0) {
-grid.innerHTML = `
-<div style="grid-column: 1/-1; text-align:center; padding:40px; background:var(--card); border-radius:var(--radius);">
-<p style="font-size:40px;">🛍️</p>
-<p>No hay productos aún</p>
-</div>
-`;
-return;
+.loading-logo {
+width: 82px;
+height: 82px;
+border-radius: 24px;
+background: var(--mf-primary);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 30px;
+font-weight: 900;
+box-shadow: 0 12px 40px rgba(37,99,235,.35);
 }
 
-grid.innerHTML = productos.map(p => crearCard(p)).join('');
+.loading-title {
+font-size: 25px;
+font-weight: 800;
 }
 
-// CREAR CARD DE PRODUCTO
-function crearCard(p) {
-return `
-<div class="card-producto" onclick="verDetalle('${p.id}')">
-<img src="${p.imagenes?.[0] || 'https://via.placeholder.com/300'}" alt="${p.titulo}">
-<div class="card-info">
-<h4>${p.titulo}</h4>
-<p class="precio">RD$ ${Number(p.precio).toLocaleString()}</p>
-<small>${new Date(p.created_at).toLocaleDateString()}</small>
-</div>
-</div>
-`;
+.loading-text {
+color: #cbd5e1;
+font-size: 14px;
 }
 
-// BUSCADOR
-function activarBusqueda() {
-const input = document.getElementById('busqueda');
-input.addEventListener('input', (e) => {
-const termino = e.target.value.toLowerCase();
-const filtrados = productos.filter(p => p.titulo.toLowerCase().includes(termino));
-document.getElementById('grid-productos').innerHTML = filtrados.map(p => crearCard(p)).join('');
-});
+.loading-spinner {
+width: 34px;
+height: 34px;
+border: 3px solid rgba(255,255,255,.25);
+border-top-color: white;
+border-radius: 50%;
+animation: spin .8s linear infinite;
 }
 
-// FILTROS POR CATEGORIA
-function activarFiltros() {
-document.querySelectorAll('.cat-chip').forEach(btn => {
-btn.addEventListener('click', (e) => {
-document.querySelectorAll('.cat-chip').forEach(b => b.classList.remove('active'));
-e.target.classList.add('active');
-categoriaActual = e.target.dataset.cat;
-cargarProductos();
-});
-});
+@keyframes spin {
+to {
+transform: rotate(360deg);
+}
 }
 
-// VER DETALLE
-function verDetalle(id) {
-localStorage.setItem('producto_id', id);
-window.location = 'detalle.html';
+/* =====================================================
+APP PRINCIPAL
+===================================================== */
+
+#app {
+min-height: 100vh;
 }
 
-// COMPARTIR
-async function compartirProducto(id, titulo) {
-const url = `${window.location.origin}/detalle.html?id=${id}`;
-if (navigator.share) {
-await navigator.share({ title: titulo, url });
-} else {
-navigator.clipboard.writeText(url);
-alert('Link copiado');
-}
-}<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Publicar - Market Flash</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-<nav class="navbar">
-<div class="container">
-<h1 class="logo" onclick="window.location='index.html'">← <span>Publicar</span></h1>
-</div>
-</nav>
-
-<div class="container" style="padding:20px 0;">
-<form id="form-publicar" class="form-app">
-<h3>Datos del Producto</h3>
-
-<input type="text" id="titulo" placeholder="Nombre del producto" required>
-<textarea id="descripcion" placeholder="Descripción detallada" rows="4" required></textarea>
-<input type="number" id="precio" placeholder="Precio RD$" required>
-
-<select id="categoria" required>
-<option value="">Selecciona Categoría</option>
-<option value="telefonos">📱 Telefonos</option>
-<option value="computadoras">💻 Computadoras</option>
-<option value="ropa">👗 Ropa</option>
-<option value="hogar">🏠 Hogar</option>
-<option value="vehiculos">🚗 Vehículos</option>
-<option value="otros">📦 Otros</option>
-</select>
-
-<h3>Fotos del Producto</h3>
-<div class="upload-box">
-<input type="file" id="imagenes" multiple accept="image/*">
-<label for="imagenes">+ Agregar hasta 5 fotos</label>
-<small>Máx 5MB por foto</small>
-</div>
-<div id="preview-imagenes" class="preview-grid"></div>
-
-<h3>Contacto</h3>
-<input type="text" id="telefono" placeholder="WhatsApp: 8091234567" required>
-<input type="url" id="messenger" placeholder="Link de Messenger: https://m.me/tuusuario">
-
-<div class="contact-options">
-<label><input type="checkbox" id="contact-wpp" checked> Mostrar WhatsApp</label>
-<label><input type="checkbox" id="contact-messenger"> Mostrar Messenger</label>
-</div>
-
-<button type="submit" class="btn-primary btn-full">Publicar para Revisión</button>
-</form>
-</div>
-
-<script src="supabase.js"></script>
-<script>
-const form = document.getElementById('form-publicar');
-const inputImagenes = document.getElementById('imagenes');
-const preview = document.getElementById('preview-imagenes');
-
-inputImagenes.addEventListener('change', () => {
-preview.innerHTML = '';
-[...inputImagenes.files].slice(0,5).forEach(file => {
-const img = document.createElement('img');
-img.src = URL.createObjectURL(file);
-preview.appendChild(img);
-});
-});
-
-form.addEventListener('submit', async (e) => {
-e.preventDefault();
-const user = await obtenerUsuario();
-if (!user) return alert('Debes iniciar sesión');
-
-const btn = form.querySelector('button');
-btn.disabled = true;
-btn.textContent = 'Subiendo...';
-
-const archivos = [...inputImagenes.files].slice(0,5);
-const urlsImagenes = await subirImagenes(archivos, user.id);
-
-const producto = {
-user_id: user.id,
-titulo: document.getElementById('titulo').value,
-descripcion: document.getElementById('descripcion').value,
-precio: document.getElementById('precio').value,
-categoria: document.getElementById('categoria').value,
-telefono: document.getElementById('telefono').value,
-messenger: document.getElementById('messenger').value,
-imagenes: urlsImagenes,
-mostrar_wpp: document.getElementById('contact-wpp').checked,
-mostrar_messenger: document.getElementById('contact-messenger').checked,
-destacado: false,
-aprobado: false
-};
-
-const { error } = await crearProducto(producto);
-if (error) {
-alert('Error: ' + error.message);
-btn.disabled = false;
-btn.textContent = 'Publicar para Revisión';
-return;
+.hidden {
+display: none !important;
 }
 
-alert('Producto enviado a revisión. Te avisaremos cuando se apruebe.');
-window.location = 'index.html';
-});
-</script>
-</body>
-</html><!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Detalle - Market Flash</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-<nav class="navbar">
-<div class="container">
-<h1 class="logo" onclick="window.location='index.html'">← <span>Detalle</span></h1>
-<button class="btn-icon" onclick="compartir()">📤</button>
-</div>
-</nav>
+/* =====================================================
+HEADER
+===================================================== */
 
-<div class="container" style="padding:0;">
-<div id="galeria" class="galeria"></div>
-
-<div class="detalle-info">
-<h2 id="titulo"></h2>
-<p class="precio-detalle" id="precio"></p>
-<p class="categoria-tag" id="categoria"></<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Acceso - Market Flash</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body style="background:var(--primary); display:flex; align-items:center; justify-content:center; min-height:100vh;">
-<div class="auth-card">
-<h1 class="logo-auth">⚡<span>Flash</span></h1>
-
-<div class="tabs">
-<button class="tab-btn active" onclick="showTab('login')">Iniciar</button>
-.auth-card { background: var(--card); padding: 30px 20px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-.logo-auth { text-align: center; font-size: 32px; margin-bottom: 20px; font-weight: 800; }
-.logo-auth span { color: var(--primary); }
-.tabs { display: flex; gap: 8px; margin-bottom: 20px; background: var(--bg); padding: 4px; border-radius: 12px; }
-.tab-btn { flex: 1; padding: 10px; border: none; background: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-.tab-btn.active { background: var(--primary); color: white; }
-.tab-content { display: none; flex-direction: column; gap: 14px; }
-.tab-content.active { display: flex; }<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Panel Admin - Market Flash</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-<nav class="navbar">
-<div class="container">
-<h1 class="logo">⚡<span>Flash Admin</span></h1>
-<button class="btn-icon" onclick="cerrarSesion()">Salir</button>
-</div>
-</nav>
-
-<div class="container" style="padding:20px 0;">
-<h2>Productos Pendientes de Revisión</h2>
-<div id="grid-admin" class="grid-productos"></div>
-</div>
-
-<script src="supabase.js"></script>
-<script>
-async function cargarPendientes() {
-const { data } = await supabase.from('productos').select('*, perfiles(nombre, email)').eq('aprobado', false).order('created_at', { ascending: true });
-const grid = document.getElementById('grid-admin');
-
-if (!data || data.length === 0) {
-grid.innerHTML = '<p style="text-align:center; padding:40px;">No hay productos pendientes 🎉</p>';
-return;
+.main-header {
+position: sticky;
+top: 0;
+z-index: 5000;
+background: rgba(255,255,255,.96);
+backdrop-filter: blur(15px);
+border-bottom: 1px solid var(--mf-light-gray);
 }
 
-grid.innerHTML = data.map(p => `
-<div class="card-admin">
-.card-admin { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); border: 2px solid #FFD700; }
-.admin-actions { display: flex; gap: 6px; margin-top: 10px; }
-.admin-actions button { flex: 1; padding: 8px; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.btn-aprobar { background: var(--success); color: white; }
-.btn-destacar { background: #FFD700; color: #333; }
-.btn-eliminar { background: #EF4444; color: white; }<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mi Perfil - Market Flash</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-<nav class="navbar">
-<div class="container">
-<h1 class="logo" onclick="window.location='index.html'">← <span>Mi Perfil</span></h1>
-<button class="btn-icon" onclick="cerrarSesion()">🚪</button>
-</div>
-</nav>
-
-<div class="container" style="padding:20px 0;">
-<div class="perfil-card">
-<div class="perfil-header">
-<div class="avatar">👤</div>
-<div>
-<h2 id="nombre-user">Cargando...</h2>
-<p id="email-user"></p>
-</div.perfil-card { background: var(--card); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
-.perfil-header { display: flex; align-items: center; gap: 16px; }
-.avatar { width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; }
-.estado { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin: 6px 0; }
-.estado.aprobado { background: #D1FAE5; color: #065F46; }
-.estado.pendiente { background: #FEF3C7; color: #92400E; }
-.btn-eliminar-mini { background: #EF4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; font-size: 12px; width: 100%; margin-top: 6px; cursor: pointer; }
-
-
-
-{
-"name": "Market Flash",
-"short_name": "Flash",
-"description": "Compra y vende productos al instante",
-"start_url": "/index.html",
-"display": "standalone",
-"background_color": "#F8F9FA",
-"theme_color": "#FF6B35",
-"orientation": "portrait",
-"icons": [
-{
-"src": "icon-192.png",
-"sizes": "192x192",
-"type": "image/png"
-},
-{
-"src": "icon-512.png",
-"sizes": "512x512",
-"type": "image/png"
+.header-container {
+width: min(1200px, 100%);
+margin: auto;
+min-height: 68px;
+padding: 10px 18px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 14px;
 }
-]
-}const CACHE = 'market-flash-v1';
-const FILES = [
-'/',
-'/index.html',
-'/style.css',
-'/app.js',
-'/supabase.js',
-'/publicar.html',
-'/detalle.html',
-'/auth.html'
-];
 
-self.addEventListener('install', e => {
-e.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)));
-});
--- TABLA PERFILES
-create table perfiles (
-id uuid references auth.users on delete cascade primary key,
-nombre text,
-email text,
-avatar_url text,
-created_at timestamp with time zone default now()
+.brand {
+display: flex;
+align-items: center;
+gap: 10px;
+min-width: max-content;
+}
+
+.brand-logo {
+width: 44px;
+height: 44px;
+border-radius: 13px;
+background: var(--mf-primary);
+color: white;
+display: flex;
+align-items: center;
+justify-content: center;
+font-weight: 900;
+font-size: 17px;
+}
+
+.brand-name {
+font-size: 21px;
+font-weight: 900;
+letter-spacing: -.5px;
+}
+
+.header-actions {
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+.icon-button {
+width: 42px;
+height: 42px;
+border: 1px solid var(--mf-light-gray);
+border-radius: 12px;
+background: white;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 19px;
+transition: .2s;
+}
+
+.icon-button:hover {
+background: #f3f4f6;
+}
+
+/* =====================================================
+CONTENEDOR
+===================================================== */
+
+.page-container {
+width: min(1200px, 100%);
+margin: auto;
+padding: 22px 18px 100px;
+}
+
+/* =====================================================
+HERO
+===================================================== */
+
+.hero {
+background:
+linear-gradient(
+135deg,
+#111827 0%,
+#1e3a8a 100%
 );
-alter table perfiles enable row level security;
-create policy "Perfiles visibles para todos" on perfiles for select using (true);
-create policy "Usuario actualiza su perfil" on perfiles for update using (auth.uid() = id);
-create policy "Usuario inserta su perfil" on perfiles for insert with check (auth.uid() = id);
 
--- TABLA PRODUCTOS
-create table productos (
-id uuid default gen_random_uuid() primary key,
-user_id uuid references perfiles(id) on delete cascade,
-titulo text not null,
-descripcion text,
-precio numeric not null,
-categoria text,
-imagenes text[],
-telefono text,
-messenger text,
-mostrar_wpp boolean default true,
-mostrar_messenger boolean default false,
-destacado boolean default false,
-aprobado boolean default false,
-created_at timestamp with time zone default now()
+border-radius: 24px;
+padding: 32px 24px;
+color: white;
+margin-bottom: 22px;
+overflow: hidden;
+position: relative;
+}
+
+.hero::after {
+content: "";
+position: absolute;
+width: 260px;
+height: 260px;
+border-radius: 50%;
+background: rgba(255,255,255,.06);
+right: -90px;
+top: -90px;
+}
+
+.hero-content {
+position: relative;
+z-index: 2;
+max-width: 700px;
+}
+
+.hero-badge {
+display: inline-flex;
+align-items: center;
+gap: 6px;
+background: rgba(255,255,255,.12);
+border: 1px solid rgba(255,255,255,.16);
+padding: 7px 11px;
+border-radius: 999px;
+font-size: 12px;
+margin-bottom: 14px;
+}
+
+.hero h1 {
+font-size: clamp(30px, 6vw, 52px);
+line-height: 1.05;
+margin-bottom: 12px;
+letter-spacing: -1.5px;
+}
+
+.hero p {
+color: #dbeafe;
+font-size: 15px;
+line-height: 1.6;
+max-width: 620px;
+}
+
+/* =====================================================
+BUSCADOR
+===================================================== */
+
+.search-section {
+margin-bottom: 24px;
+}
+
+.search-box {
+display: flex;
+align-items: center;
+gap: 10px;
+background: white;
+border: 1px solid var(--mf-light-gray);
+border-radius: 16px;
+padding: 7px;
+box-shadow: var(--mf-shadow);
+}
+
+.search-icon {
+padding-left: 12px;
+font-size: 19px;
+}
+
+.search-input {
+flex: 1;
+border: 0;
+outline: 0;
+min-width: 0;
+padding: 12px 4px;
+color: var(--mf-dark);
+background: transparent;
+}
+
+.search-input::placeholder {
+color: #9ca3af;
+}
+
+.search-button {
+border: 0;
+background: var(--mf-primary);
+color: white;
+border-radius: 12px;
+padding: 12px 18px;
+font-weight: 700;
+}
+
+/* =====================================================
+SECCIONES
+===================================================== */
+
+.section {
+margin-bottom: 28px;
+}
+
+.section-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+margin-bottom: 14px;
+}
+
+.section-title {
+font-size: 21px;
+font-weight: 850;
+}
+
+.section-link {
+color: var(--mf-primary);
+font-size: 14px;
+font-weight: 700;
+}
+
+/* =====================================================
+CATEGORÍAS
+===================================================== */
+
+.categories {
+display: grid;
+grid-template-columns: repeat(
+auto-fit,
+minmax(110px, 1fr)
 );
-alter table productos enable row level security;
+gap: 10px;
+}
 
--- Políticas productos
-create policy "Ver productos aprobados" on productos for select using (aprobado = true);
-create policy "Ver mis productos" on productos for select using (auth.uid() = user_id);
-create policy "Insertar producto" on productos for insert with check (auth.uid() = user_id);
-create policy "Actualizar mi producto" on productos for update using (auth.uid() = user_id);
-create policy "Eliminar mi producto" on productos for delete using (auth.uid() = user_id);
+.category-card {
+background: white;
+border: 1px solid var(--mf-light-gray);
+border-radius: 15px;
+padding: 17px 10px;
+text-align: center;
+transition: .2s;
+}
 
--- STORAGE BUCKET
-insert into storage.buckets (id, name, public) values ('productos', 'productos', true);
-create policy "Subir imagenes" on storage.objects for insert with check (bucket_id = 'productos' and auth.role() = 'authenticated');
-create policy "Ver imagenes" on storage.objects for select using (bucket_id = 'productos');
+.category-card:hover {
+transform: translateY(-2px);
+box-shadow: var(--mf-shadow);
+}
+
+.category-icon {
+font-size: 27px;
+margin-bottom: 8px;
+}
+
+.category-name {
+font-size: 13px;
+font-weight: 700;
+}
+
+/* =====================================================
+PRODUCTOS
+===================================================== */
+
+.products-grid {
+display: grid;
+grid-template-columns: repeat(
+auto-fill,
+minmax(180px, 1fr)
+);
+gap: 15px;
+}
+
+.product-card {
+background: white;
+border: 1px solid var(--mf-light-gray);
+border-radius: 17px;
+overflow: hidden;
+transition: .2s;
+}
+
+.product-card:hover {
+transform: translateY(-3px);
+box-shadow: var(--mf-shadow);
+}
+
+.product-image {
+width: 100%;
+aspect-ratio: 1 / 1;
+object-fit: cover;
+background: #e5e7eb;
+}
+
+.product-content {
+padding: 13px;
+}
+
+.product-title {
+font-size: 15px;
+font-weight: 750;
+margin-bottom: 7px;
+display: -webkit-box;
+-webkit-line-clamp: 2;
+-webkit-box-orient: vertical;
+overflow: hidden;
+}
+
+.product-price {
+font-size: 19px;
+font-weight: 900;
+color: var(--mf-primary);
+margin-bottom: 7px;
+}
+
+.product-location {
+color: var(--mf-gray);
+font-size: 12px;
+}
+
+/* =====================================================
+ESTADO VACÍO
+===================================================== */
+
+.empty-state {
+background: white;
+border: 1px dashed #cbd5e1;
+border-radius: 18px;
+padding: 40px 20px;
+text-align: center;
+color: var(--mf-gray);
+}
+
+.empty-icon {
+font-size: 42px;
+margin-bottom: 12px;
+}
+
+.empty-title {
+color: var(--mf-dark);
+font-size: 17px;
+font-weight: 800;
+margin-bottom: 5px;
+}
+
+/* =====================================================
+BOTÓN PUBLICAR
+===================================================== */
+
+.publish-button {
+position: fixed;
+right: 18px;
+bottom: 82px;
+z-index: 4000;
+border: 0;
+border-radius: 999px;
+background: var(--mf-primary);
+color: white;
+padding: 14px 19px;
+box-shadow: 0 10px 30px rgba(37,99,235,.3);
+font-weight: 800;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+
+/* =====================================================
+NAVEGACIÓN INFERIOR
+===================================================== */
+
+.bottom-nav {
+position: fixed;
+bottom: 0;
+left: 0;
+right: 0;
+z-index: 4500;
+height: 67px;
+background: rgba(255,255,255,.97);
+backdrop-filter: blur(15px);
+border-top: 1px solid var(--mf-light-gray);
+display: flex;
+justify-content: center;
+}
+
+.bottom-nav-inner {
+width: min(600px, 100%);
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+}
+
+.nav-item {
+border: 0;
+background: transparent;
+color: #6b7280;
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+gap: 3px;
+font-size: 11px;
+font-weight: 650;
+}
+
+.nav-item span:first-child {
+font-size: 21px;
+}
+
+.nav-item.active {
+color: var(--mf-primary);
+}
+
+/* =====================================================
+MODAL
+===================================================== */
+
+.modal-overlay {
+position: fixed;
+inset: 0;
+z-index: 10000;
+background: rgba(15,23,42,.65);
+backdrop-filter: blur(5px);
+display: flex;
+align-items: flex-end;
+justify-content: center;
+padding: 0;
+}
+
+.modal {
+width: min(600px, 100%);
+max-height: 92vh;
+overflow-y: auto;
+background: white;
+border-radius: 24px 24px 0 0;
+padding: 22px;
+animation: modalUp
