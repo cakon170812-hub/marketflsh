@@ -1,3926 +1,2633 @@
-// ==========================================
-// MARKET FLASH - SCRIPT PRINCIPAL
-// ==========================================
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
 
-"use strict";
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-document.addEventListener("DOMContentLoaded", () => {
+    <meta
+        name="description"
+        content="Market Flash - Compra, vende y promociona productos."
+    >
 
-    console.log("Market Flash iniciado correctamente.");
+    <meta
+        name="theme-color"
+        content="#111827"
+    >
 
-});// ==========================================
-// NAVEGACIÓN DE MARKET FLASH
-// ==========================================
+    <title>Market Flash</title>
 
-document.addEventListener("DOMContentLoaded", () => {
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
 
-    const botones = {
-        inicio: document.querySelector('header nav button:nth-child(1)'),
-        categorias: document.querySelector('header nav button:nth-child(2)'),
-        publicar: document.querySelector('header nav button:nth-child(3)'),
-        promocionar: document.querySelector('header nav button:nth-child(4)'),
-        reclamos: document.querySelector('header nav button:nth-child(5)'),
-        soporte: document.querySelector('header nav button:nth-child(6)')
-    };
+<body>
 
-    const secciones = {
-        inicio: document.querySelector("#publicaciones"),
-        categorias: document.querySelector("#categorias"),
-        publicar: document.querySelector("#formulario-publicar"),
-        promocionar: document.querySelector("#promocionar"),
-        reclamos: document.querySelector("#reclamos"),
-        soporte: document.querySelector("#soporte")
-    };
+    <!-- =====================================================
+         ENCABEZADO
+         ===================================================== -->
 
-    function irASeccion(seccion) {
-        if (!seccion) {
-            console.warn("Sección no encontrada.");
-            return;
-        }
+    <header class="site-header">
 
-        seccion.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-    }
+        <div class="brand">
 
-    botones.inicio?.addEventListener("click", () => {
-        irASeccion(secciones.inicio);
-    });
-
-    botones.categorias?.addEventListener("click", () => {
-        irASeccion(secciones.categorias);
-    });
-
-    botones.publicar?.addEventListener("click", () => {
-        irASeccion(secciones.publicar);
-    });
-
-    botones.promocionar?.addEventListener("click", () => {
-        irASeccion(secciones.promocionar);
-    });
-
-    botones.reclamos?.addEventListener("click", () => {
-        irASeccion(secciones.reclamos);
-    });
-
-    botones.soporte?.addEventListener("click", () => {
-        irASeccion(secciones.soporte);
-    });
-
-});// ==========================================
-// BÚSQUEDA DE PUBLICACIONES
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const formularioBusqueda = document.querySelector("#busqueda form");
-    const campoBusqueda = document.querySelector("#buscar");
-
-    if (!formularioBusqueda || !campoBusqueda) {
-        return;
-    }
-
-    formularioBusqueda.addEventListener("submit", (evento) => {
-
-        evento.preventDefault();
-
-        const textoBusqueda = campoBusqueda.value
-            .trim()
-            .toLowerCase();
-
-        const publicaciones = document.querySelectorAll(
-            ".publicacion"
-        );
-
-        if (textoBusqueda === "") {
-
-            publicaciones.forEach((publicacion) => {
-                publicacion.style.display = "";
-            });
-
-            return;
-        }
-
-        publicaciones.forEach((publicacion) => {
-
-            const contenido = publicacion.textContent
-                .toLowerCase();
-
-            if (contenido.includes(textoBusqueda)) {
-                publicacion.style.display = "";
-            } else {
-                publicacion.style.display = "none";
-            }
-
-        });
-
-    });
-
-});// ==========================================
-// REGISTRO DE USUARIO
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const formularioRegistro = document.querySelector(
-        "#formulario-registro"
-    );
-
-    if (!formularioRegistro) {
-        return;
-    }
-
-    formularioRegistro.addEventListener("submit", (evento) => {
-
-        evento.preventDefault();
-
-        const nombre = document.querySelector("#nombre")?.value.trim();
-        const correo = document.querySelector("#correo")?.value.trim();
-        const cedula = document.querySelector("#cedula")?.value.trim();
-        const telefono = document.querySelector("#telefono")?.value.trim();
-        const whatsapp = document.querySelector("#whatsapp")?.value.trim();
-        const messenger = document.querySelector("#messenger")?.value.trim();
-
-        if (!nombre || !correo || !cedula || !telefono) {
-            alert("Completa todos los campos obligatorios.");
-            return;
-        }
-
-        const usuario = {
-            nombre,
-            correo,
-            cedula,
-            telefono,
-            whatsapp,
-            messenger
-        };
-
-        localStorage.setItem(
-            "marketFlashUsuario",
-            JSON.stringify(usuario)
-        );
-
-        alert(
-            "Registro guardado correctamente. " +
-            "Más adelante conectaremos este formulario " +
-            "con la base de datos."
-        );
-
-        formularioRegistro.reset();
-
-    });
-
-});// ==========================================
-// MOSTRAR PERFIL DEL USUARIO
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const datosGuardados = localStorage.getItem(
-        "marketFlashUsuario"
-    );
-
-    if (!datosGuardados) {
-        return;
-    }
-
-    try {
-
-        const usuario = JSON.parse(datosGuardados);
-
-        const nombre = document.querySelector("#perfil-nombre");
-        const telefono = document.querySelector("#perfil-telefono");
-        const whatsapp = document.querySelector("#perfil-whatsapp");
-        const messenger = document.querySelector("#perfil-messenger");
-
-        if (nombre) {
-            nombre.textContent = usuario.nombre || "No registrado";
-        }
-
-        if (telefono) {
-            telefono.textContent = usuario.telefono || "No registrado";
-        }
-
-        if (whatsapp) {
-            whatsapp.textContent = usuario.whatsapp || "No registrado";
-        }
-
-        if (messenger) {
-            messenger.textContent = usuario.messenger || "No registrado";
-        }
-
-    } catch (error) {
-
-        console.error(
-            "No se pudieron cargar los datos del usuario:",
-            error
-        );
-
-    }
-
-});
-// ==========================================
-// INICIO DE SESIÓN
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const formularioLogin = document.querySelector(
-        "#formulario-login"
-    );
-
-    if (!formularioLogin) {
-        return;
-    }
-
-    formularioLogin.addEventListener("submit", (evento) => {
-
-        evento.preventDefault();
-
-        const correo = document.querySelector(
-            "#login-correo"
-        )?.value.trim();
-
-        const password = document.querySelector(
-            "#login-password"
-        )?.value;
-
-        if (!correo || !password) {
-            alert("Escribe tu correo y contraseña.");
-            return;
-        }
-
-        const usuarioGuardado = localStorage.getItem(
-            "marketFlashUsuario"
-        );
-
-        if (!usuarioGuardado) {
-            alert(
-                "No existe una cuenta guardada en este navegador."
-            );
-            return;
-        }
-
-        try {
-
-            const usuario = JSON.parse(usuarioGuardado);
-
-            /*
-             * Por ahora hacemos una comprobación básica.
-             * La autenticación real se conectará después
-             * con la base de datos.
-             */
-
-            if (correo !== usuario.correo) {
-                alert("El correo no coincide con la cuenta registrada.");
-                return;
-            }
-
-            localStorage.setItem(
-                "marketFlashSesion",
-                "activa"
-            );
-
-            alert("Inicio de sesión realizado correctamente.");
-
-            formularioLogin.reset();
-
-        } catch (error) {
-
-            console.error(
-                "Error al iniciar sesión:",
-                error
-            );
-
-            alert(
-                "No se pudo procesar el inicio de sesión."
-            );
-        }
-
-    });
-
-});// ==========================================
-// CREAR PUBLICACIÓN
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const formularioPublicacion = document.querySelector(
-        "#form-publicacion"
-    );
-
-    const listaPublicaciones = document.querySelector(
-        "#lista-publicaciones"
-    );
-
-    if (!formularioPublicacion || !listaPublicaciones) {
-        return;
-    }
-
-    formularioPublicacion.addEventListener("submit", (evento) => {
-
-        evento.preventDefault();
-
-        const nombre = document.querySelector(
-            "#nombre-producto"
-        )?.value.trim();
-
-        const categoria = document.querySelector(
-            "#categoria-producto"
-        )?.value;
-
-        const precio = document.querySelector(
-            "#precio-producto"
-        )?.value;
-
-        const cantidad = document.querySelector(
-            "#cantidad-producto"
-        )?.value;
-
-        const descripcion = document.querySelector(
-            "#descripcion-producto"
-        )?.value.trim();
-
-        const contacto = document.querySelector(
-            "#contacto-preferido"
-        )?.value;
-
-        const imagenInput = document.querySelector(
-            "#imagen-producto"
-        );
-
-        if (
-            !nombre ||
-            !categoria ||
-            !precio ||
-            !cantidad ||
-            !descripcion ||
-            !contacto
-        ) {
-            alert("Completa todos los campos obligatorios.");
-            return;
-        }
-
-        const publicacion = {
-            id: Date.now(),
-            nombre,
-            categoria,
-            precio,
-            cantidad,
-            descripcion,
-            contacto,
-            estado: "Pendiente de aprobación"
-        };
-
-        let publicaciones = [];
-
-        try {
-
-            publicaciones = JSON.parse(
-                localStorage.getItem(
-                    "marketFlashPublicaciones"
-                )
-            ) || [];
-
-        } catch (error) {
-
-            console.error(
-                "Error al cargar publicaciones:",
-                error
-            );
-
-            publicaciones = [];
-        }
-
-        publicaciones.push(publicacion);
-
-        localStorage.setItem(
-            "marketFlashPublicaciones",
-            JSON.stringify(publicaciones)
-        );
-
-
-        // Crear tarjeta visual
-        const articulo = document.createElement("article");
-
-        articulo.className = "publicacion";
-
-        articulo.innerHTML = `
-            <div class="imagen-producto">
-                <img
-                    src=""
-                    alt="${nombre}"
-                >
+            <div class="brand-logo">
+                MF
             </div>
 
-            <div class="informacion-publicacion">
+            <div class="brand-text">
 
-                <h3>${nombre}</h3>
-
-                <p>
-                    <strong>Categoría:</strong>
-                    ${categoria}
-                </p>
+                <h1>
+                    Market Flash
+                </h1>
 
                 <p>
-                    ${descripcion}
+                    Compra, vende y promociona
                 </p>
-
-                <p>
-                    <strong>Precio:</strong>
-                    RD$ ${precio}
-                </p>
-
-                <p>
-                    <strong>Cantidad:</strong>
-                    ${cantidad}
-                </p>
-
-                <p>
-                    <strong>Contacto:</strong>
-                    ${contacto}
-                </p>
-
-                <p>
-                    <strong>Estado:</strong>
-                    Pendiente de aprobación
-                </p>
-
-                <button type="button">
-                    Ver publicación
-                </button>
 
             </div>
-        `;
 
-        listaPublicaciones.appendChild(articulo);
+        </div>
 
 
-        // Mostrar imagen seleccionada
-        if (
-            imagenInput &&
-            imagenInput.files &&
-            imagenInput.files[0]
-        ) {
+        <nav
+            class="main-navigation"
+            aria-label="Navegación principal"
+        >
 
-            const archivo = imagenInput.files[0];
-
-            const lector = new FileReader();
-
-            lector.onload = (resultado) => {
-
-                const imagen = articulo.querySelector(
-                    ".imagen-producto img"
-                );
-
-                if (imagen) {
-                    imagen.src = resultado.target.result;
-                }
-
-            };
-
-            lector.readAsDataURL(archivo);
-        }
-
-
-        formularioPublicacion.reset();
-
-        alert(
-            "Publicación creada y enviada " +
-            "para aprobación."
-        );
-
-    });
-
-});// ==========================================
-// CARGAR PUBLICACIONES GUARDADAS
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const listaPublicaciones = document.querySelector(
-        "#lista-publicaciones"
-    );
-
-    if (!listaPublicaciones) {
-        return;
-    }
-
-    let publicaciones = [];
-
-    try {
-
-        publicaciones = JSON.parse(
-            localStorage.getItem(
-                "marketFlashPublicaciones"
-            )
-        ) || [];
-
-    } catch (error) {
-
-        console.error(
-            "No se pudieron cargar las publicaciones:",
-            error
-        );
-
-        publicaciones = [];
-    }
-
-
-    publicaciones.forEach((publicacion) => {
-
-        const articulo = document.createElement("article");
-
-        articulo.className = "publicacion";
-
-        articulo.innerHTML = `
-            <div class="imagen-producto">
-                <img
-                    src=""
-                    alt="${publicacion.nombre}"
-                >
-            </div>
-
-            <div class="informacion-publicacion">
-
-                <h3>${publicacion.nombre}</h3>
-
-                <p>
-                    <strong>Categoría:</strong>
-                    ${publicacion.categoria}
-                </p>
-
-                <p>
-                    ${publicacion.descripcion}
-                </p>
-
-                <p>
-                    <strong>Precio:</strong>
-                    RD$ ${publicacion.precio}
-                </p>
-
-                <p>
-                    <strong>Cantidad:</strong>
-                    ${publicacion.cantidad}
-                </p>
-
-                <p>
-                    <strong>Contacto:</strong>
-                    ${publicacion.contacto}
-                </p>
-
-                <p>
-                    <strong>Estado:</strong>
-                    ${publicacion.estado}
-                </p>
-
-                <button type="button">
-                    Ver publicación
-                </button>
-
-            </div>
-        `;
-
-        listaPublicaciones.appendChild(articulo);
-
-    });
-
-});// ==========================================
-// SISTEMA DE FAVORITOS
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const listaPublicaciones = document.querySelector(
-        "#lista-publicaciones"
-    );
-
-    const listaFavoritos = document.querySelector(
-        "#lista-favoritos"
-    );
-
-    if (!listaPublicaciones) {
-        return;
-    }
-
-    function obtenerFavoritos() {
-
-        try {
-
-            return JSON.parse(
-                localStorage.getItem(
-                    "marketFlashFavoritos"
-                )
-            ) || [];
-
-        } catch (error) {
-
-            console.error(
-                "Error al cargar favoritos:",
-                error
-            );
-
-            return [];
-        }
-    }
-
-
-    function guardarFavoritos(favoritos) {
-
-        localStorage.setItem(
-            "marketFlashFavoritos",
-            JSON.stringify(favoritos)
-        );
-
-    }
-
-
-    function actualizarFavoritos() {
-
-        if (!listaFavoritos) {
-            return;
-        }
-
-        const favoritos = obtenerFavoritos();
-
-        listaFavoritos.innerHTML = "";
-
-        if (favoritos.length === 0) {
-
-            listaFavoritos.innerHTML = `
-                <p>
-                    Todavía no tienes productos favoritos.
-                </p>
-            `;
-
-            return;
-        }
-
-        favoritos.forEach((favorito) => {
-
-            const elemento = document.createElement("article");
-
-            elemento.className = "mi-publicacion";
-
-            elemento.innerHTML = `
-                <h3>${favorito.nombre}</h3>
-
-                <p>
-                    <strong>Precio:</strong>
-                    RD$ ${favorito.precio}
-                </p>
-
-                <button
-                    type="button"
-                    data-quitar-favorito="${favorito.id}"
-                >
-                    Quitar de favoritos
-                </button>
-            `;
-
-            listaFavoritos.appendChild(elemento);
-
-        });
-
-    }
-
-
-    function agregarBotonesFavoritos() {
-
-        const publicaciones = document.querySelectorAll(
-            ".publicacion"
-        );
-
-        publicaciones.forEach((publicacion, indice) => {
-
-            if (
-                publicacion.querySelector(
-                    ".boton-favorito"
-                )
-            ) {
-                return;
-            }
-
-            const boton = document.createElement("button");
-
-            boton.type = "button";
-            boton.className = "boton-favorito";
-            boton.textContent = "Añadir a favoritos";
-
-            boton.addEventListener("click", () => {
-
-                const titulo = publicacion.querySelector(
-                    "h3"
-                )?.textContent || "Producto";
-
-                const precioTexto = publicacion.querySelector(
-                    ".informacion-publicacion p:nth-of-type(2)"
-                )?.textContent || "RD$ 0";
-
-                const favoritos = obtenerFavoritos();
-
-                const id = `publicacion-${indice}`;
-
-                const existe = favoritos.some(
-                    (favorito) => favorito.id === id
-                );
-
-                if (existe) {
-
-                    alert(
-                        "Este producto ya está en favoritos."
-                    );
-
-                    return;
-                }
-
-                favoritos.push({
-                    id,
-                    nombre: titulo,
-                    precio: precioTexto
-                });
-
-                guardarFavoritos(favoritos);
-
-                actualizarFavoritos();
-
-                alert(
-                    "Producto añadido a favoritos."
-                );
-
-            });
-
-            const contenedor = publicacion.querySelector(
-                ".informacion-publicacion"
-            );
-
-            if (contenedor) {
-                contenedor.appendChild(boton);
-            }
-
-        });
-
-    }
-
-
-    listaFavoritos?.addEventListener("click", (evento) => {
-
-        const boton = evento.target.closest(
-            "[data-quitar-favorito]"
-        );
-
-        if (!boton) {
-            return;
-        }
-
-        const id = boton.dataset.quitarFavorito;
-
-        const favoritos = obtenerFavoritos().filter(
-            (favorito) => favorito.id !== id
-        );
-
-        guardarFavoritos(favoritos);
-
-        actualizarFavoritos();
-
-    });
-
-
-    agregarBotonesFavoritos();
-    actualizarFavoritos();
-
-});// ==========================================
-// NOTIFICACIONES DE MARKET FLASH
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const listaNotificaciones = document.querySelector(
-        "#lista-notificaciones"
-    );
-
-    if (!listaNotificaciones) {
-        return;
-    }
-
-    function obtenerPublicaciones() {
-
-        try {
-
-            return JSON.parse(
-                localStorage.getItem(
-                    "marketFlashPublicaciones"
-                )
-            ) || [];
-
-        } catch (error) {
-
-            console.error(
-                "No se pudieron cargar las publicaciones:",
-                error
-            );
-
-            return [];
-        }
-    }
-
-
-    function mostrarNotificaciones() {
-
-        const publicaciones = obtenerPublicaciones();
-
-        const pendientes = publicaciones.filter(
-            (publicacion) =>
-                publicacion.estado === "Pendiente de aprobación"
-        );
-
-        listaNotificaciones.innerHTML = "";
-
-        if (pendientes.length === 0) {
-
-            listaNotificaciones.innerHTML = `
-                <article class="notificacion">
-                    <h3>Sin notificaciones nuevas</h3>
+            <button
+                type="button"
+                data-section="inicio"
+            >
+                Inicio
+            </button>
+
+            <button
+                type="button"
+                data-section="categorias"
+            >
+                Categorías
+            </button>
+
+            <button
+                type="button"
+                data-section="publicar"
+            >
+                Publicar
+            </button>
+
+            <button
+                type="button"
+                data-section="promocionar"
+            >
+                Promocionar
+            </button>
+
+            <button
+                type="button"
+                data-section="reclamos"
+            >
+                Reclamos
+            </button>
+
+            <button
+                type="button"
+                data-section="soporte"
+            >
+                Soporte
+            </button>
+
+        </nav>
+
+
+        <div class="header-actions">
+
+            <button
+                type="button"
+                id="btn-registrarse"
+            >
+                Registrarse
+            </button>
+
+            <button
+                type="button"
+                id="btn-iniciar-sesion"
+            >
+                Iniciar sesión
+            </button>
+
+            <button
+                type="button"
+                id="btn-mi-perfil"
+            >
+                Mi perfil
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         CONTENIDO PRINCIPAL
+         ===================================================== -->
+
+    <main id="app">
+
+
+        <!-- =================================================
+             INICIO
+             ================================================= -->
+
+        <section
+            id="inicio"
+            class="page-section active-section"
+        >
+
+            <div class="hero">
+
+                <div class="hero-content">
+
+                    <span class="badge">
+                        MARKET FLASH
+                    </span>
+
+                    <h2>
+                        Compra y vende
+                        de forma sencilla
+                    </h2>
 
                     <p>
-                        No hay publicaciones pendientes
-                        de revisión.
-                    </p>
-                </article>
-            `;
-
-            return;
-        }
-
-
-        pendientes.forEach((publicacion) => {
-
-            const notificacion =
-                document.createElement("article");
-
-            notificacion.className = "notificacion";
-
-            notificacion.innerHTML = `
-                <h3>
-                    Pago pendiente de verificación
-                </h3>
-
-                <p>
-                    La publicación
-                    <strong>${publicacion.nombre}</strong>
-                    está esperando aprobación.
-                </p>
-
-                <p>
-                    <strong>Precio:</strong>
-                    RD$ ${publicacion.precio}
-                </p>
-
-                <p>
-                    <strong>Estado:</strong>
-                    ${publicacion.estado}
-                </p>
-
-                <button
-                    type="button"
-                    data-publicacion-id="${publicacion.id}"
-                >
-                    Revisar publicación
-                </button>
-            `;
-
-            listaNotificaciones.appendChild(
-                notificacion
-            );
-
-        });
-
-    }
-
-
-    listaNotificaciones.addEventListener(
-        "click",
-        (evento) => {
-
-            const boton = evento.target.closest(
-                "[data-publicacion-id]"
-            );
-
-            if (!boton) {
-                return;
-            }
-
-            const id = Number(
-                boton.dataset.publicacionId
-            );
-
-            const publicaciones =
-                obtenerPublicaciones();
-
-            const publicacion = publicaciones.find(
-                (item) => item.id === id
-            );
-
-            if (!publicacion) {
-                alert(
-                    "No se encontró la publicación."
-                );
-                return;
-            }
-
-            alert(
-                `Publicación: ${publicacion.nombre}\n` +
-                `Precio: RD$ ${publicacion.precio}\n` +
-                `Estado: ${publicacion.estado}\n\n` +
-                `La revisión real del comprobante ` +
-                `se conectará posteriormente.`
-            );
-
-        }
-    );
-
-
-    mostrarNotificaciones();
-
-});// ==========================================
-// APROBAR O RECHAZAR PUBLICACIONES
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const botonAprobar = document.querySelector(
-        "#aprobar-publicacion"
-    );
-
-    const botonRechazar = document.querySelector(
-        "#rechazar-publicacion"
-    );
-
-    if (!botonAprobar && !botonRechazar) {
-        return;
-    }
-
-    function obtenerPublicaciones() {
-
-        try {
-
-            return JSON.parse(
-                localStorage.getItem(
-                    "marketFlashPublicaciones"
-                )
-            ) || [];
-
-        } catch (error) {
-
-            console.error(
-                "Error al cargar publicaciones:",
-                error
-            );
-
-            return [];
-        }
-    }
-
-
-    function guardarPublicaciones(publicaciones) {
-
-        localStorage.setItem(
-            "marketFlashPublicaciones",
-            JSON.stringify(publicaciones)
-        );
-
-    }
-
-
-    function cambiarEstado(nuevoEstado) {
-
-        const publicaciones = obtenerPublicaciones();
-
-        if (publicaciones.length === 0) {
-
-            alert(
-                "No hay publicaciones pendientes."
-            );
-
-            return;
-        }
-
-        const indice = publicaciones.findIndex(
-            (publicacion) =>
-                publicacion.estado ===
-                "Pendiente de aprobación"
-        );
-
-        if (indice === -1) {
-
-            alert(
-                "No hay publicaciones pendientes."
-            );
-
-            return;
-        }
-
-        publicaciones[indice].estado = nuevoEstado;
-
-        guardarPublicaciones(publicaciones);
-
-        if (nuevoEstado === "Aprobada") {
-
-            alert(
-                "Publicación aprobada correctamente."
-            );
-
-        } else {
-
-            alert(
-                "Publicación rechazada."
-            );
-        }
-
-        window.location.reload();
-
-    }
-
-
-    botonAprobar?.addEventListener(
-        "click",
-        () => {
-
-            cambiarEstado("Aprobada");
-
-        }
-    );
-
-
-    botonRechazar?.addEventListener(
-        "click",
-        () => {
-
-            cambiarEstado("Rechazada");
-
-        }
-    );
-
-});// ==========================================
-// MARCAR PRODUCTO COMO VENDIDO
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const listaMisPublicaciones = document.querySelector(
-        "#lista-mis-publicaciones"
-    );
-
-    const listaVendidos = document.querySelector(
-        "#lista-vendidos"
-    );
-
-    if (!listaMisPublicaciones) {
-        return;
-    }
-
-    function obtenerPublicaciones() {
-
-        try {
-
-            return JSON.parse(
-                localStorage.getItem(
-                    "marketFlashPublicaciones"
-                )
-            ) || [];
-
-        } catch (error) {
-
-            console.error(
-                "Error al cargar publicaciones:",
-                error
-            );
-
-            return [];
-        }
-    }
-
-
-    function guardarPublicaciones(publicaciones) {
-
-        localStorage.setItem(
-            "marketFlashPublicaciones",
-            JSON.stringify(publicaciones)
-        );
-
-    }
-
-
-    function mostrarPublicaciones() {
-
-        const publicaciones =
-            obtenerPublicaciones();
-
-        listaMisPublicaciones.innerHTML = "";
-
-        if (publicaciones.length === 0) {
-
-            listaMisPublicaciones.innerHTML = `
-                <p>
-                    No tienes publicaciones todavía.
-                </p>
-            `;
-
-            return;
-        }
-
-
-        publicaciones.forEach((publicacion) => {
-
-            const articulo =
-                document.createElement("article");
-
-            articulo.className = "mi-publicacion";
-
-            articulo.innerHTML = `
-                <h3>
-                    ${publicacion.nombre}
-                </h3>
-
-                <p>
-                    <strong>Precio:</strong>
-                    RD$ ${publicacion.precio}
-                </p>
-
-                <p>
-                    <strong>Estado:</strong>
-                    ${publicacion.estado}
-                </p>
-
-                <button
-                    type="button"
-                    data-vendido-id="${publicacion.id}"
-                >
-                    Marcar como vendido
-                </button>
-            `;
-
-            listaMisPublicaciones.appendChild(
-                articulo
-            );
-
-        });
-
-    }
-
-
-    mostrarPublicaciones();
-
-
-    listaMisPublicaciones.addEventListener(
-        "click",
-        (evento) => {
-
-            const boton = evento.target.closest(
-                "[data-vendido-id]"
-            );
-
-            if (!boton) {
-                return;
-            }
-
-            const id = Number(
-                boton.dataset.vendidoId
-            );
-
-            const publicaciones =
-                obtenerPublicaciones();
-
-            const indice =
-                publicaciones.findIndex(
-                    (publicacion) =>
-                        publicacion.id === id
-                );
-
-            if (indice === -1) {
-                alert(
-                    "No se encontró la publicación."
-                );
-                return;
-            }
-
-            publicaciones[indice].estado =
-                "Vendido";
-
-            guardarPublicaciones(
-                publicaciones
-            );
-
-            alert(
-                "El producto fue marcado como vendido."
-            );
-
-            mostrarPublicaciones();
-
-            if (listaVendidos) {
-
-                const producto =
-                    document.createElement("article");
-
-                producto.className =
-                    "mi-publicacion";
-
-                producto.innerHTML = `
-                    <h3>
-                        ${publicaciones[indice].nombre}
-                    </h3>
-
-                    <p>
-                        Producto vendido correctamente.
-                    </p>
-                `;
-
-                listaVendidos.appendChild(
-                    producto
-                );
-            }
-
-        }
-    );
-
-});// ==========================================
-// SOLICITAR PROMOCIÓN
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const botonPromocionar = document.querySelector(
-        "#promocionar button"
-    );
-
-    if (!botonPromocionar) {
-        return;
-    }
-
-    botonPromocionar.addEventListener(
-        "click",
-        () => {
-
-            const usuarioGuardado =
-                localStorage.getItem(
-                    "marketFlashUsuario"
-                );
-
-            if (!usuarioGuardado) {
-
-                alert(
-                    "Primero debes registrarte " +
-                    "o iniciar sesión."
-                );
-
-                return;
-            }
-
-            let solicitudes = [];
-
-            try {
-
-                solicitudes = JSON.parse(
-                    localStorage.getItem(
-                        "marketFlashPromociones"
-                    )
-                ) || [];
-
-            } catch (error) {
-
-                console.error(
-                    "Error al cargar promociones:",
-                    error
-                );
-
-                solicitudes = [];
-            }
-
-
-            const solicitud = {
-                id: Date.now(),
-                fecha: new Date().toISOString(),
-                estado: "Pendiente"
-            };
-
-
-            solicitudes.push(solicitud);
-
-
-            localStorage.setItem(
-                "marketFlashPromociones",
-                JSON.stringify(solicitudes)
-            );
-
-
-            alert(
-                "Solicitud de promoción creada. " +
-                "Más adelante añadiremos el proceso " +
-                "de pago y aprobación."
-            );
-
-        }
-    );
-
-});// ==========================================
-// SISTEMA DE CALIFICACIONES
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const formularioCalificacion = document.querySelector(
-        "#form-calificacion"
-    );
-
-    if (!formularioCalificacion) {
-        return;
-    }
-
-    formularioCalificacion.addEventListener(
-        "submit",
-        (evento) => {
-
-            evento.preventDefault();
-
-            const estrellas = document.querySelector(
-                "#estrellas"
-            )?.value;
-
-            const comentario = document.querySelector(
-                "#comentario-calificacion"
-            )?.value.trim();
-
-            if (!estrellas) {
-                alert(
-                    "Selecciona una calificación."
-                );
-                return;
-            }
-
-            let calificaciones = [];
-
-            try {
-
-                calificaciones = JSON.parse(
-                    localStorage.getItem(
-                        "marketFlashCalificaciones"
-                    )
-                ) || [];
-
-            } catch (error) {
-
-                console.error(
-                    "Error al cargar calificaciones:",
-                    error
-                );
-
-                calificaciones = [];
-            }
-
-            calificaciones.push({
-                id: Date.now(),
-                estrellas: Number(estrellas),
-                comentario: comentario || "",
-                fecha: new Date().toISOString()
-            });
-
-            localStorage.setItem(
-                "marketFlashCalificaciones",
-                JSON.stringify(calificaciones)
-            );
-
-            alert(
-                "Gracias. Tu calificación fue registrada."
-            );
-
-            formularioCalificacion.reset();
-
-        }
-    );
-
-});// ==========================================
-// SISTEMA DE REPORTES
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const formularioReporte = document.querySelector(
-        "#form-reporte"
-    );
-
-    if (!formularioReporte) {
-        return;
-    }
-
-    formularioReporte.addEventListener(
-        "submit",
-        (evento) => {
-
-            evento.preventDefault();
-
-            const motivo = document.querySelector(
-                "#motivo-reporte"
-            )?.value;
-
-            const detalle = document.querySelector(
-                "#detalle-reporte"
-            )?.value.trim();
-
-            if (!motivo || !detalle) {
-
-                alert(
-                    "Completa el motivo y los detalles del reporte."
-                );
-
-                return;
-            }
-
-            let reportes = [];
-
-            try {
-
-                reportes = JSON.parse(
-                    localStorage.getItem(
-                        "marketFlashReportes"
-                    )
-                ) || [];
-
-            } catch (error) {
-
-                console.error(
-                    "Error al cargar los reportes:",
-                    error
-                );
-
-                reportes = [];
-            }
-
-            const reporte = {
-                id: Date.now(),
-                motivo,
-                detalle,
-                estado: "Pendiente",
-                fecha: new Date().toISOString()
-            };
-
-            reportes.push(reporte);
-
-            localStorage.setItem(
-                "marketFlashReportes",
-                JSON.stringify(reportes)
-            );
-
-            alert(
-                "Tu reporte fue enviado correctamente."
-            );
-
-            formularioReporte.reset();
-
-        }
-    );
-
-});// ==========================================
-// CERRAR SESIÓN
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const botonesPerfil = document.querySelectorAll(
-        "#opciones-perfil button"
-    );
-
-    if (!botonesPerfil.length) {
-        return;
-    }
-
-    botonesPerfil.forEach((boton) => {
-
-        if (
-            boton.textContent
-                .trim()
-                .toLowerCase() !== "cerrar sesión"
-        ) {
-            return;
-        }
-
-        boton.addEventListener("click", () => {
-
-            const sesion = localStorage.getItem(
-                "marketFlashSesion"
-            );
-
-            if (sesion !== "activa") {
-
-                alert(
-                    "No hay una sesión iniciada."
-                );
-
-                return;
-            }
-
-            localStorage.removeItem(
-                "marketFlashSesion"
-            );
-
-            alert(
-                "Has cerrado sesión correctamente."
-            );
-
-            window.location.reload();
-
-        });
-
-    });
-
-});// ==========================================
-// COPIAR DIRECCIÓN DE BINANCE
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const botonCopiar = document.querySelector(
-        "#pago-binance button"
-    );
-
-    const direccionElemento = document.querySelector(
-        "#direccion-binance p:last-child"
-    );
-
-    if (!botonCopiar || !direccionElemento) {
-        return;
-    }
-
-    botonCopiar.addEventListener("click", async () => {
-
-        const direccion =
-            direccionElemento.textContent.trim();
-
-        if (
-            !direccion ||
-            direccion === "PENDIENTE DE CONFIGURAR"
-        ) {
-
-            alert(
-                "La dirección de Binance todavía no está configurada."
-            );
-
-            return;
-        }
-
-        try {
-
-            await navigator.clipboard.writeText(
-                direccion
-            );
-
-            alert(
-                "Dirección de Binance copiada."
-            );
-
-        } catch (error) {
-
-            console.error(
-                "No se pudo copiar la dirección:",
-                error
-            );
-
-            alert(
-                "No se pudo copiar la dirección."
-            );
-        }
-
-    });
-
-});// ==========================================
-// ENVÍO DE COMPROBANTE DE PAGO
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const botonComprobante = document.querySelector(
-        "#enviar-comprobante"
-    );
-
-    const archivoComprobante = document.querySelector(
-        "#captura-pago"
-    );
-
-    if (!botonComprobante || !archivoComprobante) {
-        return;
-    }
-
-    botonComprobante.addEventListener("click", () => {
-
-        const archivo = archivoComprobante.files[0];
-
-        if (!archivo) {
-
-            alert(
-                "Selecciona primero la captura del comprobante."
-            );
-
-            return;
-        }
-
-        const usuario = localStorage.getItem(
-            "marketFlashUsuario"
-        );
-
-        if (!usuario) {
-
-            alert(
-                "Primero debes registrarte o iniciar sesión."
-            );
-
-            return;
-        }
-
-        let comprobantes = [];
-
-        try {
-
-            comprobantes = JSON.parse(
-                localStorage.getItem(
-                    "marketFlashComprobantes"
-                )
-            ) || [];
-
-        } catch (error) {
-
-            console.error(
-                "Error al cargar comprobantes:",
-                error
-            );
-
-            comprobantes = [];
-        }
-
-        const comprobante = {
-            id: Date.now(),
-            nombreArchivo: archivo.name,
-            tipoArchivo: archivo.type,
-            estado: "Pendiente de revisión",
-            fecha: new Date().toISOString()
-        };
-
-        comprobantes.push(comprobante);
-
-        localStorage.setItem(
-            "marketFlashComprobantes",
-            JSON.stringify(comprobantes)
-        );
-
-        const estadoPago = document.querySelector(
-            "#estado-pago"
-        );
-
-        if (estadoPago) {
-
-            estadoPago.innerHTML = `
-                <p>
-                    <strong>Estado:</strong>
-                    Pendiente de revisión
-                </p>
-
-                <p>
-                    Tu comprobante fue enviado
-                    correctamente.
-                </p>
-            `;
-        }
-
-        archivoComprobante.value = "";
-
-        alert(
-            "Comprobante enviado correctamente. " +
-            "El administrador deberá revisarlo."
-        );
-
-    });
-
-});// ==========================================
-// SELECCIÓN DEL MÉTODO DE PAGO
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const opcionesPago = document.querySelectorAll(
-        'input[name="metodo-pago"]'
-    );
-
-    const pagoBinance = document.querySelector(
-        "#pago-binance"
-    );
-
-    const pagoPaypal = document.querySelector(
-        "#pago-paypal"
-    );
-
-    if (
-        !opcionesPago.length ||
-        !pagoBinance ||
-        !pagoPaypal
-    ) {
-        return;
-    }
-
-
-    function actualizarMetodoPago() {
-
-        const seleccion =
-            document.querySelector(
-                'input[name="metodo-pago"]:checked'
-            )?.value;
-
-
-        if (seleccion === "binance") {
-
-            pagoBinance.style.display = "block";
-            pagoPaypal.style.display = "none";
-
-            return;
-        }
-
-
-        if (seleccion === "paypal") {
-
-            pagoBinance.style.display = "none";
-            pagoPaypal.style.display = "block";
-
-            return;
-        }
-
-
-        pagoBinance.style.display = "none";
-        pagoPaypal.style.display = "none";
-
-    }
-
-
-    opcionesPago.forEach((opcion) => {
-
-        opcion.addEventListener(
-            "change",
-            actualizarMetodoPago
-        );
-
-    });
-
-
-    actualizarMetodoPago();
-
-});// ==========================================
-// CARRUSEL DE PUBLICIDAD
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const contenedor = document.querySelector(
-        "#contenedor-anuncios"
-    );
-
-    const botonAnterior = document.querySelector(
-        "#anuncio-anterior"
-    );
-
-    const botonSiguiente = document.querySelector(
-        "#anuncio-siguiente"
-    );
-
-    if (
-        !contenedor ||
-        !botonAnterior ||
-        !botonSiguiente
-    ) {
-        return;
-    }
-
-
-    const anuncios = contenedor.querySelectorAll(
-        ".anuncio-publicitario"
-    );
-
-    if (!anuncios.length) {
-        return;
-    }
-
-
-    let indiceActual = 0;
-
-
-    function mostrarAnuncio(indice) {
-
-        if (indice < 0) {
-            indiceActual = anuncios.length - 1;
-        } else if (indice >= anuncios.length) {
-            indiceActual = 0;
-        } else {
-            indiceActual = indice;
-        }
-
-        const anuncio = anuncios[indiceActual];
-
-        if (!anuncio) {
-            return;
-        }
-
-        anuncio.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-            inline: "center"
-        });
-
-    }
-
-
-    botonAnterior.addEventListener(
-        "click",
-        () => {
-            mostrarAnuncio(indiceActual - 1);
-        }
-    );
-
-
-    botonSiguiente.addEventListener(
-        "click",
-        () => {
-            mostrarAnuncio(indiceActual + 1);
-        }
-    );
-
-
-    // Cambio automático cada 5 segundos
-    setInterval(() => {
-        mostrarAnuncio(indiceActual + 1);
-    }, 5000);
-
-});// ==========================================
-// BOTONES DE CONTACTO
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const botonWhatsApp = document.querySelector(
-        "#contacto-whatsapp"
-    );
-
-    const botonMessenger = document.querySelector(
-        "#contacto-messenger"
-    );
-
-    const botonSoporte = document.querySelector(
-        "#contacto-soporte"
-    );
-
-
-    botonWhatsApp?.addEventListener("click", () => {
-
-        alert(
-            "Más adelante conectaremos este botón " +
-            "con el WhatsApp oficial de Market Flash."
-        );
-
-    });
-
-
-    botonMessenger?.addEventListener("click", () => {
-
-        alert(
-            "Más adelante conectaremos este botón " +
-            "con Messenger de Market Flash."
-        );
-
-    });
-
-
-    botonSoporte?.addEventListener("click", () => {
-
-        const seccionSoporte = document.querySelector(
-            "#soporte"
-        );
-
-        if (!seccionSoporte) {
-            return;
-        }
-
-        seccionSoporte.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-
-    });
-
-});// ==========================================
-// ACTUALIZAR PANEL DE ADMINISTRADOR
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const pendientesElemento = document.querySelector(
-        "#total-pendientes"
-    );
-
-    const pagosPendientesElemento = document.querySelector(
-        "#total-pagos-pendientes"
-    );
-
-    const activasElemento = document.querySelector(
-        "#total-publicaciones-activas"
-    );
-
-    const usuariosElemento = document.querySelector(
-        "#total-usuarios"
-    );
-
-
-    function leerDatos(clave) {
-
-        try {
-
-            return JSON.parse(
-                localStorage.getItem(clave)
-            ) || [];
-
-        } catch (error) {
-
-            console.error(
-                `Error al leer ${clave}:`,
-                error
-            );
-
-            return [];
-        }
-    }
-
-
-    const publicaciones = leerDatos(
-        "marketFlashPublicaciones"
-    );
-
-    const usuariosGuardados =
-        localStorage.getItem(
-            "marketFlashUsuario"
-        );
-
-    const comprobantes = leerDatos(
-        "marketFlashComprobantes"
-    );
-
-
-    const pendientes = publicaciones.filter(
-        (publicacion) =>
-            publicacion.estado ===
-            "Pendiente de aprobación"
-    );
-
-
-    const activas = publicaciones.filter(
-        (publicacion) =>
-            publicacion.estado === "Aprobada"
-    );
-
-
-    const pagosPendientes = comprobantes.filter(
-        (comprobante) =>
-            comprobante.estado ===
-            "Pendiente de revisión"
-    );
-
-
-    if (pendientesElemento) {
-        pendientesElemento.textContent =
-            pendientes.length;
-    }
-
-
-    if (pagosPendientesElemento) {
-        pagosPendientesElemento.textContent =
-            pagosPendientes.length;
-    }
-
-
-    if (activasElemento) {
-        activasElemento.textContent =
-            activas.length;
-    }
-
-
-    if (usuariosElemento) {
-        usuariosElemento.textContent =
-            usuariosGuardados ? 1 : 0;
-    }
-
-});// ==========================================
-// ESTADO DE SESIÓN
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const sesionActiva = localStorage.getItem(
-        "marketFlashSesion"
-    ) === "activa";
-
-
-    const perfil = document.querySelector(
-        "#perfil-usuario"
-    );
-
-    const registro = document.querySelector(
-        "#registro"
-    );
-
-    const inicioSesion = document.querySelector(
-        "#inicio-sesion"
-    );
-
-    const formularioPublicar = document.querySelector(
-        "#formulario-publicar"
-    );
-
-    const pagoPublicacion = document.querySelector(
-        "#pago-publicacion"
-    );
-
-
-    if (sesionActiva) {
-
-        if (registro) {
-            registro.style.display = "none";
-        }
-
-        if (inicioSesion) {
-            inicioSesion.style.display = "none";
-        }
-
-        if (perfil) {
-            perfil.style.display = "block";
-        }
-
-        if (formularioPublicar) {
-            formularioPublicar.style.display = "block";
-        }
-
-        if (pagoPublicacion) {
-            pagoPublicacion.style.display = "block";
-        }
-
-    } else {
-
-        if (perfil) {
-            perfil.style.display = "none";
-        }
-
-        if (formularioPublicar) {
-            formularioPublicar.style.display = "none";
-        }
-
-        if (pagoPublicacion) {
-            pagoPublicacion.style.display = "none";
-        }
-
-    }
-
-});// ==========================================
-// VERIFICAR USUARIO ANTES DE PUBLICAR
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const formularioPublicacion = document.querySelector(
-        "#form-publicacion"
-    );
-
-    if (!formularioPublicacion) {
-        return;
-    }
-
-    formularioPublicacion.addEventListener(
-        "submit",
-        (evento) => {
-
-            const usuario = localStorage.getItem(
-                "marketFlashUsuario"
-            );
-
-            const sesionActiva =
-                localStorage.getItem(
-                    "marketFlashSesion"
-                ) === "activa";
-
-            if (!usuario || !sesionActiva) {
-
-                evento.preventDefault();
-
-                alert(
-                    "Debes iniciar sesión antes de publicar."
-                );
-
-            }
-
-        },
-        true
-    );
-
-});// ==========================================
-// ACTUALIZAR NOTIFICACIONES AUTOMÁTICAMENTE
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const listaNotificaciones = document.querySelector(
-        "#lista-notificaciones"
-    );
-
-    if (!listaNotificaciones) {
-        return;
-    }
-
-
-    function obtenerPublicaciones() {
-
-        try {
-
-            return JSON.parse(
-                localStorage.getItem(
-                    "marketFlashPublicaciones"
-                )
-            ) || [];
-
-        } catch (error) {
-
-            console.error(
-                "Error al cargar publicaciones:",
-                error
-            );
-
-            return [];
-        }
-    }
-
-
-    function actualizarNotificaciones() {
-
-        const publicaciones =
-            obtenerPublicaciones();
-
-        const pendientes = publicaciones.filter(
-            (publicacion) =>
-                publicacion.estado ===
-                "Pendiente de aprobación"
-        );
-
-        listaNotificaciones.innerHTML = "";
-
-
-        if (pendientes.length === 0) {
-
-            listaNotificaciones.innerHTML = `
-                <article class="notificacion">
-
-                    <h3>
-                        Todo está al día
-                    </h3>
-
-                    <p>
-                        No hay publicaciones pendientes
-                        de aprobación.
+                        Encuentra productos, publica tus
+                        artículos y conecta directamente
+                        con compradores y vendedores.
                     </p>
 
-                </article>
-            `;
+                    <div class="hero-actions">
 
-            return;
-        }
+                        <button
+                            type="button"
+                            class="primary-button"
+                            data-section="publicar"
+                        >
+                            Publicar producto
+                        </button>
 
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            data-section="categorias"
+                        >
+                            Explorar categorías
+                        </button>
 
-        pendientes.forEach((publicacion) => {
+                    </div>
 
-            const notificacion =
-                document.createElement("article");
+                </div>
 
-            notificacion.className =
-                "notificacion";
+            </div>
 
-            notificacion.innerHTML = `
-                <h3>
-                    Nueva publicación pendiente
-                </h3>
 
-                <p>
-                    <strong>
-                        ${publicacion.nombre}
-                    </strong>
-                    necesita revisión.
-                </p>
+            <!-- BÚSQUEDA -->
 
-                <p>
-                    <strong>Precio:</strong>
-                    RD$ ${publicacion.precio}
-                </p>
+            <div
+                id="busqueda"
+                class="content-card"
+            >
 
-                <p>
-                    <strong>Estado:</strong>
-                    ${publicacion.estado}
-                </p>
+                <div class="section-heading">
 
-            `;
+                    <span class="section-kicker">
+                        BUSCAR
+                    </span>
 
-            listaNotificaciones.appendChild(
-                notificacion
-            );
+                    <h2>
+                        Encuentra lo que necesitas
+                    </h2>
 
-        });
+                </div>
 
-    }
 
+                <form id="form-busqueda">
 
-    actualizarNotificaciones();
-
-
-    window.addEventListener(
-        "storage",
-        (evento) => {
-
-            if (
-                evento.key ===
-                "marketFlashPublicaciones"
-            ) {
-                actualizarNotificaciones();
-            }
-
-        }
-    );
-
-});// ==========================================
-// VALIDAR MÉTODO DE PAGO
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const botonComprobante = document.querySelector(
-        "#enviar-comprobante"
-    );
-
-    if (!botonComprobante) {
-        return;
-    }
-
-
-    botonComprobante.addEventListener("click", () => {
-
-        const metodoSeleccionado =
-            document.querySelector(
-                'input[name="metodo-pago"]:checked'
-            );
-
-
-        if (!metodoSeleccionado) {
-
-            alert(
-                "Selecciona primero un método de pago."
-            );
-
-            return;
-        }
-
-
-        const comprobante =
-            document.querySelector(
-                "#captura-pago"
-            );
-
-
-        if (!comprobante || !comprobante.files.length) {
-
-            alert(
-                "Debes seleccionar la captura del comprobante."
-            );
-
-            return;
-        }
-
-
-        const metodo =
-            metodoSeleccionado.value === "binance"
-                ? "Binance"
-                : "PayPal";
-
-
-        alert(
-            `Método seleccionado: ${metodo}\n\n` +
-            "El comprobante está listo para ser " +
-            "enviado a revisión."
-        );
-
-    });
-
-});// ==========================================
-// PUBLICAR VÍDEOS
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const formularioVideo = document.querySelector(
-        "#form-video"
-    );
-
-    const listaVideos = document.querySelector(
-        "#lista-videos"
-    );
-
-    if (!formularioVideo || !listaVideos) {
-        return;
-    }
-
-
-    formularioVideo.addEventListener(
-        "submit",
-        (evento) => {
-
-            evento.preventDefault();
-
-            const titulo = document.querySelector(
-                "#titulo-video"
-            )?.value.trim();
-
-            const descripcion = document.querySelector(
-                "#descripcion-video"
-            )?.value.trim();
-
-            const archivoVideo = document.querySelector(
-                "#archivo-video"
-            )?.files[0];
-
-
-            if (!titulo || !archivoVideo) {
-
-                alert(
-                    "Escribe un título y selecciona un vídeo."
-                );
-
-                return;
-            }
-
-
-            if (!archivoVideo.type.startsWith("video/")) {
-
-                alert(
-                    "El archivo seleccionado no es un vídeo válido."
-                );
-
-                return;
-            }
-
-
-            const videoURL =
-                URL.createObjectURL(archivoVideo);
-
-
-            const articulo =
-                document.createElement("article");
-
-            articulo.className =
-                "video-publicado";
-
-
-            articulo.innerHTML = `
-                <h3>
-                    ${titulo}
-                </h3>
-
-                <video
-                    controls
-                    width="100%"
-                >
-                    <source
-                        src="${videoURL}"
-                        type="${archivoVideo.type}"
+                    <input
+                        type="search"
+                        id="buscar"
+                        name="buscar"
+                        placeholder="Busca teléfonos, vehículos, ropa..."
+                        autocomplete="off"
                     >
 
-                    Tu navegador no puede reproducir
-                    este vídeo.
-                </video>
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Buscar
+                    </button>
+
+                    <button
+                        type="button"
+                        id="btn-limpiar-busqueda"
+                        class="secondary-button"
+                    >
+                        Limpiar
+                    </button>
+
+                </form>
+
+            </div>
+
+
+            <!-- PUBLICIDAD -->
+
+            <div
+                id="publicidad-inicio"
+                class="content-card"
+            >
+
+                <div class="section-heading">
+
+                    <span class="section-kicker">
+                        DESTACADOS
+                    </span>
+
+                    <h2>
+                        Publicidad destacada
+                    </h2>
+
+                </div>
+
+
+                <div
+                    id="contenedor-anuncios"
+                    class="advertisement-slider"
+                >
+
+                    <article class="advertisement-card">
+
+                        <div class="advertisement-placeholder">
+                            Publicidad
+                        </div>
+
+                        <div class="advertisement-content">
+
+                            <span>
+                                PATROCINADO
+                            </span>
+
+                            <h3>
+                                Promociona tu producto
+                            </h3>
+
+                            <p>
+                                Haz que más personas
+                                conozcan tu publicación.
+                            </p>
+
+                            <button
+                                type="button"
+                                class="secondary-button"
+                                data-advertisement="1"
+                            >
+                                Ver publicidad
+                            </button>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="advertisement-card">
+
+                        <div class="advertisement-placeholder">
+                            Publicidad
+                        </div>
+
+                        <div class="advertisement-content">
+
+                            <span>
+                                PATROCINADO
+                            </span>
+
+                            <h3>
+                                Tu negocio puede aparecer aquí
+                            </h3>
+
+                            <p>
+                                Utiliza el espacio publicitario
+                                de Market Flash.
+                            </p>
+
+                            <button
+                                type="button"
+                                class="secondary-button"
+                                data-advertisement="2"
+                            >
+                                Ver publicidad
+                            </button>
+
+                        </div>
+
+                    </article>
+
+
+                    <article class="advertisement-card">
+
+                        <div class="advertisement-placeholder">
+                            Publicidad
+                        </div>
+
+                        <div class="advertisement-content">
+
+                            <span>
+                                PATROCINADO
+                            </span>
+
+                            <h3>
+                                Anuncio destacado
+                            </h3>
+
+                            <p>
+                                Los productos promocionados
+                                tendrán mayor visibilidad.
+                            </p>
+
+                            <button
+                                type="button"
+                                class="secondary-button"
+                                data-advertisement="3"
+                            >
+                                Ver publicidad
+                            </button>
+
+                        </div>
+
+                    </article>
+
+                </div>
+
+
+                <div class="slider-controls">
+
+                    <button
+                        type="button"
+                        id="anuncio-anterior"
+                        class="secondary-button"
+                    >
+                        ←
+                    </button>
+
+                    <button
+                        type="button"
+                        id="anuncio-siguiente"
+                        class="secondary-button"
+                    >
+                        →
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- PUBLICACIONES -->
+
+            <div
+                id="publicaciones"
+                class="content-card"
+            >
+
+                <div class="section-heading">
+
+                    <span class="section-kicker">
+                        MARKETPLACE
+                    </span>
+
+                    <h2>
+                        Productos
+                    </h2>
+
+                    <p>
+                        Explora las publicaciones disponibles
+                        en Market Flash.
+                    </p>
+
+                </div>
+
+
+                <div
+                    id="lista-publicaciones"
+                    class="products-grid"
+                >
+
+                    <div
+                        id="mensaje-sin-publicaciones"
+                        class="empty-state"
+                    >
+
+                        <div class="empty-state-icon">
+                            MF
+                        </div>
+
+                        <h3>
+                            Aún no hay productos
+                        </h3>
+
+                        <p>
+                            Sé el primero en publicar.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             CATEGORÍAS
+             ================================================= -->
+
+        <section
+            id="categorias"
+            class="page-section"
+        >
+
+            <div class="section-heading">
+
+                <span class="section-kicker">
+                    EXPLORA
+                </span>
+
+                <h2>
+                    Categorías
+                </h2>
 
                 <p>
-                    ${descripcion || "Sin descripción."}
+                    Encuentra rápidamente el producto
+                    que estás buscando.
                 </p>
-            `;
 
+            </div>
+
+
+            <div
+                id="lista-categorias"
+                class="categories-grid"
+            >
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Todos"
+                >
+                    <span>
+                        Todos
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Teléfonos"
+                >
+                    <span>
+                        Teléfonos
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Electrónica"
+                >
+                    <span>
+                        Electrónica
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Vehículos"
+                >
+                    <span>
+                        Vehículos
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Ropa"
+                >
+                    <span>
+                        Ropa
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Joyas y Oro"
+                >
+                    <span>
+                        Joyas y Oro
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Hogar"
+                >
+                    <span>
+                        Hogar
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Servicios"
+                >
+                    <span>
+                        Servicios
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Otros"
+                >
+                    <span>
+                        Otros
+                    </span>
+                </button>
+
+            </div>
+
 
-            listaVideos.prepend(articulo);
+            <div
+                class="category-results"
+                id="resultados-categoria"
+            >
 
+                <h3>
+                    Productos de la categoría
+                </h3>
 
-            formularioVideo.reset();
+                <div
+                    id="lista-resultados-categoria"
+                    class="products-grid"
+                >
+                </div>
 
+            </div>
 
-            alert(
-                "Vídeo publicado correctamente en esta sesión."
-            );
+        </section>
 
-        }
-    );
 
-});// ==========================================
-// VER DETALLES DE UNA PUBLICACIÓN
-// ==========================================
+        <!-- =================================================
+             REGISTRO
+             ================================================= -->
 
-document.addEventListener("DOMContentLoaded", () => {
+        <section
+            id="registro"
+            class="page-section"
+        >
 
-    const listaPublicaciones = document.querySelector(
-        "#lista-publicaciones"
-    );
+            <div class="auth-layout">
 
-    if (!listaPublicaciones) {
-        return;
-    }
+                <div class="auth-information">
 
+                    <span class="section-kicker">
+                        CREA TU CUENTA
+                    </span>
 
-    listaPublicaciones.addEventListener(
-        "click",
-        (evento) => {
+                    <h2>
+                        Únete a Market Flash
+                    </h2>
 
-            const boton = evento.target.closest(
-                ".informacion-publicacion button"
-            );
+                    <p>
+                        Regístrate para publicar productos,
+                        guardar favoritos y contactar con
+                        compradores y vendedores.
+                    </p>
 
-            if (!boton) {
-                return;
-            }
+                </div>
 
 
-            if (
-                boton.classList.contains(
-                    "boton-favorito"
-                )
-            ) {
-                return;
-            }
+                <div class="form-card">
 
+                    <form id="formulario-registro">
 
-            const publicacion =
-                boton.closest(".publicacion");
+                        <div class="form-group">
 
-            if (!publicacion) {
-                return;
-            }
+                            <label for="registro-nombre">
+                                Nombre completo
+                            </label>
 
+                            <input
+                                type="text"
+                                id="registro-nombre"
+                                name="nombre"
+                                placeholder="Tu nombre completo"
+                                required
+                            >
 
-            const titulo =
-                publicacion.querySelector("h3")
-                    ?.textContent.trim() ||
-                "Producto";
+                        </div>
 
 
-            const informacion =
-                publicacion.querySelector(
-                    ".informacion-publicacion"
-                );
+                        <div class="form-group">
 
+                            <label for="registro-correo">
+                                Correo electrónico
+                            </label>
 
-            const detalles =
-                informacion?.innerText.trim() ||
-                "No hay información disponible.";
+                            <input
+                                type="email"
+                                id="registro-correo"
+                                name="correo"
+                                placeholder="correo@ejemplo.com"
+                                required
+                            >
 
+                        </div>
 
-            alert(
-                `${titulo}\n\n${detalles}`
-            );
 
-        }
-    );
+                        <div class="form-group">
 
-});// ==========================================
-// CONTACTAR AL VENDEDOR
-// ==========================================
+                            <label for="registro-cedula">
+                                Cédula o pasaporte
+                            </label>
 
-document.addEventListener("DOMContentLoaded", () => {
+                            <input
+                                type="text"
+                                id="registro-cedula"
+                                name="cedula"
+                                placeholder="Número de cédula o pasaporte"
+                                required
+                            >
 
-    const seccionContacto = document.querySelector(
-        "#contactar-vendedor"
-    );
+                        </div>
 
-    if (!seccionContacto) {
-        return;
-    }
 
+                        <div class="form-group">
 
-    const botonWhatsApp = seccionContacto.querySelector(
-        "button:first-child"
-    );
+                            <label for="registro-telefono">
+                                Número de teléfono
+                            </label>
 
-    const botonMessenger = seccionContacto.querySelector(
-        "button:last-child"
-    );
+                            <input
+                                type="tel"
+                                id="registro-telefono"
+                                name="telefono"
+                                placeholder="+1 809 000 0000"
+                                required
+                            >
 
+                        </div>
 
-    botonWhatsApp?.addEventListener(
-        "click",
-        () => {
 
-            const usuarioGuardado =
-                localStorage.getItem(
-                    "marketFlashUsuario"
-                );
+                        <div class="form-group">
 
-            if (!usuarioGuardado) {
+                            <label for="registro-whatsapp">
+                                WhatsApp
+                            </label>
 
-                alert(
-                    "Debes iniciar sesión para contactar al vendedor."
-                );
+                            <input
+                                type="tel"
+                                id="registro-whatsapp"
+                                name="whatsapp"
+                                placeholder="Número de WhatsApp"
+                            >
 
-                return;
-            }
+                        </div>
 
-            alert(
-                "Aquí conectaremos posteriormente " +
-                "el botón con el WhatsApp del vendedor."
-            );
 
-        }
-    );
+                        <div class="form-group">
 
+                            <label for="registro-messenger">
+                                Usuario o enlace de Messenger
+                            </label>
 
-    botonMessenger?.addEventListener(
-        "click",
-        () => {
+                            <input
+                                type="text"
+                                id="registro-messenger"
+                                name="messenger"
+                                placeholder="Usuario de Messenger"
+                            >
 
-            const usuarioGuardado =
-                localStorage.getItem(
-                    "marketFlashUsuario"
-                );
+                        </div>
 
-            if (!usuarioGuardado) {
 
-                alert(
-                    "Debes iniciar sesión para contactar al vendedor."
-                );
+                        <div class="form-group">
 
-                return;
-            }
+                            <label for="registro-password">
+                                Contraseña
+                            </label>
 
-            alert(
-                "Aquí conectaremos posteriormente " +
-                "el botón con el Messenger del vendedor."
-            );
+                            <input
+                                type="password"
+                                id="registro-password"
+                                name="password"
+                                placeholder="Crea una contraseña"
+                                minlength="6"
+                                required
+                            >
 
-        }
-    );
+                        </div>
 
-});// ==========================================
-// EDITAR PERFIL DEL USUARIO
-// ==========================================
 
-document.addEventListener("DOMContentLoaded", () => {
+                        <button
+                            type="submit"
+                            class="primary-button full-width"
+                        >
+                            Crear cuenta
+                        </button>
 
-    const botonesPerfil = document.querySelectorAll(
-        "#opciones-perfil button"
-    );
+                    </form>
 
-    if (!botonesPerfil.length) {
-        return;
-    }
 
-    botonesPerfil.forEach((boton) => {
+                    <div class="form-footer">
 
-        if (
-            boton.textContent
-                .trim()
-                .toLowerCase() !== "editar perfil"
-        ) {
-            return;
-        }
+                        <p>
+                            ¿Ya tienes una cuenta?
+                        </p>
 
-        boton.addEventListener("click", () => {
+                        <button
+                            type="button"
+                            id="btn-ir-login"
+                            class="text-button"
+                        >
+                            Iniciar sesión
+                        </button>
 
-            const datosGuardados = localStorage.getItem(
-                "marketFlashUsuario"
-            );
+                    </div>
 
-            if (!datosGuardados) {
+                </div>
 
-                alert(
-                    "No hay datos de perfil guardados."
-                );
+            </div>
 
-                return;
-            }
+        </section>
 
-            try {
 
-                const usuario =
-                    JSON.parse(datosGuardados);
+        <!-- =================================================
+             INICIO DE SESIÓN
+             ================================================= -->
 
-                const nombreActual =
-                    prompt(
-                        "Nombre completo:",
-                        usuario.nombre || ""
-                    );
+        <section
+            id="inicio-sesion"
+            class="page-section"
+        >
 
-                if (nombreActual === null) {
-                    return;
-                }
+            <div class="auth-layout">
 
-                const telefonoActual =
-                    prompt(
-                        "Número de teléfono:",
-                        usuario.telefono || ""
-                    );
+                <div class="auth-information">
 
-                if (telefonoActual === null) {
-                    return;
-                }
+                    <span class="section-kicker">
+                        BIENVENIDO
+                    </span>
 
-                const whatsappActual =
-                    prompt(
-                        "WhatsApp:",
-                        usuario.whatsapp || ""
-                    );
+                    <h2>
+                        Inicia sesión
+                    </h2>
 
-                if (whatsappActual === null) {
-                    return;
-                }
+                    <p>
+                        Accede a tu cuenta para continuar
+                        utilizando Market Flash.
+                    </p>
 
-                const messengerActual =
-                    prompt(
-                        "Messenger:",
-                        usuario.messenger || ""
-                    );
+                </div>
 
-                if (messengerActual === null) {
-                    return;
-                }
 
-                usuario.nombre =
-                    nombreActual.trim();
+                <div class="form-card">
 
-                usuario.telefono =
-                    telefonoActual.trim();
+                    <form id="formulario-login">
 
-                usuario.whatsapp =
-                    whatsappActual.trim();
+                        <div class="form-group">
 
-                usuario.messenger =
-                    messengerActual.trim();
+                            <label for="login-correo">
+                                Correo electrónico
+                            </label>
 
-                localStorage.setItem(
-                    "marketFlashUsuario",
-                    JSON.stringify(usuario)
-                );
+                            <input
+                                type="email"
+                                id="login-correo"
+                                name="correo"
+                                placeholder="correo@ejemplo.com"
+                                required
+                            >
 
-                alert(
-                    "Perfil actualizado correctamente."
-                );
+                        </div>
 
-                window.location.reload();
 
-            } catch (error) {
+                        <div class="form-group">
 
-                console.error(
-                    "No se pudo actualizar el perfil:",
-                    error
-                );
+                            <label for="login-password">
+                                Contraseña
+                            </label>
 
-                alert(
-                    "No se pudo actualizar el perfil."
-                );
+                            <input
+                                type="password"
+                                id="login-password"
+                                name="password"
+                                placeholder="Tu contraseña"
+                                required
+                            >
 
-            }
+                        </div>
 
-        });
 
-    });
+                        <button
+                            type="submit"
+                            class="primary-button full-width"
+                        >
+                            Iniciar sesión
+                        </button>
 
-});// ==========================================
-// DATOS DEL PANEL DE ADMINISTRADOR
-// ==========================================
+                    </form>
 
-document.addEventListener("DOMContentLoaded", () => {
 
-    const listaUsuarios = document.querySelector(
-        "#lista-usuarios"
-    );
+                    <div class="form-footer">
 
-    const listaPublicacionesActivas = document.querySelector(
-        "#lista-publicaciones-activas"
-    );
+                        <button
+                            type="button"
+                            id="btn-recuperar-password"
+                            class="text-button"
+                        >
+                            ¿Olvidaste tu contraseña?
+                        </button>
 
-    function leerDatos(clave) {
+                        <button
+                            type="button"
+                            id="btn-ir-registro"
+                            class="text-button"
+                        >
+                            Crear una cuenta
+                        </button>
 
-        try {
+                    </div>
 
-            return JSON.parse(
-                localStorage.getItem(clave)
-            ) || [];
+                </div>
 
-        } catch (error) {
+            </div>
 
-            console.error(
-                `No se pudieron leer los datos de ${clave}:`,
-                error
-            );
+        </section>
 
-            return [];
-        }
-    }
 
+        <!-- =================================================
+             PUBLICAR
+             ================================================= -->
 
-    // -------------------------------
-    // USUARIOS
-    // -------------------------------
+        <section
+            id="publicar"
+            class="page-section"
+        >
 
-    if (listaUsuarios) {
+            <div class="section-heading">
 
-        const usuarioGuardado =
-            localStorage.getItem(
-                "marketFlashUsuario"
-            );
+                <span class="section-kicker">
+                    VENDE
+                </span>
 
-        listaUsuarios.innerHTML = "";
+                <h2>
+                    Publicar producto
+                </h2>
 
-        if (!usuarioGuardado) {
-
-            listaUsuarios.innerHTML = `
                 <p>
-                    No hay usuarios registrados todavía.
+                    Completa la información de tu producto.
                 </p>
-            `;
 
-        } else {
-
-            try {
-
-                const usuario =
-                    JSON.parse(usuarioGuardado);
-
-                const elemento =
-                    document.createElement("article");
-
-                elemento.className =
-                    "mi-publicacion";
-
-                elemento.innerHTML = `
-                    <h4>
-                        ${usuario.nombre || "Usuario"}
-                    </h4>
-
-                    <p>
-                        <strong>Correo:</strong>
-                        ${usuario.correo || "No registrado"}
-                    </p>
-
-                    <p>
-                        <strong>Teléfono:</strong>
-                        ${usuario.telefono || "No registrado"}
-                    </p>
-
-                    <p>
-                        <strong>Cédula:</strong>
-                        ${usuario.cedula || "No registrada"}
-                    </p>
-                `;
-
-                listaUsuarios.appendChild(elemento);
-
-            } catch (error) {
-
-                console.error(
-                    "No se pudo cargar el usuario:",
-                    error
-                );
-
-            }
-
-        }
-
-    }
+            </div>
 
 
-    // -------------------------------
-    // PUBLICACIONES ACTIVAS
-    // -------------------------------
+            <div class="form-card wide-card">
 
-    if (listaPublicacionesActivas) {
+                <form id="form-publicacion">
 
-        const publicaciones = leerDatos(
-            "marketFlashPublicaciones"
-        );
+                    <div class="form-grid">
 
-        const activas = publicaciones.filter(
-            (publicacion) =>
-                publicacion.estado === "Aprobada"
-        );
+                        <div class="form-group">
 
-        listaPublicacionesActivas.innerHTML = "";
+                            <label for="nombre-producto">
+                                Nombre del producto
+                            </label>
 
-        if (activas.length === 0) {
+                            <input
+                                type="text"
+                                id="nombre-producto"
+                                name="nombre"
+                                placeholder="Ejemplo: iPhone 14 Pro"
+                                required
+                            >
 
-            listaPublicacionesActivas.innerHTML = `
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="categoria-producto">
+                                Categoría
+                            </label>
+
+                            <select
+                                id="categoria-producto"
+                                name="categoria"
+                                required
+                            >
+
+                                <option value="">
+                                    Seleccionar categoría
+                                </option>
+
+                                <option value="Teléfonos">
+                                    Teléfonos
+                                </option>
+
+                                <option value="Electrónica">
+                                    Electrónica
+                                </option>
+
+                                <option value="Vehículos">
+                                    Vehículos
+                                </option>
+
+                                <option value="Ropa">
+                                    Ropa
+                                </option>
+
+                                <option value="Joyas y Oro">
+                                    Joyas y Oro
+                                </option>
+
+                                <option value="Hogar">
+                                    Hogar
+                                </option>
+
+                                <option value="Servicios">
+                                    Servicios
+                                </option>
+
+                                <option value="Otros">
+                                    Otros
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="precio-producto">
+                                Precio
+                            </label>
+
+                            <input
+                                type="number"
+                                id="precio-producto"
+                                name="precio"
+                                placeholder="0.00"
+                                min="0"
+                                step="0.01"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="cantidad-producto">
+                                Cantidad
+                            </label>
+
+                            <input
+                                type="number"
+                                id="cantidad-producto"
+                                name="cantidad"
+                                placeholder="1"
+                                min="1"
+                                step="1"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="imagen-producto">
+                            Fotos del producto
+                        </label>
+
+                        <input
+                            type="file"
+                            id="imagen-producto"
+                            name="imagen"
+                            accept="image/*"
+                            multiple
+                        >
+
+                        <small>
+                            Puedes seleccionar una o varias imágenes.
+                        </small>
+
+                    </div>
+
+
+                    <div
+                        id="vista-previa-imagenes"
+                        class="image-preview-grid"
+                    >
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="descripcion-producto">
+                            Descripción
+                        </label>
+
+                        <textarea
+                            id="descripcion-producto"
+                            name="descripcion"
+                            rows="6"
+                            placeholder="Describe tu producto..."
+                            required
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="contacto-preferido">
+                            Método de contacto
+                        </label>
+
+                        <select
+                            id="contacto-preferido"
+                            name="contacto"
+                            required
+                        >
+
+                            <option value="">
+                                Seleccionar
+                            </option>
+
+                            <option value="whatsapp">
+                                WhatsApp
+                            </option>
+
+                            <option value="messenger">
+                                Messenger
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="posting-notice">
+
+                        <strong>
+                            Publicación
+                        </strong>
+
+                        <p id="estado-configuracion-publicacion">
+                            Cargando configuración...
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Continuar
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PAGO
+             ================================================= -->
+
+        <section
+            id="pago-publicacion"
+            class="page-section"
+        >
+
+            <div class="section-heading">
+
+                <span class="section-kicker">
+                    PUBLICACIÓN
+                </span>
+
+                <h2>
+                    Pago de publicación
+                </h2>
+
                 <p>
-                    No hay publicaciones activas.
+                    Selecciona el método de pago y envía
+                    tu comprobante para revisión.
                 </p>
-            `;
 
-        } else {
+            </div>
 
-            activas.forEach((publicacion) => {
 
-                const elemento =
-                    document.createElement("article");
+            <div class="payment-layout">
 
-                elemento.className =
-                    "mi-publicacion";
 
-                elemento.innerHTML = `
-                    <h4>
-                        ${publicacion.nombre}
-                    </h4>
+                <div class="payment-methods">
+
+                    <div class="payment-method">
+
+                        <input
+                            type="radio"
+                            id="metodo-binance"
+                            name="metodo-pago"
+                            value="binance"
+                        >
+
+                        <label for="metodo-binance">
+                            Binance
+                        </label>
+
+                    </div>
+
+
+                    <div class="payment-method">
+
+                        <input
+                            type="radio"
+                            id="metodo-paypal"
+                            name="metodo-pago"
+                            value="paypal"
+                        >
+
+                        <label for="metodo-paypal">
+                            PayPal
+                        </label>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="pago-binance"
+                    class="payment-box hidden"
+                >
+
+                    <h3>
+                        Pagar con Binance
+                    </h3>
 
                     <p>
-                        <strong>Precio:</strong>
-                        RD$ ${publicacion.precio}
+                        Utiliza la dirección de pago configurada
+                        por Market Flash.
                     </p>
+
+
+                    <div class="payment-address">
+
+                        <span>
+                            Dirección de Binance
+                        </span>
+
+                        <code id="direccion-binance">
+                            Pendiente de configuración
+                        </code>
+
+                        <button
+                            type="button"
+                            id="btn-copiar-binance"
+                            class="secondary-button"
+                        >
+                            Copiar
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="pago-paypal"
+                    class="payment-box hidden"
+                >
+
+                    <h3>
+                        Pagar con PayPal
+                    </h3>
 
                     <p>
-                        <strong>Categoría:</strong>
-                        ${publicacion.categoria}
+                        Utiliza la cuenta configurada
+                        por Market Flash.
                     </p>
+
+
+                    <div class="payment-address">
+
+                        <span>
+                            Cuenta de PayPal
+                        </span>
+
+                        <code id="cuenta-paypal">
+                            Pendiente de configuración
+                        </code>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-card">
+
+                    <div class="form-group">
+
+                        <label for="captura-pago">
+                            Comprobante de pago
+                        </label>
+
+                        <input
+                            type="file"
+                            id="captura-pago"
+                            name="comprobante"
+                            accept="image/*,.pdf"
+                        >
+
+                    </div>
+
+
+                    <div
+                        id="vista-previa-comprobante"
+                        class="receipt-preview"
+                    >
+                    </div>
+
+
+                    <button
+                        type="button"
+                        id="enviar-comprobante"
+                        class="primary-button"
+                    >
+                        Enviar comprobante
+                    </button>
+
+
+                    <div
+                        id="estado-pago"
+                        class="status-box"
+                    >
+                        Estado:
+                        pendiente
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PERFIL
+             ================================================= -->
+
+        <section
+            id="perfil"
+            class="page-section"
+        >
+
+            <div class="section-heading">
+
+                <span class="section-kicker">
+                    MI CUENTA
+                </span>
+
+                <h2>
+                    Mi perfil
+                </h2>
+
+            </div>
+
+
+            <div class="profile-layout">
+
+                <div class="profile-card">
+
+                    <div class="profile-avatar">
+                        MF
+                    </div>
+
+                    <h3 id="perfil-nombre">
+                        Usuario
+                    </h3>
+
+                    <p id="perfil-correo">
+                        -
+                    </p>
+
+                </div>
+
+
+                <div class="profile-details">
+
+                    <div class="profile-detail">
+                        <span>
+                            Teléfono
+                        </span>
+
+                        <strong id="perfil-telefono">
+                            -
+                        </strong>
+                    </div>
+
+
+                    <div class="profile-detail">
+                        <span>
+                            WhatsApp
+                        </span>
+
+                        <strong id="perfil-whatsapp">
+                            -
+                        </strong>
+                    </div>
+
+
+                    <div class="profile-detail">
+                        <span>
+                            Messenger
+                        </span>
+
+                        <strong id="perfil-messenger">
+                            -
+                        </strong>
+                    </div>
+
+
+                    <div class="profile-detail">
+                        <span>
+                            Documento
+                        </span>
+
+                        <strong id="perfil-documento">
+                            -
+                        </strong>
+                    </div>
+
+
+                    <div class="profile-actions">
+
+                        <button
+                            type="button"
+                            id="btn-editar-perfil"
+                            class="secondary-button"
+                        >
+                            Editar perfil
+                        </button>
+
+                        <button
+                            type="button"
+                            id="btn-cerrar-sesion"
+                            class="danger-button"
+                        >
+                            Cerrar sesión
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PERFIL: PUBLICACIONES -->
+
+            <div class="content-card">
+
+                <div class="section-heading">
+
+                    <h3>
+                        Mis publicaciones
+                    </h3>
+
+                </div>
+
+                <div
+                    id="mis-publicaciones"
+                    class="products-grid"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- PERFIL: FAVORITOS -->
+
+            <div class="content-card">
+
+                <div class="section-heading">
+
+                    <h3>
+                        Mis favoritos
+                    </h3>
+
+                </div>
+
+                <div
+                    id="lista-favoritos"
+                    class="products-grid"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- PERFIL: VENDIDOS -->
+
+            <div class="content-card">
+
+                <div class="section-heading">
+
+                    <h3>
+                        Productos vendidos
+                    </h3>
+
+                </div>
+
+                <div
+                    id="lista-vendidos"
+                    class="products-grid"
+                >
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PROMOCIONAR
+             ================================================= -->
+
+        <section
+            id="promocionar"
+            class="page-section"
+        >
+
+            <div class="section-heading">
+
+                <span class="section-kicker">
+                    MÁS VISIBILIDAD
+                </span>
+
+                <h2>
+                    Promociona tu producto
+                </h2>
+
+                <p>
+                    Solicita una promoción para destacar
+                    tu publicación.
+                </p>
+
+            </div>
+
+
+            <div class="promotion-grid">
+
+                <article class="promotion-card">
+
+                    <h3>
+                        Promoción básica
+                    </h3>
 
                     <p>
-                        <strong>Estado:</strong>
-                        ${publicacion.estado}
+                        Mayor visibilidad en Market Flash.
                     </p>
-                `;
 
-                listaPublicacionesActivas.appendChild(
-                    elemento
-                );
+                    <strong>
+                        Próximamente
+                    </strong>
 
-            });
+                    <button
+                        type="button"
+                        class="primary-button"
+                        data-promotion="basica"
+                    >
+                        Solicitar
+                    </button>
 
-        }
+                </article>
 
-    }
 
-});// ==========================================
-// CONFIGURACIÓN: PUBLICACIONES GRATIS O DE PAGO
-// ==========================================
+                <article class="promotion-card featured">
 
-document.addEventListener("DOMContentLoaded", () => {
+                    <span class="promotion-badge">
+                        DESTACADA
+                    </span>
 
-    const botonConfiguracion = document.querySelector(
-        "#configuracion-administrador button"
-    );
+                    <h3>
+                        Promoción destacada
+                    </h3>
 
-    if (!botonConfiguracion) {
-        return;
-    }
+                    <p>
+                        Tu producto tendrá una posición
+                        más visible.
+                    </p>
 
-    const CLAVE_CONFIGURACION =
-        "marketFlashPublicacionesDePago";
+                    <strong>
+                        Próximamente
+                    </strong>
 
+                    <button
+                        type="button"
+                        class="primary-button"
+                        data-promotion="destacada"
+                    >
+                        Solicitar
+                    </button>
 
-    function obtenerConfiguracion() {
+                </article>
 
-        const valor = localStorage.getItem(
-            CLAVE_CONFIGURACION
-        );
 
-        // Por defecto, las publicaciones requieren pago.
-        if (valor === null) {
-            return true;
-        }
+                <article class="promotion-card">
 
-        return valor === "true";
-    }
+                    <h3>
+                        Publicidad patrocinada
+                    </h3>
 
+                    <p>
+                        Aparece en el área publicitaria
+                        de Market Flash.
+                    </p>
 
-    function guardarConfiguracion(requierePago) {
+                    <strong>
+                        Próximamente
+                    </strong>
 
-        localStorage.setItem(
-            CLAVE_CONFIGURACION,
-            String(requierePago)
-        );
+                    <button
+                        type="button"
+                        class="primary-button"
+                        data-promotion="patrocinada"
+                    >
+                        Solicitar
+                    </button>
 
-    }
+                </article>
 
+            </div>
 
-    function actualizarBoton() {
 
-        const requierePago =
-            obtenerConfiguracion();
+            <div
+                id="mis-promociones"
+                class="content-card"
+            >
 
-        if (requierePago) {
+                <h3>
+                    Mis solicitudes de promoción
+                </h3>
 
-            botonConfiguracion.textContent =
-                "Cambiar a publicaciones gratis";
+                <div id="lista-promociones">
+                </div>
 
-        } else {
+            </div>
 
-            botonConfiguracion.textContent =
-                "Cambiar a publicaciones de pago";
+        </section>
 
-        }
 
-    }
+        <!-- =================================================
+             VÍDEOS
+             ================================================= -->
 
+        <section
+            id="videos"
+            class="page-section"
+        >
 
-    botonConfiguracion.addEventListener(
-        "click",
-        () => {
+            <div class="section-heading">
 
-            const estadoActual =
-                obtenerConfiguracion();
+                <span class="section-kicker">
+                    CONTENIDO
+                </span>
 
-            const nuevoEstado =
-                !estadoActual;
+                <h2>
+                    Vídeos
+                </h2>
 
-            guardarConfiguracion(
-                nuevoEstado
-            );
+                <p>
+                    Muestra tus productos mediante vídeos.
+                </p>
 
-            if (nuevoEstado) {
+            </div>
 
-                alert(
-                    "Las publicaciones ahora requieren pago."
-                );
 
-            } else {
+            <div class="form-card wide-card">
 
-                alert(
-                    "Las publicaciones ahora son gratis."
-                );
+                <form id="form-video">
 
-            }
+                    <div class="form-group">
 
-            actualizarBoton();
+                        <label for="titulo-video">
+                            Título
+                        </label>
 
-        }
-    );
+                        <input
+                            type="text"
+                            id="titulo-video"
+                            name="titulo"
+                            placeholder="Título del vídeo"
+                            required
+                        >
 
+                    </div>
 
-    actualizarBoton();
 
-});// ==========================================
-// CONFIGURACIÓN DE PROMOCIONES
-// ==========================================
+                    <div class="form-group">
 
-document.addEventListener("DOMContentLoaded", () => {
+                        <label for="archivo-video">
+                            Vídeo
+                        </label>
 
-    const botonesConfiguracion =
-        document.querySelectorAll(
-            "#configuracion-administrador button"
-        );
+                        <input
+                            type="file"
+                            id="archivo-video"
+                            name="video"
+                            accept="video/*"
+                            required
+                        >
 
-    if (!botonesConfiguracion.length) {
-        return;
-    }
+                    </div>
 
 
-    const botonPromociones =
-        botonesConfiguracion[2];
+                    <div class="form-group">
 
-    if (!botonPromociones) {
-        return;
-    }
+                        <label for="descripcion-video">
+                            Descripción
+                        </label>
 
+                        <textarea
+                            id="descripcion-video"
+                            name="descripcion"
+                            rows="4"
+                            placeholder="Describe tu vídeo..."
+                        ></textarea>
 
-    const CLAVE_PROMOCIONES =
-        "marketFlashPromocionesActivas";
+                    </div>
 
 
-    function promocionesActivas() {
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Publicar vídeo
+                    </button>
 
-        const valor =
-            localStorage.getItem(
-                CLAVE_PROMOCIONES
-            );
+                </form>
 
-        // Las promociones estarán activas por defecto.
-        if (valor === null) {
-            return true;
-        }
+            </div>
 
-        return valor === "true";
-    }
 
+            <div
+                id="lista-videos"
+                class="video-grid"
+            >
+            </div>
 
-    function guardarEstado(estado) {
+        </section>
 
-        localStorage.setItem(
-            CLAVE_PROMOCIONES,
-            String(estado)
-        );
 
-    }
+        <!-- =================================================
+             NOTIFICACIONES
+             ================================================= -->
 
+        <section
+            id="notificaciones"
+            class="page-section"
+        >
 
-    function actualizarBoton() {
+            <div class="section-heading">
 
-        if (promocionesActivas()) {
+                <span class="section-kicker">
+                    AVISOS
+                </span>
 
-            botonPromociones.textContent =
-                "Desactivar promociones";
+                <h2>
+                    Notificaciones
+                </h2>
 
-        } else {
+            </div>
 
-            botonPromociones.textContent =
-                "Activar promociones";
 
-        }
+            <div
+                id="lista-notificaciones"
+                class="notifications-list"
+            >
 
-    }
+                <div class="empty-state">
+                    <h3>
+                        No hay notificaciones
+                    </h3>
 
+                    <p>
+                        Aquí aparecerán tus avisos.
+                    </p>
+                </div>
 
-    botonPromociones.addEventListener(
-        "click",
-        () => {
+            </div>
 
-            const estadoActual =
-                promocionesActivas();
+        </section>
 
-            const nuevoEstado =
-                !estadoActual;
 
-            guardarEstado(
-                nuevoEstado
-            );
+        <!-- =================================================
+             CALIFICACIONES
+             ================================================= -->
 
-            if (nuevoEstado) {
+        <section
+            id="calificaciones"
+            class="page-section"
+        >
 
-                alert(
-                    "Las promociones están activadas."
-                );
+            <div class="section-heading">
 
-            } else {
+                <span class="section-kicker">
+                    REPUTACIÓN
+                </span>
 
-                alert(
-                    "Las promociones están desactivadas."
-                );
+                <h2>
+                    Calificaciones
+                </h2>
 
-            }
+            </div>
 
-            actualizarBoton();
 
-        }
-    );
+            <div class="form-card">
 
+                <form id="form-calificacion">
 
-    actualizarBoton();
+                    <div class="form-group">
 
-});// ==========================================
-// SISTEMA DE MENSAJES
-// ==========================================
+                        <label for="estrellas">
+                            Calificación
+                        </label>
 
-document.addEventListener("DOMContentLoaded", () => {
+                        <select
+                            id="estrellas"
+                            name="estrellas"
+                            required
+                        >
 
-    function mostrarMensaje(texto, tipo = "info") {
+                            <option value="">
+                                Seleccionar
+                            </option>
 
-        let contenedor =
-            document.querySelector("#mensaje-market-flash");
+                            <option value="5">
+                                ★★★★★
+                            </option>
 
-        if (!contenedor) {
+                            <option value="4">
+                                ★★★★☆
+                            </option>
 
-            contenedor =
-                document.createElement("div");
+                            <option value="3">
+                                ★★★☆☆
+                            </option>
 
-            contenedor.id =
-                "mensaje-market-flash";
+                            <option value="2">
+                                ★★☆☆☆
+                            </option>
 
-            document.body.appendChild(
-                contenedor
-            );
-        }
+                            <option value="1">
+                                ★☆☆☆☆
+                            </option>
 
+                        </select>
 
-        contenedor.textContent =
-            texto;
+                    </div>
 
-        contenedor.dataset.tipo =
-            tipo;
 
+                    <div class="form-group">
 
-        clearTimeout(
-            contenedor._temporizador
-        );
+                        <label for="comentario-calificacion">
+                            Comentario
+                        </label>
 
+                        <textarea
+                            id="comentario-calificacion"
+                            name="comentario"
+                            rows="5"
+                            placeholder="Escribe tu experiencia..."
+                        ></textarea>
 
-        contenedor._temporizador =
-            setTimeout(() => {
+                    </div>
 
-                contenedor.remove();
 
-            }, 4000);
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Enviar calificación
+                    </button>
 
-    }
+                </form>
 
+            </div>
 
-    // Disponible para otras partes del sistema.
-    window.marketFlashMensaje =
-        mostrarMensaje;
+        </section>
 
-});// ==========================================
-// CARGAR PUBLICACIONES AL INICIAR MARKET FLASH
-// ==========================================
 
-document.addEventListener("DOMContentLoaded", () => {
+        <!-- =================================================
+             RECLAMOS
+             ================================================= -->
 
-    const listaPublicaciones = document.querySelector(
-        "#lista-publicaciones"
-    );
+        <section
+            id="reclamos"
+            class="page-section"
+        >
 
-    if (!listaPublicaciones) {
-        return;
-    }
+            <div class="section-heading">
 
+                <span class="section-kicker">
+                    AYUDA
+                </span>
 
-    function obtenerPublicaciones() {
+                <h2>
+                    Reclamos y reportes
+                </h2>
 
-        try {
+                <p>
+                    Informa de una publicación o situación
+                    que necesite revisión.
+                </p>
 
-            return JSON.parse(
-                localStorage.getItem(
-                    "marketFlashPublicaciones"
-                )
-            ) || [];
+            </div>
 
-        } catch (error) {
 
-            console.error(
-                "No se pudieron cargar las publicaciones:",
-                error
-            );
+            <div class="form-card">
 
-            return [];
-        }
-    }
+                <form id="form-reclamo">
 
+                    <div class="form-group">
 
-    const publicaciones =
-        obtenerPublicaciones();
+                        <label for="motivo-reclamo">
+                            Motivo
+                        </label>
 
+                        <select
+                            id="motivo-reclamo"
+                            name="motivo"
+                            required
+                        >
 
-    // No hacemos nada si todavía no hay publicaciones.
-    if (!publicaciones.length) {
-        return;
-    }
+                            <option value="">
+                                Seleccionar motivo
+                            </option>
 
+                            <option value="fraude">
+                                Posible fraude
+                            </option>
 
-    // Limpiar el ejemplo inicial del HTML.
-    listaPublicaciones.innerHTML = "";
+                            <option value="producto-falso">
+                                Producto falso
+                            </option>
 
+                            <option value="contenido-inapropiado">
+                                Contenido inapropiado
+                            </option>
 
-    publicaciones.forEach((publicacion) => {
+                            <option value="informacion-incorrecta">
+                                Información incorrecta
+                            </option>
 
-        const articulo =
-            document.createElement("article");
+                            <option value="otro">
+                                Otro
+                            </option>
 
-        articulo.className =
-            "publicacion";
+                        </select>
 
+                    </div>
 
-        const informacion =
-            document.createElement("div");
 
-        informacion.className =
-            "informacion-publicacion";
+                    <div class="form-group">
 
+                        <label for="detalle-reclamo">
+                            Detalles
+                        </label>
 
-        const titulo =
-            document.createElement("h3");
+                        <textarea
+                            id="detalle-reclamo"
+                            name="detalle"
+                            rows="6"
+                            placeholder="Explica el problema..."
+                            required
+                        ></textarea>
 
-        titulo.textContent =
-            publicacion.nombre || "Producto";
+                    </div>
 
 
-        const categoria =
-            document.createElement("p");
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Enviar reclamo
+                    </button>
 
-        categoria.innerHTML =
-            `<strong>Categoría:</strong> ${
-                publicacion.categoria || "Sin categoría"
-            }`;
+                </form>
 
+            </div>
 
-        const descripcion =
-            document.createElement("p");
+        </section>
 
-        descripcion.textContent =
-            publicacion.descripcion || "Sin descripción.";
 
+        <!-- =================================================
+             SOPORTE
+             ================================================= -->
 
-        const precio =
-            document.createElement("p");
+        <section
+            id="soporte"
+            class="page-section"
+        >
 
-        precio.innerHTML =
-            `<strong>Precio:</strong> RD$ ${
-                publicacion.precio || "0.00"
-            }`;
+            <div class="section-heading">
 
+                <span class="section-kicker">
+                    SOPORTE
+                </span>
 
-        const cantidad =
-            document.createElement("p");
+                <h2>
+                    Centro de soporte
+                </h2>
 
-        cantidad.innerHTML =
-            `<strong>Cantidad:</strong> ${
-                publicacion.cantidad || "0"
-            }`;
+                <p>
+                    Estamos preparando los canales de
+                    atención de Market Flash.
+                </p>
 
+            </div>
 
-        const estado =
-            document.createElement("p");
 
-        estado.innerHTML =
-            `<strong>Estado:</strong> ${
-                publicacion.estado || "Pendiente"
-            }`;
+            <div class="support-grid">
 
+                <article class="support-card">
 
-        const boton =
-            document.createElement("button");
+                    <div class="support-icon">
+                        W
+                    </div>
 
-        boton.type =
-            "button";
+                    <h3>
+                        WhatsApp
+                    </h3>
 
-        boton.textContent =
-            "Ver publicación";
+                    <p>
+                        Contacto directo con soporte.
+                    </p>
 
+                    <button
+                        type="button"
+                        id="contacto-whatsapp"
+                        class="primary-button"
+                    >
+                        Contactar
+                    </button>
 
-        informacion.appendChild(titulo);
-        informacion.appendChild(categoria);
-        informacion.appendChild(descripcion);
-        informacion.appendChild(precio);
-        informacion.appendChild(cantidad);
-        informacion.appendChild(estado);
-        informacion.appendChild(boton);
+                </article>
 
 
-        const contenedorImagen =
-            document.createElement("div");
+                <article class="support-card">
 
-        contenedorImagen.className =
-            "imagen-producto";
+                    <div class="support-icon">
+                        M
+                    </div>
 
+                    <h3>
+                        Messenger
+                    </h3>
 
-        const imagen =
-            document.createElement("img");
+                    <p>
+                        Escríbenos por Messenger.
+                    </p>
 
-        imagen.src = "";
+                    <button
+                        type="button"
+                        id="contacto-messenger"
+                        class="primary-button"
+                    >
+                        Contactar
+                    </button>
 
-        imagen.alt =
-            publicacion.nombre || "Producto";
+                </article>
 
 
-        contenedorImagen.appendChild(
-            imagen
-        );
+                <article class="support-card">
 
+                    <div class="support-icon">
+                        ?
+                    </div>
 
-        articulo.appendChild(
-            contenedorImagen
-        );
+                    <h3>
+                        Ayuda
+                    </h3>
 
-        articulo.appendChild(
-            informacion
-        );
+                    <p>
+                        Consulta información sobre
+                        Market Flash.
+                    </p>
 
+                    <button
+                        type="button"
+                        id="contacto-ayuda"
+                        class="secondary-button"
+                    >
+                        Ver ayuda
+                    </button>
 
-        listaPublicaciones.appendChild(
-            articulo
-        );
+                </article>
 
-    });
+            </div>
 
-});// ==========================================
-// MOSTRAR Y OCULTAR SECCIONES
-// ==========================================
+        </section>
 
-document.addEventListener("DOMContentLoaded", () => {
 
-    const secciones = [
-        "#registro",
-        "#inicio-sesion",
-        "#formulario-publicar",
-        "#pago-publicacion",
-        "#perfil-usuario",
-        "#favoritos",
-        "#mis-publicaciones",
-        "#productos-vendidos",
-        "#notificaciones",
-        "#panel-administrador",
-        "#videos",
-        "#calificaciones",
-        "#reportar-publicacion"
-    ];
+        <!-- =================================================
+             CONTACTAR VENDEDOR
+             ================================================= -->
 
+        <section
+            id="contactar-vendedor"
+            class="page-section"
+        >
 
-    function ocultarSecciones() {
+            <div class="section-heading">
 
-        secciones.forEach((selector) => {
+                <span class="section-kicker">
+                    CONTACTO
+                </span>
 
-            const seccion =
-                document.querySelector(selector);
+                <h2>
+                    Contactar vendedor
+                </h2>
 
-            if (seccion) {
-                seccion.style.display = "none";
-            }
+                <p id="contacto-vendedor-nombre">
+                    Selecciona el método de contacto.
+                </p>
 
-        });
+            </div>
 
-    }
 
+            <div class="contact-options">
 
-    function mostrarSeccion(selector) {
+                <button
+                    type="button"
+                    id="btn-contactar-whatsapp"
+                    class="whatsapp-button"
+                >
+                    WhatsApp
+                </button>
 
-        ocultarSecciones();
+                <button
+                    type="button"
+                    id="btn-contactar-messenger"
+                    class="messenger-button"
+                >
+                    Messenger
+                </button>
 
-        const seccion =
-            document.querySelector(selector);
+            </div>
 
-        if (!seccion) {
-            return;
-        }
+        </section>
 
-        seccion.style.display = "block";
 
-        seccion.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
+        <!-- =================================================
+             ADMINISTRADOR
+             ================================================= -->
 
-    }
+        <section
+            id="panel-administrador"
+            class="page-section"
+        >
 
+            <div class="section-heading">
 
-    // Botón de registro
-    const botonRegistro =
-        document.querySelector(
-            "header > div:last-child button:first-child"
-        );
+                <span class="section-kicker">
+                    ADMINISTRACIÓN
+                </span>
 
-    // Botón de iniciar sesión
-    const botonLogin =
-        document.querySelector(
-            "header > div:last-child button:nth-child(2)"
-        );
+                <h2>
+                    Panel de administrador
+                </h2>
 
+                <p>
+                    Área privada para gestionar Market Flash.
+                </p>
 
-    botonRegistro?.addEventListener(
-        "click",
-        () => {
+            </div>
 
-            mostrarSeccion("#registro");
 
-        }
-    );
+            <!-- RESUMEN -->
 
+            <div
+                id="resumen-administrador"
+                class="admin-stats"
+            >
 
-    botonLogin?.addEventListener(
-        "click",
-        () => {
+                <div class="admin-stat">
 
-            mostrarSeccion("#inicio-sesion");
+                    <span>
+                        Usuarios
+                    </span>
 
-        }
-    );
+                    <strong id="total-usuarios">
+                        0
+                    </strong>
 
+                </div>
 
-    // Al abrir la página mostramos las publicaciones.
-    ocultarSecciones();
 
-    const publicaciones =
-        document.querySelector("#publicaciones");
+                <div class="admin-stat">
 
-    if (publicaciones) {
+                    <span>
+                        Publicaciones pendientes
+                    </span>
 
-        publicaciones.style.display =
-            "block";
+                    <strong id="total-pendientes">
+                        0
+                    </strong>
 
-    }
+                </div>
 
-});// ==========================================
-// ACCESO A PUBLICAR
-// ==========================================
 
-document.addEventListener("DOMContentLoaded", () => {
+                <div class="admin-stat">
 
-    const botonPublicar = document.querySelector(
-        'header nav button:nth-child(3)'
-    );
+                    <span>
+                        Pagos pendientes
+                    </span>
 
-    if (!botonPublicar) {
-        return;
-    }
+                    <strong id="total-pagos-pendientes">
+                        0
+                    </strong>
 
+                </div>
 
-    botonPublicar.addEventListener("click", () => {
 
-        const sesionActiva =
-            localStorage.getItem(
-                "marketFlashSesion"
-            ) === "activa";
+                <div class="admin-stat">
 
+                    <span>
+                        Publicaciones activas
+                    </span>
 
-        if (!sesionActiva) {
+                    <strong id="total-publicaciones-activas">
+                        0
+                    </strong>
 
-            const inicioSesion =
-                document.querySelector(
-                    "#inicio-sesion"
-                );
+                </div>
 
-            if (inicioSesion) {
+            </div>
 
-                inicioSesion.style.display =
-                    "block";
 
-                inicioSesion.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
+            <!-- CONFIGURACIÓN -->
 
-            }
+            <div class="content-card">
 
-            alert(
-                "Debes iniciar sesión antes de publicar."
-            );
+                <div class="section-heading">
 
-            return;
-        }
+                    <h3>
+                        Configuración
+                    </h3>
 
+                </div>
 
-        const formularioPublicar =
-            document.querySelector(
-                "#formulario-publicar"
-            );
 
-        if (!formularioPublicar) {
-            return;
-        }
+                <div class="admin-settings">
 
+                    <div class="setting-row">
 
-        formularioPublicar.style.display =
-            "block";
+                        <div>
 
-        formularioPublicar.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
+                            <strong>
+                                Publicaciones
+                            </strong>
 
-    });
+                            <p id="texto-configuracion-publicaciones">
+                                Cargando...
+                            </p>
 
-});// ==========================================
-// CAMBIAR ENTRE REGISTRO E INICIO DE SESIÓN
-// ==========================================
+                        </div>
 
-document.addEventListener("DOMContentLoaded", () => {
+                        <button
+                            type="button"
+                            id="btn-toggle-publicaciones"
+                            class="secondary-button"
+                        >
+                            Cambiar
+                        </button>
 
-    const formularioRegistro = document.querySelector(
-        "#registro"
-    );
+                    </div>
 
-    const formularioLogin = document.querySelector(
-        "#inicio-sesion"
-    );
 
+                    <div class="setting-row">
 
-    if (!formularioRegistro || !formularioLogin) {
-        return;
-    }
+                        <div>
 
+                            <strong>
+                                Promociones
+                            </strong>
 
-    // Botón dentro del registro para ir al login
-    const botonIrLogin =
-        document.createElement("button");
+                            <p id="texto-configuracion-promociones">
+                                Cargando...
+                            </p>
 
-    botonIrLogin.type = "button";
+                        </div>
 
-    botonIrLogin.textContent =
-        "¿Ya tienes una cuenta? Inicia sesión";
+                        <button
+                            type="button"
+                            id="btn-toggle-promociones"
+                            class="secondary-button"
+                        >
+                            Cambiar
+                        </button>
 
+                    </div>
 
-    formularioRegistro.appendChild(
-        botonIrLogin
-    );
+                </div>
 
+            </div>
 
-    botonIrLogin.addEventListener(
-        "click",
-        () => {
 
-            formularioRegistro.style.display =
-                "none";
+            <!-- PAGOS PENDIENTES -->
 
-            formularioLogin.style.display =
-                "block";
+            <div class="content-card">
 
-            formularioLogin.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
+                <div class="section-heading">
 
-        }
-    );
+                    <h3>
+                        Pagos pendientes
+                    </h3>
 
+                    <p>
+                        Revisa los comprobantes enviados.
+                    </p>
 
-    // Botón dentro del login para crear cuenta
-    const botonIrRegistro =
-        document.createElement("button");
+                </div>
 
-    botonIrRegistro.type = "button";
 
-    botonIrRegistro.textContent =
-        "¿No tienes una cuenta? Regístrate";
+                <div
+                    id="lista-comprobantes-admin"
+                    class="admin-list"
+                >
+                </div>
 
+            </div>
 
-    formularioLogin.appendChild(
-        botonIrRegistro
-    );
 
+            <!-- PUBLICACIONES PENDIENTES -->
 
-    botonIrRegistro.addEventListener(
-        "click",
-        () => {
+            <div class="content-card">
 
-            formularioLogin.style.display =
-                "none";
+                <div class="section-heading">
 
-            formularioRegistro.style.display =
-                "block";
+                    <h3>
+                        Publicaciones pendientes
+                    </h3>
 
-            formularioRegistro.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
+                </div>
 
-        }
-    );
 
-});// ==========================================
-// ACCESO AL PANEL DE ADMINISTRADOR
-// ==========================================
+                <div
+                    id="lista-pendientes-admin"
+                    class="admin-list"
+                >
+                </div>
 
-document.addEventListener("DOMContentLoaded", () => {
+            </div>
 
-    const panelAdministrador = document.querySelector(
-        "#panel-administrador"
-    );
 
-    const botonConfiguracion = document.querySelector(
-        '#configuracion-administrador button:nth-child(1)'
-    );
+            <!-- PUBLICACIONES ACTIVAS -->
 
+            <div class="content-card">
 
-    if (!panelAdministrador) {
-        return;
-    }
+                <div class="section-heading">
 
+                    <h3>
+                        Publicaciones activas
+                    </h3>
 
-    // Ocultar el panel de administrador al iniciar.
-    panelAdministrador.style.display = "none";
+                </div>
 
 
-    // Crear botón para mostrar el panel.
-    const botonAdmin =
-        document.createElement("button");
+                <div
+                    id="lista-activas-admin"
+                    class="products-grid"
+                >
+                </div>
 
-    botonAdmin.type = "button";
-    botonAdmin.textContent =
-        "Abrir panel de administrador";
+            </div>
 
 
-    const encabezado =
-        document.querySelector("header");
+            <!-- REPORTES -->
 
+            <div class="content-card">
 
-    if (encabezado) {
+                <div class="section-heading">
 
-        encabezado.appendChild(
-            botonAdmin
-        );
+                    <h3>
+                        Reclamos y reportes
+                    </h3>
 
-    }
+                </div>
 
 
-    botonAdmin.addEventListener(
-        "click",
-        () => {
+                <div
+                    id="lista-reportes-admin"
+                    class="admin-list"
+                >
+                </div>
 
-            const visible =
-                panelAdministrador.style.display ===
-                "block";
+            </div>
 
 
-            if (visible) {
+            <!-- USUARIOS -->
 
-                panelAdministrador.style.display =
-                    "none";
+            <div class="content-card">
 
-                botonAdmin.textContent =
-                    "Abrir panel de administrador";
+                <div class="section-heading">
 
-                return;
-            }
+                    <h3>
+                        Usuarios
+                    </h3>
 
+                </div>
 
-            panelAdministrador.style.display =
-                "block";
 
-            botonAdmin.textContent =
-                "Cerrar panel de administrador";
+                <div
+                    id="lista-usuarios-admin"
+                    class="admin-list"
+                >
+                </div>
 
+            </div>
 
-            panelAdministrador.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
+        </section>
 
-        }
-    );
 
-});// ==========================================
-// CONTADORES DE MARKET FLASH
-// ==========================================
+        <!-- =================================================
+             POLÍTICAS
+             ================================================= -->
 
-document.addEventListener("DOMContentLoaded", () => {
+        <section
+            id="politicas"
+            class="page-section"
+        >
 
-    const contadorPendientes = document.querySelector(
-        "#total-pendientes"
-    );
+            <div class="section-heading">
 
-    const contadorPagos = document.querySelector(
-        "#total-pagos-pendientes"
-    );
+                <span class="section-kicker">
+                    INFORMACIÓN
+                </span>
 
-    const contadorActivas = document.querySelector(
-        "#total-publicaciones-activas"
-    );
+                <h2>
+                    Seguridad y reglas
+                </h2>
 
+            </div>
 
-    function obtenerLista(clave) {
 
-        try {
+            <div class="policy-grid">
 
-            const datos = localStorage.getItem(clave);
+                <article class="policy-card">
 
-            if (!datos) {
-                return [];
-            }
+                    <h3>
+                        Publicaciones
+                    </h3>
 
-            const resultado = JSON.parse(datos);
+                    <p>
+                        Las publicaciones deben cumplir
+                        las reglas de Market Flash.
+                    </p>
 
-            return Array.isArray(resultado)
-                ? resultado
-                : [];
+                </article>
 
-        } catch (error) {
 
-            console.error(
-                `Error leyendo ${clave}:`,
-                error
-            );
+                <article class="policy-card">
 
-            return [];
-        }
-    }
+                    <h3>
+                        Pagos
+                    </h3>
 
+                    <p>
+                        Los comprobantes pueden ser revisados
+                        antes de aprobar una publicación.
+                    </p>
 
-    function actualizarContadores() {
+                </article>
 
-        const publicaciones = obtenerLista(
-            "marketFlashPublicaciones"
-        );
 
-        const comprobantes = obtenerLista(
-            "marketFlashComprobantes"
-        );
+                <article class="policy-card">
 
+                    <h3>
+                        Reportes
+                    </h3>
 
-        const pendientes = publicaciones.filter(
-            (publicacion) =>
-                publicacion.estado ===
-                "Pendiente de aprobación"
-        );
+                    <p>
+                        Puedes reportar publicaciones que
+                        consideres problemáticas.
+                    </p>
 
+                </article>
 
-        const activas = publicaciones.filter(
-            (publicacion) =>
-                publicacion.estado ===
-                "Aprobada"
-        );
+            </div>
 
+        </section>
 
-        const pagosPendientes =
-            comprobantes.filter(
-                (comprobante) =>
-                    comprobante.estado ===
-                    "Pendiente de revisión"
-            );
+    </main>
 
 
-        if (contadorPendientes) {
+    <!-- =====================================================
+         PIE DE PÁGINA
+         ===================================================== -->
 
-            contadorPendientes.textContent =
-                pendientes.length;
+    <footer class="site-footer">
 
-        }
+        <div class="footer-grid">
 
+            <div>
 
-        if (contadorPagos) {
+                <div class="footer-brand">
+                    Market Flash
+                </div>
 
-            contadorPagos.textContent =
-                pagosPendientes.length;
+                <p>
+                    Compra, vende y promociona
+                    desde un solo lugar.
+                </p>
 
-        }
+            </div>
 
 
-        if (contadorActivas) {
+            <div>
 
-            contadorActivas.textContent =
-                activas.length;
+                <h3>
+                    Market Flash
+                </h3>
 
-        }
+                <button
+                    type="button"
+                    data-section="inicio"
+                    class="footer-link"
+                >
+                    Inicio
+                </button>
 
-    }
+                <button
+                    type="button"
+                    data-section="categorias"
+                    class="footer-link"
+                >
+                    Categorías
+                </button>
 
+                <button
+                    type="button"
+                    data-section="publicar"
+                    class="footer-link"
+                >
+                    Publicar
+                </button>
 
-    actualizarContadores();
+            </div>
 
 
-    // Actualizar los contadores cada 3 segundos
-    setInterval(
-        actualizarContadores,
-        3000
-    );
+            <div>
 
-});// ==========================================
-// CONFIGURACIÓN GENERAL DE MARKET FLASH
-// ==========================================
+                <h3>
+                    Ayuda
+                </h3>
 
-document.addEventListener("DOMContentLoaded", () => {
+                <button
+                    type="button"
+                    data-section="reclamos"
+                    class="footer-link"
+                >
+                    Reclamos
+                </button>
 
-    const CLAVE_CONFIG =
-        "marketFlashConfiguracion";
+                <button
+                    type="button"
+                    data-section="soporte"
+                    class="footer-link"
+                >
+                    Soporte
+                </button>
 
+                <button
+                    type="button"
+                    data-section="politicas"
+                    class="footer-link"
+                >
+                    Reglas
+                </button>
 
-    function obtenerConfiguracion() {
+            </div>
 
-        try {
 
-            const datos =
-                localStorage.getItem(CLAVE_CONFIG);
+            <div>
 
-            if (!datos) {
+                <h3>
+                    Contacto
+                </h3>
 
-                return {
-                    publicacionesDePago: true,
-                    promocionesActivas: true
-                };
+                <button
+                    type="button"
+                    id="footer-whatsapp"
+                    class="footer-link"
+                >
+                    WhatsApp
+                </button>
 
-            }
+                <button
+                    type="button"
+                    id="footer-messenger"
+                    class="footer-link"
+                >
+                    Messenger
+                </button>
 
-            return JSON.parse(datos);
+                <a
+                    href="#"
+                    id="footer-facebook"
+                    class="footer-link"
+                >
+                    Facebook
+                </a>
 
-        } catch (error) {
+            </div>
 
-            console.error(
-                "Error al cargar la configuración:",
-                error
-            );
+        </div>
 
-            return {
-                publicacionesDePago: true,
-                promocionesActivas: true
-            };
 
-        }
+        <div class="footer-bottom">
 
-    }
+            <p>
+                © 2026 Market Flash
+            </p>
 
+            <p>
+                Propiedad de Julio Alcántara Gómez
+            </p>
 
-    function guardarConfiguracion(configuracion) {
+        </div>
 
-        localStorage.setItem(
-            CLAVE_CONFIG,
-            JSON.stringify(configuracion)
-        );
+    </footer>
 
-    }
 
+    <!-- =====================================================
+         MENSAJES
+         ===================================================== -->
 
-    const configuracion =
-        obtenerConfiguracion();
+    <div
+        id="app-message"
+        class="app-message"
+        aria-live="polite"
+    >
+    </div>
 
 
-    // Guardar la configuración inicial
-    guardarConfiguracion(
-        configuracion
-    );
+    <!-- =====================================================
+         SUPABASE
+         ===================================================== -->
 
+    <script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    ></script>
 
-    // Disponible para otros bloques
-    window.marketFlashConfig = {
-        obtenerConfiguracion,
-        guardarConfiguracion
-    };
 
-});// ==========================================
-// BOTÓN PARA VOLVER A INICIO
-// ==========================================
+    <!-- =====================================================
+         JAVASCRIPT DE MARKET FLASH
+         ===================================================== -->
 
-document.addEventListener("DOMContentLoaded", () => {
+    <script
+        src="script.js"
+    ></script>
 
-    const botonInicio = document.querySelector(
-        'header nav button:nth-child(1)'
-    );
-
-    const seccionesOcultables = [
-        "#registro",
-        "#inicio-sesion",
-        "#formulario-publicar",
-        "#pago-publicacion",
-        "#perfil-usuario",
-        "#favoritos",
-        "#mis-publicaciones",
-        "#productos-vendidos",
-        "#notificaciones",
-        "#panel-administrador",
-        "#videos",
-        "#calificaciones",
-        "#reportar-publicacion"
-    ];
-
-
-    function ocultarSecciones() {
-
-        seccionesOcultables.forEach((selector) => {
-
-            const seccion =
-                document.querySelector(selector);
-
-            if (seccion) {
-                seccion.style.display = "none";
-            }
-
-        });
-
-    }
-
-
-    botonInicio?.addEventListener(
-        "click",
-        () => {
-
-            ocultarSecciones();
-
-            const publicaciones =
-                document.querySelector("#publicaciones");
-
-            if (publicaciones) {
-
-                publicaciones.style.display =
-                    "block";
-
-                publicaciones.scrollIntoView({
-                    behavior: "smooth",
-                    block: "start"
-                });
-
-            }
-
-        }
-    );
-
-});// ==========================================
-// NAVEGACIÓN A CATEGORÍAS
-// ==========================================
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    const botonCategorias = document.querySelector(
-        'header nav button:nth-child(2)'
-    );
-
-    if (!botonCategorias) {
-        return;
-    }
-
-
-    botonCategorias.addEventListener("click", () => {
-
-        const categorias =
-            document.querySelector("#categorias");
-
-        if (!categorias) {
-            return;
-        }
-
-
-        categorias.style.display = "block";
-
-        categorias.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-
-    });
-
-});
+</body>
+</html>
