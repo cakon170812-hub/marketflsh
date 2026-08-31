@@ -2,480 +2,275 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market Flash - Compra y Vende Rápido</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Market Flash</title>
 <link rel="stylesheet" href="style.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF6B35">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<!-- NAVBAR -->
 <nav class="navbar">
 <div class="container">
-<h1 class="logo">⚡ Market<span>Flash</span></h1>
-<div class="nav-links">
-<a href="#productos">Productos</a>
-<a href="#vender">Vender</a>
-<button id="btn-login" class="btn-outline">Iniciar Sesión</button>
-<button id="btn-registro" class="btn-primary">Registrarse</button>
+<h1 class="logo">⚡<span>Flash</span></h1>
+<div class="nav-actions">
+<button class="btn-icon" onclick="window.location='notificaciones.html'">🔔</button>
+<button class="btn-icon" onclick="window.location='perfil.html'">👤</button>
+<button class="btn-add" onclick="window.location='publicar.html'">+</button>
 </div>
-<button class="menu-toggle">☰</button>
 </div>
 </nav>
 
-<!-- HERO / BIENVENIDA -->
+<main class="container">
 <section class="hero">
-<div class="container">
 <h2>Compra y vende en segundos</h2>
-<p>El marketplace más rápido de RD. Publica gratis y vende por WhatsApp al instante.</p>
 <div class="search-bar">
-<input type="text" id="search-input" placeholder="¿Qué estás buscando?">
-<button id="btn-search" class="btn-primary">Buscar</button>
-</div>
-</div>
-</section>
-
-<!-- CATEGORIAS -->
-<section class="categorias">
-<div class="container">
-<h3>Categorías Populares</h3>
-<div class="grid-categorias">
-<div class="cat-card">📱 Celulares</div>
-<div class="cat-card">👗 Ropa</div>
-<div class="cat-card">🏠 Hogar</div>
-<div class="cat-card">🚗 Vehículos</div>
-<div class="cat-card">💻 Tecnología</div>
-<div class="cat-card">🛴 Otros</div>
-</div>
+<input type="text" id="busqueda" placeholder="🔍 Buscar productos...">
+<button onclick="abrirFiltros()">⚙️</button>
 </div>
 </section>
 
-<!-- PRODUCTOS DESTACADOS -->
-<section id="productos" class="productos">
-<div class="container">
+<section class="categorias-scroll">
+<button class="cat-chip active" data-cat="todos">Todos</button>
+<button class="cat-chip" data-cat="telefonos">📱 Telefonos</button>
+<button class="cat-chip" data-cat="computadoras">💻 Tech</button>
+<button class="cat-chip" data-cat="ropa">👗 Ropa</button>
+<button class="cat-chip" data-cat="hogar">🏠 Hogar</button>
+</section>
+
+<section>
+<div class="section-header">
 <h3>Productos Destacados</h3>
-<div id="grid-productos" class="grid-productos">
-<!-- Aquí se cargan los productos con JS -->
 </div>
-</div>
+<div id="grid-destacados" class="grid-productos"></div>
 </section>
 
-<!-- FOOTER -->
-<footer class="footer">
-<div class="container">
-<p>© 2026 Market Flash. Todos los derechos reservados.</p>
+<section>
+<div class="section-header">
+<h3>Recientes</h3>
 </div>
-</footer>
+<div id="grid-productos" class="grid-productos"></div>
+</section>
+</main>
 
-<!-- MODALES LOGIN/REGISTRO -->
-<div id="modal-auth" class="modal hidden">
-<div class="modal-content">
-<span class="close-modal">&times;</span>
-<div id="auth-content"></div>
-</div>
-</div>
+<nav class="bottom-nav">
+<button class="nav-item active" onclick="window.location='index.html'">🏠<span>Inicio</span></button>
+<button class="nav-item" onclick="window.location='buscar.html'">🔍<span>Buscar</span></button>
+<button class="nav-item" onclick="window.location='publicar.html'">➕<span>Publicar</span></button>
+<button class="nav-item" onclick="window.location='chat.html'">💬<span>Chat</span></button>
+<button class="nav-item" onclick="window.location='perfil.html'">👤<span>Yo</span></button>
+</nav>
 
 <script src="supabase.js"></script>
 <script src="app.js"></script>
 </body>
-</html>
-
-
-No se seleccionó ningún elemento 
-
-Ir al contenido
-Cómo usar Gmail con lectores de pantalla
-1 de 1
-/* style.css - Market Flash */ :root { --color-primary: #FF6B35; --color-secondary: #1A1A2E; --color-bg: #F8F9FA; --color-card: #FFFFFF; --color-text: #2D3436; --color-gray: #A4B0BE; --radius: 16px; --shadow: 0 4px 20px rgba(0,0,0,0.08); --font: 'Poppins', sans-serif; } * { margin: 0; padding: 0; box-sizing: border-box; } body { font-family: var(--font); background: var(--color-bg); color: var(--color-text); line-height: 1.6; } .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; } /* NAVBAR */ .navbar { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #eee; } .navbar .container { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; } .logo { font-size: 24px; font-weight: 700; color: var(--color-secondary); } .logo span { color: var(--color-primary); } .nav-links { display: flex; gap: ...
-Recibidos
-Resume este correo electrónico
-
-julio alcantara
-9:34 p.m. (hace 0 minutos)
-para mí
-
-Parece que este mensaje está en inglés
-/* style.css - Market Flash */
-:root {
---color-primary: #FF6B35;
---color-secondary: #1A1A2E;
---color-bg: #F8F9FA;
---color-card: #FFFFFF;
---color-text: #2D3436;
---color-gray: #A4B0BE;
+</html>:root {
+--bg: #F8F9FA;
+--card: #FFFFFF;
+--text: #1A1A1A;
+--text-gray: #6B7280;
+--primary: #FF6B35;
+--primary-dark: #E55722;
+--border: #E5E7EB;
+--success: #25D366;
 --radius: 16px;
---shadow: 0 4px 20px rgba(0,0,0,0.08);
---font: 'Poppins', sans-serif;
+--shadow: 0 2px 8px rgba(0,0,0,0.06);
+--font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-* {
-margin: 0;
-padding: 0;
-box-sizing: border-box;
-}
-
-body {
-font-family: var(--font);
-background: var(--color-bg);
-color: var(--color-text);
-line-height: 1.6;
-}
-
-.container {
-max-width: 1200px;
-margin: 0 auto;
-padding: 0 20px;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--font); background: var(--bg); color: var(--text); padding-bottom: 80px; }
+.container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
 
 /* NAVBAR */
-.navbar {
-background: rgba(255,255,255,0.8);
-backdrop-filter: blur(10px);
-position: sticky;
-top: 0;
-z-index: 1000;
-border-bottom: 1px solid #eee;
-}
-
-.navbar .container {
-display: flex;
-justify-content: space-between;
-align-items: center;
-padding: 16px 20px;
-}
-
-.logo {
-font-size: 24px;
-font-weight: 700;
-color: var(--color-secondary);
-}
-.logo span { color: var(--color-primary); }
-
-.nav-links { display: flex; gap: 20px; align-items: center; }
-.nav-links a { text-decoration: none; color: var(--color-text); font-weight: 600; }
-.menu-toggle { display: none; background: none; border: none; font-size: 24px; }
-
-/* BOTONES */
-.btn-primary {
-background: var(--color-primary);
-color: white;
-border: none;
-padding: 12px 24px;
-border-radius: var(--radius);
-font-weight: 600;
-cursor: pointer;
-transition: transform 0.2s;
-}
-.btn-primary:hover { transform: translateY(-2px); }
-
-.btn-outline {
-background: transparent;
-color: var(--color-primary);
-border: 2px solid var(--color-primary);
-padding: 10px 22px;
-border-radius: var(--radius);
-font-weight: 600;
-cursor: pointer;
-}
-
-/* HERO */
-.hero {
-background: linear-gradient(135deg, #FF6B35 0%, #1A1A2E 100%);
-color: white;
-padding: 80px 0;
-text-align: center;
-}
-.hero h2 { font-size: 48px; margin-bottom: 16px; }
-.hero p { font-size: 18px; margin-bottom: 32px; opacity: 0.9; }
-
-.search-bar {
-display: flex;
-max-width: 600px;
-margin: 0 auto;
-gap: 10px;
-}
-.search-bar input {
-flex: 1;
-padding: 16px;
-border-radius: var(--radius);
-border: none;
-font-size: 16px;
-}
-
-/* CATEGORIAS */
-.categorias { padding: 60px 0; }
-.categorias h3 { text-align: center; font-size: 32px; margin-bottom: 40px; }
-.grid-categorias {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-gap: 20px;
-}
-.cat-card {
-background: var(--color-card);
-padding: 24px;
-border-radius: var(--radius);
-text-align: center;
-font-weight: 600;
-box-shadow: var(--shadow);
-cursor: pointer;
-transition: transform 0.2s;
-}
-.cat-card:hover { transform: translateY(-5px); }
-
-/* PRODUCTOS */
-.productos { padding: 60px 0; }
-.productos h3 { font-size: 32px; margin-bottom: 40px; }
-.grid-productos {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-gap: 24px;
-}
-
-/* FOOTER */
-.footer {
-background: var(--color-secondary);
-color: white;
-text-align: center;
-padding: 30px 0;
-margin-top: 60px;
-}
-
-/* MODAL */
-.modal {
-position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
-}
-.modal.hidden { display: none; }
-.modal-content {
-background: white; padding: 30px; border-radius: var(--radius); width: 90%; max-width: 400px;
-position: relative;
-}
-.close-modal { position: absolute; top: 10px; right: 20px; font-size: 28px; cursor: pointer; }
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-.nav-links { display: none; }
-.menu-toggle { display: block; }
-.hero h2 { font-size: 32px; }
-.search-bar { flex-direction: column; }
-}
-
-
-
-
-
-Ir al contenido
-Cómo usar Gmail con lectores de pantalla
-1 de 1
-(sin asunto)
-Recibidos
-
-julio alcantara
-9:37 p.m. (hace 0 minutos)
-para mí
-
-Parece que este mensaje está en inglés
-// supabase.js - Market Flash
-const SUPABASE_URL = 'https://osxuhmgnpgbxfopqdhqr.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_6qLmRFGHrwGq_CKqsIH7jA_Oz8TTlQZ';
-
-// Inicializar Supabase
+.navbar { background: var(--card); padding:// CONFIGURACION SUPABASE
+const SUPABASE_URL = 'TU_URL_AQUI';
+const SUPABASE_ANON_KEY = 'TU_ANON_KEY_AQUI';
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Funciones de Auth
-async function registrarUsuario(email, password, nombre) {
-const { data, error } = await supabase.auth.signUp({
-email,
-password,
-options: { data: { nombre } }
-});
-return { data, error };
+// AUTH
+async function registrar(email, password, nombre) {
+const { data, error } = await supabase.auth.signUp({ email, password });
+if (error) throw error;
+await supabase.from('perfiles').insert([{ id: data.user.id, nombre, email }]);
+return data;
 }
 
 async function iniciarSesion(email, password) {
 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-return { data, error };
+if (error) throw error;
+return data;
 }
 
 async function cerrarSesion() {
-const { error } = await supabase.auth.signOut();
-return { error };
+await supabase.auth.signOut();
+window.location = 'index.html';
 }
 
 async function recuperarPassword(email) {
-const { data, error } = await supabase.auth.resetPasswordForEmail(email);
-return { data, error };
+const { error } = await supabase.auth.resetPasswordForEmail(email);
+if (error) throw error;
+alert('Revisa tu correo para recuperar la contraseña');
 }
 
 async function obtenerUsuario() {
-const { data: { user } = await supabase.auth.getUser();
+const { data: { user } } = await supabase.auth.getUser();
 return user;
 }
 
-// Funciones de Productos
-async function obtenerProductos() {
-const { data, error } = await supabase
-.from('productos')
-.select('*')
-.order('created_at', { ascending: false });
-return { data, error };
+// PRODUCTOS
+async function obtenerProductos(filtro = {}) {
+let query = supabasedocument.addEventListener('DOMContentLoaded', init);
+
+let categoriaActual = 'todos';
+let productos = [];
+
+async function init() {
+cargarDestacados();
+cargarProductos();
+activarFiltros();
+activarBusqueda();
 }
 
-async function crearProducto(producto) {
-const { data, error } = await supabase
-.from('productos')
-.insert([producto]);
-return { data, error };
+// CARGAR PRODUCTOS DESTACADOS
+async function cargarDestacados() {
+const grid = document.getElementById('grid-destacados');
+const data = await obtenerDestacados();
+
+if (!data || data.length === 0) {
+grid.innerHTML = '';
+return;
 }
 
-console.log("Supabase conectado a Market Flash ✅");
+grid.innerHTML = data.map(p => crearCard(p)).join('');
+}
 
+// CARGAR TODOS LOS PRODUCTOS
+async function cargarProductos() {
+const grid = document.getElementById('grid-productos');
+const { data, error } = await obtenerProductos({ categoria: categoriaActual });
 
-Ir al contenido
-Cómo usar Gmail con lectores de pantalla
-1 de 1
-(sin asunto)
-Recibidos
+if (error) return console.error(error);
+productos = data || [];
 
-julio alcantara
-9:38 p.m. (hace 0 minutos)
-para mí
+if (productos.length === 0) {
+grid.innerHTML = `
+<div style="grid-column: 1/-1; text-align:center; padding:40px; background:var(--card); border-radius:var(--radius);">
+<p style="font-size:40px;">🛍️</p>
+<p>No hay productos aún</p>
+</div>
+`;
+return;
+}
 
--- TABLA DE PERFILES
-create table perfiles (
-id uuid references auth.users on delete cascade primary key,
-nombre text,
-telefono text,
-tipo text default 'comprador', -- comprador o vendedor
-avatar_url text,
-created_at timestamp with time zone default now()
-);
+grid.innerHTML = productos.map(p => crearCard(p)).join('');
+}
 
--- TABLA DE PRODUCTOS
-create table productos (
-id uuid default gen_random_uuid() primary key,
-user_id uuid references perfiles(id) on delete cascade,
-titulo text not null,
-descripcion text,
-precio numeric(10,2) not null,
-categoria text,
-imagenes text[], -- array de urls
-telefono text,
-destacado boolean default false,
-aprobado boolean default true,
-created_at timestamp with time zone default now()
-);
+// CREAR CARD DE PRODUCTO
+function crearCard(p) {
+return `
+<div class="card-producto" onclick="verDetalle('${p.id}')">
+<img src="${p.imagenes?.[0] || 'https://via.placeholder.com/300'}" alt="${p.titulo}">
+<div class="card-info">
+<h4>${p.titulo}</h4>
+<p class="precio">RD$ ${Number(p.precio).toLocaleString()}</p>
+<small>${new Date(p.created_at).toLocaleDateString()}</small>
+</div>
+</div>
+`;
+}
 
--- TABLA DE PAGOS
-create table pagos (
-id uuid default gen_random_uuid() primary key,
-producto_id uuid references productos(id),
-comprador_id uuid references perfiles(id),
-vendedor_id uuid references perfiles(id),
-monto numeric(10,2),
-comprobante_url text,
-estado text default 'pendiente', -- pendiente, aprobado, rechazado
-created_at timestamp with time zone default now()
-);
+// BUSCADOR
+function activarBusqueda() {
+const input = document.getElementById('busqueda');
+input.addEventListener('input', (e) => {
+const termino = e.target.value.toLowerCase();
+const filtrados = productos.filter(p => p.titulo.toLowerCase().includes(termino));
+document.getElementById('grid-productos').innerHTML = filtrados.map(p => crearCard(p)).join('');
+});
+}
 
--- TABLA DE REPORTES
-create table reportes (
-id uuid default gen
+// FILTROS POR CATEGORIA
+function activarFiltros() {
+document.querySelectorAll('.cat-chip').forEach(btn => {
+btn.addEventListener('click', (e) => {
+document.querySelectorAll('.cat-chip').forEach(b => b.classList.remove('active'));
+e.target.classList.add('active');
+categoriaActual = e.target.dataset.cat;
+cargarProductos();
+});
+});
+}
 
+// VER DETALLE
+function verDetalle(id) {
+localStorage.setItem('producto_id', id);
+window.location = 'detalle.html';
+}
 
-
-No se seleccionó ningún elemento 
-
-Ir al contenido
-Cómo usar Gmail con lectores de pantalla
-1 de 1
-<!DOCTYPE html> <html lang="es"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Publicar Producto - Market Flash</title> <link rel="stylesheet" href="style.css"> <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> </head> <body> <nav class="navbar"> <div class="container"> <h1 class="logo" onclick="window.location='index.html'">⚡ Market<span>Flash</span></h1> </div> </nav> <section class="container" style="padding: 40px 0;"> <h2>Publicar Nuevo Producto</h2>
-Recibidos
-
-julio alcantara
-9:39 p.m. (hace 0 minutos)
-para mí
-
-Parece que este mensaje está en inglés
-<!DOCTYPE html>
+// COMPARTIR
+async function compartirProducto(id, titulo) {
+const url = `${window.location.origin}/detalle.html?id=${id}`;
+if (navigator.share) {
+await navigator.share({ title: titulo, url });
+} else {
+navigator.clipboard.writeText(url);
+alert('Link copiado');
+}
+}<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Publicar Producto - Market Flash</title>
+<title>Publicar - Market Flash</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <nav class="navbar">
 <div class="container">
-<h1 class="logo" onclick="window.location='index.html'">⚡ Market<span>Flash</span></h1>
+<h1 class="logo" onclick="window.location='index.html'">← <span>Publicar</span></h1>
 </div>
 </nav>
 
-<section class="container" style="padding: 40px 0;">
-<h2>Publicar Nuevo Producto</h2>
+<div class="container" style="padding:20px 0;">
+<form id="form-publicar" class="form-app">
+<h3>Datos del Producto</h3>
 
-
-
-
-No se seleccionó ningún elemento 
-
-Ir al contenido
-Cómo usar Gmail con lectores de pantalla
-1 de 2
-Pro 06
-Recibidos
-Resume este correo electrónico
-
-julio alcantara
-9:40 p.m. (hace 0 minutos)
-para mí
-
-Parece que este mensaje está en inglés
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Publicar Producto - Market Flash</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-</head>
-<body>
-<nav class="navbar">
-<div class="container">
-<h1 class="logo" onclick="window.location='index.html'">⚡ Market<span>Flash</span></h1>
-</div>
-</nav>
-
-<section class="container" style="padding: 40px 0;">
-<h2>Publicar Nuevo Producto</h2>
-<form id="form-publicar" class="form-publicar">
-<input type="text" id="titulo" placeholder="Título del producto" required>
-<textarea id="descripcion" placeholder="Descripción" rows="4" required></textarea>
+<input type="text" id="titulo" placeholder="Nombre del producto" required>
+<textarea id="descripcion" placeholder="Descripción detallada" rows="4" required></textarea>
 <input type="number" id="precio" placeholder="Precio RD$" required>
 
 <select id="categoria" required>
 <option value="">Selecciona Categoría</option>
-<option value="celulares">📱 Celulares</option>
+<option value="telefonos">📱 Telefonos</option>
+<option value="computadoras">💻 Computadoras</option>
 <option value="ropa">👗 Ropa</option>
 <option value="hogar">🏠 Hogar</option>
 <option value="vehiculos">🚗 Vehículos</option>
-<option value="tecnologia">💻 Tecnología</option>
-<option value="otros">🛴 Otros</option>
+<option value="otros">📦 Otros</option>
 </select>
 
-<input type="text" id="telefono" placeholder="Tu WhatsApp: 8091234567" required>
-
-<label>Subir Fotos del Producto:</label>
+<h3>Fotos del Producto</h3>
+<div class="upload-box">
 <input type="file" id="imagenes" multiple accept="image/*">
-<div id="preview-imagenes"></div>
+<label for="imagenes">+ Agregar hasta 5 fotos</label>
+<small>Máx 5MB por foto</small>
+</div>
+<div id="preview-imagenes" class="preview-grid"></div>
 
-<button type="submit" class="btn-primary">Publicar Producto</button>
+<h3>Contacto</h3>
+<input type="text" id="telefono" placeholder="WhatsApp: 8091234567" required>
+<input type="url" id="messenger" placeholder="Link de Messenger: https://m.me/tuusuario">
+
+<div class="contact-options">
+<label><input type="checkbox" id="contact-wpp" checked> Mostrar WhatsApp</label>
+<label><input type="checkbox" id="contact-messenger"> Mostrar Messenger</label>
+</div>
+
+<button type="submit" class="btn-primary btn-full">Publicar para Revisión</button>
 </form>
-</section>
+</div>
 
 <script src="supabase.js"></script>
 <script>
@@ -483,42 +278,27 @@ const form = document.getElementById('form-publicar');
 const inputImagenes = document.getElementById('imagenes');
 const preview = document.getElementById('preview-imagenes');
 
-// Preview de imágenes
 inputImagenes.addEventListener('change', () => {
 preview.innerHTML = '';
-[...inputImagenes.files].forEach(file => {
+[...inputImagenes.files].slice(0,5).forEach(file => {
 const img = document.createElement('img');
 img.src = URL.createObjectURL(file);
-img.style.width = '100px';
-img.style.margin = '5px';
-img.style.borderRadius = '8px';
 preview.appendChild(img);
 });
 });
 
-// Subir producto
 form.addEventListener('submit', async (e) => {
 e.preventDefault();
 const user = await obtenerUsuario();
 if (!user) return alert('Debes iniciar sesión');
 
-const archivos = [...inputImagenes.files];
-const urlsImagenes = [];
+const btn = form.querySelector('button');
+btn.disabled = true;
+btn.textContent = 'Subiendo...';
 
-// Subir cada imagen a Supabase Storage
-for (const file of archivos) {
-const nombreArchivo = `${Date.now()}_${file.name}`;
-const { data, error } = await supabase.storage
-.from('productos')
-.upload(nombreArchivo, file);
+const archivos = [...inputImagenes.files].slice(0,5);
+const urlsImagenes = await subirImagenes(archivos, user.id);
 
-if (data) {
-const { data: urlData } = supabase.storage.from('productos').getPublicUrl(nombreArchivo);
-urlsImagenes.push(urlData.publicUrl);
-}
-}
-
-// Guardar producto en DB
 const producto = {
 user_id: user.id,
 titulo: document.getElementById('titulo').value,
@@ -526,32 +306,73 @@ descripcion: document.getElementById('descripcion').value,
 precio: document.getElementById('precio').value,
 categoria: document.getElementById('categoria').value,
 telefono: document.getElementById('telefono').value,
-imagenes: urlsImagenes
+messenger: document.getElementById('messenger').value,
+imagenes: urlsImagenes,
+mostrar_wpp: document.getElementById('contact-wpp').checked,
+mostrar_messenger: document.getElementById('contact-messenger').checked,
+destacado: false,
+aprobado: false
 };
 
 const { error } = await crearProducto(producto);
-if (error) return alert('Error: ' + error.message);
+if (error) {
+alert('Error: ' + error.message);
+btn.disabled = false;
+btn.textContent = 'Publicar para Revisión';
+return;
+}
 
-alert('Producto publicado con éxito!');
+alert('Producto enviado a revisión. Te avisaremos cuando se apruebe.');
 window.location = 'index.html';
 });
 </script>
 </body>
-</html>
-No se seleccionó ningún elemento 
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detalle - Market Flash</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<nav class="navbar">
+<div class="container">
+<h1 class="logo" onclick="window.location='index.html'">← <span>Detalle</span></h1>
+<button class="btn-icon" onclick="compartir()">📤</button>
+</div>
+</nav>
 
-Ir al contenido
-Cómo usar Gmail con lectores de pantalla
-1 de 1
-07
-Recibidos
+<div class="container" style="padding:0;">
+<div id="galeria" class="galeria"></div>
 
-julio alcantara
-9:42 p.m. (hace 0 minutos)
-para mí
+<div class="detalle-info">
+<h2 id="titulo"></h2>
+<p class="precio-detalle" id="precio"></p>
+<p class="categoria-tag" id="categoria"></<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acceso - Market Flash</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="background:var(--primary); display:flex; align-items:center; justify-content:center; min-height:100vh;">
+<div class="auth-card">
+<h1 class="logo-auth">⚡<span>Flash</span></h1>
 
-Parece que este mensaje está en inglés
-<!DOCTYPE html>
+<div class="tabs">
+<button class="tab-btn active" onclick="showTab('login')">Iniciar</button>
+.auth-card { background: var(--card); padding: 30px 20px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+.logo-auth { text-align: center; font-size: 32px; margin-bottom: 20px; font-weight: 800; }
+.logo-auth span { color: var(--primary); }
+.tabs { display: flex; gap: 8px; margin-bottom: 20px; background: var(--bg); padding: 4px; border-radius: 12px; }
+.tab-btn { flex: 1; padding: 10px; border: none; background: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+.tab-btn.active { background: var(--primary); color: white; }
+.tab-content { display: none; flex-direction: column; gap: 14px; }
+.tab-content.active { display: flex; }<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -563,39 +384,144 @@ Parece que este mensaje está en inglés
 <body>
 <nav class="navbar">
 <div class="container">
-<h1 class="logo">⚡ Market<span>Flash</span> Admin</h1>
-<button onclick="cerrarSesion()" class="btn-outline">Salir</button>
+<h1 class="logo">⚡<span>Flash Admin</span></h1>
+<button class="btn-icon" onclick="cerrarSesion()">Salir</button>
 </div>
 </nav>
 
-<div class="container" style="padding: 40px 0;">
-<h2>Panel de Administración</h2>
+<div class="container" style="padding:20px 0;">
+<h2>Productos Pendientes de Revisión</h2>
+<div id="grid-admin" class="grid-productos"></div>
+</div>
 
-<div class="tabs">
-<button class="tab-btn active" onclick="mostrarTab('productos')">📦 Productos</button>
-<button class="tab-btn" onclick="mostrarTab('usuarios')">👥 Usuarios</
+<script src="supabase.js"></script>
+<script>
+async function cargarPendientes() {
+const { data } = await supabase.from('productos').select('*, perfiles(nombre, email)').eq('aprobado', false).order('created_at', { ascending: true });
+const grid = document.getElementById('grid-admin');
+
+if (!data || data.length === 0) {
+grid.innerHTML = '<p style="text-align:center; padding:40px;">No hay productos pendientes 🎉</p>';
+return;
+}
+
+grid.innerHTML = data.map(p => `
+<div class="card-admin">
+.card-admin { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); border: 2px solid #FFD700; }
+.admin-actions { display: flex; gap: 6px; margin-top: 10px; }
+.admin-actions button { flex: 1; padding: 8px; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.btn-aprobar { background: var(--success); color: white; }
+.btn-destacar { background: #FFD700; color: #333; }
+.btn-eliminar { background: #EF4444; color: white; }<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Perfil - Market Flash</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<nav class="navbar">
+<div class="container">
+<h1 class="logo" onclick="window.location='index.html'">← <span>Mi Perfil</span></h1>
+<button class="btn-icon" onclick="cerrarSesion()">🚪</button>
+</div>
+</nav>
+
+<div class="container" style="padding:20px 0;">
+<div class="perfil-card">
+<div class="perfil-header">
+<div class="avatar">👤</div>
+<div>
+<h2 id="nombre-user">Cargando...</h2>
+<p id="email-user"></p>
+</div.perfil-card { background: var(--card); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow); }
+.perfil-header { display: flex; align-items: center; gap: 16px; }
+.avatar { width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; }
+.estado { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; margin: 6px 0; }
+.estado.aprobado { background: #D1FAE5; color: #065F46; }
+.estado.pendiente { background: #FEF3C7; color: #92400E; }
+.btn-eliminar-mini { background: #EF4444; color: white; border: none; padding: 6px 10px; border-radius: 8px; font-size: 12px; width: 100%; margin-top: 6px; cursor: pointer; }
 
 
 
-No se seleccionó ningún elemento 
+{
+"name": "Market Flash",
+"short_name": "Flash",
+"description": "Compra y vende productos al instante",
+"start_url": "/index.html",
+"display": "standalone",
+"background_color": "#F8F9FA",
+"theme_color": "#FF6B35",
+"orientation": "portrait",
+"icons": [
+{
+"src": "icon-192.png",
+"sizes": "192x192",
+"type": "image/png"
+},
+{
+"src": "icon-512.png",
+"sizes": "512x512",
+"type": "image/png"
+}
+]
+}const CACHE = 'market-flash-v1';
+const FILES = [
+'/',
+'/index.html',
+'/style.css',
+'/app.js',
+'/supabase.js',
+'/publicar.html',
+'/detalle.html',
+'/auth.html'
+];
 
-Ir al contenido
-Cómo usar Gmail con lectores de pantalla
-1 de 1
-Panel
-Recibidos
+self.addEventListener('install', e => {
+e.waitUntil(caches.open(CACHE).then(cache => cache.addAll(FILES)));
+});
+-- TABLA PERFILES
+create table perfiles (
+id uuid references auth.users on delete cascade primary key,
+nombre text,
+email text,
+avatar_url text,
+created_at timestamp with time zone default now()
+);
+alter table perfiles enable row level security;
+create policy "Perfiles visibles para todos" on perfiles for select using (true);
+create policy "Usuario actualiza su perfil" on perfiles for update using (auth.uid() = id);
+create policy "Usuario inserta su perfil" on perfiles for insert with check (auth.uid() = id);
 
-julio alcantara
-9:44 p.m. (hace 0 minutos)
-para mí
+-- TABLA PRODUCTOS
+create table productos (
+id uuid default gen_random_uuid() primary key,
+user_id uuid references perfiles(id) on delete cascade,
+titulo text not null,
+descripcion text,
+precio numeric not null,
+categoria text,
+imagenes text[],
+telefono text,
+messenger text,
+mostrar_wpp boolean default true,
+mostrar_messenger boolean default false,
+destacado boolean default false,
+aprobado boolean default false,
+created_at timestamp with time zone default now()
+);
+alter table productos enable row level security;
 
-Parece que este mensaje está en inglés
-.tabs { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
-.tab-btn { padding: 12px 20px; border: none; background: #eee; border-radius: 8px; cursor: pointer; font-weight: 600; }
-.tab-btn.active { background: var(--color-primary); color: white; }
-.tab-content.hidden { display: none; }
-.admin-card { background: white; padding: 20px; border-radius: var(--radius); margin-bottom: 15px; box-shadow: var(--shadow); }
-.admin-card button { margin-right: 10px; margin-top: 10px; }
+-- Políticas productos
+create policy "Ver productos aprobados" on productos for select using (aprobado = true);
+create policy "Ver mis productos" on productos for select using (auth.uid() = user_id);
+create policy "Insertar producto" on productos for insert with check (auth.uid() = user_id);
+create policy "Actualizar mi producto" on productos for update using (auth.uid() = user_id);
+create policy "Eliminar mi producto" on productos for delete using (auth.uid() = user_id);
 
-
-
+-- STORAGE BUCKET
+insert into storage.buckets (id, name, public) values ('productos', 'productos', true);
+create policy "Subir imagenes" on storage.objects for insert with check (bucket_id = 'productos' and auth.role() = 'authenticated');
+create policy "Ver imagenes" on storage.objects for select using (bucket_id = 'productos');
