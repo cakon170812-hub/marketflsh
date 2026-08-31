@@ -349,4 +349,602 @@
 
             </form>
 
+        </section>        <!-- Inicio de sesión -->
+        <section id="inicio-sesion">
+
+            <h2>Iniciar sesión</h2>
+
+            <form id="formulario-login">
+
+                <div>
+                    <label for="login-correo">
+                        Correo electrónico
+                    </label>
+
+                    <input
+                        type="email"
+                        id="login-correo"
+                        name="login-correo"
+                        placeholder="correo@ejemplo.com"
+                        required
+                    >
+                </div>
+
+
+                <div>
+                    <label for="login-password">
+                        Contraseña
+                    </label>
+
+                    <input
+                        type="password"
+                        id="login-password"
+                        name="login-password"
+                        placeholder="Tu contraseña"
+                        required
+                    >
+                </div>
+
+
+                <button type="submit">
+                    Iniciar sesión
+                </button>
+
+
+                <button type="button">
+                    ¿Olvidaste tu contraseña?
+                </button>
+
+            </form>
+
+        </section>        <!-- Formulario para publicar un producto -->
+        <section id="formulario-publicar">
+
+            <h2>Publicar en Market Flash</h2>
+
+            <form id="form-publicacion">
+
+                <div>
+                    <label for="nombre-producto">
+                        Nombre del producto
+                    </label>
+
+                    <input
+                        type="text"
+                        id="nombre-producto"
+                        name="nombre-producto"
+                        placeholder="Ejemplo: iPhone 14 Pro"
+                        required
+                    >
+                </div>
+
+
+                <div>
+                    <label for="categoria-producto">
+                        Categoría
+                    </label>
+
+                    <select
+                        id="categoria-producto"
+                        name="categoria-producto"
+                        required
+                    >
+                        <option value="">
+                            Selecciona una categoría
+                        </option>
+
+                        <option value="electronica">
+                            Electrónica
+                        </option>
+
+                        <option value="telefonos">
+                            Teléfonos
+                        </option>
+
+                        <option value="vehiculos">
+                            Vehículos
+                        </option>
+
+                        <option value="ropa">
+                            Ropa
+                        </option>
+
+                        <option value="joyas">
+                            Joyas y Oro
+                        </option>
+
+                        <option value="hogar">
+                            Hogar
+                        </option>
+
+                        <option value="servicios">
+                            Servicios
+                        </option>
+
+                        <option value="otros">
+                            Otros
+                        </option>
+                    </select>
+                </div>
+
+
+                <div>
+                    <label for="precio-producto">
+                        Precio
+                    </label>
+
+                    <input
+                        type="number"
+                        id="precio-producto"
+                        name="precio-producto"
+                        placeholder="0.00"
+                        min="0"
+                        step="0.01"
+                        required
+                    >
+                </div>
+
+
+                <div>
+                    <label for="cantidad-producto">
+                        Cantidad disponible
+                    </label>
+
+                    <input
+                        type="number"
+                        id="cantidad-producto"
+                        name="cantidad-producto"
+                        placeholder="Cantidad"
+                        min="1"
+                        required
+                    >
+                </div>
+
+
+                <div>
+                    <label for="imagen-producto">
+                        Imagen del producto
+                    </label>
+
+                    <input
+                        type="file"
+                        id="imagen-producto"
+                        name="imagen-producto"
+                        accept="image/*"
+                        multiple
+                    >
+                </div>
+
+
+                <div>
+                    <label for="descripcion-producto">
+                        Descripción
+                    </label>
+
+                    <textarea
+                        id="descripcion-producto"
+                        name="descripcion-producto"
+                        rows="5"
+                        placeholder="Describe tu producto..."
+                        required
+                    ></textarea>
+                </div>
+
+
+                <div>
+                    <label for="contacto-preferido">
+                        Método de contacto
+                    </label>
+
+                    <select
+                        id="contacto-preferido"
+                        name="contacto-preferido"
+                        required
+                    >
+                        <option value="">
+                            Selecciona una opción
+                        </option>
+
+                        <option value="whatsapp">
+                            WhatsApp
+                        </option>
+
+                        <option value="messenger">
+                            Messenger
+                        </option>
+                    </select>
+                </div>
+
+
+                <button type="submit">
+                    Continuar con la publicación
+                </button>
+
+            </form>
+
+        </section>        <!-- Pago de la publicación -->
+        <section id="pago-publicacion">
+
+            <h2>Pago de la publicación</h2>
+
+            <p>
+                Para publicar tu anuncio, realiza el pago
+                y envía el comprobante para su verificación.
+            </p>
+
+
+            <!-- Métodos de pago -->
+            <div id="metodos-pago">
+
+                <h3>Selecciona tu método de pago</h3>
+
+                <label>
+                    <input
+                        type="radio"
+                        name="metodo-pago"
+                        value="binance"
+                    >
+                    Binance
+                </label>
+
+                <label>
+                    <input
+                        type="radio"
+                        name="metodo-pago"
+                        value="paypal"
+                    >
+                    PayPal
+                </label>
+
+            </div>
+
+
+            <!-- Información de Binance -->
+            <div id="pago-binance">
+
+                <h3>Pagar con Binance</h3>
+
+                <p>
+                    Realiza la transferencia a la dirección
+                    de Binance indicada por Market Flash.
+                </p>
+
+                <div id="direccion-binance">
+
+                    <p>
+                        <strong>Dirección de Binance:</strong>
+                    </p>
+
+                    <p>
+                        PENDIENTE DE CONFIGURAR
+                    </p>
+
+                </div>
+
+                <button type="button">
+                    Copiar dirección
+                </button>
+
+            </div>
+
+
+            <!-- Información de PayPal -->
+            <div id="pago-paypal">
+
+                <h3>Pagar con PayPal</h3>
+
+                <p>
+                    Realiza el pago utilizando la cuenta
+                    de PayPal indicada por Market Flash.
+                </p>
+
+                <div id="cuenta-paypal">
+
+                    <p>
+                        <strong>Cuenta de PayPal:</strong>
+                    </p>
+
+                    <p>
+                        PENDIENTE DE CONFIGURAR
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- Comprobante -->
+            <div id="comprobante-pago">
+
+                <h3>Enviar comprobante</h3>
+
+                <p>
+                    Después de realizar el pago,
+                    sube una captura del comprobante.
+                </p>
+
+                <label for="captura-pago">
+                    Captura del pago
+                </label>
+
+                <input
+                    type="file"
+                    id="captura-pago"
+                    name="captura-pago"
+                    accept="image/*"
+                    required
+                >
+
+            </div>
+
+
+            <!-- Estado del pago -->
+            <div id="estado-pago">
+
+                <p>
+                    <strong>Estado:</strong>
+                    Pendiente de verificación
+                </p>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="enviar-comprobante"
+            >
+                Enviar comprobante para revisión
+            </button>
+
+        </section>        <!-- Información de Market Flash -->
+        <section id="informacion-market-flash">
+
+            <h2>Market Flash</h2>
+
+            <p>
+                Compra, vende y promociona tus productos
+                de manera sencilla.
+            </p>
+
+            <p>
+                Todas las publicaciones que requieren pago
+                serán revisadas y aprobadas por el administrador.
+            </p>
+
+        </section>
+
+    </main>
+
+
+    <!-- Pie de página -->
+    <footer>
+
+        <div>
+
+            <h3>Market Flash</h3>
+
+            <p>
+                Tu mercado digital.
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <h4>Enlaces</h4>
+
+            <button type="button">
+                Inicio
+            </button>
+
+            <button type="button">
+                Publicar
+            </button>
+
+            <button type="button">
+                Promocionar
+            </button>
+
+            <button type="button">
+                Reclamos
+            </button>
+
+            <button type="button">
+                Soporte
+            </button>
+
+        </div>
+
+
+        <div>
+
+            <h4>Contacto</h4>
+
+            <p>
+                WhatsApp
+            </p>
+
+            <p>
+                Messenger
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <p>
+                © 2026 Market Flash
+            </p>
+
+            <p>
+                Propiedad de Julio Alcántara Gómez
+            </p>
+
+        </div>
+
+    </footer>        <!-- Perfil del usuario -->
+        <section id="perfil-usuario">
+
+            <h2>Mi perfil</h2>
+
+            <div id="datos-usuario">
+
+                <p>
+                    <strong>Nombre:</strong>
+                    <span id="perfil-nombre">No registrado</span>
+                </p>
+
+                <p>
+                    <strong>Teléfono:</strong>
+                    <span id="perfil-telefono">No registrado</span>
+                </p>
+
+                <p>
+                    <strong>WhatsApp:</strong>
+                    <span id="perfil-whatsapp">No registrado</span>
+                </p>
+
+                <p>
+                    <strong>Messenger:</strong>
+                    <span id="perfil-messenger">No registrado</span>
+                </p>
+
+            </div>
+
+
+            <!-- Opciones del usuario -->
+            <div id="opciones-perfil">
+
+                <button type="button">
+                    Mis publicaciones
+                </button>
+
+                <button type="button">
+                    Mis favoritos
+                </button>
+
+                <button type="button">
+                    Mis promociones
+                </button>
+
+                <button type="button">
+                    Editar perfil
+                </button>
+
+                <button type="button">
+                    Cerrar sesión
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- Contacto de una publicación -->
+        <section id="contactar-vendedor">
+
+            <h2>Contactar vendedor</h2>
+
+            <p>
+                Selecciona cómo deseas contactar al vendedor.
+            </p>
+
+            <div>
+
+                <button type="button">
+                    WhatsApp
+                </button>
+
+                <button type="button">
+                    Messenger
+                </button>
+
+            </div>
+
+        </section>        <!-- Calificación del vendedor -->
+        <section id="calificaciones">
+
+            <h2>Calificar vendedor</h2>
+
+            <p>
+                Después de una compra puedes calificar
+                tu experiencia.
+            </p>
+
+            <form id="form-calificacion">
+
+                <label for="estrellas">
+                    Calificación
+                </label>
+
+                <select id="estrellas" name="estrellas">
+
+                    <option value="">
+                        Selecciona una calificación
+                    </option>
+
+                    <option value="5">
+                        ★★★★★ — Excelente
+                    </option>
+
+                    <option value="4">
+                        ★★★★☆ — Muy buena
+                    </option>
+
+                    <option value="3">
+                        ★★★☆☆ — Buena
+                    </option>
+
+                    <option value="2">
+                        ★★☆☆☆ — Regular
+                    </option>
+
+                    <option value="1">
+                        ★☆☆☆☆ — Mala
+                    </option>
+
+                </select>
+
+
+                <label for="comentario-calificacion">
+                    Comentario
+                </label>
+
+                <textarea
+                    id="comentario-calificacion"
+                    name="comentario-calificacion"
+                    rows="4"
+                    placeholder="Escribe tu experiencia..."
+                ></textarea>
+
+
+                <button type="submit">
+                    Enviar calificación
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- Estado de una publicación -->
+        <section id="estado-publicacion">
+
+            <h2>Estado de la publicación</h2>
+
+            <p>
+                <strong>Estado:</strong>
+                <span id="estado-anuncio">
+                    Pendiente de aprobación
+                </span>
+            </p>
+
+            <p>
+                Una publicación que requiere pago
+                permanecerá pendiente hasta que el
+                administrador confirme el pago.
+            </p>
+
         </section>
