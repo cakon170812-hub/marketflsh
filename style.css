@@ -433,4 +433,655 @@ textarea {
     padding: 12px;
     background: #ffffff;
     border-radius: 8px;
+}/* ==============================
+   PERFIL DE USUARIO
+   ============================== */
+
+#perfil-usuario {
+    max-width: 850px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#datos-usuario {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#datos-usuario p {
+    padding: 12px 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+#opciones-perfil {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+#opciones-perfil button {
+    padding: 11px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #111827;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+#opciones-perfil button:hover {
+    opacity: 0.9;
+}
+
+
+/* ==============================
+   CONTACTAR VENDEDOR
+   ============================== */
+
+#contactar-vendedor {
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#contactar-vendedor > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#contactar-vendedor button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 9px;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+#contactar-vendedor button:first-child {
+    background: #25d366;
+}
+
+#contactar-vendedor button:last-child {
+    background: #0084ff;
+}
+
+
+/* ==============================
+   CALIFICACIONES
+   ============================== */
+
+#form-calificacion {
+    max-width: 700px;
+}
+
+#estrellas {
+    max-width: 300px;
+}
+
+#form-calificacion textarea {
+    min-height: 120px;
+}
+
+
+/* ==============================
+   ESTADO DE PUBLICACIÓN
+   ============================== */
+
+#estado-publicacion {
+    max-width: 850px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#estado-anuncio {
+    font-weight: 700;
+}
+
+
+/* ==============================
+   REPORTES
+   ============================== */
+
+#form-reporte {
+    max-width: 700px;
+}
+
+#motivo-reporte {
+    max-width: 500px;
+}
+
+#detalle-reporte {
+    min-height: 130px;
+}/* ==============================
+   PANEL DE ADMINISTRADOR
+   ============================== */
+
+#panel-administrador {
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#resumen-administrador {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin: 20px 0 30px;
+}
+
+#resumen-administrador > div {
+    padding: 20px;
+    background: #f8f9fa;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    text-align: center;
+}
+
+#resumen-administrador h3 {
+    font-size: 15px;
+    margin-bottom: 8px;
+}
+
+#resumen-administrador p {
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+}
+
+
+/* ==============================
+   PUBLICACIONES PENDIENTES
+   ============================== */
+
+#publicaciones-pendientes,
+#publicaciones-activas,
+#usuarios-administrador,
+#configuracion-administrador {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid #e5e7eb;
+}
+
+#lista-pendientes {
+    display: grid;
+    gap: 20px;
+}
+
+.publicacion-pendiente {
+    padding: 20px;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+}
+
+.publicacion-pendiente > p {
+    margin-bottom: 8px;
+}
+
+.publicacion-pendiente img {
+    width: 100%;
+    max-width: 400px;
+    min-height: 180px;
+    margin-top: 10px;
+    object-fit: cover;
+    border-radius: 10px;
+    background: #f1f3f5;
+}
+
+.publicacion-pendiente button {
+    margin-top: 15px;
+    margin-right: 8px;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #111827;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+#rechazar-publicacion {
+    background: #b42318;
+}
+
+
+/* ==============================
+   CARRUSEL DE PUBLICIDAD
+   ============================== */
+
+#contenedor-anuncios {
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 10px;
+}
+
+.anuncio-publicitario {
+    min-width: 280px;
+    flex: 0 0 280px;
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fafafa;
+    scroll-snap-align: start;
+}
+
+.anuncio-publicitario img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    background: #f1f3f5;
+}
+
+.anuncio-publicitario button {
+    margin-top: 10px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #111827;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+#controles-carrusel {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#controles-carrusel button {
+    padding: 10px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background: #ffffff;
+    font-weight: 600;
+}
+/* ==============================
+   FAVORITOS Y MIS PUBLICACIONES
+   ============================== */
+
+#lista-favoritos,
+#lista-mis-publicaciones,
+#lista-vendidos {
+    display: grid;
+    gap: 15px;
+}
+
+.mi-publicacion {
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fafafa;
+}
+
+.mi-publicacion p {
+    margin-bottom: 8px;
+}
+
+.mi-publicacion button {
+    margin-top: 10px;
+    margin-right: 8px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background: #111827;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.mi-publicacion button:last-child {
+    background: #555;
+}
+
+
+/* ==============================
+   VÍDEOS
+   ============================== */
+
+#videos {
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#publicar-video {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fafafa;
+}
+
+#form-video {
+    display: grid;
+    gap: 18px;
+}
+
+#form-video > div {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+#lista-videos {
+    display: grid;
+    gap: 20px;
+    margin-top: 25px;
+}
+
+.video-publicado {
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.video-publicado video {
+    width: 100%;
+    margin-top: 15px;
+    border-radius: 10px;
+    background: #000000;
+}
+
+
+/* ==============================
+   NOTIFICACIONES
+   ============================== */
+
+#lista-notificaciones {
+    display: grid;
+    gap: 15px;
+}
+
+.notificacion {
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #fafafa;
+}
+
+.notificacion h3 {
+    margin-bottom: 8px;
+}
+
+.notificacion p {
+    margin-bottom: 8px;
+}
+
+.notificacion button {
+    margin-top: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    background: #111827;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+
+/* ==============================
+   SEGURIDAD Y POLÍTICAS
+   ============================== */
+
+#politicas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#politicas article {
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #fafafa;
+}
+
+
+/* ==============================
+   CONTACTO Y REDES
+   ============================== */
+
+#botones-contacto {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+#botones-contacto button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 9px;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+#contacto-whatsapp {
+    background: #25d366;
+}
+
+#contacto-messenger {
+    background: #0084ff;
+}
+
+#contacto-soporte {
+    background: #111827;
+}
+
+#redes-sociales > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+#redes-sociales a {
+    padding: 10px 15px;
+    border-radius: 8px;
+    background: #f1f3f5;
+    color: #111827;
+    font-weight: 700;
+}/* ==============================
+   DISEÑO PARA MÓVILES
+   ============================== */
+
+@media (max-width: 900px) {
+
+    header {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 18px;
+    }
+
+    header > div:first-child {
+        text-align: center;
+    }
+
+    header nav {
+        width: 100%;
+    }
+
+    header nav button {
+        flex: 1;
+        min-width: 120px;
+    }
+
+    header > div:last-child {
+        justify-content: center;
+    }
+
+    #resumen-administrador {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    #politicas {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* ==============================
+   TELÉFONOS
+   ============================== */
+
+@media (max-width: 600px) {
+
+    main {
+        padding: 15px 10px;
+    }
+
+    main > section {
+        padding: 18px;
+        border-radius: 10px;
+    }
+
+    header h1 {
+        font-size: 24px;
+    }
+
+    header nav {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    header nav button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    header > div:last-child {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    header > div:last-child button {
+        width: 100%;
+    }
+
+    #busqueda form {
+        flex-direction: column;
+    }
+
+    #busqueda button {
+        width: 100%;
+    }
+
+    #lista-publicaciones {
+        grid-template-columns: 1fr;
+    }
+
+    #lista-promociones {
+        grid-template-columns: 1fr;
+    }
+
+    #resumen-administrador {
+        grid-template-columns: 1fr;
+    }
+
+    #metodos-pago {
+        flex-direction: column;
+    }
+
+    #metodos-pago label {
+        width: 100%;
+    }
+
+    #opciones-perfil {
+        flex-direction: column;
+    }
+
+    #opciones-perfil button {
+        width: 100%;
+    }
+
+    #contactar-vendedor > div,
+    #botones-contacto {
+        flex-direction: column;
+    }
+
+    #contactar-vendedor button,
+    #botones-contacto button {
+        width: 100%;
+    }
+
+    #contenedor-anuncios {
+        gap: 12px;
+    }
+
+    .anuncio-publicitario {
+        min-width: 85%;
+        flex-basis: 85%;
+    }
+
+    #controles-carrusel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    #controles-carrusel button {
+        width: 100%;
+    }
+
+    #politicas {
+        grid-template-columns: 1fr;
+    }
+
+    #redes-sociales > div {
+        flex-direction: column;
+    }
+
+    #redes-sociales a {
+        text-align: center;
+    }
+
+}
+
+
+/* ==============================
+   PANTALLAS MUY PEQUEÑAS
+   ============================== */
+
+@media (max-width: 380px) {
+
+    header {
+        padding: 14px 10px;
+    }
+
+    main > section {
+        padding: 15px;
+    }
+
+    header nav {
+        grid-template-columns: 1fr;
+    }
+
+    header > div:last-child {
+        grid-template-columns: 1fr;
+    }
+
+    .anuncio-publicitario {
+        min-width: 92%;
+        flex-basis: 92%;
+    }
+
+}
+
+
+/* ==============================
+   ACCESIBILIDAD
+   ============================== */
+
+button:focus,
+input:focus,
+select:focus,
+textarea:focus,
+a:focus {
+    outline: 3px solid rgba(17, 24, 39, 0.25);
+    outline-offset: 2px;
 }
