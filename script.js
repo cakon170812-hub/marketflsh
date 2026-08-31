@@ -1,2633 +1,1112 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
-
-    <meta
-        name="description"
-        content="Market Flash - Compra, vende y promociona productos."
-    >
-
-    <meta
-        name="theme-color"
-        content="#111827"
-    >
-
-    <title>Market Flash</title>
-
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
-</head>
-
-<body>
-
-    <!-- =====================================================
-         ENCABEZADO
-         ===================================================== -->
-
-    <header class="site-header">
-
-        <div class="brand">
-
-            <div class="brand-logo">
-                MF
-            </div>
-
-            <div class="brand-text">
+/* ============================================================
+   MARKET FLASH
+   SCRIPT PRINCIPAL
+   Supabase + autenticación + productos + favoritos +
+   pagos + promociones + vídeos + reclamos + administración
+   ============================================================ */
 
-                <h1>
-                    Market Flash
-                </h1>
+"use strict";
 
-                <p>
-                    Compra, vende y promociona
-                </p>
 
-            </div>
+/* ============================================================
+   CONFIGURACIÓN SUPABASE
+   ============================================================ */
 
-        </div>
+const SUPABASE_URL =
+    "https://osxuhmgnpgbxfopqdhqr.supabase.co";
 
+const SUPABASE_PUBLISHABLE_KEY =
+    "sb_publishable_6qLmRFGHrwGq_CKqsIH7jA_Oz8TTlQZ";
 
-        <nav
-            class="main-navigation"
-            aria-label="Navegación principal"
-        >
 
-            <button
-                type="button"
-                data-section="inicio"
-            >
-                Inicio
-            </button>
+/* ============================================================
+   INICIALIZACIÓN
+   ============================================================ */
 
-            <button
-                type="button"
-                data-section="categorias"
-            >
-                Categorías
-            </button>
+let supabaseClient = null;
 
-            <button
-                type="button"
-                data-section="publicar"
-            >
-                Publicar
-            </button>
-
-            <button
-                type="button"
-                data-section="promocionar"
-            >
-                Promocionar
-            </button>
-
-            <button
-                type="button"
-                data-section="reclamos"
-            >
-                Reclamos
-            </button>
+try {
 
-            <button
-                type="button"
-                data-section="soporte"
-            >
-                Soporte
-            </button>
+    if (
+        typeof window.supabase === "undefined" ||
+        typeof window.supabase.createClient !== "function"
+    ) {
+        throw new Error(
+            "La librería de Supabase no está disponible."
+        );
+    }
 
-        </nav>
+    supabaseClient =
+        window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_PUBLISHABLE_KEY
+        );
 
+} catch (error) {
 
-        <div class="header-actions">
+    console.error(
+        "Error inicializando Supabase:",
+        error
+    );
 
-            <button
-                type="button"
-                id="btn-registrarse"
-            >
-                Registrarse
-            </button>
+}
 
-            <button
-                type="button"
-                id="btn-iniciar-sesion"
-            >
-                Iniciar sesión
-            </button>
 
-            <button
-                type="button"
-                id="btn-mi-perfil"
-            >
-                Mi perfil
-            </button>
+/* ============================================================
+   ESTADO GLOBAL
+   ============================================================ */
 
-        </div>
+const MarketFlash = {
 
-    </header>
+    user: null,
 
+    profile: null,
 
-    <!-- =====================================================
-         CONTENIDO PRINCIPAL
-         ===================================================== -->
+    selectedProduct: null,
 
-    <main id="app">
+    selectedPaymentMethod: null,
 
+    products: [],
 
-        <!-- =================================================
-             INICIO
-             ================================================= -->
+    favorites: [],
 
-        <section
-            id="inicio"
-            class="page-section active-section"
-        >
+    promotions: [],
 
-            <div class="hero">
+    notifications: [],
 
-                <div class="hero-content">
+    isAdmin: false
 
-                    <span class="badge">
-                        MARKET FLASH
-                    </span>
+};
 
-                    <h2>
-                        Compra y vende
-                        de forma sencilla
-                    </h2>
 
-                    <p>
-                        Encuentra productos, publica tus
-                        artículos y conecta directamente
-                        con compradores y vendedores.
-                    </p>
+/* ============================================================
+   UTILIDADES
+   ============================================================ */
 
-                    <div class="hero-actions">
+function $(selector) {
+    return document.querySelector(selector);
+}
 
-                        <button
-                            type="button"
-                            class="primary-button"
-                            data-section="publicar"
-                        >
-                            Publicar producto
-                        </button>
 
-                        <button
-                            type="button"
-                            class="secondary-button"
-                            data-section="categorias"
-                        >
-                            Explorar categorías
-                        </button>
+function $$(selector) {
+    return Array.from(
+        document.querySelectorAll(selector)
+    );
+}
 
-                    </div>
 
-                </div>
+function mostrarMensaje(
+    mensaje,
+    tipo = "info"
+) {
 
-            </div>
+    const elemento =
+        $("#app-message");
 
+    if (!elemento) {
+        alert(mensaje);
+        return;
+    }
 
-            <!-- BÚSQUEDA -->
+    elemento.textContent =
+        mensaje;
 
-            <div
-                id="busqueda"
-                class="content-card"
-            >
+    elemento.className =
+        `app-message show ${tipo}`;
 
-                <div class="section-heading">
+    clearTimeout(
+        elemento._timer
+    );
 
-                    <span class="section-kicker">
-                        BUSCAR
-                    </span>
+    elemento._timer =
+        setTimeout(() => {
 
-                    <h2>
-                        Encuentra lo que necesitas
-                    </h2>
+            elemento.className =
+                "app-message";
 
-                </div>
+        }, 4500);
 
+}
 
-                <form id="form-busqueda">
 
-                    <input
-                        type="search"
-                        id="buscar"
-                        name="buscar"
-                        placeholder="Busca teléfonos, vehículos, ropa..."
-                        autocomplete="off"
-                    >
+function escaparHTML(valor) {
 
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-                        Buscar
-                    </button>
+    const div =
+        document.createElement("div");
 
-                    <button
-                        type="button"
-                        id="btn-limpiar-busqueda"
-                        class="secondary-button"
-                    >
-                        Limpiar
-                    </button>
+    div.textContent =
+        String(valor ?? "");
 
-                </form>
+    return div.innerHTML;
 
-            </div>
+}
 
 
-            <!-- PUBLICIDAD -->
+function formatoPrecio(precio) {
 
-            <div
-                id="publicidad-inicio"
-                class="content-card"
-            >
+    const numero =
+        Number(precio);
 
-                <div class="section-heading">
+    if (Number.isNaN(numero)) {
+        return "RD$ 0.00";
+    }
 
-                    <span class="section-kicker">
-                        DESTACADOS
-                    </span>
+    return new Intl.NumberFormat(
+        "es-DO",
+        {
+            style: "currency",
+            currency: "DOP",
+            minimumFractionDigits: 2
+        }
+    ).format(numero);
 
-                    <h2>
-                        Publicidad destacada
-                    </h2>
+}
 
-                </div>
 
+function formatearFecha(fecha) {
 
-                <div
-                    id="contenedor-anuncios"
-                    class="advertisement-slider"
-                >
+    if (!fecha) {
+        return "";
+    }
 
-                    <article class="advertisement-card">
+    try {
 
-                        <div class="advertisement-placeholder">
-                            Publicidad
-                        </div>
+        return new Intl.DateTimeFormat(
+            "es-DO",
+            {
+                dateStyle: "medium",
+                timeStyle: "short"
+            }
+        ).format(
+            new Date(fecha)
+        );
 
-                        <div class="advertisement-content">
+    } catch {
 
-                            <span>
-                                PATROCINADO
-                            </span>
+        return "";
+    }
 
-                            <h3>
-                                Promociona tu producto
-                            </h3>
+}
 
-                            <p>
-                                Haz que más personas
-                                conozcan tu publicación.
-                            </p>
 
-                            <button
-                                type="button"
-                                class="secondary-button"
-                                data-advertisement="1"
-                            >
-                                Ver publicidad
-                            </button>
+/* ============================================================
+   NAVEGACIÓN
+   ============================================================ */
 
-                        </div>
+const SECCIONES = [
+    "inicio",
+    "categorias",
+    "registro",
+    "inicio-sesion",
+    "publicar",
+    "pago",
+    "perfil",
+    "promocionar",
+    "videos",
+    "notificaciones",
+    "calificaciones",
+    "reclamos",
+    "soporte",
+    "contactar-vendedor",
+    "administrador",
+    "politicas"
+];
 
-                    </article>
 
+function mostrarSeccion(id) {
 
-                    <article class="advertisement-card">
+    SECCIONES.forEach(
+        (seccionId) => {
 
-                        <div class="advertisement-placeholder">
-                            Publicidad
-                        </div>
+            const seccion =
+                document.getElementById(
+                    seccionId
+                );
 
-                        <div class="advertisement-content">
+            if (!seccion) {
+                return;
+            }
 
-                            <span>
-                                PATROCINADO
-                            </span>
+            seccion.classList.remove(
+                "active"
+            );
 
-                            <h3>
-                                Tu negocio puede aparecer aquí
-                            </h3>
+            seccion.style.display =
+                "none";
 
-                            <p>
-                                Utiliza el espacio publicitario
-                                de Market Flash.
-                            </p>
+        }
+    );
 
-                            <button
-                                type="button"
-                                class="secondary-button"
-                                data-advertisement="2"
-                            >
-                                Ver publicidad
-                            </button>
 
-                        </div>
+    const destino =
+        document.getElementById(id);
 
-                    </article>
+    if (!destino) {
+        return;
+    }
 
 
-                    <article class="advertisement-card">
+    destino.classList.add(
+        "active"
+    );
 
-                        <div class="advertisement-placeholder">
-                            Publicidad
-                        </div>
+    destino.style.display =
+        "block";
 
-                        <div class="advertisement-content">
 
-                            <span>
-                                PATROCINADO
-                            </span>
+    $$(".main-nav button").forEach(
+        (boton) => {
 
-                            <h3>
-                                Anuncio destacado
-                            </h3>
+            boton.classList.toggle(
+                "active",
+                boton.dataset.section === id
+            );
 
-                            <p>
-                                Los productos promocionados
-                                tendrán mayor visibilidad.
-                            </p>
+        }
+    );
 
-                            <button
-                                type="button"
-                                class="secondary-button"
-                                data-advertisement="3"
-                            >
-                                Ver publicidad
-                            </button>
 
-                        </div>
+    destino.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 
-                    </article>
+}
 
-                </div>
 
+/* ============================================================
+   CARGAR SECCIÓN
+   ============================================================ */
 
-                <div class="slider-controls">
+function configurarNavegacion() {
 
-                    <button
-                        type="button"
-                        id="anuncio-anterior"
-                        class="secondary-button"
-                    >
-                        ←
-                    </button>
+    $$("[data-section]").forEach(
+        (boton) => {
 
-                    <button
-                        type="button"
-                        id="anuncio-siguiente"
-                        class="secondary-button"
-                    >
-                        →
-                    </button>
+            boton.addEventListener(
+                "click",
+                () => {
 
-                </div>
+                    const destino =
+                        boton.dataset.section;
 
-            </div>
+                    if (!destino) {
+                        return;
+                    }
 
 
-            <!-- PUBLICACIONES -->
+                    if (
+                        destino === "publicar"
+                    ) {
 
-            <div
-                id="publicaciones"
-                class="content-card"
-            >
+                        if (
+                            !MarketFlash.user
+                        ) {
 
-                <div class="section-heading">
+                            mostrarSeccion(
+                                "inicio-sesion"
+                            );
 
-                    <span class="section-kicker">
-                        MARKETPLACE
-                    </span>
+                            mostrarMensaje(
+                                "Inicia sesión para publicar.",
+                                "warning"
+                            );
 
-                    <h2>
-                        Productos
-                    </h2>
+                            return;
 
-                    <p>
-                        Explora las publicaciones disponibles
-                        en Market Flash.
-                    </p>
+                        }
 
-                </div>
+                    }
 
 
-                <div
-                    id="lista-publicaciones"
-                    class="products-grid"
-                >
+                    mostrarSeccion(
+                        destino
+                    );
 
-                    <div
-                        id="mensaje-sin-publicaciones"
-                        class="empty-state"
-                    >
+                }
+            );
 
-                        <div class="empty-state-icon">
-                            MF
-                        </div>
+        }
+    );
 
-                        <h3>
-                            Aún no hay productos
-                        </h3>
+}
 
-                        <p>
-                            Sé el primero en publicar.
-                        </p>
 
-                    </div>
+/* ============================================================
+   AUTENTICACIÓN
+   ============================================================ */
 
-                </div>
+async function obtenerSesion() {
 
-            </div>
+    if (!supabaseClient) {
+        return null;
+    }
 
-        </section>
+    try {
 
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth.getSession();
 
-        <!-- =================================================
-             CATEGORÍAS
-             ================================================= -->
 
-        <section
-            id="categorias"
-            class="page-section"
-        >
+        if (error) {
+            throw error;
+        }
 
-            <div class="section-heading">
 
-                <span class="section-kicker">
-                    EXPLORA
-                </span>
+        MarketFlash.user =
+            data.session?.user || null;
 
-                <h2>
-                    Categorías
-                </h2>
 
-                <p>
-                    Encuentra rápidamente el producto
-                    que estás buscando.
-                </p>
+        return MarketFlash.user;
 
-            </div>
+    } catch (error) {
 
+        console.error(
+            "Error obteniendo sesión:",
+            error
+        );
 
-            <div
-                id="lista-categorias"
-                class="categories-grid"
-            >
+        MarketFlash.user =
+            null;
 
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Todos"
-                >
-                    <span>
-                        Todos
-                    </span>
-                </button>
+        return null;
 
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Teléfonos"
-                >
-                    <span>
-                        Teléfonos
-                    </span>
-                </button>
+    }
 
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Electrónica"
-                >
-                    <span>
-                        Electrónica
-                    </span>
-                </button>
+}
 
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Vehículos"
-                >
-                    <span>
-                        Vehículos
-                    </span>
-                </button>
 
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Ropa"
-                >
-                    <span>
-                        Ropa
-                    </span>
-                </button>
+async function cargarPerfil() {
 
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Joyas y Oro"
-                >
-                    <span>
-                        Joyas y Oro
-                    </span>
-                </button>
+    if (
+        !supabaseClient ||
+        !MarketFlash.user
+    ) {
+        return null;
+    }
 
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Hogar"
-                >
-                    <span>
-                        Hogar
-                    </span>
-                </button>
 
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Servicios"
-                >
-                    <span>
-                        Servicios
-                    </span>
-                </button>
+    try {
 
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Otros"
-                >
-                    <span>
-                        Otros
-                    </span>
-                </button>
+        const {
+            data,
+            error
+        } =
+            await supabaseClient
+                .from("profiles")
+                .select("*")
+                .eq(
+                    "id",
+                    MarketFlash.user.id
+                )
+                .maybeSingle();
 
-            </div>
 
+        if (error) {
+            throw error;
+        }
 
-            <div
-                class="category-results"
-                id="resultados-categoria"
-            >
 
-                <h3>
-                    Productos de la categoría
-                </h3>
+        MarketFlash.profile =
+            data || null;
 
-                <div
-                    id="lista-resultados-categoria"
-                    class="products-grid"
-                >
-                </div>
 
-            </div>
+        return data;
 
-        </section>
+    } catch (error) {
 
+        console.warn(
+            "No se pudo cargar profiles:",
+            error
+        );
 
-        <!-- =================================================
-             REGISTRO
-             ================================================= -->
+        MarketFlash.profile =
+            null;
 
-        <section
-            id="registro"
-            class="page-section"
-        >
+        return null;
 
-            <div class="auth-layout">
+    }
 
-                <div class="auth-information">
+}
 
-                    <span class="section-kicker">
-                        CREA TU CUENTA
-                    </span>
 
-                    <h2>
-                        Únete a Market Flash
-                    </h2>
+/* ============================================================
+   REGISTRO
+   ============================================================ */
 
-                    <p>
-                        Regístrate para publicar productos,
-                        guardar favoritos y contactar con
-                        compradores y vendedores.
-                    </p>
+async function registrarUsuario(evento) {
 
-                </div>
+    evento.preventDefault();
 
 
-                <div class="form-card">
+    if (!supabaseClient) {
 
-                    <form id="formulario-registro">
+        mostrarMensaje(
+            "Supabase no está disponible.",
+            "error"
+        );
 
-                        <div class="form-group">
+        return;
 
-                            <label for="registro-nombre">
-                                Nombre completo
-                            </label>
+    }
 
-                            <input
-                                type="text"
-                                id="registro-nombre"
-                                name="nombre"
-                                placeholder="Tu nombre completo"
-                                required
-                            >
 
-                        </div>
+    const formulario =
+        evento.currentTarget;
 
 
-                        <div class="form-group">
+    const formData =
+        new FormData(
+            formulario
+        );
 
-                            <label for="registro-correo">
-                                Correo electrónico
-                            </label>
 
-                            <input
-                                type="email"
-                                id="registro-correo"
-                                name="correo"
-                                placeholder="correo@ejemplo.com"
-                                required
-                            >
+    const nombre =
+        String(
+            formData.get("nombre") || ""
+        ).trim();
 
-                        </div>
 
+    const correo =
+        String(
+            formData.get("correo") || ""
+        ).trim()
+            .toLowerCase();
 
-                        <div class="form-group">
 
-                            <label for="registro-cedula">
-                                Cédula o pasaporte
-                            </label>
+    const documento =
+        String(
+            formData.get("documento") || ""
+        ).trim();
 
-                            <input
-                                type="text"
-                                id="registro-cedula"
-                                name="cedula"
-                                placeholder="Número de cédula o pasaporte"
-                                required
-                            >
 
-                        </div>
+    const telefono =
+        String(
+            formData.get("telefono") || ""
+        ).trim();
 
 
-                        <div class="form-group">
+    const whatsapp =
+        String(
+            formData.get("whatsapp") || ""
+        ).trim();
 
-                            <label for="registro-telefono">
-                                Número de teléfono
-                            </label>
 
-                            <input
-                                type="tel"
-                                id="registro-telefono"
-                                name="telefono"
-                                placeholder="+1 809 000 0000"
-                                required
-                            >
+    const messenger =
+        String(
+            formData.get("messenger") || ""
+        ).trim();
 
-                        </div>
 
+    const password =
+        String(
+            formData.get("password") || ""
+        );
 
-                        <div class="form-group">
 
-                            <label for="registro-whatsapp">
-                                WhatsApp
-                            </label>
+    if (
+        !nombre ||
+        !correo ||
+        !documento ||
+        !telefono ||
+        !password
+    ) {
 
-                            <input
-                                type="tel"
-                                id="registro-whatsapp"
-                                name="whatsapp"
-                                placeholder="Número de WhatsApp"
-                            >
+        mostrarMensaje(
+            "Completa todos los campos obligatorios.",
+            "warning"
+        );
 
-                        </div>
+        return;
 
+    }
 
-                        <div class="form-group">
 
-                            <label for="registro-messenger">
-                                Usuario o enlace de Messenger
-                            </label>
+    if (password.length < 6) {
 
-                            <input
-                                type="text"
-                                id="registro-messenger"
-                                name="messenger"
-                                placeholder="Usuario de Messenger"
-                            >
+        mostrarMensaje(
+            "La contraseña debe tener al menos 6 caracteres.",
+            "warning"
+        );
 
-                        </div>
+        return;
 
+    }
 
-                        <div class="form-group">
 
-                            <label for="registro-password">
-                                Contraseña
-                            </label>
+    const boton =
+        formulario.querySelector(
+            'button[type="submit"]'
+        );
 
-                            <input
-                                type="password"
-                                id="registro-password"
-                                name="password"
-                                placeholder="Crea una contraseña"
-                                minlength="6"
-                                required
-                            >
 
-                        </div>
+    if (boton) {
+        boton.disabled =
+            true;
+        boton.textContent =
+            "Creando cuenta...";
+    }
 
 
-                        <button
-                            type="submit"
-                            class="primary-button full-width"
-                        >
-                            Crear cuenta
-                        </button>
+    try {
 
-                    </form>
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth.signUp({
+                email: correo,
+                password,
+                options: {
+                    data: {
+                        nombre,
+                        documento,
+                        telefono,
+                        whatsapp,
+                        messenger
+                    }
+                }
+            });
 
 
-                    <div class="form-footer">
+        if (error) {
+            throw error;
+        }
 
-                        <p>
-                            ¿Ya tienes una cuenta?
-                        </p>
 
-                        <button
-                            type="button"
-                            id="btn-ir-login"
-                            class="text-button"
-                        >
-                            Iniciar sesión
-                        </button>
+        /*
+         * El trigger de Supabase puede crear automáticamente
+         * el perfil. Como respaldo intentamos crearlo aquí
+         * únicamente si existe una sesión.
+         */
 
-                    </div>
+        if (
+            data.user &&
+            data.session
+        ) {
 
-                </div>
+            const {
+                error:
+                profileError
+            } =
+                await supabaseClient
+                    .from("profiles")
+                    .upsert(
+                        {
+                            id: data.user.id,
+                            nombre,
+                            correo,
+                            documento,
+                            telefono,
+                            whatsapp,
+                            messenger
+                        },
+                        {
+                            onConflict:
+                                "id"
+                        }
+                    );
 
-            </div>
 
-        </section>
+            if (profileError) {
 
+                console.warn(
+                    "No se pudo crear/actualizar el perfil:",
+                    profileError
+                );
 
-        <!-- =================================================
-             INICIO DE SESIÓN
-             ================================================= -->
+            }
 
-        <section
-            id="inicio-sesion"
-            class="page-section"
-        >
+        }
 
-            <div class="auth-layout">
 
-                <div class="auth-information">
+        formulario.reset();
 
-                    <span class="section-kicker">
-                        BIENVENIDO
-                    </span>
 
-                    <h2>
-                        Inicia sesión
-                    </h2>
+        if (!data.session) {
 
-                    <p>
-                        Accede a tu cuenta para continuar
-                        utilizando Market Flash.
-                    </p>
+            mostrarMensaje(
+                "Cuenta creada. Revisa tu correo para confirmar la cuenta.",
+                "success"
+            );
 
-                </div>
+        } else {
 
+            mostrarMensaje(
+                "Cuenta creada correctamente.",
+                "success"
+            );
 
-                <div class="form-card">
+            await iniciarAplicacion();
 
-                    <form id="formulario-login">
+            mostrarSeccion(
+                "inicio"
+            );
 
-                        <div class="form-group">
+        }
 
-                            <label for="login-correo">
-                                Correo electrónico
-                            </label>
 
-                            <input
-                                type="email"
-                                id="login-correo"
-                                name="correo"
-                                placeholder="correo@ejemplo.com"
-                                required
-                            >
+    } catch (error) {
 
-                        </div>
+        console.error(
+            "Error registrando usuario:",
+            error
+        );
 
 
-                        <div class="form-group">
+        mostrarMensaje(
+            error.message ||
+            "No se pudo crear la cuenta.",
+            "error"
+        );
 
-                            <label for="login-password">
-                                Contraseña
-                            </label>
 
-                            <input
-                                type="password"
-                                id="login-password"
-                                name="password"
-                                placeholder="Tu contraseña"
-                                required
-                            >
+    } finally {
 
-                        </div>
+        if (boton) {
 
+            boton.disabled =
+                false;
 
-                        <button
-                            type="submit"
-                            class="primary-button full-width"
-                        >
-                            Iniciar sesión
-                        </button>
+            boton.textContent =
+                "Crear cuenta";
 
-                    </form>
+        }
 
+    }
 
-                    <div class="form-footer">
+}
 
-                        <button
-                            type="button"
-                            id="btn-recuperar-password"
-                            class="text-button"
-                        >
-                            ¿Olvidaste tu contraseña?
-                        </button>
 
-                        <button
-                            type="button"
-                            id="btn-ir-registro"
-                            class="text-button"
-                        >
-                            Crear una cuenta
-                        </button>
+/* ============================================================
+   LOGIN
+   ============================================================ */
 
-                    </div>
+async function iniciarSesion(evento) {
 
-                </div>
+    evento.preventDefault();
 
-            </div>
 
-        </section>
+    if (!supabaseClient) {
 
+        mostrarMensaje(
+            "Supabase no está disponible.",
+            "error"
+        );
 
-        <!-- =================================================
-             PUBLICAR
-             ================================================= -->
+        return;
 
-        <section
-            id="publicar"
-            class="page-section"
-        >
+    }
 
-            <div class="section-heading">
 
-                <span class="section-kicker">
-                    VENDE
-                </span>
+    const formulario =
+        evento.currentTarget;
 
-                <h2>
-                    Publicar producto
-                </h2>
 
-                <p>
-                    Completa la información de tu producto.
-                </p>
+    const formData =
+        new FormData(
+            formulario
+        );
 
-            </div>
 
+    const correo =
+        String(
+            formData.get("correo") || ""
+        ).trim()
+            .toLowerCase();
 
-            <div class="form-card wide-card">
 
-                <form id="form-publicacion">
+    const password =
+        String(
+            formData.get("password") || ""
+        );
 
-                    <div class="form-grid">
 
-                        <div class="form-group">
+    if (
+        !correo ||
+        !password
+    ) {
 
-                            <label for="nombre-producto">
-                                Nombre del producto
-                            </label>
+        mostrarMensaje(
+            "Escribe tu correo y contraseña.",
+            "warning"
+        );
 
-                            <input
-                                type="text"
-                                id="nombre-producto"
-                                name="nombre"
-                                placeholder="Ejemplo: iPhone 14 Pro"
-                                required
-                            >
+        return;
 
-                        </div>
+    }
 
 
-                        <div class="form-group">
+    const boton =
+        formulario.querySelector(
+            'button[type="submit"]'
+        );
 
-                            <label for="categoria-producto">
-                                Categoría
-                            </label>
 
-                            <select
-                                id="categoria-producto"
-                                name="categoria"
-                                required
-                            >
+    if (boton) {
 
-                                <option value="">
-                                    Seleccionar categoría
-                                </option>
+        boton.disabled =
+            true;
 
-                                <option value="Teléfonos">
-                                    Teléfonos
-                                </option>
+        boton.textContent =
+            "Entrando...";
 
-                                <option value="Electrónica">
-                                    Electrónica
-                                </option>
+    }
 
-                                <option value="Vehículos">
-                                    Vehículos
-                                </option>
 
-                                <option value="Ropa">
-                                    Ropa
-                                </option>
+    try {
 
-                                <option value="Joyas y Oro">
-                                    Joyas y Oro
-                                </option>
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth.signInWithPassword({
+                email: correo,
+                password
+            });
 
-                                <option value="Hogar">
-                                    Hogar
-                                </option>
 
-                                <option value="Servicios">
-                                    Servicios
-                                </option>
+        if (error) {
+            throw error;
+        }
 
-                                <option value="Otros">
-                                    Otros
-                                </option>
 
-                            </select>
+        MarketFlash.user =
+            data.user;
 
-                        </div>
 
+        await cargarPerfil();
 
-                        <div class="form-group">
+        await verificarAdministrador();
 
-                            <label for="precio-producto">
-                                Precio
-                            </label>
 
-                            <input
-                                type="number"
-                                id="precio-producto"
-                                name="precio"
-                                placeholder="0.00"
-                                min="0"
-                                step="0.01"
-                                required
-                            >
+        formulario.reset();
 
-                        </div>
 
+        actualizarInterfazUsuario();
 
-                        <div class="form-group">
 
-                            <label for="cantidad-producto">
-                                Cantidad
-                            </label>
+        mostrarMensaje(
+            "Has iniciado sesión correctamente.",
+            "success"
+        );
 
-                            <input
-                                type="number"
-                                id="cantidad-producto"
-                                name="cantidad"
-                                placeholder="1"
-                                min="1"
-                                step="1"
-                                required
-                            >
 
-                        </div>
+        await cargarTodosLosDatos();
 
-                    </div>
 
+        mostrarSeccion(
+            "inicio"
+        );
 
-                    <div class="form-group">
 
-                        <label for="imagen-producto">
-                            Fotos del producto
-                        </label>
+    } catch (error) {
 
-                        <input
-                            type="file"
-                            id="imagen-producto"
-                            name="imagen"
-                            accept="image/*"
-                            multiple
-                        >
+        console.error(
+            "Error iniciando sesión:",
+            error
+        );
 
-                        <small>
-                            Puedes seleccionar una o varias imágenes.
-                        </small>
 
-                    </div>
+        mostrarMensaje(
+            error.message ||
+            "Correo o contraseña incorrectos.",
+            "error"
+        );
 
 
-                    <div
-                        id="vista-previa-imagenes"
-                        class="image-preview-grid"
-                    >
-                    </div>
+    } finally {
 
+        if (boton) {
 
-                    <div class="form-group">
+            boton.disabled =
+                false;
 
-                        <label for="descripcion-producto">
-                            Descripción
-                        </label>
+            boton.textContent =
+                "Iniciar sesión";
 
-                        <textarea
-                            id="descripcion-producto"
-                            name="descripcion"
-                            rows="6"
-                            placeholder="Describe tu producto..."
-                            required
-                        ></textarea>
+        }
 
-                    </div>
+    }
 
+}
 
-                    <div class="form-group">
 
-                        <label for="contacto-preferido">
-                            Método de contacto
-                        </label>
+/* ============================================================
+   CERRAR SESIÓN
+   ============================================================ */
 
-                        <select
-                            id="contacto-preferido"
-                            name="contacto"
-                            required
-                        >
+async function cerrarSesion() {
 
-                            <option value="">
-                                Seleccionar
-                            </option>
+    if (!supabaseClient) {
+        return;
+    }
 
-                            <option value="whatsapp">
-                                WhatsApp
-                            </option>
 
-                            <option value="messenger">
-                                Messenger
-                            </option>
+    try {
 
-                        </select>
+        const {
+            error
+        } =
+            await supabaseClient.auth.signOut();
 
-                    </div>
 
+        if (error) {
+            throw error;
+        }
 
-                    <div class="posting-notice">
 
-                        <strong>
-                            Publicación
-                        </strong>
+        MarketFlash.user =
+            null;
 
-                        <p id="estado-configuracion-publicacion">
-                            Cargando configuración...
-                        </p>
+        MarketFlash.profile =
+            null;
 
-                    </div>
+        MarketFlash.isAdmin =
+            false;
 
+        MarketFlash.favorites =
+            [];
 
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-                        Continuar
-                    </button>
 
-                </form>
+        actualizarInterfazUsuario();
 
-            </div>
+        limpiarDatosPrivados();
 
-        </section>
 
+        mostrarSeccion(
+            "inicio"
+        );
 
-        <!-- =================================================
-             PAGO
-             ================================================= -->
 
-        <section
-            id="pago-publicacion"
-            class="page-section"
-        >
+        mostrarMensaje(
+            "Sesión cerrada correctamente.",
+            "success"
+        );
 
-            <div class="section-heading">
 
-                <span class="section-kicker">
-                    PUBLICACIÓN
-                </span>
+    } catch (error) {
 
-                <h2>
-                    Pago de publicación
-                </h2>
+        console.error(
+            "Error cerrando sesión:",
+            error
+        );
 
-                <p>
-                    Selecciona el método de pago y envía
-                    tu comprobante para revisión.
-                </p>
 
-            </div>
+        mostrarMensaje(
+            "No se pudo cerrar la sesión.",
+            "error"
+        );
 
+    }
 
-            <div class="payment-layout">
+}
 
 
-                <div class="payment-methods">
+/* ============================================================
+   RECUPERACIÓN DE CONTRASEÑA
+   ============================================================ */
 
-                    <div class="payment-method">
+async function recuperarPassword() {
 
-                        <input
-                            type="radio"
-                            id="metodo-binance"
-                            name="metodo-pago"
-                            value="binance"
-                        >
+    if (!supabaseClient) {
+        return;
+    }
 
-                        <label for="metodo-binance">
-                            Binance
-                        </label>
 
-                    </div>
+    const correo =
+        prompt(
+            "Escribe tu correo electrónico:"
+        );
 
 
-                    <div class="payment-method">
+    if (!correo) {
+        return;
+    }
 
-                        <input
-                            type="radio"
-                            id="metodo-paypal"
-                            name="metodo-pago"
-                            value="paypal"
-                        >
 
-                        <label for="metodo-paypal">
-                            PayPal
-                        </label>
+    try {
 
-                    </div>
+        const {
+            error
+        } =
+            await supabaseClient.auth.resetPasswordForEmail(
+                correo.trim().toLowerCase(),
+                {
+                    redirectTo:
+                        window.location.origin
+                }
+            );
 
-                </div>
 
+        if (error) {
+            throw error;
+        }
 
-                <div
-                    id="pago-binance"
-                    class="payment-box hidden"
-                >
 
-                    <h3>
-                        Pagar con Binance
-                    </h3>
+        mostrarMensaje(
+            "Revisa tu correo para recuperar la contraseña.",
+            "success"
+        );
 
-                    <p>
-                        Utiliza la dirección de pago configurada
-                        por Market Flash.
-                    </p>
 
+    } catch (error) {
 
-                    <div class="payment-address">
+        console.error(
+            "Error recuperando contraseña:",
+            error
+        );
 
-                        <span>
-                            Dirección de Binance
-                        </span>
 
-                        <code id="direccion-binance">
-                            Pendiente de configuración
-                        </code>
+        mostrarMensaje(
+            error.message ||
+            "No se pudo enviar el correo.",
+            "error"
+        );
 
-                        <button
-                            type="button"
-                            id="btn-copiar-binance"
-                            class="secondary-button"
-                        >
-                            Copiar
-                        </button>
+    }
 
-                    </div>
+}
 
-                </div>
 
+/* ============================================================
+   INTERFAZ DE USUARIO
+   ============================================================ */
 
-                <div
-                    id="pago-paypal"
-                    class="payment-box hidden"
-                >
+function actualizarInterfazUsuario() {
 
-                    <h3>
-                        Pagar con PayPal
-                    </h3>
+    const botonRegistro =
+        $("#btn-registrarse");
 
-                    <p>
-                        Utiliza la cuenta configurada
-                        por Market Flash.
-                    </p>
+    const botonLogin =
+        $("#btn-iniciar-sesion");
 
+    const botonPerfil =
+        $("#btn-perfil");
 
-                    <div class="payment-address">
 
-                        <span>
-                            Cuenta de PayPal
-                        </span>
+    if (MarketFlash.user) {
 
-                        <code id="cuenta-paypal">
-                            Pendiente de configuración
-                        </code>
+        if (botonRegistro) {
+            botonRegistro.style.display =
+                "none";
+        }
 
-                    </div>
+        if (botonLogin) {
+            botonLogin.style.display =
+                "none";
+        }
 
-                </div>
+        if (botonPerfil) {
+            botonPerfil.style.display =
+                "block";
+        }
 
+    } else {
 
-                <div class="form-card">
+        if (botonRegistro) {
+            botonRegistro.style.display =
+                "";
+        }
 
-                    <div class="form-group">
+        if (botonLogin) {
+            botonLogin.style.display =
+                "";
+        }
 
-                        <label for="captura-pago">
-                            Comprobante de pago
-                        </label>
+        if (botonPerfil) {
+            botonPerfil.style.display =
+                "none";
+        }
 
-                        <input
-                            type="file"
-                            id="captura-pago"
-                            name="comprobante"
-                            accept="image/*,.pdf"
-                        >
+    }
 
-                    </div>
+    mostrarDatosPerfil();
 
+}
 
-                    <div
-                        id="vista-previa-comprobante"
-                        class="receipt-preview"
-                    >
-                    </div>
 
+function mostrarDatosPerfil() {
 
-                    <button
-                        type="button"
-                        id="enviar-comprobante"
-                        class="primary-button"
-                    >
-                        Enviar comprobante
-                    </button>
+    const perfil =
+        MarketFlash.profile;
 
 
-                    <div
-                        id="estado-pago"
-                        class="status-box"
-                    >
-                        Estado:
-                        pendiente
-                    </div>
+    const nombre =
+        $("#perfil-nombre");
 
-                </div>
+    const correo =
+        $("#perfil-correo");
 
-            </div>
+    const telefono =
+        $("#perfil-telefono");
 
-        </section>
+    const whatsapp =
+        $("#perfil-whatsapp");
 
+    const messenger =
+        $("#perfil-messenger");
 
-        <!-- =================================================
-             PERFIL
-             ================================================= -->
+    const documento =
+        $("#perfil-documento");
 
-        <section
-            id="perfil"
-            class="page-section"
-        >
 
-            <div class="section-heading">
+    if (!perfil) {
 
-                <span class="section-kicker">
-                    MI CUENTA
-                </span>
+        if (nombre) {
+            nombre.textContent =
+                "Usuario";
+        }
 
-                <h2>
-                    Mi perfil
-                </h2>
+        if (correo) {
+            correo.textContent =
+                "-";
+        }
 
-            </div>
+        if (telefono) {
+            telefono.textContent =
+                "-";
+        }
 
+        if (whatsapp) {
+            whatsapp.textContent =
+                "-";
+        }
 
-            <div class="profile-layout">
+        if (messenger) {
+            messenger.textContent =
+                "-";
+        }
 
-                <div class="profile-card">
+        if (documento) {
+            documento.textContent =
+                "-";
+        }
 
-                    <div class="profile-avatar">
-                        MF
-                    </div>
+        return;
 
-                    <h3 id="perfil-nombre">
-                        Usuario
-                    </h3>
+    }
 
-                    <p id="perfil-correo">
-                        -
-                    </p>
 
-                </div>
+    if (nombre) {
+        nombre.textContent =
+            perfil.nombre ||
+            "Usuario";
+    }
 
 
-                <div class="profile-details">
+    if (correo) {
+        correo.textContent =
+            perfil.correo ||
+            MarketFlash.user?.email ||
+            "-";
+    }
 
-                    <div class="profile-detail">
-                        <span>
-                            Teléfono
-                        </span>
 
-                        <strong id="perfil-telefono">
-                            -
-                        </strong>
-                    </div>
-
-
-                    <div class="profile-detail">
-                        <span>
-                            WhatsApp
-                        </span>
-
-                        <strong id="perfil-whatsapp">
-                            -
-                        </strong>
-                    </div>
-
-
-                    <div class="profile-detail">
-                        <span>
-                            Messenger
-                        </span>
-
-                        <strong id="perfil-messenger">
-                            -
-                        </strong>
-                    </div>
-
-
-                    <div class="profile-detail">
-                        <span>
-                            Documento
-                        </span>
-
-                        <strong id="perfil-documento">
-                            -
-                        </strong>
-                    </div>
-
-
-                    <div class="profile-actions">
-
-                        <button
-                            type="button"
-                            id="btn-editar-perfil"
-                            class="secondary-button"
-                        >
-                            Editar perfil
-                        </button>
-
-                        <button
-                            type="button"
-                            id="btn-cerrar-sesion"
-                            class="danger-button"
-                        >
-                            Cerrar sesión
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- PERFIL: PUBLICACIONES -->
-
-            <div class="content-card">
-
-                <div class="section-heading">
-
-                    <h3>
-                        Mis publicaciones
-                    </h3>
-
-                </div>
-
-                <div
-                    id="mis-publicaciones"
-                    class="products-grid"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- PERFIL: FAVORITOS -->
-
-            <div class="content-card">
-
-                <div class="section-heading">
-
-                    <h3>
-                        Mis favoritos
-                    </h3>
-
-                </div>
-
-                <div
-                    id="lista-favoritos"
-                    class="products-grid"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- PERFIL: VENDIDOS -->
-
-            <div class="content-card">
-
-                <div class="section-heading">
-
-                    <h3>
-                        Productos vendidos
-                    </h3>
-
-                </div>
-
-                <div
-                    id="lista-vendidos"
-                    class="products-grid"
-                >
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             PROMOCIONAR
-             ================================================= -->
-
-        <section
-            id="promocionar"
-            class="page-section"
-        >
-
-            <div class="section-heading">
-
-                <span class="section-kicker">
-                    MÁS VISIBILIDAD
-                </span>
-
-                <h2>
-                    Promociona tu producto
-                </h2>
-
-                <p>
-                    Solicita una promoción para destacar
-                    tu publicación.
-                </p>
-
-            </div>
-
-
-            <div class="promotion-grid">
-
-                <article class="promotion-card">
-
-                    <h3>
-                        Promoción básica
-                    </h3>
-
-                    <p>
-                        Mayor visibilidad en Market Flash.
-                    </p>
-
-                    <strong>
-                        Próximamente
-                    </strong>
-
-                    <button
-                        type="button"
-                        class="primary-button"
-                        data-promotion="basica"
-                    >
-                        Solicitar
-                    </button>
-
-                </article>
-
-
-                <article class="promotion-card featured">
-
-                    <span class="promotion-badge">
-                        DESTACADA
-                    </span>
-
-                    <h3>
-                        Promoción destacada
-                    </h3>
-
-                    <p>
-                        Tu producto tendrá una posición
-                        más visible.
-                    </p>
-
-                    <strong>
-                        Próximamente
-                    </strong>
-
-                    <button
-                        type="button"
-                        class="primary-button"
-                        data-promotion="destacada"
-                    >
-                        Solicitar
-                    </button>
-
-                </article>
-
-
-                <article class="promotion-card">
-
-                    <h3>
-                        Publicidad patrocinada
-                    </h3>
-
-                    <p>
-                        Aparece en el área publicitaria
-                        de Market Flash.
-                    </p>
-
-                    <strong>
-                        Próximamente
-                    </strong>
-
-                    <button
-                        type="button"
-                        class="primary-button"
-                        data-promotion="patrocinada"
-                    >
-                        Solicitar
-                    </button>
-
-                </article>
-
-            </div>
-
-
-            <div
-                id="mis-promociones"
-                class="content-card"
-            >
-
-                <h3>
-                    Mis solicitudes de promoción
-                </h3>
-
-                <div id="lista-promociones">
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             VÍDEOS
-             ================================================= -->
-
-        <section
-            id="videos"
-            class="page-section"
-        >
-
-            <div class="section-heading">
-
-                <span class="section-kicker">
-                    CONTENIDO
-                </span>
-
-                <h2>
-                    Vídeos
-                </h2>
-
-                <p>
-                    Muestra tus productos mediante vídeos.
-                </p>
-
-            </div>
-
-
-            <div class="form-card wide-card">
-
-                <form id="form-video">
-
-                    <div class="form-group">
-
-                        <label for="titulo-video">
-                            Título
-                        </label>
-
-                        <input
-                            type="text"
-                            id="titulo-video"
-                            name="titulo"
-                            placeholder="Título del vídeo"
-                            required
-                        >
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="archivo-video">
-                            Vídeo
-                        </label>
-
-                        <input
-                            type="file"
-                            id="archivo-video"
-                            name="video"
-                            accept="video/*"
-                            required
-                        >
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="descripcion-video">
-                            Descripción
-                        </label>
-
-                        <textarea
-                            id="descripcion-video"
-                            name="descripcion"
-                            rows="4"
-                            placeholder="Describe tu vídeo..."
-                        ></textarea>
-
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-                        Publicar vídeo
-                    </button>
-
-                </form>
-
-            </div>
-
-
-            <div
-                id="lista-videos"
-                class="video-grid"
-            >
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             NOTIFICACIONES
-             ================================================= -->
-
-        <section
-            id="notificaciones"
-            class="page-section"
-        >
-
-            <div class="section-heading">
-
-                <span class="section-kicker">
-                    AVISOS
-                </span>
-
-                <h2>
-                    Notificaciones
-                </h2>
-
-            </div>
-
-
-            <div
-                id="lista-notificaciones"
-                class="notifications-list"
-            >
-
-                <div class="empty-state">
-                    <h3>
-                        No hay notificaciones
-                    </h3>
-
-                    <p>
-                        Aquí aparecerán tus avisos.
-                    </p>
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             CALIFICACIONES
-             ================================================= -->
-
-        <section
-            id="calificaciones"
-            class="page-section"
-        >
-
-            <div class="section-heading">
-
-                <span class="section-kicker">
-                    REPUTACIÓN
-                </span>
-
-                <h2>
-                    Calificaciones
-                </h2>
-
-            </div>
-
-
-            <div class="form-card">
-
-                <form id="form-calificacion">
-
-                    <div class="form-group">
-
-                        <label for="estrellas">
-                            Calificación
-                        </label>
-
-                        <select
-                            id="estrellas"
-                            name="estrellas"
-                            required
-                        >
-
-                            <option value="">
-                                Seleccionar
-                            </option>
-
-                            <option value="5">
-                                ★★★★★
-                            </option>
-
-                            <option value="4">
-                                ★★★★☆
-                            </option>
-
-                            <option value="3">
-                                ★★★☆☆
-                            </option>
-
-                            <option value="2">
-                                ★★☆☆☆
-                            </option>
-
-                            <option value="1">
-                                ★☆☆☆☆
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="comentario-calificacion">
-                            Comentario
-                        </label>
-
-                        <textarea
-                            id="comentario-calificacion"
-                            name="comentario"
-                            rows="5"
-                            placeholder="Escribe tu experiencia..."
-                        ></textarea>
-
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-                        Enviar calificación
-                    </button>
-
-                </form>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             RECLAMOS
-             ================================================= -->
-
-        <section
-            id="reclamos"
-            class="page-section"
-        >
-
-            <div class="section-heading">
-
-                <span class="section-kicker">
-                    AYUDA
-                </span>
-
-                <h2>
-                    Reclamos y reportes
-                </h2>
-
-                <p>
-                    Informa de una publicación o situación
-                    que necesite revisión.
-                </p>
-
-            </div>
-
-
-            <div class="form-card">
-
-                <form id="form-reclamo">
-
-                    <div class="form-group">
-
-                        <label for="motivo-reclamo">
-                            Motivo
-                        </label>
-
-                        <select
-                            id="motivo-reclamo"
-                            name="motivo"
-                            required
-                        >
-
-                            <option value="">
-                                Seleccionar motivo
-                            </option>
-
-                            <option value="fraude">
-                                Posible fraude
-                            </option>
-
-                            <option value="producto-falso">
-                                Producto falso
-                            </option>
-
-                            <option value="contenido-inapropiado">
-                                Contenido inapropiado
-                            </option>
-
-                            <option value="informacion-incorrecta">
-                                Información incorrecta
-                            </option>
-
-                            <option value="otro">
-                                Otro
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="detalle-reclamo">
-                            Detalles
-                        </label>
-
-                        <textarea
-                            id="detalle-reclamo"
-                            name="detalle"
-                            rows="6"
-                            placeholder="Explica el problema..."
-                            required
-                        ></textarea>
-
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-                        Enviar reclamo
-                    </button>
-
-                </form>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             SOPORTE
-             ================================================= -->
-
-        <section
-            id="soporte"
-            class="page-section"
-        >
-
-            <div class="section-heading">
-
-                <span class="section-kicker">
-                    SOPORTE
-                </span>
-
-                <h2>
-                    Centro de soporte
-                </h2>
-
-                <p>
-                    Estamos preparando los canales de
-                    atención de Market Flash.
-                </p>
-
-            </div>
-
-
-            <div class="support-grid">
-
-                <article class="support-card">
-
-                    <div class="support-icon">
-                        W
-                    </div>
-
-                    <h3>
-                        WhatsApp
-                    </h3>
-
-                    <p>
-                        Contacto directo con soporte.
-                    </p>
-
-                    <button
-                        type="button"
-                        id="contacto-whatsapp"
-                        class="primary-button"
-                    >
-                        Contactar
-                    </button>
-
-                </article>
-
-
-                <article class="support-card">
-
-                    <div class="support-icon">
-                        M
-                    </div>
-
-                    <h3>
-                        Messenger
-                    </h3>
-
-                    <p>
-                        Escríbenos por Messenger.
-                    </p>
-
-                    <button
-                        type="button"
-                        id="contacto-messenger"
-                        class="primary-button"
-                    >
-                        Contactar
-                    </button>
-
-                </article>
-
-
-                <article class="support-card">
-
-                    <div class="support-icon">
-                        ?
-                    </div>
-
-                    <h3>
-                        Ayuda
-                    </h3>
-
-                    <p>
-                        Consulta información sobre
-                        Market Flash.
-                    </p>
-
-                    <button
-                        type="button"
-                        id="contacto-ayuda"
-                        class="secondary-button"
-                    >
-                        Ver ayuda
-                    </button>
-
-                </article>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             CONTACTAR VENDEDOR
-             ================================================= -->
-
-        <section
-            id="contactar-vendedor"
-            class="page-section"
-        >
-
-            <div class="section-heading">
-
-                <span class="section-kicker">
-                    CONTACTO
-                </span>
-
-                <h2>
-                    Contactar vendedor
-                </h2>
-
-                <p id="contacto-vendedor-nombre">
-                    Selecciona el método de contacto.
-                </p>
-
-            </div>
-
-
-            <div class="contact-options">
-
-                <button
-                    type="button"
-                    id="btn-contactar-whatsapp"
-                    class="whatsapp-button"
-                >
-                    WhatsApp
-                </button>
-
-                <button
-                    type="button"
-                    id="btn-contactar-messenger"
-                    class="messenger-button"
-                >
-                    Messenger
-                </button>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             ADMINISTRADOR
-             ================================================= -->
-
-        <section
-            id="panel-administrador"
-            class="page-section"
-        >
-
-            <div class="section-heading">
-
-                <span class="section-kicker">
-                    ADMINISTRACIÓN
-                </span>
-
-                <h2>
-                    Panel de administrador
-                </h2>
-
-                <p>
-                    Área privada para gestionar Market Flash.
-                </p>
-
-            </div>
-
-
-            <!-- RESUMEN -->
-
-            <div
-                id="resumen-administrador"
-                class="admin-stats"
-            >
-
-                <div class="admin-stat">
-
-                    <span>
-                        Usuarios
-                    </span>
-
-                    <strong id="total-usuarios">
-                        0
-                    </strong>
-
-                </div>
-
-
-                <div class="admin-stat">
-
-                    <span>
-                        Publicaciones pendientes
-                    </span>
-
-                    <strong id="total-pendientes">
-                        0
-                    </strong>
-
-                </div>
-
-
-                <div class="admin-stat">
-
-                    <span>
-                        Pagos pendientes
-                    </span>
-
-                    <strong id="total-pagos-pendientes">
-                        0
-                    </strong>
-
-                </div>
-
-
-                <div class="admin-stat">
-
-                    <span>
-                        Publicaciones activas
-                    </span>
-
-                    <strong id="total-publicaciones-activas">
-                        0
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- CONFIGURACIÓN -->
-
-            <div class="content-card">
-
-                <div class="section-heading">
-
-                    <h3>
-                        Configuración
-                    </h3>
-
-                </div>
-
-
-                <div class="admin-settings">
-
-                    <div class="setting-row">
-
-                        <div>
-
-                            <strong>
-                                Publicaciones
-                            </strong>
-
-                            <p id="texto-configuracion-publicaciones">
-                                Cargando...
-                            </p>
-
-                        </div>
-
-                        <button
-                            type="button"
-                            id="btn-toggle-publicaciones"
-                            class="secondary-button"
-                        >
-                            Cambiar
-                        </button>
-
-                    </div>
-
-
-                    <div class="setting-row">
-
-                        <div>
-
-                            <strong>
-                                Promociones
-                            </strong>
-
-                            <p id="texto-configuracion-promociones">
-                                Cargando...
-                            </p>
-
-                        </div>
-
-                        <button
-                            type="button"
-                            id="btn-toggle-promociones"
-                            class="secondary-button"
-                        >
-                            Cambiar
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- PAGOS PENDIENTES -->
-
-            <div class="content-card">
-
-                <div class="section-heading">
-
-                    <h3>
-                        Pagos pendientes
-                    </h3>
-
-                    <p>
-                        Revisa los comprobantes enviados.
-                    </p>
-
-                </div>
-
-
-                <div
-                    id="lista-comprobantes-admin"
-                    class="admin-list"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- PUBLICACIONES PENDIENTES -->
-
-            <div class="content-card">
-
-                <div class="section-heading">
-
-                    <h3>
-                        Publicaciones pendientes
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="lista-pendientes-admin"
-                    class="admin-list"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- PUBLICACIONES ACTIVAS -->
-
-            <div class="content-card">
-
-                <div class="section-heading">
-
-                    <h3>
-                        Publicaciones activas
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="lista-activas-admin"
-                    class="products-grid"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- REPORTES -->
-
-            <div class="content-card">
-
-                <div class="section-heading">
-
-                    <h3>
-                        Reclamos y reportes
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="lista-reportes-admin"
-                    class="admin-list"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- USUARIOS -->
-
-            <div class="content-card">
-
-                <div class="section-heading">
-
-                    <h3>
-                        Usuarios
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="lista-usuarios-admin"
-                    class="admin-list"
-                >
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             POLÍTICAS
-             ================================================= -->
-
-        <section
-            id="politicas"
-            class="page-section"
-        >
-
-            <div class="section-heading">
-
-                <span class="section-kicker">
-                    INFORMACIÓN
-                </span>
-
-                <h2>
-                    Seguridad y reglas
-                </h2>
-
-            </div>
-
-
-            <div class="policy-grid">
-
-                <article class="policy-card">
-
-                    <h3>
-                        Publicaciones
-                    </h3>
-
-                    <p>
-                        Las publicaciones deben cumplir
-                        las reglas de Market Flash.
-                    </p>
-
-                </article>
-
-
-                <article class="policy-card">
-
-                    <h3>
-                        Pagos
-                    </h3>
-
-                    <p>
-                        Los comprobantes pueden ser revisados
-                        antes de aprobar una publicación.
-                    </p>
-
-                </article>
-
-
-                <article class="policy-card">
-
-                    <h3>
-                        Reportes
-                    </h3>
-
-                    <p>
-                        Puedes reportar publicaciones que
-                        consideres problemáticas.
-                    </p>
-
-                </article>
-
-            </div>
-
-        </section>
-
-    </main>
-
-
-    <!-- =====================================================
-         PIE DE PÁGINA
-         ===================================================== -->
-
-    <footer class="site-footer">
-
-        <div class="footer-grid">
-
-            <div>
-
-                <div class="footer-brand">
-                    Market Flash
-                </div>
-
-                <p>
-                    Compra, vende y promociona
-                    desde un solo lugar.
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    Market Flash
-                </h3>
-
-                <button
-                    type="button"
-                    data-section="inicio"
-                    class="footer-link"
-                >
-                    Inicio
-                </button>
-
-                <button
-                    type="button"
-                    data-section="categorias"
-                    class="footer-link"
-                >
-                    Categorías
-                </button>
-
-                <button
-                    type="button"
-                    data-section="publicar"
-                    class="footer-link"
-                >
-                    Publicar
-                </button>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    Ayuda
-                </h3>
-
-                <button
-                    type="button"
-                    data-section="reclamos"
-                    class="footer-link"
-                >
-                    Reclamos
-                </button>
-
-                <button
-                    type="button"
-                    data-section="soporte"
-                    class="footer-link"
-                >
-                    Soporte
-                </button>
-
-                <button
-                    type="button"
-                    data-section="politicas"
-                    class="footer-link"
-                >
-                    Reglas
-                </button>
-
-            </div>
-
-
-            <div>
-
-                <h3>
-                    Contacto
-                </h3>
-
-                <button
-                    type="button"
-                    id="footer-whatsapp"
-                    class="footer-link"
-                >
-                    WhatsApp
-                </button>
-
-                <button
-                    type="button"
-                    id="footer-messenger"
-                    class="footer-link"
-                >
-                    Messenger
-                </button>
-
-                <a
-                    href="#"
-                    id="footer-facebook"
-                    class="footer-link"
-                >
-                    Facebook
-                </a>
-
-            </div>
-
-        </div>
-
-
-        <div class="footer-bottom">
-
-            <p>
-                © 2026 Market Flash
-            </p>
-
-            <p>
-                Propiedad de Julio Alcántara Gómez
-            </p>
-
-        </div>
-
-    </footer>
-
-
-    <!-- =====================================================
-         MENSAJES
-         ===================================================== -->
-
-    <div
-        id="app-message"
-        class="app-message"
-        aria-live="polite"
-    >
-    </div>
-
-
-    <!-- =====================================================
-         SUPABASE
-         ===================================================== -->
-
-    <script
-        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-    ></script>
-
-
-    <!-- =====================================================
-         JAVASCRIPT DE MARKET FLASH
-         ===================================================== -->
-
-    <script
-        src="script.js"
-    ></script>
-
-</body>
-</html>
+    if (telefono) {
+        telefono.textContent =
+            perfil.telefono ||
+            "-
