@@ -2961,4 +2961,679 @@ document.addEventListener("DOMContentLoaded", () => {
 
     actualizarBoton();
 
+});// ==========================================
+// CONFIGURACIÓN DE PROMOCIONES
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonesConfiguracion =
+        document.querySelectorAll(
+            "#configuracion-administrador button"
+        );
+
+    if (!botonesConfiguracion.length) {
+        return;
+    }
+
+
+    const botonPromociones =
+        botonesConfiguracion[2];
+
+    if (!botonPromociones) {
+        return;
+    }
+
+
+    const CLAVE_PROMOCIONES =
+        "marketFlashPromocionesActivas";
+
+
+    function promocionesActivas() {
+
+        const valor =
+            localStorage.getItem(
+                CLAVE_PROMOCIONES
+            );
+
+        // Las promociones estarán activas por defecto.
+        if (valor === null) {
+            return true;
+        }
+
+        return valor === "true";
+    }
+
+
+    function guardarEstado(estado) {
+
+        localStorage.setItem(
+            CLAVE_PROMOCIONES,
+            String(estado)
+        );
+
+    }
+
+
+    function actualizarBoton() {
+
+        if (promocionesActivas()) {
+
+            botonPromociones.textContent =
+                "Desactivar promociones";
+
+        } else {
+
+            botonPromociones.textContent =
+                "Activar promociones";
+
+        }
+
+    }
+
+
+    botonPromociones.addEventListener(
+        "click",
+        () => {
+
+            const estadoActual =
+                promocionesActivas();
+
+            const nuevoEstado =
+                !estadoActual;
+
+            guardarEstado(
+                nuevoEstado
+            );
+
+            if (nuevoEstado) {
+
+                alert(
+                    "Las promociones están activadas."
+                );
+
+            } else {
+
+                alert(
+                    "Las promociones están desactivadas."
+                );
+
+            }
+
+            actualizarBoton();
+
+        }
+    );
+
+
+    actualizarBoton();
+
+});// ==========================================
+// SISTEMA DE MENSAJES
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    function mostrarMensaje(texto, tipo = "info") {
+
+        let contenedor =
+            document.querySelector("#mensaje-market-flash");
+
+        if (!contenedor) {
+
+            contenedor =
+                document.createElement("div");
+
+            contenedor.id =
+                "mensaje-market-flash";
+
+            document.body.appendChild(
+                contenedor
+            );
+        }
+
+
+        contenedor.textContent =
+            texto;
+
+        contenedor.dataset.tipo =
+            tipo;
+
+
+        clearTimeout(
+            contenedor._temporizador
+        );
+
+
+        contenedor._temporizador =
+            setTimeout(() => {
+
+                contenedor.remove();
+
+            }, 4000);
+
+    }
+
+
+    // Disponible para otras partes del sistema.
+    window.marketFlashMensaje =
+        mostrarMensaje;
+
+});// ==========================================
+// CARGAR PUBLICACIONES AL INICIAR MARKET FLASH
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const listaPublicaciones = document.querySelector(
+        "#lista-publicaciones"
+    );
+
+    if (!listaPublicaciones) {
+        return;
+    }
+
+
+    function obtenerPublicaciones() {
+
+        try {
+
+            return JSON.parse(
+                localStorage.getItem(
+                    "marketFlashPublicaciones"
+                )
+            ) || [];
+
+        } catch (error) {
+
+            console.error(
+                "No se pudieron cargar las publicaciones:",
+                error
+            );
+
+            return [];
+        }
+    }
+
+
+    const publicaciones =
+        obtenerPublicaciones();
+
+
+    // No hacemos nada si todavía no hay publicaciones.
+    if (!publicaciones.length) {
+        return;
+    }
+
+
+    // Limpiar el ejemplo inicial del HTML.
+    listaPublicaciones.innerHTML = "";
+
+
+    publicaciones.forEach((publicacion) => {
+
+        const articulo =
+            document.createElement("article");
+
+        articulo.className =
+            "publicacion";
+
+
+        const informacion =
+            document.createElement("div");
+
+        informacion.className =
+            "informacion-publicacion";
+
+
+        const titulo =
+            document.createElement("h3");
+
+        titulo.textContent =
+            publicacion.nombre || "Producto";
+
+
+        const categoria =
+            document.createElement("p");
+
+        categoria.innerHTML =
+            `<strong>Categoría:</strong> ${
+                publicacion.categoria || "Sin categoría"
+            }`;
+
+
+        const descripcion =
+            document.createElement("p");
+
+        descripcion.textContent =
+            publicacion.descripcion || "Sin descripción.";
+
+
+        const precio =
+            document.createElement("p");
+
+        precio.innerHTML =
+            `<strong>Precio:</strong> RD$ ${
+                publicacion.precio || "0.00"
+            }`;
+
+
+        const cantidad =
+            document.createElement("p");
+
+        cantidad.innerHTML =
+            `<strong>Cantidad:</strong> ${
+                publicacion.cantidad || "0"
+            }`;
+
+
+        const estado =
+            document.createElement("p");
+
+        estado.innerHTML =
+            `<strong>Estado:</strong> ${
+                publicacion.estado || "Pendiente"
+            }`;
+
+
+        const boton =
+            document.createElement("button");
+
+        boton.type =
+            "button";
+
+        boton.textContent =
+            "Ver publicación";
+
+
+        informacion.appendChild(titulo);
+        informacion.appendChild(categoria);
+        informacion.appendChild(descripcion);
+        informacion.appendChild(precio);
+        informacion.appendChild(cantidad);
+        informacion.appendChild(estado);
+        informacion.appendChild(boton);
+
+
+        const contenedorImagen =
+            document.createElement("div");
+
+        contenedorImagen.className =
+            "imagen-producto";
+
+
+        const imagen =
+            document.createElement("img");
+
+        imagen.src = "";
+
+        imagen.alt =
+            publicacion.nombre || "Producto";
+
+
+        contenedorImagen.appendChild(
+            imagen
+        );
+
+
+        articulo.appendChild(
+            contenedorImagen
+        );
+
+        articulo.appendChild(
+            informacion
+        );
+
+
+        listaPublicaciones.appendChild(
+            articulo
+        );
+
+    });
+
+});// ==========================================
+// MOSTRAR Y OCULTAR SECCIONES
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const secciones = [
+        "#registro",
+        "#inicio-sesion",
+        "#formulario-publicar",
+        "#pago-publicacion",
+        "#perfil-usuario",
+        "#favoritos",
+        "#mis-publicaciones",
+        "#productos-vendidos",
+        "#notificaciones",
+        "#panel-administrador",
+        "#videos",
+        "#calificaciones",
+        "#reportar-publicacion"
+    ];
+
+
+    function ocultarSecciones() {
+
+        secciones.forEach((selector) => {
+
+            const seccion =
+                document.querySelector(selector);
+
+            if (seccion) {
+                seccion.style.display = "none";
+            }
+
+        });
+
+    }
+
+
+    function mostrarSeccion(selector) {
+
+        ocultarSecciones();
+
+        const seccion =
+            document.querySelector(selector);
+
+        if (!seccion) {
+            return;
+        }
+
+        seccion.style.display = "block";
+
+        seccion.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    }
+
+
+    // Botón de registro
+    const botonRegistro =
+        document.querySelector(
+            "header > div:last-child button:first-child"
+        );
+
+    // Botón de iniciar sesión
+    const botonLogin =
+        document.querySelector(
+            "header > div:last-child button:nth-child(2)"
+        );
+
+
+    botonRegistro?.addEventListener(
+        "click",
+        () => {
+
+            mostrarSeccion("#registro");
+
+        }
+    );
+
+
+    botonLogin?.addEventListener(
+        "click",
+        () => {
+
+            mostrarSeccion("#inicio-sesion");
+
+        }
+    );
+
+
+    // Al abrir la página mostramos las publicaciones.
+    ocultarSecciones();
+
+    const publicaciones =
+        document.querySelector("#publicaciones");
+
+    if (publicaciones) {
+
+        publicaciones.style.display =
+            "block";
+
+    }
+
+});// ==========================================
+// ACCESO A PUBLICAR
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonPublicar = document.querySelector(
+        'header nav button:nth-child(3)'
+    );
+
+    if (!botonPublicar) {
+        return;
+    }
+
+
+    botonPublicar.addEventListener("click", () => {
+
+        const sesionActiva =
+            localStorage.getItem(
+                "marketFlashSesion"
+            ) === "activa";
+
+
+        if (!sesionActiva) {
+
+            const inicioSesion =
+                document.querySelector(
+                    "#inicio-sesion"
+                );
+
+            if (inicioSesion) {
+
+                inicioSesion.style.display =
+                    "block";
+
+                inicioSesion.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            }
+
+            alert(
+                "Debes iniciar sesión antes de publicar."
+            );
+
+            return;
+        }
+
+
+        const formularioPublicar =
+            document.querySelector(
+                "#formulario-publicar"
+            );
+
+        if (!formularioPublicar) {
+            return;
+        }
+
+
+        formularioPublicar.style.display =
+            "block";
+
+        formularioPublicar.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    });
+
+});// ==========================================
+// CAMBIAR ENTRE REGISTRO E INICIO DE SESIÓN
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const formularioRegistro = document.querySelector(
+        "#registro"
+    );
+
+    const formularioLogin = document.querySelector(
+        "#inicio-sesion"
+    );
+
+
+    if (!formularioRegistro || !formularioLogin) {
+        return;
+    }
+
+
+    // Botón dentro del registro para ir al login
+    const botonIrLogin =
+        document.createElement("button");
+
+    botonIrLogin.type = "button";
+
+    botonIrLogin.textContent =
+        "¿Ya tienes una cuenta? Inicia sesión";
+
+
+    formularioRegistro.appendChild(
+        botonIrLogin
+    );
+
+
+    botonIrLogin.addEventListener(
+        "click",
+        () => {
+
+            formularioRegistro.style.display =
+                "none";
+
+            formularioLogin.style.display =
+                "block";
+
+            formularioLogin.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+        }
+    );
+
+
+    // Botón dentro del login para crear cuenta
+    const botonIrRegistro =
+        document.createElement("button");
+
+    botonIrRegistro.type = "button";
+
+    botonIrRegistro.textContent =
+        "¿No tienes una cuenta? Regístrate";
+
+
+    formularioLogin.appendChild(
+        botonIrRegistro
+    );
+
+
+    botonIrRegistro.addEventListener(
+        "click",
+        () => {
+
+            formularioLogin.style.display =
+                "none";
+
+            formularioRegistro.style.display =
+                "block";
+
+            formularioRegistro.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+        }
+    );
+
+});// ==========================================
+// ACCESO AL PANEL DE ADMINISTRADOR
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const panelAdministrador = document.querySelector(
+        "#panel-administrador"
+    );
+
+    const botonConfiguracion = document.querySelector(
+        '#configuracion-administrador button:nth-child(1)'
+    );
+
+
+    if (!panelAdministrador) {
+        return;
+    }
+
+
+    // Ocultar el panel de administrador al iniciar.
+    panelAdministrador.style.display = "none";
+
+
+    // Crear botón para mostrar el panel.
+    const botonAdmin =
+        document.createElement("button");
+
+    botonAdmin.type = "button";
+    botonAdmin.textContent =
+        "Abrir panel de administrador";
+
+
+    const encabezado =
+        document.querySelector("header");
+
+
+    if (encabezado) {
+
+        encabezado.appendChild(
+            botonAdmin
+        );
+
+    }
+
+
+    botonAdmin.addEventListener(
+        "click",
+        () => {
+
+            const visible =
+                panelAdministrador.style.display ===
+                "block";
+
+
+            if (visible) {
+
+                panelAdministrador.style.display =
+                    "none";
+
+                botonAdmin.textContent =
+                    "Abrir panel de administrador";
+
+                return;
+            }
+
+
+            panelAdministrador.style.display =
+                "block";
+
+            botonAdmin.textContent =
+                "Cerrar panel de administrador";
+
+
+            panelAdministrador.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+        }
+    );
+
 });
