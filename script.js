@@ -3636,4 +3636,291 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     );
 
+});// ==========================================
+// CONTADORES DE MARKET FLASH
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const contadorPendientes = document.querySelector(
+        "#total-pendientes"
+    );
+
+    const contadorPagos = document.querySelector(
+        "#total-pagos-pendientes"
+    );
+
+    const contadorActivas = document.querySelector(
+        "#total-publicaciones-activas"
+    );
+
+
+    function obtenerLista(clave) {
+
+        try {
+
+            const datos = localStorage.getItem(clave);
+
+            if (!datos) {
+                return [];
+            }
+
+            const resultado = JSON.parse(datos);
+
+            return Array.isArray(resultado)
+                ? resultado
+                : [];
+
+        } catch (error) {
+
+            console.error(
+                `Error leyendo ${clave}:`,
+                error
+            );
+
+            return [];
+        }
+    }
+
+
+    function actualizarContadores() {
+
+        const publicaciones = obtenerLista(
+            "marketFlashPublicaciones"
+        );
+
+        const comprobantes = obtenerLista(
+            "marketFlashComprobantes"
+        );
+
+
+        const pendientes = publicaciones.filter(
+            (publicacion) =>
+                publicacion.estado ===
+                "Pendiente de aprobación"
+        );
+
+
+        const activas = publicaciones.filter(
+            (publicacion) =>
+                publicacion.estado ===
+                "Aprobada"
+        );
+
+
+        const pagosPendientes =
+            comprobantes.filter(
+                (comprobante) =>
+                    comprobante.estado ===
+                    "Pendiente de revisión"
+            );
+
+
+        if (contadorPendientes) {
+
+            contadorPendientes.textContent =
+                pendientes.length;
+
+        }
+
+
+        if (contadorPagos) {
+
+            contadorPagos.textContent =
+                pagosPendientes.length;
+
+        }
+
+
+        if (contadorActivas) {
+
+            contadorActivas.textContent =
+                activas.length;
+
+        }
+
+    }
+
+
+    actualizarContadores();
+
+
+    // Actualizar los contadores cada 3 segundos
+    setInterval(
+        actualizarContadores,
+        3000
+    );
+
+});// ==========================================
+// CONFIGURACIÓN GENERAL DE MARKET FLASH
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const CLAVE_CONFIG =
+        "marketFlashConfiguracion";
+
+
+    function obtenerConfiguracion() {
+
+        try {
+
+            const datos =
+                localStorage.getItem(CLAVE_CONFIG);
+
+            if (!datos) {
+
+                return {
+                    publicacionesDePago: true,
+                    promocionesActivas: true
+                };
+
+            }
+
+            return JSON.parse(datos);
+
+        } catch (error) {
+
+            console.error(
+                "Error al cargar la configuración:",
+                error
+            );
+
+            return {
+                publicacionesDePago: true,
+                promocionesActivas: true
+            };
+
+        }
+
+    }
+
+
+    function guardarConfiguracion(configuracion) {
+
+        localStorage.setItem(
+            CLAVE_CONFIG,
+            JSON.stringify(configuracion)
+        );
+
+    }
+
+
+    const configuracion =
+        obtenerConfiguracion();
+
+
+    // Guardar la configuración inicial
+    guardarConfiguracion(
+        configuracion
+    );
+
+
+    // Disponible para otros bloques
+    window.marketFlashConfig = {
+        obtenerConfiguracion,
+        guardarConfiguracion
+    };
+
+});// ==========================================
+// BOTÓN PARA VOLVER A INICIO
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonInicio = document.querySelector(
+        'header nav button:nth-child(1)'
+    );
+
+    const seccionesOcultables = [
+        "#registro",
+        "#inicio-sesion",
+        "#formulario-publicar",
+        "#pago-publicacion",
+        "#perfil-usuario",
+        "#favoritos",
+        "#mis-publicaciones",
+        "#productos-vendidos",
+        "#notificaciones",
+        "#panel-administrador",
+        "#videos",
+        "#calificaciones",
+        "#reportar-publicacion"
+    ];
+
+
+    function ocultarSecciones() {
+
+        seccionesOcultables.forEach((selector) => {
+
+            const seccion =
+                document.querySelector(selector);
+
+            if (seccion) {
+                seccion.style.display = "none";
+            }
+
+        });
+
+    }
+
+
+    botonInicio?.addEventListener(
+        "click",
+        () => {
+
+            ocultarSecciones();
+
+            const publicaciones =
+                document.querySelector("#publicaciones");
+
+            if (publicaciones) {
+
+                publicaciones.style.display =
+                    "block";
+
+                publicaciones.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            }
+
+        }
+    );
+
+});// ==========================================
+// NAVEGACIÓN A CATEGORÍAS
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonCategorias = document.querySelector(
+        'header nav button:nth-child(2)'
+    );
+
+    if (!botonCategorias) {
+        return;
+    }
+
+
+    botonCategorias.addEventListener("click", () => {
+
+        const categorias =
+            document.querySelector("#categorias");
+
+        if (!categorias) {
+            return;
+        }
+
+
+        categorias.style.display = "block";
+
+        categorias.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+
+    });
+
 });
