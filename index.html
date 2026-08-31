@@ -4,1051 +4,332 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Market Flash</title>
     <meta
         name="description"
-        content="Market Flash - Compra, vende y promociona tus productos."
+        content="Market Flash - Compra, vende y promociona productos."
     >
-</head>
-<title>Market Flash</title>
+
+    <meta name="theme-color" content="#111827">
+
+    <title>Market Flash</title>
 
     <link rel="stylesheet" href="style.css">
-    <body>
+</head>
 
-
-</body>
-</html>
 <body>
 
-    <header>
+    <!-- =====================================================
+         HEADER
+         ===================================================== -->
 
-        <div>
-            <h1>Market Flash</h1>
-            <p>Compra, vende y promociona</p>
+    <header class="site-header">
+
+        <div class="brand">
+            <div class="brand-logo">MF</div>
+
+            <div class="brand-info">
+                <h1>Market Flash</h1>
+                <p>Compra, vende y promociona</p>
+            </div>
         </div>
 
-        <nav>
-            <button type="button">Inicio</button>
-            <button type="button">Categorías</button>
-            <button type="button">Publicar</button>
-            <button type="button">Promocionar</button>
-            <button type="button">Reclamos</button>
-            <button type="button">Soporte</button>
+
+        <nav
+            class="main-nav"
+            aria-label="Navegación principal"
+        >
+            <button type="button" data-section="inicio">
+                Inicio
+            </button>
+
+            <button type="button" data-section="categorias">
+                Categorías
+            </button>
+
+            <button type="button" data-section="publicar">
+                Publicar
+            </button>
+
+            <button type="button" data-section="promocionar">
+                Promocionar
+            </button>
+
+            <button type="button" data-section="videos">
+                Vídeos
+            </button>
+
+            <button type="button" data-section="reclamos">
+                Reclamos
+            </button>
+
+            <button type="button" data-section="soporte">
+                Soporte
+            </button>
         </nav>
 
-        <div>
-            <button type="button">Iniciar sesión</button>
-            <button type="button">Registrarse</button>
+
+        <div class="header-actions">
+
+            <button
+                type="button"
+                id="btn-registrarse"
+            >
+                Registrarse
+            </button>
+
+            <button
+                type="button"
+                id="btn-iniciar-sesion"
+            >
+                Iniciar sesión
+            </button>
+
+            <button
+                type="button"
+                id="btn-perfil"
+            >
+                Mi perfil
+            </button>
+
         </div>
 
     </header>
 
-</body>    <main>
 
-        <!-- Barra de búsqueda -->
-        <section id="busqueda">
+    <!-- =====================================================
+         MAIN
+         ===================================================== -->
 
-            <h2>¿Qué estás buscando?</h2>
-
-            <form>
-                <input
-                    type="search"
-                    id="buscar"
-                    name="buscar"
-                    placeholder="Buscar productos..."
-                >
-
-                <button type="submit">
-                    Buscar
-                </button>
-            </form>
-
-        </section>
+    <main id="app">
 
 
-        <!-- Categorías -->
-        <section id="categorias">
+        <!-- =================================================
+             INICIO
+             ================================================= -->
 
-            <h2>Categorías</h2>
+        <section
+            id="inicio"
+            class="page-section active"
+        >
 
-            <div>
+            <div class="hero-section">
 
-                <button type="button">Electrónica</button>
+                <div class="hero-content">
 
-                <button type="button">Teléfonos</button>
+                    <span class="hero-badge">
+                        MARKET FLASH
+                    </span>
 
-                <button type="button">Vehículos</button>
-
-                <button type="button">Ropa</button>
-
-                <button type="button">Joyas y Oro</button>
-
-                <button type="button">Hogar</button>
-
-                <button type="button">Servicios</button>
-
-                <button type="button">Otros</button>
-
-            </div>
-
-        </section>
-
-    </main>        <!-- Publicaciones -->
-        <section id="publicaciones">
-
-            <h2>Publicaciones recientes</h2>
-
-            <div id="lista-publicaciones">
-
-                <!-- Publicación de ejemplo -->
-                <article class="publicacion">
-
-                    <div class="imagen-producto">
-                        <img
-                            src=""
-                            alt="Imagen del producto"
-                        >
-                    </div>
-
-                    <div class="informacion-publicacion">
-
-                        <h3>Producto disponible</h3>
-
-                        <p>
-                            Aquí aparecerá la descripción del producto.
-                        </p>
-
-                        <p>
-                            <strong>Precio:</strong>
-                            RD$ 0.00
-                        </p>
-
-                        <p>
-                            <strong>Vistas:</strong>
-                            0
-                        </p>
-
-                        <button type="button">
-                            Ver publicación
-                        </button>
-
-                        <button type="button">
-                            Contactar
-                        </button>
-
-                    </div>
-
-                </article>
-
-            </div>
-
-        </section>
-
-
-        <!-- Publicaciones promocionadas -->
-        <section id="promociones">
-
-            <h2>Publicaciones promocionadas</h2>
-
-            <div id="lista-promociones">
-
-                <article class="promocion">
-
-                    <h3>Publicidad destacada</h3>
+                    <h2>
+                        Compra, vende y encuentra
+                        lo que necesitas.
+                    </h2>
 
                     <p>
-                        Aquí aparecerán los anuncios
-                        promocionados de Market Flash.
+                        Una plataforma para comprar,
+                        vender, promocionar productos
+                        y conectar directamente con
+                        compradores y vendedores.
                     </p>
 
-                    <button type="button">
-                        Ver anuncio
+                    <div class="hero-buttons">
+
+                        <button
+                            type="button"
+                            class="primary-button"
+                            data-section="publicar"
+                        >
+                            Publicar producto
+                        </button>
+
+                        <button
+                            type="button"
+                            class="secondary-button"
+                            data-section="categorias"
+                        >
+                            Explorar productos
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- BUSCADOR -->
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <span>
+                        BUSCAR
+                    </span>
+
+                    <h2>
+                        Encuentra un producto
+                    </h2>
+
+                    <p>
+                        Busca entre las publicaciones
+                        disponibles.
+                    </p>
+
+                </div>
+
+
+                <form id="form-busqueda">
+
+                    <input
+                        type="search"
+                        id="buscar"
+                        name="buscar"
+                        placeholder="Ejemplo: iPhone, motor, ropa..."
+                        autocomplete="off"
+                    >
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Buscar
                     </button>
 
-                </article>
-
-            </div>
-
-        </section>
-        <!-- Publicar -->
-        <section id="publicar">
-
-            <h2>Publicar producto</h2>
-
-            <p>
-                Publica tu producto en Market Flash.
-            </p>
-
-            <button type="button">
-                Publicar ahora
-            </button>
-
-        </section>
-
-
-        <!-- Promocionar -->
-        <section id="promocionar">
-
-            <h2>Promocionar publicación</h2>
-
-            <p>
-                Haz que tu publicación llegue a más personas.
-            </p>
-
-            <button type="button">
-                Promocionar ahora
-            </button>
-
-        </section>
-
-
-        <!-- Reclamos -->
-        <section id="reclamos">
-
-            <h2>Reclamos</h2>
-
-            <p>
-                ¿Tienes algún problema con una publicación,
-                compra o venta?
-            </p>
-
-            <button type="button">
-                Crear reclamo
-            </button>
-
-        </section>
-
-
-        <!-- Soporte -->
-        <section id="soporte">
-
-            <h2>Soporte</h2>
-
-            <p>
-                Estamos aquí para ayudarte.
-            </p>
-
-            <button type="button">
-                Contactar soporte
-            </button>
-
-        </section>
-            <!-- Registro de usuario -->
-        <section id="registro">
-
-            <h2>Crear cuenta en Market Flash</h2>
-
-            <form id="formulario-registro">
-
-                <div>
-                    <label for="nombre">
-                        Nombre completo
-                    </label>
-
-                    <input
-                        type="text"
-                        id="nombre"
-                        name="nombre"
-                        placeholder="Escribe tu nombre completo"
-                        required
+                    <button
+                        type="button"
+                        id="btn-limpiar-busqueda"
+                        class="secondary-button"
                     >
-                </div>
+                        Limpiar
+                    </button>
 
-
-                <div>
-                    <label for="correo">
-                        Correo electrónico
-                    </label>
-
-                    <input
-                        type="email"
-                        id="correo"
-                        name="correo"
-                        placeholder="correo@ejemplo.com"
-                        required
-                    >
-                </div>
-
-
-                <div>
-                    <label for="cedula">
-                        Cédula o documento de identidad
-                    </label>
-
-                    <input
-                        type="text"
-                        id="cedula"
-                        name="cedula"
-                        placeholder="Número de cédula"
-                        required
-                    >
-                </div>
-
-
-                <div>
-                    <label for="telefono">
-                        Número de teléfono
-                    </label>
-
-                    <input
-                        type="tel"
-                        id="telefono"
-                        name="telefono"
-                        placeholder="Número de teléfono"
-                        required
-                    >
-                </div>
-
-
-                <div>
-                    <label for="whatsapp">
-                        WhatsApp
-                    </label>
-
-                    <input
-                        type="tel"
-                        id="whatsapp"
-                        name="whatsapp"
-                        placeholder="Número de WhatsApp"
-                    >
-                </div>
-
-
-                <div>
-                    <label for="messenger">
-                        Messenger
-                    </label>
-
-                    <input
-                        type="text"
-                        id="messenger"
-                        name="messenger"
-                        placeholder="Usuario o enlace de Messenger"
-                    >
-                </div>
-
-
-                <div>
-                    <label for="password">
-                        Contraseña
-                    </label>
-
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Crea una contraseña"
-                        required
-                    >
-                </div>
-
-
-                <button type="submit">
-                    Crear cuenta
-                </button>
-
-            </form>
-
-        </section>        <!-- Inicio de sesión -->
-        <section id="inicio-sesion">
-
-            <h2>Iniciar sesión</h2>
-
-            <form id="formulario-login">
-
-                <div>
-                    <label for="login-correo">
-                        Correo electrónico
-                    </label>
-
-                    <input
-                        type="email"
-                        id="login-correo"
-                        name="login-correo"
-                        placeholder="correo@ejemplo.com"
-                        required
-                    >
-                </div>
-
-
-                <div>
-                    <label for="login-password">
-                        Contraseña
-                    </label>
-
-                    <input
-                        type="password"
-                        id="login-password"
-                        name="login-password"
-                        placeholder="Tu contraseña"
-                        required
-                    >
-                </div>
-
-
-                <button type="submit">
-                    Iniciar sesión
-                </button>
-
-
-                <button type="button">
-                    ¿Olvidaste tu contraseña?
-                </button>
-
-            </form>
-
-        </section>        <!-- Formulario para publicar un producto -->
-        <section id="formulario-publicar">
-
-            <h2>Publicar en Market Flash</h2>
-
-            <form id="form-publicacion">
-
-                <div>
-                    <label for="nombre-producto">
-                        Nombre del producto
-                    </label>
-
-                    <input
-                        type="text"
-                        id="nombre-producto"
-                        name="nombre-producto"
-                        placeholder="Ejemplo: iPhone 14 Pro"
-                        required
-                    >
-                </div>
-
-
-                <div>
-                    <label for="categoria-producto">
-                        Categoría
-                    </label>
-
-                    <select
-                        id="categoria-producto"
-                        name="categoria-producto"
-                        required
-                    >
-                        <option value="">
-                            Selecciona una categoría
-                        </option>
-
-                        <option value="electronica">
-                            Electrónica
-                        </option>
-
-                        <option value="telefonos">
-                            Teléfonos
-                        </option>
-
-                        <option value="vehiculos">
-                            Vehículos
-                        </option>
-
-                        <option value="ropa">
-                            Ropa
-                        </option>
-
-                        <option value="joyas">
-                            Joyas y Oro
-                        </option>
-
-                        <option value="hogar">
-                            Hogar
-                        </option>
-
-                        <option value="servicios">
-                            Servicios
-                        </option>
-
-                        <option value="otros">
-                            Otros
-                        </option>
-                    </select>
-                </div>
-
-
-                <div>
-                    <label for="precio-producto">
-                        Precio
-                    </label>
-
-                    <input
-                        type="number"
-                        id="precio-producto"
-                        name="precio-producto"
-                        placeholder="0.00"
-                        min="0"
-                        step="0.01"
-                        required
-                    >
-                </div>
-
-
-                <div>
-                    <label for="cantidad-producto">
-                        Cantidad disponible
-                    </label>
-
-                    <input
-                        type="number"
-                        id="cantidad-producto"
-                        name="cantidad-producto"
-                        placeholder="Cantidad"
-                        min="1"
-                        required
-                    >
-                </div>
-
-
-                <div>
-                    <label for="imagen-producto">
-                        Imagen del producto
-                    </label>
-
-                    <input
-                        type="file"
-                        id="imagen-producto"
-                        name="imagen-producto"
-                        accept="image/*"
-                        multiple
-                    >
-                </div>
-
-
-                <div>
-                    <label for="descripcion-producto">
-                        Descripción
-                    </label>
-
-                    <textarea
-                        id="descripcion-producto"
-                        name="descripcion-producto"
-                        rows="5"
-                        placeholder="Describe tu producto..."
-                        required
-                    ></textarea>
-                </div>
-
-
-                <div>
-                    <label for="contacto-preferido">
-                        Método de contacto
-                    </label>
-
-                    <select
-                        id="contacto-preferido"
-                        name="contacto-preferido"
-                        required
-                    >
-                        <option value="">
-                            Selecciona una opción
-                        </option>
-
-                        <option value="whatsapp">
-                            WhatsApp
-                        </option>
-
-                        <option value="messenger">
-                            Messenger
-                        </option>
-                    </select>
-                </div>
-
-
-                <button type="submit">
-                    Continuar con la publicación
-                </button>
-
-            </form>
-
-        </section>        <!-- Pago de la publicación -->
-        <section id="pago-publicacion">
-
-            <h2>Pago de la publicación</h2>
-
-            <p>
-                Para publicar tu anuncio, realiza el pago
-                y envía el comprobante para su verificación.
-            </p>
-
-
-            <!-- Métodos de pago -->
-            <div id="metodos-pago">
-
-                <h3>Selecciona tu método de pago</h3>
-
-                <label>
-                    <input
-                        type="radio"
-                        name="metodo-pago"
-                        value="binance"
-                    >
-                    Binance
-                </label>
-
-                <label>
-                    <input
-                        type="radio"
-                        name="metodo-pago"
-                        value="paypal"
-                    >
-                    PayPal
-                </label>
+                </form>
 
             </div>
 
 
-            <!-- Información de Binance -->
-            <div id="pago-binance">
+            <!-- PUBLICIDAD -->
 
-                <h3>Pagar con Binance</h3>
+            <div class="content-card">
 
-                <p>
-                    Realiza la transferencia a la dirección
-                    de Binance indicada por Market Flash.
-                </p>
+                <div class="section-title">
 
-                <div id="direccion-binance">
+                    <span>
+                        DESTACADOS
+                    </span>
 
-                    <p>
-                        <strong>Dirección de Binance:</strong>
-                    </p>
+                    <h2>
+                        Publicidad
+                    </h2>
 
                     <p>
-                        PENDIENTE DE CONFIGURAR
-                    </p>
-
-                </div>
-
-                <button type="button">
-                    Copiar dirección
-                </button>
-
-            </div>
-
-
-            <!-- Información de PayPal -->
-            <div id="pago-paypal">
-
-                <h3>Pagar con PayPal</h3>
-
-                <p>
-                    Realiza el pago utilizando la cuenta
-                    de PayPal indicada por Market Flash.
-                </p>
-
-                <div id="cuenta-paypal">
-
-                    <p>
-                        <strong>Cuenta de PayPal:</strong>
-                    </p>
-
-                    <p>
-                        PENDIENTE DE CONFIGURAR
+                        Espacio para anuncios patrocinados.
                     </p>
 
                 </div>
 
-            </div>
 
-
-            <!-- Comprobante -->
-            <div id="comprobante-pago">
-
-                <h3>Enviar comprobante</h3>
-
-                <p>
-                    Después de realizar el pago,
-                    sube una captura del comprobante.
-                </p>
-
-                <label for="captura-pago">
-                    Captura del pago
-                </label>
-
-                <input
-                    type="file"
-                    id="captura-pago"
-                    name="captura-pago"
-                    accept="image/*"
-                    required
+                <div
+                    id="contenedor-publicidad"
+                    class="advertisement-slider"
                 >
 
-            </div>
-
-
-            <!-- Estado del pago -->
-            <div id="estado-pago">
-
-                <p>
-                    <strong>Estado:</strong>
-                    Pendiente de verificación
-                </p>
-
-            </div>
-
-
-            <button
-                type="button"
-                id="enviar-comprobante"
-            >
-                Enviar comprobante para revisión
-            </button>
-
-        </section>        <!-- Información de Market Flash -->
-        <section id="informacion-market-flash">
-
-            <h2>Market Flash</h2>
-
-            <p>
-                Compra, vende y promociona tus productos
-                de manera sencilla.
-            </p>
-
-            <p>
-                Todas las publicaciones que requieren pago
-                serán revisadas y aprobadas por el administrador.
-            </p>
-
-        </section>
-
-    </main>
-
-
-    <!-- Pie de página -->
-    <footer>
-
-        <div>
-
-            <h3>Market Flash</h3>
-
-            <p>
-                Tu mercado digital.
-            </p>
-
-        </div>
-
-
-        <div>
-
-            <h4>Enlaces</h4>
-
-            <button type="button">
-                Inicio
-            </button>
-
-            <button type="button">
-                Publicar
-            </button>
-
-            <button type="button">
-                Promocionar
-            </button>
-
-            <button type="button">
-                Reclamos
-            </button>
-
-            <button type="button">
-                Soporte
-            </button>
-
-        </div>
-
-
-        <div>
-
-            <h4>Contacto</h4>
-
-            <p>
-                WhatsApp
-            </p>
-
-            <p>
-                Messenger
-            </p>
-
-        </div>
-
-
-        <div>
-
-            <p>
-                © 2026 Market Flash
-            </p>
-
-            <p>
-                Propiedad de Julio Alcántara Gómez
-            </p>
-
-        </div>
-
-    </footer>        <!-- Perfil del usuario -->
-        <section id="perfil-usuario">
-
-            <h2>Mi perfil</h2>
-
-            <div id="datos-usuario">
-
-                <p>
-                    <strong>Nombre:</strong>
-                    <span id="perfil-nombre">No registrado</span>
-                </p>
-
-                <p>
-                    <strong>Teléfono:</strong>
-                    <span id="perfil-telefono">No registrado</span>
-                </p>
-
-                <p>
-                    <strong>WhatsApp:</strong>
-                    <span id="perfil-whatsapp">No registrado</span>
-                </p>
-
-                <p>
-                    <strong>Messenger:</strong>
-                    <span id="perfil-messenger">No registrado</span>
-                </p>
-
-            </div>
-
-
-            <!-- Opciones del usuario -->
-            <div id="opciones-perfil">
-
-                <button type="button">
-                    Mis publicaciones
-                </button>
-
-                <button type="button">
-                    Mis favoritos
-                </button>
-
-                <button type="button">
-                    Mis promociones
-                </button>
-
-                <button type="button">
-                    Editar perfil
-                </button>
-
-                <button type="button">
-                    Cerrar sesión
-                </button>
-
-            </div>
-
-        </section>
-
-
-        <!-- Contacto de una publicación -->
-        <section id="contactar-vendedor">
-
-            <h2>Contactar vendedor</h2>
-
-            <p>
-                Selecciona cómo deseas contactar al vendedor.
-            </p>
-
-            <div>
-
-                <button type="button">
-                    WhatsApp
-                </button>
-
-                <button type="button">
-                    Messenger
-                </button>
-
-            </div>
-
-        </section>        <!-- Calificación del vendedor -->
-        <section id="calificaciones">
-
-            <h2>Calificar vendedor</h2>
-
-            <p>
-                Después de una compra puedes calificar
-                tu experiencia.
-            </p>
-
-            <form id="form-calificacion">
-
-                <label for="estrellas">
-                    Calificación
-                </label>
-
-                <select id="estrellas" name="estrellas">
-
-                    <option value="">
-                        Selecciona una calificación
-                    </option>
-
-                    <option value="5">
-                        ★★★★★ — Excelente
-                    </option>
-
-                    <option value="4">
-                        ★★★★☆ — Muy buena
-                    </option>
-
-                    <option value="3">
-                        ★★★☆☆ — Buena
-                    </option>
-
-                    <option value="2">
-                        ★★☆☆☆ — Regular
-                    </option>
-
-                    <option value="1">
-                        ★☆☆☆☆ — Mala
-                    </option>
-
-                </select>
-
-
-                <label for="comentario-calificacion">
-                    Comentario
-                </label>
-
-                <textarea
-                    id="comentario-calificacion"
-                    name="comentario-calificacion"
-                    rows="4"
-                    placeholder="Escribe tu experiencia..."
-                ></textarea>
-
-
-                <button type="submit">
-                    Enviar calificación
-                </button>
-
-            </form>
-
-        </section>
-
-
-        <!-- Estado de una publicación -->
-        <section id="estado-publicacion">
-
-            <h2>Estado de la publicación</h2>
-
-            <p>
-                <strong>Estado:</strong>
-                <span id="estado-anuncio">
-                    Pendiente de aprobación
-                </span>
-            </p>
-
-            <p>
-                Una publicación que requiere pago
-                permanecerá pendiente hasta que el
-                administrador confirme el pago.
-            </p>
-
-        </section>
-        <!-- Panel de administrador -->
-        <section id="panel-administrador">
-
-            <h2>Panel de administrador</h2>
-
-            <p>
-                Administración de Market Flash
-            </p>
-
-
-            <!-- Resumen -->
-            <div id="resumen-administrador">
-
-                <div>
-                    <h3>Publicaciones pendientes</h3>
-                    <p id="total-pendientes">0</p>
-                </div>
-
-                <div>
-                    <h3>Pagos pendientes</h3>
-                    <p id="total-pagos-pendientes">0</p>
-                </div>
-
-                <div>
-                    <h3>Publicaciones activas</h3>
-                    <p id="total-publicaciones-activas">0</p>
-                </div>
-
-                <div>
-                    <h3>Usuarios registrados</h3>
-                    <p id="total-usuarios">0</p>
-                </div>
-
-            </div>
-
-
-            <!-- Publicaciones pendientes -->
-            <section id="publicaciones-pendientes">
-
-                <h3>Publicaciones pendientes de aprobación</h3>
-
-                <div id="lista-pendientes">
-
-                    <article class="publicacion-pendiente">
-
-                        <h4>Publicación pendiente</h4>
-
-                        <p>
-                            <strong>Usuario:</strong>
-                            Usuario pendiente
-                        </p>
-
-                        <p>
-                            <strong>Producto:</strong>
-                            Producto pendiente
-                        </p>
-
-                        <p>
-                            <strong>Precio:</strong>
-                            RD$ 0.00
-                        </p>
-
-                        <p>
-                            <strong>Método de pago:</strong>
-                            Binance
-                        </p>
-
-                        <p>
-                            <strong>Estado del pago:</strong>
-                            Pendiente de verificación
-                        </p>
-
-
-                        <!-- Comprobante -->
-                        <div>
-
-                            <h5>Comprobante de pago</h5>
-
-                            <img
-                                src=""
-                                alt="Comprobante de pago"
+                    <article class="advertisement-card">
+
+                        <div class="advertisement-image">
+                            PUBLICIDAD
+                        </div>
+
+                        <div class="advertisement-content">
+
+                            <small>
+                                PATROCINADO
+                            </small>
+
+                            <h3>
+                                Promociona tu producto
+                            </h3>
+
+                            <p>
+                                Destaca tu publicación
+                                frente a más compradores.
+                            </p>
+
+                            <button
+                                type="button"
+                                class="secondary-button"
+                                data-ad-id="1"
                             >
+                                Ver anuncio
+                            </button>
 
                         </div>
 
+                    </article>
 
-                        <!-- Acciones del administrador -->
-                        <div>
+
+                    <article class="advertisement-card">
+
+                        <div class="advertisement-image">
+                            PUBLICIDAD
+                        </div>
+
+                        <div class="advertisement-content">
+
+                            <small>
+                                PATROCINADO
+                            </small>
+
+                            <h3>
+                                Haz crecer tu negocio
+                            </h3>
+
+                            <p>
+                                Utiliza nuestro espacio
+                                publicitario.
+                            </p>
 
                             <button
                                 type="button"
-                                id="aprobar-publicacion"
+                                class="secondary-button"
+                                data-ad-id="2"
                             >
-                                Aprobar publicación
+                                Ver anuncio
                             </button>
 
+                        </div>
+
+                    </article>
+
+
+                    <article class="advertisement-card">
+
+                        <div class="advertisement-image">
+                            PUBLICIDAD
+                        </div>
+
+                        <div class="advertisement-content">
+
+                            <small>
+                                PATROCINADO
+                            </small>
+
+                            <h3>
+                                Publicidad destacada
+                            </h3>
+
+                            <p>
+                                Lleva tu producto
+                                a más personas.
+                            </p>
+
                             <button
                                 type="button"
-                                id="rechazar-publicacion"
+                                class="secondary-button"
+                                data-ad-id="3"
                             >
-                                Rechazar publicación
+                                Ver anuncio
                             </button>
 
                         </div>
@@ -1057,281 +338,1331 @@
 
                 </div>
 
-            </section>
+
+                <div class="slider-buttons">
+
+                    <button
+                        type="button"
+                        id="publicidad-anterior"
+                        class="secondary-button"
+                    >
+                        ←
+                    </button>
+
+                    <button
+                        type="button"
+                        id="publicidad-siguiente"
+                        class="secondary-button"
+                    >
+                        →
+                    </button>
+
+                </div>
+
+            </div>
 
 
-            <!-- Publicaciones activas -->
-            <section id="publicaciones-activas">
+            <!-- PRODUCTOS -->
 
-                <h3>Publicaciones activas</h3>
+            <div class="content-card">
 
-                <div id="lista-publicaciones-activas">
+                <div class="section-title">
+
+                    <span>
+                        MARKETPLACE
+                    </span>
+
+                    <h2>
+                        Productos
+                    </h2>
 
                     <p>
-                        No hay publicaciones activas todavía.
+                        Aquí aparecerán las publicaciones
+                        aprobadas.
                     </p>
 
                 </div>
 
-            </section>
+
+                <div
+                    id="lista-productos"
+                    class="products-grid"
+                >
+                </div>
 
 
-            <!-- Usuarios -->
-            <section id="usuarios-administrador">
+                <div
+                    id="sin-productos"
+                    class="empty-state"
+                >
 
-                <h3>Usuarios registrados</h3>
+                    <div class="empty-icon">
+                        MF
+                    </div>
 
-                <div id="lista-usuarios">
+                    <h3>
+                        Todavía no hay productos
+                    </h3>
 
                     <p>
-                        No hay usuarios registrados todavía.
+                        Sé el primero en publicar.
                     </p>
 
                 </div>
-
-            </section>
-
-
-            <!-- Configuración -->
-            <section id="configuracion-administrador">
-
-                <h3>Configuración</h3>
-
-                <button type="button">
-                    Configurar métodos de pago
-                </button>
-
-                <button type="button">
-                    Configurar publicaciones
-                </button>
-
-                <button type="button">
-                    Configurar promociones
-                </button>
-
-            </section>
-
-        </section>        <!-- Mis favoritos -->
-        <section id="favoritos">
-
-            <h2>Mis favoritos</h2>
-
-            <div id="lista-favoritos">
-
-                <p>
-                    Todavía no tienes productos favoritos.
-                </p>
 
             </div>
 
         </section>
 
 
-        <!-- Mis publicaciones -->
-        <section id="mis-publicaciones">
+        <!-- =================================================
+             CATEGORÍAS
+             ================================================= -->
 
-            <h2>Mis publicaciones</h2>
+        <section
+            id="categorias"
+            class="page-section"
+        >
 
-            <div id="lista-mis-publicaciones">
+            <div class="section-title">
 
-                <article class="mi-publicacion">
+                <span>
+                    EXPLORAR
+                </span>
 
-                    <h3>Mis productos publicados</h3>
+                <h2>
+                    Categorías
+                </h2>
+
+                <p>
+                    Selecciona una categoría.
+                </p>
+
+            </div>
+
+
+            <div
+                id="lista-categorias"
+                class="categories-grid"
+            >
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Todos"
+                >
+                    <strong>
+                        Todos
+                    </strong>
+
+                    <span>
+                        Ver todos los productos
+                    </span>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Teléfonos"
+                >
+                    <strong>
+                        Teléfonos
+                    </strong>
+
+                    <span>
+                        Móviles y accesorios
+                    </span>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Electrónica"
+                >
+                    <strong>
+                        Electrónica
+                    </strong>
+
+                    <span>
+                        Tecnología y dispositivos
+                    </span>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Vehículos"
+                >
+                    <strong>
+                        Vehículos
+                    </strong>
+
+                    <span>
+                        Autos, motos y más
+                    </span>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Ropa"
+                >
+                    <strong>
+                        Ropa
+                    </strong>
+
+                    <span>
+                        Moda y accesorios
+                    </span>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Joyas y Oro"
+                >
+                    <strong>
+                        Joyas y Oro
+                    </strong>
+
+                    <span>
+                        Joyas, oro y accesorios
+                    </span>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Hogar"
+                >
+                    <strong>
+                        Hogar
+                    </strong>
+
+                    <span>
+                        Productos para el hogar
+                    </span>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Servicios"
+                >
+                    <strong>
+                        Servicios
+                    </strong>
+
+                    <span>
+                        Servicios y trabajos
+                    </span>
+                </button>
+
+
+                <button
+                    type="button"
+                    class="category-card"
+                    data-category="Otros"
+                >
+                    <strong>
+                        Otros
+                    </strong>
+
+                    <span>
+                        Otras categorías
+                    </span>
+                </button>
+
+            </div>
+
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <h3>
+                        Resultados
+                    </h3>
+
+                </div>
+
+
+                <div
+                    id="resultados-categoria"
+                    class="products-grid"
+                >
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             REGISTRO
+             ================================================= -->
+
+        <section
+            id="registro"
+            class="page-section"
+        >
+
+            <div class="auth-container">
+
+                <div class="auth-introduction">
+
+                    <span>
+                        MARKET FLASH
+                    </span>
+
+                    <h2>
+                        Crea tu cuenta
+                    </h2>
 
                     <p>
-                        Aquí aparecerán tus publicaciones.
+                        Regístrate para comprar, vender,
+                        guardar favoritos y contactar
+                        con otros usuarios.
                     </p>
 
-                    <p>
-                        <strong>Estado:</strong>
+                </div>
+
+
+                <div class="form-card">
+
+                    <form id="formulario-registro">
+
+                        <div class="form-group">
+
+                            <label for="registro-nombre">
+                                Nombre completo
+                            </label>
+
+                            <input
+                                type="text"
+                                id="registro-nombre"
+                                name="nombre"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registro-correo">
+                                Correo electrónico
+                            </label>
+
+                            <input
+                                type="email"
+                                id="registro-correo"
+                                name="correo"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registro-documento">
+                                Cédula o pasaporte
+                            </label>
+
+                            <input
+                                type="text"
+                                id="registro-documento"
+                                name="documento"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registro-telefono">
+                                Teléfono
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="registro-telefono"
+                                name="telefono"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registro-whatsapp">
+                                WhatsApp
+                            </label>
+
+                            <input
+                                type="tel"
+                                id="registro-whatsapp"
+                                name="whatsapp"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registro-messenger">
+                                Messenger
+                            </label>
+
+                            <input
+                                type="text"
+                                id="registro-messenger"
+                                name="messenger"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="registro-password">
+                                Contraseña
+                            </label>
+
+                            <input
+                                type="password"
+                                id="registro-password"
+                                name="password"
+                                minlength="6"
+                                required
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="primary-button full-width"
+                        >
+                            Crear cuenta
+                        </button>
+
+                    </form>
+
+
+                    <div class="switch-form">
+
                         <span>
-                            Pendiente
+                            ¿Ya tienes una cuenta?
                         </span>
-                    </p>
 
-                    <button type="button">
-                        Editar publicación
-                    </button>
+                        <button
+                            type="button"
+                            id="btn-ir-login"
+                            class="text-button"
+                        >
+                            Iniciar sesión
+                        </button>
 
-                    <button type="button">
-                        Marcar como vendido
-                    </button>
+                    </div>
 
-                </article>
+                </div>
 
             </div>
 
         </section>
 
 
-        <!-- Productos vendidos -->
-        <section id="productos-vendidos">
+        <!-- =================================================
+             LOGIN
+             ================================================= -->
 
-            <h2>Productos vendidos</h2>
+        <section
+            id="inicio-sesion"
+            class="page-section"
+        >
 
-            <div id="lista-vendidos">
+            <div class="auth-container">
+
+                <div class="auth-introduction">
+
+                    <span>
+                        BIENVENIDO
+                    </span>
+
+                    <h2>
+                        Inicia sesión
+                    </h2>
+
+                    <p>
+                        Accede a tu cuenta de Market Flash.
+                    </p>
+
+                </div>
+
+
+                <div class="form-card">
+
+                    <form id="formulario-login">
+
+                        <div class="form-group">
+
+                            <label for="login-correo">
+                                Correo electrónico
+                            </label>
+
+                            <input
+                                type="email"
+                                id="login-correo"
+                                name="correo"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="login-password">
+                                Contraseña
+                            </label>
+
+                            <input
+                                type="password"
+                                id="login-password"
+                                name="password"
+                                required
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="primary-button full-width"
+                        >
+                            Iniciar sesión
+                        </button>
+
+                    </form>
+
+
+                    <div class="switch-form">
+
+                        <button
+                            type="button"
+                            id="btn-recuperar-password"
+                            class="text-button"
+                        >
+                            Recuperar contraseña
+                        </button>
+
+                        <button
+                            type="button"
+                            id="btn-ir-registro"
+                            class="text-button"
+                        >
+                            Crear cuenta
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PUBLICAR
+             ================================================= -->
+
+        <section
+            id="publicar"
+            class="page-section"
+        >
+
+            <div class="section-title">
+
+                <span>
+                    VENDE
+                </span>
+
+                <h2>
+                    Publicar producto
+                </h2>
 
                 <p>
-                    Aquí aparecerán los productos
-                    que hayas marcado como vendidos.
+                    Añade tu producto al marketplace.
                 </p>
 
             </div>
 
-        </section>        <!-- Carrusel de publicidad -->
-        <section id="carrusel-publicidad">
 
-            <h2>Publicidad destacada</h2>
+            <div class="form-card wide-card">
 
-            <div id="contenedor-anuncios">
+                <form id="form-publicacion">
 
-                <article class="anuncio-publicitario">
+                    <div class="form-grid">
 
-                    <img
-                        src=""
-                        alt="Publicidad destacada"
+                        <div class="form-group">
+
+                            <label for="producto-nombre">
+                                Nombre del producto
+                            </label>
+
+                            <input
+                                type="text"
+                                id="producto-nombre"
+                                name="nombre"
+                                placeholder="Ej. iPhone 14 Pro"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="producto-categoria">
+                                Categoría
+                            </label>
+
+                            <select
+                                id="producto-categoria"
+                                name="categoria"
+                                required
+                            >
+
+                                <option value="">
+                                    Selecciona
+                                </option>
+
+                                <option value="Teléfonos">
+                                    Teléfonos
+                                </option>
+
+                                <option value="Electrónica">
+                                    Electrónica
+                                </option>
+
+                                <option value="Vehículos">
+                                    Vehículos
+                                </option>
+
+                                <option value="Ropa">
+                                    Ropa
+                                </option>
+
+                                <option value="Joyas y Oro">
+                                    Joyas y Oro
+                                </option>
+
+                                <option value="Hogar">
+                                    Hogar
+                                </option>
+
+                                <option value="Servicios">
+                                    Servicios
+                                </option>
+
+                                <option value="Otros">
+                                    Otros
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="producto-precio">
+                                Precio
+                            </label>
+
+                            <input
+                                type="number"
+                                id="producto-precio"
+                                name="precio"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="producto-cantidad">
+                                Cantidad
+                            </label>
+
+                            <input
+                                type="number"
+                                id="producto-cantidad"
+                                name="cantidad"
+                                min="1"
+                                step="1"
+                                value="1"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="producto-imagen">
+                            Fotos del producto
+                        </label>
+
+                        <input
+                            type="file"
+                            id="producto-imagen"
+                            name="imagen"
+                            accept="image/*"
+                            multiple
+                        >
+
+                        <small>
+                            Puedes seleccionar varias fotos.
+                        </small>
+
+                    </div>
+
+
+                    <div
+                        id="preview-imagenes"
+                        class="image-preview-grid"
                     >
+                    </div>
 
-                    <div>
 
-                        <h3>
-                            Publicidad de Market Flash
-                        </h3>
+                    <div class="form-group">
 
-                        <p>
-                            Aquí aparecerán los anuncios
-                            promocionados.
+                        <label for="producto-descripcion">
+                            Descripción
+                        </label>
+
+                        <textarea
+                            id="producto-descripcion"
+                            name="descripcion"
+                            rows="7"
+                            placeholder="Describe el producto..."
+                            required
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="producto-contacto">
+                            Método de contacto
+                        </label>
+
+                        <select
+                            id="producto-contacto"
+                            name="contacto"
+                            required
+                        >
+
+                            <option value="">
+                                Selecciona
+                            </option>
+
+                            <option value="WhatsApp">
+                                WhatsApp
+                            </option>
+
+                            <option value="Messenger">
+                                Messenger
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="posting-status">
+
+                        <strong>
+                            Estado de publicación
+                        </strong>
+
+                        <p id="texto-estado-publicacion">
+                            Cargando configuración...
                         </p>
 
-                        <button type="button">
-                            Ver publicidad
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Publicar
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PAGO
+             ================================================= -->
+
+        <section
+            id="pago"
+            class="page-section"
+        >
+
+            <div class="section-title">
+
+                <span>
+                    PAGO
+                </span>
+
+                <h2>
+                    Pago de publicación
+                </h2>
+
+                <p>
+                    Selecciona un método de pago y envía
+                    tu comprobante.
+                </p>
+
+            </div>
+
+
+            <div class="payment-card">
+
+                <div class="payment-methods">
+
+                    <label class="payment-option">
+
+                        <input
+                            type="radio"
+                            name="metodo-pago"
+                            value="binance"
+                        >
+
+                        <span>
+                            Binance
+                        </span>
+
+                    </label>
+
+
+                    <label class="payment-option">
+
+                        <input
+                            type="radio"
+                            name="metodo-pago"
+                            value="paypal"
+                        >
+
+                        <span>
+                            PayPal
+                        </span>
+
+                    </label>
+
+                </div>
+
+
+                <div
+                    id="bloque-binance"
+                    class="payment-details hidden"
+                >
+
+                    <h3>
+                        Binance
+                    </h3>
+
+                    <p>
+                        Dirección de pago:
+                    </p>
+
+                    <div class="payment-address">
+
+                        <code id="direccion-binance">
+                            Pendiente de configuración
+                        </code>
+
+                        <button
+                            type="button"
+                            id="btn-copiar-binance"
+                            class="secondary-button"
+                        >
+                            Copiar
                         </button>
 
                     </div>
+
+                </div>
+
+
+                <div
+                    id="bloque-paypal"
+                    class="payment-details hidden"
+                >
+
+                    <h3>
+                        PayPal
+                    </h3>
+
+                    <p>
+                        Cuenta de pago:
+                    </p>
+
+                    <div class="payment-address">
+
+                        <code id="cuenta-paypal">
+                            Pendiente de configuración
+                        </code>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="comprobante-pago">
+                        Comprobante
+                    </label>
+
+                    <input
+                        type="file"
+                        id="comprobante-pago"
+                        accept="image/*,.pdf"
+                    >
+
+                </div>
+
+
+                <div
+                    id="preview-comprobante"
+                    class="receipt-preview"
+                >
+                </div>
+
+
+                <button
+                    type="button"
+                    id="btn-enviar-comprobante"
+                    class="primary-button"
+                >
+                    Enviar comprobante
+                </button>
+
+
+                <div
+                    id="estado-pago"
+                    class="status-box"
+                >
+                    Estado: pendiente
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PERFIL
+             ================================================= -->
+
+        <section
+            id="perfil"
+            class="page-section"
+        >
+
+            <div class="section-title">
+
+                <span>
+                    MI CUENTA
+                </span>
+
+                <h2>
+                    Mi perfil
+                </h2>
+
+            </div>
+
+
+            <div class="profile-layout">
+
+                <div class="profile-main-card">
+
+                    <div class="profile-avatar">
+                        MF
+                    </div>
+
+                    <h3 id="perfil-nombre">
+                        Usuario
+                    </h3>
+
+                    <p id="perfil-correo">
+                        -
+                    </p>
+
+                </div>
+
+
+                <div class="profile-data-card">
+
+                    <div class="profile-field">
+
+                        <span>
+                            Teléfono
+                        </span>
+
+                        <strong id="perfil-telefono">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-field">
+
+                        <span>
+                            WhatsApp
+                        </span>
+
+                        <strong id="perfil-whatsapp">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-field">
+
+                        <span>
+                            Messenger
+                        </span>
+
+                        <strong id="perfil-messenger">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-field">
+
+                        <span>
+                            Cédula / Pasaporte
+                        </span>
+
+                        <strong id="perfil-documento">
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="profile-actions">
+
+                        <button
+                            type="button"
+                            id="btn-editar-perfil"
+                            class="secondary-button"
+                        >
+                            Editar perfil
+                        </button>
+
+                        <button
+                            type="button"
+                            id="btn-cerrar-sesion"
+                            class="danger-button"
+                        >
+                            Cerrar sesión
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- MIS PUBLICACIONES -->
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <h3>
+                        Mis publicaciones
+                    </h3>
+
+                </div>
+
+
+                <div
+                    id="mis-publicaciones"
+                    class="products-grid"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- FAVORITOS -->
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <h3>
+                        Mis favoritos
+                    </h3>
+
+                </div>
+
+
+                <div
+                    id="lista-favoritos"
+                    class="products-grid"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- VENDIDOS -->
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <h3>
+                        Productos vendidos
+                    </h3>
+
+                </div>
+
+
+                <div
+                    id="lista-vendidos"
+                    class="products-grid"
+                >
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             PROMOCIONES
+             ================================================= -->
+
+        <section
+            id="promocionar"
+            class="page-section"
+        >
+
+            <div class="section-title">
+
+                <span>
+                    PROMOCIONES
+                </span>
+
+                <h2>
+                    Promociona tu producto
+                </h2>
+
+                <p>
+                    Aumenta la visibilidad de tus publicaciones.
+                </p>
+
+            </div>
+
+
+            <div class="promotion-grid">
+
+                <article class="promotion-card">
+
+                    <h3>
+                        Promoción básica
+                    </h3>
+
+                    <p>
+                        Mayor visibilidad para tu publicación.
+                    </p>
+
+                    <strong>
+                        Próximamente
+                    </strong>
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        data-promotion="basica"
+                    >
+                        Solicitar
+                    </button>
 
                 </article>
 
 
-                <article class="anuncio-publicitario">
+                <article
+                    class="promotion-card featured"
+                >
 
-                    <img
-                        src=""
-                        alt="Publicidad destacada"
+                    <span class="featured-label">
+                        DESTACADA
+                    </span>
+
+                    <h3>
+                        Promoción destacada
+                    </h3>
+
+                    <p>
+                        Destaca tu producto frente
+                        a otros anuncios.
+                    </p>
+
+                    <strong>
+                        Próximamente
+                    </strong>
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        data-promotion="destacada"
                     >
-
-                    <div>
-
-                        <h3>
-                            Espacio publicitario
-                        </h3>
-
-                        <p>
-                            Promociona tu producto
-                            para llegar a más compradores.
-                        </p>
-
-                        <button type="button">
-                            Ver publicidad
-                        </button>
-
-                    </div>
+                        Solicitar
+                    </button>
 
                 </article>
 
 
-                <article class="anuncio-publicitario">
+                <article class="promotion-card">
 
-                    <img
-                        src=""
-                        alt="Publicidad destacada"
+                    <h3>
+                        Publicidad patrocinada
+                    </h3>
+
+                    <p>
+                        Aparece en el espacio publicitario.
+                    </p>
+
+                    <strong>
+                        Próximamente
+                    </strong>
+
+                    <button
+                        type="button"
+                        class="primary-button"
+                        data-promotion="patrocinada"
                     >
-
-                    <div>
-
-                        <h3>
-                            Anuncio patrocinado
-                        </h3>
-
-                        <p>
-                            Tu producto puede aparecer
-                            aquí.
-                        </p>
-
-                        <button type="button">
-                            Ver publicidad
-                        </button>
-
-                    </div>
+                        Solicitar
+                    </button>
 
                 </article>
 
             </div>
 
 
-            <!-- Controles del carrusel -->
-            <div id="controles-carrusel">
+            <div class="content-card">
 
-                <button
-                    type="button"
-                    id="anuncio-anterior"
-                >
-                    Anterior
-                </button>
+                <div class="section-title">
 
-                <button
-                    type="button"
-                    id="anuncio-siguiente"
-                >
-                    Siguiente
-                </button>
+                    <h3>
+                        Mis promociones
+                    </h3>
+
+                </div>
+
+
+                <div id="lista-promociones">
+                </div>
 
             </div>
 
-        </section>        <!-- Vídeos de Market Flash -->
-        <section id="videos">
-
-            <h2>Vídeos</h2>
-
-            <p>
-                Publica vídeos para mostrar tus productos
-                de una manera más atractiva.
-            </p>
+        </section>
 
 
-            <!-- Publicar vídeo -->
-            <div id="publicar-video">
+        <!-- =================================================
+             VÍDEOS
+             ================================================= -->
 
-                <h3>Publicar vídeo</h3>
+        <section
+            id="videos"
+            class="page-section"
+        >
+
+            <div class="section-title">
+
+                <span>
+                    VÍDEOS
+                </span>
+
+                <h2>
+                    Publica vídeos
+                </h2>
+
+                <p>
+                    Muestra tus productos mediante contenido
+                    en vídeo.
+                </p>
+
+            </div>
+
+
+            <div class="form-card wide-card">
 
                 <form id="form-video">
 
-                    <div>
+                    <div class="form-group">
 
-                        <label for="titulo-video">
-                            Título del vídeo
+                        <label for="video-titulo">
+                            Título
                         </label>
 
                         <input
                             type="text"
-                            id="titulo-video"
-                            name="titulo-video"
-                            placeholder="Título del vídeo"
+                            id="video-titulo"
                             required
                         >
 
                     </div>
 
 
-                    <div>
+                    <div class="form-group">
 
-                        <label for="archivo-video">
-                            Seleccionar vídeo
+                        <label for="video-archivo">
+                            Vídeo
                         </label>
 
                         <input
                             type="file"
-                            id="archivo-video"
-                            name="archivo-video"
+                            id="video-archivo"
                             accept="video/*"
                             required
                         >
@@ -1339,23 +1670,24 @@
                     </div>
 
 
-                    <div>
+                    <div class="form-group">
 
-                        <label for="descripcion-video">
+                        <label for="video-descripcion">
                             Descripción
                         </label>
 
                         <textarea
-                            id="descripcion-video"
-                            name="descripcion-video"
-                            rows="4"
-                            placeholder="Describe tu vídeo..."
+                            id="video-descripcion"
+                            rows="5"
                         ></textarea>
 
                     </div>
 
 
-                    <button type="submit">
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
                         Publicar vídeo
                     </button>
 
@@ -1364,151 +1696,678 @@
             </div>
 
 
-            <!-- Lista de vídeos -->
-            <div id="lista-videos">
+            <div
+                id="lista-videos"
+                class="video-grid"
+            >
+            </div>
 
-                <article class="video-publicado">
+        </section>
 
-                    <h3>
-                        Vídeo de ejemplo
-                    </h3>
 
-                    <video
-                        controls
-                        width="100%"
-                    >
-                        <source
-                            src=""
-                            type="video/mp4"
-                        >
+        <!-- =================================================
+             NOTIFICACIONES
+             ================================================= -->
 
-                        Tu navegador no puede reproducir
-                        este vídeo.
-                    </video>
+        <section
+            id="notificaciones"
+            class="page-section"
+        >
 
-                    <p>
-                        Aquí aparecerán los vídeos
-                        publicados por los usuarios.
-                    </p>
+            <div class="section-title">
 
-                </article>
+                <span>
+                    AVISOS
+                </span>
+
+                <h2>
+                    Notificaciones
+                </h2>
 
             </div>
 
-        </section>        <!-- Notificaciones -->
-        <section id="notificaciones">
 
-            <h2>Notificaciones</h2>
+            <div
+                id="lista-notificaciones"
+                class="notifications-list"
+            >
+            </div>
 
-            <div id="lista-notificaciones">
+        </section>
 
-                <!-- Notificación de pago -->
-                <article class="notificacion">
+
+        <!-- =================================================
+             CALIFICACIONES
+             ================================================= -->
+
+        <section
+            id="calificaciones"
+            class="page-section"
+        >
+
+            <div class="section-title">
+
+                <span>
+                    REPUTACIÓN
+                </span>
+
+                <h2>
+                    Calificar vendedor
+                </h2>
+
+            </div>
+
+
+            <div class="form-card">
+
+                <form id="form-calificacion">
+
+                    <div class="form-group">
+
+                        <label for="calificacion-estrellas">
+                            Calificación
+                        </label>
+
+                        <select
+                            id="calificacion-estrellas"
+                            required
+                        >
+
+                            <option value="">
+                                Selecciona
+                            </option>
+
+                            <option value="5">
+                                ★★★★★
+                            </option>
+
+                            <option value="4">
+                                ★★★★☆
+                            </option>
+
+                            <option value="3">
+                                ★★★☆☆
+                            </option>
+
+                            <option value="2">
+                                ★★☆☆☆
+                            </option>
+
+                            <option value="1">
+                                ★☆☆☆☆
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="calificacion-comentario">
+                            Comentario
+                        </label>
+
+                        <textarea
+                            id="calificacion-comentario"
+                            rows="5"
+                        ></textarea>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Enviar calificación
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             RECLAMOS
+             ================================================= -->
+
+        <section
+            id="reclamos"
+            class="page-section"
+        >
+
+            <div class="section-title">
+
+                <span>
+                    SEGURIDAD
+                </span>
+
+                <h2>
+                    Reclamos y reportes
+                </h2>
+
+                <p>
+                    Informa de cualquier problema.
+                </p>
+
+            </div>
+
+
+            <div class="form-card">
+
+                <form id="form-reclamo">
+
+                    <div class="form-group">
+
+                        <label for="reclamo-motivo">
+                            Motivo
+                        </label>
+
+                        <select
+                            id="reclamo-motivo"
+                            required
+                        >
+
+                            <option value="">
+                                Selecciona
+                            </option>
+
+                            <option value="fraude">
+                                Posible fraude
+                            </option>
+
+                            <option value="producto-falso">
+                                Producto falso
+                            </option>
+
+                            <option value="contenido-inapropiado">
+                                Contenido inapropiado
+                            </option>
+
+                            <option value="informacion-incorrecta">
+                                Información incorrecta
+                            </option>
+
+                            <option value="otro">
+                                Otro
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="reclamo-detalle">
+                            Detalles
+                        </label>
+
+                        <textarea
+                            id="reclamo-detalle"
+                            rows="6"
+                            required
+                        ></textarea>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Enviar reclamo
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             SOPORTE
+             ================================================= -->
+
+        <section
+            id="soporte"
+            class="page-section"
+        >
+
+            <div class="section-title">
+
+                <span>
+                    AYUDA
+                </span>
+
+                <h2>
+                    Soporte
+                </h2>
+
+                <p>
+                    Contacta con el equipo de Market Flash.
+                </p>
+
+            </div>
+
+
+            <div class="support-grid">
+
+                <article class="support-card">
+
+                    <div class="support-icon">
+                        W
+                    </div>
 
                     <h3>
-                        Pago pendiente de verificación
+                        WhatsApp
                     </h3>
 
                     <p>
-                        Hay una nueva publicación esperando
-                        la revisión del comprobante de pago.
+                        Contacto mediante WhatsApp.
                     </p>
 
-                    <p>
-                        <strong>Estado:</strong>
-                        Pendiente
-                    </p>
-
-                    <button type="button">
-                        Revisar pago
+                    <button
+                        type="button"
+                        id="soporte-whatsapp"
+                        class="whatsapp-button"
+                    >
+                        Contactar
                     </button>
 
                 </article>
 
 
-                <!-- Notificación de publicación -->
-                <article class="notificacion">
+                <article class="support-card">
+
+                    <div class="support-icon">
+                        M
+                    </div>
 
                     <h3>
-                        Publicación pendiente
+                        Messenger
                     </h3>
 
                     <p>
-                        Tu publicación está esperando
-                        la aprobación del administrador.
+                        Contacto mediante Messenger.
                     </p>
 
-                    <p>
-                        <strong>Estado:</strong>
-                        En revisión
-                    </p>
+                    <button
+                        type="button"
+                        id="soporte-messenger"
+                        class="messenger-button"
+                    >
+                        Contactar
+                    </button>
 
                 </article>
 
 
-                <!-- Notificación de aprobación -->
-                <article class="notificacion">
+                <article class="support-card">
+
+                    <div class="support-icon">
+                        ?
+                    </div>
 
                     <h3>
-                        Publicación aprobada
+                        Centro de ayuda
                     </h3>
 
                     <p>
-                        Cuando el administrador apruebe
-                        tu publicación, aparecerá aquí.
+                        Información y preguntas frecuentes.
                     </p>
+
+                    <button
+                        type="button"
+                        id="soporte-ayuda"
+                        class="secondary-button"
+                    >
+                        Ver ayuda
+                    </button>
 
                 </article>
 
             </div>
 
-        </section>        <!-- Seguridad y políticas -->
-        <section id="seguridad">
+        </section>
 
-            <h2>Seguridad de Market Flash</h2>
 
-            <p>
-                Para proteger a compradores, vendedores y
-                administradores, las publicaciones que
-                requieren pago serán revisadas antes de
-                hacerse públicas.
-            </p>
+        <!-- =================================================
+             ADMINISTRADOR
+             ================================================= -->
 
-            <div id="politicas">
+        <section
+            id="administrador"
+            class="page-section"
+        >
 
-                <article>
+            <div class="section-title">
 
-                    <h3>Publicaciones</h3>
+                <span>
+                    ADMINISTRACIÓN
+                </span>
+
+                <h2>
+                    Panel de administrador
+                </h2>
+
+                <p>
+                    Gestiona publicaciones, usuarios,
+                    pagos y reportes.
+                </p>
+
+            </div>
+
+
+            <!-- ESTADÍSTICAS -->
+
+            <div class="admin-stats">
+
+                <div class="admin-stat">
+
+                    <span>
+                        Usuarios
+                    </span>
+
+                    <strong id="admin-total-usuarios">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="admin-stat">
+
+                    <span>
+                        Publicaciones pendientes
+                    </span>
+
+                    <strong id="admin-total-pendientes">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="admin-stat">
+
+                    <span>
+                        Pagos pendientes
+                    </span>
+
+                    <strong id="admin-total-pagos">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="admin-stat">
+
+                    <span>
+                        Publicaciones activas
+                    </span>
+
+                    <strong id="admin-total-activas">
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- CONFIGURACIÓN -->
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <h3>
+                        Configuración
+                    </h3>
+
+                </div>
+
+
+                <div class="settings-list">
+
+                    <div class="setting-row">
+
+                        <div>
+
+                            <strong>
+                                Publicaciones de pago
+                            </strong>
+
+                            <p id="admin-texto-publicaciones">
+                                Cargando...
+                            </p>
+
+                        </div>
+
+                        <button
+                            type="button"
+                            id="admin-toggle-publicaciones"
+                            class="secondary-button"
+                        >
+                            Cambiar
+                        </button>
+
+                    </div>
+
+
+                    <div class="setting-row">
+
+                        <div>
+
+                            <strong>
+                                Promociones
+                            </strong>
+
+                            <p id="admin-texto-promociones">
+                                Cargando...
+                            </p>
+
+                        </div>
+
+                        <button
+                            type="button"
+                            id="admin-toggle-promociones"
+                            class="secondary-button"
+                        >
+                            Cambiar
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PAGOS -->
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <h3>
+                        Comprobantes pendientes
+                    </h3>
 
                     <p>
-                        Los anuncios deben cumplir con las
+                        Revisa los pagos antes de aprobar
+                        las publicaciones.
+                    </p>
+
+                </div>
+
+
+                <div
+                    id="admin-comprobantes"
+                    class="admin-list"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- PUBLICACIONES PENDIENTES -->
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <h3>
+                        Publicaciones pendientes
+                    </h3>
+
+                </div>
+
+
+                <div
+                    id="admin-publicaciones-pendientes"
+                    class="admin-list"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- PUBLICACIONES ACTIVAS -->
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <h3>
+                        Publicaciones activas
+                    </h3>
+
+                </div>
+
+
+                <div
+                    id="admin-publicaciones-activas"
+                    class="products-grid"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- USUARIOS -->
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <h3>
+                        Usuarios registrados
+                    </h3>
+
+                </div>
+
+
+                <div
+                    id="admin-usuarios"
+                    class="admin-list"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- REPORTES -->
+
+            <div class="content-card">
+
+                <div class="section-title">
+
+                    <h3>
+                        Reclamos
+                    </h3>
+
+                </div>
+
+
+                <div
+                    id="admin-reclamos"
+                    class="admin-list"
+                >
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =================================================
+             POLÍTICAS
+             ================================================= -->
+
+        <section
+            id="politicas"
+            class="page-section"
+        >
+
+            <div class="section-title">
+
+                <span>
+                    INFORMACIÓN
+                </span>
+
+                <h2>
+                    Seguridad y reglas
+                </h2>
+
+            </div>
+
+
+            <div class="policy-grid">
+
+                <article class="policy-card">
+
+                    <h3>
+                        Publicaciones
+                    </h3>
+
+                    <p>
+                        Los anuncios deben cumplir las
                         reglas de Market Flash.
                     </p>
 
                 </article>
 
 
-                <article>
+                <article class="policy-card">
 
-                    <h3>Pagos</h3>
+                    <h3>
+                        Pagos
+                    </h3>
 
                     <p>
-                        Los comprobantes enviados serán
-                        revisados por el administrador antes
-                        de aprobar una publicación.
+                        Los comprobantes pueden requerir
+                        revisión antes de aprobar un anuncio.
                     </p>
 
                 </article>
 
 
-                <article>
+                <article class="policy-card">
 
-                    <h3>Reportes</h3>
+                    <h3>
+                        Seguridad
+                    </h3>
 
                     <p>
                         Los usuarios pueden reportar
-                        publicaciones que consideren
-                        inapropiadas o fraudulentas.
+                        publicaciones sospechosas.
                     </p>
 
                 </article>
@@ -1517,198 +2376,133 @@
 
         </section>
 
-
-        <!-- Reportar publicación -->
-        <section id="reportar-publicacion">
-
-            <h2>Reportar publicación</h2>
-
-            <form id="form-reporte">
-
-                <div>
-
-                    <label for="motivo-reporte">
-                        Motivo del reporte
-                    </label>
-
-                    <select
-                        id="motivo-reporte"
-                        name="motivo-reporte"
-                        required
-                    >
-
-                        <option value="">
-                            Selecciona un motivo
-                        </option>
-
-                        <option value="fraude">
-                            Posible fraude
-                        </option>
-
-                        <option value="producto-falso">
-                            Producto falso
-                        </option>
-
-                        <option value="contenido-inapropiado">
-                            Contenido inapropiado
-                        </option>
-
-                        <option value="precio-falso">
-                            Información incorrecta
-                        </option>
-
-                        <option value="otro">
-                            Otro
-                        </option>
-
-                    </select>
-
-                </div>
+    </main>
 
 
-                <div>
+    <!-- =====================================================
+         FOOTER
+         ===================================================== -->
 
-                    <label for="detalle-reporte">
-                        Detalles
-                    </label>
+    <footer class="site-footer">
 
-                    <textarea
-                        id="detalle-reporte"
-                        name="detalle-reporte"
-                        rows="5"
-                        placeholder="Explica el motivo del reporte..."
-                        required
-                    ></textarea>
+        <div class="footer-grid">
 
-                </div>
+            <div>
 
+                <h3>
+                    Market Flash
+                </h3>
 
-                <button type="submit">
-                    Enviar reporte
-                </button>
+                <p>
+                    Compra, vende y promociona.
+                </p>
 
-            </form>
-
-        </section>        <!-- Contacto y redes -->
-        <section id="contacto-market-flash">
-
-            <h2>Contacto</h2>
-
-            <p>
-                ¿Necesitas ayuda o quieres comunicarte
-                con nosotros?
-            </p>
+            </div>
 
 
-            <div id="botones-contacto">
+            <div>
+
+                <h4>
+                    Navegación
+                </h4>
 
                 <button
                     type="button"
-                    id="contacto-whatsapp"
+                    class="footer-link"
+                    data-section="inicio"
                 >
-                    WhatsApp
+                    Inicio
                 </button>
-
 
                 <button
                     type="button"
-                    id="contacto-messenger"
+                    class="footer-link"
+                    data-section="categorias"
                 >
-                    Messenger
+                    Categorías
                 </button>
-
 
                 <button
                     type="button"
-                    id="contacto-soporte"
+                    class="footer-link"
+                    data-section="publicar"
+                >
+                    Publicar
+                </button>
+
+                <button
+                    type="button"
+                    class="footer-link"
+                    data-section="promocionar"
+                >
+                    Promocionar
+                </button>
+
+            </div>
+
+
+            <div>
+
+                <h4>
+                    Ayuda
+                </h4>
+
+                <button
+                    type="button"
+                    class="footer-link"
+                    data-section="reclamos"
+                >
+                    Reclamos
+                </button>
+
+                <button
+                    type="button"
+                    class="footer-link"
+                    data-section="soporte"
                 >
                     Soporte
                 </button>
 
+                <button
+                    type="button"
+                    class="footer-link"
+                    data-section="politicas"
+                >
+                    Reglas
+                </button>
+
             </div>
 
-        </section>
-
-
-        <!-- Redes sociales -->
-        <section id="redes-sociales">
-
-            <h2>Síguenos</h2>
 
             <div>
 
-                <a
-                    href="#"
-                    aria-label="Facebook"
+                <h4>
+                    Contacto
+                </h4>
+
+                <button
+                    type="button"
+                    id="footer-whatsapp"
+                    class="footer-link"
                 >
-                    Facebook
-                </a>
+                    WhatsApp
+                </button>
 
-
-                <a
-                    href="#"
-                    aria-label="Instagram"
+                <button
+                    type="button"
+                    id="footer-messenger"
+                    class="footer-link"
                 >
-                    Instagram
-                </a>
-
-
-                <a
-                    href="#"
-                    aria-label="TikTok"
-                >
-                    TikTok
-                </a>
+                    Messenger
+                </button>
 
             </div>
 
-        </section>    <!-- Pie final de Market Flash -->
-    <footer>
-
-        <div>
-            <h3>Market Flash</h3>
-
-            <p>
-                Compra, vende y promociona.
-            </p>
         </div>
 
 
-        <div>
-            <h4>Información</h4>
+        <div class="footer-bottom">
 
-            <a href="#">
-                Términos y condiciones
-            </a>
-
-            <a href="#">
-                Política de privacidad
-            </a>
-
-            <a href="#">
-                Reglas de Market Flash
-            </a>
-        </div>
-
-
-        <div>
-            <h4>Ayuda</h4>
-
-            <a href="#">
-                Centro de ayuda
-            </a>
-
-            <a href="#">
-                Reclamos
-            </a>
-
-            <a href="#">
-                Contactar soporte
-            </a>
-        </div>
-
-
-        <div>
             <p>
                 © 2026 Market Flash
             </p>
@@ -1716,10 +2510,38 @@
             <p>
                 Propiedad de Julio Alcántara Gómez
             </p>
+
         </div>
 
     </footer>
 
+
+    <!-- =====================================================
+         MENSAJES DE LA APLICACIÓN
+         ===================================================== -->
+
+    <div
+        id="app-message"
+        class="app-message"
+        aria-live="polite"
+    >
+    </div>
+
+
+    <!-- =====================================================
+         SUPABASE
+         ===================================================== -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+    ></script>
+
+
+    <!-- =====================================================
+         JAVASCRIPT MARKET FLASH
+         ===================================================== -->
+
+    <script src="script.js"></script>
 
 </body>
 </html>
