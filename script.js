@@ -1323,4 +1323,451 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     );
 
+});// ==========================================
+// SISTEMA DE CALIFICACIONES
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const formularioCalificacion = document.querySelector(
+        "#form-calificacion"
+    );
+
+    if (!formularioCalificacion) {
+        return;
+    }
+
+    formularioCalificacion.addEventListener(
+        "submit",
+        (evento) => {
+
+            evento.preventDefault();
+
+            const estrellas = document.querySelector(
+                "#estrellas"
+            )?.value;
+
+            const comentario = document.querySelector(
+                "#comentario-calificacion"
+            )?.value.trim();
+
+            if (!estrellas) {
+                alert(
+                    "Selecciona una calificación."
+                );
+                return;
+            }
+
+            let calificaciones = [];
+
+            try {
+
+                calificaciones = JSON.parse(
+                    localStorage.getItem(
+                        "marketFlashCalificaciones"
+                    )
+                ) || [];
+
+            } catch (error) {
+
+                console.error(
+                    "Error al cargar calificaciones:",
+                    error
+                );
+
+                calificaciones = [];
+            }
+
+            calificaciones.push({
+                id: Date.now(),
+                estrellas: Number(estrellas),
+                comentario: comentario || "",
+                fecha: new Date().toISOString()
+            });
+
+            localStorage.setItem(
+                "marketFlashCalificaciones",
+                JSON.stringify(calificaciones)
+            );
+
+            alert(
+                "Gracias. Tu calificación fue registrada."
+            );
+
+            formularioCalificacion.reset();
+
+        }
+    );
+
+});// ==========================================
+// SISTEMA DE REPORTES
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const formularioReporte = document.querySelector(
+        "#form-reporte"
+    );
+
+    if (!formularioReporte) {
+        return;
+    }
+
+    formularioReporte.addEventListener(
+        "submit",
+        (evento) => {
+
+            evento.preventDefault();
+
+            const motivo = document.querySelector(
+                "#motivo-reporte"
+            )?.value;
+
+            const detalle = document.querySelector(
+                "#detalle-reporte"
+            )?.value.trim();
+
+            if (!motivo || !detalle) {
+
+                alert(
+                    "Completa el motivo y los detalles del reporte."
+                );
+
+                return;
+            }
+
+            let reportes = [];
+
+            try {
+
+                reportes = JSON.parse(
+                    localStorage.getItem(
+                        "marketFlashReportes"
+                    )
+                ) || [];
+
+            } catch (error) {
+
+                console.error(
+                    "Error al cargar los reportes:",
+                    error
+                );
+
+                reportes = [];
+            }
+
+            const reporte = {
+                id: Date.now(),
+                motivo,
+                detalle,
+                estado: "Pendiente",
+                fecha: new Date().toISOString()
+            };
+
+            reportes.push(reporte);
+
+            localStorage.setItem(
+                "marketFlashReportes",
+                JSON.stringify(reportes)
+            );
+
+            alert(
+                "Tu reporte fue enviado correctamente."
+            );
+
+            formularioReporte.reset();
+
+        }
+    );
+
+});// ==========================================
+// CERRAR SESIÓN
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonesPerfil = document.querySelectorAll(
+        "#opciones-perfil button"
+    );
+
+    if (!botonesPerfil.length) {
+        return;
+    }
+
+    botonesPerfil.forEach((boton) => {
+
+        if (
+            boton.textContent
+                .trim()
+                .toLowerCase() !== "cerrar sesión"
+        ) {
+            return;
+        }
+
+        boton.addEventListener("click", () => {
+
+            const sesion = localStorage.getItem(
+                "marketFlashSesion"
+            );
+
+            if (sesion !== "activa") {
+
+                alert(
+                    "No hay una sesión iniciada."
+                );
+
+                return;
+            }
+
+            localStorage.removeItem(
+                "marketFlashSesion"
+            );
+
+            alert(
+                "Has cerrado sesión correctamente."
+            );
+
+            window.location.reload();
+
+        });
+
+    });
+
+});// ==========================================
+// COPIAR DIRECCIÓN DE BINANCE
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonCopiar = document.querySelector(
+        "#pago-binance button"
+    );
+
+    const direccionElemento = document.querySelector(
+        "#direccion-binance p:last-child"
+    );
+
+    if (!botonCopiar || !direccionElemento) {
+        return;
+    }
+
+    botonCopiar.addEventListener("click", async () => {
+
+        const direccion =
+            direccionElemento.textContent.trim();
+
+        if (
+            !direccion ||
+            direccion === "PENDIENTE DE CONFIGURAR"
+        ) {
+
+            alert(
+                "La dirección de Binance todavía no está configurada."
+            );
+
+            return;
+        }
+
+        try {
+
+            await navigator.clipboard.writeText(
+                direccion
+            );
+
+            alert(
+                "Dirección de Binance copiada."
+            );
+
+        } catch (error) {
+
+            console.error(
+                "No se pudo copiar la dirección:",
+                error
+            );
+
+            alert(
+                "No se pudo copiar la dirección."
+            );
+        }
+
+    });
+
+});// ==========================================
+// ENVÍO DE COMPROBANTE DE PAGO
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const botonComprobante = document.querySelector(
+        "#enviar-comprobante"
+    );
+
+    const archivoComprobante = document.querySelector(
+        "#captura-pago"
+    );
+
+    if (!botonComprobante || !archivoComprobante) {
+        return;
+    }
+
+    botonComprobante.addEventListener("click", () => {
+
+        const archivo = archivoComprobante.files[0];
+
+        if (!archivo) {
+
+            alert(
+                "Selecciona primero la captura del comprobante."
+            );
+
+            return;
+        }
+
+        const usuario = localStorage.getItem(
+            "marketFlashUsuario"
+        );
+
+        if (!usuario) {
+
+            alert(
+                "Primero debes registrarte o iniciar sesión."
+            );
+
+            return;
+        }
+
+        let comprobantes = [];
+
+        try {
+
+            comprobantes = JSON.parse(
+                localStorage.getItem(
+                    "marketFlashComprobantes"
+                )
+            ) || [];
+
+        } catch (error) {
+
+            console.error(
+                "Error al cargar comprobantes:",
+                error
+            );
+
+            comprobantes = [];
+        }
+
+        const comprobante = {
+            id: Date.now(),
+            nombreArchivo: archivo.name,
+            tipoArchivo: archivo.type,
+            estado: "Pendiente de revisión",
+            fecha: new Date().toISOString()
+        };
+
+        comprobantes.push(comprobante);
+
+        localStorage.setItem(
+            "marketFlashComprobantes",
+            JSON.stringify(comprobantes)
+        );
+
+        const estadoPago = document.querySelector(
+            "#estado-pago"
+        );
+
+        if (estadoPago) {
+
+            estadoPago.innerHTML = `
+                <p>
+                    <strong>Estado:</strong>
+                    Pendiente de revisión
+                </p>
+
+                <p>
+                    Tu comprobante fue enviado
+                    correctamente.
+                </p>
+            `;
+        }
+
+        archivoComprobante.value = "";
+
+        alert(
+            "Comprobante enviado correctamente. " +
+            "El administrador deberá revisarlo."
+        );
+
+    });
+
+});// ==========================================
+// SELECCIÓN DEL MÉTODO DE PAGO
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    const opcionesPago = document.querySelectorAll(
+        'input[name="metodo-pago"]'
+    );
+
+    const pagoBinance = document.querySelector(
+        "#pago-binance"
+    );
+
+    const pagoPaypal = document.querySelector(
+        "#pago-paypal"
+    );
+
+    if (
+        !opcionesPago.length ||
+        !pagoBinance ||
+        !pagoPaypal
+    ) {
+        return;
+    }
+
+
+    function actualizarMetodoPago() {
+
+        const seleccion =
+            document.querySelector(
+                'input[name="metodo-pago"]:checked'
+            )?.value;
+
+
+        if (seleccion === "binance") {
+
+            pagoBinance.style.display = "block";
+            pagoPaypal.style.display = "none";
+
+            return;
+        }
+
+
+        if (seleccion === "paypal") {
+
+            pagoBinance.style.display = "none";
+            pagoPaypal.style.display = "block";
+
+            return;
+        }
+
+
+        pagoBinance.style.display = "none";
+        pagoPaypal.style.display = "none";
+
+    }
+
+
+    opcionesPago.forEach((opcion) => {
+
+        opcion.addEventListener(
+            "change",
+            actualizarMetodoPago
+        );
+
+    });
+
+
+    actualizarMetodoPago();
+
 });
