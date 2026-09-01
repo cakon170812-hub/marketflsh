@@ -1,342 +1,509 @@
 /* =========================================================
-   MARKET FLASH — SCRIPT.JS
-   Lógica principal de la aplicación
-   Compatible con el index.html actual
+   MARKET FLASH — script.js
+   JavaScript principal de la aplicación
    ========================================================= */
 
-(() => {
-  'use strict';
+'use strict';
 
-  /* =========================================================
-     CONFIGURACIÓN
-     ========================================================= */
+/* =========================================================
+   CONFIGURACIÓN
+   ========================================================= */
 
-  const STORAGE_USER = 'mf_user';
-  const STORAGE_PRODUCTS = 'mf_products';
-  const STORAGE_CONFIG = 'mf_config';
-  const STORAGE_ADS = 'mf_ads';
+const STORAGE_USER = 'mf_user';
+const STORAGE_PRODUCTS = 'mf_products';
+const STORAGE_CONFIG = 'mf_config';
+const STORAGE_ADS = 'mf_ads';
+const STORAGE_NOTIFICATIONS = 'mf_notifications';
 
-  let category = 'Todos';
-  let user = loadJSON(STORAGE_USER, null);
-  let products = loadJSON(STORAGE_PRODUCTS, null);
-  let advertising = loadJSON(STORAGE_ADS, []);
-  let navigationStack = [];
+let category = 'Todos';
+let user = loadJSON(STORAGE_USER, null);
+let products = loadJSON(STORAGE_PRODUCTS, null);
+let ads = loadJSON(STORAGE_ADS, []);
+let config = loadJSON(STORAGE_CONFIG, null);
 
-  /* =========================================================
-     PRODUCTOS DE EJEMPLO
-     ========================================================= */
+let navigationStack = [];
+let currentScreen = 'home';
 
-  const seed = [
-    {
-      id: 1,
-      name: 'iPhone 15 Pro',
-      category: 'Celulares',
-      price: 45000,
-      location: 'Santo Domingo',
-      seller: 'Market Flash',
-      whatsapp: '',
-      image: 'https://images.unsplash.com/photo-1696446702183-cbd13d5f2e88?auto=format&fit=crop&w=800&q=80',
-      description: 'iPhone 15 Pro en excelentes condiciones.',
-      views: 1284,
-      likes: 86,
-      saves: 34,
-      profileVisits: 21
-    },
-    {
-      id: 2,
-      name: 'Samsung Galaxy S24',
-      category: 'Celulares',
-      price: 38000,
-      location: 'Santiago',
-      seller: 'Tecnología RD',
-      whatsapp: '',
-      image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=800&q=80',
-      description: 'Samsung Galaxy S24.',
-      views: 743,
-      likes: 51,
-      saves: 18,
-      profileVisits: 14
-    },
-    {
-      id: 3,
-      name: 'Laptop profesional',
-      category: 'Computadoras',
-      price: 52000,
-      location: 'Santo Domingo',
-      seller: 'Tech Store',
-      whatsapp: '',
-      image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80',
-      description: 'Laptop profesional.',
-      views: 491,
-      likes: 29,
-      saves: 11,
-      profileVisits: 8
-    },
-    {
-      id: 4,
-      name: 'PlayStation 5',
-      category: 'Videojuegos',
-      price: 32000,
-      location: 'Santo Domingo Este',
-      seller: 'Gaming RD',
-      whatsapp: '',
-      image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80',
-      description: 'PlayStation 5.',
-      views: 952,
-      likes: 73,
-      saves: 42,
-      profileVisits: 25
-    }
-  ];
+if (!Array.isArray(ads)) ads = [];
 
-  if (!Array.isArray(products)) {
-    products = seed;
+if (!Array.isArray(products)) {
+    products = [
+        {
+            id: 1,
+            name: 'iPhone 15 Pro',
+            category: 'Celulares',
+            price: 45000,
+            location: 'Santo Domingo',
+            seller: 'Market Flash',
+            whatsapp: '',
+            contactType: 'whatsapp',
+            contactValue: '',
+            image: 'https://images.unsplash.com/photo-1696446702183-cbd13d5f2e88?auto=format&fit=crop&w=800&q=80',
+            description: 'iPhone 15 Pro en excelente condición.',
+            views: 1284,
+            likes: 86,
+            saves: 34,
+            profileVisits: 21
+        },
+        {
+            id: 2,
+            name: 'Samsung Galaxy S24',
+            category: 'Celulares',
+            price: 38000,
+            location: 'Santiago',
+            seller: 'Tecnología RD',
+            whatsapp: '',
+            contactType: 'whatsapp',
+            contactValue: '',
+            image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=800&q=80',
+            description: 'Samsung Galaxy S24.',
+            views: 743,
+            likes: 51,
+            saves: 18,
+            profileVisits: 14
+        },
+        {
+            id: 3,
+            name: 'Laptop profesional',
+            category: 'Computadoras',
+            price: 52000,
+            location: 'Santo Domingo',
+            seller: 'Tech Store',
+            whatsapp: '',
+            contactType: 'whatsapp',
+            contactValue: '',
+            image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80',
+            description: 'Laptop profesional.',
+            views: 491,
+            likes: 29,
+            saves: 11,
+            profileVisits: 8
+        },
+        {
+            id: 4,
+            name: 'PlayStation 5',
+            category: 'Videojuegos',
+            price: 32000,
+            location: 'Santo Domingo Este',
+            seller: 'Gaming RD',
+            whatsapp: '',
+            contactType: 'whatsapp',
+            contactValue: '',
+            image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80',
+            description: 'PlayStation 5.',
+            views: 952,
+            likes: 73,
+            saves: 42,
+            profileVisits: 25
+        }
+    ];
+
     saveProducts();
-  }
+}
 
-  if (!Array.isArray(advertising)) {
-    advertising = [];
-    saveAds();
-  }
+if (!config) {
+    config = {
+        paid: false,
 
-  /* =========================================================
-     UTILIDADES
-     ========================================================= */
+        normal: {
+            bank: 1500,
+            binance: 30,
+            paypal: 32
+        },
 
-  function loadJSON(key, fallback) {
+        pro: {
+            bank: 2500,
+            binance: 45,
+            paypal: 48
+        },
+
+        cheap: {
+            bank: 800,
+            binance: 18,
+            paypal: 20
+        },
+
+        bankName: 'BanReservas',
+        bankAccount: '',
+        bankName2: 'BHD',
+        bankAccount2: '',
+
+        binanceAddress: '',
+        paypalLink: ''
+    };
+
+    saveConfig();
+}
+
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+
+function loadJSON(key, fallback) {
     try {
-      const value = localStorage.getItem(key);
-      return value ? JSON.parse(value) : fallback;
-    } catch (error) {
-      console.error('Error leyendo almacenamiento:', error);
-      return fallback;
-    }
-  }
+        const value = localStorage.getItem(key);
 
-  function saveJSON(key, value) {
+        if (!value) return fallback;
+
+        return JSON.parse(value);
+    } catch (error) {
+        console.error('Error leyendo almacenamiento:', error);
+        return fallback;
+    }
+}
+
+
+function saveJSON(key, value) {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+        localStorage.setItem(key, JSON.stringify(value));
     } catch (error) {
-      console.error('Error guardando almacenamiento:', error);
+        console.error('Error guardando almacenamiento:', error);
     }
-  }
+}
 
-  function saveProducts() {
+
+function saveProducts() {
     saveJSON(STORAGE_PRODUCTS, products);
-  }
+}
 
-  function saveAds() {
-    saveJSON(STORAGE_ADS, advertising);
-  }
 
-  function money(value) {
+function saveConfig() {
+    saveJSON(STORAGE_CONFIG, config);
+}
+
+
+function saveAds() {
+    saveJSON(STORAGE_ADS, ads);
+}
+
+
+function money(value) {
     return new Intl.NumberFormat('es-DO', {
-      style: 'currency',
-      currency: 'DOP',
-      maximumFractionDigits: 0
+        style: 'currency',
+        currency: 'DOP',
+        maximumFractionDigits: 0
     }).format(Number(value) || 0);
-  }
+}
 
-  function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, char => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    }[char]));
-  }
 
-  function safeUrl(value) {
-    const url = String(value || '').trim();
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, function(char) {
+        return {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        }[char];
+    });
+}
 
-    if (!url) return '';
 
-    if (
-      url.startsWith('https://') ||
-      url.startsWith('http://')
-    ) {
-      return url;
-    }
+function normalizePhone(phone) {
+    return String(phone || '').replace(/[^\d+]/g, '');
+}
 
-    return '';
-  }
 
-  function normalizeWhatsapp(number) {
-    return String(number || '').replace(/[^\d]/g, '');
-  }
-
-  function whatsappUrl(number, message = '') {
-    const clean = normalizeWhatsapp(number);
-
-    if (!clean) return '';
-
-    return `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
-  }
-
-  function toast(message) {
+function toast(message) {
     const element = document.getElementById('toast');
 
-    if (!element) return;
+    if (!element) {
+        alert(message);
+        return;
+    }
 
     element.textContent = message;
     element.classList.remove('hidden');
 
-    clearTimeout(window.__marketFlashToast);
+    clearTimeout(window.marketFlashToast);
 
-    window.__marketFlashToast = setTimeout(() => {
-      element.classList.add('hidden');
-    }, 2400);
-  }
+    window.marketFlashToast = setTimeout(function() {
+        element.classList.add('hidden');
+    }, 2500);
+}
 
-  /* =========================================================
-     NAVEGACIÓN INTERNA
-     ========================================================= */
 
-  function pushNavigation() {
-    navigationStack.push(true);
-  }
+/* =========================================================
+   SISTEMA DE PANTALLAS / ATRÁS
+   ========================================================= */
 
-  function clearNavigation() {
-    navigationStack = [];
-  }
+/*
+   Importante:
+   Todas las ventanas se abren mediante showScreen().
+   Esto permite que el botón atrás funcione correctamente.
+*/
 
-  function goBack() {
-    if (navigationStack.length > 0) {
-      navigationStack.pop();
+function getSheet() {
+    return document.getElementById('sheet');
+}
 
-      if (navigationStack.length > 0) {
-        const previous = navigationStack.pop();
 
-        if (typeof previous === 'function') {
-          previous();
-          return;
-        }
-      }
+function getOverlay() {
+    return document.getElementById('overlay');
+}
+
+
+function showScreen(html, options = {}) {
+    const sheet = getSheet();
+    const overlay = getOverlay();
+
+    if (!sheet || !overlay) return;
+
+    const {
+        push = true,
+        screen = 'modal',
+        title = ''
+    } = options;
+
+    if (push && currentScreen !== screen) {
+        navigationStack.push(currentScreen);
     }
 
-    home();
-  }
-
-  /*
-   * Guardamos las pantallas como funciones para poder
-   * regresar correctamente.
-   */
-
-  function openScreen(screenFunction) {
-    navigationStack.push(screenFunction);
-    screenFunction();
-  }
-
-  /* =========================================================
-     OVERLAY / MODALES
-     ========================================================= */
-
-  function show(html, options = {}) {
-    const overlay = document.getElementById('overlay');
-    const sheet = document.getElementById('sheet');
-
-    if (!overlay || !sheet) return;
+    currentScreen = screen;
 
     sheet.innerHTML = html;
     overlay.classList.remove('hidden');
 
-    if (options.history !== false) {
-      navigationStack.push(() => show(html, { history: false }));
+    if (title) {
+        document.title = title + ' - Market Flash';
     }
 
-    bindDynamicButtons();
-  }
+    window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+    });
+}
 
-  function close() {
-    const overlay = document.getElementById('overlay');
+
+function show(html) {
+    showScreen(html, {
+        push: true,
+        screen: 'modal'
+    });
+}
+
+
+/*
+   Cierra completamente la ventana.
+*/
+function close() {
+    const overlay = getOverlay();
 
     if (!overlay) return;
 
     overlay.classList.add('hidden');
 
-    const sheet = document.getElementById('sheet');
+    const sheet = getSheet();
 
     if (sheet) {
-      sheet.innerHTML = '';
+        sheet.innerHTML = '';
     }
 
     navigationStack = [];
-  }
+    currentScreen = 'home';
 
-  function closeWithoutReset() {
-    const overlay = document.getElementById('overlay');
+    document.title = 'Market Flash';
+}
 
-    if (!overlay) return;
 
-    overlay.classList.add('hidden');
-  }
+/*
+   Retrocede a la pantalla anterior.
+*/
+function goBack() {
 
-  /* =========================================================
-     EVENTO PARA CERRAR AL TOCAR FUERA
-     ========================================================= */
-
-  function setupOverlay() {
-    const overlay = document.getElementById('overlay');
-
-    if (!overlay) return;
-
-    overlay.addEventListener('click', event => {
-      if (event.target === overlay) {
+    if (navigationStack.length === 0) {
         close();
-      }
-    });
-  }
+        return;
+    }
 
-  /* =========================================================
-     BOTÓN ATRÁS
-     ========================================================= */
+    const previous = navigationStack.pop();
 
-  function backHeader(title) {
+    if (previous === 'home') {
+        close();
+        home();
+        return;
+    }
+
+    /*
+       Si existiera una pantalla almacenada,
+       la reconstruimos.
+    */
+
+    if (previous === 'profile') {
+        openProfile(false);
+        return;
+    }
+
+    if (previous === 'activity') {
+        openActivity(false);
+        return;
+    }
+
+    if (previous === 'admin') {
+        admin(false);
+        return;
+    }
+
+    close();
+}
+
+
+/*
+   Botón visual de atrás.
+*/
+function backButton() {
     return `
-      <div class="modal-head">
-        <div style="display:flex;align-items:center;gap:8px;min-width:0">
-          <button
-            type="button"
-            class="close"
-            data-action="back"
-            aria-label="Atrás"
-            title="Atrás"
-          >‹</button>
-
-          <h2>${title}</h2>
-        </div>
-
         <button
-          type="button"
-          class="close"
-          data-action="close"
-          aria-label="Cerrar"
-          title="Cerrar"
-        >×</button>
-      </div>
+            class="close"
+            type="button"
+            onclick="goBack()"
+            aria-label="Atrás"
+            title="Atrás">
+            ←
+        </button>
     `;
-  }
+}
 
-  /* =========================================================
-     INICIO
-     ========================================================= */
 
-  function home() {
-    closeWithoutReset();
+/*
+   Botón X que cierra correctamente.
+*/
+function closeButton() {
+    return `
+        <button
+            class="close"
+            type="button"
+            onclick="close()"
+            aria-label="Cerrar"
+            title="Cerrar">
+            ×
+        </button>
+    `;
+}
 
-    navigationStack = [];
+
+/*
+   Si se toca fuera de la ventana se cierra.
+*/
+document.addEventListener('DOMContentLoaded', function() {
+
+    const overlay = document.getElementById('overlay');
+
+    if (overlay) {
+        overlay.addEventListener('click', function(event) {
+
+            if (event.target === overlay) {
+                close();
+            }
+
+        });
+    }
+
+});
+
+
+/* =========================================================
+   INICIO
+   ========================================================= */
+
+function render() {
+
+    const search = document.getElementById('search');
+
+    const query = search
+        ? search.value.trim().toLowerCase()
+        : '';
+
+    let list = products.filter(function(product) {
+
+        const matchesCategory =
+            category === 'Todos' ||
+            product.category === category;
+
+        const matchesSearch =
+            !query ||
+            String(product.name).toLowerCase().includes(query) ||
+            String(product.category).toLowerCase().includes(query) ||
+            String(product.location).toLowerCase().includes(query);
+
+        return matchesCategory && matchesSearch;
+    });
+
+    const count = document.getElementById('count');
+    const box = document.getElementById('products');
+
+    if (count) {
+        count.textContent =
+            list.length +
+            ' ' +
+            (list.length === 1 ? 'producto' : 'productos');
+    }
+
+    if (!box) return;
+
+    if (!list.length) {
+
+        box.innerHTML = `
+            <div class="empty">
+                <div style="font-size:44px">🔎</div>
+                <h3>No encontramos productos</h3>
+                <p>Prueba otra búsqueda o categoría.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    box.innerHTML = list.map(function(product) {
+
+        return `
+            <article
+                class="product"
+                onclick="openProduct(${Number(product.id)})">
+
+                <img
+                    src="${escapeHtml(product.image)}"
+                    alt="${escapeHtml(product.name)}"
+                    onerror="this.style.objectFit='contain';this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22600%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 font-size=%2260%22%3E📦%3C/text%3E%3C/svg%3E'">
+
+                <div class="product-info">
+
+                    <div class="product-name">
+                        ${escapeHtml(product.name)}
+                    </div>
+
+                    <div class="price">
+                        ${money(product.price)}
+                    </div>
+
+                    <div class="product-meta">
+                        📍 ${escapeHtml(product.location)}
+                    </div>
+
+                </div>
+
+            </article>
+        `;
+
+    }).join('');
+}
+
+
+function home() {
+
+    close();
 
     category = 'Todos';
 
-    document.querySelectorAll('.chip').forEach(button => {
-      button.classList.remove('active');
+    document.querySelectorAll('.chip').forEach(function(button) {
+        button.classList.remove('active');
     });
 
     const firstChip = document.querySelector('.chip');
 
     if (firstChip) {
-      firstChip.classList.add('active');
+        firstChip.classList.add('active');
     }
 
     const navHome = document.getElementById('navHome');
@@ -345,3520 +512,4037 @@
     if (navHome) navHome.classList.add('active');
     if (navActivity) navActivity.classList.remove('active');
 
+    currentScreen = 'home';
+    navigationStack = [];
+
     render();
-  }
+}
 
-  /* =========================================================
-     CATEGORÍAS
-     ========================================================= */
 
-  function setCategory(newCategory, button) {
-    category = newCategory;
+function setCategory(selectedCategory, button) {
 
-    document.querySelectorAll('.chip').forEach(item => {
-      item.classList.remove('active');
+    category = selectedCategory;
+
+    document.querySelectorAll('.chip').forEach(function(chip) {
+        chip.classList.remove('active');
     });
 
     if (button) {
-      button.classList.add('active');
+        button.classList.add('active');
     }
 
     render();
-  }
+}
 
-  /* =========================================================
-     RENDER DE PRODUCTOS
-     ========================================================= */
 
-  function render() {
+/* =========================================================
+   BÚSQUEDA
+   ========================================================= */
+
+document.addEventListener('DOMContentLoaded', function() {
+
     const search = document.getElementById('search');
-    const productsBox = document.getElementById('products');
-    const count = document.getElementById('count');
 
-    if (!productsBox) return;
-
-    const query = search
-      ? search.value.trim().toLowerCase()
-      : '';
-
-    const list = products.filter(product => {
-      const matchesCategory =
-        category === 'Todos' ||
-        product.category === category;
-
-      const matchesSearch =
-        !query ||
-        String(product.name || '').toLowerCase().includes(query) ||
-        String(product.category || '').toLowerCase().includes(query) ||
-        String(product.location || '').toLowerCase().includes(query);
-
-      return matchesCategory && matchesSearch;
-    });
-
-    if (count) {
-      count.textContent =
-        `${list.length} ${list.length === 1 ? 'producto' : 'productos'}`;
+    if (search) {
+        search.addEventListener('input', render);
     }
 
-    if (!list.length) {
-      productsBox.innerHTML = `
-        <div class="empty">
-          <div style="font-size:44px">🔎</div>
-          <h3>No encontramos productos</h3>
-          <p>Prueba otra búsqueda o categoría.</p>
+    render();
+});
+
+
+/* =========================================================
+   NOTIFICACIONES
+   ========================================================= */
+
+function notifications() {
+
+    const notificationsList =
+        loadJSON(STORAGE_NOTIFICATIONS, []);
+
+    showScreen(`
+        <div class="modal-head">
+            <h2>🔔 Notificaciones</h2>
+            ${closeButton()}
         </div>
-      `;
-      return;
-    }
 
-    productsBox.innerHTML = list.map(product => {
-      const image = safeUrl(product.image) || '';
+        ${
+            notificationsList.length
+            ?
+            notificationsList.map(function(item) {
+                return `
+                    <div class="card" style="margin-bottom:10px">
+                        <strong>${escapeHtml(item.title || 'Notificación')}</strong>
+                        <div class="muted" style="margin-top:6px">
+                            ${escapeHtml(item.message || '')}
+                        </div>
+                    </div>
+                `;
+            }).join('')
+            :
+            `
+                <div class="notice">
+                    No tienes notificaciones nuevas.
+                </div>
+            `
+        }
 
-      return `
-        <article
-          class="product"
-          data-product-id="${product.id}"
-          style="cursor:pointer"
-        >
-          <img
-            src="${escapeHtml(image)}"
-            alt="${escapeHtml(product.name)}"
-            onerror="this.style.objectFit='contain';this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22600%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 font-size=%2260%22%3E📦%3C/text%3E%3C/svg%3E'"
-          >
-
-          <div class="product-info">
-            <div class="product-name">
-              ${escapeHtml(product.name)}
-            </div>
-
-            <div class="price">
-              ${money(product.price)}
-            </div>
-
-            <div class="product-meta">
-              📍 ${escapeHtml(product.location)}
-            </div>
-          </div>
-        </article>
-      `;
-    }).join('');
-
-    productsBox.querySelectorAll('.product').forEach(card => {
-      card.addEventListener('click', () => {
-        const id = Number(card.dataset.productId);
-        openProduct(id);
-      });
+        <button
+            type="button"
+            class="secondary"
+            onclick="close()">
+            Cerrar
+        </button>
+    `, {
+        screen: 'notifications'
     });
-  }
+}
 
-  /* =========================================================
-     PRODUCTO
-     ========================================================= */
 
-  function openProduct(id) {
-    const product = products.find(item => item.id === id);
+/* =========================================================
+   PRODUCTO
+   ========================================================= */
+
+function openProduct(id) {
+
+    const product = products.find(function(item) {
+        return Number(item.id) === Number(id);
+    });
 
     if (!product) return;
 
     product.views = Number(product.views || 0) + 1;
+
     saveProducts();
 
-    const sellerWhatsapp =
-      product.whatsapp ||
-      (user && product.seller === user.name ? user.whatsapp : '');
+    const contactButton = createContactButton(product);
 
-    const image = safeUrl(product.image);
+    showScreen(`
+        <div class="modal-head">
 
-    show(`
-      ${backHeader(escapeHtml(product.name))}
+            <h2>
+                ${escapeHtml(product.name)}
+            </h2>
 
-      <div class="product-detail">
-
-        ${
-          image
-            ? `<img src="${escapeHtml(image)}"
-                    alt="${escapeHtml(product.name)}">`
-            : ''
-        }
-
-        <div style="margin-top:14px">
-
-          <div
-            class="price"
-            style="font-size:27px"
-          >
-            ${money(product.price)}
-          </div>
-
-          <div class="muted">
-            📍 ${escapeHtml(product.location)}
-          </div>
+            ${closeButton()}
 
         </div>
 
-        ${
-          product.description
-            ? `
-              <div
-                class="card"
-                style="margin-top:14px"
-              >
-                <strong>📝 Descripción</strong>
+        <div class="product-detail">
+
+            <img
+                src="${escapeHtml(product.image)}"
+                alt="${escapeHtml(product.name)}">
+
+            <div style="margin-top:14px">
 
                 <div
-                  class="muted"
-                  style="margin-top:6px;line-height:1.5"
-                >
-                  ${escapeHtml(product.description)}
+                    class="price"
+                    style="font-size:27px">
+
+                    ${money(product.price)}
+
                 </div>
-              </div>
-            `
-            : ''
-        }
 
-        <div
-          class="card"
-          style="margin-top:14px"
-        >
-          <strong>👤 Vendedor</strong>
+                <div class="muted">
+                    📍 ${escapeHtml(product.location)}
+                </div>
 
-          <div
-            class="muted"
-            style="margin-top:4px"
-          >
-            ${escapeHtml(product.seller)}
-          </div>
-        </div>
+            </div>
 
-        <div class="stats">
+            <div
+                class="card"
+                style="margin-top:14px">
 
-          <div class="stat">
-            <b>${product.views || 0}</b>
-            <span>👁️ Visualizaciones</span>
-          </div>
+                <strong>👤 Vendedor</strong>
 
-          <div class="stat">
-            <b>${product.likes || 0}</b>
-            <span>❤️ Reacciones</span>
-          </div>
+                <div
+                    class="muted"
+                    style="margin-top:4px">
 
-          <div class="stat">
-            <b>${product.saves || 0}</b>
-            <span>🔖 Guardados</span>
-          </div>
+                    ${escapeHtml(product.seller)}
 
-          <div class="stat">
-            <b>${product.profileVisits || 0}</b>
-            <span>👤 Visitas al perfil</span>
-          </div>
+                </div>
 
-        </div>
+            </div>
 
-        <button
-          class="primary"
-          style="margin-top:14px"
-          data-action="like"
-          data-id="${product.id}"
-        >
-          ❤️ Me interesa
-        </button>
+            ${
+                product.description
+                ?
+                `
+                    <div
+                        class="card"
+                        style="margin-top:10px">
 
-        ${
-          sellerWhatsapp
-            ? `
-              <button
+                        <strong>📝 Descripción</strong>
+
+                        <div
+                            class="muted"
+                            style="margin-top:7px">
+
+                            ${escapeHtml(product.description)}
+
+                        </div>
+
+                    </div>
+                `
+                : ''
+            }
+
+            <div class="stats">
+
+                <div class="stat">
+                    <b>${product.views || 0}</b>
+                    <span>👁️ Visualizaciones</span>
+                </div>
+
+                <div class="stat">
+                    <b>${product.likes || 0}</b>
+                    <span>❤️ Reacciones</span>
+                </div>
+
+                <div class="stat">
+                    <b>${product.saves || 0}</b>
+                    <span>🔖 Guardados</span>
+                </div>
+
+                <div class="stat">
+                    <b>${product.profileVisits || 0}</b>
+                    <span>👤 Visitas al perfil</span>
+                </div>
+
+            </div>
+
+            <button
+                type="button"
                 class="primary"
-                style="margin-top:8px;background:#16a34a"
-                data-action="whatsapp-product"
-                data-id="${product.id}"
-              >
-                <span style="font-size:20px">◉</span>
-                WhatsApp
-              </button>
-            `
-            : ''
-        }
+                style="margin-top:14px"
+                onclick="like(${Number(product.id)})">
 
+                ❤️ Me interesa
+
+            </button>
+
+            ${contactButton}
+
+        </div>
+    `, {
+        screen: 'product'
+    });
+}
+
+
+/* =========================================================
+   CONTACTO DEL VENDEDOR
+   ========================================================= */
+
+function createContactButton(product) {
+
+    const type = product.contactType || 'whatsapp';
+
+    if (type === 'whatsapp' && product.whatsapp) {
+
+        return `
+            <button
+                type="button"
+                class="primary"
+                style="margin-top:8px;background:#25D366"
+                onclick="contactWhatsApp('${escapeJs(product.whatsapp)}')">
+
+                <span style="font-size:19px">💬</span>
+                WhatsApp del vendedor
+
+            </button>
+        `;
+    }
+
+    if (type === 'messenger' && product.contactValue) {
+
+        return `
+            <button
+                type="button"
+                class="primary"
+                style="margin-top:8px;background:#1877F2"
+                onclick="openExternal('${escapeJs(product.contactValue)}')">
+
+                💬 Messenger
+
+            </button>
+        `;
+    }
+
+    if (type === 'url' && product.contactValue) {
+
+        return `
+            <button
+                type="button"
+                class="primary"
+                style="margin-top:8px"
+                onclick="openExternal('${escapeJs(product.contactValue)}')">
+
+                🔗 Visitar enlace
+
+            </button>
+        `;
+    }
+
+    return `
         <button
-          class="secondary"
-          style="margin-top:8px"
-          data-action="contact"
-          data-seller="${escapeHtml(product.seller)}"
-        >
-          📞 Contactar vendedor
+            type="button"
+            class="secondary"
+            style="margin-top:8px"
+            onclick="contact('${escapeJs(product.seller)}')">
+
+            📞 Contactar vendedor
+
         </button>
+    `;
+}
 
-      </div>
-    `);
-  }
 
-  function like(id) {
-    const product = products.find(item => item.id === id);
+function escapeJs(value) {
+
+    return String(value ?? '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/"/g, '\\"')
+        .replace(/\n/g, '\\n')
+        .replace(/\r/g, '\\r');
+}
+
+
+function like(id) {
+
+    const product = products.find(function(item) {
+        return Number(item.id) === Number(id);
+    });
 
     if (!product) return;
 
-    product.likes = Number(product.likes || 0) + 1;
+    product.likes =
+        Number(product.likes || 0) + 1;
 
     saveProducts();
 
     toast('❤️ Interés registrado');
 
-    openProduct(id);
-  }
+    setTimeout(function() {
+        openProduct(id);
+    }, 100);
+}
 
-  function contact(seller) {
-    const product = products.find(item => item.seller === seller);
 
-    if (product && product.whatsapp) {
-      openWhatsApp(
-        product.whatsapp,
-        `Hola, estoy interesado/a en tu publicación "${product.name}" en Market Flash.`
-      );
-      return;
+function contact(seller) {
+
+    toast(
+        'El contacto de ' +
+        seller +
+        ' estará disponible según la configuración del vendedor.'
+    );
+}
+
+
+function contactWhatsApp(phone) {
+
+    const cleanPhone = normalizePhone(phone);
+
+    if (!cleanPhone) {
+        toast('El vendedor no tiene WhatsApp configurado.');
+        return;
     }
 
-    if (user && product && product.seller === user.name && user.whatsapp) {
-      openWhatsApp(
-        user.whatsapp,
-        'Hola, contacto desde Market Flash.'
-      );
-      return;
-    }
+    const url =
+        'https://wa.me/' +
+        cleanPhone.replace('+', '');
 
-    toast('📞 El vendedor todavía no tiene WhatsApp registrado.');
-  }
+    openExternal(url);
+}
 
-  function openWhatsApp(number, message) {
-    const url = whatsappUrl(number, message);
+
+function openExternal(url) {
 
     if (!url) {
-      toast('⚠️ Número de WhatsApp no válido.');
-      return;
+        toast('Enlace no disponible.');
+        return;
+    }
+
+    if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
     }
 
     window.open(url, '_blank', 'noopener,noreferrer');
-  }
+}
 
-  /* =========================================================
-     PUBLICAR PRODUCTO
-     ========================================================= */
 
-  function openPublish() {
-    show(`
-      ${backHeader('➕ Publicar producto')}
+/* =========================================================
+   PUBLICAR PRODUCTO
+   ========================================================= */
 
-      <form
-        class="form"
-        id="publishForm"
-      >
+function openPublish() {
 
-        <div class="field">
-          <label>📸 Imagen</label>
+    showScreen(`
+        <div class="modal-head">
 
-          <div
-            style="
-              display:grid;
-              grid-template-columns:1fr 1fr;
-              gap:8px;
-            "
-          >
+            <h2>➕ Publicar producto</h2>
+
+            ${closeButton()}
+
+        </div>
+
+        <form
+            class="form"
+            id="publishForm">
+
+            <div class="field">
+                <label>📸 Imagen</label>
+
+                <input
+                    id="pImage"
+                    type="url"
+                    placeholder="URL de la imagen">
+            </div>
+
+            <div class="field">
+                <label>🏷️ Nombre</label>
+
+                <input
+                    id="pName"
+                    required
+                    placeholder="Ej. iPhone 15 Pro">
+            </div>
+
+            <div class="field">
+
+                <label>📂 Categoría</label>
+
+                <select
+                    id="pCat"
+                    required>
+
+                    <option value="">
+                        Seleccionar
+                    </option>
+
+                    <option>Celulares</option>
+                    <option>Computadoras</option>
+                    <option>Videojuegos</option>
+                    <option>Ropa</option>
+                    <option>Hogar</option>
+                    <option>Vehículos</option>
+
+                </select>
+
+            </div>
+
+            <div class="field">
+
+                <label>💰 Precio</label>
+
+                <input
+                    id="pPrice"
+                    type="number"
+                    min="0"
+                    required>
+
+            </div>
+
+            <div class="field">
+
+                <label>📍 Ubicación</label>
+
+                <input
+                    id="pLoc"
+                    required
+                    placeholder="Ciudad o provincia">
+
+            </div>
+
+            <div class="field">
+
+                <label>📝 Descripción</label>
+
+                <textarea
+                    id="pDesc"
+                    placeholder="Describe el producto"></textarea>
+
+            </div>
 
             <button
-              type="button"
-              class="secondary"
-              id="cameraButton"
-            >
-              📷 Cámara
+                type="submit"
+                class="primary">
+
+                🚀 Publicar
+
             </button>
 
-            <button
-              type="button"
-              class="secondary"
-              id="galleryButton"
-            >
-              🖼️ Galería
-            </button>
+        </form>
+    `, {
+        screen: 'publish'
+    });
 
-          </div>
-
-          <input
-            id="pCamera"
-            type="file"
-            accept="image/*"
-            capture="environment"
-            hidden
-          >
-
-          <input
-            id="pGallery"
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-          >
-
-          <input
-            id="pImage"
-            type="url"
-            placeholder="O pega una URL de imagen"
-            style="margin-top:8px"
-          >
-
-          <div
-            id="imagePreview"
-            style="
-              margin-top:10px;
-              display:none;
-            "
-          ></div>
-        </div>
-
-        <div class="field">
-          <label>🏷️ Nombre</label>
-          <input
-            id="pName"
-            required
-            placeholder="Ej. iPhone 15 Pro"
-          >
-        </div>
-
-        <div class="field">
-          <label>📂 Categoría</label>
-
-          <select id="pCat" required>
-            <option value="">Seleccionar</option>
-            <option>Celulares</option>
-            <option>Computadoras</option>
-            <option>Videojuegos</option>
-            <option>Ropa</option>
-            <option>Hogar</option>
-            <option>Vehículos</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>💰 Precio</label>
-          <input
-            id="pPrice"
-            type="number"
-            min="0"
-            required
-          >
-        </div>
-
-        <div class="field">
-          <label>📍 Ubicación</label>
-          <input
-            id="pLoc"
-            required
-            placeholder="Ciudad o provincia"
-          >
-        </div>
-
-        <div class="field">
-          <label>📝 Descripción</label>
-
-          <textarea
-            id="pDesc"
-            placeholder="Describe el producto"
-          ></textarea>
-        </div>
-
-        <div class="field">
-          <label>📱 WhatsApp</label>
-
-          <input
-            id="pWhatsapp"
-            type="tel"
-            value="${escapeHtml(user?.whatsapp || '')}"
-            placeholder="Ej. 18091234567"
-          >
-
-          <small class="muted">
-            Si ya está registrado en tu cuenta, se utilizará automáticamente.
-          </small>
-        </div>
-
-        <button
-          class="primary"
-          type="submit"
-        >
-          🚀 Publicar
-        </button>
-
-      </form>
-    `);
-
-    setupPublishForm();
-  }
-
-  function setupPublishForm() {
     const form = document.getElementById('publishForm');
 
     if (!form) return;
 
-    const cameraButton = document.getElementById('cameraButton');
-    const galleryButton = document.getElementById('galleryButton');
-    const cameraInput = document.getElementById('pCamera');
-    const galleryInput = document.getElementById('pGallery');
-    const imageInput = document.getElementById('pImage');
+    form.addEventListener('submit', function(event) {
 
-    if (cameraButton && cameraInput) {
-      cameraButton.addEventListener('click', () => {
-        cameraInput.click();
-      });
-    }
+        event.preventDefault();
 
-    if (galleryButton && galleryInput) {
-      galleryButton.addEventListener('click', () => {
-        galleryInput.click();
-      });
-    }
+        if (!user) {
 
-    if (cameraInput) {
-      cameraInput.addEventListener('change', event => {
-        processImageFile(event.target.files?.[0]);
-      });
-    }
+            toast(
+                'Debes crear una cuenta o iniciar sesión.'
+            );
 
-    if (galleryInput) {
-      galleryInput.addEventListener('change', event => {
-        processImageFile(event.target.files?.[0]);
-      });
-    }
+            setTimeout(register, 400);
 
-    if (imageInput) {
-      imageInput.addEventListener('input', () => {
-        if (imageInput.value.trim()) {
-          showImagePreview(imageInput.value.trim());
-        }
-      });
-    }
-
-    form.addEventListener('submit', event => {
-      event.preventDefault();
-
-      if (!user) {
-        toast('Debes crear una cuenta o iniciar sesión.');
-        return;
-      }
-
-      const name = document.getElementById('pName')?.value.trim();
-      const cat = document.getElementById('pCat')?.value;
-      const price = Number(document.getElementById('pPrice')?.value || 0);
-      const loc = document.getElementById('pLoc')?.value.trim();
-      const desc = document.getElementById('pDesc')?.value.trim();
-      const whatsapp =
-        document.getElementById('pWhatsapp')?.value.trim() ||
-        user.whatsapp ||
-        '';
-
-      const image =
-        document.getElementById('pImage')?.value.trim() ||
-        '';
-
-      if (!name || !cat || !loc) {
-        toast('⚠️ Completa los campos obligatorios.');
-        return;
-      }
-
-      const product = {
-        id: Date.now(),
-        name,
-        category: cat,
-        price,
-        location: loc,
-        seller: user.name,
-        whatsapp,
-        image,
-        description: desc,
-        views: 0,
-        likes: 0,
-        saves: 0,
-        profileVisits: 0
-      };
-
-      if (whatsapp) {
-        user.whatsapp = whatsapp;
-        saveJSON(STORAGE_USER, user);
-      }
-
-      products.unshift(product);
-
-      saveProducts();
-
-      close();
-
-      render();
-
-      toast('✅ Producto publicado correctamente.');
-    });
-  }
-
-  function processImageFile(file) {
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      toast('⚠️ Selecciona una imagen válida.');
-      return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onload = event => {
-      const input = document.getElementById('pImage');
-
-      if (input) {
-        input.value = event.target.result;
-      }
-
-      showImagePreview(event.target.result);
-    };
-
-    reader.readAsDataURL(file);
-  }
-
-  function showImagePreview(source) {
-    const preview = document.getElementById('imagePreview');
-
-    if (!preview || !source) return;
-
-    preview.style.display = 'block';
-
-    preview.innerHTML = `
-      <img
-        src="${escapeHtml(source)}"
-        style="
-          width:100%;
-          max-height:250px;
-          object-fit:cover;
-          border-radius:14px;
-          border:1px solid #e5e7eb;
-        "
-        alt="Vista previa"
-      >
-    `;
-  }
-
-  /* =========================================================
-     PERFIL
-     ========================================================= */
-
-  function openProfile() {
-    if (!user) {
-      show(`
-        ${backHeader('👤 Mi cuenta')}
-
-        <div class="profile">
-
-          <div class="avatar">👤</div>
-
-          <h3>Bienvenido a Market Flash</h3>
-
-          <p
-            class="muted"
-            style="margin:6px 0 16px"
-          >
-            Crea tu cuenta o inicia sesión.
-          </p>
-
-          <button
-            class="primary"
-            data-action="register"
-          >
-            📝 Crear cuenta
-          </button>
-
-          <button
-            class="secondary"
-            style="margin-top:8px"
-            data-action="login"
-          >
-            🔐 Iniciar sesión
-          </button>
-
-        </div>
-      `);
-
-      return;
-    }
-
-    show(`
-      ${backHeader('👤 Mi perfil')}
-
-      <div class="profile">
-
-        <div class="avatar">👤</div>
-
-        <h2>${escapeHtml(user.name)}</h2>
-
-        <p class="muted">
-          🪪 Cédula registrada
-        </p>
-
-        ${
-          user.whatsapp
-            ? `
-              <p
-                class="muted"
-                style="margin-top:5px"
-              >
-                📱 WhatsApp: ${escapeHtml(user.whatsapp)}
-              </p>
-            `
-            : ''
+            return;
         }
 
-      </div>
+        const image =
+            document.getElementById('pImage').value.trim();
 
-      <div class="menu">
+        const name =
+            document.getElementById('pName').value.trim();
 
-        <button
-          class="menu-item"
-          data-action="activity"
-        >
-          <div class="menu-icon">📦</div>
+        const cat =
+            document.getElementById('pCat').value;
 
-          <div class="menu-copy">
-            <strong>Mi actividad</strong>
-            <small>
-              Publicaciones, productos, ventas y recibos
-            </small>
-          </div>
+        const price =
+            Number(document.getElementById('pPrice').value);
 
-          <b>›</b>
-        </button>
+        const loc =
+            document.getElementById('pLoc').value.trim();
 
-        <button
-          class="menu-item"
-          data-action="settings"
-        >
-          <div class="menu-icon">⚙️</div>
+        const desc =
+            document.getElementById('pDesc').value.trim();
 
-          <div class="menu-copy">
-            <strong>Configuración</strong>
-            <small>Cuenta y seguridad</small>
-          </div>
+        products.unshift({
+            id: Date.now(),
+            name: name,
+            category: cat,
+            price: price,
+            location: loc,
+            seller: user.name,
+            whatsapp: user.whatsapp || '',
+            contactType: 'whatsapp',
+            contactValue: '',
+            image: image,
+            description: desc,
+            views: 0,
+            likes: 0,
+            saves: 0,
+            profileVisits: 0
+        });
 
-          <b>›</b>
-        </button>
-
-        <button
-          class="menu-item"
-          data-action="admin"
-        >
-          <div class="menu-icon">👑</div>
-
-          <div class="menu-copy">
-            <strong>Administración</strong>
-            <small>Panel exclusivo del administrador</small>
-          </div>
-
-          <b>›</b>
-        </button>
-
-        <button
-          class="menu-item"
-          data-action="logout"
-        >
-          <div class="menu-icon">🚪</div>
-
-          <div class="menu-copy">
-            <strong>Cerrar sesión</strong>
-            <small>Salir de la cuenta</small>
-          </div>
-
-          <b>›</b>
-        </button>
-
-      </div>
-    `);
-  }
-
-  /* =========================================================
-     REGISTRO
-     ========================================================= */
-
-  function register() {
-    show(`
-      ${backHeader('📝 Crear cuenta')}
-
-      <div class="notice">
-        La cédula y el número de WhatsApp son obligatorios.
-        El correo electrónico es opcional.
-      </div>
-
-      <form
-        class="form"
-        id="regForm"
-      >
-
-        <div class="field">
-          <label>👤 Nombre real completo</label>
-
-          <input
-            id="rName"
-            required
-            placeholder="Igual que en la cédula"
-          >
-        </div>
-
-        <div class="field">
-          <label>🪪 Número de cédula</label>
-
-          <input
-            id="rCed"
-            required
-            placeholder="Número de cédula"
-          >
-        </div>
-
-        <div class="field">
-          <label>📱 Número de WhatsApp</label>
-
-          <input
-            id="rWhatsapp"
-            type="tel"
-            required
-            placeholder="Ej. 18091234567"
-          >
-        </div>
-
-        <div class="field">
-          <label>🔐 Contraseña</label>
-
-          <input
-            id="rPass"
-            type="password"
-            minlength="6"
-            required
-          >
-        </div>
-
-        <div class="field">
-          <label>🛡️ Pregunta de recuperación</label>
-
-          <select id="rQ" required>
-            <option value="">Seleccionar</option>
-            <option>¿Cuál era tu apodo de infancia?</option>
-            <option>¿Cuál fue tu primer trabajo?</option>
-            <option>¿Cuál es tu comida favorita?</option>
-            <option>¿Cuál era el nombre de tu primera mascota?</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>🛡️ Respuesta de recuperación</label>
-
-          <input
-            id="rA"
-            required
-          >
-        </div>
-
-        <div class="field">
-          <label>📧 Correo electrónico (opcional)</label>
-
-          <input
-            id="rEmail"
-            type="email"
-          >
-        </div>
-
-        <button
-          class="primary"
-          type="submit"
-        >
-          Crear cuenta
-        </button>
-
-      </form>
-    `);
-
-    const form = document.getElementById('regForm');
-
-    if (!form) return;
-
-    form.addEventListener('submit', event => {
-      event.preventDefault();
-
-      user = {
-        name: document.getElementById('rName').value.trim(),
-        cedula: document.getElementById('rCed').value.trim(),
-        whatsapp: document.getElementById('rWhatsapp').value.trim(),
-        password: document.getElementById('rPass').value,
-        question: document.getElementById('rQ').value,
-        answer: document.getElementById('rA').value.trim().toLowerCase(),
-        email: document.getElementById('rEmail').value.trim(),
-        blocked: false
-      };
-
-      saveJSON(STORAGE_USER, user);
-
-      close();
-
-      toast('✅ Cuenta creada correctamente.');
-    });
-  }
-
-  /* =========================================================
-     LOGIN
-     ========================================================= */
-
-  function login() {
-    show(`
-      ${backHeader('🔐 Iniciar sesión')}
-
-      <form
-        class="form"
-        id="loginForm"
-      >
-
-        <div class="field">
-          <label>🪪 Cédula</label>
-
-          <input
-            id="lCed"
-            required
-          >
-        </div>
-
-        <div class="field">
-          <label>🔐 Contraseña</label>
-
-          <input
-            id="lPass"
-            type="password"
-            required
-          >
-        </div>
-
-        <button
-          class="primary"
-          type="submit"
-        >
-          Entrar
-        </button>
-
-      </form>
-
-      <button
-        class="secondary"
-        style="margin-top:8px"
-        data-action="recovery"
-      >
-        🔑 Recuperar contraseña
-      </button>
-    `);
-
-    const form = document.getElementById('loginForm');
-
-    if (!form) return;
-
-    form.addEventListener('submit', event => {
-      event.preventDefault();
-
-      const saved = loadJSON(STORAGE_USER, null);
-
-      if (!saved) {
-        toast('No existe una cuenta.');
-        return;
-      }
-
-      if (saved.blocked) {
-        toast('🚫 Cuenta bloqueada por administración.');
-        return;
-      }
-
-      const cedula =
-        document.getElementById('lCed').value.trim();
-
-      const password =
-        document.getElementById('lPass').value;
-
-      if (
-        saved.cedula === cedula &&
-        saved.password === password
-      ) {
-        user = saved;
+        saveProducts();
 
         close();
 
-        toast('✅ Sesión iniciada correctamente.');
-      } else {
-        toast('❌ Cédula o contraseña incorrecta.');
-      }
+        render();
+
+        toast('✅ Producto publicado correctamente.');
     });
-  }
+}
 
-  /* =========================================================
-     RECUPERACIÓN
-     ========================================================= */
 
-  function recovery() {
-    const saved = loadJSON(STORAGE_USER, null);
+/* =========================================================
+   PERFIL
+   ========================================================= */
 
-    if (!saved) {
-      toast('No existe una cuenta.');
-      return;
-    }
+function openProfile(push = true) {
 
-    show(`
-      ${backHeader('🔑 Recuperar contraseña')}
-
-      <div class="notice">
-        ${escapeHtml(saved.question)}
-      </div>
-
-      <div class="field">
-        <label>Respuesta</label>
-
-        <input id="recA">
-      </div>
-
-      <button
-        class="primary"
-        style="margin-top:12px"
-        data-action="verify-recovery"
-      >
-        Verificar
-      </button>
-    `);
-  }
-
-  function verifyRecovery() {
-    const saved = loadJSON(STORAGE_USER, null);
-
-    if (!saved) {
-      toast('No existe una cuenta.');
-      return;
-    }
-
-    const answer =
-      document.getElementById('recA')?.value
-        .trim()
-        .toLowerCase();
-
-    if (answer === saved.answer) {
-      toast(
-        '✅ Identidad verificada. La recuperación segura se conectará al backend.'
-      );
-    } else {
-      toast('❌ Respuesta incorrecta.');
-    }
-  }
-
-  /* =========================================================
-     ACTIVIDAD
-     ========================================================= */
-
-  function openActivity() {
     if (!user) {
-      openProfile();
-      return;
+
+        showScreen(`
+            <div class="modal-head">
+
+                <h2>👤 Mi cuenta</h2>
+
+                ${closeButton()}
+
+            </div>
+
+            <div class="profile">
+
+                <div class="avatar">
+                    👤
+                </div>
+
+                <h3>
+                    Bienvenido a Market Flash
+                </h3>
+
+                <p
+                    class="muted"
+                    style="margin:6px 0 16px">
+
+                    Crea tu cuenta o inicia sesión.
+
+                </p>
+
+                <button
+                    type="button"
+                    class="primary"
+                    onclick="register()">
+
+                    📝 Crear cuenta
+
+                </button>
+
+                <button
+                    type="button"
+                    class="secondary"
+                    style="margin-top:8px"
+                    onclick="login()">
+
+                    🔐 Iniciar sesión
+
+                </button>
+
+            </div>
+        `, {
+            screen: 'profile',
+            push: push
+        });
+
+        return;
     }
 
-    const navActivity =
-      document.getElementById('navActivity');
 
-    const navHome =
-      document.getElementById('navHome');
+    showScreen(`
+        <div class="modal-head">
 
-    if (navActivity) navActivity.classList.add('active');
-    if (navHome) navHome.classList.remove('active');
+            <h2>👤 Mi perfil</h2>
 
-    const mine =
-      products.filter(product => product.seller === user.name);
+            ${closeButton()}
 
-    show(`
-      ${backHeader('📦 Mi actividad')}
+        </div>
 
-      <div class="grid">
+        <div class="profile">
 
-        <button
-          class="card"
-          data-action="my-publications"
-        >
-          <div class="big">📢</div>
-          <strong>Mis publicaciones</strong>
-          <small>
-            Ver estadísticas y administrar
-          </small>
-        </button>
+            <div class="avatar">
+                👤
+            </div>
 
-        <button
-          class="card"
-          data-action="my-products"
-        >
-          <div class="big">📦</div>
-          <strong>Mis productos</strong>
-          <small>${mine.length} productos</small>
-        </button>
+            <h2>
+                ${escapeHtml(user.name)}
+            </h2>
 
-        <button
-          class="card"
-          data-action="my-sales"
-        >
-          <div class="big">💰</div>
-          <strong>Mis ventas</strong>
-          <small>Registro de ventas</small>
-        </button>
+            <p class="muted">
+                Cédula registrada
+            </p>
 
-        <button
-          class="card"
-          data-action="receipts"
-        >
-          <div class="big">🧾</div>
-          <strong>Mis recibos</strong>
-          <small>Comprobantes</small>
-        </button>
+            ${
+                user.whatsapp
+                ?
+                `
+                    <p
+                        class="muted"
+                        style="margin-top:6px">
 
-        <button
-          class="card"
-          data-action="favorites"
-        >
-          <div class="big">❤️</div>
-          <strong>Favoritos</strong>
-          <small>Productos guardados</small>
-        </button>
+                        💬 ${escapeHtml(user.whatsapp)}
 
-        <button
-          class="card"
-          data-action="history"
-        >
-          <div class="big">📋</div>
-          <strong>Historial</strong>
-          <small>Actividad reciente</small>
-        </button>
+                    </p>
+                `
+                : ''
+            }
 
-      </div>
-    `);
-  }
+        </div>
 
-  /* =========================================================
-     MIS PUBLICACIONES
-     ========================================================= */
+        <div class="menu">
 
-  function myPublications() {
-    const mine =
-      products.filter(product => product.seller === user.name);
+            <button
+                type="button"
+                class="menu-item"
+                onclick="openActivity()">
 
-    show(`
-      ${backHeader('📢 Mis publicaciones')}
+                <div class="menu-icon">
+                    📦
+                </div>
 
-      ${
-        mine.length
-          ? mine.map(product => `
-            <div
-              class="card"
-              style="margin-bottom:10px"
-            >
+                <div class="menu-copy">
 
-              <strong>
-                ${escapeHtml(product.name)}
-              </strong>
+                    <strong>
+                        Mi actividad
+                    </strong>
 
-              <div
-                class="muted"
-                style="margin-top:6px"
-              >
-                👁️ ${product.views || 0}
-                · ❤️ ${product.likes || 0}
-                · 🔖 ${product.saves || 0}
-                · 👤 ${product.profileVisits || 0}
-              </div>
+                    <small>
+                        Publicaciones, productos, ventas y recibos
+                    </small>
 
-              <button
-                class="primary"
-                style="margin-top:10px"
-                data-action="statistics"
-                data-id="${product.id}"
-              >
-                📊 Ver estadísticas
-              </button>
+                </div>
 
-              <button
-                class="secondary"
-                style="margin-top:8px"
-                data-action="edit-product"
-                data-id="${product.id}"
-              >
-                ✏️ Editar
-              </button>
+                <b>›</b>
 
-              <button
-                class="danger"
-                style="margin-top:8px"
-                data-action="delete-product"
-                data-id="${product.id}"
-              >
-                🗑️ Eliminar publicación
-              </button>
+            </button>
+
+
+            <button
+                type="button"
+                class="menu-item"
+                onclick="settings()">
+
+                <div class="menu-icon">
+                    ⚙️
+                </div>
+
+                <div class="menu-copy">
+
+                    <strong>
+                        Configuración
+                    </strong>
+
+                    <small>
+                        Cuenta y seguridad
+                    </small>
+
+                </div>
+
+                <b>›</b>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="menu-item"
+                onclick="admin()">
+
+                <div class="menu-icon">
+                    👑
+                </div>
+
+                <div class="menu-copy">
+
+                    <strong>
+                        Administración
+                    </strong>
+
+                    <small>
+                        Panel exclusivo del administrador
+                    </small>
+
+                </div>
+
+                <b>›</b>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="menu-item"
+                onclick="logout()">
+
+                <div class="menu-icon">
+                    🚪
+                </div>
+
+                <div class="menu-copy">
+
+                    <strong>
+                        Cerrar sesión
+                    </strong>
+
+                    <small>
+                        Salir de la cuenta
+                    </small>
+
+                </div>
+
+                <b>›</b>
+
+            </button>
+
+        </div>
+    `, {
+        screen: 'profile',
+        push: push
+    });
+}
+
+
+/* =========================================================
+   REGISTRO
+   ========================================================= */
+
+function register() {
+
+    showScreen(`
+        <div class="modal-head">
+
+            <h2>📝 Crear cuenta</h2>
+
+            ${backButton()}
+
+        </div>
+
+        <div class="notice">
+
+            La cédula y el número de WhatsApp serán
+            utilizados para identificar tu cuenta y
+            facilitar tus publicaciones.
+
+        </div>
+
+        <form
+            class="form"
+            id="regForm">
+
+            <div class="field">
+
+                <label>
+                    👤 Nombre real completo
+                </label>
+
+                <input
+                    id="rName"
+                    required
+                    placeholder="Igual que en la cédula">
 
             </div>
-          `).join('')
-          : `
-            <div class="empty">
-              📢
-              <br><br>
-              No tienes publicaciones.
+
+            <div class="field">
+
+                <label>
+                    🪪 Número de cédula
+                </label>
+
+                <input
+                    id="rCed"
+                    required
+                    placeholder="Número de cédula">
+
             </div>
-          `
-      }
-    `);
-  }
 
-  /* =========================================================
-     ESTADÍSTICAS
-     ========================================================= */
+            <div class="field">
 
-  function statistics(id) {
-    const product =
-      products.find(item => item.id === id);
+                <label>
+                    💬 Número de WhatsApp
+                </label>
 
-    if (!product) return;
+                <input
+                    id="rWhatsapp"
+                    type="tel"
+                    required
+                    placeholder="+18091234567">
 
-    show(`
-      ${backHeader('📊 Estadísticas')}
+            </div>
 
-      <h3>
-        ${escapeHtml(product.name)}
-      </h3>
+            <div class="field">
 
-      <div class="stats">
+                <label>
+                    🔐 Contraseña
+                </label>
 
-        <div class="stat">
-          <b>${product.views || 0}</b>
-          <span>👁️ Visualizaciones</span>
-        </div>
+                <input
+                    id="rPass"
+                    type="password"
+                    minlength="6"
+                    required>
 
-        <div class="stat">
-          <b>${product.likes || 0}</b>
-          <span>❤️ Reacciones</span>
-        </div>
+            </div>
 
-        <div class="stat">
-          <b>${product.saves || 0}</b>
-          <span>🔖 Guardados</span>
-        </div>
+            <div class="field">
 
-        <div class="stat">
-          <b>${product.profileVisits || 0}</b>
-          <span>👤 Visitas al perfil</span>
-        </div>
+                <label>
+                    🛡️ Pregunta de recuperación
+                </label>
 
-      </div>
-    `);
-  }
+                <select
+                    id="rQ"
+                    required>
 
-  /* =========================================================
-     EDITAR PRODUCTO
-     ========================================================= */
+                    <option value="">
+                        Seleccionar
+                    </option>
 
-  function editProduct(id) {
-    const product =
-      products.find(item => item.id === id);
+                    <option>
+                        ¿Cuál era tu apodo de infancia?
+                    </option>
 
-    if (!product) return;
+                    <option>
+                        ¿Cuál fue tu primer trabajo?
+                    </option>
 
-    show(`
-      ${backHeader('✏️ Editar publicación')}
+                    <option>
+                        ¿Cuál es tu comida favorita?
+                    </option>
 
-      <form
-        class="form"
-        id="editProductForm"
-      >
+                    <option>
+                        ¿Cuál era el nombre de tu primera mascota?
+                    </option>
 
-        <div class="field">
-          <label>🏷️ Nombre</label>
+                </select>
 
-          <input
-            id="editName"
-            value="${escapeHtml(product.name)}"
-            required
-          >
-        </div>
+            </div>
 
-        <div class="field">
-          <label>💰 Precio</label>
+            <div class="field">
 
-          <input
-            id="editPrice"
-            type="number"
-            min="0"
-            value="${Number(product.price) || 0}"
-            required
-          >
-        </div>
+                <label>
+                    🛡️ Respuesta de recuperación
+                </label>
 
-        <div class="field">
-          <label>📍 Ubicación</label>
+                <input
+                    id="rA"
+                    required>
 
-          <input
-            id="editLocation"
-            value="${escapeHtml(product.location)}"
-            required
-          >
-        </div>
+            </div>
 
-        <div class="field">
-          <label>📝 Descripción</label>
+            <div class="field">
 
-          <textarea id="editDescription">${escapeHtml(
-            product.description || ''
-          )}</textarea>
-        </div>
+                <label>
+                    📧 Correo electrónico (opcional)
+                </label>
 
-        <button
-          class="primary"
-          type="submit"
-        >
-          💾 Guardar cambios
-        </button>
+                <input
+                    id="rEmail"
+                    type="email">
 
-      </form>
-    `);
+            </div>
+
+            <button
+                type="submit"
+                class="primary">
+
+                Crear cuenta
+
+            </button>
+
+        </form>
+    `, {
+        screen: 'register'
+    });
+
 
     const form =
-      document.getElementById('editProductForm');
+        document.getElementById('regForm');
 
     if (!form) return;
 
-    form.addEventListener('submit', event => {
-      event.preventDefault();
 
-      product.name =
-        document.getElementById('editName').value.trim();
+    form.addEventListener('submit', function(event) {
 
-      product.price =
-        Number(document.getElementById('editPrice').value || 0);
+        event.preventDefault();
 
-      product.location =
-        document.getElementById('editLocation').value.trim();
+        const name =
+            document.getElementById('rName').value.trim();
 
-      product.description =
-        document.getElementById('editDescription').value.trim();
+        const cedula =
+            document.getElementById('rCed').value.trim();
 
-      saveProducts();
+        const whatsapp =
+            document.getElementById('rWhatsapp').value.trim();
 
-      toast('✅ Publicación actualizada.');
+        const password =
+            document.getElementById('rPass').value;
 
-      myPublications();
+        const question =
+            document.getElementById('rQ').value;
+
+        const answer =
+            document.getElementById('rA').value
+                .trim()
+                .toLowerCase();
+
+        const email =
+            document.getElementById('rEmail').value.trim();
+
+
+        user = {
+            name: name,
+            cedula: cedula,
+            whatsapp: whatsapp,
+            password: password,
+            question: question,
+            answer: answer,
+            email: email,
+            blocked: false
+        };
+
+
+        saveJSON(STORAGE_USER, user);
+
+        close();
+
+        toast(
+            '✅ Cuenta creada correctamente.'
+        );
     });
-  }
+}
 
-  /* =========================================================
-     ELIMINAR PRODUCTO
-     ========================================================= */
 
-  function deleteProduct(id) {
+/* =========================================================
+   LOGIN
+   ========================================================= */
+
+function login() {
+
+    showScreen(`
+        <div class="modal-head">
+
+            <h2>🔐 Iniciar sesión</h2>
+
+            ${backButton()}
+
+        </div>
+
+        <form
+            class="form"
+            id="loginForm">
+
+            <div class="field">
+
+                <label>
+                    🪪 Cédula
+                </label>
+
+                <input
+                    id="lCed"
+                    required>
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    🔐 Contraseña
+                </label>
+
+                <input
+                    id="lPass"
+                    type="password"
+                    required>
+
+            </div>
+
+            <button
+                type="submit"
+                class="primary">
+
+                Entrar
+
+            </button>
+
+        </form>
+
+        <button
+            type="button"
+            class="secondary"
+            style="margin-top:8px"
+            onclick="recovery()">
+
+            🔑 Recuperar contraseña
+
+        </button>
+    `, {
+        screen: 'login'
+    });
+
+
+    const form =
+        document.getElementById('loginForm');
+
+    if (!form) return;
+
+
+    form.addEventListener('submit', function(event) {
+
+        event.preventDefault();
+
+        const saved =
+            loadJSON(STORAGE_USER, null);
+
+        if (!saved) {
+
+            toast(
+                'No existe una cuenta.'
+            );
+
+            return;
+        }
+
+        if (saved.blocked) {
+
+            toast(
+                '🚫 Cuenta bloqueada por administración.'
+            );
+
+            return;
+        }
+
+
+        const cedula =
+            document.getElementById('lCed')
+                .value
+                .trim();
+
+        const password =
+            document.getElementById('lPass')
+                .value;
+
+
+        if (
+            saved.cedula === cedula &&
+            saved.password === password
+        ) {
+
+            user = saved;
+
+            close();
+
+            toast(
+                '✅ Sesión iniciada correctamente.'
+            );
+
+        } else {
+
+            toast(
+                '❌ Cédula o contraseña incorrecta.'
+            );
+        }
+    });
+}
+
+
+/* =========================================================
+   RECUPERACIÓN
+   ========================================================= */
+
+function recovery() {
+
+    const saved =
+        loadJSON(STORAGE_USER, null);
+
+    if (!saved) {
+
+        toast(
+            'No existe una cuenta.'
+        );
+
+        return;
+    }
+
+
+    showScreen(`
+        <div class="modal-head">
+
+            <h2>
+                🔑 Recuperar contraseña
+            </h2>
+
+            ${backButton()}
+
+        </div>
+
+        <div class="notice">
+
+            ${escapeHtml(saved.question)}
+
+        </div>
+
+        <div class="field">
+
+            <label>
+                Respuesta
+            </label>
+
+            <input id="recA">
+
+        </div>
+
+        <button
+            type="button"
+            class="primary"
+            style="margin-top:12px"
+            onclick="verifyRecovery()">
+
+            Verificar
+
+        </button>
+    `, {
+        screen: 'recovery'
+    });
+}
+
+
+function verifyRecovery() {
+
+    const saved =
+        loadJSON(STORAGE_USER, null);
+
+    if (!saved) return;
+
+    const input =
+        document.getElementById('recA');
+
+    if (!input) return;
+
+
+    if (
+        input.value
+            .trim()
+            .toLowerCase() === saved.answer
+    ) {
+
+        toast(
+            '✅ Identidad verificada. La recuperación segura se conectará al backend.'
+        );
+
+    } else {
+
+        toast(
+            '❌ Respuesta incorrecta.'
+        );
+    }
+}
+
+
+/* =========================================================
+   ACTIVIDAD
+   ========================================================= */
+
+function openActivity(push = true) {
+
+    if (!user) {
+
+        openProfile();
+
+        return;
+    }
+
+
+    const navActivity =
+        document.getElementById('navActivity');
+
+    const navHome =
+        document.getElementById('navHome');
+
+    if (navActivity)
+        navActivity.classList.add('active');
+
+    if (navHome)
+        navHome.classList.remove('active');
+
+
+    const mine =
+        products.filter(function(product) {
+            return product.seller === user.name;
+        });
+
+
+    showScreen(`
+        <div class="modal-head">
+
+            <h2>
+                📦 Mi actividad
+            </h2>
+
+            ${closeButton()}
+
+        </div>
+
+        <div class="grid">
+
+            <button
+                type="button"
+                class="card"
+                onclick="myPublications()">
+
+                <div class="big">
+                    📢
+                </div>
+
+                <strong>
+                    Mis publicaciones
+                </strong>
+
+                <small>
+                    Ver estadísticas y administrar
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="card"
+                onclick="myProducts()">
+
+                <div class="big">
+                    📦
+                </div>
+
+                <strong>
+                    Mis productos
+                </strong>
+
+                <small>
+                    ${mine.length} productos
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="card"
+                onclick="mySales()">
+
+                <div class="big">
+                    💰
+                </div>
+
+                <strong>
+                    Mis ventas
+                </strong>
+
+                <small>
+                    Registro de ventas
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="card"
+                onclick="receipts()">
+
+                <div class="big">
+                    🧾
+                </div>
+
+                <strong>
+                    Mis recibos
+                </strong>
+
+                <small>
+                    Comprobantes
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="card"
+                onclick="favorites()">
+
+                <div class="big">
+                    ❤️
+                </div>
+
+                <strong>
+                    Favoritos
+                </strong>
+
+                <small>
+                    Productos guardados
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="card"
+                onclick="historyPage()">
+
+                <div class="big">
+                    📋
+                </div>
+
+                <strong>
+                    Historial
+                </strong>
+
+                <small>
+                    Actividad reciente
+                </small>
+
+            </button>
+
+        </div>
+    `, {
+        screen: 'activity',
+        push: push
+    });
+}
+
+
+/* =========================================================
+   MIS PUBLICACIONES
+   ========================================================= */
+
+function myPublications() {
+
+    const mine =
+        products.filter(function(product) {
+            return user &&
+                product.seller === user.name;
+        });
+
+
+    showScreen(`
+        <div class="modal-head">
+
+            <h2>
+                📢 Mis publicaciones
+            </h2>
+
+            ${backButton()}
+
+        </div>
+
+        ${
+            mine.length
+            ?
+            mine.map(function(product) {
+
+                return `
+                    <div
+                        class="card"
+                        style="margin-bottom:10px">
+
+                        <strong>
+                            ${escapeHtml(product.name)}
+                        </strong>
+
+                        <div
+                            class="muted"
+                            style="margin-top:6px">
+
+                            👁️ ${product.views || 0}
+                            ·
+                            ❤️ ${product.likes || 0}
+                            ·
+                            🔖 ${product.saves || 0}
+                            ·
+                            👤 ${product.profileVisits || 0}
+
+                        </div>
+
+                        <button
+                            type="button"
+                            class="primary"
+                            style="margin-top:10px"
+                            onclick="statistics(${Number(product.id)})">
+
+                            📊 Ver estadísticas
+
+                        </button>
+
+                        <button
+                            type="button"
+                            class="danger"
+                            style="margin-top:8px"
+                            onclick="deleteProduct(${Number(product.id)})">
+
+                            🗑️ Eliminar publicación
+
+                        </button>
+
+                    </div>
+                `;
+
+            }).join('')
+            :
+            `
+                <div class="empty">
+
+                    📢
+
+                    <br><br>
+
+                    No tienes publicaciones.
+
+                </div>
+            `
+        }
+    `, {
+        screen: 'myPublications'
+    });
+}
+
+
+/* =========================================================
+   ELIMINAR PUBLICACIÓN
+   ========================================================= */
+
+function deleteProduct(id) {
+
     const product =
-      products.find(item => item.id === id);
+        products.find(function(item) {
+            return Number(item.id) === Number(id);
+        });
 
     if (!product) return;
 
+
     const confirmed =
-      window.confirm(
-        `¿Seguro que quieres eliminar "${product.name}"?`
-      );
+        window.confirm(
+            '¿Seguro que deseas eliminar esta publicación?'
+        );
+
 
     if (!confirmed) return;
 
+
     products =
-      products.filter(item => item.id !== id);
+        products.filter(function(item) {
+            return Number(item.id) !== Number(id);
+        });
+
 
     saveProducts();
 
-    toast('🗑️ Publicación eliminada.');
+    toast(
+        '🗑️ Publicación eliminada.'
+    );
 
+
+    setTimeout(function() {
+        myPublications();
+    }, 150);
+}
+
+
+/* =========================================================
+   ESTADÍSTICAS
+   ========================================================= */
+
+function statistics(id) {
+
+    const product =
+        products.find(function(item) {
+            return Number(item.id) === Number(id);
+        });
+
+    if (!product) return;
+
+
+    showScreen(`
+        <div class="modal-head">
+
+            <h2>
+                📊 Estadísticas
+            </h2>
+
+            ${backButton()}
+
+        </div>
+
+        <h3>
+            ${escapeHtml(product.name)}
+        </h3>
+
+        <div class="stats">
+
+            <div class="stat">
+                <b>${product.views || 0}</b>
+                <span>
+                    👁️ Visualizaciones
+                </span>
+            </div>
+
+            <div class="stat">
+                <b>${product.likes || 0}</b>
+                <span>
+                    ❤️ Reacciones
+                </span>
+            </div>
+
+            <div class="stat">
+                <b>${product.saves || 0}</b>
+                <span>
+                    🔖 Guardados
+                </span>
+            </div>
+
+            <div class="stat">
+                <b>${product.profileVisits || 0}</b>
+                <span>
+                    👤 Visitas al perfil
+                </span>
+            </div>
+
+        </div>
+    `, {
+        screen: 'statistics'
+    });
+}
+
+
+function myProducts() {
     myPublications();
+}
 
-    render();
-  }
 
-  /* =========================================================
-     OTRAS SECCIONES
-     ========================================================= */
+function mySales() {
 
-  function myProducts() {
-    myPublications();
-  }
-
-  function mySales() {
     simple(
-      '💰 Mis ventas',
-      'Aquí se registrarán las ventas realizadas.'
+        '💰 Mis ventas',
+        'Aquí se registrarán las ventas realizadas.'
     );
-  }
+}
 
-  function receipts() {
+
+function receipts() {
+
     simple(
-      '🧾 Mis recibos',
-      'Aquí aparecerán los recibos y comprobantes.'
+        '🧾 Mis recibos',
+        'Aquí aparecerán los recibos y comprobantes.'
     );
-  }
+}
 
-  function favorites() {
+
+function favorites() {
+
     simple(
-      '❤️ Favoritos',
-      'Aquí aparecerán los productos guardados.'
+        '❤️ Favoritos',
+        'Aquí aparecerán los productos guardados.'
     );
-  }
+}
 
-  function historyPage() {
+
+function historyPage() {
+
     simple(
-      '📋 Historial',
-      'Aquí aparecerá tu actividad reciente.'
+        '📋 Historial',
+        'Aquí aparecerá tu actividad reciente.'
     );
-  }
+}
 
-  function simple(title, text) {
-    show(`
-      ${backHeader(title)}
 
-      <div class="empty">
-        ${escapeHtml(text)}
-      </div>
-    `);
-  }
+function simple(title, text) {
 
-  /* =========================================================
-     CONFIGURACIÓN
-     ========================================================= */
+    showScreen(`
+        <div class="modal-head">
 
-  function settings() {
-    show(`
-      ${backHeader('⚙️ Configuración')}
+            <h2>
+                ${title}
+            </h2>
 
-      <div class="menu">
+            ${backButton()}
 
-        <button
-          class="menu-item"
-          data-action="edit-profile"
-        >
-          <div class="menu-icon">👤</div>
+        </div>
 
-          <div class="menu-copy">
-            <strong>Editar perfil</strong>
-            <small>Modificar información personal</small>
-          </div>
+        <div class="empty">
 
-          <b>›</b>
-        </button>
+            ${escapeHtml(text)}
 
-        <button
-          class="menu-item"
-          data-action="change-pass"
-        >
-          <div class="menu-icon">🔐</div>
+        </div>
+    `, {
+        screen: 'simple'
+    });
+}
 
-          <div class="menu-copy">
-            <strong>Cambiar contraseña</strong>
-            <small>Actualizar contraseña</small>
-          </div>
 
-          <b>›</b>
-        </button>
+/* =========================================================
+   CONFIGURACIÓN
+   ========================================================= */
 
-        <button
-          class="menu-item"
-          data-action="security"
-        >
-          <div class="menu-icon">🛡️</div>
+function settings() {
 
-          <div class="menu-copy">
-            <strong>Seguridad y recuperación</strong>
-            <small>Datos para recuperar la cuenta</small>
-          </div>
+    showScreen(`
+        <div class="modal-head">
 
-          <b>›</b>
-        </button>
+            <h2>
+                ⚙️ Configuración
+            </h2>
 
-        <button
-          class="menu-item"
-          data-action="email-info"
-        >
-          <div class="menu-icon">📧</div>
+            ${backButton()}
 
-          <div class="menu-copy">
-            <strong>Correo electrónico</strong>
-            <small>Opcional</small>
-          </div>
+        </div>
 
-          <b>›</b>
-        </button>
+        <div class="menu">
 
-      </div>
-    `);
-  }
+            <button
+                type="button"
+                class="menu-item"
+                onclick="editProfile()">
 
-  function editProfile() {
+                <div class="menu-icon">
+                    👤
+                </div>
+
+                <div class="menu-copy">
+
+                    <strong>
+                        Editar perfil
+                    </strong>
+
+                    <small>
+                        Modificar información personal
+                    </small>
+
+                </div>
+
+                <b>›</b>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="menu-item"
+                onclick="changePass()">
+
+                <div class="menu-icon">
+                    🔐
+                </div>
+
+                <div class="menu-copy">
+
+                    <strong>
+                        Cambiar contraseña
+                    </strong>
+
+                    <small>
+                        Actualizar contraseña
+                    </small>
+
+                </div>
+
+                <b>›</b>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="menu-item"
+                onclick="securityPage()">
+
+                <div class="menu-icon">
+                    🛡️
+                </div>
+
+                <div class="menu-copy">
+
+                    <strong>
+                        Seguridad y recuperación
+                    </strong>
+
+                    <small>
+                        Datos para recuperar la cuenta
+                    </small>
+
+                </div>
+
+                <b>›</b>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="menu-item"
+                onclick="toast('📧 El correo es opcional')">
+
+                <div class="menu-icon">
+                    📧
+                </div>
+
+                <div class="menu-copy">
+
+                    <strong>
+                        Correo electrónico
+                    </strong>
+
+                    <small>
+                        Opcional
+                    </small>
+
+                </div>
+
+                <b>›</b>
+
+            </button>
+
+        </div>
+    `, {
+        screen: 'settings'
+    });
+}
+
+
+function editProfile() {
+
     if (!user) return;
 
-    show(`
-      ${backHeader('👤 Editar perfil')}
+    showScreen(`
+        <div class="modal-head">
 
-      <form
-        class="form"
-        id="profileForm"
-      >
+            <h2>
+                👤 Editar perfil
+            </h2>
 
-        <div class="field">
-          <label>👤 Nombre</label>
+            ${backButton()}
 
-          <input
-            id="profileName"
-            value="${escapeHtml(user.name)}"
-            required
-          >
         </div>
 
-        <div class="field">
-          <label>📱 WhatsApp</label>
+        <form
+            class="form"
+            id="editProfileForm">
 
-          <input
-            id="profileWhatsapp"
-            type="tel"
-            value="${escapeHtml(user.whatsapp || '')}"
-            required
-          >
-        </div>
+            <div class="field">
 
-        <div class="field">
-          <label>📧 Correo electrónico</label>
+                <label>
+                    Nombre
+                </label>
 
-          <input
-            id="profileEmail"
-            type="email"
-            value="${escapeHtml(user.email || '')}"
-          >
-        </div>
+                <input
+                    id="editName"
+                    value="${escapeHtml(user.name)}"
+                    required>
 
-        <button
-          class="primary"
-          type="submit"
-        >
-          💾 Guardar cambios
-        </button>
+            </div>
 
-      </form>
-    `);
+            <div class="field">
+
+                <label>
+                    💬 WhatsApp
+                </label>
+
+                <input
+                    id="editWhatsapp"
+                    type="tel"
+                    value="${escapeHtml(user.whatsapp || '')}"
+                    required>
+
+            </div>
+
+            <div class="field">
+
+                <label>
+                    📧 Correo electrónico
+                </label>
+
+                <input
+                    id="editEmail"
+                    type="email"
+                    value="${escapeHtml(user.email || '')}">
+
+            </div>
+
+            <button
+                type="submit"
+                class="primary">
+
+                💾 Guardar cambios
+
+            </button>
+
+        </form>
+    `, {
+        screen: 'editProfile'
+    });
+
 
     const form =
-      document.getElementById('profileForm');
+        document.getElementById(
+            'editProfileForm'
+        );
 
     if (!form) return;
 
-    form.addEventListener('submit', event => {
-      event.preventDefault();
 
-      user.name =
-        document.getElementById('profileName').value.trim();
+    form.addEventListener('submit', function(event) {
 
-      user.whatsapp =
-        document.getElementById('profileWhatsapp').value.trim();
+        event.preventDefault();
 
-      user.email =
-        document.getElementById('profileEmail').value.trim();
+        user.name =
+            document.getElementById(
+                'editName'
+            ).value.trim();
 
-      saveJSON(STORAGE_USER, user);
+        user.whatsapp =
+            document.getElementById(
+                'editWhatsapp'
+            ).value.trim();
 
-      products.forEach(product => {
-        if (product.seller === user.name) {
-          product.whatsapp = user.whatsapp;
-        }
-      });
+        user.email =
+            document.getElementById(
+                'editEmail'
+            ).value.trim();
 
-      saveProducts();
 
-      toast('✅ Perfil actualizado.');
+        saveJSON(
+            STORAGE_USER,
+            user
+        );
 
-      openProfile();
+
+        products.forEach(function(product) {
+
+            if (
+                product.seller === user.name
+            ) {
+
+                product.whatsapp =
+                    user.whatsapp;
+            }
+
+        });
+
+        saveProducts();
+
+        toast(
+            '✅ Perfil actualizado.'
+        );
+
+        setTimeout(function() {
+            openProfile(false);
+        }, 200);
     });
-  }
+}
 
-  function changePass() {
+
+function changePass() {
+
     simple(
-      '🔐 Cambiar contraseña',
-      'La gestión segura de contraseña se conectará al backend.'
+        '🔐 Cambiar contraseña',
+        'La gestión segura de contraseña se conectará al backend.'
     );
-  }
+}
 
-  function securityPage() {
+
+function securityPage() {
+
     simple(
-      '🛡️ Seguridad',
-      'La cédula y los datos de recuperación quedarán protegidos mediante el backend.'
+        '🛡️ Seguridad',
+        'La cédula y los datos de recuperación quedarán protegidos mediante el backend.'
     );
-  }
+}
 
-  /* =========================================================
-     ADMINISTRACIÓN
-     ========================================================= */
 
-  function admin() {
-    show(`
-      ${backHeader('👑 Administración')}
+/* =========================================================
+   ADMINISTRACIÓN
+   ========================================================= */
 
-      <div class="notice">
-        Panel preparado para uso exclusivo del administrador.
-      </div>
+function admin(push = true) {
 
-      <div class="grid">
+    showScreen(`
+        <div class="modal-head">
 
-        <button
-          class="card"
-          data-action="admin-users"
-        >
-          <div class="big">👥</div>
-          <strong>Usuarios</strong>
-          <small>Gestionar cuentas</small>
-        </button>
+            <h2>
+                👑 Administración
+            </h2>
 
-        <button
-          class="card"
-          data-action="admin-blocked"
-        >
-          <div class="big">🚫</div>
-          <strong>Bloqueos</strong>
-          <small>Bloquear usuarios</small>
-        </button>
+            ${closeButton()}
 
-        <button
-          class="card"
-          data-action="admin-posts"
-        >
-          <div class="big">📢</div>
-          <strong>Publicaciones</strong>
-          <small>Moderación</small>
-        </button>
+        </div>
 
-        <button
-          class="card"
-          data-action="admin-advertising"
-        >
-          <div class="big">📣</div>
-          <strong>Publicidad</strong>
-          <small>Control de cobro y anuncios</small>
-        </button>
+        <div class="notice">
 
-        <button
-          class="card"
-          data-action="admin-payments"
-        >
-          <div class="big">💳</div>
-          <strong>Pagos y membresías</strong>
-          <small>Métodos, precios y duración</small>
-        </button>
+            Panel preparado para uso exclusivo del
+            administrador. En la versión con backend
+            se validará el rol real del administrador.
 
-        <button
-          class="card"
-          data-action="admin-inventory"
-        >
-          <div class="big">📦</div>
-          <strong>Inventario</strong>
-          <small>Control de productos</small>
-        </button>
+        </div>
 
-      </div>
-    `);
-  }
+        <div class="grid">
 
-  function adminUsers() {
-    simple(
-      '👥 Usuarios',
-      'Aquí se conectará la lista real de usuarios de la base de datos.'
-    );
-  }
+            <button
+                type="button"
+                class="card"
+                onclick="adminUsers()">
 
-  function adminBlocked() {
-    simple(
-      '🚫 Bloqueos',
-      'Aquí el administrador podrá bloquear y mantener bloqueada una cuenta.'
-    );
-  }
+                <div class="big">
+                    👥
+                </div>
 
-  function adminPosts() {
-    simple(
-      '📢 Moderación',
-      'Aquí se revisarán publicaciones, infracciones y reportes.'
-    );
-  }
+                <strong>
+                    Usuarios
+                </strong>
 
-  /* =========================================================
-     PUBLICIDAD — CONFIGURACIÓN
-     ========================================================= */
+                <small>
+                    Gestionar cuentas
+                </small>
 
-  function getAdvertisingConfig() {
-    return loadJSON(STORAGE_CONFIG, {
-      paid: false,
+            </button>
 
-      categories: {
-        barato: {
-          bank: 500,
-          binance: 10,
-          paypal: 11
-        },
 
-        normal: {
-          bank: 1000,
-          binance: 20,
-          paypal: 22
-        },
+            <button
+                type="button"
+                class="card"
+                onclick="adminBlocked()">
 
-        pro: {
-          bank: 1500,
-          binance: 30,
-          paypal: 32
-        }
-      },
+                <div class="big">
+                    🚫
+                </div>
 
-      bankAccounts: {
-        banreservas: '',
-        bhd: ''
-      },
+                <strong>
+                    Bloqueos
+                </strong>
 
-      binanceAddress: '',
-      paypalUrl: ''
+                <small>
+                    Bloquear usuarios
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="card"
+                onclick="adminPosts()">
+
+                <div class="big">
+                    📢
+                </div>
+
+                <strong>
+                    Publicaciones
+                </strong>
+
+                <small>
+                    Moderación
+                </small>
+
+            </button>
+
+
+            <!-- BOTÓN PUBLICITARIO -->
+
+            <button
+                type="button"
+                class="card"
+                onclick="adminAdvertising()">
+
+                <div class="big">
+                    📣
+                </div>
+
+                <strong>
+                    Publicitario
+                </strong>
+
+                <small>
+                    Crear, pagar y administrar anuncios
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="card"
+                onclick="adminPayments()">
+
+                <div class="big">
+                    💳
+                </div>
+
+                <strong>
+                    Pagos y membresías
+                </strong>
+
+                <small>
+                    Métodos, precios y duración
+                </small>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="card"
+                onclick="simple('📦 Inventario','Aquí se administrará el inventario.')">
+
+                <div class="big">
+                    📦
+                </div>
+
+                <strong>
+                    Inventario
+                </strong>
+
+                <small>
+                    Control de productos
+                </small>
+
+            </button>
+
+        </div>
+    `, {
+        screen: 'admin',
+        push: push
     });
-  }
+}
 
-  function saveAdvertisingConfig(config) {
-    saveJSON(STORAGE_CONFIG, config);
-  }
 
-  /* =========================================================
-     PANEL ADMINISTRADOR — PUBLICIDAD
-     ========================================================= */
+function adminUsers() {
 
-  function adminAdvertising() {
-    const config = getAdvertisingConfig();
+    simple(
+        '👥 Usuarios',
+        'Aquí se conectará la lista real de usuarios de la base de datos.'
+    );
+}
 
-    show(`
-      ${backHeader('📣 Publicidad comercial')}
 
-      <div class="row">
+function adminBlocked() {
 
-        <div>
-          <strong>
-            Cobrar por publicidad
-          </strong>
+    simple(
+        '🚫 Bloqueos',
+        'Aquí el administrador podrá bloquear y mantener bloqueada una cuenta hasta autorizar su desbloqueo.'
+    );
+}
 
-          <div class="muted">
-            Tú decides cuándo activar esta opción.
-          </div>
+
+function adminPosts() {
+
+    simple(
+        '📢 Moderación',
+        'Aquí se revisarán publicaciones, infracciones y reportes.'
+    );
+}
+
+
+/* =========================================================
+   PUBLICIDAD
+   ========================================================= */
+
+/*
+   El administrador controla si la publicidad es:
+
+   GRATIS
+   o
+   DE PAGO
+
+   Y existen tres categorías:
+
+   - Económico / Barato
+   - Normal
+   - Pro
+
+   Cada categoría tiene precio diferente
+   según el método de pago:
+   - Banco
+   - Binance
+   - PayPal
+*/
+
+
+function adminAdvertising() {
+
+    config =
+        loadJSON(
+            STORAGE_CONFIG,
+            config
+        );
+
+
+    showScreen(`
+        <div class="modal-head">
+
+            <h2>
+                📣 Publicidad
+            </h2>
+
+            ${closeButton()}
+
         </div>
+
+
+        <div class="notice">
+
+            Aquí puedes activar o desactivar el cobro
+            por publicidad.
+
+        </div>
+
+
+        <div class="row">
+
+            <div>
+
+                <strong>
+                    Cobrar por publicidad
+                </strong>
+
+                <div class="muted">
+                    ${
+                        config.paid
+                        ?
+                        'La publicidad está por pago.'
+                        :
+                        'La publicidad está gratuita.'
+                    }
+                </div>
+
+            </div>
+
+
+            <button
+                id="adToggle"
+                type="button"
+                class="toggle ${config.paid ? 'on' : ''}"
+                onclick="toggleAd()">
+
+            </button>
+
+        </div>
+
+
+        <h3 style="margin:20px 0 10px">
+            💰 Precio de publicidad
+        </h3>
+
+
+        <!-- BARATO -->
+
+        <div class="card">
+
+            <strong>
+                🟢 Anuncio económico
+            </strong>
+
+            <div
+                class="field"
+                style="margin-top:10px">
+
+                <label>
+                    🏦 Banco
+                </label>
+
+                <input
+                    id="cheapBank"
+                    type="number"
+                    value="${Number(config.cheap.bank)}">
+
+            </div>
+
+            <div
+                class="field"
+                style="margin-top:10px">
+
+                <label>
+                    ₿ Binance
+                </label>
+
+                <input
+                    id="cheapBinance"
+                    type="number"
+                    value="${Number(config.cheap.binance)}">
+
+            </div>
+
+            <div
+                class="field"
+                style="margin-top:10px">
+
+                <label>
+                    🅿️ PayPal
+                </label>
+
+                <input
+                    id="cheapPaypal"
+                    type="number"
+                    value="${Number(config.cheap.paypal)}">
+
+            </div>
+
+        </div>
+
+
+        <!-- NORMAL -->
+
+        <div
+            class="card"
+            style="margin-top:10px">
+
+            <strong>
+                🔵 Anuncio normal
+            </strong>
+
+            <div
+                class="field"
+                style="margin-top:10px">
+
+                <label>
+                    🏦 Banco
+                </label>
+
+                <input
+                    id="normalBank"
+                    type="number"
+                    value="${Number(config.normal.bank)}">
+
+            </div>
+
+            <div
+                class="field"
+                style="margin-top:10px">
+
+                <label>
+                    ₿ Binance
+                </label>
+
+                <input
+                    id="normalBinance"
+                    type="number"
+                    value="${Number(config.normal.binance)}">
+
+            </div>
+
+            <div
+                class="field"
+                style="margin-top:10px">
+
+                <label>
+                    🅿️ PayPal
+                </label>
+
+                <input
+                    id="normalPaypal"
+                    type="number"
+                    value="${Number(config.normal.paypal)}">
+
+            </div>
+
+        </div>
+
+
+        <!-- PRO -->
+
+        <div
+            class="card"
+            style="margin-top:10px">
+
+            <strong>
+                🟣 Anuncio PRO
+            </strong>
+
+            <div
+                class="field"
+                style="margin-top:10px">
+
+                <label>
+                    🏦 Banco
+                </label>
+
+                <input
+                    id="proBank"
+                    type="number"
+                    value="${Number(config.pro.bank)}">
+
+            </div>
+
+            <div
+                class="field"
+                style="margin-top:10px">
+
+                <label>
+                    ₿ Binance
+                </label>
+
+                <input
+                    id="proBinance"
+                    type="number"
+                    value="${Number(config.pro.binance)}">
+
+            </div>
+
+            <div
+                class="field"
+                style="margin-top:10px">
+
+                <label>
+                    🅿️ PayPal
+                </label>
+
+                <input
+                    id="proPaypal"
+                    type="number"
+                    value="${Number(config.pro.paypal)}">
+
+            </div>
+
+        </div>
+
+
+        <h3 style="margin:20px 0 10px">
+            🏦 Datos de pago
+        </h3>
+
+
+        <div class="field">
+
+            <label>
+                🏦 BanReservas
+            </label>
+
+            <input
+                id="bankAccount"
+                value="${escapeHtml(config.bankAccount || '')}"
+                placeholder="Número de cuenta">
+
+        </div>
+
+
+        <div
+            class="field"
+            style="margin-top:10px">
+
+            <label>
+                🏦 BHD
+            </label>
+
+            <input
+                id="bankAccount2"
+                value="${escapeHtml(config.bankAccount2 || '')}"
+                placeholder="Número de cuenta">
+
+        </div>
+
+
+        <div
+            class="field"
+            style="margin-top:10px">
+
+            <label>
+                ₿ Binance
+            </label>
+
+            <input
+                id="binanceAddress"
+                value="${escapeHtml(config.binanceAddress || '')}"
+                placeholder="Dirección o enlace">
+
+        </div>
+
+
+        <div
+            class="field"
+            style="margin-top:10px">
+
+            <label>
+                🅿️ PayPal
+            </label>
+
+            <input
+                id="paypalLink"
+                value="${escapeHtml(config.paypalLink || '')}"
+                placeholder="Enlace de pago">
+
+        </div>
+
 
         <button
-          id="adToggle"
-          class="toggle ${config.paid ? 'on' : ''}"
-          data-action="toggle-ad"
-          aria-label="Activar o desactivar cobro"
-        ></button>
+            type="button"
+            class="primary"
+            style="margin-top:14px"
+            onclick="saveAdConfig()">
 
-      </div>
+            💾 Guardar configuración
 
-      <h3 style="margin:20px 0 10px">
-        💎 Categorías de publicidad
-      </h3>
+        </button>
+    `, {
+        screen: 'adminAdvertising'
+    });
+}
 
-      ${advertisingPriceFields(
-        'barato',
-        '🟢 Anuncio barato',
-        config.categories.barato
-      )}
 
-      ${advertisingPriceFields(
-        'normal',
-        '🔵 Anuncio normal',
-        config.categories.normal
-      )}
+function toggleAd() {
 
-      ${advertisingPriceFields(
-        'pro',
-        '🟣 Anuncio PRO',
-        config.categories.pro
-      )}
+    config =
+        loadJSON(
+            STORAGE_CONFIG,
+            config
+        );
 
-      <h3 style="margin:20px 0 10px">
-        🏦 Cuentas para recibir pagos
-      </h3>
+    config.paid =
+        !Boolean(config.paid);
 
-      <div class="field">
-        <label>🏦 BanReservas</label>
-        <input
-          id="bankBanreservas"
-          value="${escapeHtml(config.bankAccounts?.banreservas || '')}"
-          placeholder="Número de cuenta"
-        >
-      </div>
-
-      <div class="field" style="margin-top:10px">
-        <label>🏦 BHD</label>
-        <input
-          id="bankBhd"
-          value="${escapeHtml(config.bankAccounts?.bhd || '')}"
-          placeholder="Número de cuenta"
-        >
-      </div>
-
-      <div class="field" style="margin-top:10px">
-        <label>₿ Binance</label>
-        <input
-          id="adminBinance"
-          value="${escapeHtml(config.binanceAddress || '')}"
-          placeholder="Dirección o enlace"
-        >
-      </div>
-
-      <div class="field" style="margin-top:10px">
-        <label>🅿️ PayPal</label>
-        <input
-          id="adminPaypal"
-          value="${escapeHtml(config.paypalUrl || '')}"
-          placeholder="Enlace de pago"
-        >
-      </div>
-
-      <button
-        class="primary"
-        style="margin-top:14px"
-        data-action="save-ad-config"
-      >
-        💾 Guardar configuración
-      </button>
-
-      <button
-        class="secondary"
-        style="margin-top:8px"
-        data-action="admin-advertisers"
-      >
-        🧾 Ver solicitudes de publicidad
-      </button>
-    `);
-  }
-
-  function advertisingPriceFields(type, title, data) {
-    return `
-      <div
-        class="card"
-        style="margin-bottom:12px"
-      >
-
-        <strong>${title}</strong>
-
-        <div
-          class="field"
-          style="margin-top:10px"
-        >
-          <label>🏦 Precio Banco</label>
-
-          <input
-            id="${type}Bank"
-            type="number"
-            min="0"
-            value="${Number(data?.bank || 0)}"
-          >
-        </div>
-
-        <div
-          class="field"
-          style="margin-top:10px"
-        >
-          <label>₿ Precio Binance</label>
-
-          <input
-            id="${type}Binance"
-            type="number"
-            min="0"
-            value="${Number(data?.binance || 0)}"
-          >
-        </div>
-
-        <div
-          class="field"
-          style="margin-top:10px"
-        >
-          <label>🅿️ Precio PayPal</label>
-
-          <input
-            id="${type}Paypal"
-            type="number"
-            min="0"
-            value="${Number(data?.paypal || 0)}"
-          >
-        </div>
-
-      </div>
-    `;
-  }
-
-  function toggleAd() {
-    const config = getAdvertisingConfig();
-
-    config.paid = !config.paid;
-
-    saveAdvertisingConfig(config);
+    saveConfig();
 
     const toggle =
-      document.getElementById('adToggle');
+        document.getElementById('adToggle');
 
     if (toggle) {
-      toggle.classList.toggle('on', config.paid);
+        toggle.classList.toggle(
+            'on',
+            config.paid
+        );
     }
 
     toast(
-      config.paid
-        ? '💰 Publicidad de pago activada.'
-        : '🆓 Publicidad gratuita activada.'
+        config.paid
+        ?
+        '💰 Publicidad de pago activada.'
+        :
+        '🆓 Publicidad gratuita activada.'
     );
-  }
+}
 
-  function saveAdConfig() {
-    const config = getAdvertisingConfig();
 
-    config.categories.barato = {
-      bank: Number(document.getElementById('baratoBank')?.value || 0),
-      binance: Number(document.getElementById('baratoBinance')?.value || 0),
-      paypal: Number(document.getElementById('baratoPaypal')?.value || 0)
+function saveAdConfig() {
+
+    const getNumber = function(id, fallback) {
+
+        const element =
+            document.getElementById(id);
+
+        if (!element) return fallback;
+
+        const value =
+            Number(element.value);
+
+        return Number.isFinite(value)
+            ? value
+            : fallback;
     };
 
-    config.categories.normal = {
-      bank: Number(document.getElementById('normalBank')?.value || 0),
-      binance: Number(document.getElementById('normalBinance')?.value || 0),
-      paypal: Number(document.getElementById('normalPaypal')?.value || 0)
-    };
 
-    config.categories.pro = {
-      bank: Number(document.getElementById('proBank')?.value || 0),
-      binance: Number(document.getElementById('proBinance')?.value || 0),
-      paypal: Number(document.getElementById('proPaypal')?.value || 0)
-    };
+    config.cheap.bank =
+        getNumber(
+            'cheapBank',
+            config.cheap.bank
+        );
 
-    config.bankAccounts = {
-      banreservas:
-        document.getElementById('bankBanreservas')?.value.trim() || '',
+    config.cheap.binance =
+        getNumber(
+            'cheapBinance',
+            config.cheap.binance
+        );
 
-      bhd:
-        document.getElementById('bankBhd')?.value.trim() || ''
-    };
+    config.cheap.paypal =
+        getNumber(
+            'cheapPaypal',
+            config.cheap.paypal
+        );
 
-    config.binanceAddress =
-      document.getElementById('adminBinance')?.value.trim() || '';
 
-    config.paypalUrl =
-      document.getElementById('adminPaypal')?.value.trim() || '';
+    config.normal.bank =
+        getNumber(
+            'normalBank',
+            config.normal.bank
+        );
 
-    saveAdvertisingConfig(config);
+    config.normal.binance =
+        getNumber(
+            'normalBinance',
+            config.normal.binance
+        );
 
-    toast('✅ Configuración de publicidad guardada.');
-  }
+    config.normal.paypal =
+        getNumber(
+            'normalPaypal',
+            config.normal.paypal
+        );
 
-  /* =========================================================
-     PUBLICIDAD — BOTÓN PUBLICITARIO
-     ========================================================= */
 
-  function createAdvertisingButton() {
-    const adBox = document.querySelector('.ad');
+    config.pro.bank =
+        getNumber(
+            'proBank',
+            config.pro.bank
+        );
 
-    if (!adBox) return;
+    config.pro.binance =
+        getNumber(
+            'proBinance',
+            config.pro.binance
+        );
 
-    if (document.getElementById('publicityButton')) {
-      return;
-    }
+    config.pro.paypal =
+        getNumber(
+            'proPaypal',
+            config.pro.paypal
+        );
 
-    const button = document.createElement('button');
 
-    button.id = 'publicityButton';
-    button.type = 'button';
-    button.className = 'primary';
-    button.style.marginTop = '12px';
-    button.textContent = '📣 Publicitario';
+    const bankAccount =
+        document.getElementById(
+            'bankAccount'
+        );
 
-    button.addEventListener('click', openAdvertising);
+    const bankAccount2 =
+        document.getElementById(
+            'bankAccount2'
+        );
 
-    const container = adBox.querySelector('div');
+    const binanceAddress =
+        document.getElementById(
+            'binanceAddress'
+        );
 
-    if (container) {
-      container.appendChild(button);
-    } else {
-      adBox.appendChild(button);
-    }
-  }
+    const paypalLink =
+        document.getElementById(
+            'paypalLink'
+        );
 
-  /* =========================================================
-     CREAR PUBLICIDAD
-     ========================================================= */
 
-  function openAdvertising() {
+    if (bankAccount)
+        config.bankAccount =
+            bankAccount.value.trim();
+
+    if (bankAccount2)
+        config.bankAccount2 =
+            bankAccount2.value.trim();
+
+    if (binanceAddress)
+        config.binanceAddress =
+            binanceAddress.value.trim();
+
+    if (paypalLink)
+        config.paypalLink =
+            paypalLink.value.trim();
+
+
+    saveConfig();
+
+    toast(
+        '✅ Configuración de publicidad guardada.'
+    );
+}
+
+
+/* =========================================================
+   PUBLICAR ANUNCIO PUBLICITARIO
+   ========================================================= */
+
+function openAdvertising() {
+
     if (!user) {
-      show(`
-        ${backHeader('📣 Publicidad')}
+
+        toast(
+            'Debes iniciar sesión para publicar publicidad.'
+        );
+
+        setTimeout(function() {
+            login();
+        }, 400);
+
+        return;
+    }
+
+
+    config =
+        loadJSON(
+            STORAGE_CONFIG,
+            config
+        );
+
+
+    showScreen(`
+        <div class="modal-head">
+
+            <h2>
+                📣 Crear publicidad
+            </h2>
+
+            ${closeButton()}
+
+        </div>
+
 
         <div class="notice">
-          Para crear una publicidad necesitas tener una cuenta.
+
+            ${
+                config.paid
+                ?
+                'La publicidad está actualmente por pago.'
+                :
+                'La publicidad está actualmente gratuita.'
+            }
+
         </div>
 
-        <button
-          class="primary"
-          data-action="register"
-        >
-          📝 Crear cuenta
-        </button>
 
-        <button
-          class="secondary"
-          style="margin-top:8px"
-          data-action="login"
-        >
-          🔐 Iniciar sesión
-        </button>
-      `);
+        <form
+            class="form"
+            id="advertisingForm">
 
-      return;
-    }
 
-    const config = getAdvertisingConfig();
+            <div class="field">
 
-    show(`
-      ${backHeader('📣 Crear publicidad')}
+                <label>
+                    🎬 Video del anuncio
+                </label>
 
-      ${
-        config.paid
-          ? `
-            <div class="notice">
-              💰 La publicidad está actualmente
-              <strong>por pago</strong>.
+                <input
+                    id="adVideo"
+                    type="url"
+                    required
+                    placeholder="URL del video">
+
             </div>
-          `
-          : `
-            <div class="notice">
-              🆓 La publicidad está actualmente
-              <strong>gratuita</strong>.
+
+
+            <div class="field">
+
+                <label>
+                    📝 Título del anuncio
+                </label>
+
+                <input
+                    id="adTitle"
+                    required
+                    placeholder="Nombre de tu publicidad">
+
             </div>
-          `
-      }
 
-      <form
-        class="form"
-        id="advertisingForm"
-      >
 
-        <div class="field">
-          <label>🎥 Video del anuncio</label>
+            <div class="field">
 
-          <input
-            id="adVideoFile"
-            type="file"
-            accept="video/*"
-            required
-          >
+                <label>
+                    📄 Descripción
+                </label>
 
-          <div
-            id="adVideoPreview"
-            style="margin-top:10px;display:none"
-          ></div>
-        </div>
+                <textarea
+                    id="adDescription"
+                    placeholder="Describe tu publicidad"></textarea>
 
-        <div class="field">
-          <label>📝 Título del anuncio</label>
+            </div>
 
-          <input
-            id="adTitle"
-            required
-            placeholder="Nombre de tu publicidad"
-          >
-        </div>
 
-        <div class="field">
-          <label>💎 Tipo de anuncio</label>
+            <div class="field">
 
-          <select
-            id="adPlan"
-            required
-          >
+                <label>
+                    ⭐ Categoría de publicidad
+                </label>
 
-            <option value="">
-              Seleccionar categoría
-            </option>
+                <select
+                    id="adPlan"
+                    required>
 
-            <option value="barato">
-              🟢 Anuncio barato
-            </option>
+                    <option value="">
+                        Seleccionar
+                    </option>
 
-            <option value="normal">
-              🔵 Anuncio normal
-            </option>
+                    <option value="cheap">
+                        🟢 Anuncio económico
+                    </option>
 
-            <option value="pro">
-              🟣 Anuncio PRO
-            </option>
+                    <option value="normal">
+                        🔵 Anuncio normal
+                    </option>
 
-          </select>
-        </div>
+                    <option value="pro">
+                        🟣 Anuncio PRO
+                    </option>
 
-        <div class="field">
-          <label>📲 ¿Dónde quieres enviar al cliente?</label>
+                </select>
 
-          <select
-            id="adDestination"
-            required
-          >
+            </div>
 
-            <option value="">
-              Seleccionar destino
-            </option>
 
-            <option value="whatsapp">
-              🟢 WhatsApp
-            </option>
+            <div class="field">
 
-            <option value="messenger">
-              💬 Messenger
-            </option>
+                <label>
+                    📲 ¿Dónde quieres recibir al cliente?
+                </label>
 
-            <option value="url">
-              🔗 Página web / URL
-            </option>
+                <select
+                    id="adContactType"
+                    required
+                    onchange="updateAdvertisingContactField()">
 
-          </select>
-        </div>
+                    <option value="whatsapp">
+                        💚 WhatsApp
+                    </option>
 
-        <div
-          class="field"
-          id="adDestinationField"
-        >
-          <label id="destinationLabel">
-            Destino
-          </label>
+                    <option value="messenger">
+                        💙 Messenger
+                    </option>
 
-          <input
-            id="adDestinationValue"
-            placeholder="Selecciona primero el destino"
-          >
-        </div>
+                    <option value="url">
+                        🔗 Página / URL
+                    </option>
 
-        <div
-          id="adPriceBox"
-          class="notice"
-          style="display:none"
-        ></div>
+                </select>
 
-        ${
-          config.paid
-            ? `
-              <div class="notice">
-                Después de enviar tu publicidad,
-                deberás realizar el pago y enviar
-                la captura del comprobante.
-              </div>
-            `
-            : ''
-        }
+            </div>
 
-        <button
-          class="primary"
-          type="submit"
-        >
-          🚀 Continuar con la publicidad
-        </button>
 
-      </form>
-    `);
+            <div
+                class="field"
+                id="advertisingContactField">
 
-    setupAdvertisingForm();
-  }
+                <label>
+                    💚 Número de WhatsApp
+                </label>
 
-  function setupAdvertisingForm() {
+                <input
+                    id="adContactValue"
+                    type="tel"
+                    value="${escapeHtml(user.whatsapp || '')}"
+                    placeholder="+18091234567">
+
+            </div>
+
+
+            <button
+                type="submit"
+                class="primary">
+
+                🚀 Continuar
+
+            </button>
+
+        </form>
+    `, {
+        screen: 'createAdvertising'
+    });
+
+
     const form =
-      document.getElementById('advertisingForm');
+        document.getElementById(
+            'advertisingForm'
+        );
 
     if (!form) return;
 
-    const videoInput =
-      document.getElementById('adVideoFile');
 
-    const plan =
-      document.getElementById('adPlan');
+    form.addEventListener('submit', function(event) {
 
-    const destination =
-      document.getElementById('adDestination');
+        event.preventDefault();
 
-    const destinationValue =
-      document.getElementById('adDestinationValue');
-
-    if (videoInput) {
-      videoInput.addEventListener('change', () => {
-        const file = videoInput.files?.[0];
-
-        if (!file) return;
-
-        if (!file.type.startsWith('video/')) {
-          toast('⚠️ Selecciona un vídeo válido.');
-          videoInput.value = '';
-          return;
-        }
-
-        const url =
-          URL.createObjectURL(file);
-
-        const preview =
-          document.getElementById('adVideoPreview');
-
-        if (preview) {
-          preview.style.display = 'block';
-
-          preview.innerHTML = `
-            <video
-              src="${url}"
-              controls
-              style="
-                width:100%;
-                max-height:300px;
-                border-radius:14px;
-              "
-            ></video>
-          `;
-        }
-      });
-    }
-
-    if (destination) {
-      destination.addEventListener('change', () => {
-        const value = destination.value;
-        const label =
-          document.getElementById('destinationLabel');
-
-        if (!label || !destinationValue) return;
-
-        if (value === 'whatsapp') {
-          label.textContent = '📱 Número de WhatsApp';
-          destinationValue.type = 'tel';
-          destinationValue.placeholder = 'Ej. 18091234567';
-
-          if (user?.whatsapp) {
-            destinationValue.value = user.whatsapp;
-          }
-        }
-
-        if (value === 'messenger') {
-          label.textContent = '💬 URL de Messenger';
-          destinationValue.type = 'url';
-          destinationValue.placeholder =
-            'https://m.me/tu-pagina';
-          destinationValue.value = '';
-        }
-
-        if (value === 'url') {
-          label.textContent = '🔗 URL de destino';
-          destinationValue.type = 'url';
-          destinationValue.placeholder =
-            'https://tupagina.com';
-          destinationValue.value = '';
-        }
-      });
-    }
-
-    if (plan) {
-      plan.addEventListener('change', updateAdvertisingPrice);
-    }
-
-    form.addEventListener('submit', event => {
-      event.preventDefault();
-
-      submitAdvertising();
+        createAdvertisingPayment();
     });
-  }
+}
 
-  function updateAdvertisingPrice() {
-    const config = getAdvertisingConfig();
 
-    const plan =
-      document.getElementById('adPlan')?.value;
+function updateAdvertisingContactField() {
 
-    const box =
-      document.getElementById('adPriceBox');
+    const type =
+        document.getElementById(
+            'adContactType'
+        );
 
-    if (!box || !plan) {
-      if (box) box.style.display = 'none';
-      return;
+    const input =
+        document.getElementById(
+            'adContactValue'
+        );
+
+    const label =
+        document.querySelector(
+            '#advertisingContactField label'
+        );
+
+
+    if (!type || !input || !label) return;
+
+
+    if (type.value === 'whatsapp') {
+
+        label.textContent =
+            '💚 Número de WhatsApp';
+
+        input.type = 'tel';
+
+        input.placeholder =
+            '+18091234567';
+
+        input.value =
+            user?.whatsapp || '';
+
     }
 
-    const price =
-      config.categories?.[plan];
 
-    if (!price) return;
+    if (type.value === 'messenger') {
 
-    box.style.display = 'block';
+        label.textContent =
+            '💙 URL de Messenger';
 
-    if (!config.paid) {
-      box.innerHTML = `
-        🆓 <strong>Publicidad gratuita</strong><br>
-        Este anuncio no requiere pago actualmente.
-      `;
+        input.type = 'url';
 
-      return;
+        input.placeholder =
+            'https://m.me/tuPagina';
+
+        input.value = '';
+
     }
 
-    box.innerHTML = `
-      <strong>💰 Precios para ${escapeHtml(plan.toUpperCase())}</strong>
-      <br><br>
-      🏦 Banco: ${money(price.bank)}
-      <br>
-      ₿ Binance: US$${Number(price.binance).toFixed(2)}
-      <br>
-      🅿️ PayPal: US$${Number(price.paypal).toFixed(2)}
-    `;
-  }
 
-  function submitAdvertising() {
-    const config = getAdvertisingConfig();
+    if (type.value === 'url') {
 
-    const videoInput =
-      document.getElementById('adVideoFile');
+        label.textContent =
+            '🔗 URL donde quieres enviar al cliente';
+
+        input.type = 'url';
+
+        input.placeholder =
+            'https://tusitio.com';
+
+        input.value = '';
+
+    }
+}
+
+
+/* =========================================================
+   PROCESO DE PAGO DEL ANUNCIO
+   ========================================================= */
+
+function createAdvertisingPayment() {
+
+    const video =
+        document.getElementById(
+            'adVideo'
+        ).value.trim();
 
     const title =
-      document.getElementById('adTitle')?.value.trim();
+        document.getElementById(
+            'adTitle'
+        ).value.trim();
+
+    const description =
+        document.getElementById(
+            'adDescription'
+        ).value.trim();
 
     const plan =
-      document.getElementById('adPlan')?.value;
+        document.getElementById(
+            'adPlan'
+        ).value;
 
-    const destination =
-      document.getElementById('adDestination')?.value;
+    const contactType =
+        document.getElementById(
+            'adContactType'
+        ).value;
 
-    const destinationValue =
-      document.getElementById('adDestinationValue')?.value.trim();
+    const contactValue =
+        document.getElementById(
+            'adContactValue'
+        ).value.trim();
 
-    if (!videoInput?.files?.[0]) {
-      toast('⚠️ Selecciona el vídeo de tu publicidad.');
-      return;
-    }
 
-    if (!title || !plan || !destination || !destinationValue) {
-      toast('⚠️ Completa todos los datos de la publicidad.');
-      return;
-    }
+    if (!video || !title || !plan) {
 
-    if (destination === 'whatsapp') {
-      if (!normalizeWhatsapp(destinationValue)) {
-        toast('⚠️ Número de WhatsApp inválido.');
+        toast(
+            'Completa todos los campos obligatorios.'
+        );
+
         return;
-      }
     }
+
 
     if (
-      destination === 'url' ||
-      destination === 'messenger'
+        contactType === 'whatsapp' &&
+        !contactValue
     ) {
-      if (!safeUrl(destinationValue)) {
-        toast('⚠️ Introduce una URL válida que comience con https://');
+
+        toast(
+            'Debes colocar tu número de WhatsApp.'
+        );
+
         return;
-      }
     }
 
-    const file =
-      videoInput.files[0];
 
-    /*
-     * Guardamos temporalmente el vídeo como Object URL.
-     * En la versión con backend/storage se subirá el archivo
-     * realmente al servidor.
-     */
+    if (
+        contactType !== 'whatsapp' &&
+        !contactValue
+    ) {
 
-    const videoUrl =
-      URL.createObjectURL(file);
+        toast(
+            'Debes colocar el enlace de contacto.'
+        );
 
-    const price =
-      config.categories?.[plan] || {
-        bank: 0,
-        binance: 0,
-        paypal: 0
-      };
+        return;
+    }
 
-    const ad = {
-      id: Date.now(),
-      user: user.name,
-      title,
-      plan,
-      videoUrl,
-      destination,
-      destinationValue,
-      status: config.paid
-        ? 'pendiente_pago'
-        : 'pendiente_revision',
-      paid: !config.paid,
-      paymentMethod: '',
-      paymentScreenshot: '',
-      prices: price,
-      createdAt: new Date().toISOString()
+
+    const newAd = {
+
+        id: Date.now(),
+
+        owner: user.name,
+
+        whatsapp: user.whatsapp || '',
+
+        video: video,
+
+        title: title,
+
+        description: description,
+
+        plan: plan,
+
+        contactType: contactType,
+
+        contactValue: contactValue,
+
+        status:
+            config.paid
+            ?
+            'pending_payment'
+            :
+            'pending_approval',
+
+        paymentMethod: '',
+
+        paymentAmount: 0,
+
+        paymentProof: '',
+
+        createdAt:
+            new Date().toISOString()
     };
 
-    advertising.unshift(ad);
+
+    ads.unshift(newAd);
 
     saveAds();
 
-    if (config.paid) {
-      showPaymentOptions(ad);
-    } else {
-      showAdvertisingSubmitted(ad);
+
+    if (!config.paid) {
+
+        toast(
+            '✅ Publicidad enviada para aprobación.'
+        );
+
+        setTimeout(function() {
+
+            close();
+
+        }, 700);
+
+        return;
     }
-  }
 
-  /* =========================================================
-     PAGOS DE PUBLICIDAD
-     ========================================================= */
 
-  function showPaymentOptions(ad) {
-    const config = getAdvertisingConfig();
+    advertisingPaymentScreen(newAd.id);
+}
 
-    const price = ad.prices;
 
-    show(`
-      ${backHeader('💳 Pago de publicidad')}
+/* =========================================================
+   PANTALLA DE PAGO DE PUBLICIDAD
+   ========================================================= */
 
-      <div class="notice">
-        Tu anuncio fue registrado.
-        Ahora selecciona cómo quieres pagar.
-      </div>
+function advertisingPaymentScreen(adId) {
 
-      <div class="card">
-
-        <strong>
-          📢 ${escapeHtml(ad.title)}
-        </strong>
-
-        <div
-          class="muted"
-          style="margin-top:6px"
-        >
-          Categoría:
-          ${escapeHtml(ad.plan)}
-        </div>
-
-      </div>
-
-      <div
-        class="menu"
-        style="margin-top:12px"
-      >
-
-        <button
-          class="menu-item"
-          data-action="ad-payment"
-          data-method="bank"
-          data-id="${ad.id}"
-        >
-          <div class="menu-icon">🏦</div>
-
-          <div class="menu-copy">
-            <strong>Cuenta bancaria</strong>
-            <small>
-              ${money(price.bank)}
-            </small>
-          </div>
-
-          <b>›</b>
-        </button>
-
-        <button
-          class="menu-item"
-          data-action="ad-payment"
-          data-method="binance"
-          data-id="${ad.id}"
-        >
-          <div class="menu-icon">₿</div>
-
-          <div class="menu-copy">
-            <strong>Binance</strong>
-            <small>
-              US$${Number(price.binance).toFixed(2)}
-            </small>
-          </div>
-
-          <b>›</b>
-        </button>
-
-        <button
-          class="menu-item"
-          data-action="ad-payment"
-          data-method="paypal"
-          data-id="${ad.id}"
-        >
-          <div class="menu-icon">🅿️</div>
-
-          <div class="menu-copy">
-            <strong>PayPal</strong>
-            <small>
-              US$${Number(price.paypal).toFixed(2)}
-            </small>
-          </div>
-
-          <b>›</b>
-        </button>
-
-      </div>
-    `);
-  }
-
-  function adPayment(method, id) {
     const ad =
-      advertising.find(item => item.id === id);
+        ads.find(function(item) {
+            return Number(item.id) === Number(adId);
+        });
 
     if (!ad) return;
 
-    ad.paymentMethod = method;
 
-    saveAds();
+    const prices =
+        config[ad.plan];
 
-    const config = getAdvertisingConfig();
 
-    let amount = 0;
-    let account = '';
+    showScreen(`
+        <div class="modal-head">
 
-    if (method === 'bank') {
-      amount = ad.prices.bank;
+            <h2>
+                💳 Pago de publicidad
+            </h2>
 
-      account =
-        config.bankAccounts?.banreservas || '';
+            ${backButton()}
 
-      show(`
-        ${backHeader('🏦 Pago bancario')}
+        </div>
+
 
         <div class="notice">
-          Realiza el pago por el monto indicado
-          y luego envía la captura del comprobante.
+
+            Selecciona el método de pago.
+            Cada método tiene su propio precio.
+
         </div>
+
 
         <div class="card">
-          <strong>Monto: ${money(amount)}</strong>
 
-          <p
-            class="muted"
-            style="margin-top:8px"
-          >
-            BanReservas:
-            ${escapeHtml(account || 'Cuenta pendiente de configurar')}
-          </p>
+            <strong>
+                🟢 Banco
+            </strong>
+
+            <div
+                style="font-size:22px;font-weight:900;margin-top:6px">
+
+                ${money(prices.bank)}
+
+            </div>
+
+            <small class="muted">
+
+                ${
+                    escapeHtml(
+                        config.bankName ||
+                        'Cuenta bancaria'
+                    )
+                }
+
+            </small>
+
         </div>
 
-        ${paymentScreenshotForm(ad.id)}
-      `);
 
-      return;
+        <div
+            class="card"
+            style="margin-top:10px">
+
+            <strong>
+                ₿ Binance
+            </strong>
+
+            <div
+                style="font-size:22px;font-weight:900;margin-top:6px">
+
+                US$ ${Number(prices.binance).toFixed(2)}
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="card"
+            style="margin-top:10px">
+
+            <strong>
+                🅿️ PayPal
+            </strong>
+
+            <div
+                style="font-size:22px;font-weight:900;margin-top:6px">
+
+                US$ ${Number(prices.paypal).toFixed(2)}
+
+            </div>
+
+        </div>
+
+
+        <h3 style="margin:20px 0 10px">
+            Método de pago
+        </h3>
+
+
+        <select
+            id="advertisingPaymentMethod"
+            class="field input"
+            style="width:100%;padding:12px;border:1px solid #dbe1e8;border-radius:12px">
+
+            <option value="">
+                Seleccionar método
+            </option>
+
+            <option value="bank">
+                🏦 Cuenta bancaria
+            </option>
+
+            <option value="binance">
+                ₿ Binance
+            </option>
+
+            <option value="paypal">
+                🅿️ PayPal
+            </option>
+
+        </select>
+
+
+        <div
+            class="field"
+            style="margin-top:12px">
+
+            <label>
+                📸 Captura / comprobante de pago
+            </label>
+
+            <input
+                id="advertisingProof"
+                type="file"
+                accept="image/*">
+
+        </div>
+
+
+        <button
+            type="button"
+            class="primary"
+            style="margin-top:14px"
+            onclick="submitAdvertisingPayment(${Number(adId)})">
+
+            📤 Enviar comprobante
+
+        </button>
+    `, {
+        screen: 'advertisingPayment'
+    });
+}
+
+
+/* =========================================================
+   ENVIAR COMPROBANTE
+   ========================================================= */
+
+function submitAdvertisingPayment(adId) {
+
+    const ad =
+        ads.find(function(item) {
+            return Number(item.id) === Number(adId);
+        });
+
+    if (!ad) return;
+
+
+    const method =
+        document.getElementById(
+            'advertisingPaymentMethod'
+        ).value;
+
+
+    if (!method) {
+
+        toast(
+            'Selecciona un método de pago.'
+        );
+
+        return;
+    }
+
+
+    const prices =
+        config[ad.plan];
+
+
+    let amount = 0;
+
+
+    if (method === 'bank') {
+        amount = prices.bank;
     }
 
     if (method === 'binance') {
-      amount = ad.prices.binance;
-
-      account =
-        config.binanceAddress || '';
-
-      show(`
-        ${backHeader('₿ Pago con Binance')}
-
-        <div class="notice">
-          Realiza el pago por el monto indicado
-          y luego envía la captura.
-        </div>
-
-        <div class="card">
-          <strong>
-            Monto: US$${Number(amount).toFixed(2)}
-          </strong>
-
-          <p
-            class="muted"
-            style="margin-top:8px"
-          >
-            Binance:
-            ${escapeHtml(account || 'Dirección pendiente de configurar')}
-          </p>
-        </div>
-
-        ${paymentScreenshotForm(ad.id)}
-      `);
-
-      return;
+        amount = prices.binance;
     }
 
     if (method === 'paypal') {
-      amount = ad.prices.paypal;
-
-      account =
-        config.paypalUrl || '';
-
-      show(`
-        ${backHeader('🅿️ Pago con PayPal')}
-
-        <div class="notice">
-          Realiza el pago por el monto indicado
-          y luego envía la captura.
-        </div>
-
-        <div class="card">
-          <strong>
-            Monto: US$${Number(amount).toFixed(2)}
-          </strong>
-
-          ${
-            account
-              ? `
-                <button
-                  class="primary"
-                  style="margin-top:10px"
-                  data-action="open-url"
-                  data-url="${escapeHtml(account)}"
-                >
-                  🅿️ Abrir PayPal
-                </button>
-              `
-              : `
-                <p class="muted" style="margin-top:8px">
-                  Enlace de PayPal pendiente de configurar.
-                </p>
-              `
-          }
-
-        </div>
-
-        ${paymentScreenshotForm(ad.id)}
-      `);
+        amount = prices.paypal;
     }
-  }
 
-  function paymentScreenshotForm(id) {
-    return `
-      <div
-        class="field"
-        style="margin-top:14px"
-      >
 
-        <label>
-          📸 Captura del comprobante
-        </label>
+    const proof =
+        document.getElementById(
+            'advertisingProof'
+        );
 
-        <input
-          id="paymentScreenshot"
-          type="file"
-          accept="image/*"
-          required
-        >
 
-      </div>
+    ad.paymentMethod = method;
 
-      <button
-        class="primary"
-        style="margin-top:12px"
-        data-action="send-payment"
-        data-id="${id}"
-      >
-        📤 Enviar comprobante
-      </button>
-    `;
-  }
-
-  function sendPayment(id) {
-    const ad =
-      advertising.find(item => item.id === id);
-
-    if (!ad) return;
-
-    const input =
-      document.getElementById('paymentScreenshot');
-
-    if (!input?.files?.[0]) {
-      toast('⚠️ Selecciona la captura del pago.');
-      return;
-    }
+    ad.paymentAmount = amount;
 
     /*
-     * La imagen real se enviará al backend/storage
-     * en la siguiente etapa.
-     */
-
-    ad.paymentScreenshot =
-      input.files[0].name;
-
-    ad.status =
-      'pendiente_aprobacion';
-
-    saveAds();
-
-    showAdvertisingSubmitted(ad);
-  }
-
-  function showAdvertisingSubmitted(ad) {
-    show(`
-      ${backHeader('✅ Publicidad enviada')}
-
-      <div class="notice">
-        ${
-          ad.paid
-            ? 'Tu comprobante fue enviado correctamente. El administrador revisará el pago.'
-            : 'Tu publicidad fue enviada correctamente y queda pendiente de revisión.'
-        }
-      </div>
-
-      <div class="card">
-
-        <strong>
-          📢 ${escapeHtml(ad.title)}
-        </strong>
-
-        <div
-          class="muted"
-          style="margin-top:8px"
-        >
-          Estado:
-          ${escapeHtml(ad.status)}
-        </div>
-
-      </div>
-
-      <button
-        class="primary"
-        style="margin-top:14px"
-        data-action="my-advertising"
-      >
-        📢 Ver mis publicidades
-      </button>
-    `);
-  }
-
-  /* =========================================================
-     MIS PUBLICIDADES
-     ========================================================= */
-
-  function myAdvertising() {
-    if (!user) {
-      openProfile();
-      return;
-    }
-
-    const mine =
-      advertising.filter(ad => ad.user === user.name);
-
-    show(`
-      ${backHeader('📢 Mis publicidades')}
-
-      ${
-        mine.length
-          ? mine.map(ad => `
-            <div
-              class="card"
-              style="margin-bottom:10px"
-            >
-
-              <strong>
-                ${escapeHtml(ad.title)}
-              </strong>
-
-              <div
-                class="muted"
-                style="margin-top:6px"
-              >
-                💎 ${escapeHtml(ad.plan)}
-                <br>
-                📌 Estado:
-                ${escapeHtml(ad.status)}
-              </div>
-
-              <button
-                class="secondary"
-                style="margin-top:10px"
-                data-action="delete-ad"
-                data-id="${ad.id}"
-              >
-                🗑️ Eliminar
-              </button>
-
-            </div>
-          `).join('')
-          : `
-            <div class="empty">
-              📢
-              <br><br>
-              No tienes publicidades.
-            </div>
-          `
-      }
-    `);
-  }
-
-  function deleteAdvertising(id) {
-    const ad =
-      advertising.find(item => item.id === id);
-
-    if (!ad) return;
-
-    const confirmed =
-      window.confirm(
-        `¿Quieres eliminar la publicidad "${ad.title}"?`
-      );
-
-    if (!confirmed) return;
-
-    advertising =
-      advertising.filter(item => item.id !== id);
-
-    saveAds();
-
-    toast('🗑️ Publicidad eliminada.');
-
-    myAdvertising();
-  }
-
-  /* =========================================================
-     SOLICITUDES DE PUBLICIDAD — ADMIN
-     ========================================================= */
-
-  function adminAdvertisers() {
-    show(`
-      ${backHeader('🧾 Solicitudes de publicidad')}
-
-      ${
-        advertising.length
-          ? advertising.map(ad => `
-            <div
-              class="card"
-              style="margin-bottom:10px"
-            >
-
-              <strong>
-                ${escapeHtml(ad.title)}
-              </strong>
-
-              <div
-                class="muted"
-                style="margin-top:6px"
-              >
-                👤 ${escapeHtml(ad.user)}
-                <br>
-                💎 ${escapeHtml(ad.plan)}
-                <br>
-                📌 ${escapeHtml(ad.status)}
-                <br>
-                💳 ${
-                  ad.paymentMethod
-                    ? escapeHtml(ad.paymentMethod)
-                    : 'Sin seleccionar'
-                }
-              </div>
-
-              ${
-                ad.status === 'pendiente_aprobacion'
-                  ? `
-                    <button
-                      class="primary"
-                      style="margin-top:10px"
-                      data-action="approve-ad"
-                      data-id="${ad.id}"
-                    >
-                      ✅ Aprobar publicidad
-                    </button>
-
-                    <button
-                      class="danger"
-                      style="margin-top:8px"
-                      data-action="reject-ad"
-                      data-id="${ad.id}"
-                    >
-                      ❌ Rechazar
-                    </button>
-                  `
-                  : ''
-              }
-
-            </div>
-          `).join('')
-          : `
-            <div class="empty">
-              🧾
-              <br><br>
-              No hay solicitudes.
-            </div>
-          `
-      }
-    `);
-  }
-
-  function approveAdvertising(id) {
-    const ad =
-      advertising.find(item => item.id === id);
-
-    if (!ad) return;
-
-    ad.status = 'aprobada';
-
-    saveAds();
-
-    toast('✅ Publicidad aprobada.');
-
-    adminAdvertisers();
-  }
-
-  function rejectAdvertising(id) {
-    const ad =
-      advertising.find(item => item.id === id);
-
-    if (!ad) return;
-
-    ad.status = 'rechazada';
-
-    saveAds();
-
-    toast('❌ Publicidad rechazada.');
-
-    adminAdvertisers();
-  }
-
-  /* =========================================================
-     MOSTRAR PUBLICIDADES EN EL ESPACIO PRINCIPAL
-     ========================================================= */
-
-  function renderActiveAdvertising() {
-    const adBox =
-      document.querySelector('.ad');
-
-    if (!adBox) return;
-
-    const approved =
-      advertising
-        .filter(ad => ad.status === 'aprobada');
-
-    if (!approved.length) {
-      createAdvertisingButton();
-      return;
-    }
-
-    const ad =
-      approved[0];
-
-    const destinationUrl =
-      getAdvertisingDestination(ad);
-
-    adBox.innerHTML = `
-      <div style="width:100%">
-
-        <small>
-          PUBLICIDAD
-        </small>
-
-        <h3>
-          ${escapeHtml(ad.title)}
-        </h3>
-
-        <video
-          src="${escapeHtml(ad.videoUrl)}"
-          controls
-          playsinline
-          style="
-            width:100%;
-            max-height:320px;
-            object-fit:cover;
-            border-radius:16px;
-            margin-top:10px;
-          "
-        ></video>
-
-        ${
-          destinationUrl
-            ? `
-              <button
-                id="activeAdButton"
-                class="primary"
-                style="margin-top:10px"
-              >
-                ${
-                  ad.destination === 'whatsapp'
-                    ? '🟢 WhatsApp'
-                    : ad.destination === 'messenger'
-                      ? '💬 Messenger'
-                      : '🔗 Visitar página'
-                }
-              </button>
-            `
-            : ''
-        }
-
-        <button
-          id="publicityButton"
-          class="secondary"
-          style="margin-top:8px"
-        >
-          📣 Crear mi publicidad
-        </button>
-
-      </div>
-    `;
-
-    const activeButton =
-      document.getElementById('activeAdButton');
-
-    if (activeButton && destinationUrl) {
-      activeButton.addEventListener('click', () => {
-        window.open(
-          destinationUrl,
-          '_blank',
-          'noopener,noreferrer'
-        );
-      });
-    }
-
-    const createButton =
-      document.getElementById('publicityButton');
-
-    if (createButton) {
-      createButton.addEventListener(
-        'click',
-        openAdvertising
-      );
-    }
-  }
-
-  function getAdvertisingDestination(ad) {
-    if (!ad) return '';
-
-    if (ad.destination === 'whatsapp') {
-      return whatsappUrl(
-        ad.destinationValue,
-        `Hola, vi tu publicidad en Market Flash: ${ad.title}`
-      );
-    }
+       El archivo real se conectará al backend/storage.
+       Guardamos por ahora el nombre del archivo.
+    */
 
     if (
-      ad.destination === 'url' ||
-      ad.destination === 'messenger'
+        proof &&
+        proof.files &&
+        proof.files.length
     ) {
-      return safeUrl(ad.destinationValue);
+
+        ad.paymentProof =
+            proof.files[0].name;
     }
 
-    return '';
-  }
 
-  /* =========================================================
-     PAGOS Y MEMBRESÍAS
-     ========================================================= */
+    ad.status =
+        'pending_approval';
 
-  function adminPayments() {
-    show(`
-      ${backHeader('💳 Pagos y membresías')}
 
-      <div class="notice">
-        El usuario depositará, enviará el comprobante
-        y el administrador aprobará manualmente.
-      </div>
+    saveAds();
 
-      <div class="field">
-        <label>🏦 BanReservas — número de cuenta</label>
 
-        <input
-          placeholder="Número de cuenta"
-        >
-      </div>
+    toast(
+        '✅ Comprobante enviado al panel del administrador.'
+    );
 
-      <div
-        class="field"
-        style="margin-top:12px"
-      >
-        <label>🏦 BHD — número de cuenta</label>
 
-        <input
-          placeholder="Número de cuenta"
-        >
-      </div>
+    setTimeout(function() {
 
-      <div
-        class="field"
-        style="margin-top:12px"
-      >
-        <label>₿ Binance — dirección</label>
+        close();
 
-        <input
-          placeholder="Dirección"
-        >
-      </div>
+    }, 800);
+}
 
-      <div
-        class="field"
-        style="margin-top:12px"
-      >
-        <label>🅿️ PayPal — enlace</label>
 
-        <input
-          placeholder="Enlace"
-        >
-      </div>
+/* =========================================================
+   PANEL DE ANUNCIOS DEL ADMINISTRADOR
+   ========================================================= */
 
-      <button
-        class="primary"
-        style="margin-top:14px"
-        data-action="save-payments"
-      >
-        💾 Guardar
-      </button>
-    `);
-  }
+function adminAdvertisingRequests() {
 
-  /* =========================================================
-     NOTIFICACIONES
-     ========================================================= */
+    const pending =
+        ads.filter(function(ad) {
 
-  function notifications() {
-    show(`
-      ${backHeader('🔔 Notificaciones')}
+            return (
+                ad.status ===
+                'pending_approval'
+            );
 
-      <div class="notice">
-        No tienes notificaciones nuevas.
-      </div>
+        });
 
-      <button
-        class="secondary"
-        data-action="close"
-      >
-        Cerrar
-      </button>
-    `);
-  }
 
-  /* =========================================================
-     LOGOUT
-     ========================================================= */
+    showScreen(`
+        <div class="modal-head">
 
-  function logout() {
+            <h2>
+                📋 Publicidades recibidas
+            </h2>
+
+            ${backButton()}
+
+        </div>
+
+
+        ${
+            pending.length
+            ?
+            pending.map(function(ad) {
+
+                return `
+                    <div
+                        class="card"
+                        style="margin-bottom:10px">
+
+                        <strong>
+                            ${escapeHtml(ad.title)}
+                        </strong>
+
+                        <div
+                            class="muted"
+                            style="margin-top:6px">
+
+                            👤 ${escapeHtml(ad.owner)}
+
+                            <br>
+
+                            ⭐ Plan:
+                            ${escapeHtml(ad.plan)}
+
+                            <br>
+
+                            💳 Método:
+                            ${escapeHtml(ad.paymentMethod || 'N/A')}
+
+                            <br>
+
+                            💰 Monto:
+                            ${ad.paymentAmount || 0}
+
+                            <br>
+
+                            📎 Comprobante:
+                            ${escapeHtml(ad.paymentProof || 'No indicado')}
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="primary"
+                            style="margin-top:10px"
+                            onclick="approveAdvertising(${Number(ad.id)})">
+
+                            ✅ Aprobar publicidad
+
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="danger"
+                            style="margin-top:8px"
+                            onclick="rejectAdvertising(${Number(ad.id)})">
+
+                            ❌ Rechazar
+
+                        </button>
+
+                    </div>
+                `;
+
+            }).join('')
+            :
+            `
+                <div class="empty">
+
+                    📣
+
+                    <br><br>
+
+                    No hay publicidades pendientes.
+
+                </div>
+            `
+        }
+    `, {
+        screen: 'adminAdvertisingRequests'
+    });
+}
+
+
+function approveAdvertising(adId) {
+
+    const ad =
+        ads.find(function(item) {
+            return Number(item.id) === Number(adId);
+        });
+
+    if (!ad) return;
+
+
+    ad.status =
+        'approved';
+
+
+    saveAds();
+
+
+    toast(
+        '✅ Publicidad aprobada.'
+    );
+
+
+    setTimeout(
+        adminAdvertisingRequests,
+        300
+    );
+}
+
+
+function rejectAdvertising(adId) {
+
+    const ad =
+        ads.find(function(item) {
+            return Number(item.id) === Number(adId);
+        });
+
+    if (!ad) return;
+
+
+    ad.status =
+        'rejected';
+
+
+    saveAds();
+
+
+    toast(
+        '❌ Publicidad rechazada.'
+    );
+
+
+    setTimeout(
+        adminAdvertisingRequests,
+        300
+    );
+}
+
+
+/* =========================================================
+   PUBLICIDADES ACTIVAS EN EL INICIO
+   ========================================================= */
+
+function getApprovedAds() {
+
+    return ads.filter(function(ad) {
+
+        return ad.status === 'approved';
+
+    });
+}
+
+
+function renderAdvertisingArea() {
+
+    const area =
+        document.querySelector('.ad');
+
+    if (!area) return;
+
+
+    const approved =
+        getApprovedAds();
+
+
+    /*
+       Si no hay anuncios pagados/aprobados,
+       se mantiene el espacio publicitario.
+    */
+
+    if (!approved.length) {
+
+        area.innerHTML = `
+            <div>
+
+                <small>
+                    ESPACIO PUBLICITARIO
+                </small>
+
+                <h3>
+                    📣 Publicidad Market Flash
+                </h3>
+
+                <p>
+                    Aquí aparecerán los anuncios comerciales.
+                </p>
+
+            </div>
+        `;
+
+        /*
+           Convertimos el espacio publicitario
+           en botón para publicar.
+        */
+
+        area.style.cursor = 'pointer';
+
+        area.onclick =
+            openAdvertising;
+
+        return;
+    }
+
+
+    const ad =
+        approved[0];
+
+
+    area.innerHTML = `
+        <div
+            style="width:100%">
+
+            <small>
+                PUBLICIDAD
+            </small>
+
+            <h3>
+                ${escapeHtml(ad.title)}
+            </h3>
+
+            <p>
+                ${escapeHtml(ad.description || '')}
+            </p>
+
+            <button
+                type="button"
+                class="primary"
+                style="margin-top:10px"
+                onclick="event.stopPropagation();openAdvertisement(${Number(ad.id)})">
+
+                Ver publicidad
+
+            </button>
+
+        </div>
+    `;
+
+
+    area.style.cursor =
+        'pointer';
+
+
+    area.onclick =
+        function() {
+            openAdvertisement(ad.id);
+        };
+}
+
+
+/* =========================================================
+   ABRIR PUBLICIDAD
+   ========================================================= */
+
+function openAdvertisement(adId) {
+
+    const ad =
+        ads.find(function(item) {
+            return Number(item.id) === Number(adId);
+        });
+
+
+    if (!ad) return;
+
+
+    showScreen(`
+        <div class="modal-head">
+
+            <h2>
+                📣 ${escapeHtml(ad.title)}
+            </h2>
+
+            ${closeButton()}
+
+        </div>
+
+
+        <div class="product-detail">
+
+            <div
+                style="
+                    background:#111827;
+                    border-radius:18px;
+                    padding:20px;
+                    color:white;
+                    text-align:center;
+                ">
+
+                🎬
+
+                <div
+                    style="margin-top:10px;font-weight:800">
+
+                    Video publicitario
+
+                </div>
+
+                <button
+                    type="button"
+                    class="primary"
+                    style="margin-top:12px"
+                    onclick="openExternal('${escapeJs(ad.video)}')">
+
+                    ▶️ Ver video
+
+                </button>
+
+            </div>
+
+
+            ${
+                ad.description
+                ?
+                `
+                    <div
+                        class="card"
+                        style="margin-top:12px">
+
+                        ${escapeHtml(ad.description)}
+
+                    </div>
+                `
+                : ''
+            }
+
+
+            <button
+                type="button"
+                class="primary"
+                style="margin-top:14px;background:#25D366"
+                onclick="advertisementContact(${Number(ad.id)})">
+
+                💚 Contactar anunciante
+
+            </button>
+
+        </div>
+    `, {
+        screen: 'advertisement'
+    });
+}
+
+
+/* =========================================================
+   CONTACTAR AL ANUNCIANTE
+   ========================================================= */
+
+function advertisementContact(adId) {
+
+    const ad =
+        ads.find(function(item) {
+            return Number(item.id) === Number(adId);
+        });
+
+
+    if (!ad) return;
+
+
+    if (
+        ad.contactType ===
+        'whatsapp'
+    ) {
+
+        contactWhatsApp(
+            ad.contactValue ||
+            ad.whatsapp
+        );
+
+        return;
+    }
+
+
+    if (
+        ad.contactType ===
+        'messenger'
+    ) {
+
+        openExternal(
+            ad.contactValue
+        );
+
+        return;
+    }
+
+
+    if (
+        ad.contactType ===
+        'url'
+    ) {
+
+        openExternal(
+            ad.contactValue
+        );
+
+        return;
+    }
+
+
+    toast(
+        'El anunciante no tiene un medio de contacto configurado.'
+    );
+}
+
+
+/* =========================================================
+   PAGOS Y MEMBRESÍAS
+   ========================================================= */
+
+function adminPayments() {
+
+    showScreen(`
+        <div class="modal-head">
+
+            <h2>
+                💳 Pagos y membresías
+            </h2>
+
+            ${backButton()}
+
+        </div>
+
+
+        <div class="notice">
+
+            Aquí puedes configurar los métodos
+            de pago de la plataforma.
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                🏦 BanReservas — número de cuenta
+            </label>
+
+            <input
+                id="membershipBank"
+                value="${escapeHtml(config.bankAccount || '')}"
+                placeholder="Número de cuenta">
+
+        </div>
+
+
+        <div
+            class="field"
+            style="margin-top:12px">
+
+            <label>
+                🏦 BHD — número de cuenta
+            </label>
+
+            <input
+                id="membershipBank2"
+                value="${escapeHtml(config.bankAccount2 || '')}"
+                placeholder="Número de cuenta">
+
+        </div>
+
+
+        <div
+            class="field"
+            style="margin-top:12px">
+
+            <label>
+                ₿ Binance
+            </label>
+
+            <input
+                id="membershipBinance"
+                value="${escapeHtml(config.binanceAddress || '')}"
+                placeholder="Dirección o enlace">
+
+        </div>
+
+
+        <div
+            class="field"
+            style="margin-top:12px">
+
+            <label>
+                🅿️ PayPal
+            </label>
+
+            <input
+                id="membershipPaypal"
+                value="${escapeHtml(config.paypalLink || '')}"
+                placeholder="Enlace">
+
+        </div>
+
+
+        <button
+            type="button"
+            class="primary"
+            style="margin-top:14px"
+            onclick="saveMembershipConfig()">
+
+            💾 Guardar
+
+        </button>
+    `, {
+        screen: 'adminPayments'
+    });
+}
+
+
+function saveMembershipConfig() {
+
+    const bank =
+        document.getElementById(
+            'membershipBank'
+        );
+
+    const bank2 =
+        document.getElementById(
+            'membershipBank2'
+        );
+
+    const binance =
+        document.getElementById(
+            'membershipBinance'
+        );
+
+    const paypal =
+        document.getElementById(
+            'membershipPaypal'
+        );
+
+
+    if (bank)
+        config.bankAccount =
+            bank.value.trim();
+
+    if (bank2)
+        config.bankAccount2 =
+            bank2.value.trim();
+
+    if (binance)
+        config.binanceAddress =
+            binance.value.trim();
+
+    if (paypal)
+        config.paypalLink =
+            paypal.value.trim();
+
+
+    saveConfig();
+
+    toast(
+        '✅ Configuración de pagos guardada.'
+    );
+}
+
+
+/* =========================================================
+   CERRAR SESIÓN
+   ========================================================= */
+
+function logout() {
+
     user = null;
 
-    localStorage.removeItem(STORAGE_USER);
+    localStorage.removeItem(
+        STORAGE_USER
+    );
 
     close();
 
-    toast('👋 Sesión cerrada.');
-  }
-
-  /* =========================================================
-     EVENTOS DINÁMICOS
-     ========================================================= */
-
-  function bindDynamicButtons() {
-    const sheet =
-      document.getElementById('sheet');
-
-    if (!sheet) return;
-
-    sheet.onclick = event => {
-      const button =
-        event.target.closest('[data-action]');
-
-      if (!button) return;
-
-      const action =
-        button.dataset.action;
-
-      const id =
-        button.dataset.id
-          ? Number(button.dataset.id)
-          : null;
-
-      switch (action) {
-
-        case 'back':
-          goBack();
-          break;
-
-        case 'close':
-          close();
-          break;
-
-        case 'like':
-          like(id);
-          break;
-
-        case 'whatsapp-product': {
-          const product =
-            products.find(item => item.id === id);
-
-          if (product) {
-            openWhatsApp(
-              product.whatsapp ||
-              user?.whatsapp ||
-              '',
-              `Hola, estoy interesado/a en "${product.name}" en Market Flash.`
-            );
-          }
-
-          break;
-        }
-
-        case 'contact':
-          contact(button.dataset.seller || '');
-          break;
-
-        case 'register':
-          register();
-          break;
-
-        case 'login':
-          login();
-          break;
-
-        case 'recovery':
-          recovery();
-          break;
-
-        case 'verify-recovery':
-          verifyRecovery();
-          break;
-
-        case 'activity':
-          openActivity();
-          break;
-
-        case 'settings':
-          settings();
-          break;
-
-        case 'admin':
-          admin();
-          break;
-
-        case 'logout':
-          logout();
-          break;
-
-        case 'my-publications':
-          myPublications();
-          break;
-
-        case 'my-products':
-          myProducts();
-          break;
-
-        case 'my-sales':
-          mySales();
-          break;
-
-        case 'receipts':
-          receipts();
-          break;
-
-        case 'favorites':
-          favorites();
-          break;
-
-        case 'history':
-          historyPage();
-          break;
-
-        case 'statistics':
-          statistics(id);
-          break;
-
-        case 'edit-product':
-          editProduct(id);
-          break;
-
-        case 'delete-product':
-          deleteProduct(id);
-          break;
-
-        case 'edit-profile':
-          editProfile();
-          break;
-
-        case 'change-pass':
-          changePass();
-          break;
-
-        case 'security':
-          securityPage();
-          break;
-
-        case 'email-info':
-          toast('📧 El correo electrónico es opcional.');
-          break;
-
-        case 'admin-users':
-          adminUsers();
-          break;
-
-        case 'admin-blocked':
-          adminBlocked();
-          break;
-
-        case 'admin-posts':
-          adminPosts();
-          break;
-
-        case 'admin-advertising':
-          adminAdvertising();
-          break;
-
-        case 'admin-payments':
-          adminPayments();
-          break;
-
-        case 'admin-inventory':
-          simple(
-            '📦 Inventario',
-            'Aquí se administrará el inventario.'
-          );
-          break;
-
-        case 'toggle-ad':
-          toggleAd();
-          break;
-
-        case 'save-ad-config':
-          saveAdConfig();
-          break;
-
-        case 'admin-advertisers':
-          adminAdvertisers();
-          break;
-
-        case 'ad-payment':
-          adPayment(
-            button.dataset.method,
-            id
-          );
-          break;
-
-        case 'send-payment':
-          sendPayment(id);
-          break;
-
-        case 'my-advertising':
-          myAdvertising();
-          break;
-
-        case 'delete-ad':
-          deleteAdvertising(id);
-          break;
-
-        case 'approve-ad':
-          approveAdvertising(id);
-          break;
-
-        case 'reject-ad':
-          rejectAdvertising(id);
-          break;
-
-        case 'open-url': {
-          const url =
-            safeUrl(button.dataset.url);
-
-          if (url) {
-            window.open(
-              url,
-              '_blank',
-              'noopener,noreferrer'
-            );
-          }
-
-          break;
-        }
-
-        case 'close':
-          close();
-          break;
-
-        default:
-          console.warn(
-            'Acción no reconocida:',
-            action
-          );
-      }
-    };
-  }
-
-  /* =========================================================
-     EVENTOS PRINCIPALES DEL HTML
-     ========================================================= */
-
-  function setupMainEvents() {
-
-    const search =
-      document.getElementById('search');
-
-    if (search) {
-      search.addEventListener(
-        'input',
-        render
-      );
-    }
-
-    /*
-     * Botón de inicio
-     */
-    const navHome =
-      document.getElementById('navHome');
-
-    if (navHome) {
-      navHome.onclick = home;
-    }
-
-    /*
-     * Botón de actividad
-     */
-    const navActivity =
-      document.getElementById('navActivity');
-
-    if (navActivity) {
-      navActivity.onclick = openActivity;
-    }
-
-    /*
-     * Botón +
-     */
-    const plus =
-      document.querySelector('.plus');
-
-    if (plus) {
-      plus.onclick = openPublish;
-    }
-
-    /*
-     * Notificaciones
-     */
-    const notificationButtons =
-      document.querySelectorAll(
-        '[aria-label="Notificaciones"]'
-      );
-
-    notificationButtons.forEach(button => {
-      button.onclick = notifications;
-    });
-
-    /*
-     * Perfil
-     */
-    const profileButtons =
-      document.querySelectorAll(
-        '[aria-label="Perfil"]'
-      );
-
-    profileButtons.forEach(button => {
-      button.onclick = openProfile;
-    });
-
-    /*
-     * Categorías existentes en HTML
-     */
-    document.querySelectorAll('.chip').forEach(button => {
-      const text =
-        button.textContent
-          .replace(/[^\p{L}\p{N}\s]/gu, '')
-          .trim();
-
-      let categoryName = text;
-
-      if (text.toLowerCase().includes('todos')) {
-        categoryName = 'Todos';
-      } else if (
-        text.toLowerCase().includes('celulares')
-      ) {
-        categoryName = 'Celulares';
-      } else if (
-        text.toLowerCase().includes('computadoras')
-      ) {
-        categoryName = 'Computadoras';
-      } else if (
-        text.toLowerCase().includes('videojuegos')
-      ) {
-        categoryName = 'Videojuegos';
-      } else if (
-        text.toLowerCase().includes('ropa')
-      ) {
-        categoryName = 'Ropa';
-      } else if (
-        text.toLowerCase().includes('hogar')
-      ) {
-        categoryName = 'Hogar';
-      } else if (
-        text.toLowerCase().includes('vehículos') ||
-        text.toLowerCase().includes('vehiculos')
-      ) {
-        categoryName = 'Vehículos';
-      }
-
-      button.onclick = () => {
-        setCategory(
-          categoryName,
-          button
-        );
-      };
-    });
-  }
-
-  /* =========================================================
-     BOTÓN ATRÁS DEL NAVEGADOR
-     ========================================================= */
-
-  function setupBrowserBack() {
-    window.addEventListener('popstate', () => {
-      if (
-        document.getElementById('overlay') &&
-        !document.getElementById('overlay').classList.contains('hidden')
-      ) {
-        goBack();
-      }
-    });
-  }
-
-  /* =========================================================
-     INICIALIZACIÓN
-     ========================================================= */
-
-  function init() {
-    setupOverlay();
-
-    setupMainEvents();
-
-    setupBrowserBack();
-
-    bindDynamicButtons();
-
-    createAdvertisingButton();
-
-    renderActiveAdvertising();
-
-    render();
-  }
-
-  /* =========================================================
-     EXPONER FUNCIONES PARA COMPATIBILIDAD
-     ========================================================= */
-
-  window.home = home;
-  window.close = close;
-  window.openPublish = openPublish;
-  window.openProfile = openProfile;
-  window.openActivity = openActivity;
-  window.notifications = notifications;
-  window.register = register;
-  window.login = login;
-  window.recovery = recovery;
-  window.admin = admin;
-  window.adminAdvertising = adminAdvertising;
-  window.adminPayments = adminPayments;
-  window.openAdvertising = openAdvertising;
-  window.setCategory = setCategory;
-  window.render = render;
-  window.goBack = goBack;
-  window.logout = logout;
-
-  /* =========================================================
-     ARRANQUE
-     ========================================================= */
-
-  if (
-    document.readyState === 'loading'
-  ) {
-    document.addEventListener(
-      'DOMContentLoaded',
-      init
+    toast(
+        'Sesión cerrada correctamente.'
     );
-  } else {
-    init();
-  }
+}
 
-})();
+
+/* =========================================================
+   BOTÓN PUBLICITARIO DESDE EL ESPACIO DE PUBLICIDAD
+   ========================================================= */
+
+function setupAdvertisingButton() {
+
+    const adArea =
+        document.querySelector('.ad');
+
+    if (!adArea) return;
+
+
+    adArea.setAttribute(
+        'role',
+        'button'
+    );
+
+    adArea.setAttribute(
+        'tabindex',
+        '0'
+    );
+
+
+    adArea.addEventListener(
+        'keydown',
+        function(event) {
+
+            if (
+                event.key ===
+                'Enter' ||
+                event.key ===
+                ' '
+            ) {
+
+                event.preventDefault();
+
+                openAdvertising();
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   INICIALIZACIÓN
+   ========================================================= */
+
+document.addEventListener(
+    'DOMContentLoaded',
+    function() {
+
+        render();
+
+        setupAdvertisingButton();
+
+        renderAdvertisingArea();
+
+    }
+);
+
+
+/*
+   También ejecutamos por si el script se carga
+   después de que el HTML ya esté disponible.
+*/
+
+if (
+    document.readyState ===
+    'complete' ||
+    document.readyState ===
+    'interactive'
+) {
+
+    setTimeout(function() {
+
+        render();
+
+        setupAdvertisingButton();
+
+        renderAdvertisingArea();
+
+    }, 50);
+}
+
+
+/* =========================================================
+   EXPORTACIÓN GLOBAL
+   =========================================================
+
+   Esto garantiza que los onclick="" que ya existen
+   en tu HTML puedan encontrar las funciones.
+
+   ========================================================= */
+
+window.home = home;
+window.close = close;
+window.goBack = goBack;
+window.notifications = notifications;
+window.openProfile = openProfile;
+window.openPublish = openPublish;
+window.openActivity = openActivity;
+window.openProduct = openProduct;
+window.setCategory = setCategory;
+window.like = like;
+window.contact = contact;
+window.contactWhatsApp = contactWhatsApp;
+window.openExternal = openExternal;
+
+window.register = register;
+window.login = login;
+window.recovery = recovery;
+window.verifyRecovery = verifyRecovery;
+
+window.myPublications = myPublications;
+window.myProducts = myProducts;
+window.mySales = mySales;
+window.receipts = receipts;
+window.favorites = favorites;
+window.historyPage = historyPage;
+window.statistics = statistics;
+window.deleteProduct = deleteProduct;
+
+window.settings = settings;
+window.editProfile = editProfile;
+window.changePass = changePass;
+window.securityPage = securityPage;
+
+window.admin = admin;
+window.adminUsers = adminUsers;
+window.adminBlocked = adminBlocked;
+window.adminPosts = adminPosts;
+window.adminAdvertising = adminAdvertising;
+window.adminPayments = adminPayments;
+
+window.toggleAd = toggleAd;
+window.saveAdConfig = saveAdConfig;
+
+window.openAdvertising = openAdvertising;
+window.updateAdvertisingContactField =
+    updateAdvertisingContactField;
+
+window.createAdvertisingPayment =
+    createAdvertisingPayment;
+
+window.advertisingPaymentScreen =
+    advertisingPaymentScreen;
+
+window.submitAdvertisingPayment =
+    submitAdvertisingPayment;
+
+window.adminAdvertisingRequests =
+    adminAdvertisingRequests;
+
+window.approveAdvertising =
+    approveAdvertising;
+
+window.rejectAdvertising =
+    rejectAdvertising;
+
+window.openAdvertisement =
+    openAdvertisement;
+
+window.advertisementContact =
+    advertisementContact;
+
+window.saveMembershipConfig =
+    saveMembershipConfig;
+
+window.logout = logout;
