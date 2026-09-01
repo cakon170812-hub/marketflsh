@@ -1,722 +1,2759 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111827">
+<title>Market Flash</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+    background: #f4f6f8;
+    color: #111827;
+    min-height: 100vh;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button {
+    cursor: pointer;
+    border: none;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 12px 16px;
+}
+
+.header-inner {
+    max-width: 1200px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: 900;
+    color: #111827;
+    white-space: nowrap;
+}
+
+.logo span {
+    color: #2563eb;
+}
+
+.search {
+    flex: 1;
+    background: #f1f5f9;
+    border-radius: 14px;
+    padding: 12px 16px;
+    border: 1px solid transparent;
+    outline: none;
+}
+
+.search:focus {
+    border-color: #2563eb;
+}
+
+.header-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    font-size: 19px;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+main {
+    max-width: 1200px;
+    margin: auto;
+    padding: 18px 16px 100px;
+}
+
+.categories {
+    display: flex;
+    gap: 9px;
+    overflow-x: auto;
+    padding-bottom: 15px;
+}
+
+.categories::-webkit-scrollbar {
+    display: none;
+}
+
+.category {
+    flex: 0 0 auto;
+    padding: 10px 15px;
+    border-radius: 22px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    font-weight: 700;
+}
+
+.category.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+/* =========================
+   ADVERTISEMENT
+========================= */
+
+.ad-space {
+    min-height: 100px;
+    border-radius: 18px;
+    margin: 5px 0 20px;
+    background: linear-gradient(135deg, #e8eefc, #f8fafc);
+    border: 1px dashed #b8c2d1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 18px;
+}
+
+.ad-space.active {
+    border-style: solid;
+}
+
+.ad-content {
+    width: 100%;
+}
+
+.ad-label {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.ad-title {
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.ad-description {
+    color: #64748b;
+    margin-top: 5px;
+}
+
+/* =========================
+   PRODUCTS
+========================= */
+
+.section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0 12px;
+}
+
+.section-title h2 {
+    font-size: 21px;
+}
+
+.products {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.product-card {
+    background: white;
+    border-radius: 17px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    transition: .2s;
+}
+
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,.08);
+}
+
+.product-image {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: #e5e7eb;
+}
+
+.product-info {
+    padding: 12px;
+}
+
+.product-name {
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.product-price {
+    font-size: 18px;
+    font-weight: 900;
+}
+
+.product-location {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 5px;
+}
+
+/* =========================
+   BOTTOM NAV
+========================= */
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: rgba(255,255,255,.97);
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 200;
+}
+
+.nav-item {
+    background: none;
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.nav-icon {
+    font-size: 22px;
+}
+
+.nav-item.active {
+    color: #2563eb;
+}
+
+.publish-button {
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: white;
+    font-size: 28px;
+    margin-top: -27px;
+    box-shadow: 0 8px 20px rgba(37,99,235,.3);
+}
+
+/* =========================
+   MODAL / SCREENS
+========================= */
+
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15,23,42,.55);
+    z-index: 500;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.modal {
+    background: white;
+    width: 100%;
+    max-width: 650px;
+    max-height: 92vh;
+    overflow-y: auto;
+    border-radius: 25px 25px 0 0;
+    padding: 22px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.close {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    font-size: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 7px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 13px;
+    border: 1px solid #dbe1e8;
+    border-radius: 12px;
+    outline: none;
+}
+
+.form-group textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+.primary {
+    width: 100%;
+    background: #2563eb;
+    color: white;
+    padding: 14px;
+    border-radius: 13px;
+    font-weight: 800;
+}
+
+.secondary {
+    width: 100%;
+    background: #f1f5f9;
+    color: #111827;
+    padding: 14px;
+    border-radius: 13px;
+    font-weight: 800;
+    margin-top: 9px;
+}
+
+.danger {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+/* =========================
+   ACCOUNT
+========================= */
+
+.profile-card {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    text-align: center;
+}
+
+.avatar {
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    background: #dbeafe;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    margin: 0 auto 10px;
+}
+
+.menu-card {
+    margin-top: 15px;
+    background: white;
+    border-radius: 18px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.menu-item {
+    width: 100%;
+    padding: 16px;
+    background: white;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    border-bottom: 1px solid #edf0f3;
+    text-align: left;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+
+.menu-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #eff6ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 21px;
+}
+
+.menu-text {
+    flex: 1;
+}
+
+.menu-text strong {
+    display: block;
+}
+
+.menu-text small {
+    color: #64748b;
+}
+
+/* =========================
+   DASHBOARD
+========================= */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.dashboard-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    padding: 18px;
+}
+
+.dashboard-icon {
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+.dashboard-card strong {
+    font-size: 20px;
+    display: block;
+}
+
+.dashboard-card span {
+    color: #64748b;
+    font-size: 13px;
+}
+
+/* =========================
+   STATS
+========================= */
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.stat {
+    padding: 15px;
+    border-radius: 15px;
+    background: #f8fafc;
+}
+
+.stat-number {
+    font-size: 23px;
+    font-weight: 900;
+}
+
+.stat-label {
+    color: #64748b;
+    font-size: 12px;
+}
+
+/* =========================
+   TOGGLE
+========================= */
+
+.setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.toggle {
+    width: 52px;
+    height: 29px;
+    border-radius: 20px;
+    background: #cbd5e1;
+    position: relative;
+}
+
+.toggle::after {
+    content: "";
+    width: 23px;
+    height: 23px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: .2s;
+}
+
+.toggle.on {
+    background: #2563eb;
+}
+
+.toggle.on::after {
+    left: 26px;
+}
+
+/* =========================
+   DESKTOP
+========================= */
+
+@media (min-width: 700px) {
+    .products {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .overlay {
+        align-items: center;
+    }
+
+    .modal {
+        border-radius: 25px;
+        max-height: 88vh;
+    }
+
+    .bottom-nav {
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(700px, 100%);
+        border: 1px solid #e5e7eb;
+        border-radius: 20px 20px 0 0;
+    }
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- =========================
+     HEADER
+========================= -->
+
+<header class="header">
+    <div class="header-inner">
+
+```
+    <div class="logo">
+        Market <span>Flash</span>
+    </div>
+
+    <input
+        id="searchInput"
+        class="search"
+        type="search"
+        placeholder="Buscar productos..."
+        oninput="searchProducts()"
     >
 
-    <meta
-        name="description"
-        content="Michael Flash - Compra, vende, descubre y promociona."
+    <button class="header-btn" onclick="openProfile()">👤</button>
+
+</div>
+```
+
+</header>
+
+<!-- =========================
+     MAIN MARKETPLACE
+========================= -->
+
+<main id="homeScreen">
+
+```
+<div class="categories">
+
+    <button class="category active" onclick="filterCategory('Todos', this)">
+        Todos
+    </button>
+
+    <button class="category" onclick="filterCategory('Celulares', this)">
+        📱 Celulares
+    </button>
+
+    <button class="category" onclick="filterCategory('Computadoras', this)">
+        💻 Computadoras
+    </button>
+
+    <button class="category" onclick="filterCategory('Videojuegos', this)">
+        🎮 Videojuegos
+    </button>
+
+    <button class="category" onclick="filterCategory('Ropa', this)">
+        👕 Ropa
+    </button>
+
+    <button class="category" onclick="filterCategory('Hogar', this)">
+        🏠 Hogar
+    </button>
+
+    <button class="category" onclick="filterCategory('Vehículos', this)">
+        🚗 Vehículos
+    </button>
+
+</div>
+
+
+<!-- ESPACIO PUBLICITARIO -->
+
+<section id="advertisement" class="ad-space">
+
+    <div class="ad-content">
+
+        <div class="ad-label">
+            Espacio publicitario
+        </div>
+
+        <div class="ad-title">
+            Publicidad Market Flash
+        </div>
+
+        <div class="ad-description">
+            Próximamente aquí aparecerán anuncios comerciales.
+        </div>
+
+    </div>
+
+</section>
+
+
+<div class="section-title">
+
+    <h2>Productos</h2>
+
+    <span id="productCount">
+        0 productos
+    </span>
+
+</div>
+
+
+<section id="products" class="products"></section>
+```
+
+</main>
+
+<!-- =========================
+     BOTTOM NAVIGATION
+========================= -->
+
+<nav class="bottom-nav">
+
+```
+<button class="nav-item active" onclick="showHome()">
+    <span class="nav-icon">🏠</span>
+    Inicio
+</button>
+
+<button class="nav-item" onclick="focusSearch()">
+    <span class="nav-icon">🔍</span>
+    Buscar
+</button>
+
+<button class="publish-button" onclick="openPublish()">
+    +
+</button>
+
+<button class="nav-item" onclick="openActivity()">
+    <span class="nav-icon">📦</span>
+    Actividad
+</button>
+
+<button class="nav-item" onclick="openProfile()">
+    <span class="nav-icon">👤</span>
+    Perfil
+</button>
+```
+
+</nav>
+
+<!-- =========================
+     MODAL GENERAL
+========================= -->
+
+<div id="modal" class="overlay hidden" onclick="closeOutside(event)">
+
+```
+<div class="modal" id="modalContent"></div>
+```
+
+</div>
+
+<script>
+
+/* =========================================================
+   DATOS INICIALES
+========================================================= */
+
+let products = [
+    {
+        id: 1,
+        name: "iPhone 15 Pro",
+        category: "Celulares",
+        price: 45000,
+        location: "Santo Domingo",
+        seller: "Vendedor Market",
+        image: "https://images.unsplash.com/photo-1696446702183-cbd13d5f2e88?auto=format&fit=crop&w=800&q=80",
+        views: 1284,
+        likes: 86,
+        saves: 34,
+        profileVisits: 21
+    },
+
+    {
+        id: 2,
+        name: "Samsung Galaxy S24",
+        category: "Celulares",
+        price: 38000,
+        location: "Santiago",
+        seller: "Tecnología RD",
+        image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=800&q=80",
+        views: 743,
+        likes: 51,
+        saves: 18,
+        profileVisits: 14
+    },
+
+    {
+        id: 3,
+        name: "Laptop profesional",
+        category: "Computadoras",
+        price: 52000,
+        location: "Santo Domingo",
+        seller: "Tech Store",
+        image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80",
+        views: 491,
+        likes: 29,
+        saves: 11,
+        profileVisits: 8
+    },
+
+    {
+        id: 4,
+        name: "PlayStation 5",
+        category: "Videojuegos",
+        price: 32000,
+        location: "Santo Domingo Este",
+        seller: "Gaming RD",
+        image: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80",
+        views: 952,
+        likes: 73,
+        saves: 42,
+        profileVisits: 25
+    }
+];
+
+
+let currentCategory = "Todos";
+let currentUser = null;
+
+
+/* =========================================================
+   FORMATO DE PRECIO
+========================================================= */
+
+function formatPrice(price) {
+
+    return new Intl.NumberFormat("es-DO", {
+        style: "currency",
+        currency: "DOP",
+        maximumFractionDigits: 0
+    }).format(price);
+
+}
+
+
+/* =========================================================
+   MOSTRAR PRODUCTOS
+========================================================= */
+
+function renderProducts(list = products) {
+
+    const container = document.getElementById("products");
+
+    container.innerHTML = "";
+
+    if (list.length === 0) {
+
+        container.innerHTML = `
+            <div style="
+                grid-column:1/-1;
+                text-align:center;
+                padding:50px 20px;
+                color:#64748b;
+            ">
+                <div style="font-size:45px;">🔎</div>
+                <h3>No encontramos productos</h3>
+                <p>Prueba con otra búsqueda.</p>
+            </div>
+        `;
+
+        document.getElementById("productCount").textContent = "0 productos";
+
+        return;
+    }
+
+
+    list.forEach(product => {
+
+        const card = document.createElement("article");
+
+        card.className = "product-card";
+
+        card.onclick = () => openProduct(product.id);
+
+        card.innerHTML = `
+
+            <img
+                class="product-image"
+                src="${product.image}"
+                alt="${product.name}"
+            >
+
+            <div class="product-info">
+
+                <div class="product-name">
+                    ${product.name}
+                </div>
+
+                <div class="product-price">
+                    ${formatPrice(product.price)}
+                </div>
+
+                <div class="product-location">
+                    📍 ${product.location}
+                </div>
+
+            </div>
+
+        `;
+
+        container.appendChild(card);
+
+    });
+
+
+    document.getElementById("productCount").textContent =
+        `${list.length} productos`;
+
+}
+
+
+/* =========================================================
+   FILTRAR CATEGORÍA
+========================================================= */
+
+function filterCategory(category, button) {
+
+    currentCategory = category;
+
+    document.querySelectorAll(".category").forEach(btn => {
+        btn.classList.remove("active");
+    });
+
+    button.classList.add("active");
+
+    if (category === "Todos") {
+        renderProducts(products);
+    } else {
+        renderProducts(
+            products.filter(p => p.category === category)
+        );
+    }
+
+}
+
+
+/* =========================================================
+   BUSCAR
+========================================================= */
+
+function searchProducts() {
+
+    const query =
+        document.getElementById("searchInput").value
+        .toLowerCase()
+        .trim();
+
+    let result = products;
+
+
+    if (currentCategory !== "Todos") {
+
+        result = result.filter(
+            p => p.category === currentCategory
+        );
+
+    }
+
+
+    if (query) {
+
+        result = result.filter(p =>
+            p.name.toLowerCase().includes(query) ||
+            p.category.toLowerCase().includes(query) ||
+            p.location.toLowerCase().includes(query)
+        );
+
+    }
+
+
+    renderProducts(result);
+
+}
+
+
+function focusSearch() {
+
+    document.getElementById("searchInput").focus();
+
+}
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function openModal(content) {
+
+    document.getElementById("modalContent").innerHTML = content;
+
+    document.getElementById("modal").classList.remove("hidden");
+
+}
+
+
+function closeModal() {
+
+    document.getElementById("modal").classList.add("hidden");
+
+}
+
+
+function closeOutside(event) {
+
+    if (event.target.id === "modal") {
+        closeModal();
+    }
+
+}
+
+
+/* =========================================================
+   PRODUCTO
+========================================================= */
+
+function openProduct(id) {
+
+    const product = products.find(p => p.id === id);
+
+    if (!product) return;
+
+
+    product.views++;
+
+
+    openModal(`
+
+        <div class="modal-header">
+
+            <h2>${product.name}</h2>
+
+            <button class="close" onclick="closeModal()">
+                ×
+            </button>
+
+        </div>
+
+
+        <img
+            src="${product.image}"
+            style="
+                width:100%;
+                border-radius:18px;
+                max-height:380px;
+                object-fit:cover;
+            "
+        >
+
+
+        <div style="margin-top:18px;">
+
+            <div style="
+                font-size:26px;
+                font-weight:900;
+                margin-bottom:7px;
+            ">
+                ${formatPrice(product.price)}
+            </div>
+
+            <div style="color:#64748b;">
+                📍 ${product.location}
+            </div>
+
+        </div>
+
+
+        <div style="
+            margin-top:18px;
+            padding:16px;
+            background:#f8fafc;
+            border-radius:15px;
+        ">
+
+            <strong>👤 Vendedor</strong>
+
+            <div style="margin-top:5px;">
+                ${product.seller}
+            </div>
+
+        </div>
+
+
+        <div class="stats-grid" style="margin-top:18px;">
+
+            <div class="stat">
+                <div class="stat-number">
+                    ${product.views}
+                </div>
+                <div class="stat-label">
+                    👁️ Visualizaciones
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-number">
+                    ${product.likes}
+                </div>
+                <div class="stat-label">
+                    ❤️ Reacciones
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-number">
+                    ${product.saves}
+                </div>
+                <div class="stat-label">
+                    🔖 Guardados
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="stat-number">
+                    ${product.profileVisits}
+                </div>
+                <div class="stat-label">
+                    👤 Visitas al perfil
+                </div>
+            </div>
+
+        </div>
+
+
+        <button
+            class="primary"
+            style="margin-top:18px;"
+            onclick="contactSeller('${product.seller}')"
+        >
+            📞 Contactar vendedor
+        </button>
+
+
+        <button
+            class="secondary"
+            onclick="likeProduct(${product.id})"
+        >
+            ❤️ Me interesa
+        </button>
+
+    `);
+
+}
+
+
+function likeProduct(id) {
+
+    const product = products.find(p => p.id === id);
+
+    if (!product) return;
+
+    product.likes++;
+
+    alert("❤️ Has indicado que te interesa este producto.");
+
+}
+
+
+function contactSeller(seller) {
+
+    alert(
+        "Contacto con " + seller +
+        "\n\nLa mensajería/contacto se conectará en la siguiente etapa."
+    );
+
+}
+
+
+/* =========================================================
+   PUBLICAR PRODUCTO
+========================================================= */
+
+function openPublish() {
+
+    openModal(`
+
+        <div class="modal-header">
+
+            <h2>➕ Publicar producto</h2>
+
+            <button class="close" onclick="closeModal()">
+                ×
+            </button>
+
+        </div>
+
+
+        <form onsubmit="createProduct(event)">
+
+            <div class="form-group">
+
+                <label>📸 Foto del producto</label>
+
+                <input
+                    id="productImage"
+                    type="url"
+                    placeholder="URL de la imagen"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>🏷️ Nombre del producto</label>
+
+                <input
+                    id="productName"
+                    type="text"
+                    placeholder="Ej. iPhone 15 Pro"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>📂 Categoría</label>
+
+                <select id="productCategory" required>
+
+                    <option value="">Seleccionar</option>
+                    <option>Celulares</option>
+                    <option>Computadoras</option>
+                    <option>Videojuegos</option>
+                    <option>Ropa</option>
+                    <option>Hogar</option>
+                    <option>Vehículos</option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>💰 Precio</label>
+
+                <input
+                    id="productPrice"
+                    type="number"
+                    min="0"
+                    placeholder="Precio"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>📍 Ubicación</label>
+
+                <input
+                    id="productLocation"
+                    type="text"
+                    placeholder="Ciudad / provincia"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>📝 Descripción</label>
+
+                <textarea
+                    id="productDescription"
+                    placeholder="Describe el producto..."
+                ></textarea>
+
+```
+        </div>
+
+
+        <button class="primary" type="submit">
+            🚀 Publicar producto
+        </button>
+
+    </form>
+
+`);
+```
+
+}
+
+function createProduct(event) {
+
+```
+event.preventDefault();
+
+
+const newProduct = {
+
+    id: Date.now(),
+
+    name:
+        document.getElementById("productName").value,
+
+    category:
+        document.getElementById("productCategory").value,
+
+    price:
+        Number(document.getElementById("productPrice").value),
+
+    location:
+        document.getElementById("productLocation").value,
+
+    seller:
+        currentUser ? currentUser.name : "Nuevo vendedor",
+
+    image:
+        document.getElementById("productImage").value,
+
+    views: 0,
+    likes: 0,
+    saves: 0,
+    profileVisits: 0
+
+};
+
+
+products.unshift(newProduct);
+
+closeModal();
+
+currentCategory = "Todos";
+
+renderProducts(products);
+
+alert("✅ Tu publicación fue creada correctamente.");
+```
+
+}
+
+/* =========================================================
+REGISTRO
+========================================================= */
+
+function openRegister() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>Crear cuenta</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <form onsubmit="registerUser(event)">
+
+        <div class="form-group">
+
+            <label>👤 Nombre real completo</label>
+
+            <input
+                id="registerName"
+                type="text"
+                placeholder="Igual que aparece en la cédula"
+                required
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>🪪 Número de cédula</label>
+
+            <input
+                id="registerCedula"
+                type="text"
+                placeholder="Número de cédula"
+                required
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>🔐 Contraseña</label>
+
+            <input
+                id="registerPassword"
+                type="password"
+                placeholder="Crear contraseña"
+                required
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>🛡️ Pregunta de recuperación</label>
+
+            <select id="securityQuestion" required>
+
+                <option value="">
+                    Seleccionar pregunta
+                </option>
+
+                <option>
+                    ¿Cuál era tu apodo de infancia?
+                </option>
+
+                <option>
+                    ¿Cuál fue tu primer trabajo?
+                </option>
+
+                <option>
+                    ¿Cuál es tu comida favorita?
+                </option>
+
+                <option>
+                    ¿Cuál era el nombre de tu primera mascota?
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>🛡️ Respuesta de recuperación</label>
+
+            <input
+                id="securityAnswer"
+                type="text"
+                placeholder="Tu respuesta"
+                required
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>📧 Correo electrónico (opcional)</label>
+
+            <input
+                id="registerEmail"
+                type="email"
+                placeholder="Correo opcional"
+            >
+
+        </div>
+
+
+        <button class="primary" type="submit">
+            Crear cuenta
+        </button>
+
+    </form>
+
+`);
+```
+
+}
+
+function registerUser(event) {
+
+```
+event.preventDefault();
+
+
+const user = {
+
+    name:
+        document.getElementById("registerName").value,
+
+    cedula:
+        document.getElementById("registerCedula").value,
+
+    password:
+        document.getElementById("registerPassword").value,
+
+    question:
+        document.getElementById("securityQuestion").value,
+
+    answer:
+        document.getElementById("securityAnswer").value,
+
+    email:
+        document.getElementById("registerEmail").value,
+
+    blocked: false
+
+};
+
+
+currentUser = user;
+
+localStorage.setItem(
+    "marketFlashUser",
+    JSON.stringify(user)
+);
+
+
+closeModal();
+
+alert("✅ Cuenta creada correctamente.");
+```
+
+}
+
+/* =========================================================
+PERFIL
+========================================================= */
+
+function openProfile() {
+
+```
+const savedUser =
+    localStorage.getItem("marketFlashUser");
+
+if (!currentUser && savedUser) {
+
+    currentUser =
+        JSON.parse(savedUser);
+
+}
+
+
+if (!currentUser) {
+
+    openModal(`
+
+        <div class="modal-header">
+
+            <h2>👤 Mi cuenta</h2>
+
+            <button class="close" onclick="closeModal()">
+                ×
+            </button>
+
+        </div>
+
+
+        <p style="
+            color:#64748b;
+            margin-bottom:18px;
+        ">
+            Crea una cuenta para publicar productos,
+            administrar tus publicaciones y acceder a
+            tus estadísticas.
+        </p>
+
+
+        <button
+            class="primary"
+            onclick="openRegister()"
+        >
+            📝 Crear cuenta
+        </button>
+
+
+        <button
+            class="secondary"
+            onclick="openLogin()"
+        >
+            🔐 Iniciar sesión
+        </button>
+
+    `);
+
+    return;
+}
+
+
+showProfile();
+```
+
+}
+
+function showProfile() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>👤 Mi perfil</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="profile-card">
+
+        <div class="avatar">
+            👤
+        </div>
+
+        <h2>
+            ${currentUser.name}
+        </h2>
+
+        <p style="color:#64748b;margin-top:5px;">
+            Usuario de Market Flash
+        </p>
+
+    </div>
+
+
+    <div class="menu-card">
+
+        <button class="menu-item" onclick="openActivity()">
+
+            <div class="menu-icon">📦</div>
+
+            <div class="menu-text">
+                <strong>Mi actividad</strong>
+                <small>
+                    Publicaciones, productos, ventas y recibos
+                </small>
+            </div>
+
+            <span>›</span>
+
+        </button>
+
+
+        <button class="menu-item" onclick="openSettings()">
+
+            <div class="menu-icon">⚙️</div>
+
+            <div class="menu-text">
+                <strong>Configuración</strong>
+                <small>
+                    Cuenta, seguridad y preferencias
+                </small>
+            </div>
+
+            <span>›</span>
+
+        </button>
+
+
+        <button class="menu-item" onclick="openAdmin()">
+
+            <div class="menu-icon">👑</div>
+
+            <div class="menu-text">
+                <strong>Administración</strong>
+                <small>
+                    Panel del administrador
+                </small>
+            </div>
+
+            <span>›</span>
+
+        </button>
+
+
+        <button
+            class="menu-item"
+            onclick="logout()"
+        >
+
+            <div class="menu-icon">🚪</div>
+
+            <div class="menu-text">
+                <strong>Cerrar sesión</strong>
+                <small>
+                    Salir de tu cuenta
+                </small>
+            </div>
+
+            <span>›</span>
+
+        </button>
+
+    </div>
+
+`);
+```
+
+}
+
+/* =========================================================
+LOGIN
+========================================================= */
+
+function openLogin() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>🔐 Iniciar sesión</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <form onsubmit="loginUser(event)">
+
+        <div class="form-group">
+
+            <label>🪪 Número de cédula</label>
+
+            <input
+                id="loginCedula"
+                type="text"
+                required
+            >
+
+        </div>
+
+
+        <div class="form-group">
+
+            <label>🔐 Contraseña</label>
+
+            <input
+                id="loginPassword"
+                type="password"
+                required
+            >
+
+        </div>
+
+
+        <button class="primary">
+            Entrar
+        </button>
+
+    </form>
+
+
+    <button
+        class="secondary"
+        onclick="openRecovery()"
     >
+        🔑 Recuperar contraseña
+    </button>
 
-    <meta name="theme-color" content="#0b5cff">
-
-    <title>Michael Flash</title>
-
-    <link rel="stylesheet" href="style.css">
-
-    <!-- =====================================================
-         DISEÑO MOBILE-FIRST MICHAEL FLASH
-         ===================================================== -->
-
-    <style>
-        :root {
-            --mf-blue: #0b5cff;
-            --mf-blue-dark: #073ba5;
-            --mf-blue-soft: #eaf2ff;
-            --mf-cyan: #00c6ff;
-            --mf-purple: #7c3aed;
-            --mf-green: #25d366;
-            --mf-messenger: #0084ff;
-            --mf-white: #ffffff;
-            --mf-bg: #f7faff;
-            --mf-card: rgba(255,255,255,.94);
-            --mf-text: #0f172a;
-            --mf-muted: #64748b;
-            --mf-border: rgba(15,23,42,.09);
-            --mf-danger: #ef4444;
-            --mf-radius: 22px;
-            --mf-shadow: 0 12px 35px rgba(15,23,42,.08);
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family:
-                Inter,
-                ui-sans-serif,
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-            color: var(--mf-text);
-            background:
-                radial-gradient(circle at 10% 15%, rgba(0,198,255,.10), transparent 24%),
-                radial-gradient(circle at 85% 20%, rgba(124,58,237,.08), transparent 25%),
-                linear-gradient(180deg, #ffffff 0%, var(--mf-bg) 55%, #ffffff 100%);
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        body::before,
-        body::after {
-            content: "";
-            position: fixed;
-            pointer-events: none;
-            z-index: -1;
-            border-radius: 999px;
-            filter: blur(2px);
-            opacity: .45;
-        }
-
-        body::before {
-            width: 190px;
-            height: 190px;
-            top: 150px;
-            left: -100px;
-            background: linear-gradient(
-                135deg,
-                rgba(11,92,255,.16),
-                rgba(0,198,255,.05)
-            );
-            animation: mfFloatOne 10s ease-in-out infinite;
-        }
-
-        body::after {
-            width: 240px;
-            height: 240px;
-            right: -110px;
-            top: 420px;
-            background: linear-gradient(
-                135deg,
-                rgba(124,58,237,.11),
-                rgba(11,92,255,.04)
-            );
-            animation: mfFloatTwo 13s ease-in-out infinite;
-        }
-
-        @keyframes mfFloatOne {
-            0%, 100% {
-                transform: translate3d(0,0,0);
-            }
-            50% {
-                transform: translate3d(25px,45px,0);
-            }
-        }
-
-        @keyframes mfFloatTwo {
-            0%, 100% {
-                transform: translate3d(0,0,0);
-            }
-            50% {
-                transform: translate3d(-25px,-35px,0);
-            }
-        }
-
-        button,
-        input,
-        textarea,
-        select {
-            font: inherit;
-        }
-
-        button {
-            border: 0;
-            cursor: pointer;
-        }
-
-        img {
-            max-width: 100%;
-            display: block;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* =====================================================
-           HEADER
-           ===================================================== */
-
-        .site-header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            padding:
-                max(10px, env(safe-area-inset-top))
-                14px
-                12px;
-            background: rgba(255,255,255,.88);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border-bottom: 1px solid rgba(15,23,42,.07);
-        }
-
-        .header-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-        }
-
-        .brand-logo {
-            position: relative;
-            width: 48px;
-            height: 48px;
-            border-radius: 16px;
-            display: grid;
-            place-items: center;
-            flex: 0 0 auto;
-            color: #ffffff;
-            font-weight: 900;
-            letter-spacing: -.05em;
-            background:
-                linear-gradient(135deg, var(--mf-blue), var(--mf-cyan) 55%, var(--mf-purple));
-            box-shadow:
-                0 10px 25px rgba(11,92,255,.25);
-            overflow: hidden;
-        }
-
-        .brand-logo::after {
-            content: "";
-            position: absolute;
-            width: 65px;
-            height: 16px;
-            background: rgba(255,255,255,.32);
-            transform: rotate(-35deg) translateX(-45px);
-            animation: mfShine 4s linear infinite;
-        }
-
-        @keyframes mfShine {
-            0% {
-                transform: rotate(-35deg) translateX(-90px);
-            }
-            55%,100% {
-                transform: rotate(-35deg) translateX(100px);
-            }
-        }
-
-        .brand-info {
-            min-width: 0;
-        }
-
-        .brand-info h1 {
-            margin: 0;
-            font-size: 1.06rem;
-            line-height: 1.1;
-            font-weight: 900;
-            letter-spacing: -.03em;
-        }
-
-        .brand-info p {
-            margin: 4px 0 0;
-            color: var(--mf-muted);
-            font-size: .74rem;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            flex: 0 0 auto;
-        }
-
-        .header-actions button {
-            min-height: 42px;
-            padding: 0 12px;
-            border-radius: 14px;
-            font-size: .76rem;
-            font-weight: 800;
-        }
-
-        #btn-registrarse {
-            color: var(--mf-blue);
-            background: var(--mf-blue-soft);
-        }
-
-        #btn-iniciar-sesion {
-            color: #ffffff;
-            background: linear-gradient(135deg, var(--mf-blue), var(--mf-purple));
-            box-shadow: 0 7px 18px rgba(11,92,255,.18);
-        }
-
-        #btn-perfil {
-            display: none;
-            color: var(--mf-text);
-            background: #ffffff;
-            border: 1px solid var(--mf-border);
-        }
-
-        #btn-administrador {
-            display: none;
-        }
-
-        /* =====================================================
-           NAV
-           ===================================================== */
-
-        .main-nav {
-            display: none;
-        }
-
-        /* =====================================================
-           SEARCH
-           ===================================================== */
-
-        .mobile-search-wrap {
-            margin: 13px auto 0;
-            max-width: 720px;
-        }
-
-        #form-busqueda {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 8px;
-            width: 100%;
-        }
-
-        #buscar {
-            width: 100%;
-            min-height: 46px;
-            padding: 0 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(11,92,255,.14);
-            outline: none;
-            color: var(--mf-text);
-            background: #ffffff;
-            box-shadow:
-                0 8px 26px rgba(15,23,42,.06),
-                inset 0 0 0 1px rgba(255,255,255,.65);
-        }
-
-        #buscar:focus {
-            border-color: rgba(11,92,255,.42);
-            box-shadow:
-                0 0 0 4px rgba(11,92,255,.08),
-                0 12px 28px rgba(11,92,255,.10);
-        }
-
-        #form-busqueda button[type="submit"] {
-            min-width: 48px;
-            min-height: 46px;
-            padding: 0 15px;
-            border-radius: 16px;
-            display: inline-grid;
-            place-items: center;
-            color: #ffffff;
-            background: linear-gradient(135deg, #0b5cff, #2582ff);
-            box-shadow: 0 9px 22px rgba(11,92,255,.25);
-            position: relative;
-            overflow: hidden;
-            font-size: 0;
-        }
-
-        #form-busqueda button[type="submit"]::before {
-            content: "⌕";
-            font-size: 1.55rem;
-            line-height: 1;
-            font-weight: 900;
-        }
-
-        #form-busqueda button[type="submit"]::after {
-            content: "";
-            position: absolute;
-            inset: -20%;
-            background: linear-gradient(
-                110deg,
-                transparent 25%,
-                rgba(255,255,255,.42) 50%,
-                transparent 75%
-            );
-            animation: mfSearchGlow 2.8s linear infinite;
-        }
-
-        @keyframes mfSearchGlow {
-            0% {
-                transform: translateX(-75%);
-            }
-            100% {
-                transform: translateX(75%);
-            }
-        }
-
-        #btn-limpiar-busqueda {
-            display: none !important;
-        }
-
-        /* =====================================================
-           MAIN
-           ===================================================== */
-
-        main {
-            position: relative;
-            padding-bottom: 110px;
-        }
-
-        .page-section {
-            display: none;
-            width: min(100%, 1180px);
-            margin: 0 auto;
-            padding: 14px 14px 0;
-        }
-
-        .page-section.active {
-            display: block;
-            animation: mfSectionIn .35s ease;
-        }
-
-        @keyframes mfSectionIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* =====================================================
-           HERO
-           ===================================================== */
-
-        .hero-section {
-            position: relative;
-            margin-top: 10px;
-            border-radius: 28px;
-            padding: 28px 20px;
-            color: #ffffff;
-            overflow: hidden;
-            background:
-                radial-gradient(circle at 80% 15%, rgba(255,255,255,.20), transparent 24%),
-                radial-gradient(circle at 20% 90%, rgba(0,198,255,.28), transparent 26%),
-                linear-gradient(135deg, #073ba5 0%, #0b5cff 46%, #7c3aed 100%);
-            box-shadow:
-                0 18px 44px rgba(11,92,255,.21);
-        }
-
-        .hero-section::before {
-            content: "MF";
-            position: absolute;
-            right: -12px;
-            bottom: -26px;
-            font-size: 9rem;
-            line-height: 1;
-            font-weight: 1000;
-            color: rgba(255,255,255,.08);
-            transform: rotate(-10deg);
-        }
-
-        .hero-section::after {
-            content: "";
-            position: absolute;
-            width: 160px;
-            height: 160px;
-            right: -50px;
-            top: -60px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.08);
-            animation: mfHeroFloat 8s ease-in-out infinite;
-        }
-
-        @keyframes mfHeroFloat {
-            50% {
-                transform: translate(-30px, 25px);
-            }
-        }
-
-        .hero-content {
-            position: relative;
-            z-index: 2;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            padding: 7px 11px;
-            border-radius: 999px;
-            color: #ffffff;
-            background: rgba(255,255,255,.12);
-            border: 1px solid rgba(255,255,255,.16);
-            font-size: .69rem;
-            font-weight: 900;
-            letter-spacing: .08em;
-        }
-
-        .hero-section h2 {
-            margin: 15px 0 10px;
-            font-size: clamp(1.8rem, 7vw, 3.15rem);
-            line-height: .99;
-            letter-spacing: -.055em;
-            max-width: 680px;
-        }
-
-        .hero-section p {
-            margin: 0;
-            color: rgba(255,255,255,.82);
-            max-width: 650px;
-            font-size: .94rem;
-            line-height: 1.6;
-        }
-
-        .hero-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 9px;
-            margin-top: 18px;
-        }
-
-        /* =====================================================
-           BUTTONS
-           ===================================================== */
-
-        .primary-button,
-        .secondary-button,
-        .danger-button,
-        .whatsapp-button,
-        .messenger-button,
-        .text-button {
-            transition:
-                transform .18s ease,
-                box-shadow .18s ease,
-                opacity .18s ease;
-        }
-
-        .primary-button:active,
-        .secondary-button:active,
-        .danger-button:active,
-        .whatsapp-button:active,
-        .messenger-button:active {
-            transform: scale(.97);
-        }
-
-        .primary-button {
-            min-height: 46px;
-            padding: 0 16px;
-            border-radius: 15px;
-            color: #ffffff;
-            font-weight: 850;
-            background: linear-gradient(135deg, var(--mf-blue), #4a8cff);
-            box-shadow: 0 10px 23px rgba(11,92,255,.20);
-        }
-
-        .secondary-button {
-            min-height: 44px;
-            padding: 0 15px;
-            border-radius: 15px;
-            color: var(--mf-text);
-            font-weight: 800;
-            background: #ffffff;
-            border: 1px solid var(--mf-border);
-        }
-
-        .danger-button {
-            min-height: 44px;
-            padding: 0 15px;
-            border-radius: 15px;
-            color: #ffffff;
-            font-weight: 800;
-            background: linear-gradient(135deg, #ef4444, #f97316);
-        }
-
-        .whatsapp-button {
-            min-height: 46px;
-            padding: 0 16px;
-            border-radius: 15px;
-            color: #ffffff;
-            font-weight: 850;
-            background: linear-gradient(135deg, #1ebe57, #25d366);
-            box-shadow: 0 10px 22px rgba(37,211,102,.18);
-        }
-
-        .messenger-button {
-            min-height: 46px;
-            padding: 0 16px;
-            border-radius: 15px;
-            color: #ffffff;
-            font-weight: 850;
-            background: linear-gradient(135deg, #0084ff, #5b5cf6);
-            box-shadow: 0 10px 22px rgba(0,132,255,.18);
-        }
-
-        .text-button {
-            padding: 5px 0;
-            color: var(--mf-blue);
-            background: transparent;
-            font-weight: 800;
-        }
-
-        .full-width {
-            width: 100%;
-        }
-
-        /* =====================================================
-           SECTIONS / CARDS
-           ===================================================== */
-
-        .content-card,
-        .form-card,
-        .payment-card,
-        .profile-main-card,
-        .profile-data-card,
-        .support-card,
-        .promotion-card,
-        .policy-card {
-            margin-top: 15px;
-            border: 1px solid var(--mf-border);
-            border-radius: var(--mf-radius);
-            background: var(--mf-card);
-            box-shadow: var(--mf-shadow);
-        }
-
-        .content-card {
-            padding: 17px;
-        }
-
-        .section-title {
-            margin-bottom: 13px;
-        }
-
-        .section-title > span,
-        .section-title > h2,
-        .section-title > h3,
-        .section-title > p {
-            margin-left: 0;
-        }
-
-        .section-title > span {
-            display: inline-block;
-            color: var(--mf-blue);
-            font-size: .67rem;
-            font-weight: 900;
-            letter-spacing: .13em;
-        }
-
-        .section-title h2 {
-            margin-top: 5px;
-            margin-bottom: 5px;
-            font-size: 1.45rem;
-            letter-spacing: -.035em;
-        }
-
-        .section-title h3 {
-            margin-top: 0;
-            margin-bottom: 4px;
-            font-size: 1.08rem;
-        }
-
-        .section-title p {
-            margin-top: 0;
-            color: var(--mf-muted);
-            font-size: .86rem;
-            line-height: 1.5;
-        }
-
-        /* =====================================================
-           ADVERTISEMENT AREA
-           ===================================================== */
-
-        .advertisement-layout {
-            display: grid;
-            gap: 14px;
-            margin-top: 15px;
-        }
-
-        .advertisement-panel {
-            position: relative;
-            min-height: 235px;
-            border-radius: 22px;
-            overflow: hidden;
-            padding: 16px;
-            color: #ffffff;
-            background:
-                linear-gradient(145deg, #041f68, #0b5cff 55%, #7c3aed);
-            box-shadow: 0 15px 35px rgba(11,92,255,.16);
-        }
-
-        .advertisement-panel::before {
-            content: "";
-            position: absolute;
-            width: 160px;
-            height: 160px;
-            right: -60px;
-            top: -65px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.10);
-            animation: mfAdOrb 7s ease-in-out infinite;
-        }
-
-        .advertisement-panel::after {
-            content: "";
-            position: absolute;
-            width: 240px;
-            height: 30px;
-            left: -80px;
-            bottom: 30px;
-            transform: rotate(-18deg);
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255,255,255,.30),
-                transparent
-            );
-            animation: mfAdShine 4.5s linear infinite;
-        }
-
-        @keyframes mfAdOrb {
-            50% {
-                transform: translate(-24px,28px);
-            }
-        }
-
-        @keyframes mfAdShine {
-            from {
-                transform: translateX(-100%) rotate(-18deg);
-            }
-            to {
-                transform: translateX(200%) rotate(-18deg);
-            }
-        }
-
-        .ad-header {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .ad-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: .67rem;
-            font-weight: 900;
-            letter-spacing: .10em;
-        }
-
-        .ad-live-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 999px;
-            background: #6ee7b7;
-            box-shadow: 0 0 0 5px rgba(110,231
+`);
+```
+
+}
+
+function loginUser(event) {
+
+```
+event.preventDefault();
+
+
+const saved =
+    localStorage.getItem("marketFlashUser");
+
+if (!saved) {
+
+    alert("No existe una cuenta registrada en este dispositivo.");
+
+    return;
+
+}
+
+
+const user = JSON.parse(saved);
+
+
+if (
+    user.cedula ===
+    document.getElementById("loginCedula").value &&
+    user.password ===
+    document.getElementById("loginPassword").value
+) {
+
+    if (user.blocked) {
+
+        alert(
+            "🚫 Esta cuenta está bloqueada por el administrador."
+        );
+
+        return;
+
+    }
+
+
+    currentUser = user;
+
+    closeModal();
+
+    alert("✅ Bienvenido a Market Flash.");
+
+} else {
+
+    alert("❌ Los datos no coinciden.");
+
+}
+```
+
+}
+
+/* =========================================================
+RECUPERACIÓN
+========================================================= */
+
+function openRecovery() {
+
+```
+const saved =
+    localStorage.getItem("marketFlashUser");
+
+if (!saved) {
+
+    alert("No hay una cuenta registrada.");
+
+    return;
+
+}
+
+
+const user = JSON.parse(saved);
+
+
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>🔑 Recuperar contraseña</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <p style="
+        background:#f8fafc;
+        padding:14px;
+        border-radius:12px;
+        margin-bottom:15px;
+    ">
+        ${user.question}
+    </p>
+
+
+    <div class="form-group">
+
+        <label>Respuesta</label>
+
+        <input
+            id="recoveryAnswer"
+            type="text"
+        >
+
+    </div>
+
+
+    <button
+        class="primary"
+        onclick="recoverPassword()"
+    >
+        Verificar
+    </button>
+
+`);
+```
+
+}
+
+function recoverPassword() {
+
+```
+const saved =
+    localStorage.getItem("marketFlashUser");
+
+const user = JSON.parse(saved);
+
+
+const answer =
+    document.getElementById("recoveryAnswer").value
+    .trim()
+    .toLowerCase();
+
+
+if (
+    answer ===
+    user.answer.trim().toLowerCase()
+) {
+
+    alert(
+        "✅ Verificación correcta.\n\n" +
+        "En la versión con base de datos segura " +
+        "aquí se iniciará el proceso de recuperación."
+    );
+
+} else {
+
+    alert("❌ La respuesta no es correcta.");
+
+}
+```
+
+}
+
+/* =========================================================
+MI ACTIVIDAD
+========================================================= */
+
+function openActivity() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>📦 Mi actividad</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="dashboard-grid">
+
+        <button
+            class="dashboard-card"
+            onclick="openMyPublications()"
+        >
+            <div class="dashboard-icon">📢</div>
+            <strong>Mis publicaciones</strong>
+            <span>Administrar anuncios</span>
+        </button>
+
+
+        <button
+            class="dashboard-card"
+            onclick="openMyProducts()"
+        >
+            <div class="dashboard-icon">📦</div>
+            <strong>Mis productos</strong>
+            <span>Productos publicados</span>
+        </button>
+
+
+        <button
+            class="dashboard-card"
+            onclick="openMySales()"
+        >
+            <div class="dashboard-icon">💰</div>
+            <strong>Mis ventas</strong>
+            <span>Ventas realizadas</span>
+        </button>
+
+
+        <button
+            class="dashboard-card"
+            onclick="openReceipts()"
+        >
+            <div class="dashboard-icon">🧾</div>
+            <strong>Mis recibos</strong>
+            <span>Comprobantes</span>
+        </button>
+
+
+        <button
+            class="dashboard-card"
+            onclick="openFavorites()"
+        >
+            <div class="dashboard-icon">❤️</div>
+            <strong>Favoritos</strong>
+            <span>Productos guardados</span>
+        </button>
+
+
+        <button
+            class="dashboard-card"
+            onclick="openHistory()"
+        >
+            <div class="dashboard-icon">📋</div>
+            <strong>Historial</strong>
+            <span>Actividad reciente</span>
+        </button>
+
+    </div>
+
+`);
+```
+
+}
+
+function openMyPublications() {
+
+```
+const userProducts = products.filter(
+    p => currentUser && p.seller === currentUser.name
+);
+
+
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>📢 Mis publicaciones</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    ${
+        userProducts.length
+        ? userProducts.map(p => `
+
+            <div class="dashboard-card"
+                style="margin-bottom:12px;">
+
+                <strong>${p.name}</strong>
+
+                <div style="
+                    margin-top:8px;
+                    color:#64748b;
+                ">
+                    👁️ ${p.views}
+                    &nbsp; ❤️ ${p.likes}
+                    &nbsp; 🔖 ${p.saves}
+                </div>
+
+                <button
+                    class="primary"
+                    style="margin-top:12px;"
+                    onclick="openProductStats(${p.id})"
+                >
+                    📊 Ver estadísticas
+                </button>
+
+            </div>
+
+        `).join("")
+        :
+        `
+            <p style="
+                text-align:center;
+                padding:35px;
+                color:#64748b;
+            ">
+                Todavía no tienes publicaciones.
+            </p>
+        `
+    }
+
+`);
+```
+
+}
+
+function openProductStats(id) {
+
+```
+const p = products.find(x => x.id === id);
+
+if (!p) return;
+
+
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>📊 Estadísticas</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <h3>${p.name}</h3>
+
+
+    <div class="stats-grid" style="margin-top:15px;">
+
+        <div class="stat">
+            <div class="stat-number">${p.views}</div>
+            <div class="stat-label">👁️ Visualizaciones</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-number">${p.likes}</div>
+            <div class="stat-label">❤️ Reacciones</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-number">${p.saves}</div>
+            <div class="stat-label">🔖 Guardados</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-number">${p.profileVisits}</div>
+            <div class="stat-label">👤 Visitas al perfil</div>
+        </div>
+
+    </div>
+
+`);
+```
+
+}
+
+function openMyProducts() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>📦 Mis productos</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+    <p style="color:#64748b;">
+        Aquí aparecerán tus productos publicados
+        y su estado.
+    </p>
+
+`);
+```
+
+}
+
+function openMySales() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>💰 Mis ventas</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+    <p style="color:#64748b;">
+        Aquí se registrarán las ventas realizadas.
+    </p>
+
+`);
+```
+
+}
+
+function openReceipts() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>🧾 Mis recibos</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+    <p style="color:#64748b;">
+        Aquí aparecerán tus recibos y comprobantes.
+    </p>
+
+`);
+```
+
+}
+
+function openFavorites() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>❤️ Favoritos</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+    <p style="color:#64748b;">
+        Aquí aparecerán los productos que guardes.
+    </p>
+
+`);
+```
+
+}
+
+function openHistory() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>📋 Historial</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+    <p style="color:#64748b;">
+        Aquí aparecerá tu actividad reciente.
+    </p>
+
+`);
+```
+
+}
+
+/* =========================================================
+CONFIGURACIÓN
+========================================================= */
+
+function openSettings() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>⚙️ Configuración</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="menu-card">
+
+        <button class="menu-item"
+            onclick="editProfile()">
+
+            <div class="menu-icon">👤</div>
+
+            <div class="menu-text">
+                <strong>Editar perfil</strong>
+                <small>Modificar información</small>
+            </div>
+
+            <span>›</span>
+
+        </button>
+
+
+        <button class="menu-item"
+            onclick="changePassword()">
+
+            <div class="menu-icon">🔐</div>
+
+            <div class="menu-text">
+                <strong>Cambiar contraseña</strong>
+                <small>Actualizar contraseña</small>
+            </div>
+
+            <span>›</span>
+
+        </button>
+
+
+        <button class="menu-item"
+            onclick="securitySettings()">
+
+            <div class="menu-icon">🛡️</div>
+
+            <div class="menu-text">
+                <strong>Seguridad y recuperación</strong>
+                <small>Datos de recuperación</small>
+            </div>
+
+            <span>›</span>
+
+        </button>
+
+
+        <button class="menu-item"
+            onclick="alert('El correo es opcional.')">
+
+            <div class="menu-icon">📧</div>
+
+            <div class="menu-text">
+                <strong>Correo electrónico</strong>
+                <small>Opcional</small>
+            </div>
+
+            <span>›</span>
+
+        </button>
+
+    </div>
+
+`);
+```
+
+}
+
+function editProfile() {
+
+```
+alert(
+    "La edición completa del perfil se conectará en la siguiente etapa."
+);
+```
+
+}
+
+function changePassword() {
+
+```
+alert(
+    "El cambio seguro de contraseña se conectará con la base de datos."
+);
+```
+
+}
+
+function securitySettings() {
+
+```
+alert(
+    "Aquí podrás modificar tus datos de recuperación."
+);
+```
+
+}
+
+/* =========================================================
+ADMINISTRACIÓN
+========================================================= */
+
+function openAdmin() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>👑 Administración</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="dashboard-grid">
+
+        <button
+            class="dashboard-card"
+            onclick="adminUsers()"
+        >
+            <div class="dashboard-icon">👥</div>
+            <strong>Usuarios</strong>
+            <span>Gestionar cuentas</span>
+        </button>
+
+
+        <button
+            class="dashboard-card"
+            onclick="adminBlocked()"
+        >
+            <div class="dashboard-icon">🚫</div>
+            <strong>Bloqueados</strong>
+            <span>Usuarios bloqueados</span>
+        </button>
+
+
+        <button
+            class="dashboard-card"
+            onclick="adminPublications()"
+        >
+            <div class="dashboard-icon">📢</div>
+            <strong>Publicaciones</strong>
+            <span>Moderar contenido</span>
+        </button>
+
+
+        <button
+            class="dashboard-card"
+            onclick="adminPayments()"
+        >
+            <div class="dashboard-icon">💳</div>
+            <strong>Pagos y membresías</strong>
+            <span>Control de pagos</span>
+        </button>
+
+
+        <button
+            class="dashboard-card"
+            onclick="adminAdvertising()"
+        >
+            <div class="dashboard-icon">📣</div>
+            <strong>Publicidad</strong>
+            <span>Publicidad comercial</span>
+        </button>
+
+
+        <button
+            class="dashboard-card"
+            onclick="adminInventory()"
+        >
+            <div class="dashboard-icon">📦</div>
+            <strong>Inventario</strong>
+            <span>Control de productos</span>
+        </button>
+
+    </div>
+
+`);
+```
+
+}
+
+/* =========================================================
+ADMIN - PUBLICIDAD
+========================================================= */
+
+let advertisingPaid = false;
+
+function adminAdvertising() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>📣 Publicidad</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="setting-row">
+
+        <div>
+
+            <strong>Cobrar por publicidad</strong>
+
+            <div style="
+                font-size:12px;
+                color:#64748b;
+            ">
+                Activar o desactivar manualmente
+            </div>
+
+        </div>
+
+
+        <button
+            id="advertisingToggle"
+            class="toggle ${advertisingPaid ? "on" : ""}"
+            onclick="toggleAdvertising()"
+        ></button>
+
+    </div>
+
+
+    <div class="form-group"
+        style="margin-top:20px;">
+
+        <label>💰 Precio de publicidad bancaria</label>
+
+        <input
+            type="number"
+            id="bankAdPrice"
+            value="1500"
+        >
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>₿ Precio Binance</label>
+
+        <input
+            type="number"
+            id="binanceAdPrice"
+            value="30"
+        >
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>🅿️ Precio PayPal</label>
+
+        <input
+            type="number"
+            id="paypalAdPrice"
+            value="32"
+        >
+
+    </div>
+
+
+    <button
+        class="primary"
+        onclick="saveAdvertisingSettings()"
+    >
+        💾 Guardar configuración
+    </button>
+
+`);
+```
+
+}
+
+function toggleAdvertising() {
+
+```
+advertisingPaid = !advertisingPaid;
+
+const toggle =
+    document.getElementById("advertisingToggle");
+
+if (toggle) {
+
+    toggle.classList.toggle(
+        "on",
+        advertisingPaid
+    );
+
+}
+```
+
+}
+
+function saveAdvertisingSettings() {
+
+```
+const bank =
+    document.getElementById("bankAdPrice").value;
+
+const binance =
+    document.getElementById("binanceAdPrice").value;
+
+const paypal =
+    document.getElementById("paypalAdPrice").value;
+
+
+localStorage.setItem(
+    "marketFlashAdvertising",
+    JSON.stringify({
+        paid: advertisingPaid,
+        bankPrice: bank,
+        binancePrice: binance,
+        paypalPrice: paypal
+    })
+);
+
+
+alert("✅ Configuración de publicidad guardada.");
+```
+
+}
+
+/* =========================================================
+ADMIN - PAGOS
+========================================================= */
+
+function adminPayments() {
+
+```
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>💳 Pagos y membresías</h2>
+
+        <button class="close" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>🏦 BanReservas / BHD</label>
+
+        <input
+            placeholder="Número de cuenta"
+        >
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>₿ Binance</label>
+
+        <input
+            placeholder="Usuario / dirección / enlace"
+        >
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>🅿️ PayPal</label>
+
+        <input
+            placeholder="Enlace de PayPal"
+        >
+
+    </div>
+
+
+    <h3 style="margin:20px 0 12px;">
+        💰 Precios por método de pago
+    </h3>
+
+
+    <div class="form-group">
+
+        <label>🏦 Precio bancario</label>
+
+        <input
+            type="number"
+            placeholder="RD$"
+        >
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>₿ Precio Binance</label>
+
+        <input
+            type="number"
+            placeholder="US$"
+        >
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>🅿️ Precio PayPal</label>
+
+        <input
+            type="number"
+            placeholder="US$"
+        >
+
+    </div>
+
+
+    <button class="primary"
+        onclick="alert('Configuración guardada.')">
+        💾 Guardar
+    </button>
+
+`);
+```
+
+}
+
+/* =========================================================
+ADMIN - OTROS
+========================================================= */
+
+function adminUsers() {
+
+```
+alert(
+    "👥 Panel de usuarios.\n\n" +
+    "Aquí se conectará la base de datos de usuarios."
+);
+```
+
+}
+
+function adminBlocked() {
+
+```
+alert(
+    "🚫 Usuarios bloqueados.\n\n" +
+    "Aquí podrás bloquear y desbloquear cuentas."
+);
+```
+
+}
+
+function adminPublications() {
+
+```
+alert(
+    "📢 Moderación de publicaciones.\n\n" +
+    "Aquí podrás revisar publicaciones."
+);
+```
+
+}
+
+function adminInventory() {
+
+```
+alert(
+    "📦 Inventario.\n\n" +
+    "Aquí se conectará el inventario de Market Flash."
+);
+```
+
+}
+
+/* =========================================================
+CERRAR SESIÓN
+========================================================= */
+
+function logout() {
+
+```
+currentUser = null;
+
+closeModal();
+
+alert("Has cerrado sesión.");
+```
+
+}
+
+/* =========================================================
+INICIO
+========================================================= */
+
+function showHome() {
+
+```
+closeModal();
+
+renderProducts(products);
+```
+
+}
+
+renderProducts(products);
+
+</script>
+
+</body>
+</html>
