@@ -2,2546 +2,721 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
 
     <meta
         name="description"
-        content="Market Flash - Compra, vende y promociona productos."
+        content="Michael Flash - Compra, vende, descubre y promociona."
     >
 
-    <meta name="theme-color" content="#111827">
+    <meta name="theme-color" content="#0b5cff">
 
-    <title>Market Flash</title>
+    <title>Michael Flash</title>
 
     <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
 
     <!-- =====================================================
-         HEADER
+         DISEÑO MOBILE-FIRST MICHAEL FLASH
          ===================================================== -->
 
-    <header class="site-header">
-
-        <div class="brand">
-            <div class="brand-logo">MF</div>
-
-            <div class="brand-info">
-                <h1>Market Flash</h1>
-                <p>Compra, vende y promociona</p>
-            </div>
-        </div>
-
-
-        <nav
-            class="main-nav"
-            aria-label="Navegación principal"
-        >
-            <button type="button" data-section="inicio">
-                Inicio
-            </button>
-
-            <button type="button" data-section="categorias">
-                Categorías
-            </button>
-
-            <button type="button" data-section="publicar">
-                Publicar
-            </button>
-
-            <button type="button" data-section="promocionar">
-                Promocionar
-            </button>
-
-            <button type="button" data-section="videos">
-                Vídeos
-            </button>
-
-            <button type="button" data-section="reclamos">
-                Reclamos
-            </button>
-
-            <button type="button" data-section="soporte">
-                Soporte
-            </button>
-        </nav>
-
-
-        <div class="header-actions">
-
-            <button
-                type="button"
-                id="btn-registrarse"
-            >
-                Registrarse
-            </button>
-
-            <button
-                type="button"
-                id="btn-iniciar-sesion"
-            >
-                Iniciar sesión
-            </button>
-
-            <button
-                type="button"
-                id="btn-perfil"
-            >
-                Mi perfil
-            </button>
-
-        </div>
-
-    </header>
-
-
-    <!-- =====================================================
-         MAIN
-         ===================================================== -->
-
-    <main id="app">
-
-
-        <!-- =================================================
-             INICIO
-             ================================================= -->
-
-        <section
-            id="inicio"
-            class="page-section active"
-        >
-
-            <div class="hero-section">
-
-                <div class="hero-content">
-
-                    <span class="hero-badge">
-                        MARKET FLASH
-                    </span>
-
-                    <h2>
-                        Compra, vende y encuentra
-                        lo que necesitas.
-                    </h2>
-
-                    <p>
-                        Una plataforma para comprar,
-                        vender, promocionar productos
-                        y conectar directamente con
-                        compradores y vendedores.
-                    </p>
-
-                    <div class="hero-buttons">
-
-                        <button
-                            type="button"
-                            class="primary-button"
-                            data-section="publicar"
-                        >
-                            Publicar producto
-                        </button>
-
-                        <button
-                            type="button"
-                            class="secondary-button"
-                            data-section="categorias"
-                        >
-                            Explorar productos
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- BUSCADOR -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <span>
-                        BUSCAR
-                    </span>
-
-                    <h2>
-                        Encuentra un producto
-                    </h2>
-
-                    <p>
-                        Busca entre las publicaciones
-                        disponibles.
-                    </p>
-
-                </div>
-
-
-                <form id="form-busqueda">
-
-                    <input
-                        type="search"
-                        id="buscar"
-                        name="buscar"
-                        placeholder="Ejemplo: iPhone, motor, ropa..."
-                        autocomplete="off"
-                    >
-
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-                        Buscar
-                    </button>
-
-                    <button
-                        type="button"
-                        id="btn-limpiar-busqueda"
-                        class="secondary-button"
-                    >
-                        Limpiar
-                    </button>
-
-                </form>
-
-            </div>
-
-
-            <!-- PUBLICIDAD -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <span>
-                        DESTACADOS
-                    </span>
-
-                    <h2>
-                        Publicidad
-                    </h2>
-
-                    <p>
-                        Espacio para anuncios patrocinados.
-                    </p>
-
-                </div>
-
-
-                <div
-                    id="contenedor-publicidad"
-                    class="advertisement-slider"
-                >
-
-                    <article class="advertisement-card">
-
-                        <div class="advertisement-image">
-                            PUBLICIDAD
-                        </div>
-
-                        <div class="advertisement-content">
-
-                            <small>
-                                PATROCINADO
-                            </small>
-
-                            <h3>
-                                Promociona tu producto
-                            </h3>
-
-                            <p>
-                                Destaca tu publicación
-                                frente a más compradores.
-                            </p>
-
-                            <button
-                                type="button"
-                                class="secondary-button"
-                                data-ad-id="1"
-                            >
-                                Ver anuncio
-                            </button>
-
-                        </div>
-
-                    </article>
-
-
-                    <article class="advertisement-card">
-
-                        <div class="advertisement-image">
-                            PUBLICIDAD
-                        </div>
-
-                        <div class="advertisement-content">
-
-                            <small>
-                                PATROCINADO
-                            </small>
-
-                            <h3>
-                                Haz crecer tu negocio
-                            </h3>
-
-                            <p>
-                                Utiliza nuestro espacio
-                                publicitario.
-                            </p>
-
-                            <button
-                                type="button"
-                                class="secondary-button"
-                                data-ad-id="2"
-                            >
-                                Ver anuncio
-                            </button>
-
-                        </div>
-
-                    </article>
-
-
-                    <article class="advertisement-card">
-
-                        <div class="advertisement-image">
-                            PUBLICIDAD
-                        </div>
-
-                        <div class="advertisement-content">
-
-                            <small>
-                                PATROCINADO
-                            </small>
-
-                            <h3>
-                                Publicidad destacada
-                            </h3>
-
-                            <p>
-                                Lleva tu producto
-                                a más personas.
-                            </p>
-
-                            <button
-                                type="button"
-                                class="secondary-button"
-                                data-ad-id="3"
-                            >
-                                Ver anuncio
-                            </button>
-
-                        </div>
-
-                    </article>
-
-                </div>
-
-
-                <div class="slider-buttons">
-
-                    <button
-                        type="button"
-                        id="publicidad-anterior"
-                        class="secondary-button"
-                    >
-                        ←
-                    </button>
-
-                    <button
-                        type="button"
-                        id="publicidad-siguiente"
-                        class="secondary-button"
-                    >
-                        →
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- PRODUCTOS -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <span>
-                        MARKETPLACE
-                    </span>
-
-                    <h2>
-                        Productos
-                    </h2>
-
-                    <p>
-                        Aquí aparecerán las publicaciones
-                        aprobadas.
-                    </p>
-
-                </div>
-
-
-                <div
-                    id="lista-productos"
-                    class="products-grid"
-                >
-                </div>
-
-
-                <div
-                    id="sin-productos"
-                    class="empty-state"
-                >
-
-                    <div class="empty-icon">
-                        MF
-                    </div>
-
-                    <h3>
-                        Todavía no hay productos
-                    </h3>
-
-                    <p>
-                        Sé el primero en publicar.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             CATEGORÍAS
-             ================================================= -->
-
-        <section
-            id="categorias"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    EXPLORAR
-                </span>
-
-                <h2>
-                    Categorías
-                </h2>
-
-                <p>
-                    Selecciona una categoría.
-                </p>
-
-            </div>
-
-
-            <div
-                id="lista-categorias"
-                class="categories-grid"
-            >
-
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Todos"
-                >
-                    <strong>
-                        Todos
-                    </strong>
-
-                    <span>
-                        Ver todos los productos
-                    </span>
-                </button>
-
-
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Teléfonos"
-                >
-                    <strong>
-                        Teléfonos
-                    </strong>
-
-                    <span>
-                        Móviles y accesorios
-                    </span>
-                </button>
-
-
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Electrónica"
-                >
-                    <strong>
-                        Electrónica
-                    </strong>
-
-                    <span>
-                        Tecnología y dispositivos
-                    </span>
-                </button>
-
-
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Vehículos"
-                >
-                    <strong>
-                        Vehículos
-                    </strong>
-
-                    <span>
-                        Autos, motos y más
-                    </span>
-                </button>
-
-
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Ropa"
-                >
-                    <strong>
-                        Ropa
-                    </strong>
-
-                    <span>
-                        Moda y accesorios
-                    </span>
-                </button>
-
-
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Joyas y Oro"
-                >
-                    <strong>
-                        Joyas y Oro
-                    </strong>
-
-                    <span>
-                        Joyas, oro y accesorios
-                    </span>
-                </button>
-
-
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Hogar"
-                >
-                    <strong>
-                        Hogar
-                    </strong>
-
-                    <span>
-                        Productos para el hogar
-                    </span>
-                </button>
-
-
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Servicios"
-                >
-                    <strong>
-                        Servicios
-                    </strong>
-
-                    <span>
-                        Servicios y trabajos
-                    </span>
-                </button>
-
-
-                <button
-                    type="button"
-                    class="category-card"
-                    data-category="Otros"
-                >
-                    <strong>
-                        Otros
-                    </strong>
-
-                    <span>
-                        Otras categorías
-                    </span>
-                </button>
-
-            </div>
-
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Resultados
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="resultados-categoria"
-                    class="products-grid"
-                >
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             REGISTRO
-             ================================================= -->
-
-        <section
-            id="registro"
-            class="page-section"
-        >
-
-            <div class="auth-container">
-
-                <div class="auth-introduction">
-
-                    <span>
-                        MARKET FLASH
-                    </span>
-
-                    <h2>
-                        Crea tu cuenta
-                    </h2>
-
-                    <p>
-                        Regístrate para comprar, vender,
-                        guardar favoritos y contactar
-                        con otros usuarios.
-                    </p>
-
-                </div>
-
-
-                <div class="form-card">
-
-                    <form id="formulario-registro">
-
-                        <div class="form-group">
-
-                            <label for="registro-nombre">
-                                Nombre completo
-                            </label>
-
-                            <input
-                                type="text"
-                                id="registro-nombre"
-                                name="nombre"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="registro-correo">
-                                Correo electrónico
-                            </label>
-
-                            <input
-                                type="email"
-                                id="registro-correo"
-                                name="correo"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="registro-documento">
-                                Cédula o pasaporte
-                            </label>
-
-                            <input
-                                type="text"
-                                id="registro-documento"
-                                name="documento"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="registro-telefono">
-                                Teléfono
-                            </label>
-
-                            <input
-                                type="tel"
-                                id="registro-telefono"
-                                name="telefono"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="registro-whatsapp">
-                                WhatsApp
-                            </label>
-
-                            <input
-                                type="tel"
-                                id="registro-whatsapp"
-                                name="whatsapp"
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="registro-messenger">
-                                Messenger
-                            </label>
-
-                            <input
-                                type="text"
-                                id="registro-messenger"
-                                name="messenger"
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="registro-password">
-                                Contraseña
-                            </label>
-
-                            <input
-                                type="password"
-                                id="registro-password"
-                                name="password"
-                                minlength="6"
-                                required
-                            >
-
-                        </div>
-
-
-                        <button
-                            type="submit"
-                            class="primary-button full-width"
-                        >
-                            Crear cuenta
-                        </button>
-
-                    </form>
-
-
-                    <div class="switch-form">
-
-                        <span>
-                            ¿Ya tienes una cuenta?
-                        </span>
-
-                        <button
-                            type="button"
-                            id="btn-ir-login"
-                            class="text-button"
-                        >
-                            Iniciar sesión
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             LOGIN
-             ================================================= -->
-
-        <section
-            id="inicio-sesion"
-            class="page-section"
-        >
-
-            <div class="auth-container">
-
-                <div class="auth-introduction">
-
-                    <span>
-                        BIENVENIDO
-                    </span>
-
-                    <h2>
-                        Inicia sesión
-                    </h2>
-
-                    <p>
-                        Accede a tu cuenta de Market Flash.
-                    </p>
-
-                </div>
-
-
-                <div class="form-card">
-
-                    <form id="formulario-login">
-
-                        <div class="form-group">
-
-                            <label for="login-correo">
-                                Correo electrónico
-                            </label>
-
-                            <input
-                                type="email"
-                                id="login-correo"
-                                name="correo"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="login-password">
-                                Contraseña
-                            </label>
-
-                            <input
-                                type="password"
-                                id="login-password"
-                                name="password"
-                                required
-                            >
-
-                        </div>
-
-
-                        <button
-                            type="submit"
-                            class="primary-button full-width"
-                        >
-                            Iniciar sesión
-                        </button>
-
-                    </form>
-
-
-                    <div class="switch-form">
-
-                        <button
-                            type="button"
-                            id="btn-recuperar-password"
-                            class="text-button"
-                        >
-                            Recuperar contraseña
-                        </button>
-
-                        <button
-                            type="button"
-                            id="btn-ir-registro"
-                            class="text-button"
-                        >
-                            Crear cuenta
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             PUBLICAR
-             ================================================= -->
-
-        <section
-            id="publicar"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    VENDE
-                </span>
-
-                <h2>
-                    Publicar producto
-                </h2>
-
-                <p>
-                    Añade tu producto al marketplace.
-                </p>
-
-            </div>
-
-
-            <div class="form-card wide-card">
-
-                <form id="form-publicacion">
-
-                    <div class="form-grid">
-
-                        <div class="form-group">
-
-                            <label for="producto-nombre">
-                                Nombre del producto
-                            </label>
-
-                            <input
-                                type="text"
-                                id="producto-nombre"
-                                name="nombre"
-                                placeholder="Ej. iPhone 14 Pro"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="producto-categoria">
-                                Categoría
-                            </label>
-
-                            <select
-                                id="producto-categoria"
-                                name="categoria"
-                                required
-                            >
-
-                                <option value="">
-                                    Selecciona
-                                </option>
-
-                                <option value="Teléfonos">
-                                    Teléfonos
-                                </option>
-
-                                <option value="Electrónica">
-                                    Electrónica
-                                </option>
-
-                                <option value="Vehículos">
-                                    Vehículos
-                                </option>
-
-                                <option value="Ropa">
-                                    Ropa
-                                </option>
-
-                                <option value="Joyas y Oro">
-                                    Joyas y Oro
-                                </option>
-
-                                <option value="Hogar">
-                                    Hogar
-                                </option>
-
-                                <option value="Servicios">
-                                    Servicios
-                                </option>
-
-                                <option value="Otros">
-                                    Otros
-                                </option>
-
-                            </select>
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="producto-precio">
-                                Precio
-                            </label>
-
-                            <input
-                                type="number"
-                                id="producto-precio"
-                                name="precio"
-                                min="0"
-                                step="0.01"
-                                placeholder="0.00"
-                                required
-                            >
-
-                        </div>
-
-
-                        <div class="form-group">
-
-                            <label for="producto-cantidad">
-                                Cantidad
-                            </label>
-
-                            <input
-                                type="number"
-                                id="producto-cantidad"
-                                name="cantidad"
-                                min="1"
-                                step="1"
-                                value="1"
-                                required
-                            >
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="producto-imagen">
-                            Fotos del producto
-                        </label>
-
-                        <input
-                            type="file"
-                            id="producto-imagen"
-                            name="imagen"
-                            accept="image/*"
-                            multiple
-                        >
-
-                        <small>
-                            Puedes seleccionar varias fotos.
-                        </small>
-
-                    </div>
-
-
-                    <div
-                        id="preview-imagenes"
-                        class="image-preview-grid"
-                    >
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="producto-descripcion">
-                            Descripción
-                        </label>
-
-                        <textarea
-                            id="producto-descripcion"
-                            name="descripcion"
-                            rows="7"
-                            placeholder="Describe el producto..."
-                            required
-                        ></textarea>
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="producto-contacto">
-                            Método de contacto
-                        </label>
-
-                        <select
-                            id="producto-contacto"
-                            name="contacto"
-                            required
-                        >
-
-                            <option value="">
-                                Selecciona
-                            </option>
-
-                            <option value="WhatsApp">
-                                WhatsApp
-                            </option>
-
-                            <option value="Messenger">
-                                Messenger
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="posting-status">
-
-                        <strong>
-                            Estado de publicación
-                        </strong>
-
-                        <p id="texto-estado-publicacion">
-                            Cargando configuración...
-                        </p>
-
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-                        Publicar
-                    </button>
-
-                </form>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             PAGO
-             ================================================= -->
-
-        <section
-            id="pago"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    PAGO
-                </span>
-
-                <h2>
-                    Pago de publicación
-                </h2>
-
-                <p>
-                    Selecciona un método de pago y envía
-                    tu comprobante.
-                </p>
-
-            </div>
-
-
-            <div class="payment-card">
-
-                <div class="payment-methods">
-
-                    <label class="payment-option">
-
-                        <input
-                            type="radio"
-                            name="metodo-pago"
-                            value="binance"
-                        >
-
-                        <span>
-                            Binance
-                        </span>
-
-                    </label>
-
-
-                    <label class="payment-option">
-
-                        <input
-                            type="radio"
-                            name="metodo-pago"
-                            value="paypal"
-                        >
-
-                        <span>
-                            PayPal
-                        </span>
-
-                    </label>
-
-                </div>
-
-
-                <div
-                    id="bloque-binance"
-                    class="payment-details hidden"
-                >
-
-                    <h3>
-                        Binance
-                    </h3>
-
-                    <p>
-                        Dirección de pago:
-                    </p>
-
-                    <div class="payment-address">
-
-                        <code id="direccion-binance">
-                            Pendiente de configuración
-                        </code>
-
-                        <button
-                            type="button"
-                            id="btn-copiar-binance"
-                            class="secondary-button"
-                        >
-                            Copiar
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <div
-                    id="bloque-paypal"
-                    class="payment-details hidden"
-                >
-
-                    <h3>
-                        PayPal
-                    </h3>
-
-                    <p>
-                        Cuenta de pago:
-                    </p>
-
-                    <div class="payment-address">
-
-                        <code id="cuenta-paypal">
-                            Pendiente de configuración
-                        </code>
-
-                    </div>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="comprobante-pago">
-                        Comprobante
-                    </label>
-
-                    <input
-                        type="file"
-                        id="comprobante-pago"
-                        accept="image/*,.pdf"
-                    >
-
-                </div>
-
-
-                <div
-                    id="preview-comprobante"
-                    class="receipt-preview"
-                >
-                </div>
-
-
-                <button
-                    type="button"
-                    id="btn-enviar-comprobante"
-                    class="primary-button"
-                >
-                    Enviar comprobante
-                </button>
-
-
-                <div
-                    id="estado-pago"
-                    class="status-box"
-                >
-                    Estado: pendiente
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             PERFIL
-             ================================================= -->
-
-        <section
-            id="perfil"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    MI CUENTA
-                </span>
-
-                <h2>
-                    Mi perfil
-                </h2>
-
-            </div>
-
-
-            <div class="profile-layout">
-
-                <div class="profile-main-card">
-
-                    <div class="profile-avatar">
-                        MF
-                    </div>
-
-                    <h3 id="perfil-nombre">
-                        Usuario
-                    </h3>
-
-                    <p id="perfil-correo">
-                        -
-                    </p>
-
-                </div>
-
-
-                <div class="profile-data-card">
-
-                    <div class="profile-field">
-
-                        <span>
-                            Teléfono
-                        </span>
-
-                        <strong id="perfil-telefono">
-                            -
-                        </strong>
-
-                    </div>
-
-
-                    <div class="profile-field">
-
-                        <span>
-                            WhatsApp
-                        </span>
-
-                        <strong id="perfil-whatsapp">
-                            -
-                        </strong>
-
-                    </div>
-
-
-                    <div class="profile-field">
-
-                        <span>
-                            Messenger
-                        </span>
-
-                        <strong id="perfil-messenger">
-                            -
-                        </strong>
-
-                    </div>
-
-
-                    <div class="profile-field">
-
-                        <span>
-                            Cédula / Pasaporte
-                        </span>
-
-                        <strong id="perfil-documento">
-                            -
-                        </strong>
-
-                    </div>
-
-
-                    <div class="profile-actions">
-
-                        <button
-                            type="button"
-                            id="btn-editar-perfil"
-                            class="secondary-button"
-                        >
-                            Editar perfil
-                        </button>
-
-                        <button
-                            type="button"
-                            id="btn-cerrar-sesion"
-                            class="danger-button"
-                        >
-                            Cerrar sesión
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- MIS PUBLICACIONES -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Mis publicaciones
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="mis-publicaciones"
-                    class="products-grid"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- FAVORITOS -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Mis favoritos
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="lista-favoritos"
-                    class="products-grid"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- VENDIDOS -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Productos vendidos
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="lista-vendidos"
-                    class="products-grid"
-                >
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             PROMOCIONES
-             ================================================= -->
-
-        <section
-            id="promocionar"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    PROMOCIONES
-                </span>
-
-                <h2>
-                    Promociona tu producto
-                </h2>
-
-                <p>
-                    Aumenta la visibilidad de tus publicaciones.
-                </p>
-
-            </div>
-
-
-            <div class="promotion-grid">
-
-                <article class="promotion-card">
-
-                    <h3>
-                        Promoción básica
-                    </h3>
-
-                    <p>
-                        Mayor visibilidad para tu publicación.
-                    </p>
-
-                    <strong>
-                        Próximamente
-                    </strong>
-
-                    <button
-                        type="button"
-                        class="primary-button"
-                        data-promotion="basica"
-                    >
-                        Solicitar
-                    </button>
-
-                </article>
-
-
-                <article
-                    class="promotion-card featured"
-                >
-
-                    <span class="featured-label">
-                        DESTACADA
-                    </span>
-
-                    <h3>
-                        Promoción destacada
-                    </h3>
-
-                    <p>
-                        Destaca tu producto frente
-                        a otros anuncios.
-                    </p>
-
-                    <strong>
-                        Próximamente
-                    </strong>
-
-                    <button
-                        type="button"
-                        class="primary-button"
-                        data-promotion="destacada"
-                    >
-                        Solicitar
-                    </button>
-
-                </article>
-
-
-                <article class="promotion-card">
-
-                    <h3>
-                        Publicidad patrocinada
-                    </h3>
-
-                    <p>
-                        Aparece en el espacio publicitario.
-                    </p>
-
-                    <strong>
-                        Próximamente
-                    </strong>
-
-                    <button
-                        type="button"
-                        class="primary-button"
-                        data-promotion="patrocinada"
-                    >
-                        Solicitar
-                    </button>
-
-                </article>
-
-            </div>
-
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Mis promociones
-                    </h3>
-
-                </div>
-
-
-                <div id="lista-promociones">
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             VÍDEOS
-             ================================================= -->
-
-        <section
-            id="videos"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    VÍDEOS
-                </span>
-
-                <h2>
-                    Publica vídeos
-                </h2>
-
-                <p>
-                    Muestra tus productos mediante contenido
-                    en vídeo.
-                </p>
-
-            </div>
-
-
-            <div class="form-card wide-card">
-
-                <form id="form-video">
-
-                    <div class="form-group">
-
-                        <label for="video-titulo">
-                            Título
-                        </label>
-
-                        <input
-                            type="text"
-                            id="video-titulo"
-                            required
-                        >
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="video-archivo">
-                            Vídeo
-                        </label>
-
-                        <input
-                            type="file"
-                            id="video-archivo"
-                            accept="video/*"
-                            required
-                        >
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="video-descripcion">
-                            Descripción
-                        </label>
-
-                        <textarea
-                            id="video-descripcion"
-                            rows="5"
-                        ></textarea>
-
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-                        Publicar vídeo
-                    </button>
-
-                </form>
-
-            </div>
-
-
-            <div
-                id="lista-videos"
-                class="video-grid"
-            >
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             NOTIFICACIONES
-             ================================================= -->
-
-        <section
-            id="notificaciones"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    AVISOS
-                </span>
-
-                <h2>
-                    Notificaciones
-                </h2>
-
-            </div>
-
-
-            <div
-                id="lista-notificaciones"
-                class="notifications-list"
-            >
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             CALIFICACIONES
-             ================================================= -->
-
-        <section
-            id="calificaciones"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    REPUTACIÓN
-                </span>
-
-                <h2>
-                    Calificar vendedor
-                </h2>
-
-            </div>
-
-
-            <div class="form-card">
-
-                <form id="form-calificacion">
-
-                    <div class="form-group">
-
-                        <label for="calificacion-estrellas">
-                            Calificación
-                        </label>
-
-                        <select
-                            id="calificacion-estrellas"
-                            required
-                        >
-
-                            <option value="">
-                                Selecciona
-                            </option>
-
-                            <option value="5">
-                                ★★★★★
-                            </option>
-
-                            <option value="4">
-                                ★★★★☆
-                            </option>
-
-                            <option value="3">
-                                ★★★☆☆
-                            </option>
-
-                            <option value="2">
-                                ★★☆☆☆
-                            </option>
-
-                            <option value="1">
-                                ★☆☆☆☆
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="calificacion-comentario">
-                            Comentario
-                        </label>
-
-                        <textarea
-                            id="calificacion-comentario"
-                            rows="5"
-                        ></textarea>
-
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-                        Enviar calificación
-                    </button>
-
-                </form>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             RECLAMOS
-             ================================================= -->
-
-        <section
-            id="reclamos"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    SEGURIDAD
-                </span>
-
-                <h2>
-                    Reclamos y reportes
-                </h2>
-
-                <p>
-                    Informa de cualquier problema.
-                </p>
-
-            </div>
-
-
-            <div class="form-card">
-
-                <form id="form-reclamo">
-
-                    <div class="form-group">
-
-                        <label for="reclamo-motivo">
-                            Motivo
-                        </label>
-
-                        <select
-                            id="reclamo-motivo"
-                            required
-                        >
-
-                            <option value="">
-                                Selecciona
-                            </option>
-
-                            <option value="fraude">
-                                Posible fraude
-                            </option>
-
-                            <option value="producto-falso">
-                                Producto falso
-                            </option>
-
-                            <option value="contenido-inapropiado">
-                                Contenido inapropiado
-                            </option>
-
-                            <option value="informacion-incorrecta">
-                                Información incorrecta
-                            </option>
-
-                            <option value="otro">
-                                Otro
-                            </option>
-
-                        </select>
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="reclamo-detalle">
-                            Detalles
-                        </label>
-
-                        <textarea
-                            id="reclamo-detalle"
-                            rows="6"
-                            required
-                        ></textarea>
-
-                    </div>
-
-
-                    <button
-                        type="submit"
-                        class="primary-button"
-                    >
-                        Enviar reclamo
-                    </button>
-
-                </form>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             SOPORTE
-             ================================================= -->
-
-        <section
-            id="soporte"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    AYUDA
-                </span>
-
-                <h2>
-                    Soporte
-                </h2>
-
-                <p>
-                    Contacta con el equipo de Market Flash.
-                </p>
-
-            </div>
-
-
-            <div class="support-grid">
-
-                <article class="support-card">
-
-                    <div class="support-icon">
-                        W
-                    </div>
-
-                    <h3>
-                        WhatsApp
-                    </h3>
-
-                    <p>
-                        Contacto mediante WhatsApp.
-                    </p>
-
-                    <button
-                        type="button"
-                        id="soporte-whatsapp"
-                        class="whatsapp-button"
-                    >
-                        Contactar
-                    </button>
-
-                </article>
-
-
-                <article class="support-card">
-
-                    <div class="support-icon">
-                        M
-                    </div>
-
-                    <h3>
-                        Messenger
-                    </h3>
-
-                    <p>
-                        Contacto mediante Messenger.
-                    </p>
-
-                    <button
-                        type="button"
-                        id="soporte-messenger"
-                        class="messenger-button"
-                    >
-                        Contactar
-                    </button>
-
-                </article>
-
-
-                <article class="support-card">
-
-                    <div class="support-icon">
-                        ?
-                    </div>
-
-                    <h3>
-                        Centro de ayuda
-                    </h3>
-
-                    <p>
-                        Información y preguntas frecuentes.
-                    </p>
-
-                    <button
-                        type="button"
-                        id="soporte-ayuda"
-                        class="secondary-button"
-                    >
-                        Ver ayuda
-                    </button>
-
-                </article>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             ADMINISTRADOR
-             ================================================= -->
-
-        <section
-            id="administrador"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    ADMINISTRACIÓN
-                </span>
-
-                <h2>
-                    Panel de administrador
-                </h2>
-
-                <p>
-                    Gestiona publicaciones, usuarios,
-                    pagos y reportes.
-                </p>
-
-            </div>
-
-
-            <!-- ESTADÍSTICAS -->
-
-            <div class="admin-stats">
-
-                <div class="admin-stat">
-
-                    <span>
-                        Usuarios
-                    </span>
-
-                    <strong id="admin-total-usuarios">
-                        0
-                    </strong>
-
-                </div>
-
-
-                <div class="admin-stat">
-
-                    <span>
-                        Publicaciones pendientes
-                    </span>
-
-                    <strong id="admin-total-pendientes">
-                        0
-                    </strong>
-
-                </div>
-
-
-                <div class="admin-stat">
-
-                    <span>
-                        Pagos pendientes
-                    </span>
-
-                    <strong id="admin-total-pagos">
-                        0
-                    </strong>
-
-                </div>
-
-
-                <div class="admin-stat">
-
-                    <span>
-                        Publicaciones activas
-                    </span>
-
-                    <strong id="admin-total-activas">
-                        0
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- CONFIGURACIÓN -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Configuración
-                    </h3>
-
-                </div>
-
-
-                <div class="settings-list">
-
-                    <div class="setting-row">
-
-                        <div>
-
-                            <strong>
-                                Publicaciones de pago
-                            </strong>
-
-                            <p id="admin-texto-publicaciones">
-                                Cargando...
-                            </p>
-
-                        </div>
-
-                        <button
-                            type="button"
-                            id="admin-toggle-publicaciones"
-                            class="secondary-button"
-                        >
-                            Cambiar
-                        </button>
-
-                    </div>
-
-
-                    <div class="setting-row">
-
-                        <div>
-
-                            <strong>
-                                Promociones
-                            </strong>
-
-                            <p id="admin-texto-promociones">
-                                Cargando...
-                            </p>
-
-                        </div>
-
-                        <button
-                            type="button"
-                            id="admin-toggle-promociones"
-                            class="secondary-button"
-                        >
-                            Cambiar
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- PAGOS -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Comprobantes pendientes
-                    </h3>
-
-                    <p>
-                        Revisa los pagos antes de aprobar
-                        las publicaciones.
-                    </p>
-
-                </div>
-
-
-                <div
-                    id="admin-comprobantes"
-                    class="admin-list"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- PUBLICACIONES PENDIENTES -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Publicaciones pendientes
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="admin-publicaciones-pendientes"
-                    class="admin-list"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- PUBLICACIONES ACTIVAS -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Publicaciones activas
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="admin-publicaciones-activas"
-                    class="products-grid"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- USUARIOS -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Usuarios registrados
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="admin-usuarios"
-                    class="admin-list"
-                >
-                </div>
-
-            </div>
-
-
-            <!-- REPORTES -->
-
-            <div class="content-card">
-
-                <div class="section-title">
-
-                    <h3>
-                        Reclamos
-                    </h3>
-
-                </div>
-
-
-                <div
-                    id="admin-reclamos"
-                    class="admin-list"
-                >
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =================================================
-             POLÍTICAS
-             ================================================= -->
-
-        <section
-            id="politicas"
-            class="page-section"
-        >
-
-            <div class="section-title">
-
-                <span>
-                    INFORMACIÓN
-                </span>
-
-                <h2>
-                    Seguridad y reglas
-                </h2>
-
-            </div>
-
-
-            <div class="policy-grid">
-
-                <article class="policy-card">
-
-                    <h3>
-                        Publicaciones
-                    </h3>
-
-                    <p>
-                        Los anuncios deben cumplir las
-                        reglas de Market Flash.
-                    </p>
-
-                </article>
-
-
-                <article class="policy-card">
-
-                    <h3>
-                        Pagos
-                    </h3>
-
-                    <p>
-                        Los comprobantes pueden requerir
-                        revisión antes de aprobar un anuncio.
-                    </p>
-
-                </article>
-
-
-                <article class="policy-card">
-
-                    <h3>
-                        Seguridad
-                    </h3>
-
-                    <p>
-                        Los usuarios pueden reportar
-                        publicaciones sospechosas.
-                    </p>
-
-                </article>
-
-            </div>
-
-        </section>
-
-    </main>
-
-
-    <!-- =====================================================
-         FOOTER
-         ===================================================== -->
-
-    <footer class="site-footer">
-
-        <div class="footer-grid">
-
-            <div>
-
-                <h3>
-                    Market Flash
-                </h3>
-
-                <p>
-                    Compra, vende y promociona.
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h4>
-                    Navegación
-                </h4>
-
-                <button
-                    type="button"
-                    class="footer-link"
-                    data-section="inicio"
-                >
-                    Inicio
-                </button>
-
-                <button
-                    type="button"
-                    class="footer-link"
-                    data-section="categorias"
-                >
-                    Categorías
-                </button>
-
-                <button
-                    type="button"
-                    class="footer-link"
-                    data-section="publicar"
-                >
-                    Publicar
-                </button>
-
-                <button
-                    type="button"
-                    class="footer-link"
-                    data-section="promocionar"
-                >
-                    Promocionar
-                </button>
-
-            </div>
-
-
-            <div>
-
-                <h4>
-                    Ayuda
-                </h4>
-
-                <button
-                    type="button"
-                    class="footer-link"
-                    data-section="reclamos"
-                >
-                    Reclamos
-                </button>
-
-                <button
-                    type="button"
-                    class="footer-link"
-                    data-section="soporte"
-                >
-                    Soporte
-                </button>
-
-                <button
-                    type="button"
-                    class="footer-link"
-                    data-section="politicas"
-                >
-                    Reglas
-                </button>
-
-            </div>
-
-
-            <div>
-
-                <h4>
-                    Contacto
-                </h4>
-
-                <button
-                    type="button"
-                    id="footer-whatsapp"
-                    class="footer-link"
-                >
-                    WhatsApp
-                </button>
-
-                <button
-                    type="button"
-                    id="footer-messenger"
-                    class="footer-link"
-                >
-                    Messenger
-                </button>
-
-            </div>
-
-        </div>
-
-
-        <div class="footer-bottom">
-
-            <p>
-                © 2026 Market Flash
-            </p>
-
-            <p>
-                Propiedad de Julio Alcántara Gómez
-            </p>
-
-        </div>
-
-    </footer>
-
-
-    <!-- =====================================================
-         MENSAJES DE LA APLICACIÓN
-         ===================================================== -->
-
-    <div
-        id="app-message"
-        class="app-message"
-        aria-live="polite"
-    >
-    </div>
-
-
-    <!-- =====================================================
-         SUPABASE
-         ===================================================== -->
-
-    <script
-        src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
-    ></script>
-
-
-    <!-- =====================================================
-         JAVASCRIPT MARKET FLASH
-         ===================================================== -->
-
-    <script src="script.js"></script>
-
-</body>
-</html>
+    <style>
+        :root {
+            --mf-blue: #0b5cff;
+            --mf-blue-dark: #073ba5;
+            --mf-blue-soft: #eaf2ff;
+            --mf-cyan: #00c6ff;
+            --mf-purple: #7c3aed;
+            --mf-green: #25d366;
+            --mf-messenger: #0084ff;
+            --mf-white: #ffffff;
+            --mf-bg: #f7faff;
+            --mf-card: rgba(255,255,255,.94);
+            --mf-text: #0f172a;
+            --mf-muted: #64748b;
+            --mf-border: rgba(15,23,42,.09);
+            --mf-danger: #ef4444;
+            --mf-radius: 22px;
+            --mf-shadow: 0 12px 35px rgba(15,23,42,.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+            color: var(--mf-text);
+            background:
+                radial-gradient(circle at 10% 15%, rgba(0,198,255,.10), transparent 24%),
+                radial-gradient(circle at 85% 20%, rgba(124,58,237,.08), transparent 25%),
+                linear-gradient(180deg, #ffffff 0%, var(--mf-bg) 55%, #ffffff 100%);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            pointer-events: none;
+            z-index: -1;
+            border-radius: 999px;
+            filter: blur(2px);
+            opacity: .45;
+        }
+
+        body::before {
+            width: 190px;
+            height: 190px;
+            top: 150px;
+            left: -100px;
+            background: linear-gradient(
+                135deg,
+                rgba(11,92,255,.16),
+                rgba(0,198,255,.05)
+            );
+            animation: mfFloatOne 10s ease-in-out infinite;
+        }
+
+        body::after {
+            width: 240px;
+            height: 240px;
+            right: -110px;
+            top: 420px;
+            background: linear-gradient(
+                135deg,
+                rgba(124,58,237,.11),
+                rgba(11,92,255,.04)
+            );
+            animation: mfFloatTwo 13s ease-in-out infinite;
+        }
+
+        @keyframes mfFloatOne {
+            0%, 100% {
+                transform: translate3d(0,0,0);
+            }
+            50% {
+                transform: translate3d(25px,45px,0);
+            }
+        }
+
+        @keyframes mfFloatTwo {
+            0%, 100% {
+                transform: translate3d(0,0,0);
+            }
+            50% {
+                transform: translate3d(-25px,-35px,0);
+            }
+        }
+
+        button,
+        input,
+        textarea,
+        select {
+            font: inherit;
+        }
+
+        button {
+            border: 0;
+            cursor: pointer;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* =====================================================
+           HEADER
+           ===================================================== */
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            padding:
+                max(10px, env(safe-area-inset-top))
+                14px
+                12px;
+            background: rgba(255,255,255,.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(15,23,42,.07);
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .brand-logo {
+            position: relative;
+            width: 48px;
+            height: 48px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            color: #ffffff;
+            font-weight: 900;
+            letter-spacing: -.05em;
+            background:
+                linear-gradient(135deg, var(--mf-blue), var(--mf-cyan) 55%, var(--mf-purple));
+            box-shadow:
+                0 10px 25px rgba(11,92,255,.25);
+            overflow: hidden;
+        }
+
+        .brand-logo::after {
+            content: "";
+            position: absolute;
+            width: 65px;
+            height: 16px;
+            background: rgba(255,255,255,.32);
+            transform: rotate(-35deg) translateX(-45px);
+            animation: mfShine 4s linear infinite;
+        }
+
+        @keyframes mfShine {
+            0% {
+                transform: rotate(-35deg) translateX(-90px);
+            }
+            55%,100% {
+                transform: rotate(-35deg) translateX(100px);
+            }
+        }
+
+        .brand-info {
+            min-width: 0;
+        }
+
+        .brand-info h1 {
+            margin: 0;
+            font-size: 1.06rem;
+            line-height: 1.1;
+            font-weight: 900;
+            letter-spacing: -.03em;
+        }
+
+        .brand-info p {
+            margin: 4px 0 0;
+            color: var(--mf-muted);
+            font-size: .74rem;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex: 0 0 auto;
+        }
+
+        .header-actions button {
+            min-height: 42px;
+            padding: 0 12px;
+            border-radius: 14px;
+            font-size: .76rem;
+            font-weight: 800;
+        }
+
+        #btn-registrarse {
+            color: var(--mf-blue);
+            background: var(--mf-blue-soft);
+        }
+
+        #btn-iniciar-sesion {
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--mf-blue), var(--mf-purple));
+            box-shadow: 0 7px 18px rgba(11,92,255,.18);
+        }
+
+        #btn-perfil {
+            display: none;
+            color: var(--mf-text);
+            background: #ffffff;
+            border: 1px solid var(--mf-border);
+        }
+
+        #btn-administrador {
+            display: none;
+        }
+
+        /* =====================================================
+           NAV
+           ===================================================== */
+
+        .main-nav {
+            display: none;
+        }
+
+        /* =====================================================
+           SEARCH
+           ===================================================== */
+
+        .mobile-search-wrap {
+            margin: 13px auto 0;
+            max-width: 720px;
+        }
+
+        #form-busqueda {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            width: 100%;
+        }
+
+        #buscar {
+            width: 100%;
+            min-height: 46px;
+            padding: 0 16px;
+            border-radius: 16px;
+            border: 1px solid rgba(11,92,255,.14);
+            outline: none;
+            color: var(--mf-text);
+            background: #ffffff;
+            box-shadow:
+                0 8px 26px rgba(15,23,42,.06),
+                inset 0 0 0 1px rgba(255,255,255,.65);
+        }
+
+        #buscar:focus {
+            border-color: rgba(11,92,255,.42);
+            box-shadow:
+                0 0 0 4px rgba(11,92,255,.08),
+                0 12px 28px rgba(11,92,255,.10);
+        }
+
+        #form-busqueda button[type="submit"] {
+            min-width: 48px;
+            min-height: 46px;
+            padding: 0 15px;
+            border-radius: 16px;
+            display: inline-grid;
+            place-items: center;
+            color: #ffffff;
+            background: linear-gradient(135deg, #0b5cff, #2582ff);
+            box-shadow: 0 9px 22px rgba(11,92,255,.25);
+            position: relative;
+            overflow: hidden;
+            font-size: 0;
+        }
+
+        #form-busqueda button[type="submit"]::before {
+            content: "⌕";
+            font-size: 1.55rem;
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        #form-busqueda button[type="submit"]::after {
+            content: "";
+            position: absolute;
+            inset: -20%;
+            background: linear-gradient(
+                110deg,
+                transparent 25%,
+                rgba(255,255,255,.42) 50%,
+                transparent 75%
+            );
+            animation: mfSearchGlow 2.8s linear infinite;
+        }
+
+        @keyframes mfSearchGlow {
+            0% {
+                transform: translateX(-75%);
+            }
+            100% {
+                transform: translateX(75%);
+            }
+        }
+
+        #btn-limpiar-busqueda {
+            display: none !important;
+        }
+
+        /* =====================================================
+           MAIN
+           ===================================================== */
+
+        main {
+            position: relative;
+            padding-bottom: 110px;
+        }
+
+        .page-section {
+            display: none;
+            width: min(100%, 1180px);
+            margin: 0 auto;
+            padding: 14px 14px 0;
+        }
+
+        .page-section.active {
+            display: block;
+            animation: mfSectionIn .35s ease;
+        }
+
+        @keyframes mfSectionIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* =====================================================
+           HERO
+           ===================================================== */
+
+        .hero-section {
+            position: relative;
+            margin-top: 10px;
+            border-radius: 28px;
+            padding: 28px 20px;
+            color: #ffffff;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 80% 15%, rgba(255,255,255,.20), transparent 24%),
+                radial-gradient(circle at 20% 90%, rgba(0,198,255,.28), transparent 26%),
+                linear-gradient(135deg, #073ba5 0%, #0b5cff 46%, #7c3aed 100%);
+            box-shadow:
+                0 18px 44px rgba(11,92,255,.21);
+        }
+
+        .hero-section::before {
+            content: "MF";
+            position: absolute;
+            right: -12px;
+            bottom: -26px;
+            font-size: 9rem;
+            line-height: 1;
+            font-weight: 1000;
+            color: rgba(255,255,255,.08);
+            transform: rotate(-10deg);
+        }
+
+        .hero-section::after {
+            content: "";
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            right: -50px;
+            top: -60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.08);
+            animation: mfHeroFloat 8s ease-in-out infinite;
+        }
+
+        @keyframes mfHeroFloat {
+            50% {
+                transform: translate(-30px, 25px);
+            }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            padding: 7px 11px;
+            border-radius: 999px;
+            color: #ffffff;
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.16);
+            font-size: .69rem;
+            font-weight: 900;
+            letter-spacing: .08em;
+        }
+
+        .hero-section h2 {
+            margin: 15px 0 10px;
+            font-size: clamp(1.8rem, 7vw, 3.15rem);
+            line-height: .99;
+            letter-spacing: -.055em;
+            max-width: 680px;
+        }
+
+        .hero-section p {
+            margin: 0;
+            color: rgba(255,255,255,.82);
+            max-width: 650px;
+            font-size: .94rem;
+            line-height: 1.6;
+        }
+
+        .hero-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 9px;
+            margin-top: 18px;
+        }
+
+        /* =====================================================
+           BUTTONS
+           ===================================================== */
+
+        .primary-button,
+        .secondary-button,
+        .danger-button,
+        .whatsapp-button,
+        .messenger-button,
+        .text-button {
+            transition:
+                transform .18s ease,
+                box-shadow .18s ease,
+                opacity .18s ease;
+        }
+
+        .primary-button:active,
+        .secondary-button:active,
+        .danger-button:active,
+        .whatsapp-button:active,
+        .messenger-button:active {
+            transform: scale(.97);
+        }
+
+        .primary-button {
+            min-height: 46px;
+            padding: 0 16px;
+            border-radius: 15px;
+            color: #ffffff;
+            font-weight: 850;
+            background: linear-gradient(135deg, var(--mf-blue), #4a8cff);
+            box-shadow: 0 10px 23px rgba(11,92,255,.20);
+        }
+
+        .secondary-button {
+            min-height: 44px;
+            padding: 0 15px;
+            border-radius: 15px;
+            color: var(--mf-text);
+            font-weight: 800;
+            background: #ffffff;
+            border: 1px solid var(--mf-border);
+        }
+
+        .danger-button {
+            min-height: 44px;
+            padding: 0 15px;
+            border-radius: 15px;
+            color: #ffffff;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ef4444, #f97316);
+        }
+
+        .whatsapp-button {
+            min-height: 46px;
+            padding: 0 16px;
+            border-radius: 15px;
+            color: #ffffff;
+            font-weight: 850;
+            background: linear-gradient(135deg, #1ebe57, #25d366);
+            box-shadow: 0 10px 22px rgba(37,211,102,.18);
+        }
+
+        .messenger-button {
+            min-height: 46px;
+            padding: 0 16px;
+            border-radius: 15px;
+            color: #ffffff;
+            font-weight: 850;
+            background: linear-gradient(135deg, #0084ff, #5b5cf6);
+            box-shadow: 0 10px 22px rgba(0,132,255,.18);
+        }
+
+        .text-button {
+            padding: 5px 0;
+            color: var(--mf-blue);
+            background: transparent;
+            font-weight: 800;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        /* =====================================================
+           SECTIONS / CARDS
+           ===================================================== */
+
+        .content-card,
+        .form-card,
+        .payment-card,
+        .profile-main-card,
+        .profile-data-card,
+        .support-card,
+        .promotion-card,
+        .policy-card {
+            margin-top: 15px;
+            border: 1px solid var(--mf-border);
+            border-radius: var(--mf-radius);
+            background: var(--mf-card);
+            box-shadow: var(--mf-shadow);
+        }
+
+        .content-card {
+            padding: 17px;
+        }
+
+        .section-title {
+            margin-bottom: 13px;
+        }
+
+        .section-title > span,
+        .section-title > h2,
+        .section-title > h3,
+        .section-title > p {
+            margin-left: 0;
+        }
+
+        .section-title > span {
+            display: inline-block;
+            color: var(--mf-blue);
+            font-size: .67rem;
+            font-weight: 900;
+            letter-spacing: .13em;
+        }
+
+        .section-title h2 {
+            margin-top: 5px;
+            margin-bottom: 5px;
+            font-size: 1.45rem;
+            letter-spacing: -.035em;
+        }
+
+        .section-title h3 {
+            margin-top: 0;
+            margin-bottom: 4px;
+            font-size: 1.08rem;
+        }
+
+        .section-title p {
+            margin-top: 0;
+            color: var(--mf-muted);
+            font-size: .86rem;
+            line-height: 1.5;
+        }
+
+        /* =====================================================
+           ADVERTISEMENT AREA
+           ===================================================== */
+
+        .advertisement-layout {
+            display: grid;
+            gap: 14px;
+            margin-top: 15px;
+        }
+
+        .advertisement-panel {
+            position: relative;
+            min-height: 235px;
+            border-radius: 22px;
+            overflow: hidden;
+            padding: 16px;
+            color: #ffffff;
+            background:
+                linear-gradient(145deg, #041f68, #0b5cff 55%, #7c3aed);
+            box-shadow: 0 15px 35px rgba(11,92,255,.16);
+        }
+
+        .advertisement-panel::before {
+            content: "";
+            position: absolute;
+            width: 160px;
+            height: 160px;
+            right: -60px;
+            top: -65px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.10);
+            animation: mfAdOrb 7s ease-in-out infinite;
+        }
+
+        .advertisement-panel::after {
+            content: "";
+            position: absolute;
+            width: 240px;
+            height: 30px;
+            left: -80px;
+            bottom: 30px;
+            transform: rotate(-18deg);
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(255,255,255,.30),
+                transparent
+            );
+            animation: mfAdShine 4.5s linear infinite;
+        }
+
+        @keyframes mfAdOrb {
+            50% {
+                transform: translate(-24px,28px);
+            }
+        }
+
+        @keyframes mfAdShine {
+            from {
+                transform: translateX(-100%) rotate(-18deg);
+            }
+            to {
+                transform: translateX(200%) rotate(-18deg);
+            }
+        }
+
+        .ad-header {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .ad-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .67rem;
+            font-weight: 900;
+            letter-spacing: .10em;
+        }
+
+        .ad-live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #6ee7b7;
+            box-shadow: 0 0 0 5px rgba(110,231
