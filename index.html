@@ -2481,4 +2481,2182 @@
 <script src="script.js"></script>
 
 </body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#111827">
+    <meta name="description" content="Market Flash - Compra y vende fácil y rápido">
+    <title>Market Flash</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- =========================
+         BARRA SUPERIOR
+    ========================== -->
+    <header class="topbar">
+
+        <div class="brand">
+            <div class="brand-icon">⚡</div>
+            <div>
+                <h1>Market Flash</h1>
+                <span>Compra • Vende • Rápido</span>
+            </div>
+        </div>
+
+        <div class="top-actions">
+            <button
+                id="notificationBtn"
+                class="icon-button"
+                type="button"
+                onclick="openNotifications()"
+                aria-label="Notificaciones">
+                🔔
+            </button>
+
+            <button
+                id="profileBtn"
+                class="icon-button"
+                type="button"
+                onclick="openProfile()"
+                aria-label="Perfil">
+                👤
+            </button>
+        </div>
+
+    </header>
+
+
+    <!-- =========================
+         CONTENIDO PRINCIPAL
+    ========================== -->
+    <main id="app">
+
+        <!-- =========================
+             PÁGINA DE INICIO
+        ========================== -->
+        <section id="homePage" class="page active">
+
+            <!-- BUSCADOR -->
+            <div class="search-container">
+
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+
+                    <input
+                        id="searchInput"
+                        type="search"
+                        placeholder="¿Qué estás buscando?"
+                        autocomplete="off"
+                    >
+
+                    <button
+                        id="clearSearchBtn"
+                        class="clear-search"
+                        type="button"
+                        onclick="clearSearch()"
+                        aria-label="Limpiar búsqueda">
+                        ✕
+                    </button>
+                </div>
+
+            </div>
+
+
+            <!-- CATEGORÍAS -->
+            <section class="categories-section">
+
+                <div class="section-header">
+                    <h2>Categorías</h2>
+                </div>
+
+                <div class="categories" id="categories">
+
+                    <button
+                        class="category-btn active"
+                        data-category="Todos"
+                        type="button"
+                        onclick="filterCategory('Todos')">
+                        <span>🏪</span>
+                        <span>Todos</span>
+                    </button>
+
+                    <button
+                        class="category-btn"
+                        data-category="Celulares"
+                        type="button"
+                        onclick="filterCategory('Celulares')">
+                        <span>📱</span>
+                        <span>Celulares</span>
+                    </button>
+
+                    <button
+                        class="category-btn"
+                        data-category="Computadoras"
+                        type="button"
+                        onclick="filterCategory('Computadoras')">
+                        <span>💻</span>
+                        <span>Computadoras</span>
+                    </button>
+
+                    <button
+                        class="category-btn"
+                        data-category="Videojuegos"
+                        type="button"
+                        onclick="filterCategory('Videojuegos')">
+                        <span>🎮</span>
+                        <span>Videojuegos</span>
+                    </button>
+
+                    <button
+                        class="category-btn"
+                        data-category="Ropa"
+                        type="button"
+                        onclick="filterCategory('Ropa')">
+                        <span>👕</span>
+                        <span>Ropa</span>
+                    </button>
+
+                    <button
+                        class="category-btn"
+                        data-category="Hogar"
+                        type="button"
+                        onclick="filterCategory('Hogar')">
+                        <span>🏠</span>
+                        <span>Hogar</span>
+                    </button>
+
+                    <button
+                        class="category-btn"
+                        data-category="Vehículos"
+                        type="button"
+                        onclick="filterCategory('Vehículos')">
+                        <span>🚗</span>
+                        <span>Vehículos</span>
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- PUBLICIDAD -->
+            <section class="advertising-section">
+
+                <button
+                    id="advertisingBtn"
+                    class="advertising-button"
+                    type="button"
+                    onclick="openAdvertising()">
+
+                    <span class="advertising-icon">📢</span>
+
+                    <span class="advertising-content">
+                        <strong>PUBLICIDAD</strong>
+                        <small>Promociona tu negocio en Market Flash</small>
+                    </span>
+
+                    <span class="advertising-arrow">›</span>
+
+                </button>
+
+            </section>
+
+
+            <!-- ESPACIO PARA PUBLICIDAD APROBADA -->
+            <section
+                id="advertisingSpot"
+                class="advertising-spot">
+            </section>
+
+
+            <!-- PRODUCTOS -->
+            <section class="products-section">
+
+                <div class="section-header">
+
+                    <div>
+                        <h2>Publicaciones</h2>
+                        <span id="productsCount"></span>
+                    </div>
+
+                    <button
+                        id="refreshProductsBtn"
+                        class="small-button"
+                        type="button"
+                        onclick="renderProducts()">
+                        🔄
+                    </button>
+
+                </div>
+
+                <div
+                    id="productsGrid"
+                    class="products-grid">
+                </div>
+
+                <div
+                    id="noProducts"
+                    class="empty-state hidden">
+
+                    <div class="empty-icon">🔎</div>
+
+                    <h3>No encontramos publicaciones</h3>
+
+                    <p>
+                        Intenta cambiar la búsqueda o seleccionar otra categoría.
+                    </p>
+
+                </div>
+
+            </section>
+
+        </section>
+
+
+        <!-- =========================
+             PÁGINA DE ACTIVIDAD
+        ========================== -->
+        <section id="activityPage" class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="showHome()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Actividad</h2>
+                    <p>Revisa tu actividad en Market Flash</p>
+                </div>
+
+            </div>
+
+
+            <div class="activity-tabs">
+
+                <button
+                    class="activity-tab active"
+                    type="button"
+                    onclick="showActivityTab('publications')">
+                    Mis publicaciones
+                </button>
+
+                <button
+                    class="activity-tab"
+                    type="button"
+                    onclick="showActivityTab('views')">
+                    Vistas
+                </button>
+
+                <button
+                    class="activity-tab"
+                    type="button"
+                    onclick="showActivityTab('interests')">
+                    Intereses
+                </button>
+
+            </div>
+
+
+            <div
+                id="activityContent"
+                class="activity-content">
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             PÁGINA DE PERFIL
+        ========================== -->
+        <section id="profilePage" class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="showHome()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Mi perfil</h2>
+                    <p>Administra tu cuenta</p>
+                </div>
+
+            </div>
+
+
+            <div class="profile-card">
+
+                <div class="profile-photo-container">
+
+                    <img
+                        id="profilePhoto"
+                        class="profile-photo"
+                        src=""
+                        alt="Foto de perfil"
+                    >
+
+                    <button
+                        class="profile-photo-button"
+                        type="button"
+                        onclick="openProfilePhotoOptions()">
+                        📷
+                    </button>
+
+                </div>
+
+
+                <h3 id="profileName">Usuario</h3>
+
+                <p id="profilePhone">
+                    WhatsApp no registrado
+                </p>
+
+            </div>
+
+
+            <div class="profile-menu">
+
+                <button
+                    type="button"
+                    onclick="openActivity()"
+                    class="menu-item">
+
+                    <span class="menu-icon">📊</span>
+
+                    <span class="menu-text">
+                        <strong>Mi actividad</strong>
+                        <small>Publicaciones, vistas e intereses</small>
+                    </span>
+
+                    <span class="menu-arrow">›</span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    onclick="openEditProfile()"
+                    class="menu-item">
+
+                    <span class="menu-icon">✏️</span>
+
+                    <span class="menu-text">
+                        <strong>Editar perfil</strong>
+                        <small>Modifica tus datos personales</small>
+                    </span>
+
+                    <span class="menu-arrow">›</span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    onclick="openSettings()"
+                    class="menu-item">
+
+                    <span class="menu-icon">⚙️</span>
+
+                    <span class="menu-text">
+                        <strong>Configuración</strong>
+                        <small>Opciones de tu cuenta</small>
+                    </span>
+
+                    <span class="menu-arrow">›</span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    onclick="openAdminLogin()"
+                    class="menu-item">
+
+                    <span class="menu-icon">🛡️</span>
+
+                    <span class="menu-text">
+                        <strong>Administrador</strong>
+                        <small>Panel de administración</small>
+                    </span>
+
+                    <span class="menu-arrow">›</span>
+
+                </button>
+
+
+                <button
+                    type="button"
+                    onclick="logout()"
+                    class="menu-item danger-item">
+
+                    <span class="menu-icon">🚪</span>
+
+                    <span class="menu-text">
+                        <strong>Cerrar sesión</strong>
+                        <small>Salir de tu cuenta</small>
+                    </span>
+
+                    <span class="menu-arrow">›</span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             PÁGINA DE PUBLICAR
+        ========================== -->
+        <section id="publishPage" class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="showHome()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Publicar producto</h2>
+                    <p>Publica algo para vender</p>
+                </div>
+
+            </div>
+
+
+            <form
+                id="publishForm"
+                class="form-container"
+                onsubmit="publishProduct(event)">
+
+                <!-- FOTOS -->
+                <div class="form-section">
+
+                    <label class="form-label">
+                        Fotos del producto
+                    </label>
+
+                    <div class="media-buttons">
+
+                        <button
+                            id="cameraBtn"
+                            class="media-button"
+                            type="button"
+                            onclick="openCamera()">
+
+                            <span class="media-icon">📷</span>
+
+                            <span>
+                                Tomar foto
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            id="galleryBtn"
+                            class="media-button"
+                            type="button"
+                            onclick="openGallery()">
+
+                            <span class="media-icon">🖼️</span>
+
+                            <span>
+                                Galería
+                            </span>
+
+                        </button>
+
+                    </div>
+
+
+                    <input
+                        id="cameraInput"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        hidden
+                    >
+
+                    <input
+                        id="galleryInput"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        hidden
+                    >
+
+
+                    <div
+                        id="imagePreview"
+                        class="image-preview">
+                    </div>
+
+                </div>
+
+
+                <!-- NOMBRE -->
+                <div class="form-group">
+
+                    <label for="productName">
+                        Nombre del producto
+                    </label>
+
+                    <input
+                        id="productName"
+                        name="productName"
+                        type="text"
+                        placeholder="Ej. iPhone 15 Pro"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- CATEGORÍA -->
+                <div class="form-group">
+
+                    <label for="productCategory">
+                        Categoría
+                    </label>
+
+                    <select
+                        id="productCategory"
+                        name="productCategory"
+                        required>
+
+                        <option value="">
+                            Selecciona una categoría
+                        </option>
+
+                        <option value="Celulares">
+                            📱 Celulares
+                        </option>
+
+                        <option value="Computadoras">
+                            💻 Computadoras
+                        </option>
+
+                        <option value="Videojuegos">
+                            🎮 Videojuegos
+                        </option>
+
+                        <option value="Ropa">
+                            👕 Ropa
+                        </option>
+
+                        <option value="Hogar">
+                            🏠 Hogar
+                        </option>
+
+                        <option value="Vehículos">
+                            🚗 Vehículos
+                        </option>
+
+                        <option value="Otros">
+                            📦 Otros
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- PRECIO -->
+                <div class="form-group">
+
+                    <label for="productPrice">
+                        Precio
+                    </label>
+
+                    <div class="price-input">
+
+                        <span>RD$</span>
+
+                        <input
+                            id="productPrice"
+                            name="productPrice"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- UBICACIÓN -->
+                <div class="form-group">
+
+                    <label for="productLocation">
+                        Ubicación
+                    </label>
+
+                    <input
+                        id="productLocation"
+                        name="productLocation"
+                        type="text"
+                        placeholder="Ej. Santo Domingo"
+                        required
+                    >
+
+                </div>
+
+
+                <!-- DESCRIPCIÓN -->
+                <div class="form-group">
+
+                    <label for="productDescription">
+                        Descripción
+                    </label>
+
+                    <textarea
+                        id="productDescription"
+                        name="productDescription"
+                        rows="5"
+                        placeholder="Describe tu producto..."
+                        required>
+                    </textarea>
+
+                </div>
+
+
+                <!-- WHATSAPP -->
+                <div class="form-group">
+
+                    <label for="sellerWhatsapp">
+                        WhatsApp de contacto
+                    </label>
+
+                    <input
+                        id="sellerWhatsapp"
+                        name="sellerWhatsapp"
+                        type="tel"
+                        placeholder="8091234567"
+                        required
+                    >
+
+                    <small>
+                        Este número será utilizado para contactar al vendedor.
+                    </small>
+
+                </div>
+
+
+                <button
+                    id="publishSubmitBtn"
+                    class="primary-button"
+                    type="submit">
+
+                    🚀 Publicar producto
+
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- =========================
+             LOGIN
+        ========================== -->
+        <section id="loginPage" class="page hidden">
+
+            <div class="auth-container">
+
+                <div class="auth-logo">
+                    ⚡
+                </div>
+
+                <h2>Iniciar sesión</h2>
+
+                <p>
+                    Entra a tu cuenta de Market Flash
+                </p>
+
+
+                <form
+                    id="loginForm"
+                    onsubmit="login(event)">
+
+                    <div class="form-group">
+
+                        <label for="loginCedula">
+                            Número de cédula
+                        </label>
+
+                        <input
+                            id="loginCedula"
+                            type="text"
+                            placeholder="000-0000000-0"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="loginPassword">
+                            Contraseña
+                        </label>
+
+                        <input
+                            id="loginPassword"
+                            type="password"
+                            placeholder="Tu contraseña"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        class="primary-button"
+                        type="submit">
+                        Iniciar sesión
+                    </button>
+
+                </form>
+
+
+                <button
+                    class="link-button"
+                    type="button"
+                    onclick="openRecovery()">
+                    ¿Olvidaste tu contraseña?
+                </button>
+
+
+                <div class="auth-divider">
+                    <span>o</span>
+                </div>
+
+
+                <button
+                    class="secondary-button"
+                    type="button"
+                    onclick="openRegister()">
+                    Crear una cuenta
+                </button>
+
+
+                <button
+                    class="link-button"
+                    type="button"
+                    onclick="showHome()">
+                    Continuar sin iniciar sesión
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             REGISTRO
+        ========================== -->
+        <section id="registerPage" class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="openLogin()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Crear cuenta</h2>
+                    <p>Regístrate en Market Flash</p>
+                </div>
+
+            </div>
+
+
+            <form
+                id="registerForm"
+                class="form-container"
+                onsubmit="register(event)">
+
+                <div class="form-group">
+
+                    <label for="registerName">
+                        Nombre completo
+                    </label>
+
+                    <input
+                        id="registerName"
+                        type="text"
+                        placeholder="Tu nombre completo"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerCedula">
+                        Número de cédula
+                    </label>
+
+                    <input
+                        id="registerCedula"
+                        type="text"
+                        placeholder="000-0000000-0"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerWhatsapp">
+                        Número de WhatsApp
+                    </label>
+
+                    <input
+                        id="registerWhatsapp"
+                        type="tel"
+                        placeholder="8091234567"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerEmail">
+                        Correo electrónico
+                    </label>
+
+                    <input
+                        id="registerEmail"
+                        type="email"
+                        placeholder="correo@ejemplo.com"
+                    >
+
+                    <small>
+                        Opcional
+                    </small>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerPassword">
+                        Contraseña
+                    </label>
+
+                    <input
+                        id="registerPassword"
+                        type="password"
+                        placeholder="Crea una contraseña"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="registerPasswordConfirm">
+                        Confirmar contraseña
+                    </label>
+
+                    <input
+                        id="registerPasswordConfirm"
+                        type="password"
+                        placeholder="Repite tu contraseña"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="recoveryQuestion">
+                        Pregunta de seguridad
+                    </label>
+
+                    <select
+                        id="recoveryQuestion"
+                        required>
+
+                        <option value="">
+                            Selecciona una pregunta
+                        </option>
+
+                        <option value="mascota">
+                            ¿Cuál era el nombre de tu primera mascota?
+                        </option>
+
+                        <option value="ciudad">
+                            ¿En qué ciudad naciste?
+                        </option>
+
+                        <option value="madre">
+                            ¿Cuál es el segundo nombre de tu madre?
+                        </option>
+
+                        <option value="escuela">
+                            ¿Cómo se llamaba tu primera escuela?
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="recoveryAnswer">
+                        Respuesta de seguridad
+                    </label>
+
+                    <input
+                        id="recoveryAnswer"
+                        type="text"
+                        placeholder="Tu respuesta"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    type="submit">
+                    Crear cuenta
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- =========================
+             RECUPERACIÓN
+        ========================== -->
+        <section id="recoveryPage" class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="openLogin()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Recuperar contraseña</h2>
+                    <p>Recupera el acceso a tu cuenta</p>
+                </div>
+
+            </div>
+
+
+            <form
+                id="recoveryForm"
+                class="form-container"
+                onsubmit="recoverPassword(event)">
+
+                <div class="form-group">
+
+                    <label for="recoveryCedula">
+                        Número de cédula
+                    </label>
+
+                    <input
+                        id="recoveryCedula"
+                        type="text"
+                        placeholder="000-0000000-0"
+                        required
+                    >
+
+                </div>
+
+
+                <button
+                    class="secondary-button"
+                    type="button"
+                    onclick="findRecoveryQuestion()">
+                    Buscar cuenta
+                </button>
+
+
+                <div
+                    id="recoveryQuestionBox"
+                    class="hidden">
+
+                    <div class="recovery-question">
+
+                        <strong>
+                            Pregunta de seguridad
+                        </strong>
+
+                        <p id="recoveryQuestionText">
+                        </p>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="recoveryAnswerInput">
+                            Respuesta
+                        </label>
+
+                        <input
+                            id="recoveryAnswerInput"
+                            type="text"
+                            placeholder="Escribe tu respuesta"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="newPassword">
+                            Nueva contraseña
+                        </label>
+
+                        <input
+                            id="newPassword"
+                            type="password"
+                            placeholder="Nueva contraseña"
+                        >
+
+                    </div>
+
+
+                    <button
+                        class="primary-button"
+                        type="submit">
+                        Cambiar contraseña
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+
+        <!-- =========================
+             DETALLE DEL PRODUCTO
+        ========================== -->
+        <section
+            id="productDetailPage"
+            class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="showHome()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Producto</h2>
+                </div>
+
+            </div>
+
+
+            <div
+                id="productDetail"
+                class="product-detail">
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             CONFIGURACIÓN
+        ========================== -->
+        <section id="settingsPage" class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="openProfile()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Configuración</h2>
+                    <p>Administra tu cuenta</p>
+                </div>
+
+            </div>
+
+
+            <div class="settings-list">
+
+                <button
+                    class="menu-item"
+                    type="button"
+                    onclick="openEditProfile()">
+
+                    <span class="menu-icon">👤</span>
+
+                    <span class="menu-text">
+                        <strong>Editar información</strong>
+                        <small>Nombre, WhatsApp y correo</small>
+                    </span>
+
+                    <span class="menu-arrow">›</span>
+
+                </button>
+
+
+                <button
+                    class="menu-item"
+                    type="button"
+                    onclick="openProfilePhotoOptions()">
+
+                    <span class="menu-icon">📷</span>
+
+                    <span class="menu-text">
+                        <strong>Foto de perfil</strong>
+                        <small>Cambiar foto</small>
+                    </span>
+
+                    <span class="menu-arrow">›</span>
+
+                </button>
+
+
+                <button
+                    class="menu-item danger-item"
+                    type="button"
+                    onclick="deleteAccount()">
+
+                    <span class="menu-icon">🗑️</span>
+
+                    <span class="menu-text">
+                        <strong>Eliminar cuenta</strong>
+                        <small>Esta acción no se puede deshacer</small>
+                    </span>
+
+                    <span class="menu-arrow">›</span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             EDITAR PERFIL
+        ========================== -->
+        <section id="editProfilePage" class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="openProfile()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Editar perfil</h2>
+                    <p>Actualiza tus datos</p>
+                </div>
+
+            </div>
+
+
+            <form
+                id="editProfileForm"
+                class="form-container"
+                onsubmit="saveProfile(event)">
+
+                <div class="form-group">
+
+                    <label for="editName">
+                        Nombre completo
+                    </label>
+
+                    <input
+                        id="editName"
+                        type="text"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="editWhatsapp">
+                        WhatsApp
+                    </label>
+
+                    <input
+                        id="editWhatsapp"
+                        type="tel"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="editEmail">
+                        Correo electrónico
+                    </label>
+
+                    <input
+                        id="editEmail"
+                        type="email"
+                    >
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    type="submit">
+                    Guardar cambios
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- =========================
+             PUBLICIDAD
+        ========================== -->
+        <section id="advertisingPage" class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="showHome()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Publicidad</h2>
+                    <p>Promociona tu negocio</p>
+                </div>
+
+            </div>
+
+
+            <div class="advertising-intro">
+
+                <div class="advertising-big-icon">
+                    📢
+                </div>
+
+                <h3>
+                    Haz que tu negocio llegue a más personas
+                </h3>
+
+                <p>
+                    Publica tu anuncio en Market Flash y
+                    muestra tus productos o servicios a
+                    nuestros usuarios.
+                </p>
+
+            </div>
+
+
+            <div class="advertising-options">
+
+                <button
+                    class="advertising-option"
+                    type="button"
+                    onclick="openCreateAdvertising()">
+
+                    <span>📣</span>
+
+                    <div>
+                        <strong>Crear publicidad</strong>
+                        <small>
+                            Crea un nuevo anuncio
+                        </small>
+                    </div>
+
+                    <span>›</span>
+
+                </button>
+
+
+                <button
+                    class="advertising-option"
+                    type="button"
+                    onclick="openAdvertisingInfo()">
+
+                    <span>ℹ️</span>
+
+                    <div>
+                        <strong>¿Cómo funciona?</strong>
+                        <small>
+                            Conoce el proceso
+                        </small>
+                    </div>
+
+                    <span>›</span>
+
+                </button>
+
+
+                <button
+                    class="advertising-option"
+                    type="button"
+                    onclick="openAdvertisingStatus()">
+
+                    <span>📋</span>
+
+                    <div>
+                        <strong>Mis anuncios</strong>
+                        <small>
+                            Consulta tus anuncios
+                        </small>
+                    </div>
+
+                    <span>›</span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             CREAR PUBLICIDAD
+        ========================== -->
+        <section
+            id="createAdvertisingPage"
+            class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="openAdvertising()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Crear publicidad</h2>
+                    <p>Completa los datos de tu anuncio</p>
+                </div>
+
+            </div>
+
+
+            <form
+                id="advertisingForm"
+                class="form-container"
+                onsubmit="createAdvertising(event)">
+
+                <!-- IMAGEN DEL ANUNCIO -->
+                <div class="form-section">
+
+                    <label class="form-label">
+                        Imagen del anuncio
+                    </label>
+
+                    <div class="media-buttons">
+
+                        <button
+                            class="media-button"
+                            type="button"
+                            onclick="openAdvertisingCamera()">
+
+                            <span class="media-icon">📷</span>
+
+                            <span>
+                                Tomar foto
+                            </span>
+
+                        </button>
+
+
+                        <button
+                            class="media-button"
+                            type="button"
+                            onclick="openAdvertisingGallery()">
+
+                            <span class="media-icon">🖼️</span>
+
+                            <span>
+                                Galería
+                            </span>
+
+                        </button>
+
+                    </div>
+
+
+                    <input
+                        id="advertisingCameraInput"
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        hidden
+                    >
+
+                    <input
+                        id="advertisingGalleryInput"
+                        type="file"
+                        accept="image/*"
+                        hidden
+                    >
+
+
+                    <div
+                        id="advertisingImagePreview"
+                        class="image-preview">
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="advertisingTitle">
+                        Título del anuncio
+                    </label>
+
+                    <input
+                        id="advertisingTitle"
+                        type="text"
+                        placeholder="Nombre de tu negocio"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="advertisingDescription">
+                        Descripción
+                    </label>
+
+                    <textarea
+                        id="advertisingDescription"
+                        rows="5"
+                        placeholder="Describe tu negocio..."
+                        required>
+                    </textarea>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="advertisingWhatsapp">
+                        WhatsApp
+                    </label>
+
+                    <input
+                        id="advertisingWhatsapp"
+                        type="tel"
+                        placeholder="8091234567"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="advertising-price-box">
+
+                    <span>
+                        Precio de publicidad
+                    </span>
+
+                    <strong id="advertisingPrice">
+                        RD$0.00
+                    </strong>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Método de pago
+                    </label>
+
+                    <div
+                        id="paymentMethods"
+                        class="payment-methods">
+                    </div>
+
+                </div>
+
+
+                <div class="form-section">
+
+                    <label class="form-label">
+                        Comprobante de pago
+                    </label>
+
+                    <button
+                        class="media-button full-width"
+                        type="button"
+                        onclick="openPaymentProofGallery()">
+
+                        <span class="media-icon">
+                            🧾
+                        </span>
+
+                        <span>
+                            Seleccionar comprobante
+                        </span>
+
+                    </button>
+
+
+                    <input
+                        id="paymentProofInput"
+                        type="file"
+                        accept="image/*"
+                        hidden
+                    >
+
+
+                    <div
+                        id="paymentProofPreview"
+                        class="image-preview">
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    type="submit">
+                    Enviar publicidad
+                </button>
+
+            </form>
+
+        </section>
+
+
+        <!-- =========================
+             CÓMO FUNCIONA PUBLICIDAD
+        ========================== -->
+        <section
+            id="advertisingInfoPage"
+            class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="openAdvertising()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>¿Cómo funciona?</h2>
+                    <p>Publicidad en Market Flash</p>
+                </div>
+
+            </div>
+
+
+            <div class="info-card">
+
+                <div class="info-step">
+
+                    <div class="step-number">
+                        1
+                    </div>
+
+                    <div>
+                        <h3>
+                            Crea tu anuncio
+                        </h3>
+
+                        <p>
+                            Agrega una imagen, título,
+                            descripción y tu información
+                            de contacto.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="info-step">
+
+                    <div class="step-number">
+                        2
+                    </div>
+
+                    <div>
+                        <h3>
+                            Realiza el pago
+                        </h3>
+
+                        <p>
+                            Selecciona uno de los métodos
+                            de pago disponibles y adjunta
+                            tu comprobante.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="info-step">
+
+                    <div class="step-number">
+                        3
+                    </div>
+
+                    <div>
+                        <h3>
+                            Espera la aprobación
+                        </h3>
+
+                        <p>
+                            El administrador revisará
+                            tu anuncio y el comprobante.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="info-step">
+
+                    <div class="step-number">
+                        4
+                    </div>
+
+                    <div>
+                        <h3>
+                            Tu anuncio aparece
+                        </h3>
+
+                        <p>
+                            Una vez aprobado, tu publicidad
+                            aparecerá en Market Flash.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             ESTADO DE PUBLICIDAD
+        ========================== -->
+        <section
+            id="advertisingStatusPage"
+            class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="openAdvertising()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Mis anuncios</h2>
+                    <p>Estado de tus publicaciones publicitarias</p>
+                </div>
+
+            </div>
+
+
+            <div
+                id="advertisingStatusList"
+                class="advertising-status-list">
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             LOGIN ADMINISTRADOR
+        ========================== -->
+        <section
+            id="adminLoginPage"
+            class="page hidden">
+
+            <div class="auth-container">
+
+                <div class="admin-icon">
+                    🛡️
+                </div>
+
+                <h2>Administrador</h2>
+
+                <p>
+                    Acceso al panel administrativo
+                </p>
+
+
+                <form
+                    id="adminLoginForm"
+                    onsubmit="adminLogin(event)">
+
+                    <div class="form-group">
+
+                        <label for="adminUsername">
+                            Usuario
+                        </label>
+
+                        <input
+                            id="adminUsername"
+                            type="text"
+                            placeholder="Usuario"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="adminPassword">
+                            Contraseña
+                        </label>
+
+                        <input
+                            id="adminPassword"
+                            type="password"
+                            placeholder="Contraseña"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        class="primary-button"
+                        type="submit">
+                        Entrar al panel
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             PANEL ADMIN
+        ========================== -->
+        <section
+            id="adminPage"
+            class="page hidden">
+
+            <div class="page-header">
+
+                <button
+                    class="back-button"
+                    type="button"
+                    onclick="openProfile()">
+                    ←
+                </button>
+
+                <div>
+                    <h2>Panel administrador</h2>
+                    <p>Control de Market Flash</p>
+                </div>
+
+            </div>
+
+
+            <!-- ESTADÍSTICAS -->
+            <div class="admin-stats">
+
+                <div class="stat-card">
+
+                    <span>👥</span>
+
+                    <strong id="adminRegisteredCount">
+                        0
+                    </strong>
+
+                    <small>
+                        Registrados
+                    </small>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>🗑️</span>
+
+                    <strong id="adminDeletedCount">
+                        0
+                    </strong>
+
+                    <small>
+                        Eliminados
+                    </small>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>📦</span>
+
+                    <strong id="adminProductsCount">
+                        0
+                    </strong>
+
+                    <small>
+                        Publicaciones
+                    </small>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>📢</span>
+
+                    <strong id="adminAdsCount">
+                        0
+                    </strong>
+
+                    <small>
+                        Anuncios
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- CONFIGURACIÓN -->
+            <div class="admin-section">
+
+                <h3>
+                    Configuración de publicidad
+                </h3>
+
+
+                <div class="admin-setting">
+
+                    <div>
+                        <strong>
+                            Publicidad habilitada
+                        </strong>
+
+                        <small>
+                            Permitir que los usuarios
+                            creen anuncios
+                        </small>
+                    </div>
+
+                    <label class="switch">
+
+                        <input
+                            id="advertisingEnabled"
+                            type="checkbox"
+                            onchange="toggleAdvertisingEnabled()"
+                        >
+
+                        <span class="slider"></span>
+
+                    </label>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="adminAdvertisingPrice">
+                        Precio de publicidad
+                    </label>
+
+                    <div class="price-input">
+
+                        <span>RD$</span>
+
+                        <input
+                            id="adminAdvertisingPrice"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="primary-button"
+                    type="button"
+                    onclick="saveAdvertisingConfig()">
+                    Guardar configuración
+                </button>
+
+            </div>
+
+
+            <!-- MÉTODOS DE PAGO -->
+            <div class="admin-section">
+
+                <h3>
+                    Métodos de pago
+                </h3>
+
+                <div
+                    id="adminPaymentMethods"
+                    class="admin-payment-methods">
+                </div>
+
+
+                <button
+                    class="secondary-button"
+                    type="button"
+                    onclick="addPaymentMethod()">
+                    + Agregar método de pago
+                </button>
+
+            </div>
+
+
+            <!-- ANUNCIOS -->
+            <div class="admin-section">
+
+                <h3>
+                    Solicitudes de publicidad
+                </h3>
+
+                <div
+                    id="adminAdsList"
+                    class="admin-ads-list">
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         NAVEGACIÓN INFERIOR
+    ========================== -->
+    <nav
+        id="bottomNav"
+        class="bottom-nav">
+
+        <button
+            id="homeNavBtn"
+            class="nav-item active"
+            type="button"
+            onclick="showHome()">
+
+            <span class="nav-icon">
+                🏠
+            </span>
+
+            <span>
+                Inicio
+            </span>
+
+        </button>
+
+
+        <button
+            id="publishBtn"
+            class="publish-button"
+            type="button"
+            onclick="openPublish()"
+            aria-label="Publicar">
+
+            <span>
+                ＋
+            </span>
+
+        </button>
+
+
+        <button
+            id="activityNavBtn"
+            class="nav-item"
+            type="button"
+            onclick="openActivity()">
+
+            <span class="nav-icon">
+                📊
+            </span>
+
+            <span>
+                Actividad
+            </span>
+
+        </button>
+
+    </nav>
+
+
+    <!-- =========================
+         OVERLAY GENERAL
+    ========================== -->
+    <div
+        id="overlay"
+        class="overlay hidden"
+        onclick="closeOverlay()">
+    </div>
+
+
+    <!-- =========================
+         MODAL
+    ========================== -->
+    <div
+        id="modal"
+        class="modal hidden"
+        role="dialog"
+        aria-modal="true">
+
+        <div class="modal-content">
+
+            <button
+                class="modal-close"
+                type="button"
+                onclick="closeModal()"
+                aria-label="Cerrar">
+                ✕
+            </button>
+
+            <div id="modalBody"></div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         CONTENEDOR DE NOTIFICACIONES
+    ========================== -->
+    <div
+        id="notificationsPanel"
+        class="notifications-panel hidden">
+
+        <div class="notifications-header">
+
+            <h3>
+                Notificaciones
+            </h3>
+
+            <button
+                type="button"
+                onclick="closeNotifications()">
+                ✕
+            </button>
+
+        </div>
+
+
+        <div
+            id="notificationsList"
+            class="notifications-list">
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         TOAST
+    ========================== -->
+    <div
+        id="toast"
+        class="toast hidden">
+
+        <span id="toastIcon">
+            ✓
+        </span>
+
+        <span id="toastMessage">
+        </span>
+
+    </div>
+
+
+    <!-- =========================
+         INPUTS DE FOTO DE PERFIL
+    ========================== -->
+    <input
+        id="profileCameraInput"
+        type="file"
+        accept="image/*"
+        capture="user"
+        hidden
+>
+
+    <input
+        id="profileGalleryInput"
+        type="file"
+        accept="image/*"
+        hidden
+    >
+
+
+    <!-- =========================
+         JAVASCRIPT EXTERNO
+         SE AGREGARÁ APARTE
+    ========================== -->
+    <script src="script.js"></script>
+
+</body>
 </html>
