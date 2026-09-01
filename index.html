@@ -1,2555 +1,311 @@
-<!DOCTYPE html>
+from pathlib import Path
 
+html = r'''<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Market Flash">
 <title>Market Flash</title>
-
 <style>
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-    font-family:Arial,Helvetica,sans-serif;
-}
-
-body{
-    background:#f5f7fb;
-    color:#111827;
-    min-height:100vh;
-}
-
-button,input,select,textarea{
-    font:inherit;
-}
-
-button{
-    border:0;
-    cursor:pointer;
-}
-
-.hidden{
-    display:none!important;
-}
-
-/* HEADER */
-
-.header{
-    position:sticky;
-    top:0;
-    z-index:100;
-    background:#fff;
-    border-bottom:1px solid #e5e7eb;
-}
-
-.header-inner{
-    max-width:1200px;
-    margin:auto;
-    padding:12px 16px;
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
-
-.logo{
-    font-size:23px;
-    font-weight:900;
-    white-space:nowrap;
-}
-
-.logo span{
-    color:#2563eb;
-}
-
-.search{
-    flex:1;
-    min-width:80px;
-    border:1px solid #e5e7eb;
-    background:#f3f5f8;
-    border-radius:14px;
-    padding:12px 14px;
-    outline:none;
-}
-
-.search:focus{
-    border-color:#2563eb;
-}
-
-.profile-btn{
-    width:44px;
-    height:44px;
-    border-radius:50%;
-    background:#eef2ff;
-    font-size:20px;
-}
-
-/* MAIN */
-
-main{
-    max-width:1200px;
-    margin:auto;
-    padding:18px 15px 100px;
-}
-
-.categories{
-    display:flex;
-    gap:9px;
-    overflow-x:auto;
-    padding-bottom:15px;
-}
-
-.categories::-webkit-scrollbar{
-    display:none;
-}
-
-.category{
-    flex:0 0 auto;
-    background:#fff;
-    border:1px solid #e5e7eb;
-    border-radius:22px;
-    padding:10px 15px;
-    font-weight:700;
-}
-
-.category.active{
-    background:#2563eb;
-    color:#fff;
-}
-
-/* PUBLICIDAD */
-
-.ad-space{
-    min-height:100px;
-    margin-bottom:20px;
-    border-radius:20px;
-    background:#fff;
-    border:1px dashed #cbd5e1;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    padding:18px;
-}
-
-.ad-label{
-    font-size:11px;
-    color:#64748b;
-    font-weight:800;
-    text-transform:uppercase;
-}
-
-.ad-title{
-    margin-top:5px;
-    font-size:19px;
-    font-weight:900;
-}
-
-.ad-text{
-    margin-top:5px;
-    color:#64748b;
-}
-
-/* PRODUCTOS */
-
-.section-title{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:13px;
-}
-
-.section-title h2{
-    font-size:22px;
-}
-
-.section-count{
-    color:#64748b;
-    font-size:13px;
-}
-
-.products{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:12px;
-}
-
-.product-card{
-    background:#fff;
-    border:1px solid #e5e7eb;
-    border-radius:18px;
-    overflow:hidden;
-    transition:.2s;
-}
-
-.product-card:hover{
-    transform:translateY(-2px);
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
-}
-
-.product-image{
-    width:100%;
-    aspect-ratio:1/1;
-    object-fit:cover;
-    background:#e5e7eb;
-}
-
-.product-info{
-    padding:12px;
-}
-
-.product-name{
-    font-weight:800;
-    margin-bottom:5px;
-}
-
-.product-price{
-    font-size:18px;
-    font-weight:900;
-}
-
-.product-location{
-    margin-top:5px;
-    color:#64748b;
-    font-size:12px;
-}
-
-/* NAV */
-
-.bottom-nav{
-    position:fixed;
-    bottom:0;
-    left:0;
-    right:0;
-    height:70px;
-    background:#fff;
-    border-top:1px solid #e5e7eb;
-    display:flex;
-    align-items:center;
-    justify-content:space-around;
-    z-index:200;
-}
-
-.nav-item{
-    background:none;
-    color:#64748b;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:3px;
-    font-size:11px;
-    font-weight:700;
-}
-
-.nav-item.active{
-    color:#2563eb;
-}
-
-.nav-icon{
-    font-size:21px;
-}
-
-.publish-btn{
-    width:55px;
-    height:55px;
-    border-radius:50%;
-    background:#2563eb;
-    color:#fff;
-    font-size:29px;
-    margin-top:-25px;
-    box-shadow:0 8px 20px rgba(37,99,235,.3);
-}
-
-/* MODAL */
-
-.overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(15,23,42,.55);
-    z-index:500;
-    display:flex;
-    justify-content:center;
-    align-items:flex-end;
-}
-
-.modal{
-    width:100%;
-    max-width:650px;
-    max-height:92vh;
-    overflow-y:auto;
-    background:#fff;
-    border-radius:25px 25px 0 0;
-    padding:22px;
-}
-
-.modal-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:20px;
-}
-
-.close-btn{
-    width:40px;
-    height:40px;
-    border-radius:50%;
-    background:#f1f5f9;
-    font-size:22px;
-}
-
-/* FORMULARIOS */
-
-.form-group{
-    margin-bottom:15px;
-}
-
-.form-group label{
-    display:block;
-    margin-bottom:7px;
-    font-size:14px;
-    font-weight:800;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea{
-    width:100%;
-    padding:13px;
-    border:1px solid #dbe1e8;
-    border-radius:12px;
-    outline:none;
-}
-
-.form-group textarea{
-    min-height:110px;
-    resize:vertical;
-}
-
-.primary-btn{
-    width:100%;
-    padding:14px;
-    background:#2563eb;
-    color:#fff;
-    border-radius:13px;
-    font-weight:800;
-}
-
-.secondary-btn{
-    width:100%;
-    padding:14px;
-    background:#f1f5f9;
-    color:#111827;
-    border-radius:13px;
-    font-weight:800;
-    margin-top:9px;
-}
-
-/* PERFIL */
-
-.profile-card{
-    text-align:center;
-    background:#f8fafc;
-    border-radius:20px;
-    padding:20px;
-}
-
-.avatar{
-    width:85px;
-    height:85px;
-    border-radius:50%;
-    margin:auto auto 10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#dbeafe;
-    font-size:38px;
-}
-
-.menu{
-    margin-top:15px;
-    border:1px solid #e5e7eb;
-    border-radius:18px;
-    overflow:hidden;
-}
-
-.menu-item{
-    width:100%;
-    background:#fff;
-    padding:15px;
-    display:flex;
-    align-items:center;
-    gap:12px;
-    text-align:left;
-    border-bottom:1px solid #edf0f3;
-}
-
-.menu-item:last-child{
-    border-bottom:0;
-}
-
-.menu-icon{
-    width:44px;
-    height:44px;
-    border-radius:13px;
-    background:#eff6ff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:21px;
-}
-
-.menu-text{
-    flex:1;
-}
-
-.menu-text strong{
-    display:block;
-}
-
-.menu-text small{
-    color:#64748b;
-}
-
-/* TARJETAS */
-
-.grid{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:12px;
-}
-
-.card{
-    background:#fff;
-    border:1px solid #e5e7eb;
-    border-radius:18px;
-    padding:18px;
-    text-align:left;
-}
-
-.card-icon{
-    font-size:31px;
-    margin-bottom:10px;
-}
-
-.card strong{
-    display:block;
-    font-size:16px;
-}
-
-.card small{
-    color:#64748b;
-}
-
-/* ESTADÍSTICAS */
-
-.stats{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-    gap:10px;
-    margin-top:15px;
-}
-
-.stat{
-    background:#f8fafc;
-    border-radius:15px;
-    padding:15px;
-}
-
-.stat-number{
-    font-size:23px;
-    font-weight:900;
-}
-
-.stat-label{
-    color:#64748b;
-    font-size:12px;
-}
-
-/* TOGGLE */
-
-.setting-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:15px 0;
-    border-bottom:1px solid #e5e7eb;
-}
-
-.toggle{
-    width:53px;
-    height:30px;
-    border-radius:20px;
-    background:#cbd5e1;
-    position:relative;
-}
-
-.toggle:after{
-    content:"";
-    position:absolute;
-    width:24px;
-    height:24px;
-    top:3px;
-    left:3px;
-    border-radius:50%;
-    background:#fff;
-    transition:.2s;
-}
-
-.toggle.on{
-    background:#2563eb;
-}
-
-.toggle.on:after{
-    left:26px;
-}
-
-/* ESCRITORIO */
-
-@media(min-width:700px){
-
-    .products{
-        grid-template-columns:repeat(4,1fr);
-    }
-
-    .overlay{
-        align-items:center;
-    }
-
-    .modal{
-        border-radius:25px;
-        max-height:88vh;
-    }
-
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--blue:#2563eb;--blue2:#1d4ed8;--bg:#f4f6fa;--card:#fff;--text:#111827;--muted:#64748b;--line:#e5e7eb;--danger:#dc2626;--ok:#16a34a}
+html,body{width:100%;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+body{padding-bottom:82px}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0}
+.hidden{display:none!important}
+.app{min-height:100vh}
+.topbar{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid var(--line);padding:env(safe-area-inset-top) 12px 10px}
+.topbar-inner{max-width:1200px;margin:auto;display:flex;align-items:center;gap:10px;min-height:52px}
+.brand{font-size:22px;font-weight:900;white-space:nowrap}
+.brand span{color:var(--blue)}
+.icon-btn{width:43px;height:43px;border-radius:14px;background:#f1f5f9;display:grid;place-items:center;font-size:20px;flex:0 0 auto}
+.search{height:43px;flex:1;min-width:0;border:1px solid var(--line);background:#f8fafc;border-radius:14px;padding:0 13px;outline:none}
+.search:focus{border-color:var(--blue);background:#fff}
+.content{max-width:1200px;margin:auto;padding:14px 13px 30px}
+.categories{display:flex;gap:8px;overflow-x:auto;padding:2px 0 14px;scrollbar-width:none}
+.categories::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;padding:10px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);font-weight:700;color:#334155}
+.chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+.ad{background:linear-gradient(135deg,#fff,#eef4ff);border:1px solid #dbeafe;border-radius:20px;padding:18px;text-align:center;margin-bottom:18px;min-height:105px;display:flex;align-items:center;justify-content:center}
+.ad small{color:var(--muted);font-weight:800}
+.ad h3{margin:5px 0}
+.ad p{color:var(--muted);font-size:13px}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.section-head h2{font-size:21px}
+.muted{color:var(--muted);font-size:13px}
+.products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.product{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;min-width:0}
+.product img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#e2e8f0;display:block}
+.product-info{padding:11px}
+.product-name{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.price{font-size:17px;font-weight:900;margin-top:5px}
+.product-meta{font-size:12px;color:var(--muted);margin-top:5px}
+.bottom{position:fixed;z-index:100;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);height:76px;padding:6px max(10px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:center}
+.bottom-inner{width:100%;max-width:700px;display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center}
+.nav{background:transparent;color:#64748b;font-size:11px;font-weight:800;display:flex;flex-direction:column;align-items:center;gap:3px}
+.nav.active{color:var(--blue)}
+.nav-icon{font-size:21px}
+.plus{width:55px;height:55px;border-radius:50%;background:var(--blue);color:#fff;font-size:30px;margin:auto;box-shadow:0 8px 22px rgba(37,99,235,.28)}
+.overlay{position:fixed;z-index:300;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:680px;max-height:94vh;overflow:auto;background:#fff;border-radius:24px 24px 0 0;padding:20px}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-head h2{font-size:21px}
+.close{width:40px;height:40px;border-radius:50%;background:#f1f5f9;font-size:23px}
+.form{display:grid;gap:13px}
+.field label{display:block;font-size:13px;font-weight:800;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;border:1px solid #dbe1e8;border-radius:12px;padding:12px;outline:none;background:#fff}
+.field textarea{min-height:100px;resize:vertical}
+.primary,.secondary,.danger{width:100%;padding:13px;border-radius:12px;font-weight:800}
+.primary{background:var(--blue);color:#fff}.secondary{background:#f1f5f9;color:var(--text)}.danger{background:#fee2e2;color:#991b1b}
+.menu{display:grid;gap:8px}
+.menu-item{width:100%;background:#fff;border:1px solid var(--line);border-radius:16px;padding:13px;display:flex;align-items:center;text-align:left;gap:12px}
+.menu-icon{width:44px;height:44px;border-radius:13px;background:#eff6ff;display:grid;place-items:center;font-size:21px;flex:0 0 auto}
+.menu-copy{flex:1}.menu-copy strong{display:block}.menu-copy small{display:block;color:var(--muted);margin-top:3px}
+.profile{background:#f8fafc;border-radius:18px;padding:20px;text-align:center;margin-bottom:14px}
+.avatar{width:78px;height:78px;border-radius:50%;background:#dbeafe;display:grid;place-items:center;font-size:35px;margin:0 auto 9px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;text-align:left}
+.card .big{font-size:28px;margin-bottom:8px}
+.card strong{display:block}.card small{color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}
+.stat{background:#f8fafc;border-radius:14px;padding:14px}.stat b{font-size:22px}.stat span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.toggle{width:54px;height:30px;border-radius:99px;background:#cbd5e1;position:relative}.toggle:after{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}.toggle.on{background:var(--blue)}.toggle.on:after{left:27px}
+.notice{padding:13px;border-radius:13px;background:#eff6ff;color:#1e40af;font-size:13px;margin-bottom:12px}
+.product-detail img{width:100%;max-height:420px;object-fit:cover;border-radius:18px}
+.empty{text-align:center;padding:55px 20px;color:var(--muted);grid-column:1/-1}
+.toast{position:fixed;z-index:600;left:50%;bottom:92px;transform:translateX(-50%);background:#111827;color:#fff;padding:12px 16px;border-radius:12px;font-size:13px;max-width:90%;text-align:center;box-shadow:0 8px 25px rgba(0,0,0,.2)}
+@media(min-width:720px){
+ .products{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .overlay{align-items:center;padding:20px}.sheet{border-radius:24px}
+ .content{padding-left:20px;padding-right:20px}
+}
+@media(max-width:420px){
+ .brand{font-size:19px}.icon-btn{width:40px;height:40px}.search{height:40px}.topbar-inner{gap:7px}
+ .products{gap:9px}.product-info{padding:9px}.price{font-size:16px}
 }
 </style>
-
 </head>
-
 <body>
-
-<header class="header">
-
-```
-<div class="header-inner">
-
-    <div class="logo">
-        Market <span>Flash</span>
-    </div>
-
-    <input
-        id="search"
-        class="search"
-        type="search"
-        placeholder="Buscar productos..."
-    >
-
-    <button
-        class="profile-btn"
-        onclick="openProfile()"
-        aria-label="Perfil"
-    >
-        👤
-    </button>
-
-</div>
-```
-
+<div class="app">
+<header class="topbar">
+ <div class="topbar-inner">
+  <div class="brand">Market <span>Flash</span></div>
+  <input id="search" class="search" type="search" placeholder="Buscar productos...">
+  <button class="icon-btn" aria-label="Notificaciones" onclick="notifications()">🔔</button>
+  <button class="icon-btn" aria-label="Perfil" onclick="openProfile()">👤</button>
+ </div>
 </header>
 
-<main id="home">
+<main class="content">
+ <div class="categories" id="categories">
+  <button class="chip active" onclick="setCategory('Todos',this)">Todos</button>
+  <button class="chip" onclick="setCategory('Celulares',this)">📱 Celulares</button>
+  <button class="chip" onclick="setCategory('Computadoras',this)">💻 Computadoras</button>
+  <button class="chip" onclick="setCategory('Videojuegos',this)">🎮 Videojuegos</button>
+  <button class="chip" onclick="setCategory('Ropa',this)">👕 Ropa</button>
+  <button class="chip" onclick="setCategory('Hogar',this)">🏠 Hogar</button>
+  <button class="chip" onclick="setCategory('Vehículos',this)">🚗 Vehículos</button>
+ </div>
 
-```
-<div class="categories">
+ <section class="ad">
+  <div><small>ESPACIO PUBLICITARIO</small><h3>📣 Publicidad Market Flash</h3><p>Aquí aparecerán los anuncios comerciales.</p></div>
+ </section>
 
-    <button class="category active" onclick="category('Todos',this)">
-        Todos
-    </button>
-
-    <button class="category" onclick="category('Celulares',this)">
-        📱 Celulares
-    </button>
-
-    <button class="category" onclick="category('Computadoras',this)">
-        💻 Computadoras
-    </button>
-
-    <button class="category" onclick="category('Videojuegos',this)">
-        🎮 Videojuegos
-    </button>
-
-    <button class="category" onclick="category('Ropa',this)">
-        👕 Ropa
-    </button>
-
-    <button class="category" onclick="category('Hogar',this)">
-        🏠 Hogar
-    </button>
-
-    <button class="category" onclick="category('Vehículos',this)">
-        🚗 Vehículos
-    </button>
-
-</div>
-
-
-<section class="ad-space">
-
-    <div>
-
-        <div class="ad-label">
-            Espacio publicitario
-        </div>
-
-        <div class="ad-title">
-            Publicidad Market Flash
-        </div>
-
-        <div class="ad-text">
-            Aquí aparecerán los anuncios comerciales.
-        </div>
-
-    </div>
-
-</section>
-
-
-<div class="section-title">
-
-    <h2>Productos</h2>
-
-    <span id="count" class="section-count">
-        0 productos
-    </span>
-
-</div>
-
-
-<section id="products" class="products"></section>
-```
-
+ <div class="section-head"><h2>Productos</h2><span id="count" class="muted"></span></div>
+ <section id="products" class="products"></section>
 </main>
 
-<nav class="bottom-nav">
-
-```
-<button class="nav-item active" onclick="goHome()">
-    <span class="nav-icon">🏠</span>
-    Inicio
-</button>
-
-<button class="nav-item" onclick="focusSearch()">
-    <span class="nav-icon">🔍</span>
-    Buscar
-</button>
-
-<button class="publish-btn" onclick="openPublish()">
-    +
-</button>
-
-<button class="nav-item" onclick="openActivity()">
-    <span class="nav-icon">📦</span>
-    Actividad
-</button>
-
-<button class="nav-item" onclick="openProfile()">
-    <span class="nav-icon">👤</span>
-    Perfil
-</button>
-```
-
+<nav class="bottom">
+ <div class="bottom-inner">
+  <button class="nav active" id="navHome" onclick="home()"><span class="nav-icon">🏠</span>Inicio</button>
+  <button class="plus" aria-label="Publicar" onclick="openPublish()">+</button>
+  <button class="nav" id="navActivity" onclick="openActivity()"><span class="nav-icon">📦</span>Actividad</button>
+ </div>
 </nav>
-
-<div id="overlay" class="overlay hidden">
-
-```
-<div id="modal" class="modal"></div>
-```
-
 </div>
 
+<div id="overlay" class="overlay hidden"><div id="sheet" class="sheet"></div></div>
+<div id="toast" class="toast hidden"></div>
+
 <script>
+const STORAGE_USER='mf_user';
+const STORAGE_PRODUCTS='mf_products';
+const STORAGE_CONFIG='mf_config';
+let category='Todos';
+let user=JSON.parse(localStorage.getItem(STORAGE_USER)||'null');
 
-let currentCategory = "Todos";
-
-let products = [
-
-    {
-        id:1,
-        name:"iPhone 15 Pro",
-        category:"Celulares",
-        price:45000,
-        location:"Santo Domingo",
-        seller:"Market Flash",
-        image:"https://images.unsplash.com/photo-1696446702183-cbd13d5f2e88?auto=format&fit=crop&w=800&q=80",
-        views:1284,
-        likes:86,
-        saves:34,
-        profileVisits:21
-    },
-
-    {
-        id:2,
-        name:"Samsung Galaxy S24",
-        category:"Celulares",
-        price:38000,
-        location:"Santiago",
-        seller:"Tecnología RD",
-        image:"https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=800&q=80",
-        views:743,
-        likes:51,
-        saves:18,
-        profileVisits:14
-    },
-
-    {
-        id:3,
-        name:"Laptop profesional",
-        category:"Computadoras",
-        price:52000,
-        location:"Santo Domingo",
-        seller:"Tech Store",
-        image:"https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80",
-        views:491,
-        likes:29,
-        saves:11,
-        profileVisits:8
-    },
-
-    {
-        id:4,
-        name:"PlayStation 5",
-        category:"Videojuegos",
-        price:32000,
-        location:"Santo Domingo Este",
-        seller:"Gaming RD",
-        image:"https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80",
-        views:952,
-        likes:73,
-        saves:42,
-        profileVisits:25
-    }
-
+const seed=[
+ {id:1,name:'iPhone 15 Pro',category:'Celulares',price:45000,location:'Santo Domingo',seller:'Market Flash',image:'https://images.unsplash.com/photo-1696446702183-cbd13d5f2e88?auto=format&fit=crop&w=800&q=80',views:1284,likes:86,saves:34,profileVisits:21},
+ {id:2,name:'Samsung Galaxy S24',category:'Celulares',price:38000,location:'Santiago',seller:'Tecnología RD',image:'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=800&q=80',views:743,likes:51,saves:18,profileVisits:14},
+ {id:3,name:'Laptop profesional',category:'Computadoras',price:52000,location:'Santo Domingo',seller:'Tech Store',image:'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80',views:491,likes:29,saves:11,profileVisits:8},
+ {id:4,name:'PlayStation 5',category:'Videojuegos',price:32000,location:'Santo Domingo Este',seller:'Gaming RD',image:'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80',views:952,likes:73,saves:42,profileVisits:25}
 ];
+let products=JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'null')||seed;
 
+function saveProducts(){localStorage.setItem(STORAGE_PRODUCTS,JSON.stringify(products))}
+function money(n){return new Intl.NumberFormat('es-DO',{style:'currency',currency:'DOP',maximumFractionDigits:0}).format(Number(n)||0)}
+function toast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.remove('hidden');clearTimeout(window._toast);window._toast=setTimeout(()=>x.classList.add('hidden'),2200)}
+function show(html){document.getElementById('sheet').innerHTML=html;document.getElementById('overlay').classList.remove('hidden')}
+function close(){document.getElementById('overlay').classList.add('hidden')}
+document.getElementById('overlay').addEventListener('click',e=>{if(e.target.id==='overlay')close()});
 
-let currentUser = null;
-
-
-/* PRECIO */
-
-function price(value){
-
-    return new Intl.NumberFormat("es-DO",{
-        style:"currency",
-        currency:"DOP",
-        maximumFractionDigits:0
-    }).format(value);
-
+function render(){
+ const q=document.getElementById('search').value.trim().toLowerCase();
+ let list=products.filter(p=>(category==='Todos'||p.category===category)&&(!q||p.name.toLowerCase().includes(q)||p.category.toLowerCase().includes(q)||p.location.toLowerCase().includes(q)));
+ document.getElementById('count').textContent=list.length+' '+(list.length===1?'producto':'productos');
+ const box=document.getElementById('products');
+ if(!list.length){box.innerHTML='<div class="empty"><div style="font-size:44px">🔎</div><h3>No encontramos productos</h3><p>Prueba otra búsqueda o categoría.</p></div>';return}
+ box.innerHTML=list.map(p=>`<article class="product" onclick="openProduct(${p.id})"><img src="${p.image}" alt="${escapeHtml(p.name)}" onerror="this.style.objectFit='contain';this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22600%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 font-size=%2260%22%3E📦%3C/text%3E%3C/svg%3E'"><div class="product-info"><div class="product-name">${escapeHtml(p.name)}</div><div class="price">${money(p.price)}</div><div class="product-meta">📍 ${escapeHtml(p.location)}</div></div></article>`).join('');
 }
-
-
-/* MOSTRAR PRODUCTOS */
-
-function render(list){
-
-    const box=document.getElementById("products");
-
-    box.innerHTML="";
-
-    document.getElementById("count").textContent =
-        list.length + (list.length === 1 ? " producto" : " productos");
-
-
-    if(!list.length){
-
-        box.innerHTML=`
-            <div style="
-                grid-column:1/-1;
-                text-align:center;
-                padding:50px 20px;
-                color:#64748b;
-            ">
-                <div style="font-size:45px;">🔎</div>
-                <h3>No encontramos productos</h3>
-                <p>Prueba con otra búsqueda.</p>
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    list.forEach(p=>{
-
-        const card=document.createElement("article");
-
-        card.className="product-card";
-
-        card.onclick=()=>openProduct(p.id);
-
-        card.innerHTML=`
-
-            <img
-                class="product-image"
-                src="${p.image}"
-                alt="${p.name}"
-            >
-
-            <div class="product-info">
-
-                <div class="product-name">
-                    ${p.name}
-                </div>
-
-                <div class="product-price">
-                    ${price(p.price)}
-                </div>
-
-                <div class="product-location">
-                    📍 ${p.location}
-                </div>
-
-            </div>
-
-        `;
-
-        box.appendChild(card);
-
-    });
-
-}
-
-
-/* CATEGORÍAS */
-
-function category(name,button){
-
-    currentCategory=name;
-
-    document.querySelectorAll(".category")
-        .forEach(b=>b.classList.remove("active"));
-
-    button.classList.add("active");
-
-    searchProducts();
-
-}
-
-
-/* BÚSQUEDA */
-
-document.getElementById("search")
-    .addEventListener("input",searchProducts);
-
-
-function searchProducts(){
-
-    const q=document.getElementById("search")
-        .value
-        .toLowerCase()
-        .trim();
-
-    let result=[...products];
-
-
-    if(currentCategory!=="Todos"){
-
-        result=result.filter(
-            p=>p.category===currentCategory
-        );
-
-    }
-
-
-    if(q){
-
-        result=result.filter(p=>
-
-            p.name.toLowerCase().includes(q) ||
-
-            p.category.toLowerCase().includes(q) ||
-
-            p.location.toLowerCase().includes(q)
-
-        );
-
-    }
-
-
-    render(result);
-
-}
-
-
-function focusSearch(){
-
-    document.getElementById("search").focus();
-
-}
-
-
-/* MODAL */
-
-function openModal(html){
-
-    document.getElementById("modal").innerHTML=html;
-
-    document.getElementById("overlay")
-        .classList.remove("hidden");
-
-}
-
-
-function closeModal(){
-
-    document.getElementById("overlay")
-        .classList.add("hidden");
-
-}
-
-
-document.getElementById("overlay")
-    .addEventListener("click",function(e){
-
-        if(e.target===this){
-            closeModal();
-        }
-
-    });
-
-
-/* PRODUCTO */
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+document.getElementById('search').addEventListener('input',render);
+function setCategory(c,b){category=c;document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));b.classList.add('active');render()}
+function home(){close();category='Todos';document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));document.querySelector('.chip').classList.add('active');document.getElementById('navHome').classList.add('active');document.getElementById('navActivity').classList.remove('active');render()}
+function notifications(){show(`<div class="modal-head"><h2>🔔 Notificaciones</h2><button class="close" onclick="close()">×</button></div><div class="notice">No tienes notificaciones nuevas.</div><button class="secondary" onclick="close()">Cerrar</button>`)}
 
 function openProduct(id){
-
-    const p=products.find(x=>x.id===id);
-
-    if(!p)return;
-
-    p.views++;
-
-
-    openModal(`
-
-        <div class="modal-header">
-
-            <h2>${p.name}</h2>
-
-            <button class="close-btn" onclick="closeModal()">
-                ×
-            </button>
-
-        </div>
-
-
-        <img
-            src="${p.image}"
-            alt="${p.name}"
-            style="
-                width:100%;
-                max-height:380px;
-                object-fit:cover;
-                border-radius:18px;
-            "
-        >
-
-
-        <div style="margin-top:18px;">
-
-            <div style="
-                font-size:27px;
-                font-weight:900;
-            ">
-                ${price(p.price)}
-            </div>
-
-            <div style="
-                margin-top:6px;
-                color:#64748b;
-            ">
-                📍 ${p.location}
-            </div>
-
-        </div>
-
-
-        <div style="
-            margin-top:18px;
-            padding:16px;
-            border-radius:15px;
-            background:#f8fafc;
-        ">
-
-            <strong>👤 Vendedor</strong>
-
-            <div style="margin-top:5px;">
-                ${p.seller}
-            </div>
-
-        </div>
-
-
-        <div class="stats">
-
-            <div class="stat">
-                <div class="stat-number">${p.views}</div>
-                <div class="stat-label">👁️ Visualizaciones</div>
-            </div>
-
-            <div class="stat">
-                <div class="stat-number">${p.likes}</div>
-                <div class="stat-label">❤️ Reacciones</div>
-            </div>
-
-            <div class="stat">
-                <div class="stat-number">${p.saves}</div>
-                <div class="stat-label">🔖 Guardados</div>
-            </div>
-
-            <div class="stat">
-                <div class="stat-number">${p.profileVisits}</div>
-                <div class="stat-label">👤 Visitas al perfil</div>
-            </div>
-
-        </div>
-
-
-        <button
-            class="primary-btn"
-            style="margin-top:18px;"
-            onclick="likeProduct(${p.id})"
-        >
-            ❤️ Me interesa
-        </button>
-
-
-        <button
-            class="secondary-btn"
-            onclick="contactSeller('${p.seller}')"
-        >
-            📞 Contactar vendedor
-        </button>
-
-    `);
-
+ const p=products.find(x=>x.id===id);if(!p)return;p.views++;saveProducts();
+ show(`<div class="modal-head"><h2>${escapeHtml(p.name)}</h2><button class="close" onclick="close()">×</button></div>
+ <div class="product-detail"><img src="${p.image}" alt="${escapeHtml(p.name)}"><div style="margin-top:14px"><div class="price" style="font-size:27px">${money(p.price)}</div><div class="muted">📍 ${escapeHtml(p.location)}</div></div>
+ <div class="card" style="margin-top:14px"><strong>👤 Vendedor</strong><div class="muted" style="margin-top:4px">${escapeHtml(p.seller)}</div></div>
+ <div class="stats"><div class="stat"><b>${p.views}</b><span>👁️ Visualizaciones</span></div><div class="stat"><b>${p.likes}</b><span>❤️ Reacciones</span></div><div class="stat"><b>${p.saves}</b><span>🔖 Guardados</span></div><div class="stat"><b>${p.profileVisits}</b><span>👤 Visitas al perfil</span></div></div>
+ <button class="primary" style="margin-top:14px" onclick="like(${p.id})">❤️ Me interesa</button>
+ <button class="secondary" style="margin-top:8px" onclick="contact('${escapeHtml(p.seller)}')">📞 Contactar vendedor</button></div>`);
 }
-
-
-function likeProduct(id){
-
-    const p=products.find(x=>x.id===id);
-
-    if(!p)return;
-
-    p.likes++;
-
-    alert("❤️ Producto marcado como interesado.");
-
-}
-
-
-function contactSeller(name){
-
-    alert(
-        "Contacto con " +
-        name +
-        ".\n\nLa mensajería se conectará en la siguiente etapa."
-    );
-
-}
-
-
-/* PUBLICAR */
+function like(id){const p=products.find(x=>x.id===id);p.likes++;saveProducts();toast('❤️ Interés registrado');openProduct(id)}
+function contact(seller){toast('📞 Contacto con '+seller+' preparado para la próxima etapa')}
 
 function openPublish(){
-
-    openModal(`
-
-        <div class="modal-header">
-
-            <h2>➕ Publicar producto</h2>
-
-            <button class="close-btn" onclick="closeModal()">
-                ×
-            </button>
-
-        </div>
-
-
-        <form id="publishForm">
-
-            <div class="form-group">
-
-                <label>📸 Imagen</label>
-
-                <input
-                    id="newImage"
-                    type="url"
-                    placeholder="URL de la imagen"
-                    required
-                >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>🏷️ Nombre del producto</label>
-
-                <input
-                    id="newName"
-                    type="text"
-                    placeholder="Ej. iPhone 15 Pro"
-                    required
-                >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>📂 Categoría</label>
-
-                <select id="newCategory" required>
-
-                    <option value="">Seleccionar</option>
-                    <option>Celulares</option>
-                    <option>Computadoras</option>
-                    <option>Videojuegos</option>
-                    <option>Ropa</option>
-                    <option>Hogar</option>
-                    <option>Vehículos</option>
-
-                </select>
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>💰 Precio</label>
-
-                <input
-                    id="newPrice"
-                    type="number"
-                    min="0"
-                    placeholder="Precio"
-                    required
-                >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>📍 Ubicación</label>
-
-                <input
-                    id="newLocation"
-                    type="text"
-                    placeholder="Ciudad o provincia"
-                    required
-                >
-
-            </div>
-
-
-            <div class="form-group">
-
-                <label>📝 Descripción</label>
-
-                <textarea
-                    id="newDescription"
-                    placeholder="Describe el producto..."
-                ></textarea>
-
-```
-        </div>
-
-
-        <button
-            type="submit"
-            class="primary-btn"
-        >
-            🚀 Publicar
-        </button>
-
-    </form>
-
-`);
-
-
-document.getElementById("publishForm")
-    .addEventListener("submit",function(e){
-
-        e.preventDefault();
-
-
-        const p={
-
-            id:Date.now(),
-
-            name:document.getElementById("newName").value,
-
-            category:document.getElementById("newCategory").value,
-
-            price:Number(document.getElementById("newPrice").value),
-
-            location:document.getElementById("newLocation").value,
-
-            seller:currentUser
-                ? currentUser.name
-                : "Nuevo vendedor",
-
-            image:document.getElementById("newImage").value,
-
-            views:0,
-            likes:0,
-            saves:0,
-            profileVisits:0
-
-        };
-
-
-        products.unshift(p);
-
-        closeModal();
-
-        currentCategory="Todos";
-
-        document.querySelectorAll(".category")
-            .forEach(b=>b.classList.remove("active"));
-
-        document.querySelector(".category")
-            .classList.add("active");
-
-        render(products);
-
-        alert("✅ Producto publicado correctamente.");
-
-    });
-```
-
+ show(`<div class="modal-head"><h2>➕ Publicar producto</h2><button class="close" onclick="close()">×</button></div>
+ <form class="form" id="publishForm">
+ <div class="field"><label>📸 Imagen</label><input id="pImage" type="url" placeholder="URL de la imagen" required></div>
+ <div class="field"><label>🏷️ Nombre</label><input id="pName" required placeholder="Ej. iPhone 15 Pro"></div>
+ <div class="field"><label>📂 Categoría</label><select id="pCat" required><option value="">Seleccionar</option><option>Celulares</option><option>Computadoras</option><option>Videojuegos</option><option>Ropa</option><option>Hogar</option><option>Vehículos</option></select></div>
+ <div class="field"><label>💰 Precio</label><input id="pPrice" type="number" min="0" required></div>
+ <div class="field"><label>📍 Ubicación</label><input id="pLoc" required placeholder="Ciudad o provincia"></div>
+ <div class="field"><label>📝 Descripción</label><textarea id="pDesc" placeholder="Describe el producto"></textarea></div>
+ <button class="primary">🚀 Publicar</button></form>`);
+ document.getElementById('publishForm').onsubmit=e=>{e.preventDefault();if(!user){toast('Debes crear una cuenta o iniciar sesión');return}
+ products.unshift({id:Date.now(),name:pName.value,category:pCat.value,price:Number(pPrice.value),location:pLoc.value,seller:user.name,image:pImage.value,description:pDesc.value,views:0,likes:0,saves:0,profileVisits:0});saveProducts();close();render();toast('✅ Producto publicado')};
 }
-
-/* REGISTRO */
-
-function openRegister(){
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>📝 Crear cuenta</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <form id="registerForm">
-
-        <div class="form-group">
-
-            <label>👤 Nombre real completo</label>
-
-            <input
-                id="registerName"
-                type="text"
-                placeholder="Igual que aparece en la cédula"
-                required
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>🪪 Número de cédula</label>
-
-            <input
-                id="registerCedula"
-                type="text"
-                placeholder="Número de cédula"
-                required
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>🔐 Contraseña</label>
-
-            <input
-                id="registerPassword"
-                type="password"
-                placeholder="Crear contraseña"
-                required
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>🛡️ Pregunta de recuperación</label>
-
-            <select id="registerQuestion" required>
-
-                <option value="">Seleccionar</option>
-
-                <option>
-                    ¿Cuál era tu apodo de infancia?
-                </option>
-
-                <option>
-                    ¿Cuál fue tu primer trabajo?
-                </option>
-
-                <option>
-                    ¿Cuál es tu comida favorita?
-                </option>
-
-                <option>
-                    ¿Cuál era el nombre de tu primera mascota?
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>🛡️ Respuesta</label>
-
-            <input
-                id="registerAnswer"
-                type="text"
-                required
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>📧 Correo electrónico (opcional)</label>
-
-            <input
-                id="registerEmail"
-                type="email"
-                placeholder="Opcional"
-            >
-
-        </div>
-
-
-        <button class="primary-btn">
-            Crear cuenta
-        </button>
-
-    </form>
-
-`);
-
-
-document.getElementById("registerForm")
-    .addEventListener("submit",function(e){
-
-        e.preventDefault();
-
-
-        currentUser={
-
-            name:document.getElementById("registerName").value,
-
-            cedula:document.getElementById("registerCedula").value,
-
-            password:document.getElementById("registerPassword").value,
-
-            question:document.getElementById("registerQuestion").value,
-
-            answer:document.getElementById("registerAnswer").value,
-
-            email:document.getElementById("registerEmail").value,
-
-            blocked:false
-
-        };
-
-
-        localStorage.setItem(
-            "marketFlashUser",
-            JSON.stringify(currentUser)
-        );
-
-
-        closeModal();
-
-        alert("✅ Cuenta creada correctamente.");
-
-    });
-```
-
-}
-
-/* LOGIN */
-
-function openLogin(){
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>🔐 Iniciar sesión</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <form id="loginForm">
-
-        <div class="form-group">
-
-            <label>🪪 Número de cédula</label>
-
-            <input
-                id="loginCedula"
-                required
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>🔐 Contraseña</label>
-
-            <input
-                id="loginPassword"
-                type="password"
-                required
-            >
-
-        </div>
-
-
-        <button class="primary-btn">
-            Entrar
-        </button>
-
-    </form>
-
-
-    <button
-        class="secondary-btn"
-        onclick="openRecovery()"
-    >
-        🔑 Recuperar contraseña
-    </button>
-
-`);
-
-
-document.getElementById("loginForm")
-    .addEventListener("submit",function(e){
-
-        e.preventDefault();
-
-
-        const saved=
-            localStorage.getItem("marketFlashUser");
-
-
-        if(!saved){
-
-            alert("No existe una cuenta en este dispositivo.");
-
-            return;
-
-        }
-
-
-        const user=JSON.parse(saved);
-
-
-        if(user.blocked){
-
-            alert("🚫 Esta cuenta está bloqueada.");
-
-            return;
-
-        }
-
-
-        if(
-            user.cedula===
-            document.getElementById("loginCedula").value
-            &&
-            user.password===
-            document.getElementById("loginPassword").value
-        ){
-
-            currentUser=user;
-
-            closeModal();
-
-            alert("✅ Bienvenido a Market Flash.");
-
-        }else{
-
-            alert("❌ Cédula o contraseña incorrecta.");
-
-        }
-
-    });
-```
-
-}
-
-/* RECUPERACIÓN */
-
-function openRecovery(){
-
-```
-const saved=
-    localStorage.getItem("marketFlashUser");
-
-
-if(!saved){
-
-    alert("No existe una cuenta registrada.");
-
-    return;
-
-}
-
-
-const user=JSON.parse(saved);
-
-
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>🔑 Recuperar contraseña</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <div style="
-        padding:15px;
-        background:#f8fafc;
-        border-radius:14px;
-        margin-bottom:15px;
-    ">
-        ${user.question}
-    </div>
-
-
-    <div class="form-group">
-
-        <label>Respuesta</label>
-
-        <input id="recoveryAnswer">
-
-    </div>
-
-
-    <button
-        class="primary-btn"
-        onclick="verifyRecovery()"
-    >
-        Verificar
-    </button>
-
-`);
-```
-
-}
-
-function verifyRecovery(){
-
-```
-const saved=
-    localStorage.getItem("marketFlashUser");
-
-const user=JSON.parse(saved);
-
-const answer=
-    document.getElementById("recoveryAnswer")
-    .value
-    .trim()
-    .toLowerCase();
-
-
-if(answer===user.answer.trim().toLowerCase()){
-
-    alert(
-        "✅ Identidad verificada.\n\n" +
-        "La recuperación segura de contraseña se conectará " +
-        "a la base de datos en la siguiente etapa."
-    );
-
-}else{
-
-    alert("❌ Respuesta incorrecta.");
-
-}
-```
-
-}
-
-/* PERFIL */
 
 function openProfile(){
-
-```
-const saved=
-    localStorage.getItem("marketFlashUser");
-
-
-if(!currentUser && saved){
-
-    currentUser=JSON.parse(saved);
-
+ if(!user){show(`<div class="modal-head"><h2>👤 Mi cuenta</h2><button class="close" onclick="close()">×</button></div><div class="profile"><div class="avatar">👤</div><h3>Bienvenido a Market Flash</h3><p class="muted" style="margin:6px 0 16px">Crea tu cuenta o inicia sesión.</p><button class="primary" onclick="register()">📝 Crear cuenta</button><button class="secondary" style="margin-top:8px" onclick="login()">🔐 Iniciar sesión</button></div>`);return}
+ show(`<div class="modal-head"><h2>👤 Mi perfil</h2><button class="close" onclick="close()">×</button></div><div class="profile"><div class="avatar">👤</div><h2>${escapeHtml(user.name)}</h2><p class="muted">Cédula registrada</p></div>
+ <div class="menu">
+ <button class="menu-item" onclick="openActivity()"><div class="menu-icon">📦</div><div class="menu-copy"><strong>Mi actividad</strong><small>Publicaciones, productos, ventas y recibos</small></div><b>›</b></button>
+ <button class="menu-item" onclick="settings()"><div class="menu-icon">⚙️</div><div class="menu-copy"><strong>Configuración</strong><small>Cuenta y seguridad</small></div><b>›</b></button>
+ <button class="menu-item" onclick="admin()"><div class="menu-icon">👑</div><div class="menu-copy"><strong>Administración</strong><small>Panel exclusivo del administrador</small></div><b>›</b></button>
+ <button class="menu-item" onclick="logout()"><div class="menu-icon">🚪</div><div class="menu-copy"><strong>Cerrar sesión</strong><small>Salir de la cuenta</small></div><b>›</b></button></div>`);
 }
 
-
-if(!currentUser){
-
-    openModal(`
-
-        <div class="modal-header">
-
-            <h2>👤 Mi cuenta</h2>
-
-            <button class="close-btn" onclick="closeModal()">
-                ×
-            </button>
-
-        </div>
-
-
-        <div style="
-            text-align:center;
-            padding:20px 5px;
-        ">
-
-            <div style="font-size:55px;">
-                👤
-            </div>
-
-            <h3>Bienvenido a Market Flash</h3>
-
-            <p style="
-                color:#64748b;
-                margin:8px 0 18px;
-            ">
-                Crea una cuenta o inicia sesión.
-            </p>
-
-            <button
-                class="primary-btn"
-                onclick="openRegister()"
-            >
-                📝 Crear cuenta
-            </button>
-
-            <button
-                class="secondary-btn"
-                onclick="openLogin()"
-            >
-                🔐 Iniciar sesión
-            </button>
-
-        </div>
-
-    `);
-
-    return;
-
+function register(){
+ show(`<div class="modal-head"><h2>📝 Crear cuenta</h2><button class="close" onclick="close()">×</button></div>
+ <div class="notice">La cédula es obligatoria. El correo electrónico es opcional.</div>
+ <form class="form" id="regForm">
+ <div class="field"><label>👤 Nombre real completo</label><input id="rName" required placeholder="Igual que en la cédula"></div>
+ <div class="field"><label>🪪 Número de cédula</label><input id="rCed" required placeholder="Número de cédula"></div>
+ <div class="field"><label>🔐 Contraseña</label><input id="rPass" type="password" minlength="6" required></div>
+ <div class="field"><label>🛡️ Pregunta de recuperación</label><select id="rQ" required><option value="">Seleccionar</option><option>¿Cuál era tu apodo de infancia?</option><option>¿Cuál fue tu primer trabajo?</option><option>¿Cuál es tu comida favorita?</option><option>¿Cuál era el nombre de tu primera mascota?</option></select></div>
+ <div class="field"><label>🛡️ Respuesta de recuperación</label><input id="rA" required></div>
+ <div class="field"><label>📧 Correo electrónico (opcional)</label><input id="rEmail" type="email"></div>
+ <button class="primary">Crear cuenta</button></form>`);
+ document.getElementById('regForm').onsubmit=e=>{e.preventDefault();user={name:rName.value.trim(),cedula:rCed.value.trim(),password:rPass.value,question:rQ.value,answer:rA.value.trim().toLowerCase(),email:rEmail.value.trim(),blocked:false};localStorage.setItem(STORAGE_USER,JSON.stringify(user));close();toast('✅ Cuenta creada correctamente')};
 }
-
-
-showProfile();
-```
-
+function login(){
+ show(`<div class="modal-head"><h2>🔐 Iniciar sesión</h2><button class="close" onclick="close()">×</button></div><form class="form" id="loginForm"><div class="field"><label>🪪 Cédula</label><input id="lCed" required></div><div class="field"><label>🔐 Contraseña</label><input id="lPass" type="password" required></div><button class="primary">Entrar</button></form><button class="secondary" style="margin-top:8px" onclick="recovery()">🔑 Recuperar contraseña</button>`);
+ document.getElementById('loginForm').onsubmit=e=>{e.preventDefault();const saved=JSON.parse(localStorage.getItem(STORAGE_USER)||'null');if(!saved){toast('No existe una cuenta');return}if(saved.blocked){toast('🚫 Cuenta bloqueada por administración');return}if(saved.cedula===lCed.value.trim()&&saved.password===lPass.value){user=saved;close();toast('✅ Sesión iniciada')}else toast('❌ Cédula o contraseña incorrecta')};
 }
-
-function showProfile(){
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>👤 Mi perfil</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <div class="profile-card">
-
-        <div class="avatar">
-            👤
-        </div>
-
-        <h2>${currentUser.name}</h2>
-
-        <p style="
-            color:#64748b;
-            margin-top:5px;
-        ">
-            Usuario de Market Flash
-        </p>
-
-    </div>
-
-
-    <div class="menu">
-
-        <button class="menu-item" onclick="openActivity()">
-
-            <div class="menu-icon">📦</div>
-
-            <div class="menu-text">
-                <strong>Mi actividad</strong>
-                <small>
-                    Publicaciones, productos, ventas y recibos
-                </small>
-            </div>
-
-            <span>›</span>
-
-        </button>
-
-
-        <button class="menu-item" onclick="openSettings()">
-
-            <div class="menu-icon">⚙️</div>
-
-            <div class="menu-text">
-                <strong>Configuración</strong>
-                <small>
-                    Cuenta y seguridad
-                </small>
-            </div>
-
-            <span>›</span>
-
-        </button>
-
-
-        <button class="menu-item" onclick="openAdmin()">
-
-            <div class="menu-icon">👑</div>
-
-            <div class="menu-text">
-                <strong>Administración</strong>
-                <small>
-                    Panel administrativo
-                </small>
-            </div>
-
-            <span>›</span>
-
-        </button>
-
-
-        <button class="menu-item" onclick="logout()">
-
-            <div class="menu-icon">🚪</div>
-
-            <div class="menu-text">
-                <strong>Cerrar sesión</strong>
-                <small>
-                    Salir de la cuenta
-                </small>
-            </div>
-
-            <span>›</span>
-
-        </button>
-
-    </div>
-
-`);
-```
-
+function recovery(){
+ const saved=JSON.parse(localStorage.getItem(STORAGE_USER)||'null');if(!saved){toast('No existe una cuenta');return}
+ show(`<div class="modal-head"><h2>🔑 Recuperar contraseña</h2><button class="close" onclick="close()">×</button></div><div class="notice">${escapeHtml(saved.question)}</div><div class="field"><label>Respuesta</label><input id="recA"></div><button class="primary" style="margin-top:12px" onclick="verifyRecovery()">Verificar</button>`);
 }
-
-/* ACTIVIDAD */
+function verifyRecovery(){const saved=JSON.parse(localStorage.getItem(STORAGE_USER)||'null');if(recA.value.trim().toLowerCase()===saved.answer){toast('✅ Identidad verificada. La recuperación segura se conectará al backend.')}else toast('❌ Respuesta incorrecta')}
 
 function openActivity(){
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>📦 Mi actividad</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <div class="grid">
-
-        <button class="card" onclick="myPublications()">
-            <div class="card-icon">📢</div>
-            <strong>Mis publicaciones</strong>
-            <small>Administrar anuncios</small>
-        </button>
-
-        <button class="card" onclick="myProducts()">
-            <div class="card-icon">📦</div>
-            <strong>Mis productos</strong>
-            <small>Productos publicados</small>
-        </button>
-
-        <button class="card" onclick="mySales()">
-            <div class="card-icon">💰</div>
-            <strong>Mis ventas</strong>
-            <small>Ventas realizadas</small>
-        </button>
-
-        <button class="card" onclick="myReceipts()">
-            <div class="card-icon">🧾</div>
-            <strong>Mis recibos</strong>
-            <small>Comprobantes</small>
-        </button>
-
-        <button class="card" onclick="myFavorites()">
-            <div class="card-icon">❤️</div>
-            <strong>Favoritos</strong>
-            <small>Productos guardados</small>
-        </button>
-
-        <button class="card" onclick="myHistory()">
-            <div class="card-icon">📋</div>
-            <strong>Historial</strong>
-            <small>Actividad reciente</small>
-        </button>
-
-    </div>
-
-`);
-```
-
+ if(!user){openProfile();return}
+ document.getElementById('navActivity').classList.add('active');document.getElementById('navHome').classList.remove('active');
+ const mine=products.filter(p=>p.seller===user.name);
+ show(`<div class="modal-head"><h2>📦 Mi actividad</h2><button class="close" onclick="close();home()">×</button></div><div class="grid">
+ <button class="card" onclick="myPublications()"><div class="big">📢</div><strong>Mis publicaciones</strong><small>Ver estadísticas y administrar</small></button>
+ <button class="card" onclick="myProducts()"><div class="big">📦</div><strong>Mis productos</strong><small>${mine.length} productos</small></button>
+ <button class="card" onclick="mySales()"><div class="big">💰</div><strong>Mis ventas</strong><small>Registro de ventas</small></button>
+ <button class="card" onclick="receipts()"><div class="big">🧾</div><strong>Mis recibos</strong><small>Comprobantes</small></button>
+ <button class="card" onclick="favorites()"><div class="big">❤️</div><strong>Favoritos</strong><small>Productos guardados</small></button>
+ <button class="card" onclick="historyPage()"><div class="big">📋</div><strong>Historial</strong><small>Actividad reciente</small></button></div>`);
 }
+function myPublications(){const mine=products.filter(p=>p.seller===user.name);show(`<div class="modal-head"><h2>📢 Mis publicaciones</h2><button class="close" onclick="close()">×</button></div>${mine.length?mine.map(p=>`<div class="card" style="margin-bottom:10px"><strong>${escapeHtml(p.name)}</strong><div class="muted" style="margin-top:6px">👁️ ${p.views} · ❤️ ${p.likes} · 🔖 ${p.saves} · 👤 ${p.profileVisits}</div><button class="primary" style="margin-top:10px" onclick="statistics(${p.id})">📊 Ver estadísticas</button></div>`).join(''):'<div class="empty">📢<br><br>No tienes publicaciones.</div>'}`)}
+function statistics(id){const p=products.find(x=>x.id===id);show(`<div class="modal-head"><h2>📊 Estadísticas</h2><button class="close" onclick="close()">×</button></div><h3>${escapeHtml(p.name)}</h3><div class="stats"><div class="stat"><b>${p.views}</b><span>👁️ Visualizaciones</span></div><div class="stat"><b>${p.likes}</b><span>❤️ Reacciones</span></div><div class="stat"><b>${p.saves}</b><span>🔖 Guardados</span></div><div class="stat"><b>${p.profileVisits}</b><span>👤 Visitas al perfil</span></div></div>`)}
+function myProducts(){myPublications()}
+function mySales(){simple('💰 Mis ventas','Aquí se registrarán las ventas realizadas.')}
+function receipts(){simple('🧾 Mis recibos','Aquí aparecerán los recibos y comprobantes.')}
+function favorites(){simple('❤️ Favoritos','Aquí aparecerán los productos guardados.')}
+function historyPage(){simple('📋 Historial','Aquí aparecerá tu actividad reciente.')}
+function simple(title,text){show(`<div class="modal-head"><h2>${title}</h2><button class="close" onclick="close()">×</button></div><div class="empty">${text}</div>`)}
 
-function myPublications(){
-
-```
-const list=products.filter(
-    p=>currentUser && p.seller===currentUser.name
-);
-
-
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>📢 Mis publicaciones</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    ${
-        list.length
-        ?
-        list.map(p=>`
-
-            <div class="card" style="margin-bottom:12px;">
-
-                <strong>${p.name}</strong>
-
-                <p style="
-                    color:#64748b;
-                    margin-top:8px;
-                ">
-                    👁️ ${p.views}
-                    &nbsp; ❤️ ${p.likes}
-                    &nbsp; 🔖 ${p.saves}
-                </p>
-
-                <button
-                    class="primary-btn"
-                    style="margin-top:12px;"
-                    onclick="stats(${p.id})"
-                >
-                    📊 Ver estadísticas
-                </button>
-
-            </div>
-
-        `).join("")
-        :
-        `
-            <div style="
-                text-align:center;
-                padding:40px;
-                color:#64748b;
-            ">
-                📢<br><br>
-                Todavía no tienes publicaciones.
-            </div>
-        `
-    }
-
-`);
-```
-
+function settings(){
+ show(`<div class="modal-head"><h2>⚙️ Configuración</h2><button class="close" onclick="close()">×</button></div><div class="menu">
+ <button class="menu-item" onclick="editProfile()"><div class="menu-icon">👤</div><div class="menu-copy"><strong>Editar perfil</strong><small>Modificar información personal</small></div><b>›</b></button>
+ <button class="menu-item" onclick="changePass()"><div class="menu-icon">🔐</div><div class="menu-copy"><strong>Cambiar contraseña</strong><small>Actualizar contraseña</small></div><b>›</b></button>
+ <button class="menu-item" onclick="securityPage()"><div class="menu-icon">🛡️</div><div class="menu-copy"><strong>Seguridad y recuperación</strong><small>Datos para recuperar la cuenta</small></div><b>›</b></button>
+ <button class="menu-item" onclick="toast('📧 El correo es opcional')"><div class="menu-icon">📧</div><div class="menu-copy"><strong>Correo electrónico</strong><small>Opcional</small></div><b>›</b></button></div>`);
 }
+function editProfile(){simple('👤 Editar perfil','La edición de datos se conectará a la base de datos en la siguiente etapa.')}
+function changePass(){simple('🔐 Cambiar contraseña','La gestión segura de contraseña se conectará al backend.')}
+function securityPage(){simple('🛡️ Seguridad','La cédula y los datos de recuperación quedarán protegidos mediante el backend.')}
 
-function stats(id){
-
-```
-const p=products.find(x=>x.id===id);
-
-if(!p)return;
-
-
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>📊 Estadísticas</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <h3>${p.name}</h3>
-
-
-    <div class="stats">
-
-        <div class="stat">
-            <div class="stat-number">${p.views}</div>
-            <div class="stat-label">👁️ Visualizaciones</div>
-        </div>
-
-        <div class="stat">
-            <div class="stat-number">${p.likes}</div>
-            <div class="stat-label">❤️ Reacciones</div>
-        </div>
-
-        <div class="stat">
-            <div class="stat-number">${p.saves}</div>
-            <div class="stat-label">🔖 Guardados</div>
-        </div>
-
-        <div class="stat">
-            <div class="stat-number">${p.profileVisits}</div>
-            <div class="stat-label">👤 Visitas al perfil</div>
-        </div>
-
-    </div>
-
-`);
-```
-
+function admin(){
+ show(`<div class="modal-head"><h2>👑 Administración</h2><button class="close" onclick="close()">×</button></div><div class="notice">Panel preparado para uso exclusivo del administrador. En la versión con backend se validará el rol real del administrador.</div><div class="grid">
+ <button class="card" onclick="adminUsers()"><div class="big">👥</div><strong>Usuarios</strong><small>Gestionar cuentas</small></button>
+ <button class="card" onclick="adminBlocked()"><div class="big">🚫</div><strong>Bloqueos</strong><small>Bloquear usuarios</small></button>
+ <button class="card" onclick="adminPosts()"><div class="big">📢</div><strong>Publicaciones</strong><small>Moderación</small></button>
+ <button class="card" onclick="adminAdvertising()"><div class="big">📣</div><strong>Publicidad</strong><small>Control de cobro</small></button>
+ <button class="card" onclick="adminPayments()"><div class="big">💳</div><strong>Pagos y membresías</strong><small>Métodos, precios y duración</small></button>
+ <button class="card" onclick="simple('📦 Inventario','Aquí se administrará el inventario.')"><div class="big">📦</div><strong>Inventario</strong><small>Control de productos</small></button></div>`);
 }
-
-function myProducts(){
-
-```
-openModal(simplePage(
-    "📦 Mis productos",
-    "Aquí aparecerán tus productos publicados."
-));
-```
-
-}
-
-function mySales(){
-
-```
-openModal(simplePage(
-    "💰 Mis ventas",
-    "Aquí se registrarán tus ventas."
-));
-```
-
-}
-
-function myReceipts(){
-
-```
-openModal(simplePage(
-    "🧾 Mis recibos",
-    "Aquí aparecerán tus recibos y comprobantes."
-));
-```
-
-}
-
-function myFavorites(){
-
-```
-openModal(simplePage(
-    "❤️ Favoritos",
-    "Aquí aparecerán los productos que guardes."
-));
-```
-
-}
-
-function myHistory(){
-
-```
-openModal(simplePage(
-    "📋 Historial",
-    "Aquí aparecerá tu actividad reciente."
-));
-```
-
-}
-
-function simplePage(title,text){
-
-```
-return `
-
-    <div class="modal-header">
-
-        <h2>${title}</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-    <div style="
-        text-align:center;
-        padding:40px 20px;
-        color:#64748b;
-    ">
-        ${text}
-    </div>
-
-`;
-```
-
-}
-
-/* CONFIGURACIÓN */
-
-function openSettings(){
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>⚙️ Configuración</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <div class="menu">
-
-        <button class="menu-item" onclick="editProfile()">
-
-            <div class="menu-icon">👤</div>
-
-            <div class="menu-text">
-                <strong>Editar perfil</strong>
-                <small>Modificar información</small>
-            </div>
-
-            <span>›</span>
-
-        </button>
-
-
-        <button class="menu-item" onclick="changePassword()">
-
-            <div class="menu-icon">🔐</div>
-
-            <div class="menu-text">
-                <strong>Cambiar contraseña</strong>
-                <small>Actualizar contraseña</small>
-            </div>
-
-            <span>›</span>
-
-        </button>
-
-
-        <button class="menu-item" onclick="security()">
-
-            <div class="menu-icon">🛡️</div>
-
-            <div class="menu-text">
-                <strong>Seguridad y recuperación</strong>
-                <small>Opciones de recuperación</small>
-            </div>
-
-            <span>›</span>
-
-        </button>
-
-
-        <button class="menu-item" onclick="emailOption()">
-
-            <div class="menu-icon">📧</div>
-
-            <div class="menu-text">
-                <strong>Correo electrónico</strong>
-                <small>Opcional</small>
-            </div>
-
-            <span>›</span>
-
-        </button>
-
-    </div>
-
-`);
-```
-
-}
-
-function editProfile(){
-
-```
-alert("👤 Aquí podrás editar tu perfil.");
-```
-
-}
-
-function changePassword(){
-
-```
-alert("🔐 Aquí podrás cambiar tu contraseña.");
-```
-
-}
-
-function security(){
-
-```
-alert("🛡️ Aquí podrás administrar la recuperación de tu cuenta.");
-```
-
-}
-
-function emailOption(){
-
-```
-alert("📧 El correo electrónico es opcional.");
-```
-
-}
-
-/* ADMIN */
-
-function openAdmin(){
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>👑 Administración</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <div class="grid">
-
-        <button class="card" onclick="adminUsers()">
-            <div class="card-icon">👥</div>
-            <strong>Usuarios</strong>
-            <small>Gestionar cuentas</small>
-        </button>
-
-        <button class="card" onclick="adminBlocked()">
-            <div class="card-icon">🚫</div>
-            <strong>Bloqueados</strong>
-            <small>Bloquear o desbloquear</small>
-        </button>
-
-        <button class="card" onclick="adminPosts()">
-            <div class="card-icon">📢</div>
-            <strong>Publicaciones</strong>
-            <small>Moderar publicaciones</small>
-        </button>
-
-        <button class="card" onclick="adminPayments()">
-            <div class="card-icon">💳</div>
-            <strong>Pagos y membresías</strong>
-            <small>Control de pagos</small>
-        </button>
-
-        <button class="card" onclick="adminAdvertising()">
-            <div class="card-icon">📣</div>
-            <strong>Publicidad</strong>
-            <small>Publicidad comercial</small>
-        </button>
-
-        <button class="card" onclick="adminInventory()">
-            <div class="card-icon">📦</div>
-            <strong>Inventario</strong>
-            <small>Control de productos</small>
-        </button>
-
-    </div>
-
-`);
-```
-
-}
-
-function adminUsers(){
-
-```
-alert("👥 Gestión de usuarios.");
-```
-
-}
-
-function adminBlocked(){
-
-```
-alert("🚫 Gestión de usuarios bloqueados.");
-```
-
-}
-
-function adminPosts(){
-
-```
-alert("📢 Moderación de publicaciones.");
-```
-
-}
-
-function adminInventory(){
-
-```
-alert("📦 Gestión de inventario.");
-```
-
-}
-
-/* PUBLICIDAD */
-
-let advertisingPaid=false;
+function adminUsers(){simple('👥 Usuarios','Aquí se conectará la lista real de usuarios de la base de datos.')}
+function adminBlocked(){simple('🚫 Bloqueos','Aquí el administrador podrá bloquear y mantener bloqueada una cuenta hasta autorizar su desbloqueo.')}
+function adminPosts(){simple('📢 Moderación','Aquí se revisarán publicaciones, infracciones y reportes.')}
 
 function adminAdvertising(){
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>📣 Publicidad comercial</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <div class="setting-row">
-
-        <div>
-
-            <strong>Cobrar por publicidad</strong>
-
-            <div style="
-                color:#64748b;
-                font-size:12px;
-                margin-top:4px;
-            ">
-                Activar o desactivar manualmente
-            </div>
-
-        </div>
-
-
-        <button
-            id="adToggle"
-            class="toggle ${advertisingPaid?"on":""}"
-            onclick="toggleAds()"
-        ></button>
-
-    </div>
-
-
-    <div class="form-group" style="margin-top:20px;">
-
-        <label>🏦 Precio bancario</label>
-
-        <input
-            id="adBank"
-            type="number"
-            value="1500"
-        >
-
-    </div>
-
-
-    <div class="form-group">
-
-        <label>₿ Precio Binance</label>
-
-        <input
-            id="adBinance"
-            type="number"
-            value="30"
-        >
-
-    </div>
-
-
-    <div class="form-group">
-
-        <label>🅿️ Precio PayPal</label>
-
-        <input
-            id="adPaypal"
-            type="number"
-            value="32"
-        >
-
-    </div>
-
-
-    <button
-        class="primary-btn"
-        onclick="saveAds()"
-    >
-        💾 Guardar configuración
-    </button>
-
-`);
-```
-
+ let c=JSON.parse(localStorage.getItem(STORAGE_CONFIG)||'null')||{paid:false,bank:1500,binance:30,paypal:32};
+ show(`<div class="modal-head"><h2>📣 Publicidad comercial</h2><button class="close" onclick="close()">×</button></div>
+ <div class="row"><div><strong>Cobrar por publicidad</strong><div class="muted">Tú decides cuándo activar esta opción.</div></div><button id="adToggle" class="toggle ${c.paid?'on':''}" onclick="toggleAd()"></button></div>
+ <div class="field" style="margin-top:16px"><label>🏦 Precio por banco</label><input id="adBank" type="number" value="${c.bank}"></div>
+ <div class="field" style="margin-top:12px"><label>₿ Precio Binance</label><input id="adBinance" type="number" value="${c.binance}"></div>
+ <div class="field" style="margin-top:12px"><label>🅿️ Precio PayPal</label><input id="adPaypal" type="number" value="${c.paypal}"></div>
+ <button class="primary" style="margin-top:14px" onclick="saveAdConfig()">💾 Guardar configuración</button>`);
 }
-
-function toggleAds(){
-
-```
-advertisingPaid=!advertisingPaid;
-
-const b=document.getElementById("adToggle");
-
-if(b){
-    b.classList.toggle("on",advertisingPaid);
-}
-```
-
-}
-
-function saveAds(){
-
-```
-localStorage.setItem(
-    "marketFlashAds",
-    JSON.stringify({
-
-        paid:advertisingPaid,
-
-        bank:document.getElementById("adBank").value,
-
-        binance:document.getElementById("adBinance").value,
-
-        paypal:document.getElementById("adPaypal").value
-
-    })
-);
-
-
-alert("✅ Configuración de publicidad guardada.");
-```
-
-}
-
-/* PAGOS */
+function toggleAd(){let c=JSON.parse(localStorage.getItem(STORAGE_CONFIG)||'null')||{paid:false,bank:1500,binance:30,paypal:32};c.paid=!c.paid;localStorage.setItem(STORAGE_CONFIG,JSON.stringify(c));document.getElementById('adToggle').classList.toggle('on',c.paid)}
+function saveAdConfig(){let c=JSON.parse(localStorage.getItem(STORAGE_CONFIG)||'null')||{};c.bank=Number(adBank.value);c.binance=Number(adBinance.value);c.paypal=Number(adPaypal.value);localStorage.setItem(STORAGE_CONFIG,JSON.stringify(c));toast('✅ Configuración guardada')}
 
 function adminPayments(){
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>💳 Pagos y membresías</h2>
-
-        <button class="close-btn" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <div class="form-group">
-
-        <label>🏦 BanReservas</label>
-
-        <input placeholder="Número de cuenta">
-
-    </div>
-
-
-    <div class="form-group">
-
-        <label>🏦 BHD</label>
-
-        <input placeholder="Número de cuenta">
-
-    </div>
-
-
-    <div class="form-group">
-
-        <label>₿ Binance</label>
-
-        <input placeholder="Usuario, dirección o enlace">
-
-    </div>
-
-
-    <div class="form-group">
-
-        <label>🅿️ PayPal</label>
-
-        <input placeholder="Enlace de PayPal">
-
-    </div>
-
-
-    <h3 style="margin:20px 0 12px;">
-        💰 Precios por método
-    </h3>
-
-
-    <div class="form-group">
-
-        <label>🏦 Precio bancario</label>
-
-        <input type="number" placeholder="RD$">
-
-    </div>
-
-
-    <div class="form-group">
-
-        <label>₿ Precio Binance</label>
-
-        <input type="number" placeholder="US$">
-
-    </div>
-
-
-    <div class="form-group">
-
-        <label>🅿️ Precio PayPal</label>
-
-        <input type="number" placeholder="US$">
-
-    </div>
-
-
-    <div class="form-group">
-
-        <label>⏱️ Duración de la membresía</label>
-
-        <input
-            type="number"
-            placeholder="Cantidad de días"
-        >
-
-    </div>
-
-
-    <button
-        class="primary-btn"
-        onclick="alert('✅ Configuración guardada.')"
-    >
-        💾 Guardar
-    </button>
-
-`);
-```
-
+ show(`<div class="modal-head"><h2>💳 Pagos y membresías</h2><button class="close" onclick="close()">×</button></div>
+ <div class="notice">El usuario depositará, enviará el comprobante y el administrador aprobará manualmente la membresía. La conexión real se hará con backend.</div>
+ <div class="field"><label>🏦 BanReservas — número de cuenta</label><input placeholder="Número de cuenta"></div>
+ <div class="field" style="margin-top:12px"><label>🏦 BHD — número de cuenta</label><input placeholder="Número de cuenta"></div>
+ <div class="field" style="margin-top:12px"><label>₿ Binance — enlace o dirección</label><input placeholder="Enlace o dirección"></div>
+ <div class="field" style="margin-top:12px"><label>🅿️ PayPal — enlace de pago</label><input placeholder="Enlace"></div>
+ <h3 style="margin:18px 0 10px">💰 Precios editables</h3>
+ <div class="field"><label>🏦 Precio bancario</label><input type="number" placeholder="RD$"></div>
+ <div class="field" style="margin-top:12px"><label>₿ Precio Binance</label><input type="number" placeholder="US$"></div>
+ <div class="field" style="margin-top:12px"><label>🅿️ Precio PayPal</label><input type="number" placeholder="US$"></div>
+ <div class="field" style="margin-top:12px"><label>⏱️ Duración de membresía</label><input type="number" placeholder="Días"></div>
+ <button class="primary" style="margin-top:14px" onclick="toast('✅ Configuración preparada')">💾 Guardar</button>`);
 }
+function logout(){user=null;localStorage.removeItem(STORAGE_USER);close();toast('Sesión cerrada')}
 
-/* CERRAR SESIÓN */
-
-function logout(){
-
-```
-currentUser=null;
-
-localStorage.removeItem("marketFlashUser");
-
-closeModal();
-
-alert("✅ Sesión cerrada.");
-```
-
-}
-
-/* INICIO */
-
-function goHome(){
-
-```
-closeModal();
-
-render(products);
-```
-
-}
-
-render(products);
-
+render();
 </script>
-
 </body>
 </html>
+'''
+path=Path("/mnt/data/Market_Flash_index.html")
+path.write_text(html,encoding="utf-8")
+print(f"Archivo creado: {path}")
