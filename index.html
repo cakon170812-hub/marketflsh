@@ -4,562 +4,523 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111827">
+<meta name="theme-color" content="#2563eb">
 <title>Market Flash</title>
 
 <style>
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: Arial, Helvetica, sans-serif;
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:Arial,Helvetica,sans-serif;
 }
 
-body {
-    background: #f4f6f8;
-    color: #111827;
-    min-height: 100vh;
+body{
+    background:#f5f7fb;
+    color:#111827;
+    min-height:100vh;
 }
 
-button,
-input,
-select,
-textarea {
-    font: inherit;
+button,input,select,textarea{
+    font:inherit;
 }
 
-button {
-    cursor: pointer;
-    border: none;
+button{
+    border:0;
+    cursor:pointer;
 }
 
-.hidden {
-    display: none !important;
+.hidden{
+    display:none!important;
 }
 
-/* =========================
-   HEADER
-========================= */
+/* HEADER */
 
-.header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: #ffffff;
-    border-bottom: 1px solid #e5e7eb;
-    padding: 12px 16px;
+.header{
+    position:sticky;
+    top:0;
+    z-index:100;
+    background:#fff;
+    border-bottom:1px solid #e5e7eb;
 }
 
-.header-inner {
-    max-width: 1200px;
-    margin: auto;
-    display: flex;
-    align-items: center;
-    gap: 14px;
+.header-inner{
+    max-width:1200px;
+    margin:auto;
+    padding:12px 16px;
+    display:flex;
+    align-items:center;
+    gap:12px;
 }
 
-.logo {
-    font-size: 24px;
-    font-weight: 900;
-    color: #111827;
-    white-space: nowrap;
+.logo{
+    font-size:23px;
+    font-weight:900;
+    white-space:nowrap;
 }
 
-.logo span {
-    color: #2563eb;
+.logo span{
+    color:#2563eb;
 }
 
-.search {
-    flex: 1;
-    background: #f1f5f9;
-    border-radius: 14px;
-    padding: 12px 16px;
-    border: 1px solid transparent;
-    outline: none;
+.search{
+    flex:1;
+    min-width:80px;
+    border:1px solid #e5e7eb;
+    background:#f3f5f8;
+    border-radius:14px;
+    padding:12px 14px;
+    outline:none;
 }
 
-.search:focus {
-    border-color: #2563eb;
+.search:focus{
+    border-color:#2563eb;
 }
 
-.header-btn {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    background: #f1f5f9;
-    font-size: 19px;
+.profile-btn{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    background:#eef2ff;
+    font-size:20px;
 }
 
-/* =========================
-   MAIN
-========================= */
+/* MAIN */
 
-main {
-    max-width: 1200px;
-    margin: auto;
-    padding: 18px 16px 100px;
+main{
+    max-width:1200px;
+    margin:auto;
+    padding:18px 15px 100px;
 }
 
-.categories {
-    display: flex;
-    gap: 9px;
-    overflow-x: auto;
-    padding-bottom: 15px;
+.categories{
+    display:flex;
+    gap:9px;
+    overflow-x:auto;
+    padding-bottom:15px;
 }
 
-.categories::-webkit-scrollbar {
-    display: none;
+.categories::-webkit-scrollbar{
+    display:none;
 }
 
-.category {
-    flex: 0 0 auto;
-    padding: 10px 15px;
-    border-radius: 22px;
-    background: white;
-    border: 1px solid #e5e7eb;
-    font-weight: 700;
+.category{
+    flex:0 0 auto;
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:22px;
+    padding:10px 15px;
+    font-weight:700;
 }
 
-.category.active {
-    background: #2563eb;
-    color: white;
-    border-color: #2563eb;
+.category.active{
+    background:#2563eb;
+    color:#fff;
 }
 
-/* =========================
-   ADVERTISEMENT
-========================= */
+/* PUBLICIDAD */
 
-.ad-space {
-    min-height: 100px;
-    border-radius: 18px;
-    margin: 5px 0 20px;
-    background: linear-gradient(135deg, #e8eefc, #f8fafc);
-    border: 1px dashed #b8c2d1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 18px;
+.ad-space{
+    min-height:100px;
+    margin-bottom:20px;
+    border-radius:20px;
+    background:#fff;
+    border:1px dashed #cbd5e1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:18px;
 }
 
-.ad-space.active {
-    border-style: solid;
+.ad-label{
+    font-size:11px;
+    color:#64748b;
+    font-weight:800;
+    text-transform:uppercase;
 }
 
-.ad-content {
-    width: 100%;
+.ad-title{
+    margin-top:5px;
+    font-size:19px;
+    font-weight:900;
 }
 
-.ad-label {
-    font-size: 11px;
-    color: #64748b;
-    text-transform: uppercase;
-    font-weight: 800;
-    margin-bottom: 5px;
+.ad-text{
+    margin-top:5px;
+    color:#64748b;
 }
 
-.ad-title {
-    font-size: 20px;
-    font-weight: 900;
+/* PRODUCTOS */
+
+.section-title{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:13px;
 }
 
-.ad-description {
-    color: #64748b;
-    margin-top: 5px;
+.section-title h2{
+    font-size:22px;
 }
 
-/* =========================
-   PRODUCTS
-========================= */
-
-.section-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 20px 0 12px;
+.section-count{
+    color:#64748b;
+    font-size:13px;
 }
 
-.section-title h2 {
-    font-size: 21px;
+.products{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
 }
 
-.products {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+.product-card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    overflow:hidden;
+    transition:.2s;
 }
 
-.product-card {
-    background: white;
-    border-radius: 17px;
-    overflow: hidden;
-    border: 1px solid #e5e7eb;
-    transition: .2s;
+.product-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 25px rgba(0,0,0,.08);
 }
 
-.product-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,.08);
+.product-image{
+    width:100%;
+    aspect-ratio:1/1;
+    object-fit:cover;
+    background:#e5e7eb;
 }
 
-.product-image {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: cover;
-    background: #e5e7eb;
+.product-info{
+    padding:12px;
 }
 
-.product-info {
-    padding: 12px;
+.product-name{
+    font-weight:800;
+    margin-bottom:5px;
 }
 
-.product-name {
-    font-weight: 800;
-    margin-bottom: 5px;
+.product-price{
+    font-size:18px;
+    font-weight:900;
 }
 
-.product-price {
-    font-size: 18px;
-    font-weight: 900;
+.product-location{
+    margin-top:5px;
+    color:#64748b;
+    font-size:12px;
 }
 
-.product-location {
-    font-size: 12px;
-    color: #64748b;
-    margin-top: 5px;
+/* NAV */
+
+.bottom-nav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    height:70px;
+    background:#fff;
+    border-top:1px solid #e5e7eb;
+    display:flex;
+    align-items:center;
+    justify-content:space-around;
+    z-index:200;
 }
 
-/* =========================
-   BOTTOM NAV
-========================= */
-
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 70px;
-    background: rgba(255,255,255,.97);
-    border-top: 1px solid #e5e7eb;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    z-index: 200;
+.nav-item{
+    background:none;
+    color:#64748b;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    font-size:11px;
+    font-weight:700;
 }
 
-.nav-item {
-    background: none;
-    color: #64748b;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    font-size: 11px;
-    font-weight: 700;
+.nav-item.active{
+    color:#2563eb;
 }
 
-.nav-icon {
-    font-size: 22px;
+.nav-icon{
+    font-size:21px;
 }
 
-.nav-item.active {
-    color: #2563eb;
+.publish-btn{
+    width:55px;
+    height:55px;
+    border-radius:50%;
+    background:#2563eb;
+    color:#fff;
+    font-size:29px;
+    margin-top:-25px;
+    box-shadow:0 8px 20px rgba(37,99,235,.3);
 }
 
-.publish-button {
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    background: #2563eb;
-    color: white;
-    font-size: 28px;
-    margin-top: -27px;
-    box-shadow: 0 8px 20px rgba(37,99,235,.3);
+/* MODAL */
+
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(15,23,42,.55);
+    z-index:500;
+    display:flex;
+    justify-content:center;
+    align-items:flex-end;
 }
 
-/* =========================
-   MODAL / SCREENS
-========================= */
-
-.overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15,23,42,.55);
-    z-index: 500;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
+.modal{
+    width:100%;
+    max-width:650px;
+    max-height:92vh;
+    overflow-y:auto;
+    background:#fff;
+    border-radius:25px 25px 0 0;
+    padding:22px;
 }
 
-.modal {
-    background: white;
-    width: 100%;
-    max-width: 650px;
-    max-height: 92vh;
-    overflow-y: auto;
-    border-radius: 25px 25px 0 0;
-    padding: 22px;
+.modal-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
 }
 
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+.close-btn{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:#f1f5f9;
+    font-size:22px;
 }
 
-.close {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: #f1f5f9;
-    font-size: 20px;
+/* FORMULARIOS */
+
+.form-group{
+    margin-bottom:15px;
 }
 
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    font-size: 14px;
-    font-weight: 800;
-    margin-bottom: 7px;
+.form-group label{
+    display:block;
+    margin-bottom:7px;
+    font-size:14px;
+    font-weight:800;
 }
 
 .form-group input,
 .form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 13px;
-    border: 1px solid #dbe1e8;
-    border-radius: 12px;
-    outline: none;
+.form-group textarea{
+    width:100%;
+    padding:13px;
+    border:1px solid #dbe1e8;
+    border-radius:12px;
+    outline:none;
 }
 
-.form-group textarea {
-    min-height: 110px;
-    resize: vertical;
+.form-group textarea{
+    min-height:110px;
+    resize:vertical;
 }
 
-.primary {
-    width: 100%;
-    background: #2563eb;
-    color: white;
-    padding: 14px;
-    border-radius: 13px;
-    font-weight: 800;
+.primary-btn{
+    width:100%;
+    padding:14px;
+    background:#2563eb;
+    color:#fff;
+    border-radius:13px;
+    font-weight:800;
 }
 
-.secondary {
-    width: 100%;
-    background: #f1f5f9;
-    color: #111827;
-    padding: 14px;
-    border-radius: 13px;
-    font-weight: 800;
-    margin-top: 9px;
+.secondary-btn{
+    width:100%;
+    padding:14px;
+    background:#f1f5f9;
+    color:#111827;
+    border-radius:13px;
+    font-weight:800;
+    margin-top:9px;
 }
 
-.danger {
-    background: #fee2e2;
-    color: #b91c1c;
+/* PERFIL */
+
+.profile-card{
+    text-align:center;
+    background:#f8fafc;
+    border-radius:20px;
+    padding:20px;
 }
 
-/* =========================
-   ACCOUNT
-========================= */
-
-.profile-card {
-    background: white;
-    border-radius: 20px;
-    padding: 20px;
-    border: 1px solid #e5e7eb;
-    text-align: center;
+.avatar{
+    width:85px;
+    height:85px;
+    border-radius:50%;
+    margin:auto auto 10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#dbeafe;
+    font-size:38px;
 }
 
-.avatar {
-    width: 85px;
-    height: 85px;
-    border-radius: 50%;
-    background: #dbeafe;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-    margin: 0 auto 10px;
+.menu{
+    margin-top:15px;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    overflow:hidden;
 }
 
-.menu-card {
-    margin-top: 15px;
-    background: white;
-    border-radius: 18px;
-    border: 1px solid #e5e7eb;
-    overflow: hidden;
+.menu-item{
+    width:100%;
+    background:#fff;
+    padding:15px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    text-align:left;
+    border-bottom:1px solid #edf0f3;
 }
 
-.menu-item {
-    width: 100%;
-    padding: 16px;
-    background: white;
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    border-bottom: 1px solid #edf0f3;
-    text-align: left;
+.menu-item:last-child{
+    border-bottom:0;
 }
 
-.menu-item:last-child {
-    border-bottom: none;
+.menu-icon{
+    width:44px;
+    height:44px;
+    border-radius:13px;
+    background:#eff6ff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:21px;
 }
 
-.menu-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: #eff6ff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 21px;
+.menu-text{
+    flex:1;
 }
 
-.menu-text {
-    flex: 1;
+.menu-text strong{
+    display:block;
 }
 
-.menu-text strong {
-    display: block;
+.menu-text small{
+    color:#64748b;
 }
 
-.menu-text small {
-    color: #64748b;
+/* TARJETAS */
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
 }
 
-/* =========================
-   DASHBOARD
-========================= */
-
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+.card{
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:18px;
+    padding:18px;
+    text-align:left;
 }
 
-.dashboard-card {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 18px;
-    padding: 18px;
+.card-icon{
+    font-size:31px;
+    margin-bottom:10px;
 }
 
-.dashboard-icon {
-    font-size: 30px;
-    margin-bottom: 10px;
+.card strong{
+    display:block;
+    font-size:16px;
 }
 
-.dashboard-card strong {
-    font-size: 20px;
-    display: block;
+.card small{
+    color:#64748b;
 }
 
-.dashboard-card span {
-    color: #64748b;
-    font-size: 13px;
+/* ESTADÍSTICAS */
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-top:15px;
 }
 
-/* =========================
-   STATS
-========================= */
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+.stat{
+    background:#f8fafc;
+    border-radius:15px;
+    padding:15px;
 }
 
-.stat {
-    padding: 15px;
-    border-radius: 15px;
-    background: #f8fafc;
+.stat-number{
+    font-size:23px;
+    font-weight:900;
 }
 
-.stat-number {
-    font-size: 23px;
-    font-weight: 900;
+.stat-label{
+    color:#64748b;
+    font-size:12px;
 }
 
-.stat-label {
-    color: #64748b;
-    font-size: 12px;
+/* TOGGLE */
+
+.setting-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:15px 0;
+    border-bottom:1px solid #e5e7eb;
 }
 
-/* =========================
-   TOGGLE
-========================= */
-
-.setting-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 0;
-    border-bottom: 1px solid #e5e7eb;
+.toggle{
+    width:53px;
+    height:30px;
+    border-radius:20px;
+    background:#cbd5e1;
+    position:relative;
 }
 
-.toggle {
-    width: 52px;
-    height: 29px;
-    border-radius: 20px;
-    background: #cbd5e1;
-    position: relative;
+.toggle:after{
+    content:"";
+    position:absolute;
+    width:24px;
+    height:24px;
+    top:3px;
+    left:3px;
+    border-radius:50%;
+    background:#fff;
+    transition:.2s;
 }
 
-.toggle::after {
-    content: "";
-    width: 23px;
-    height: 23px;
-    background: white;
-    border-radius: 50%;
-    position: absolute;
-    top: 3px;
-    left: 3px;
-    transition: .2s;
+.toggle.on{
+    background:#2563eb;
 }
 
-.toggle.on {
-    background: #2563eb;
+.toggle.on:after{
+    left:26px;
 }
 
-.toggle.on::after {
-    left: 26px;
-}
+/* ESCRITORIO */
 
-/* =========================
-   DESKTOP
-========================= */
+@media(min-width:700px){
 
-@media (min-width: 700px) {
-    .products {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+    .products{
+        grid-template-columns:repeat(4,1fr);
     }
 
-    .overlay {
-        align-items: center;
+    .overlay{
+        align-items:center;
     }
 
-    .modal {
-        border-radius: 25px;
-        max-height: 88vh;
+    .modal{
+        border-radius:25px;
+        max-height:88vh;
     }
 
-    .bottom-nav {
-        left: 50%;
-        transform: translateX(-50%);
-        width: min(700px, 100%);
-        border: 1px solid #e5e7eb;
-        border-radius: 20px 20px 0 0;
-    }
 }
 </style>
 
@@ -567,78 +528,74 @@ main {
 
 <body>
 
-<!-- =========================
-     HEADER
-========================= -->
-
 <header class="header">
-    <div class="header-inner">
 
 ```
+<div class="header-inner">
+
     <div class="logo">
         Market <span>Flash</span>
     </div>
 
     <input
-        id="searchInput"
+        id="search"
         class="search"
         type="search"
         placeholder="Buscar productos..."
-        oninput="searchProducts()"
     >
 
-    <button class="header-btn" onclick="openProfile()">👤</button>
+    <button
+        class="profile-btn"
+        onclick="openProfile()"
+        aria-label="Perfil"
+    >
+        👤
+    </button>
 
 </div>
 ```
 
 </header>
 
-<!-- =========================
-     MAIN MARKETPLACE
-========================= -->
-
-<main id="homeScreen">
+<main id="home">
 
 ```
 <div class="categories">
 
-    <button class="category active" onclick="filterCategory('Todos', this)">
+    <button class="category active" onclick="category('Todos',this)">
         Todos
     </button>
 
-    <button class="category" onclick="filterCategory('Celulares', this)">
+    <button class="category" onclick="category('Celulares',this)">
         📱 Celulares
     </button>
 
-    <button class="category" onclick="filterCategory('Computadoras', this)">
+    <button class="category" onclick="category('Computadoras',this)">
         💻 Computadoras
     </button>
 
-    <button class="category" onclick="filterCategory('Videojuegos', this)">
+    <button class="category" onclick="category('Videojuegos',this)">
         🎮 Videojuegos
     </button>
 
-    <button class="category" onclick="filterCategory('Ropa', this)">
+    <button class="category" onclick="category('Ropa',this)">
         👕 Ropa
     </button>
 
-    <button class="category" onclick="filterCategory('Hogar', this)">
+    <button class="category" onclick="category('Hogar',this)">
         🏠 Hogar
     </button>
 
-    <button class="category" onclick="filterCategory('Vehículos', this)">
+    <button class="category" onclick="category('Vehículos',this)">
         🚗 Vehículos
     </button>
 
 </div>
 
 
-<!-- ESPACIO PUBLICITARIO -->
+<section class="ad-space">
 
-<section id="advertisement" class="ad-space">
-
-    <div class="ad-content">
+    <div>
 
         <div class="ad-label">
             Espacio publicitario
@@ -648,8 +605,8 @@ main {
             Publicidad Market Flash
         </div>
 
-        <div class="ad-description">
-            Próximamente aquí aparecerán anuncios comerciales.
+        <div class="ad-text">
+            Aquí aparecerán los anuncios comerciales.
         </div>
 
     </div>
@@ -661,7 +618,7 @@ main {
 
     <h2>Productos</h2>
 
-    <span id="productCount">
+    <span id="count" class="section-count">
         0 productos
     </span>
 
@@ -673,14 +630,10 @@ main {
 
 </main>
 
-<!-- =========================
-     BOTTOM NAVIGATION
-========================= -->
-
 <nav class="bottom-nav">
 
 ```
-<button class="nav-item active" onclick="showHome()">
+<button class="nav-item active" onclick="goHome()">
     <span class="nav-icon">🏠</span>
     Inicio
 </button>
@@ -690,7 +643,7 @@ main {
     Buscar
 </button>
 
-<button class="publish-button" onclick="openPublish()">
+<button class="publish-btn" onclick="openPublish()">
     +
 </button>
 
@@ -707,115 +660,110 @@ main {
 
 </nav>
 
-<!-- =========================
-     MODAL GENERAL
-========================= -->
-
-<div id="modal" class="overlay hidden" onclick="closeOutside(event)">
+<div id="overlay" class="overlay hidden">
 
 ```
-<div class="modal" id="modalContent"></div>
+<div id="modal" class="modal"></div>
 ```
 
 </div>
 
 <script>
 
-/* =========================================================
-   DATOS INICIALES
-========================================================= */
+let currentCategory = "Todos";
 
 let products = [
+
     {
-        id: 1,
-        name: "iPhone 15 Pro",
-        category: "Celulares",
-        price: 45000,
-        location: "Santo Domingo",
-        seller: "Vendedor Market",
-        image: "https://images.unsplash.com/photo-1696446702183-cbd13d5f2e88?auto=format&fit=crop&w=800&q=80",
-        views: 1284,
-        likes: 86,
-        saves: 34,
-        profileVisits: 21
+        id:1,
+        name:"iPhone 15 Pro",
+        category:"Celulares",
+        price:45000,
+        location:"Santo Domingo",
+        seller:"Market Flash",
+        image:"https://images.unsplash.com/photo-1696446702183-cbd13d5f2e88?auto=format&fit=crop&w=800&q=80",
+        views:1284,
+        likes:86,
+        saves:34,
+        profileVisits:21
     },
 
     {
-        id: 2,
-        name: "Samsung Galaxy S24",
-        category: "Celulares",
-        price: 38000,
-        location: "Santiago",
-        seller: "Tecnología RD",
-        image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=800&q=80",
-        views: 743,
-        likes: 51,
-        saves: 18,
-        profileVisits: 14
+        id:2,
+        name:"Samsung Galaxy S24",
+        category:"Celulares",
+        price:38000,
+        location:"Santiago",
+        seller:"Tecnología RD",
+        image:"https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=800&q=80",
+        views:743,
+        likes:51,
+        saves:18,
+        profileVisits:14
     },
 
     {
-        id: 3,
-        name: "Laptop profesional",
-        category: "Computadoras",
-        price: 52000,
-        location: "Santo Domingo",
-        seller: "Tech Store",
-        image: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80",
-        views: 491,
-        likes: 29,
-        saves: 11,
-        profileVisits: 8
+        id:3,
+        name:"Laptop profesional",
+        category:"Computadoras",
+        price:52000,
+        location:"Santo Domingo",
+        seller:"Tech Store",
+        image:"https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80",
+        views:491,
+        likes:29,
+        saves:11,
+        profileVisits:8
     },
 
     {
-        id: 4,
-        name: "PlayStation 5",
-        category: "Videojuegos",
-        price: 32000,
-        location: "Santo Domingo Este",
-        seller: "Gaming RD",
-        image: "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80",
-        views: 952,
-        likes: 73,
-        saves: 42,
-        profileVisits: 25
+        id:4,
+        name:"PlayStation 5",
+        category:"Videojuegos",
+        price:32000,
+        location:"Santo Domingo Este",
+        seller:"Gaming RD",
+        image:"https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80",
+        views:952,
+        likes:73,
+        saves:42,
+        profileVisits:25
     }
+
 ];
 
 
-let currentCategory = "Todos";
 let currentUser = null;
 
 
-/* =========================================================
-   FORMATO DE PRECIO
-========================================================= */
+/* PRECIO */
 
-function formatPrice(price) {
+function price(value){
 
-    return new Intl.NumberFormat("es-DO", {
-        style: "currency",
-        currency: "DOP",
-        maximumFractionDigits: 0
-    }).format(price);
+    return new Intl.NumberFormat("es-DO",{
+        style:"currency",
+        currency:"DOP",
+        maximumFractionDigits:0
+    }).format(value);
 
 }
 
 
-/* =========================================================
-   MOSTRAR PRODUCTOS
-========================================================= */
+/* MOSTRAR PRODUCTOS */
 
-function renderProducts(list = products) {
+function render(list){
 
-    const container = document.getElementById("products");
+    const box=document.getElementById("products");
 
-    container.innerHTML = "";
+    box.innerHTML="";
 
-    if (list.length === 0) {
+    document.getElementById("count").textContent =
+        list.length + (list.length === 1 ? " producto" : " productos");
 
-        container.innerHTML = `
+
+    if(!list.length){
+
+        box.innerHTML=`
             <div style="
                 grid-column:1/-1;
                 text-align:center;
@@ -828,178 +776,168 @@ function renderProducts(list = products) {
             </div>
         `;
 
-        document.getElementById("productCount").textContent = "0 productos";
-
         return;
+
     }
 
 
-    list.forEach(product => {
+    list.forEach(p=>{
 
-        const card = document.createElement("article");
+        const card=document.createElement("article");
 
-        card.className = "product-card";
+        card.className="product-card";
 
-        card.onclick = () => openProduct(product.id);
+        card.onclick=()=>openProduct(p.id);
 
-        card.innerHTML = `
+        card.innerHTML=`
 
             <img
                 class="product-image"
-                src="${product.image}"
-                alt="${product.name}"
+                src="${p.image}"
+                alt="${p.name}"
             >
 
             <div class="product-info">
 
                 <div class="product-name">
-                    ${product.name}
+                    ${p.name}
                 </div>
 
                 <div class="product-price">
-                    ${formatPrice(product.price)}
+                    ${price(p.price)}
                 </div>
 
                 <div class="product-location">
-                    📍 ${product.location}
+                    📍 ${p.location}
                 </div>
 
             </div>
 
         `;
 
-        container.appendChild(card);
+        box.appendChild(card);
 
     });
-
-
-    document.getElementById("productCount").textContent =
-        `${list.length} productos`;
 
 }
 
 
-/* =========================================================
-   FILTRAR CATEGORÍA
-========================================================= */
+/* CATEGORÍAS */
 
-function filterCategory(category, button) {
+function category(name,button){
 
-    currentCategory = category;
+    currentCategory=name;
 
-    document.querySelectorAll(".category").forEach(btn => {
-        btn.classList.remove("active");
-    });
+    document.querySelectorAll(".category")
+        .forEach(b=>b.classList.remove("active"));
 
     button.classList.add("active");
 
-    if (category === "Todos") {
-        renderProducts(products);
-    } else {
-        renderProducts(
-            products.filter(p => p.category === category)
-        );
-    }
+    searchProducts();
 
 }
 
 
-/* =========================================================
-   BUSCAR
-========================================================= */
+/* BÚSQUEDA */
 
-function searchProducts() {
+document.getElementById("search")
+    .addEventListener("input",searchProducts);
 
-    const query =
-        document.getElementById("searchInput").value
+
+function searchProducts(){
+
+    const q=document.getElementById("search")
+        .value
         .toLowerCase()
         .trim();
 
-    let result = products;
+    let result=[...products];
 
 
-    if (currentCategory !== "Todos") {
+    if(currentCategory!=="Todos"){
 
-        result = result.filter(
-            p => p.category === currentCategory
+        result=result.filter(
+            p=>p.category===currentCategory
         );
 
     }
 
 
-    if (query) {
+    if(q){
 
-        result = result.filter(p =>
-            p.name.toLowerCase().includes(query) ||
-            p.category.toLowerCase().includes(query) ||
-            p.location.toLowerCase().includes(query)
+        result=result.filter(p=>
+
+            p.name.toLowerCase().includes(q) ||
+
+            p.category.toLowerCase().includes(q) ||
+
+            p.location.toLowerCase().includes(q)
+
         );
 
     }
 
 
-    renderProducts(result);
+    render(result);
 
 }
 
 
-function focusSearch() {
+function focusSearch(){
 
-    document.getElementById("searchInput").focus();
-
-}
-
-
-/* =========================================================
-   MODAL
-========================================================= */
-
-function openModal(content) {
-
-    document.getElementById("modalContent").innerHTML = content;
-
-    document.getElementById("modal").classList.remove("hidden");
+    document.getElementById("search").focus();
 
 }
 
 
-function closeModal() {
+/* MODAL */
 
-    document.getElementById("modal").classList.add("hidden");
+function openModal(html){
 
-}
+    document.getElementById("modal").innerHTML=html;
 
-
-function closeOutside(event) {
-
-    if (event.target.id === "modal") {
-        closeModal();
-    }
+    document.getElementById("overlay")
+        .classList.remove("hidden");
 
 }
 
 
-/* =========================================================
-   PRODUCTO
-========================================================= */
+function closeModal(){
 
-function openProduct(id) {
+    document.getElementById("overlay")
+        .classList.add("hidden");
 
-    const product = products.find(p => p.id === id);
-
-    if (!product) return;
+}
 
 
-    product.views++;
+document.getElementById("overlay")
+    .addEventListener("click",function(e){
+
+        if(e.target===this){
+            closeModal();
+        }
+
+    });
+
+
+/* PRODUCTO */
+
+function openProduct(id){
+
+    const p=products.find(x=>x.id===id);
+
+    if(!p)return;
+
+    p.views++;
 
 
     openModal(`
 
         <div class="modal-header">
 
-            <h2>${product.name}</h2>
+            <h2>${p.name}</h2>
 
-            <button class="close" onclick="closeModal()">
+            <button class="close-btn" onclick="closeModal()">
                 ×
             </button>
 
@@ -1007,12 +945,13 @@ function openProduct(id) {
 
 
         <img
-            src="${product.image}"
+            src="${p.image}"
+            alt="${p.name}"
             style="
                 width:100%;
-                border-radius:18px;
                 max-height:380px;
                 object-fit:cover;
+                border-radius:18px;
             "
         >
 
@@ -1020,15 +959,17 @@ function openProduct(id) {
         <div style="margin-top:18px;">
 
             <div style="
-                font-size:26px;
+                font-size:27px;
                 font-weight:900;
-                margin-bottom:7px;
             ">
-                ${formatPrice(product.price)}
+                ${price(p.price)}
             </div>
 
-            <div style="color:#64748b;">
-                📍 ${product.location}
+            <div style="
+                margin-top:6px;
+                color:#64748b;
+            ">
+                📍 ${p.location}
             </div>
 
         </div>
@@ -1037,74 +978,58 @@ function openProduct(id) {
         <div style="
             margin-top:18px;
             padding:16px;
-            background:#f8fafc;
             border-radius:15px;
+            background:#f8fafc;
         ">
 
             <strong>👤 Vendedor</strong>
 
             <div style="margin-top:5px;">
-                ${product.seller}
+                ${p.seller}
             </div>
 
         </div>
 
 
-        <div class="stats-grid" style="margin-top:18px;">
+        <div class="stats">
 
             <div class="stat">
-                <div class="stat-number">
-                    ${product.views}
-                </div>
-                <div class="stat-label">
-                    👁️ Visualizaciones
-                </div>
+                <div class="stat-number">${p.views}</div>
+                <div class="stat-label">👁️ Visualizaciones</div>
             </div>
 
             <div class="stat">
-                <div class="stat-number">
-                    ${product.likes}
-                </div>
-                <div class="stat-label">
-                    ❤️ Reacciones
-                </div>
+                <div class="stat-number">${p.likes}</div>
+                <div class="stat-label">❤️ Reacciones</div>
             </div>
 
             <div class="stat">
-                <div class="stat-number">
-                    ${product.saves}
-                </div>
-                <div class="stat-label">
-                    🔖 Guardados
-                </div>
+                <div class="stat-number">${p.saves}</div>
+                <div class="stat-label">🔖 Guardados</div>
             </div>
 
             <div class="stat">
-                <div class="stat-number">
-                    ${product.profileVisits}
-                </div>
-                <div class="stat-label">
-                    👤 Visitas al perfil
-                </div>
+                <div class="stat-number">${p.profileVisits}</div>
+                <div class="stat-label">👤 Visitas al perfil</div>
             </div>
 
         </div>
 
 
         <button
-            class="primary"
+            class="primary-btn"
             style="margin-top:18px;"
-            onclick="contactSeller('${product.seller}')"
+            onclick="likeProduct(${p.id})"
         >
-            📞 Contactar vendedor
+            ❤️ Me interesa
         </button>
 
 
         <button
-            class="secondary"
-            onclick="likeProduct(${product.id})"
+            class="secondary-btn"
+            onclick="contactSeller('${p.seller}')"
         >
-            ❤️ Me interesa
+            📞 Contactar vendedor
         </button>
 
     `);
@@ -1112,34 +1037,33 @@ function openProduct(id) {
 }
 
 
-function likeProduct(id) {
+function likeProduct(id){
 
-    const product = products.find(p => p.id === id);
+    const p=products.find(x=>x.id===id);
 
-    if (!product) return;
+    if(!p)return;
 
-    product.likes++;
+    p.likes++;
 
-    alert("❤️ Has indicado que te interesa este producto.");
+    alert("❤️ Producto marcado como interesado.");
 
 }
 
 
-function contactSeller(seller) {
+function contactSeller(name){
 
     alert(
-        "Contacto con " + seller +
-        "\n\nLa mensajería/contacto se conectará en la siguiente etapa."
+        "Contacto con " +
+        name +
+        ".\n\nLa mensajería se conectará en la siguiente etapa."
     );
 
 }
 
 
-/* =========================================================
-   PUBLICAR PRODUCTO
-========================================================= */
+/* PUBLICAR */
 
-function openPublish() {
+function openPublish(){
 
     openModal(`
 
@@ -1147,21 +1071,21 @@ function openPublish() {
 
             <h2>➕ Publicar producto</h2>
 
-            <button class="close" onclick="closeModal()">
+            <button class="close-btn" onclick="closeModal()">
                 ×
             </button>
 
         </div>
 
 
-        <form onsubmit="createProduct(event)">
+        <form id="publishForm">
 
             <div class="form-group">
 
-                <label>📸 Foto del producto</label>
+                <label>📸 Imagen</label>
 
                 <input
-                    id="productImage"
+                    id="newImage"
                     type="url"
                     placeholder="URL de la imagen"
                     required
@@ -1175,7 +1099,7 @@ function openPublish() {
                 <label>🏷️ Nombre del producto</label>
 
                 <input
-                    id="productName"
+                    id="newName"
                     type="text"
                     placeholder="Ej. iPhone 15 Pro"
                     required
@@ -1188,7 +1112,7 @@ function openPublish() {
 
                 <label>📂 Categoría</label>
 
-                <select id="productCategory" required>
+                <select id="newCategory" required>
 
                     <option value="">Seleccionar</option>
                     <option>Celulares</option>
@@ -1208,7 +1132,7 @@ function openPublish() {
                 <label>💰 Precio</label>
 
                 <input
-                    id="productPrice"
+                    id="newPrice"
                     type="number"
                     min="0"
                     placeholder="Precio"
@@ -1223,9 +1147,9 @@ function openPublish() {
                 <label>📍 Ubicación</label>
 
                 <input
-                    id="productLocation"
+                    id="newLocation"
                     type="text"
-                    placeholder="Ciudad / provincia"
+                    placeholder="Ciudad o provincia"
                     required
                 >
 
@@ -1237,7 +1161,7 @@ function openPublish() {
                 <label>📝 Descripción</label>
 
                 <textarea
-                    id="productDescription"
+                    id="newDescription"
                     placeholder="Describe el producto..."
                 ></textarea>
 
@@ -1245,87 +1169,90 @@ function openPublish() {
         </div>
 
 
-        <button class="primary" type="submit">
-            🚀 Publicar producto
+        <button
+            type="submit"
+            class="primary-btn"
+        >
+            🚀 Publicar
         </button>
 
     </form>
 
 `);
+
+
+document.getElementById("publishForm")
+    .addEventListener("submit",function(e){
+
+        e.preventDefault();
+
+
+        const p={
+
+            id:Date.now(),
+
+            name:document.getElementById("newName").value,
+
+            category:document.getElementById("newCategory").value,
+
+            price:Number(document.getElementById("newPrice").value),
+
+            location:document.getElementById("newLocation").value,
+
+            seller:currentUser
+                ? currentUser.name
+                : "Nuevo vendedor",
+
+            image:document.getElementById("newImage").value,
+
+            views:0,
+            likes:0,
+            saves:0,
+            profileVisits:0
+
+        };
+
+
+        products.unshift(p);
+
+        closeModal();
+
+        currentCategory="Todos";
+
+        document.querySelectorAll(".category")
+            .forEach(b=>b.classList.remove("active"));
+
+        document.querySelector(".category")
+            .classList.add("active");
+
+        render(products);
+
+        alert("✅ Producto publicado correctamente.");
+
+    });
 ```
 
 }
 
-function createProduct(event) {
+/* REGISTRO */
 
-```
-event.preventDefault();
-
-
-const newProduct = {
-
-    id: Date.now(),
-
-    name:
-        document.getElementById("productName").value,
-
-    category:
-        document.getElementById("productCategory").value,
-
-    price:
-        Number(document.getElementById("productPrice").value),
-
-    location:
-        document.getElementById("productLocation").value,
-
-    seller:
-        currentUser ? currentUser.name : "Nuevo vendedor",
-
-    image:
-        document.getElementById("productImage").value,
-
-    views: 0,
-    likes: 0,
-    saves: 0,
-    profileVisits: 0
-
-};
-
-
-products.unshift(newProduct);
-
-closeModal();
-
-currentCategory = "Todos";
-
-renderProducts(products);
-
-alert("✅ Tu publicación fue creada correctamente.");
-```
-
-}
-
-/* =========================================================
-REGISTRO
-========================================================= */
-
-function openRegister() {
+function openRegister(){
 
 ```
 openModal(`
 
     <div class="modal-header">
 
-        <h2>Crear cuenta</h2>
+        <h2>📝 Crear cuenta</h2>
 
-        <button class="close" onclick="closeModal()">
+        <button class="close-btn" onclick="closeModal()">
             ×
         </button>
 
     </div>
 
 
-    <form onsubmit="registerUser(event)">
+    <form id="registerForm">
 
         <div class="form-group">
 
@@ -1373,11 +1300,9 @@ openModal(`
 
             <label>🛡️ Pregunta de recuperación</label>
 
-            <select id="securityQuestion" required>
+            <select id="registerQuestion" required>
 
-                <option value="">
-                    Seleccionar pregunta
-                </option>
+                <option value="">Seleccionar</option>
 
                 <option>
                     ¿Cuál era tu apodo de infancia?
@@ -1402,12 +1327,11 @@ openModal(`
 
         <div class="form-group">
 
-            <label>🛡️ Respuesta de recuperación</label>
+            <label>🛡️ Respuesta</label>
 
             <input
-                id="securityAnswer"
+                id="registerAnswer"
                 type="text"
-                placeholder="Tu respuesta"
                 required
             >
 
@@ -1421,88 +1345,293 @@ openModal(`
             <input
                 id="registerEmail"
                 type="email"
-                placeholder="Correo opcional"
+                placeholder="Opcional"
             >
 
         </div>
 
 
-        <button class="primary" type="submit">
+        <button class="primary-btn">
             Crear cuenta
         </button>
 
     </form>
 
 `);
+
+
+document.getElementById("registerForm")
+    .addEventListener("submit",function(e){
+
+        e.preventDefault();
+
+
+        currentUser={
+
+            name:document.getElementById("registerName").value,
+
+            cedula:document.getElementById("registerCedula").value,
+
+            password:document.getElementById("registerPassword").value,
+
+            question:document.getElementById("registerQuestion").value,
+
+            answer:document.getElementById("registerAnswer").value,
+
+            email:document.getElementById("registerEmail").value,
+
+            blocked:false
+
+        };
+
+
+        localStorage.setItem(
+            "marketFlashUser",
+            JSON.stringify(currentUser)
+        );
+
+
+        closeModal();
+
+        alert("✅ Cuenta creada correctamente.");
+
+    });
 ```
 
 }
 
-function registerUser(event) {
+/* LOGIN */
+
+function openLogin(){
 
 ```
-event.preventDefault();
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>🔐 Iniciar sesión</h2>
+
+        <button class="close-btn" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
 
 
-const user = {
+    <form id="loginForm">
 
-    name:
-        document.getElementById("registerName").value,
+        <div class="form-group">
 
-    cedula:
-        document.getElementById("registerCedula").value,
+            <label>🪪 Número de cédula</label>
 
-    password:
-        document.getElementById("registerPassword").value,
+            <input
+                id="loginCedula"
+                required
+            >
 
-    question:
-        document.getElementById("securityQuestion").value,
-
-    answer:
-        document.getElementById("securityAnswer").value,
-
-    email:
-        document.getElementById("registerEmail").value,
-
-    blocked: false
-
-};
+        </div>
 
 
-currentUser = user;
+        <div class="form-group">
 
-localStorage.setItem(
-    "marketFlashUser",
-    JSON.stringify(user)
-);
+            <label>🔐 Contraseña</label>
+
+            <input
+                id="loginPassword"
+                type="password"
+                required
+            >
+
+        </div>
 
 
-closeModal();
+        <button class="primary-btn">
+            Entrar
+        </button>
 
-alert("✅ Cuenta creada correctamente.");
+    </form>
+
+
+    <button
+        class="secondary-btn"
+        onclick="openRecovery()"
+    >
+        🔑 Recuperar contraseña
+    </button>
+
+`);
+
+
+document.getElementById("loginForm")
+    .addEventListener("submit",function(e){
+
+        e.preventDefault();
+
+
+        const saved=
+            localStorage.getItem("marketFlashUser");
+
+
+        if(!saved){
+
+            alert("No existe una cuenta en este dispositivo.");
+
+            return;
+
+        }
+
+
+        const user=JSON.parse(saved);
+
+
+        if(user.blocked){
+
+            alert("🚫 Esta cuenta está bloqueada.");
+
+            return;
+
+        }
+
+
+        if(
+            user.cedula===
+            document.getElementById("loginCedula").value
+            &&
+            user.password===
+            document.getElementById("loginPassword").value
+        ){
+
+            currentUser=user;
+
+            closeModal();
+
+            alert("✅ Bienvenido a Market Flash.");
+
+        }else{
+
+            alert("❌ Cédula o contraseña incorrecta.");
+
+        }
+
+    });
 ```
 
 }
 
-/* =========================================================
-PERFIL
-========================================================= */
+/* RECUPERACIÓN */
 
-function openProfile() {
+function openRecovery(){
 
 ```
-const savedUser =
+const saved=
     localStorage.getItem("marketFlashUser");
 
-if (!currentUser && savedUser) {
 
-    currentUser =
-        JSON.parse(savedUser);
+if(!saved){
+
+    alert("No existe una cuenta registrada.");
+
+    return;
 
 }
 
 
-if (!currentUser) {
+const user=JSON.parse(saved);
+
+
+openModal(`
+
+    <div class="modal-header">
+
+        <h2>🔑 Recuperar contraseña</h2>
+
+        <button class="close-btn" onclick="closeModal()">
+            ×
+        </button>
+
+    </div>
+
+
+    <div style="
+        padding:15px;
+        background:#f8fafc;
+        border-radius:14px;
+        margin-bottom:15px;
+    ">
+        ${user.question}
+    </div>
+
+
+    <div class="form-group">
+
+        <label>Respuesta</label>
+
+        <input id="recoveryAnswer">
+
+    </div>
+
+
+    <button
+        class="primary-btn"
+        onclick="verifyRecovery()"
+    >
+        Verificar
+    </button>
+
+`);
+```
+
+}
+
+function verifyRecovery(){
+
+```
+const saved=
+    localStorage.getItem("marketFlashUser");
+
+const user=JSON.parse(saved);
+
+const answer=
+    document.getElementById("recoveryAnswer")
+    .value
+    .trim()
+    .toLowerCase();
+
+
+if(answer===user.answer.trim().toLowerCase()){
+
+    alert(
+        "✅ Identidad verificada.\n\n" +
+        "La recuperación segura de contraseña se conectará " +
+        "a la base de datos en la siguiente etapa."
+    );
+
+}else{
+
+    alert("❌ Respuesta incorrecta.");
+
+}
+```
+
+}
+
+/* PERFIL */
+
+function openProfile(){
+
+```
+const saved=
+    localStorage.getItem("marketFlashUser");
+
+
+if(!currentUser && saved){
+
+    currentUser=JSON.parse(saved);
+
+}
+
+
+if(!currentUser){
 
     openModal(`
 
@@ -1510,41 +1639,51 @@ if (!currentUser) {
 
             <h2>👤 Mi cuenta</h2>
 
-            <button class="close" onclick="closeModal()">
+            <button class="close-btn" onclick="closeModal()">
                 ×
             </button>
 
         </div>
 
 
-        <p style="
-            color:#64748b;
-            margin-bottom:18px;
+        <div style="
+            text-align:center;
+            padding:20px 5px;
         ">
-            Crea una cuenta para publicar productos,
-            administrar tus publicaciones y acceder a
-            tus estadísticas.
-        </p>
 
+            <div style="font-size:55px;">
+                👤
+            </div>
 
-        <button
-            class="primary"
-            onclick="openRegister()"
-        >
-            📝 Crear cuenta
-        </button>
+            <h3>Bienvenido a Market Flash</h3>
 
+            <p style="
+                color:#64748b;
+                margin:8px 0 18px;
+            ">
+                Crea una cuenta o inicia sesión.
+            </p>
 
-        <button
-            class="secondary"
-            onclick="openLogin()"
-        >
-            🔐 Iniciar sesión
-        </button>
+            <button
+                class="primary-btn"
+                onclick="openRegister()"
+            >
+                📝 Crear cuenta
+            </button>
+
+            <button
+                class="secondary-btn"
+                onclick="openLogin()"
+            >
+                🔐 Iniciar sesión
+            </button>
+
+        </div>
 
     `);
 
     return;
+
 }
 
 
@@ -1553,7 +1692,7 @@ showProfile();
 
 }
 
-function showProfile() {
+function showProfile(){
 
 ```
 openModal(`
@@ -1562,7 +1701,7 @@ openModal(`
 
         <h2>👤 Mi perfil</h2>
 
-        <button class="close" onclick="closeModal()">
+        <button class="close-btn" onclick="closeModal()">
             ×
         </button>
 
@@ -1575,18 +1714,19 @@ openModal(`
             👤
         </div>
 
-        <h2>
-            ${currentUser.name}
-        </h2>
+        <h2>${currentUser.name}</h2>
 
-        <p style="color:#64748b;margin-top:5px;">
+        <p style="
+            color:#64748b;
+            margin-top:5px;
+        ">
             Usuario de Market Flash
         </p>
 
     </div>
 
 
-    <div class="menu-card">
+    <div class="menu">
 
         <button class="menu-item" onclick="openActivity()">
 
@@ -1611,7 +1751,7 @@ openModal(`
             <div class="menu-text">
                 <strong>Configuración</strong>
                 <small>
-                    Cuenta, seguridad y preferencias
+                    Cuenta y seguridad
                 </small>
             </div>
 
@@ -1627,7 +1767,7 @@ openModal(`
             <div class="menu-text">
                 <strong>Administración</strong>
                 <small>
-                    Panel del administrador
+                    Panel administrativo
                 </small>
             </div>
 
@@ -1636,17 +1776,14 @@ openModal(`
         </button>
 
 
-        <button
-            class="menu-item"
-            onclick="logout()"
-        >
+        <button class="menu-item" onclick="logout()">
 
             <div class="menu-icon">🚪</div>
 
             <div class="menu-text">
                 <strong>Cerrar sesión</strong>
                 <small>
-                    Salir de tu cuenta
+                    Salir de la cuenta
                 </small>
             </div>
 
@@ -1661,236 +1798,9 @@ openModal(`
 
 }
 
-/* =========================================================
-LOGIN
-========================================================= */
+/* ACTIVIDAD */
 
-function openLogin() {
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>🔐 Iniciar sesión</h2>
-
-        <button class="close" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <form onsubmit="loginUser(event)">
-
-        <div class="form-group">
-
-            <label>🪪 Número de cédula</label>
-
-            <input
-                id="loginCedula"
-                type="text"
-                required
-            >
-
-        </div>
-
-
-        <div class="form-group">
-
-            <label>🔐 Contraseña</label>
-
-            <input
-                id="loginPassword"
-                type="password"
-                required
-            >
-
-        </div>
-
-
-        <button class="primary">
-            Entrar
-        </button>
-
-    </form>
-
-
-    <button
-        class="secondary"
-        onclick="openRecovery()"
-    >
-        🔑 Recuperar contraseña
-    </button>
-
-`);
-```
-
-}
-
-function loginUser(event) {
-
-```
-event.preventDefault();
-
-
-const saved =
-    localStorage.getItem("marketFlashUser");
-
-if (!saved) {
-
-    alert("No existe una cuenta registrada en este dispositivo.");
-
-    return;
-
-}
-
-
-const user = JSON.parse(saved);
-
-
-if (
-    user.cedula ===
-    document.getElementById("loginCedula").value &&
-    user.password ===
-    document.getElementById("loginPassword").value
-) {
-
-    if (user.blocked) {
-
-        alert(
-            "🚫 Esta cuenta está bloqueada por el administrador."
-        );
-
-        return;
-
-    }
-
-
-    currentUser = user;
-
-    closeModal();
-
-    alert("✅ Bienvenido a Market Flash.");
-
-} else {
-
-    alert("❌ Los datos no coinciden.");
-
-}
-```
-
-}
-
-/* =========================================================
-RECUPERACIÓN
-========================================================= */
-
-function openRecovery() {
-
-```
-const saved =
-    localStorage.getItem("marketFlashUser");
-
-if (!saved) {
-
-    alert("No hay una cuenta registrada.");
-
-    return;
-
-}
-
-
-const user = JSON.parse(saved);
-
-
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>🔑 Recuperar contraseña</h2>
-
-        <button class="close" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-
-    <p style="
-        background:#f8fafc;
-        padding:14px;
-        border-radius:12px;
-        margin-bottom:15px;
-    ">
-        ${user.question}
-    </p>
-
-
-    <div class="form-group">
-
-        <label>Respuesta</label>
-
-        <input
-            id="recoveryAnswer"
-            type="text"
-        >
-
-    </div>
-
-
-    <button
-        class="primary"
-        onclick="recoverPassword()"
-    >
-        Verificar
-    </button>
-
-`);
-```
-
-}
-
-function recoverPassword() {
-
-```
-const saved =
-    localStorage.getItem("marketFlashUser");
-
-const user = JSON.parse(saved);
-
-
-const answer =
-    document.getElementById("recoveryAnswer").value
-    .trim()
-    .toLowerCase();
-
-
-if (
-    answer ===
-    user.answer.trim().toLowerCase()
-) {
-
-    alert(
-        "✅ Verificación correcta.\n\n" +
-        "En la versión con base de datos segura " +
-        "aquí se iniciará el proceso de recuperación."
-    );
-
-} else {
-
-    alert("❌ La respuesta no es correcta.");
-
-}
-```
-
-}
-
-/* =========================================================
-MI ACTIVIDAD
-========================================================= */
-
-function openActivity() {
+function openActivity(){
 
 ```
 openModal(`
@@ -1899,72 +1809,49 @@ openModal(`
 
         <h2>📦 Mi actividad</h2>
 
-        <button class="close" onclick="closeModal()">
+        <button class="close-btn" onclick="closeModal()">
             ×
         </button>
 
     </div>
 
 
-    <div class="dashboard-grid">
+    <div class="grid">
 
-        <button
-            class="dashboard-card"
-            onclick="openMyPublications()"
-        >
-            <div class="dashboard-icon">📢</div>
+        <button class="card" onclick="myPublications()">
+            <div class="card-icon">📢</div>
             <strong>Mis publicaciones</strong>
-            <span>Administrar anuncios</span>
+            <small>Administrar anuncios</small>
         </button>
 
-
-        <button
-            class="dashboard-card"
-            onclick="openMyProducts()"
-        >
-            <div class="dashboard-icon">📦</div>
+        <button class="card" onclick="myProducts()">
+            <div class="card-icon">📦</div>
             <strong>Mis productos</strong>
-            <span>Productos publicados</span>
+            <small>Productos publicados</small>
         </button>
 
-
-        <button
-            class="dashboard-card"
-            onclick="openMySales()"
-        >
-            <div class="dashboard-icon">💰</div>
+        <button class="card" onclick="mySales()">
+            <div class="card-icon">💰</div>
             <strong>Mis ventas</strong>
-            <span>Ventas realizadas</span>
+            <small>Ventas realizadas</small>
         </button>
 
-
-        <button
-            class="dashboard-card"
-            onclick="openReceipts()"
-        >
-            <div class="dashboard-icon">🧾</div>
+        <button class="card" onclick="myReceipts()">
+            <div class="card-icon">🧾</div>
             <strong>Mis recibos</strong>
-            <span>Comprobantes</span>
+            <small>Comprobantes</small>
         </button>
 
-
-        <button
-            class="dashboard-card"
-            onclick="openFavorites()"
-        >
-            <div class="dashboard-icon">❤️</div>
+        <button class="card" onclick="myFavorites()">
+            <div class="card-icon">❤️</div>
             <strong>Favoritos</strong>
-            <span>Productos guardados</span>
+            <small>Productos guardados</small>
         </button>
 
-
-        <button
-            class="dashboard-card"
-            onclick="openHistory()"
-        >
-            <div class="dashboard-icon">📋</div>
+        <button class="card" onclick="myHistory()">
+            <div class="card-icon">📋</div>
             <strong>Historial</strong>
-            <span>Actividad reciente</span>
+            <small>Actividad reciente</small>
         </button>
 
     </div>
@@ -1974,11 +1861,11 @@ openModal(`
 
 }
 
-function openMyPublications() {
+function myPublications(){
 
 ```
-const userProducts = products.filter(
-    p => currentUser && p.seller === currentUser.name
+const list=products.filter(
+    p=>currentUser && p.seller===currentUser.name
 );
 
 
@@ -1988,7 +1875,7 @@ openModal(`
 
         <h2>📢 Mis publicaciones</h2>
 
-        <button class="close" onclick="closeModal()">
+        <button class="close-btn" onclick="closeModal()">
             ×
         </button>
 
@@ -1996,27 +1883,27 @@ openModal(`
 
 
     ${
-        userProducts.length
-        ? userProducts.map(p => `
+        list.length
+        ?
+        list.map(p=>`
 
-            <div class="dashboard-card"
-                style="margin-bottom:12px;">
+            <div class="card" style="margin-bottom:12px;">
 
                 <strong>${p.name}</strong>
 
-                <div style="
-                    margin-top:8px;
+                <p style="
                     color:#64748b;
+                    margin-top:8px;
                 ">
                     👁️ ${p.views}
                     &nbsp; ❤️ ${p.likes}
                     &nbsp; 🔖 ${p.saves}
-                </div>
+                </p>
 
                 <button
-                    class="primary"
+                    class="primary-btn"
                     style="margin-top:12px;"
-                    onclick="openProductStats(${p.id})"
+                    onclick="stats(${p.id})"
                 >
                     📊 Ver estadísticas
                 </button>
@@ -2026,13 +1913,14 @@ openModal(`
         `).join("")
         :
         `
-            <p style="
+            <div style="
                 text-align:center;
-                padding:35px;
+                padding:40px;
                 color:#64748b;
             ">
+                📢<br><br>
                 Todavía no tienes publicaciones.
-            </p>
+            </div>
         `
     }
 
@@ -2041,12 +1929,12 @@ openModal(`
 
 }
 
-function openProductStats(id) {
+function stats(id){
 
 ```
-const p = products.find(x => x.id === id);
+const p=products.find(x=>x.id===id);
 
-if (!p) return;
+if(!p)return;
 
 
 openModal(`
@@ -2055,7 +1943,7 @@ openModal(`
 
         <h2>📊 Estadísticas</h2>
 
-        <button class="close" onclick="closeModal()">
+        <button class="close-btn" onclick="closeModal()">
             ×
         </button>
 
@@ -2065,7 +1953,7 @@ openModal(`
     <h3>${p.name}</h3>
 
 
-    <div class="stats-grid" style="margin-top:15px;">
+    <div class="stats">
 
         <div class="stat">
             <div class="stat-number">${p.views}</div>
@@ -2094,132 +1982,92 @@ openModal(`
 
 }
 
-function openMyProducts() {
+function myProducts(){
 
 ```
-openModal(`
+openModal(simplePage(
+    "📦 Mis productos",
+    "Aquí aparecerán tus productos publicados."
+));
+```
+
+}
+
+function mySales(){
+
+```
+openModal(simplePage(
+    "💰 Mis ventas",
+    "Aquí se registrarán tus ventas."
+));
+```
+
+}
+
+function myReceipts(){
+
+```
+openModal(simplePage(
+    "🧾 Mis recibos",
+    "Aquí aparecerán tus recibos y comprobantes."
+));
+```
+
+}
+
+function myFavorites(){
+
+```
+openModal(simplePage(
+    "❤️ Favoritos",
+    "Aquí aparecerán los productos que guardes."
+));
+```
+
+}
+
+function myHistory(){
+
+```
+openModal(simplePage(
+    "📋 Historial",
+    "Aquí aparecerá tu actividad reciente."
+));
+```
+
+}
+
+function simplePage(title,text){
+
+```
+return `
 
     <div class="modal-header">
 
-        <h2>📦 Mis productos</h2>
+        <h2>${title}</h2>
 
-        <button class="close" onclick="closeModal()">
+        <button class="close-btn" onclick="closeModal()">
             ×
         </button>
 
     </div>
 
-    <p style="color:#64748b;">
-        Aquí aparecerán tus productos publicados
-        y su estado.
-    </p>
-
-`);
-```
-
-}
-
-function openMySales() {
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>💰 Mis ventas</h2>
-
-        <button class="close" onclick="closeModal()">
-            ×
-        </button>
-
+    <div style="
+        text-align:center;
+        padding:40px 20px;
+        color:#64748b;
+    ">
+        ${text}
     </div>
 
-    <p style="color:#64748b;">
-        Aquí se registrarán las ventas realizadas.
-    </p>
-
-`);
+`;
 ```
 
 }
 
-function openReceipts() {
+/* CONFIGURACIÓN */
 
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>🧾 Mis recibos</h2>
-
-        <button class="close" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-    <p style="color:#64748b;">
-        Aquí aparecerán tus recibos y comprobantes.
-    </p>
-
-`);
-```
-
-}
-
-function openFavorites() {
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>❤️ Favoritos</h2>
-
-        <button class="close" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-    <p style="color:#64748b;">
-        Aquí aparecerán los productos que guardes.
-    </p>
-
-`);
-```
-
-}
-
-function openHistory() {
-
-```
-openModal(`
-
-    <div class="modal-header">
-
-        <h2>📋 Historial</h2>
-
-        <button class="close" onclick="closeModal()">
-            ×
-        </button>
-
-    </div>
-
-    <p style="color:#64748b;">
-        Aquí aparecerá tu actividad reciente.
-    </p>
-
-`);
-```
-
-}
-
-/* =========================================================
-CONFIGURACIÓN
-========================================================= */
-
-function openSettings() {
+function openSettings(){
 
 ```
 openModal(`
@@ -2228,17 +2076,16 @@ openModal(`
 
         <h2>⚙️ Configuración</h2>
 
-        <button class="close" onclick="closeModal()">
+        <button class="close-btn" onclick="closeModal()">
             ×
         </button>
 
     </div>
 
 
-    <div class="menu-card">
+    <div class="menu">
 
-        <button class="menu-item"
-            onclick="editProfile()">
+        <button class="menu-item" onclick="editProfile()">
 
             <div class="menu-icon">👤</div>
 
@@ -2252,8 +2099,7 @@ openModal(`
         </button>
 
 
-        <button class="menu-item"
-            onclick="changePassword()">
+        <button class="menu-item" onclick="changePassword()">
 
             <div class="menu-icon">🔐</div>
 
@@ -2267,14 +2113,13 @@ openModal(`
         </button>
 
 
-        <button class="menu-item"
-            onclick="securitySettings()">
+        <button class="menu-item" onclick="security()">
 
             <div class="menu-icon">🛡️</div>
 
             <div class="menu-text">
                 <strong>Seguridad y recuperación</strong>
-                <small>Datos de recuperación</small>
+                <small>Opciones de recuperación</small>
             </div>
 
             <span>›</span>
@@ -2282,8 +2127,7 @@ openModal(`
         </button>
 
 
-        <button class="menu-item"
-            onclick="alert('El correo es opcional.')">
+        <button class="menu-item" onclick="emailOption()">
 
             <div class="menu-icon">📧</div>
 
@@ -2303,41 +2147,41 @@ openModal(`
 
 }
 
-function editProfile() {
+function editProfile(){
 
 ```
-alert(
-    "La edición completa del perfil se conectará en la siguiente etapa."
-);
+alert("👤 Aquí podrás editar tu perfil.");
 ```
 
 }
 
-function changePassword() {
+function changePassword(){
 
 ```
-alert(
-    "El cambio seguro de contraseña se conectará con la base de datos."
-);
+alert("🔐 Aquí podrás cambiar tu contraseña.");
 ```
 
 }
 
-function securitySettings() {
+function security(){
 
 ```
-alert(
-    "Aquí podrás modificar tus datos de recuperación."
-);
+alert("🛡️ Aquí podrás administrar la recuperación de tu cuenta.");
 ```
 
 }
 
-/* =========================================================
-ADMINISTRACIÓN
-========================================================= */
+function emailOption(){
 
-function openAdmin() {
+```
+alert("📧 El correo electrónico es opcional.");
+```
+
+}
+
+/* ADMIN */
+
+function openAdmin(){
 
 ```
 openModal(`
@@ -2346,72 +2190,49 @@ openModal(`
 
         <h2>👑 Administración</h2>
 
-        <button class="close" onclick="closeModal()">
+        <button class="close-btn" onclick="closeModal()">
             ×
         </button>
 
     </div>
 
 
-    <div class="dashboard-grid">
+    <div class="grid">
 
-        <button
-            class="dashboard-card"
-            onclick="adminUsers()"
-        >
-            <div class="dashboard-icon">👥</div>
+        <button class="card" onclick="adminUsers()">
+            <div class="card-icon">👥</div>
             <strong>Usuarios</strong>
-            <span>Gestionar cuentas</span>
+            <small>Gestionar cuentas</small>
         </button>
 
-
-        <button
-            class="dashboard-card"
-            onclick="adminBlocked()"
-        >
-            <div class="dashboard-icon">🚫</div>
+        <button class="card" onclick="adminBlocked()">
+            <div class="card-icon">🚫</div>
             <strong>Bloqueados</strong>
-            <span>Usuarios bloqueados</span>
+            <small>Bloquear o desbloquear</small>
         </button>
 
-
-        <button
-            class="dashboard-card"
-            onclick="adminPublications()"
-        >
-            <div class="dashboard-icon">📢</div>
+        <button class="card" onclick="adminPosts()">
+            <div class="card-icon">📢</div>
             <strong>Publicaciones</strong>
-            <span>Moderar contenido</span>
+            <small>Moderar publicaciones</small>
         </button>
 
-
-        <button
-            class="dashboard-card"
-            onclick="adminPayments()"
-        >
-            <div class="dashboard-icon">💳</div>
+        <button class="card" onclick="adminPayments()">
+            <div class="card-icon">💳</div>
             <strong>Pagos y membresías</strong>
-            <span>Control de pagos</span>
+            <small>Control de pagos</small>
         </button>
 
-
-        <button
-            class="dashboard-card"
-            onclick="adminAdvertising()"
-        >
-            <div class="dashboard-icon">📣</div>
+        <button class="card" onclick="adminAdvertising()">
+            <div class="card-icon">📣</div>
             <strong>Publicidad</strong>
-            <span>Publicidad comercial</span>
+            <small>Publicidad comercial</small>
         </button>
 
-
-        <button
-            class="dashboard-card"
-            onclick="adminInventory()"
-        >
-            <div class="dashboard-icon">📦</div>
+        <button class="card" onclick="adminInventory()">
+            <div class="card-icon">📦</div>
             <strong>Inventario</strong>
-            <span>Control de productos</span>
+            <small>Control de productos</small>
         </button>
 
     </div>
@@ -2421,22 +2242,52 @@ openModal(`
 
 }
 
-/* =========================================================
-ADMIN - PUBLICIDAD
-========================================================= */
+function adminUsers(){
 
-let advertisingPaid = false;
+```
+alert("👥 Gestión de usuarios.");
+```
 
-function adminAdvertising() {
+}
+
+function adminBlocked(){
+
+```
+alert("🚫 Gestión de usuarios bloqueados.");
+```
+
+}
+
+function adminPosts(){
+
+```
+alert("📢 Moderación de publicaciones.");
+```
+
+}
+
+function adminInventory(){
+
+```
+alert("📦 Gestión de inventario.");
+```
+
+}
+
+/* PUBLICIDAD */
+
+let advertisingPaid=false;
+
+function adminAdvertising(){
 
 ```
 openModal(`
 
     <div class="modal-header">
 
-        <h2>📣 Publicidad</h2>
+        <h2>📣 Publicidad comercial</h2>
 
-        <button class="close" onclick="closeModal()">
+        <button class="close-btn" onclick="closeModal()">
             ×
         </button>
 
@@ -2450,8 +2301,9 @@ openModal(`
             <strong>Cobrar por publicidad</strong>
 
             <div style="
-                font-size:12px;
                 color:#64748b;
+                font-size:12px;
+                margin-top:4px;
             ">
                 Activar o desactivar manualmente
             </div>
@@ -2460,22 +2312,21 @@ openModal(`
 
 
         <button
-            id="advertisingToggle"
-            class="toggle ${advertisingPaid ? "on" : ""}"
-            onclick="toggleAdvertising()"
+            id="adToggle"
+            class="toggle ${advertisingPaid?"on":""}"
+            onclick="toggleAds()"
         ></button>
 
     </div>
 
 
-    <div class="form-group"
-        style="margin-top:20px;">
+    <div class="form-group" style="margin-top:20px;">
 
-        <label>💰 Precio de publicidad bancaria</label>
+        <label>🏦 Precio bancario</label>
 
         <input
+            id="adBank"
             type="number"
-            id="bankAdPrice"
             value="1500"
         >
 
@@ -2487,8 +2338,8 @@ openModal(`
         <label>₿ Precio Binance</label>
 
         <input
+            id="adBinance"
             type="number"
-            id="binanceAdPrice"
             value="30"
         >
 
@@ -2500,8 +2351,8 @@ openModal(`
         <label>🅿️ Precio PayPal</label>
 
         <input
+            id="adPaypal"
             type="number"
-            id="paypalAdPrice"
             value="32"
         >
 
@@ -2509,8 +2360,8 @@ openModal(`
 
 
     <button
-        class="primary"
-        onclick="saveAdvertisingSettings()"
+        class="primary-btn"
+        onclick="saveAds()"
     >
         💾 Guardar configuración
     </button>
@@ -2520,46 +2371,35 @@ openModal(`
 
 }
 
-function toggleAdvertising() {
+function toggleAds(){
 
 ```
-advertisingPaid = !advertisingPaid;
+advertisingPaid=!advertisingPaid;
 
-const toggle =
-    document.getElementById("advertisingToggle");
+const b=document.getElementById("adToggle");
 
-if (toggle) {
-
-    toggle.classList.toggle(
-        "on",
-        advertisingPaid
-    );
-
+if(b){
+    b.classList.toggle("on",advertisingPaid);
 }
 ```
 
 }
 
-function saveAdvertisingSettings() {
+function saveAds(){
 
 ```
-const bank =
-    document.getElementById("bankAdPrice").value;
-
-const binance =
-    document.getElementById("binanceAdPrice").value;
-
-const paypal =
-    document.getElementById("paypalAdPrice").value;
-
-
 localStorage.setItem(
-    "marketFlashAdvertising",
+    "marketFlashAds",
     JSON.stringify({
-        paid: advertisingPaid,
-        bankPrice: bank,
-        binancePrice: binance,
-        paypalPrice: paypal
+
+        paid:advertisingPaid,
+
+        bank:document.getElementById("adBank").value,
+
+        binance:document.getElementById("adBinance").value,
+
+        paypal:document.getElementById("adPaypal").value
+
     })
 );
 
@@ -2569,11 +2409,9 @@ alert("✅ Configuración de publicidad guardada.");
 
 }
 
-/* =========================================================
-ADMIN - PAGOS
-========================================================= */
+/* PAGOS */
 
-function adminPayments() {
+function adminPayments(){
 
 ```
 openModal(`
@@ -2582,7 +2420,7 @@ openModal(`
 
         <h2>💳 Pagos y membresías</h2>
 
-        <button class="close" onclick="closeModal()">
+        <button class="close-btn" onclick="closeModal()">
             ×
         </button>
 
@@ -2591,11 +2429,18 @@ openModal(`
 
     <div class="form-group">
 
-        <label>🏦 BanReservas / BHD</label>
+        <label>🏦 BanReservas</label>
 
-        <input
-            placeholder="Número de cuenta"
-        >
+        <input placeholder="Número de cuenta">
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>🏦 BHD</label>
+
+        <input placeholder="Número de cuenta">
 
     </div>
 
@@ -2604,9 +2449,7 @@ openModal(`
 
         <label>₿ Binance</label>
 
-        <input
-            placeholder="Usuario / dirección / enlace"
-        >
+        <input placeholder="Usuario, dirección o enlace">
 
     </div>
 
@@ -2615,15 +2458,13 @@ openModal(`
 
         <label>🅿️ PayPal</label>
 
-        <input
-            placeholder="Enlace de PayPal"
-        >
+        <input placeholder="Enlace de PayPal">
 
     </div>
 
 
     <h3 style="margin:20px 0 12px;">
-        💰 Precios por método de pago
+        💰 Precios por método
     </h3>
 
 
@@ -2631,10 +2472,7 @@ openModal(`
 
         <label>🏦 Precio bancario</label>
 
-        <input
-            type="number"
-            placeholder="RD$"
-        >
+        <input type="number" placeholder="RD$">
 
     </div>
 
@@ -2643,10 +2481,7 @@ openModal(`
 
         <label>₿ Precio Binance</label>
 
-        <input
-            type="number"
-            placeholder="US$"
-        >
+        <input type="number" placeholder="US$">
 
     </div>
 
@@ -2655,16 +2490,27 @@ openModal(`
 
         <label>🅿️ Precio PayPal</label>
 
+        <input type="number" placeholder="US$">
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label>⏱️ Duración de la membresía</label>
+
         <input
             type="number"
-            placeholder="US$"
+            placeholder="Cantidad de días"
         >
 
     </div>
 
 
-    <button class="primary"
-        onclick="alert('Configuración guardada.')">
+    <button
+        class="primary-btn"
+        onclick="alert('✅ Configuración guardada.')"
+    >
         💾 Guardar
     </button>
 
@@ -2673,85 +2519,35 @@ openModal(`
 
 }
 
-/* =========================================================
-ADMIN - OTROS
-========================================================= */
+/* CERRAR SESIÓN */
 
-function adminUsers() {
+function logout(){
 
 ```
-alert(
-    "👥 Panel de usuarios.\n\n" +
-    "Aquí se conectará la base de datos de usuarios."
-);
-```
+currentUser=null;
 
-}
-
-function adminBlocked() {
-
-```
-alert(
-    "🚫 Usuarios bloqueados.\n\n" +
-    "Aquí podrás bloquear y desbloquear cuentas."
-);
-```
-
-}
-
-function adminPublications() {
-
-```
-alert(
-    "📢 Moderación de publicaciones.\n\n" +
-    "Aquí podrás revisar publicaciones."
-);
-```
-
-}
-
-function adminInventory() {
-
-```
-alert(
-    "📦 Inventario.\n\n" +
-    "Aquí se conectará el inventario de Market Flash."
-);
-```
-
-}
-
-/* =========================================================
-CERRAR SESIÓN
-========================================================= */
-
-function logout() {
-
-```
-currentUser = null;
+localStorage.removeItem("marketFlashUser");
 
 closeModal();
 
-alert("Has cerrado sesión.");
+alert("✅ Sesión cerrada.");
 ```
 
 }
 
-/* =========================================================
-INICIO
-========================================================= */
+/* INICIO */
 
-function showHome() {
+function goHome(){
 
 ```
 closeModal();
 
-renderProducts(products);
+render(products);
 ```
 
 }
 
-renderProducts(products);
+render(products);
 
 </script>
 
