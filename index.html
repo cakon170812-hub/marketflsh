@@ -1,1090 +1,1702 @@
-<!-- ACTUALIZACIÓN MARKET FLASH -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563eb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Market Flash">
+<title>Market Flash</title>
 
-<!-- 1. WHATSAPP EN REGISTRO -->
-<input
-  id="rWhatsApp"
-  type="tel"
-  inputmode="numeric"
-  required
-  placeholder="Ej. 18094024099"
-  maxlength="11"
->
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+ --blue:#2563eb;
+ --blue2:#1d4ed8;
+ --bg:#f4f6fa;
+ --card:#fff;
+ --text:#111827;
+ --muted:#64748b;
+ --line:#e5e7eb;
+ --danger:#dc2626;
+ --ok:#16a34a;
+}
+html,body{
+ width:100%;
+ min-height:100%;
+ font-family:Arial,Helvetica,sans-serif;
+ background:var(--bg);
+ color:var(--text)
+}
+body{padding-bottom:82px}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0}
+.hidden{display:none!important}
 
-<!-- 2. BOTONES DE CÁMARA Y GALERÍA -->
-<div class="media-options">
+.app{min-height:100vh}
 
-  <button
-    type="button"
-    class="media-button"
-    onclick="takePhoto()">
+.topbar{
+ position:sticky;
+ top:0;
+ z-index:50;
+ background:#fff;
+ border-bottom:1px solid var(--line);
+ padding:env(safe-area-inset-top) 12px 10px
+}
+.topbar-inner{
+ max-width:1200px;
+ margin:auto;
+ display:flex;
+ align-items:center;
+ gap:10px;
+ min-height:52px
+}
+.brand{
+ font-size:22px;
+ font-weight:900;
+ white-space:nowrap
+}
+.brand span{color:var(--blue)}
 
-    <span class="media-icon">📷</span>
-    Cámara
+.icon-btn{
+ width:43px;
+ height:43px;
+ border-radius:14px;
+ background:#f1f5f9;
+ display:grid;
+ place-items:center;
+ font-size:20px;
+ flex:0 0 auto
+}
+.search{
+ height:43px;
+ flex:1;
+ min-width:0;
+ border:1px solid var(--line);
+ background:#f8fafc;
+ border-radius:14px;
+ padding:0 13px;
+ outline:none
+}
+.search:focus{
+ border-color:var(--blue);
+ background:#fff
+}
 
-  </button>
+.content{
+ max-width:1200px;
+ margin:auto;
+ padding:14px 13px 30px
+}
 
-  <button
-    type="button"
-    class="media-button"
-    onclick="chooseGallery()">
+.categories{
+ display:flex;
+ gap:8px;
+ overflow-x:auto;
+ padding:2px 0 14px;
+ scrollbar-width:none
+}
+.categories::-webkit-scrollbar{display:none}
+.chip{
+ flex:0 0 auto;
+ padding:10px 14px;
+ border-radius:999px;
+ background:#fff;
+ border:1px solid var(--line);
+ font-weight:700;
+ color:#334155
+}
+.chip.active{
+ background:var(--blue);
+ color:#fff;
+ border-color:var(--blue)
+}
 
-    <span class="media-icon">🖼️</span>
-    Galería
+/* PUBLICIDAD */
+.ad{
+ background:linear-gradient(135deg,#fff,#eef4ff);
+ border:1px solid #dbeafe;
+ border-radius:20px;
+ padding:18px;
+ text-align:center;
+ margin-bottom:18px;
+ min-height:120px;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ transition:.2s
+}
+.ad:hover{
+ transform:translateY(-1px);
+ box-shadow:0 8px 24px rgba(37,99,235,.12)
+}
+.ad-button{
+ width:100%;
+ background:transparent;
+ cursor:pointer
+}
+.ad small{
+ color:var(--muted);
+ font-weight:800
+}
+.ad h3{margin:5px 0}
+.ad p{
+ color:var(--muted);
+ font-size:13px
+}
 
-  </button>
+.section-head{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ margin-bottom:12px
+}
+.section-head h2{font-size:21px}
+.muted{
+ color:var(--muted);
+ font-size:13px
+}
 
-</div>
+.products{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:11px
+}
+.product{
+ background:var(--card);
+ border:1px solid var(--line);
+ border-radius:18px;
+ overflow:hidden;
+ min-width:0
+}
+.product img{
+ width:100%;
+ aspect-ratio:1/1;
+ object-fit:cover;
+ background:#e2e8f0;
+ display:block
+}
+.product-info{padding:11px}
+.product-name{
+ font-weight:800;
+ white-space:nowrap;
+ overflow:hidden;
+ text-overflow:ellipsis
+}
+.price{
+ font-size:17px;
+ font-weight:900;
+ margin-top:5px
+}
+.product-meta{
+ font-size:12px;
+ color:var(--muted);
+ margin-top:5px
+}
 
-<input
-  id="cameraInput"
-  type="file"
-  accept="image/*"
-  capture="environment"
-  hidden
->
+.bottom{
+ position:fixed;
+ z-index:100;
+ left:0;
+ right:0;
+ bottom:0;
+ background:#fff;
+ border-top:1px solid var(--line);
+ height:76px;
+ padding:6px max(10px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom));
+ display:flex;
+ align-items:center;
+ justify-content:center
+}
+.bottom-inner{
+ width:100%;
+ max-width:700px;
+ display:grid;
+ grid-template-columns:1fr 1fr 1fr;
+ align-items:center
+}
+.nav{
+ background:transparent;
+ color:#64748b;
+ font-size:11px;
+ font-weight:800;
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ gap:3px
+}
+.nav.active{color:var(--blue)}
+.nav-icon{font-size:21px}
+.plus{
+ width:55px;
+ height:55px;
+ border-radius:50%;
+ background:var(--blue);
+ color:#fff;
+ font-size:30px;
+ margin:auto;
+ box-shadow:0 8px 22px rgba(37,99,235,.28)
+}
 
-<input
-  id="galleryInput"
-  type="file"
-  accept="image/*"
-  hidden
->
+.overlay{
+ position:fixed;
+ z-index:300;
+ inset:0;
+ background:rgba(15,23,42,.55);
+ display:flex;
+ align-items:flex-end;
+ justify-content:center
+}
+.sheet{
+ width:100%;
+ max-width:680px;
+ max-height:94vh;
+ overflow:auto;
+ background:#fff;
+ border-radius:24px 24px 0 0;
+ padding:20px
+}
 
-<input id="pImage" type="hidden">
+.modal-head{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ margin-bottom:16px;
+ gap:10px
+}
+.modal-head h2{font-size:21px}
+.close{
+ width:40px;
+ height:40px;
+ border-radius:50%;
+ background:#f1f5f9;
+ font-size:23px;
+ flex:0 0 auto
+}
+.back{
+ width:40px;
+ height:40px;
+ border-radius:50%;
+ background:#f1f5f9;
+ font-size:22px;
+ flex:0 0 auto
+}
 
-<img
-  id="imagePreview"
-  class="preview"
-  alt="Vista previa"
->
+.form{
+ display:grid;
+ gap:13px
+}
+.field label{
+ display:block;
+ font-size:13px;
+ font-weight:800;
+ margin-bottom:6px
+}
+.field input,
+.field select,
+.field textarea{
+ width:100%;
+ border:1px solid #dbe1e8;
+ border-radius:12px;
+ padding:12px;
+ outline:none;
+ background:#fff
+}
+.field textarea{
+ min-height:100px;
+ resize:vertical
+}
+
+.primary,.secondary,.danger{
+ width:100%;
+ padding:13px;
+ border-radius:12px;
+ font-weight:800
+}
+.primary{
+ background:var(--blue);
+ color:#fff
+}
+.secondary{
+ background:#f1f5f9;
+ color:var(--text)
+}
+.danger{
+ background:#fee2e2;
+ color:#991b1b
+}
+
+.menu{display:grid;gap:8px}
+.menu-item{
+ width:100%;
+ background:#fff;
+ border:1px solid var(--line);
+ border-radius:16px;
+ padding:13px;
+ display:flex;
+ align-items:center;
+ text-align:left;
+ gap:12px
+}
+.menu-icon{
+ width:44px;
+ height:44px;
+ border-radius:13px;
+ background:#eff6ff;
+ display:grid;
+ place-items:center;
+ font-size:21px;
+ flex:0 0 auto
+}
+.menu-copy{flex:1}
+.menu-copy strong{display:block}
+.menu-copy small{
+ display:block;
+ color:var(--muted);
+ margin-top:3px
+}
+
+.profile{
+ background:#f8fafc;
+ border-radius:18px;
+ padding:20px;
+ text-align:center;
+ margin-bottom:14px
+}
+.avatar{
+ width:78px;
+ height:78px;
+ border-radius:50%;
+ background:#dbeafe;
+ display:grid;
+ place-items:center;
+ font-size:35px;
+ margin:0 auto 9px
+}
+
+.grid{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:10px
+}
+.card{
+ background:#fff;
+ border:1px solid var(--line);
+ border-radius:16px;
+ padding:16px;
+ text-align:left
+}
+.card .big{
+ font-size:28px;
+ margin-bottom:8px
+}
+.card strong{display:block}
+.card small{color:var(--muted)}
+
+.stats{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:10px;
+ margin-top:14px
+}
+.stat{
+ background:#f8fafc;
+ border-radius:14px;
+ padding:14px
+}
+.stat b{font-size:22px}
+.stat span{
+ display:block;
+ color:var(--muted);
+ font-size:12px;
+ margin-top:3px
+}
+
+.row{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:12px;
+ padding:14px 0;
+ border-bottom:1px solid var(--line)
+}
+
+.toggle{
+ width:54px;
+ height:30px;
+ border-radius:99px;
+ background:#cbd5e1;
+ position:relative;
+ flex:0 0 auto
+}
+.toggle:after{
+ content:"";
+ position:absolute;
+ width:24px;
+ height:24px;
+ left:3px;
+ top:3px;
+ background:#fff;
+ border-radius:50%;
+ transition:.2s
+}
+.toggle.on{background:var(--blue)}
+.toggle.on:after{left:27px}
+
+.notice{
+ padding:13px;
+ border-radius:13px;
+ background:#eff6ff;
+ color:#1e40af;
+ font-size:13px;
+ margin-bottom:12px
+}
+
+.product-detail img{
+ width:100%;
+ max-height:420px;
+ object-fit:cover;
+ border-radius:18px
+}
+
+.empty{
+ text-align:center;
+ padding:55px 20px;
+ color:var(--muted);
+ grid-column:1/-1
+}
+
+.toast{
+ position:fixed;
+ z-index:600;
+ left:50%;
+ bottom:92px;
+ transform:translateX(-50%);
+ background:#111827;
+ color:#fff;
+ padding:12px 16px;
+ border-radius:12px;
+ font-size:13px;
+ max-width:90%;
+ text-align:center;
+ box-shadow:0 8px 25px rgba(0,0,0,.2)
+}
+
+/* BOTONES DE IMAGEN */
+.media-options{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:10px
+}
+.media-button{
+ border:1px solid var(--line);
+ background:#f8fafc;
+ border-radius:16px;
+ padding:18px 10px;
+ text-align:center;
+ font-weight:800
+}
+.media-button .media-icon{
+ font-size:30px;
+ display:block;
+ margin-bottom:6px
+}
+.preview{
+ width:100%;
+ max-height:300px;
+ object-fit:cover;
+ border-radius:16px;
+ margin-top:10px;
+ display:none;
+ background:#e2e8f0
+}
+
+/* PUBLICIDAD */
+.ad-type-grid{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:8px
+}
+.ad-type{
+ border:2px solid var(--line);
+ border-radius:15px;
+ padding:14px 7px;
+ background:#fff;
+ text-align:center;
+ font-weight:800
+}
+.ad-type.selected{
+ border-color:var(--blue);
+ background:#eff6ff;
+ color:var(--blue)
+}
+.payment-grid{
+ display:grid;
+ gap:8px
+}
+.payment-option{
+ border:1px solid var(--line);
+ border-radius:14px;
+ padding:13px;
+ background:#fff;
+ text-align:left;
+ font-weight:700
+}
+.payment-option.selected{
+ border:2px solid var(--blue);
+ background:#eff6ff
+}
+.ad-preview{
+ border-radius:18px;
+ overflow:hidden;
+ background:#0f172a;
+ color:#fff;
+ margin:10px 0;
+ min-height:180px;
+ display:flex;
+ align-items:center;
+ justify-content:center
+}
+.ad-preview img,
+.ad-preview video{
+ width:100%;
+ max-height:360px;
+ object-fit:cover;
+ display:block
+}
+.whatsapp{
+ background:#25D366!important;
+ color:#fff!important
+}
+.messenger{
+ background:#1877F2!important;
+ color:#fff!important
+}
+
+@media(min-width:720px){
+ .products{
+  grid-template-columns:repeat(4,minmax(0,1fr))
+ }
+ .overlay{
+  align-items:center;
+  padding:20px
+ }
+ .sheet{border-radius:24px}
+ .content{
+  padding-left:20px;
+  padding-right:20px
+ }
+}
+
+@media(max-width:420px){
+ .brand{font-size:19px}
+ .icon-btn{
+  width:40px;
+  height:40px
+ }
+ .search{height:40px}
+ .topbar-inner{gap:7px}
+ .products{gap:9px}
+ .product-info{padding:9px}
+ .price{font-size:16px}
+}
 
 
-<!-- 3. BOTÓN DE ESTADO DE PUBLICIDAD -->
-<button
-  class="menu-item"
-  onclick="myAdvertisingStatus()">
+/* ACTUALIZACIÓN MARKET FLASH */
+.profile-photo{
+ width:78px;height:78px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 9px;
+ border:3px solid #dbeafe;background:#e2e8f0
+}
+.profile-photo-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.ad-live-media{width:100%;max-height:340px;object-fit:cover;border-radius:16px;margin-top:10px;display:block}
+.ad-status{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;margin-top:8px}
+.ad-status.pending{background:#fef3c7;color:#92400e}
+.ad-status.approved{background:#dcfce7;color:#166534}
+.ad-status.rejected{background:#fee2e2;color:#991b1b}
+.proof-image{width:100%;max-height:360px;object-fit:contain;border-radius:14px;border:1px solid var(--line);background:#f8fafc;margin-top:10px}
+.admin-counter{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center}
+.admin-counter b{display:block;font-size:28px}.admin-counter span{display:block;color:var(--muted);font-size:12px;margin-top:4px}
 
-  <div class="menu-icon">📋</div>
+</style>
+</head>
 
-  <div class="menu-copy">
-    <strong>Estado de mi publicidad</strong>
-    <small>
-      Ver si está en proceso, aprobada o rechazada
-    </small>
-  </div>
+<body>
 
-  <b>›</b>
+<div class="app">
 
-</button>
-
-
-<!-- 4. FOTO DE PERFIL -->
-<button
-  class="secondary"
-  style="margin-top:10px"
-  onclick="editProfilePhoto()">
-
-  📷 Cambiar foto de perfil
-
-</button>
-
-
-<!-- 5. ESTADÍSTICAS DEL ADMINISTRADOR -->
-<div class="grid">
-
-  <div class="card">
-    <div class="big" id="registeredUsersCount">0</div>
-    <strong>Usuarios registrados</strong>
-    <small>Total de cuentas creadas</small>
-  </div>
-
-  <div class="card">
-    <div class="big" id="deletedUsersCount">0</div>
-    <strong>Cuentas eliminadas</strong>
-    <small>Total de cuentas eliminadas</small>
-  </div>
-
-</div>
-
-
-<!-- 6. ELIMINAR CUENTA -->
-<button
-  class="danger"
-  style="margin-top:12px"
-  onclick="deleteAccount()">
-
-  🗑️ Eliminar mi cuenta
-
-</button>
-
-
-<!-- 7. COMPROBANTE DE PAGO -->
-<div class="field">
-
-  <label>
-    📸 Captura / comprobante de pago
-  </label>
+<header class="topbar">
+ <div class="topbar-inner">
+  <div class="brand">Market <span>Flash</span></div>
 
   <input
-    id="paymentProof"
-    type="file"
-    accept="image/*"
+   id="search"
+   class="search"
+   type="search"
+   placeholder="Buscar productos..."
   >
 
-  <small class="muted">
-    Envía una captura del pago para que el administrador
-    pueda revisar y aprobar tu publicidad.
-  </small>
+  <button class="icon-btn" aria-label="Notificaciones" onclick="notifications()">🔔</button>
+  <button class="icon-btn" aria-label="Perfil" onclick="openProfile()">👤</button>
+ </div>
+</header>
+
+<main class="content">
+
+ <div class="categories" id="categories">
+  <button class="chip active" onclick="setCategory('Todos',this)">Todos</button>
+  <button class="chip" onclick="setCategory('Celulares',this)">📱 Celulares</button>
+  <button class="chip" onclick="setCategory('Computadoras',this)">💻 Computadoras</button>
+  <button class="chip" onclick="setCategory('Videojuegos',this)">🎮 Videojuegos</button>
+  <button class="chip" onclick="setCategory('Ropa',this)">👕 Ropa</button>
+  <button class="chip" onclick="setCategory('Hogar',this)">🏠 Hogar</button>
+  <button class="chip" onclick="setCategory('Vehículos',this)">🚗 Vehículos</button>
+ </div>
+
+ <!-- PUBLICIDAD AHORA ES UN BOTÓN -->
+ <section class="ad">
+  <button class="ad-button" onclick="openAdvertising()">
+   <small>PUBLICIDAD</small>
+   <h3>📣 Publicita tu negocio en Market Flash</h3>
+   <p>Toca aquí para crear y publicar tu anuncio.</p>
+  </button>
+ </section>
+
+ <div class="section-head">
+  <h2>Productos</h2>
+  <span id="count" class="muted"></span>
+ </div>
+
+ <section id="products" class="products"></section>
+
+</main>
+
+<nav class="bottom">
+ <div class="bottom-inner">
+
+  <button class="nav active" id="navHome" onclick="home()">
+   <span class="nav-icon">🏠</span>
+   Inicio
+  </button>
+
+  <button class="plus" aria-label="Publicar" onclick="openPublish()">+</button>
+
+  <button class="nav" id="navActivity" onclick="openActivity()">
+   <span class="nav-icon">📦</span>
+   Actividad
+  </button>
+
+ </div>
+</nav>
 
 </div>
 
-
-<!-- 8. ESTADO DE PUBLICIDAD -->
-<div class="notice">
-
-  <strong>Estado de publicidad:</strong>
-
-  <span id="advertisingStatus">
-    ⏳ En proceso
-  </span>
-
+<div id="overlay" class="overlay hidden">
+ <div id="sheet" class="sheet"></div>
 </div>
 
+<div id="toast" class="toast hidden"></div>
 
 <script>
 
-/* =========================================
-   ACTUALIZACIÓN MARKET FLASH
-========================================= */
+const STORAGE_USER='mf_user';
+const STORAGE_PRODUCTS='mf_products';
+const STORAGE_CONFIG='mf_config';
+const STORAGE_ADS='mf_ads';
+const STORAGE_STATS='mf_stats';
 
-const STORAGE_STATS = 'mf_stats';
+let category='Todos';
+let user=JSON.parse(localStorage.getItem(STORAGE_USER)||'null');
 
+const seed=[
+ {
+  id:1,
+  name:'iPhone 15 Pro',
+  category:'Celulares',
+  price:45000,
+  location:'Santo Domingo',
+  seller:'Market Flash',
+  image:'https://images.unsplash.com/photo-1696446702183-cbd13d5f2e88?auto=format&fit=crop&w=800&q=80',
+  views:1284,
+  likes:86,
+  saves:34,
+  profileVisits:21
+ },
+ {
+  id:2,
+  name:'Samsung Galaxy S24',
+  category:'Celulares',
+  price:38000,
+  location:'Santiago',
+  seller:'Tecnología RD',
+  image:'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=800&q=80',
+  views:743,
+  likes:51,
+  saves:18,
+  profileVisits:14
+ },
+ {
+  id:3,
+  name:'Laptop profesional',
+  category:'Computadoras',
+  price:52000,
+  location:'Santo Domingo',
+  seller:'Tech Store',
+  image:'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=800&q=80',
+  views:491,
+  likes:29,
+  saves:11,
+  profileVisits:8
+ },
+ {
+  id:4,
+  name:'PlayStation 5',
+  category:'Videojuegos',
+  price:32000,
+  location:'Santo Domingo Este',
+  seller:'Gaming RD',
+  image:'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=800&q=80',
+  views:952,
+  likes:73,
+  saves:42,
+  profileVisits:25
+ }
+];
 
-/* =========================================
-   ESTADÍSTICAS
-========================================= */
+let products=JSON.parse(localStorage.getItem(STORAGE_PRODUCTS)||'null')||seed;
+
+let ads=JSON.parse(localStorage.getItem(STORAGE_ADS)||'[]');
+
+function saveProducts(){
+ localStorage.setItem(STORAGE_PRODUCTS,JSON.stringify(products));
+}
+
+function saveAds(){
+ try{
+  localStorage.setItem(STORAGE_ADS,JSON.stringify(ads));
+ }catch(err){
+  console.error(err);
+  toast('No se pudo guardar. La imagen o video puede ser demasiado grande para este navegador.');
+ }
+}
 
 function getStats(){
-
-  try{
-
-    return JSON.parse(
-      localStorage.getItem(STORAGE_STATS)
-    ) || {
-      registeredTotal:0,
-      deletedTotal:0
-    };
-
-  }catch(error){
-
-    return {
-      registeredTotal:0,
-      deletedTotal:0
-    };
-
-  }
-
+ const saved=JSON.parse(localStorage.getItem(STORAGE_STATS)||'null');
+ if(saved)return saved;
+ const initial={registeredTotal:user?1:0,deletedTotal:0};
+ localStorage.setItem(STORAGE_STATS,JSON.stringify(initial));
+ return initial;
 }
-
 
 function saveStats(stats){
+ localStorage.setItem(STORAGE_STATS,JSON.stringify(stats));
+}
 
-  localStorage.setItem(
-    STORAGE_STATS,
-    JSON.stringify(stats)
-  );
+function fileToDataUrl(file){
+ return new Promise((resolve,reject)=>{
+  const reader=new FileReader();
+  reader.onload=()=>resolve(reader.result);
+  reader.onerror=reject;
+  reader.readAsDataURL(file);
+ });
+}
 
+function getConfig(){
+ return JSON.parse(localStorage.getItem(STORAGE_CONFIG)||'null')||{
+  paid:false,
+
+  bank:{
+   priceCheap:500,
+   priceNormal:1000,
+   pricePro:2000
+  },
+
+  binance:{
+   priceCheap:10,
+   priceNormal:20,
+   pricePro:40
+  },
+
+  paypal:{
+   priceCheap:12,
+   priceNormal:24,
+   pricePro:48
+  },
+
+  bankAccount:'',
+  binanceAddress:'',
+  paypalLink:''
+ };
+}
+
+function saveConfig(c){
+ localStorage.setItem(STORAGE_CONFIG,JSON.stringify(c));
+}
+
+function money(n){
+ return new Intl.NumberFormat('es-DO',{
+  style:'currency',
+  currency:'DOP',
+  maximumFractionDigits:0
+ }).format(Number(n)||0);
+}
+
+function toast(t){
+ const x=document.getElementById('toast');
+
+ x.textContent=t;
+ x.classList.remove('hidden');
+
+ clearTimeout(window._toast);
+ window._toast=setTimeout(()=>{
+  x.classList.add('hidden');
+ },2600);
+} window._toast=setTimeout(()=>{
+  x.classList.add('hidden');
+ },2500);
+}
+
+function show(html){
+ document.getElementById('sheet').innerHTML=html;
+ document.getElementById('overlay').classList.remove('hidden');
+}
+
+function close(){
+ const overlay=document.getElementById('overlay');
+ const sheet=document.getElementById('sheet');
+ if(overlay)overlay.classList.add('hidden');
+ if(sheet)sheet.innerHTML='';
+ document.getElementById('navHome')?.classList.add('active');
+ document.getElementById('navActivity')?.classList.remove('active');
+}
+
+document.getElementById('overlay').addEventListener('click',e=>{
+ if(e.target.id==='overlay'){
+  close();
+ }
+});
+
+function back(){
+ close();
+}
+
+function escapeHtml(s){
+ return String(s??'').replace(/[&<>"']/g,m=>({
+  '&':'&amp;',
+  '<':'&lt;',
+  '>':'&gt;',
+  '"':'&quot;',
+  "'":'&#039;'
+ }[m]));
+}
+
+function render(){
+
+ const q=document.getElementById('search').value.trim().toLowerCase();
+
+ let list=products.filter(p=>
+  (category==='Todos'||p.category===category)&&
+  (
+   !q||
+   p.name.toLowerCase().includes(q)||
+   p.category.toLowerCase().includes(q)||
+   p.location.toLowerCase().includes(q)
+  )
+ );
+
+ document.getElementById('count').textContent=
+  list.length+' '+(list.length===1?'producto':'productos');
+
+ const box=document.getElementById('products');
+
+ if(!list.length){
+
+  box.innerHTML=`
+   <div class="empty">
+    <div style="font-size:44px">🔎</div>
+    <h3>No encontramos productos</h3>
+    <p>Prueba otra búsqueda o categoría.</p>
+   </div>
+  `;
+
+  return;
+ }
+
+ box.innerHTML=list.map(p=>`
+
+  <article class="product" onclick="openProduct(${p.id})">
+
+   <img
+    src="${escapeHtml(p.image)}"
+    alt="${escapeHtml(p.name)}"
+    onerror="this.style.objectFit='contain';this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22600%22 height=%22600%22%3E%3Crect width=%22100%25%22 height=%22100%25%22 fill=%22%23e2e8f0%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22 font-size=%2260%22%3E📦%3C/text%3E%3C/svg%3E'"
+   >
+
+   <div class="product-info">
+    <div class="product-name">${escapeHtml(p.name)}</div>
+    <div class="price">${money(p.price)}</div>
+    <div class="product-meta">📍 ${escapeHtml(p.location)}</div>
+   </div>
+
+  </article>
+
+ `).join('');
+}
+
+document.getElementById('search').addEventListener('input',render);
+
+function setCategory(c,b){
+
+ category=c;
+
+ document.querySelectorAll('.chip').forEach(x=>{
+  x.classList.remove('active');
+ });
+
+ b.classList.add('active');
+
+ render();
+}
+
+function home(){
+
+ close();
+
+ category='Todos';
+
+ document.querySelectorAll('.chip').forEach(x=>{
+  x.classList.remove('active');
+ });
+
+ const firstChip=document.querySelector('.chip');
+
+ if(firstChip){
+  firstChip.classList.add('active');
+ }
+
+ document.getElementById('navHome').classList.add('active');
+ document.getElementById('navActivity').classList.remove('active');
+
+ render();
+ renderAdvertisingSpot();
+}
+
+function notifications(){
+
+ show(`
+  <div class="modal-head">
+   <button class="back" onclick="home()">←</button>
+   <h2 style="flex:1;margin-left:8px">🔔 Notificaciones</h2>
+   <button class="close" onclick="close()">×</button>
+  </div>
+
+  <div class="notice">
+   No tienes notificaciones nuevas.
+  </div>
+
+  <button class="secondary" onclick="close()">Cerrar</button>
+ `);
 }
 
 
-/* =========================================
-   REGISTRO
-========================================= */
+/* =========================
+   PRODUCTOS
+========================= */
 
-function registerUser(){
+function openProduct(id){
 
-  const whatsapp =
-    document.getElementById('rWhatsApp')
-      .value
-      .trim()
-      .replace(/\D/g,'');
+ const p=products.find(x=>x.id===id);
+
+ if(!p)return;
+
+ p.views++;
+
+ saveProducts();
+
+ let sellerPhone='';
+
+ if(user && user.name===p.seller){
+  sellerPhone=user.whatsapp||'';
+ }
+
+ show(`
+
+  <div class="modal-head">
+   <button class="back" onclick="home()">←</button>
+   <h2 style="flex:1;margin-left:8px">${escapeHtml(p.name)}</h2>
+   <button class="close" onclick="close()">×</button>
+  </div>
+
+  <div class="product-detail">
+
+   <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}">
+
+   <div style="margin-top:14px">
+
+    <div class="price" style="font-size:27px">
+     ${money(p.price)}
+    </div>
+
+    <div class="muted">
+     📍 ${escapeHtml(p.location)}
+    </div>
+
+   </div>
+
+   <div class="card" style="margin-top:14px">
+
+    <strong>👤 Vendedor</strong>
+
+    <div class="muted" style="margin-top:4px">
+     ${escapeHtml(p.seller)}
+    </div>
+
+   </div>
+
+   <div class="stats">
+
+    <div class="stat">
+     <b>${p.views}</b>
+     <span>👁️ Visualizaciones</span>
+    </div>
+
+    <div class="stat">
+     <b>${p.likes}</b>
+     <span>❤️ Reacciones</span>
+    </div>
+
+    <div class="stat">
+     <b>${p.saves}</b>
+     <span>🔖 Guardados</span>
+    </div>
+
+    <div class="stat">
+     <b>${p.profileVisits}</b>
+     <span>👤 Visitas al perfil</span>
+    </div>
+
+   </div>
+
+   <button
+    class="primary"
+    style="margin-top:14px"
+    onclick="like(${p.id})">
+    ❤️ Me interesa
+   </button>
+
+   <button
+    class="primary whatsapp"
+    style="margin-top:8px"
+    onclick="contactWhatsApp(${p.id})">
+    <span style="font-size:20px">◉</span>
+    Contactar por WhatsApp
+   </button>
+
+  </div>
+ `);
+}
+
+function like(id){
+
+ const p=products.find(x=>x.id===id);
+
+ if(!p)return;
+
+ p.likes++;
+
+ saveProducts();
+
+ toast('❤️ Interés registrado');
+
+ openProduct(id);
+}
+
+function contactWhatsApp(id){
+
+ const p=products.find(x=>x.id===id);
+
+ if(!p)return;
+
+ let phone=p.whatsapp||'';
+
+ if(!phone){
+
+  toast('El vendedor todavía no tiene WhatsApp configurado');
+
+  return;
+ }
+
+ phone=phone.replace(/\D/g,'');
+
+ const message=
+  'Hola, estoy interesado/a en tu publicación "'+
+  p.name+
+  '" en Market Flash.';
+
+ const url=
+  'https://wa.me/'+phone+
+  '?text='+encodeURIComponent(message);
+
+ window.open(url,'_blank');
+}
 
 
-  if(!/^1\d{10}$/.test(whatsapp)){
+/* =========================
+   PUBLICAR PRODUCTO
+========================= */
 
-    toast(
-      'El WhatsApp debe tener 11 números. Ejemplo: 18094024099'
-    );
+function openPublish(){
 
-    return false;
+ if(!user){
 
+  show(`
+   <div class="modal-head">
+    <button class="back" onclick="home()">←</button>
+    <h2 style="flex:1;margin-left:8px">➕ Publicar producto</h2>
+    <button class="close" onclick="close()">×</button>
+   </div>
+
+   <div class="notice">
+    Primero debes crear una cuenta o iniciar sesión.
+   </div>
+
+   <button class="primary" onclick="register()">
+    📝 Crear cuenta
+   </button>
+
+   <button class="secondary" style="margin-top:8px" onclick="login()">
+    🔐 Iniciar sesión
+   </button>
+  `);
+
+  return;
+ }
+
+ show(`
+
+  <div class="modal-head">
+   <button class="back" onclick="home()">←</button>
+   <h2 style="flex:1;margin-left:8px">➕ Publicar producto</h2>
+   <button class="close" onclick="close()">×</button>
+  </div>
+
+  <form class="form" id="publishForm">
+
+   <div class="field">
+
+    <label>📸 Fotos del producto</label>
+
+    <div class="media-options">
+
+     <button
+      type="button"
+      class="media-button"
+      onclick="takePhoto()">
+      <span class="media-icon">📷</span>
+      Cámara
+     </button>
+
+     <button
+      type="button"
+      class="media-button"
+      onclick="chooseGallery()">
+      <span class="media-icon">🖼️</span>
+      Galería
+     </button>
+
+    </div>
+
+    <input
+     id="cameraInput"
+     type="file"
+     accept="image/*"
+     capture="environment"
+     hidden
+    >
+
+    <input
+     id="galleryInput"
+     type="file"
+     accept="image/*"
+     hidden
+    >
+
+    <input id="pImage" type="hidden">
+
+    <img id="imagePreview" class="preview">
+
+   </div>
+
+   <div class="field">
+    <label>🏷️ Nombre</label>
+    <input
+     id="pName"
+     required
+     placeholder="Ej. iPhone 15 Pro"
+    >
+   </div>
+
+   <div class="field">
+
+    <label>📂 Categoría</label>
+
+    <select id="pCat" required>
+     <option value="">Seleccionar</option>
+     <option>Celulares</option>
+     <option>Computadoras</option>
+     <option>Videojuegos</option>
+     <option>Ropa</option>
+     <option>Hogar</option>
+     <option>Vehículos</option>
+    </select>
+
+   </div>
+
+   <div class="field">
+    <label>💰 Precio</label>
+    <input id="pPrice" type="number" min="0" required>
+   </div>
+
+   <div class="field">
+    <label>📍 Ubicación</label>
+    <input
+     id="pLoc"
+     required
+     placeholder="Ciudad o provincia"
+    >
+   </div>
+
+   <div class="field">
+    <label>📝 Descripción</label>
+    <textarea
+     id="pDesc"
+     placeholder="Describe el producto"
+    ></textarea>
+   </div>
+
+   <div class="notice">
+    📲 WhatsApp utilizado: <strong>${escapeHtml(user.whatsapp||'No registrado')}</strong>
+   </div>
+
+   <button class="primary">
+    🚀 Publicar
+   </button>
+
+  </form>
+ `);
+
+ const camera=document.getElementById('cameraInput');
+ const gallery=document.getElementById('galleryInput');
+
+ camera.addEventListener('change',handleImage);
+ gallery.addEventListener('change',handleImage);
+
+ document.getElementById('publishForm').onsubmit=e=>{
+
+  e.preventDefault();
+
+  if(!user){
+   toast('Debes iniciar sesión');
+   return;
   }
 
+  const image=document.getElementById('pImage').value;
 
-  user = {
+  if(!image){
+   toast('Selecciona una foto del producto');
+   return;
+  }
 
-    name:
-      document.getElementById('rName')
-        .value
-        .trim(),
+  products.unshift({
+   id:Date.now(),
+   name:document.getElementById('pName').value.trim(),
+   category:document.getElementById('pCat').value,
+   price:Number(document.getElementById('pPrice').value),
+   location:document.getElementById('pLoc').value.trim(),
+   seller:user.name,
+   whatsapp:user.whatsapp||'',
+   image:image,
+   description:document.getElementById('pDesc').value.trim(),
+   views:0,
+   likes:0,
+   saves:0,
+   profileVisits:0
+  });
 
-    cedula:
-      document.getElementById('rCed')
-        .value
-        .trim(),
+  saveProducts();
 
-    whatsapp:whatsapp,
+  close();
 
-    password:
-      document.getElementById('rPass')
-        .value,
+  render();
 
-    question:
-      document.getElementById('rQ')
-        .value,
+  toast('✅ Producto publicado correctamente');
+ };
+}
 
-    answer:
-      document.getElementById('rA')
-        .value
-        .trim()
-        .toLowerCase(),
+function takePhoto(){
+ document.getElementById('cameraInput').click();
+}
 
-    email:
-      document.getElementById('rEmail')
-        .value
-        .trim(),
+function chooseGallery(){
+ document.getElementById('galleryInput').click();
+}
 
-    blocked:false,
+function handleImage(e){
 
-    photo:''
+ const file=e.target.files[0];
 
-  };
+ if(!file)return;
+
+ if(!file.type.startsWith('image/')){
+  toast('Selecciona una imagen válida');
+  return;
+ }
+
+ const reader=new FileReader();
+
+ reader.onload=function(event){
+
+  document.getElementById('pImage').value=event.target.result;
+
+  const preview=document.getElementById('imagePreview');
+
+  preview.src=event.target.result;
+  preview.style.display='block';
+ };
+
+ reader.readAsDataURL(file);
+}
 
 
-  localStorage.setItem(
-    STORAGE_USER,
-    JSON.stringify(user)
-  );
+/* =========================
+   PERFIL
+========================= */
+
+function openProfile(){
+
+ if(!user){
+
+  show(`
+
+   <div class="modal-head">
+    <button class="back" onclick="home()">←</button>
+    <h2 style="flex:1;margin-left:8px">👤 Mi cuenta</h2>
+    <button class="close" onclick="close()">×</button>
+   </div>
+
+   <div class="profile">
+
+    <div class="avatar">👤</div>
+
+    <h3>Bienvenido a Market Flash</h3>
+
+    <p
+     class="muted"
+     style="margin:6px 0 16px">
+     Crea tu cuenta o inicia sesión.
+    </p>
+
+    <button class="primary" onclick="register()">
+     📝 Crear cuenta
+    </button>
+
+    <button
+     class="secondary"
+     style="margin-top:8px"
+     onclick="login()">
+     🔐 Iniciar sesión
+    </button>
+
+   </div>
+  `);
+
+  return;
+ }
+
+ show(`
+
+  <div class="modal-head">
+   <button class="back" onclick="home()">←</button>
+   <h2 style="flex:1;margin-left:8px">👤 Mi perfil</h2>
+   <button class="close" onclick="close()">×</button>
+  </div>
+
+  <div class="profile">
+
+   ${user.photo
+    ?`<img class="profile-photo" src="${user.photo}" alt="Foto de perfil">`
+    :`<div class="avatar">👤</div>`}
+
+   <h2>${escapeHtml(user.name)}</h2>
+
+   <button class="secondary" style="margin-top:10px" onclick="editProfilePhoto()">📷 Cambiar foto de perfil</button>
+
+   <p class="muted">Cédula registrada</p>
+
+   <p class="muted" style="margin-top:6px">
+    📱 WhatsApp: ${escapeHtml(user.whatsapp||'No registrado')}
+   </p>
+
+  </div>
+
+  <div class="menu">
+
+   <button class="menu-item" onclick="openActivity()">
+    <div class="menu-icon">📦</div>
+    <div class="menu-copy">
+     <strong>Mi actividad</strong>
+     <small>Publicaciones, productos, ventas y recibos</small>
+    </div>
+    <b>›</b>
+   </button>
+
+   <button class="menu-item" onclick="settings()">
+    <div class="menu-icon">⚙️</div>
+    <div class="menu-copy">
+     <strong>Configuración</strong>
+     <small>Cuenta y seguridad</small>
+    </div>
+    <b>›</b>
+   </button>
+
+   <button class="menu-item" onclick="admin()">
+    <div class="menu-icon">👑</div>
+    <div class="menu-copy">
+     <strong>Administración</strong>
+     <small>Panel exclusivo del administrador</small>
+    </div>
+    <b>›</b>
+   </button>
+
+   <button class="menu-item" onclick="logout()">
+    <div class="menu-icon">🚪</div>
+    <div class="menu-copy">
+     <strong>Cerrar sesión</strong>
+     <small>Salir de la cuenta</small>
+    </div>
+    <b>›</b>
+   </button>
+
+  </div>
+ `);
+}
 
 
-  const stats = getStats();
 
+function editProfilePhoto(){
+ if(!user)return;
+ show(`
+  <div class="modal-head">
+   <button class="back" onclick="openProfile()">←</button>
+   <h2 style="flex:1;margin-left:8px">📷 Foto de perfil</h2>
+   <button class="close" onclick="close()">×</button>
+  </div>
+  <div class="profile">
+   ${user.photo?`<img id="profilePhotoPreview" class="profile-photo" src="${user.photo}" alt="Foto de perfil">`:`<div id="profilePhotoPreview" class="avatar">👤</div>`}
+   <p class="muted">Toma una foto o elige una de tu galería.</p>
+   <div class="profile-photo-actions">
+    <button class="media-button" type="button" onclick="document.getElementById('profileCamera').click()"><span class="media-icon">📷</span>Cámara</button>
+    <button class="media-button" type="button" onclick="document.getElementById('profileGallery').click()"><span class="media-icon">🖼️</span>Galería</button>
+   </div>
+   <input id="profileCamera" type="file" accept="image/*" capture="user" hidden>
+   <input id="profileGallery" type="file" accept="image/*" hidden>
+  </div>
+ `);
+ document.getElementById('profileCamera').addEventListener('change',handleProfilePhoto);
+ document.getElementById('profileGallery').addEventListener('change',handleProfilePhoto);
+}
+
+async function handleProfilePhoto(e){
+ const file=e.target.files?.[0];
+ if(!file)return;
+ if(!file.type.startsWith('image/')){toast('Selecciona una imagen válida');return;}
+ try{
+  user.photo=await fileToDataUrl(file);
+  localStorage.setItem(STORAGE_USER,JSON.stringify(user));
+  toast('✅ Foto de perfil actualizada');
+  openProfile();
+ }catch(err){
+  console.error(err);
+  toast('No se pudo guardar la foto');
+ }
+}
+
+/* =========================
+   REGISTRO
+========================= */
+
+function register(){
+
+ show(`
+
+  <div class="modal-head">
+   <button class="back" onclick="openProfile()">←</button>
+   <h2 style="flex:1;margin-left:8px">📝 Crear cuenta</h2>
+   <button class="close" onclick="close()">×</button>
+  </div>
+
+  <div class="notice">
+   La cédula y el número de WhatsApp son obligatorios.
+   El correo electrónico es opcional.
+  </div>
+
+  <form class="form" id="regForm">
+
+   <div class="field">
+    <label>👤 Nombre real completo</label>
+    <input
+     id="rName"
+     required
+     placeholder="Igual que en la cédula"
+    >
+   </div>
+
+   <div class="field">
+    <label>🪪 Número de cédula</label>
+    <input
+     id="rCed"
+     required
+     placeholder="Número de cédula"
+    >
+   </div>
+
+   <div class="field">
+    <label>📱 Número de WhatsApp</label>
+    <input
+     id="rWhatsApp"
+     type="tel"
+     required
+     placeholder="Ej. 18094024099"
+    >
+   </div>
+
+   <div class="field">
+    <label>🔐 Contraseña</label>
+    <input
+     id="rPass"
+     type="password"
+     minlength="6"
+     required
+    >
+   </div>
+
+   <div class="field">
+    <label>🛡️ Pregunta de recuperación</label>
+
+    <select id="rQ" required>
+
+     <option value="">Seleccionar</option>
+
+     <option>
+      ¿Cuál era tu apodo de infancia?
+     </option>
+
+     <option>
+      ¿Cuál fue tu primer trabajo?
+     </option>
+
+     <option>
+      ¿Cuál es tu comida favorita?
+     </option>
+
+     <option>
+      ¿Cuál era el nombre de tu primera mascota?
+     </option>
+
+    </select>
+   </div>
+
+   <div class="field">
+    <label>🛡️ Respuesta de recuperación</label>
+    <input id="rA" required>
+   </div>
+
+   <div class="field">
+    <label>📧 Correo electrónico (opcional)</label>
+    <input id="rEmail" type="email">
+   </div>
+
+   <button class="primary">
+    Crear cuenta
+   </button>
+
+  </form>
+ `);
+
+ document.getElementById('regForm').onsubmit=e=>{
+
+  e.preventDefault();
+
+  const ced=document.getElementById('rCed').value.trim();
+
+  const whatsapp=
+   document.getElementById('rWhatsApp').value
+   .trim()
+   .replace(/\s/g,'');
+
+  if(!/^1\d{10}$/.test(whatsapp)){
+   toast('Escribe WhatsApp con 1 delante. Ejemplo: 18094024099');
+   return;
+  }
+
+  const stats=getStats();
   stats.registeredTotal++;
-
   saveStats(stats);
 
+  user={
+   name:document.getElementById('rName').value.trim(),
+   cedula:ced,
+   whatsapp:whatsapp,
+   password:document.getElementById('rPass').value,
+   question:document.getElementById('rQ').value,
+   answer:document.getElementById('rA').value.trim().toLowerCase(),
+   email:document.getElementById('rEmail').value.trim(),
+   photo:'',
+   blocked:false
+  };
+
+  localStorage.setItem(
+   STORAGE_USER,
+   JSON.stringify(user)
+  );
 
   close();
 
   toast('✅ Cuenta creada correctamente');
-
-  return true;
-
+ };
 }
 
 
-/* =========================================
-   CÁMARA
-========================================= */
+/* =========================
+   LOGIN
+========================= */
 
-function takePhoto(){
+function login(){
 
-  const input =
-    document.getElementById('cameraInput');
+ show(`
 
-  if(input){
+  <div class="modal-head">
+   <button class="back" onclick="openProfile()">←</button>
+   <h2 style="flex:1;margin-left:8px">🔐 Iniciar sesión</h2>
+   <button class="close" onclick="close()">×</button>
+  </div>
 
-    input.click();
+  <form class="form" id="loginForm">
 
-  }
+   <div class="field">
+    <label>🪪 Cédula</label>
+    <input id="lCed" required>
+   </div>
 
-}
+   <div class="field">
+    <label>🔐 Contraseña</label>
+    <input id="lPass" type="password" required>
+   </div>
 
+   <button class="primary">
+    Entrar
+   </button>
 
-/* =========================================
-   GALERÍA
-========================================= */
+  </form>
 
-function chooseGallery(){
-
-  const input =
-    document.getElementById('galleryInput');
-
-  if(input){
-
-    input.click();
-
-  }
-
-}
-
-
-/* =========================================
-   FOTO DEL PRODUCTO
-========================================= */
-
-function handleImage(event){
-
-  const file =
-    event.target.files[0];
-
-  if(!file) return;
-
-
-  if(!file.type.startsWith('image/')){
-
-    toast('Selecciona una imagen válida');
-
-    return;
-
-  }
-
-
-  const reader =
-    new FileReader();
-
-
-  reader.onload=function(e){
-
-    const image =
-      document.getElementById('pImage');
-
-    const preview =
-      document.getElementById('imagePreview');
-
-
-    if(image){
-
-      image.value =
-        e.target.result;
-
-    }
-
-
-    if(preview){
-
-      preview.src =
-        e.target.result;
-
-      preview.style.display =
-        'block';
-
-    }
-
-  };
-
-
-  reader.readAsDataURL(file);
-
-}
-
-
-/* =========================================
-   FOTO DE PERFIL
-========================================= */
-
-function editProfilePhoto(){
-
-  show(`
-
-    <div class="modal-head">
-
-      <button
-        class="back"
-        onclick="openProfile()">
-        ←
-      </button>
-
-      <h2 style="flex:1;margin-left:8px">
-        📷 Cambiar foto
-      </h2>
-
-      <button
-        class="close"
-        onclick="close()">
-        ×
-      </button>
-
-    </div>
-
-
-    <div class="media-options">
-
-      <button
-        type="button"
-        class="media-button"
-        onclick="profileCamera()">
-
-        <span class="media-icon">
-          📷
-        </span>
-
-        Cámara
-
-      </button>
-
-
-      <button
-        type="button"
-        class="media-button"
-        onclick="profileGallery()">
-
-        <span class="media-icon">
-          🖼️
-        </span>
-
-        Galería
-
-      </button>
-
-    </div>
-
-
-    <input
-      id="profileCameraInput"
-      type="file"
-      accept="image/*"
-      capture="environment"
-      hidden
-    >
-
-
-    <input
-      id="profileGalleryInput"
-      type="file"
-      accept="image/*"
-      hidden
-    >
-
-  `);
-
-
-  document
-    .getElementById('profileCameraInput')
-    .addEventListener(
-      'change',
-      handleProfilePhoto
-    );
-
-
-  document
-    .getElementById('profileGalleryInput')
-    .addEventListener(
-      'change',
-      handleProfilePhoto
-    );
-
-}
-
-
-function profileCamera(){
-
-  document
-    .getElementById('profileCameraInput')
-    .click();
-
-}
-
-
-function profileGallery(){
-
-  document
-    .getElementById('profileGalleryInput')
-    .click();
-
-}
-
-
-function handleProfilePhoto(event){
-
-  const file =
-    event.target.files[0];
-
-  if(!file) return;
-
-
-  if(!file.type.startsWith('image/')){
-
-    toast('Selecciona una imagen válida');
-
-    return;
-
-  }
-
-
-  const reader =
-    new FileReader();
-
-
-  reader.onload=function(e){
-
-    if(!user) return;
-
-
-    user.photo =
-      e.target.result;
-
-
-    localStorage.setItem(
-      STORAGE_USER,
-      JSON.stringify(user)
-    );
-
-
-    toast(
-      '✅ Foto de perfil actualizada'
-    );
-
-
-    openProfile();
-
-  };
-
-
-  reader.readAsDataURL(file);
-
-}
-
-
-/* =========================================
-   ESTADO DE PUBLICIDAD
-========================================= */
-
-function myAdvertisingStatus(){
-
-  if(!user){
-
-    openProfile();
-
-    return;
-
-  }
-
-
-  const myAds =
-    ads.filter(
-      ad => ad.user === user.name
-    );
-
-
-  if(!myAds.length){
-
-    show(`
-
-      <div class="modal-head">
-
-        <button
-          class="back"
-          onclick="openAdvertising()">
-          ←
-        </button>
-
-        <h2 style="flex:1;margin-left:8px">
-          📋 Estado de mi publicidad
-        </h2>
-
-        <button
-          class="close"
-          onclick="close()">
-          ×
-        </button>
-
-      </div>
-
-
-      <div class="empty">
-
-        📣<br><br>
-
-        No tienes ninguna publicidad
-        enviada todavía.
-
-      </div>
-
-
-      <button
-        class="primary"
-        onclick="createAdvertising()">
-
-        🚀 Crear mi publicidad
-
-      </button>
-
-    `);
-
-    return;
-
-  }
-
-
-  show(`
-
-    <div class="modal-head">
-
-      <button
-        class="back"
-        onclick="openAdvertising()">
-        ←
-      </button>
-
-      <h2 style="flex:1;margin-left:8px">
-        📋 Estado de mi publicidad
-      </h2>
-
-      <button
-        class="close"
-        onclick="close()">
-        ×
-      </button>
-
-    </div>
-
-
-    ${myAds.map(ad=>`
-
-      <div
-        class="card"
-        style="margin-bottom:10px">
-
-        <strong>
-          ${escapeHtml(ad.title)}
-        </strong>
-
-
-        <div
-          class="muted"
-          style="margin-top:6px">
-
-          ${
-
-            ad.status === 'aprobado'
-
-            ? '✅ Aprobada'
-
-            : ad.status === 'rechazado'
-
-            ? '❌ Rechazada'
-
-            : '⏳ En proceso'
-
-          }
-
-        </div>
-
-      </div>
-
-    `).join('')}
-
-  `);
-
-}
-
-
-/* =========================================
-   ELIMINAR CUENTA
-========================================= */
-
-function deleteAccount(){
-
-  if(!user) return;
-
-
-  const ok =
-    confirm(
-      '¿Seguro que deseas eliminar tu cuenta?'
-    );
-
-
-  if(!ok) return;
-
-
-  const stats =
-    getStats();
-
-
-  stats.deletedTotal++;
-
-
-  saveStats(stats);
-
-
-  localStorage.removeItem(
-    STORAGE_USER
-  );
-
-
-  user=null;
-
-
-  close();
-
-
-  toast(
-    '🗑️ Cuenta eliminada correctamente'
-  );
-
-}
-
-
-/* =========================================
-   COMPROBANTE DE PAGO
-========================================= */
-
-async function getPaymentProof(){
-
-  const input =
-    document.getElementById(
-      'paymentProof'
-    );
-
-
-  if(!input ||
-     !input.files ||
-     !input.files[0]){
-
-    return '';
-
-  }
-
-
-  return new Promise(
-    (resolve,reject)=>{
-
-      const reader =
-        new FileReader();
-
-
-      reader.onload =
-        () => resolve(
-          reader.result
-        );
-
-
-      reader.onerror =
-        reject;
-
-
-      reader.readAsDataURL(
-        input.files[0]
-      );
-
-    }
-  );
-
-}
-
-
-/* =========================================
-   APROBAR PUBLICIDAD
-========================================= */
-
-function approveAd(id){
-
-  const ad =
-    ads.find(
-      x => x.id === id
-    );
-
-
-  if(!ad) return;
-
-
-  ad.status =
-    'aprobado';
-
-
-  saveAds();
-
-
-  /*
-    IMPORTANTE:
-    Al aprobar una publicidad,
-    inmediatamente se actualiza
-    el espacio publicitario del inicio.
-  */
-
-  renderAdvertisingSpot();
-
-
-  adminAdvertising();
-
-
-  toast(
-    '✅ Publicidad aprobada y publicada en el inicio'
-  );
-
-}
-
-
-/* =========================================
-   RECHAZAR PUBLICIDAD
-========================================= */
-
-function rejectAd(id){
-
-  const ad =
-    ads.find(
-      x => x.id === id
-    );
-
-
-  if(!ad) return;
-
-
-  ad.status =
-    'rechazado';
-
-
-  saveAds();
-
-
-  adminAdvertising();
-
-
-  toast(
-    '❌ Publicidad rechazada'
-  );
-
-}
-
-
-/* =========================================
-   PUBLICIDAD APROBADA EN EL INICIO
-========================================= */
-
-function renderAdvertisingSpot(){
-
-  const area =
-    document.querySelector('.ad');
-
-
-  if(!area) return;
-
-
-  const approved =
-    ads
-      .filter(
-        ad => ad.status === 'aprobado'
-      )
-      .sort(
-        (a,b) =>
-          new Date(b.createdAt || 0)
-          -
-          new Date(a.createdAt || 0)
-      );
-
-
-  if(!approved.length){
-
-    area.innerHTML = `
-
-      <button
-        class="ad-button"
-        onclick="openAdvertising()">
-
-        <small>
-          PUBLICIDAD
-        </small>
-
-        <h3>
-          📣 Publicita tu negocio
-          en Market Flash
-        </h3>
-
-        <p>
-          Toca aquí para crear y publicar
-          tu anuncio.
-        </p>
-
-      </button>
-
-    `;
-
-    return;
-
-  }
-
-
-  const ad =
-    approved[0];
-
-
-  let media='';
-
-
-  if(ad.mediaType === 'video'){
-
-    media = `
-
-      <video
-        class="ad-live-media"
-        controls
-        playsinline
-        src="${ad.media}">
-      </video>
-
-    `;
-
-  }else{
-
-    media = `
-
-      <img
-        class="ad-live-media"
-        src="${ad.media}"
-        alt="${escapeHtml(ad.title)}"
-      >
-
-    `;
-
-  }
-
-
-  area.innerHTML = `
-
-    <div style="width:100%">
-
-      <small>
-        PUBLICIDAD
-      </small>
-
-      <h3>
-        ${escapeHtml(ad.title)}
-      </h3>
-
-      ${media}
-
-
-      ${
-        ad.description
-        ?
-        `
-        <p style="margin-top:8px">
-          ${escapeHtml(ad.description)}
-        </p>
-        `
-        :
-        ''
-      }
-
-
-      ${
-        ad.destinationType !== 'none'
-        ?
-        `
-        <button
-          class="primary"
-          style="margin-top:10px"
-          onclick="openAdDestination(${ad.id})">
-
-          ${
-            ad.destinationType === 'whatsapp'
-            ? '🟢 WhatsApp'
-            : ad.destinationType === 'messenger'
-            ? '🔵 Messenger'
-            : '🌐 Ver enlace'
-          }
-
-        </button>
-        `
-        :
-        ''
-      }
-
-
-      <button
-        class="secondary"
-        style="margin-top:8px"
-        onclick="openAdvertising()">
-
-        📣 Crear mi publicidad
-
-      </button>
-
-    </div>
-
-  `;
-
-}
-
-
-/* =========================================
-   DESTINO DE PUBLICIDAD
-========================================= */
-
-function openAdDestination(id){
-
-  const ad =
-    ads.find(
-      x => x.id === id
-    );
-
-
-  if(!ad ||
-     !ad.destination){
-
-    return;
-
-  }
-
-
-  let url =
-    ad.destination;
-
-
-  if(
-    ad.destinationType ===
-    'whatsapp'
-  ){
-
-    url =
-      'https://wa.me/' +
-      String(
-        ad.destination
-      ).replace(/\D/g,'') +
-      '?text=' +
-      encodeURIComponent(
-        'Hola, vi tu publicidad "' +
-        ad.title +
-        '" en Market Flash.'
-      );
-
-  }
-
-
-  if(
-    ad.destinationType !==
-    'whatsapp' &&
-    !/^https?:\/\//i.test(url)
-  ){
-
-    url =
-      'https://' + url;
-
-  }
-
-
-  window.open(
-    url,
-    '_blank'
-  );
-
-}
-
-
-/* =========================================
-   INICIO
-========================================= */
-
-document.addEventListener(
-  'DOMContentLoaded',
-  function(){
-
-    render();
-
-    renderAdvertisingSpot();
-
-  }
-);
-
-</script>
+  <button
