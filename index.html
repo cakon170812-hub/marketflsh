@@ -1,1203 +1,1090 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#2563eb">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Market Flash">
-<title>Market Flash</title>
+<!-- ACTUALIZACIÓN MARKET FLASH -->
 
-<style>
-/* CÓDIGO HTML ACTUALIZADO */
-</style>
-</head>
+<!-- 1. WHATSAPP EN REGISTRO -->
+<input
+  id="rWhatsApp"
+  type="tel"
+  inputmode="numeric"
+  required
+  placeholder="Ej. 18094024099"
+  maxlength="11"
+>
 
-<body>
+<!-- 2. BOTONES DE CÁMARA Y GALERÍA -->
+<div class="media-options">
 
-<!--
-  MARKET FLASH
-  HTML ACTUALIZADO
+  <button
+    type="button"
+    class="media-button"
+    onclick="takePhoto()">
 
-  Incluye:
-  - Registro con cédula y WhatsApp
-  - WhatsApp con formato 18094024099
-  - Foto de perfil con cámara o galería
-  - Estado de publicidad
-  - Comprobante de pago
-  - Aprobación de publicidad por administrador
-  - Publicación automática de publicidad aprobada en inicio
-  - Contador de usuarios registrados
-  - Contador de cuentas eliminadas
-  - Botones X funcionando correctamente
--->
+    <span class="media-icon">📷</span>
+    Cámara
 
-<div id="overlay" onclick="close()">
-  <div id="sheet" onclick="event.stopPropagation()"></div>
+  </button>
+
+  <button
+    type="button"
+    class="media-button"
+    onclick="chooseGallery()">
+
+    <span class="media-icon">🖼️</span>
+    Galería
+
+  </button>
+
 </div>
 
+<input
+  id="cameraInput"
+  type="file"
+  accept="image/*"
+  capture="environment"
+  hidden
+>
+
+<input
+  id="galleryInput"
+  type="file"
+  accept="image/*"
+  hidden
+>
+
+<input id="pImage" type="hidden">
+
+<img
+  id="imagePreview"
+  class="preview"
+  alt="Vista previa"
+>
+
+
+<!-- 3. BOTÓN DE ESTADO DE PUBLICIDAD -->
+<button
+  class="menu-item"
+  onclick="myAdvertisingStatus()">
+
+  <div class="menu-icon">📋</div>
+
+  <div class="menu-copy">
+    <strong>Estado de mi publicidad</strong>
+    <small>
+      Ver si está en proceso, aprobada o rechazada
+    </small>
+  </div>
+
+  <b>›</b>
+
+</button>
+
+
+<!-- 4. FOTO DE PERFIL -->
+<button
+  class="secondary"
+  style="margin-top:10px"
+  onclick="editProfilePhoto()">
+
+  📷 Cambiar foto de perfil
+
+</button>
+
+
+<!-- 5. ESTADÍSTICAS DEL ADMINISTRADOR -->
+<div class="grid">
+
+  <div class="card">
+    <div class="big" id="registeredUsersCount">0</div>
+    <strong>Usuarios registrados</strong>
+    <small>Total de cuentas creadas</small>
+  </div>
+
+  <div class="card">
+    <div class="big" id="deletedUsersCount">0</div>
+    <strong>Cuentas eliminadas</strong>
+    <small>Total de cuentas eliminadas</small>
+  </div>
+
+</div>
+
+
+<!-- 6. ELIMINAR CUENTA -->
+<button
+  class="danger"
+  style="margin-top:12px"
+  onclick="deleteAccount()">
+
+  🗑️ Eliminar mi cuenta
+
+</button>
+
+
+<!-- 7. COMPROBANTE DE PAGO -->
+<div class="field">
+
+  <label>
+    📸 Captura / comprobante de pago
+  </label>
+
+  <input
+    id="paymentProof"
+    type="file"
+    accept="image/*"
+  >
+
+  <small class="muted">
+    Envía una captura del pago para que el administrador
+    pueda revisar y aprobar tu publicidad.
+  </small>
+
+</div>
+
+
+<!-- 8. ESTADO DE PUBLICIDAD -->
+<div class="notice">
+
+  <strong>Estado de publicidad:</strong>
+
+  <span id="advertisingStatus">
+    ⏳ En proceso
+  </span>
+
+</div>
+
+
 <script>
-const STORAGE_USER = 'mf_user';
-const STORAGE_ADS = 'mf_ads';
+
+/* =========================================
+   ACTUALIZACIÓN MARKET FLASH
+========================================= */
+
 const STORAGE_STATS = 'mf_stats';
 
-/* ==============================
+
+/* =========================================
    ESTADÍSTICAS
-================================ */
+========================================= */
 
 function getStats(){
+
   try{
-    return JSON.parse(localStorage.getItem(STORAGE_STATS)) || {
-      registeredTotal: 0,
-      deletedTotal: 0
+
+    return JSON.parse(
+      localStorage.getItem(STORAGE_STATS)
+    ) || {
+      registeredTotal:0,
+      deletedTotal:0
     };
-  }catch(e){
+
+  }catch(error){
+
     return {
-      registeredTotal: 0,
-      deletedTotal: 0
+      registeredTotal:0,
+      deletedTotal:0
     };
+
   }
+
 }
+
 
 function saveStats(stats){
-  localStorage.setItem(STORAGE_STATS, JSON.stringify(stats));
-}
 
-/* ==============================
-   UTILIDADES
-================================ */
-
-function fileToDataUrl(file){
-  return new Promise((resolve,reject)=>{
-    const reader = new FileReader();
-
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-
-    reader.readAsDataURL(file);
-  });
-}
-
-function close(){
-  const overlay = document.getElementById('overlay');
-  const sheet = document.getElementById('sheet');
-
-  if(overlay){
-    overlay.classList.remove('show');
-    overlay.style.display = 'none';
-  }
-
-  if(sheet){
-    sheet.innerHTML = '';
-  }
-}
-
-function show(html){
-  const overlay = document.getElementById('overlay');
-  const sheet = document.getElementById('sheet');
-
-  if(!overlay || !sheet) return;
-
-  sheet.innerHTML = html;
-
-  overlay.style.display = 'flex';
-
-  requestAnimationFrame(()=>{
-    overlay.classList.add('show');
-  });
-}
-
-function toast(message){
-  alert(message);
-}
-
-/* ==============================
-   USUARIO
-================================ */
-
-function getUser(){
-  try{
-    return JSON.parse(localStorage.getItem(STORAGE_USER));
-  }catch(e){
-    return null;
-  }
-}
-
-function saveUser(user){
-  localStorage.setItem(STORAGE_USER, JSON.stringify(user));
-}
-
-/* ==============================
-   REGISTRO
-================================ */
-
-function register(){
-  show(`
-    <div class="modal">
-      <button class="close" onclick="close()">×</button>
-
-      <h2>Crear cuenta</h2>
-
-      <form onsubmit="submitRegister(event)">
-
-        <label>Nombre completo</label>
-        <input
-          id="registerName"
-          type="text"
-          required
-          placeholder="Nombre completo"
-        >
-
-        <label>Cédula</label>
-        <input
-          id="registerCedula"
-          type="text"
-          required
-          placeholder="Número de cédula"
-        >
-
-        <label>WhatsApp</label>
-        <input
-          id="registerWhatsapp"
-          type="tel"
-          required
-          inputmode="numeric"
-          placeholder="Ej. 18094024099"
-          maxlength="11"
-        >
-
-        <label>Correo electrónico</label>
-        <input
-          id="registerEmail"
-          type="email"
-          placeholder="Correo electrónico"
-        >
-
-        <button class="primary" type="submit">
-          Registrarme
-        </button>
-
-      </form>
-    </div>
-  `);
-}
-
-async function submitRegister(event){
-  event.preventDefault();
-
-  const name = document.getElementById('registerName').value.trim();
-  const cedula = document.getElementById('registerCedula').value.trim();
-  const whatsapp = document.getElementById('registerWhatsapp').value.trim();
-  const email = document.getElementById('registerEmail').value.trim();
-
-  if(!name || !cedula || !whatsapp){
-    toast('Completa todos los campos obligatorios.');
-    return;
-  }
-
-  if(!/^1\d{10}$/.test(whatsapp)){
-    toast('El WhatsApp debe tener 11 números y comenzar con 1. Ejemplo: 18094024099');
-    return;
-  }
-
-  const user = {
-    id: 'user_' + Date.now(),
-    name,
-    cedula,
-    whatsapp,
-    email,
-    photo: '',
-    createdAt: Date.now()
-  };
-
-  saveUser(user);
-
-  const stats = getStats();
-  stats.registeredTotal++;
-  saveStats(stats);
-
-  toast('Cuenta creada correctamente.');
-  close();
-  home();
-}
-
-/* ==============================
-   PERFIL
-================================ */
-
-function openProfile(){
-  const user = getUser();
-
-  if(!user){
-    register();
-    return;
-  }
-
-  const photo = user.photo
-    ? `<img class="profile-avatar-img" src="${user.photo}" alt="Foto de perfil">`
-    : `<div class="profile-avatar">👤</div>`;
-
-  show(`
-    <div class="modal">
-      <button class="close" onclick="close()">×</button>
-
-      <h2>Mi perfil</h2>
-
-      <div class="profile-photo-box">
-        ${photo}
-      </div>
-
-      <button class="secondary" onclick="editProfilePhoto()">
-        📷 Cambiar foto de perfil
-      </button>
-
-      <div class="profile-info">
-        <p><strong>Nombre:</strong> ${escapeHtml(user.name)}</p>
-        <p><strong>Cédula:</strong> ${escapeHtml(user.cedula)}</p>
-        <p><strong>WhatsApp:</strong> ${escapeHtml(user.whatsapp)}</p>
-        ${user.email ? `<p><strong>Correo:</strong> ${escapeHtml(user.email)}</p>` : ''}
-      </div>
-
-      <button class="danger" onclick="deleteAccount()">
-        🗑️ Eliminar mi cuenta
-      </button>
-    </div>
-  `);
-}
-
-/* ==============================
-   FOTO DE PERFIL
-================================ */
-
-function editProfilePhoto(){
-  show(`
-    <div class="modal">
-      <button class="close" onclick="openProfile()">×</button>
-
-      <h2>Cambiar foto de perfil</h2>
-
-      <p class="muted">
-        Selecciona cómo quieres agregar tu nueva foto.
-      </p>
-
-      <div class="photo-options">
-
-        <label class="photo-option">
-          <span class="photo-option-icon">📷</span>
-          <strong>Cámara</strong>
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onchange="handleProfilePhoto(this)"
-            hidden
-          >
-        </label>
-
-        <label class="photo-option">
-          <span class="photo-option-icon">🖼️</span>
-          <strong>Galería</strong>
-          <input
-            type="file"
-            accept="image/*"
-            onchange="handleProfilePhoto(this)"
-            hidden
-          >
-        </label>
-
-      </div>
-    </div>
-  `);
-}
-
-async function handleProfilePhoto(input){
-  const file = input.files && input.files[0];
-
-  if(!file) return;
-
-  if(!file.type.startsWith('image/')){
-    toast('Selecciona una imagen válida.');
-    return;
-  }
-
-  try{
-    const photo = await fileToDataUrl(file);
-
-    const user = getUser();
-
-    if(!user){
-      toast('No hay una sesión iniciada.');
-      return;
-    }
-
-    user.photo = photo;
-    saveUser(user);
-
-    toast('Foto de perfil actualizada.');
-    openProfile();
-
-  }catch(e){
-    toast('No fue posible guardar la foto.');
-  }
-}
-
-/* ==============================
-   ELIMINAR CUENTA
-================================ */
-
-function deleteAccount(){
-  const user = getUser();
-
-  if(!user) return;
-
-  const confirmation = confirm(
-    '¿Seguro que deseas eliminar tu cuenta?'
+  localStorage.setItem(
+    STORAGE_STATS,
+    JSON.stringify(stats)
   );
 
-  if(!confirmation) return;
+}
+
+
+/* =========================================
+   REGISTRO
+========================================= */
+
+function registerUser(){
+
+  const whatsapp =
+    document.getElementById('rWhatsApp')
+      .value
+      .trim()
+      .replace(/\D/g,'');
+
+
+  if(!/^1\d{10}$/.test(whatsapp)){
+
+    toast(
+      'El WhatsApp debe tener 11 números. Ejemplo: 18094024099'
+    );
+
+    return false;
+
+  }
+
+
+  user = {
+
+    name:
+      document.getElementById('rName')
+        .value
+        .trim(),
+
+    cedula:
+      document.getElementById('rCed')
+        .value
+        .trim(),
+
+    whatsapp:whatsapp,
+
+    password:
+      document.getElementById('rPass')
+        .value,
+
+    question:
+      document.getElementById('rQ')
+        .value,
+
+    answer:
+      document.getElementById('rA')
+        .value
+        .trim()
+        .toLowerCase(),
+
+    email:
+      document.getElementById('rEmail')
+        .value
+        .trim(),
+
+    blocked:false,
+
+    photo:''
+
+  };
+
+
+  localStorage.setItem(
+    STORAGE_USER,
+    JSON.stringify(user)
+  );
+
 
   const stats = getStats();
-  stats.deletedTotal++;
+
+  stats.registeredTotal++;
+
   saveStats(stats);
 
-  localStorage.removeItem(STORAGE_USER);
-
-  toast('Tu cuenta ha sido eliminada.');
 
   close();
-  home();
+
+  toast('✅ Cuenta creada correctamente');
+
+  return true;
+
 }
 
-/* ==============================
-   PUBLICIDAD
-================================ */
 
-function createAdvertising(){
-  show(`
-    <div class="modal">
-      <button class="close" onclick="close()">×</button>
+/* =========================================
+   CÁMARA
+========================================= */
 
-      <h2>Crear mi publicidad</h2>
+function takePhoto(){
 
-      <form onsubmit="submitAdvertising(event)">
+  const input =
+    document.getElementById('cameraInput');
 
-        <label>Nombre o título</label>
-        <input
-          id="adTitle"
-          type="text"
-          required
-          placeholder="Nombre de tu publicidad"
-        >
+  if(input){
 
-        <label>Descripción</label>
-        <textarea
-          id="adDescription"
-          required
-          placeholder="Describe tu producto o servicio"
-        ></textarea>
+    input.click();
 
-        <label>WhatsApp</label>
-        <input
-          id="adWhatsapp"
-          type="tel"
-          required
-          inputmode="numeric"
-          placeholder="Ej. 18094024099"
-          maxlength="11"
-        >
+  }
 
-        <label>Tipo de publicidad</label>
-        <select id="adType" required>
-          <option value="cheap">Publicidad económica</option>
-          <option value="normal">Publicidad normal</option>
-          <option value="pro">Publicidad PRO</option>
-        </select>
-
-        <label>Destino</label>
-        <select id="adDestination" required>
-          <option value="whatsapp">WhatsApp</option>
-          <option value="messenger">Messenger</option>
-          <option value="url">Página web / enlace</option>
-        </select>
-
-        <label>Cuenta o información de pago</label>
-        <input
-          id="adPaymentAccount"
-          type="text"
-          placeholder="Cuenta, teléfono o información necesaria"
-        >
-
-        <label>Imagen o video</label>
-
-        <div class="photo-options">
-
-          <label class="photo-option">
-            <span class="photo-option-icon">📷</span>
-            <strong>Cámara</strong>
-            <input
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onchange="chooseAdMedia(this)"
-              hidden
-            >
-          </label>
-
-          <label class="photo-option">
-            <span class="photo-option-icon">🖼️</span>
-            <strong>Galería</strong>
-            <input
-              type="file"
-              accept="image/*,video/*"
-              onchange="chooseAdMedia(this)"
-              hidden
-            >
-          </label>
-
-        </div>
-
-        <div id="adMediaPreview"></div>
-
-        <input
-          id="adMedia"
-          type="hidden"
-        >
-
-        <label>Comprobante de pago</label>
-
-        <input
-          id="paymentProofFile"
-          type="file"
-          accept="image/*"
-          required
-        >
-
-        <div id="paymentProofPreview"></div>
-
-        <button class="primary" type="submit">
-          Enviar publicidad
-        </button>
-
-      </form>
-    </div>
-  `);
 }
 
-let selectedAdMedia = '';
 
-async function chooseAdMedia(input){
-  const file = input.files && input.files[0];
+/* =========================================
+   GALERÍA
+========================================= */
+
+function chooseGallery(){
+
+  const input =
+    document.getElementById('galleryInput');
+
+  if(input){
+
+    input.click();
+
+  }
+
+}
+
+
+/* =========================================
+   FOTO DEL PRODUCTO
+========================================= */
+
+function handleImage(event){
+
+  const file =
+    event.target.files[0];
 
   if(!file) return;
 
-  try{
-    selectedAdMedia = await fileToDataUrl(file);
 
-    document.getElementById('adMedia').value = selectedAdMedia;
+  if(!file.type.startsWith('image/')){
 
-    const preview = document.getElementById('adMediaPreview');
+    toast('Selecciona una imagen válida');
 
-    if(file.type.startsWith('video/')){
-      preview.innerHTML = `
-        <video
-          class="ad-preview-media"
-          controls
-          src="${selectedAdMedia}"
-        ></video>
-      `;
-    }else{
-      preview.innerHTML = `
-        <img
-          class="ad-preview-media"
-          src="${selectedAdMedia}"
-          alt="Vista previa"
-        >
-      `;
+    return;
+
+  }
+
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload=function(e){
+
+    const image =
+      document.getElementById('pImage');
+
+    const preview =
+      document.getElementById('imagePreview');
+
+
+    if(image){
+
+      image.value =
+        e.target.result;
+
     }
 
-  }catch(e){
-    toast('No se pudo cargar el archivo.');
-  }
-}
 
-async function submitAdvertising(event){
-  event.preventDefault();
+    if(preview){
 
-  const user = getUser();
+      preview.src =
+        e.target.result;
 
-  if(!user){
-    toast('Debes iniciar sesión primero.');
-    register();
-    return;
-  }
+      preview.style.display =
+        'block';
 
-  const title = document.getElementById('adTitle').value.trim();
-  const description = document.getElementById('adDescription').value.trim();
-  const whatsapp = document.getElementById('adWhatsapp').value.trim();
-  const type = document.getElementById('adType').value;
-  const destination = document.getElementById('adDestination').value;
-  const paymentAccount = document.getElementById('adPaymentAccount').value.trim();
-  const media = document.getElementById('adMedia').value;
+    }
 
-  const proofInput = document.getElementById('paymentProofFile');
-  const proofFile = proofInput.files && proofInput.files[0];
-
-  if(!/^1\d{10}$/.test(whatsapp)){
-    toast('El WhatsApp debe tener 11 números y comenzar con 1. Ejemplo: 18094024099');
-    return;
-  }
-
-  if(!proofFile){
-    toast('Debes subir el comprobante de pago.');
-    return;
-  }
-
-  let paymentProof = '';
-
-  try{
-    paymentProof = await fileToDataUrl(proofFile);
-  }catch(e){
-    toast('No se pudo guardar el comprobante.');
-    return;
-  }
-
-  const ads = getAds();
-
-  const ad = {
-    id: 'ad_' + Date.now(),
-    userId: user.id,
-    userName: user.name,
-    title,
-    description,
-    whatsapp,
-    type,
-    destination,
-    paymentAccount,
-    media,
-    paymentProof,
-    status: 'pending',
-    createdAt: Date.now(),
-    approvedAt: null
   };
 
-  ads.push(ad);
 
-  if(!saveAds(ads)){
-    return;
-  }
+  reader.readAsDataURL(file);
 
-  toast('Publicidad enviada para aprobación.');
-
-  close();
-  home();
 }
 
-/* ==============================
-   PUBLICIDADES
-================================ */
 
-function getAds(){
-  try{
-    return JSON.parse(localStorage.getItem(STORAGE_ADS)) || [];
-  }catch(e){
-    return [];
-  }
-}
+/* =========================================
+   FOTO DE PERFIL
+========================================= */
 
-function saveAds(ads){
-  try{
-    localStorage.setItem(STORAGE_ADS, JSON.stringify(ads));
-    return true;
-  }catch(e){
-    toast(
-      'No se pudo guardar la publicidad. El archivo puede ser demasiado grande para el almacenamiento del navegador.'
+function editProfilePhoto(){
+
+  show(`
+
+    <div class="modal-head">
+
+      <button
+        class="back"
+        onclick="openProfile()">
+        ←
+      </button>
+
+      <h2 style="flex:1;margin-left:8px">
+        📷 Cambiar foto
+      </h2>
+
+      <button
+        class="close"
+        onclick="close()">
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="media-options">
+
+      <button
+        type="button"
+        class="media-button"
+        onclick="profileCamera()">
+
+        <span class="media-icon">
+          📷
+        </span>
+
+        Cámara
+
+      </button>
+
+
+      <button
+        type="button"
+        class="media-button"
+        onclick="profileGallery()">
+
+        <span class="media-icon">
+          🖼️
+        </span>
+
+        Galería
+
+      </button>
+
+    </div>
+
+
+    <input
+      id="profileCameraInput"
+      type="file"
+      accept="image/*"
+      capture="environment"
+      hidden
+    >
+
+
+    <input
+      id="profileGalleryInput"
+      type="file"
+      accept="image/*"
+      hidden
+    >
+
+  `);
+
+
+  document
+    .getElementById('profileCameraInput')
+    .addEventListener(
+      'change',
+      handleProfilePhoto
     );
-    return false;
-  }
+
+
+  document
+    .getElementById('profileGalleryInput')
+    .addEventListener(
+      'change',
+      handleProfilePhoto
+    );
+
 }
 
-/* ==============================
-   ESTADO DE MI PUBLICIDAD
-================================ */
+
+function profileCamera(){
+
+  document
+    .getElementById('profileCameraInput')
+    .click();
+
+}
+
+
+function profileGallery(){
+
+  document
+    .getElementById('profileGalleryInput')
+    .click();
+
+}
+
+
+function handleProfilePhoto(event){
+
+  const file =
+    event.target.files[0];
+
+  if(!file) return;
+
+
+  if(!file.type.startsWith('image/')){
+
+    toast('Selecciona una imagen válida');
+
+    return;
+
+  }
+
+
+  const reader =
+    new FileReader();
+
+
+  reader.onload=function(e){
+
+    if(!user) return;
+
+
+    user.photo =
+      e.target.result;
+
+
+    localStorage.setItem(
+      STORAGE_USER,
+      JSON.stringify(user)
+    );
+
+
+    toast(
+      '✅ Foto de perfil actualizada'
+    );
+
+
+    openProfile();
+
+  };
+
+
+  reader.readAsDataURL(file);
+
+}
+
+
+/* =========================================
+   ESTADO DE PUBLICIDAD
+========================================= */
 
 function myAdvertisingStatus(){
-  const user = getUser();
 
   if(!user){
-    toast('Debes iniciar sesión.');
-    register();
+
+    openProfile();
+
     return;
+
   }
 
-  const ads = getAds().filter(ad => ad.userId === user.id);
 
-  if(!ads.length){
+  const myAds =
+    ads.filter(
+      ad => ad.user === user.name
+    );
+
+
+  if(!myAds.length){
+
     show(`
-      <div class="modal">
-        <button class="close" onclick="close()">×</button>
 
-        <h2>Estado de mi publicidad</h2>
+      <div class="modal-head">
 
-        <div class="empty">
-          <p>No tienes ninguna publicidad enviada.</p>
-        </div>
-
-        <button class="primary" onclick="createAdvertising()">
-          Crear mi publicidad
+        <button
+          class="back"
+          onclick="openAdvertising()">
+          ←
         </button>
+
+        <h2 style="flex:1;margin-left:8px">
+          📋 Estado de mi publicidad
+        </h2>
+
+        <button
+          class="close"
+          onclick="close()">
+          ×
+        </button>
+
       </div>
+
+
+      <div class="empty">
+
+        📣<br><br>
+
+        No tienes ninguna publicidad
+        enviada todavía.
+
+      </div>
+
+
+      <button
+        class="primary"
+        onclick="createAdvertising()">
+
+        🚀 Crear mi publicidad
+
+      </button>
+
     `);
 
     return;
+
   }
 
+
   show(`
-    <div class="modal">
-      <button class="close" onclick="close()">×</button>
 
-      <h2>Estado de mi publicidad</h2>
+    <div class="modal-head">
 
-      ${ads.map(ad => {
+      <button
+        class="back"
+        onclick="openAdvertising()">
+        ←
+      </button>
 
-        let label = 'En proceso';
-        let cls = 'pending';
+      <h2 style="flex:1;margin-left:8px">
+        📋 Estado de mi publicidad
+      </h2>
 
-        if(ad.status === 'approved'){
-          label = 'Aprobada';
-          cls = 'approved';
-        }
-
-        if(ad.status === 'rejected'){
-          label = 'Rechazada';
-          cls = 'rejected';
-        }
-
-        return `
-          <div class="ad-status-card">
-
-            <div>
-              <strong>${escapeHtml(ad.title)}</strong>
-            </div>
-
-            <span class="status-badge ${cls}">
-              ${label}
-            </span>
-
-            <p>
-              ${escapeHtml(ad.description)}
-            </p>
-
-            <small>
-              Enviada: ${new Date(ad.createdAt).toLocaleString()}
-            </small>
-
-          </div>
-        `;
-
-      }).join('')}
+      <button
+        class="close"
+        onclick="close()">
+        ×
+      </button>
 
     </div>
-  `);
-}
 
-/* ==============================
-   ADMIN
-================================ */
 
-function adminDashboard(){
-  const stats = getStats();
+    ${myAds.map(ad=>`
 
-  show(`
-    <div class="modal">
-      <button class="close" onclick="close()">×</button>
+      <div
+        class="card"
+        style="margin-bottom:10px">
 
-      <h2>Panel de administrador</h2>
+        <strong>
+          ${escapeHtml(ad.title)}
+        </strong>
 
-      <div class="admin-stats">
 
-        <div class="admin-stat">
-          <strong>${stats.registeredTotal}</strong>
-          <span>Usuarios registrados</span>
-        </div>
+        <div
+          class="muted"
+          style="margin-top:6px">
 
-        <div class="admin-stat">
-          <strong>${stats.deletedTotal}</strong>
-          <span>Cuentas eliminadas</span>
+          ${
+
+            ad.status === 'aprobado'
+
+            ? '✅ Aprobada'
+
+            : ad.status === 'rechazado'
+
+            ? '❌ Rechazada'
+
+            : '⏳ En proceso'
+
+          }
+
         </div>
 
       </div>
 
-      <button class="primary" onclick="adminAdvertising()">
-        📢 Publicidades
-      </button>
+    `).join('')}
 
-      <button class="secondary" onclick="adminPayments()">
-        💳 Pagos
-      </button>
-
-    </div>
   `);
+
 }
 
-/* ==============================
-   ADMIN PUBLICIDADES
-================================ */
 
-function adminAdvertising(){
-  const ads = getAds();
+/* =========================================
+   ELIMINAR CUENTA
+========================================= */
 
-  show(`
-    <div class="modal wide-modal">
-      <button class="close" onclick="adminDashboard()">×</button>
+function deleteAccount(){
 
-      <h2>Solicitudes de publicidad</h2>
+  if(!user) return;
 
-      ${
-        ads.length
-        ? ads.map(renderAdminAd).join('')
-        : `
-          <div class="empty">
-            <p>No hay publicidades.</p>
-          </div>
-        `
-      }
 
-    </div>
-  `);
-}
-
-function renderAdminAd(ad){
-
-  let statusText = 'En proceso';
-  let statusClass = 'pending';
-
-  if(ad.status === 'approved'){
-    statusText = 'Aprobada';
-    statusClass = 'approved';
-  }
-
-  if(ad.status === 'rejected'){
-    statusText = 'Rechazada';
-    statusClass = 'rejected';
-  }
-
-  let mediaHtml = '';
-
-  if(ad.media){
-
-    if(ad.media.startsWith('data:video/')){
-      mediaHtml = `
-        <video
-          class="admin-ad-media"
-          controls
-          src="${ad.media}"
-        ></video>
-      `;
-    }else{
-      mediaHtml = `
-        <img
-          class="admin-ad-media"
-          src="${ad.media}"
-          alt="Publicidad"
-        >
-      `;
-    }
-
-  }
-
-  return `
-    <div class="admin-ad-card">
-
-      <div class="admin-ad-header">
-        <strong>${escapeHtml(ad.title)}</strong>
-
-        <span class="status-badge ${statusClass}">
-          ${statusText}
-        </span>
-      </div>
-
-      <p>
-        ${escapeHtml(ad.description)}
-      </p>
-
-      <p>
-        <strong>Usuario:</strong>
-        ${escapeHtml(ad.userName || '')}
-      </p>
-
-      <p>
-        <strong>WhatsApp:</strong>
-        ${escapeHtml(ad.whatsapp || '')}
-      </p>
-
-      ${mediaHtml}
-
-      ${
-        ad.paymentProof
-        ? `
-          <div class="payment-proof">
-            <strong>Comprobante de pago:</strong>
-
-            <img
-              src="${ad.paymentProof}"
-              alt="Comprobante de pago"
-              class="payment-proof-img"
-              onclick="viewImage('${ad.paymentProof}')"
-            >
-          </div>
-        `
-        : `
-          <p class="warning">
-            No hay comprobante de pago.
-          </p>
-        `
-      }
-
-      ${
-        ad.status === 'pending'
-        ? `
-          <div class="admin-actions">
-
-            <button
-              class="success"
-              onclick="approveAd('${ad.id}')"
-            >
-              ✓ Aprobar
-            </button>
-
-            <button
-              class="danger"
-              onclick="rejectAd('${ad.id}')"
-            >
-              ✕ Rechazar
-            </button>
-
-          </div>
-        `
-        : ''
-      }
-
-    </div>
-  `;
-}
-
-/* ==============================
-   APROBAR PUBLICIDAD
-================================ */
-
-function approveAd(id){
-  const ads = getAds();
-
-  const ad = ads.find(item => item.id === id);
-
-  if(!ad) return;
-
-  ad.status = 'approved';
-  ad.approvedAt = Date.now();
-
-  if(!saveAds(ads)) return;
-
-  renderAdvertisingSpot();
-
-  toast('Publicidad aprobada y publicada en el inicio.');
-
-  adminAdvertising();
-}
-
-/* ==============================
-   RECHAZAR PUBLICIDAD
-================================ */
-
-function rejectAd(id){
-  const ads = getAds();
-
-  const ad = ads.find(item => item.id === id);
-
-  if(!ad) return;
-
-  ad.status = 'rejected';
-
-  if(!saveAds(ads)) return;
-
-  toast('Publicidad rechazada.');
-
-  adminAdvertising();
-}
-
-/* ==============================
-   PUBLICIDAD EN INICIO
-================================ */
-
-function renderAdvertisingSpot(){
-
-  const container = document.querySelector('.ad');
-
-  if(!container) return;
-
-  const ads = getAds()
-    .filter(ad => ad.status === 'approved')
-    .sort((a,b) => b.approvedAt - a.approvedAt);
-
-  if(!ads.length){
-    container.innerHTML = `
-      <div class="ad-empty">
-        <strong>Espacio publicitario</strong>
-        <p>
-          Tu publicidad puede aparecer aquí.
-        </p>
-      </div>
-    `;
-
-    return;
-  }
-
-  const ad = ads[0];
-
-  let media = '';
-
-  if(ad.media){
-
-    if(ad.media.startsWith('data:video/')){
-      media = `
-        <video
-          class="live-ad-media"
-          controls
-          src="${ad.media}"
-        ></video>
-      `;
-    }else{
-      media = `
-        <img
-          class="live-ad-media"
-          src="${ad.media}"
-          alt="${escapeHtml(ad.title)}"
-        >
-      `;
-    }
-
-  }
-
-  container.innerHTML = `
-    <div class="live-ad">
-
-      <div class="live-ad-title">
-        ${escapeHtml(ad.title)}
-      </div>
-
-      ${media}
-
-      <p>
-        ${escapeHtml(ad.description)}
-      </p>
-
-      <button
-        class="primary"
-        onclick="openAdDestination('${ad.id}')"
-      >
-        Contactar
-      </button>
-
-    </div>
-  `;
-}
-
-/* ==============================
-   DESTINO PUBLICIDAD
-================================ */
-
-function openAdDestination(id){
-
-  const ad = getAds().find(item => item.id === id);
-
-  if(!ad) return;
-
-  if(ad.destination === 'whatsapp'){
-
-    const number = String(ad.whatsapp || '')
-      .replace(/\D/g,'');
-
-    if(!number){
-      toast('Esta publicidad no tiene WhatsApp.');
-      return;
-    }
-
-    window.open(
-      'https://wa.me/' + number,
-      '_blank'
+  const ok =
+    confirm(
+      '¿Seguro que deseas eliminar tu cuenta?'
     );
 
-    return;
-  }
 
-  if(ad.destination === 'messenger'){
+  if(!ok) return;
 
-    const number = String(ad.whatsapp || '')
-      .replace(/\D/g,'');
 
-    window.open(
-      'https://m.me/' + number,
-      '_blank'
-    );
+  const stats =
+    getStats();
 
-    return;
-  }
 
-  if(ad.destination === 'url'){
+  stats.deletedTotal++;
 
-    if(ad.paymentAccount){
-      let url = ad.paymentAccount.trim();
 
-      if(!/^https?:\/\//i.test(url)){
-        url = 'https://' + url;
-      }
+  saveStats(stats);
 
-      window.open(url,'_blank');
-    }else{
-      toast('Esta publicidad no tiene un enlace.');
-    }
 
-  }
-}
+  localStorage.removeItem(
+    STORAGE_USER
+  );
 
-/* ==============================
-   IMÁGENES
-================================ */
 
-function viewImage(src){
+  user=null;
 
-  show(`
-    <div class="modal image-modal">
-
-      <button class="close" onclick="close()">×</button>
-
-      <img
-        src="${src}"
-        class="full-image"
-        alt="Imagen"
-      >
-
-    </div>
-  `);
-}
-
-/* ==============================
-   PAGOS
-================================ */
-
-function adminPayments(){
-
-  show(`
-    <div class="modal">
-
-      <button class="close" onclick="adminDashboard()">×</button>
-
-      <h2>Pagos</h2>
-
-      <p>
-        Los comprobantes de pago enviados con las publicidades
-        pueden revisarse desde la sección de Publicidades.
-      </p>
-
-      <button
-        class="primary"
-        onclick="adminAdvertising()"
-      >
-        Ver comprobantes
-      </button>
-
-    </div>
-  `);
-}
-
-/* ==============================
-   CÓMO FUNCIONA
-================================ */
-
-function howAdvertisingWorks(){
-
-  show(`
-    <div class="modal">
-
-      <button class="close" onclick="close()">×</button>
-
-      <h2>Cómo funciona</h2>
-
-      <ol class="steps">
-
-        <li>
-          Crea tu publicidad.
-        </li>
-
-        <li>
-          Completa la información de tu anuncio.
-        </li>
-
-        <li>
-          Realiza el pago correspondiente.
-        </li>
-
-        <li>
-          Sube una imagen del comprobante de pago.
-        </li>
-
-        <li>
-          El administrador revisará la solicitud.
-        </li>
-
-        <li>
-          Cuando sea aprobada, aparecerá automáticamente
-          en el área de publicidad de Market Flash.
-        </li>
-
-      </ol>
-
-    </div>
-  `);
-}
-
-/* ==============================
-   HOME
-================================ */
-
-function home(){
 
   close();
 
+
+  toast(
+    '🗑️ Cuenta eliminada correctamente'
+  );
+
+}
+
+
+/* =========================================
+   COMPROBANTE DE PAGO
+========================================= */
+
+async function getPaymentProof(){
+
+  const input =
+    document.getElementById(
+      'paymentProof'
+    );
+
+
+  if(!input ||
+     !input.files ||
+     !input.files[0]){
+
+    return '';
+
+  }
+
+
+  return new Promise(
+    (resolve,reject)=>{
+
+      const reader =
+        new FileReader();
+
+
+      reader.onload =
+        () => resolve(
+          reader.result
+        );
+
+
+      reader.onerror =
+        reject;
+
+
+      reader.readAsDataURL(
+        input.files[0]
+      );
+
+    }
+  );
+
+}
+
+
+/* =========================================
+   APROBAR PUBLICIDAD
+========================================= */
+
+function approveAd(id){
+
+  const ad =
+    ads.find(
+      x => x.id === id
+    );
+
+
+  if(!ad) return;
+
+
+  ad.status =
+    'aprobado';
+
+
+  saveAds();
+
+
+  /*
+    IMPORTANTE:
+    Al aprobar una publicidad,
+    inmediatamente se actualiza
+    el espacio publicitario del inicio.
+  */
+
   renderAdvertisingSpot();
 
-  window.scrollTo({
-    top: 0,
-    behavior: 'smooth'
-  });
-}
 
-/* ==============================
-   ESCAPE HTML
-================================ */
+  adminAdvertising();
 
-function escapeHtml(value){
 
-  return String(value ?? '')
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#039;');
+  toast(
+    '✅ Publicidad aprobada y publicada en el inicio'
+  );
 
 }
 
-/* ==============================
+
+/* =========================================
+   RECHAZAR PUBLICIDAD
+========================================= */
+
+function rejectAd(id){
+
+  const ad =
+    ads.find(
+      x => x.id === id
+    );
+
+
+  if(!ad) return;
+
+
+  ad.status =
+    'rechazado';
+
+
+  saveAds();
+
+
+  adminAdvertising();
+
+
+  toast(
+    '❌ Publicidad rechazada'
+  );
+
+}
+
+
+/* =========================================
+   PUBLICIDAD APROBADA EN EL INICIO
+========================================= */
+
+function renderAdvertisingSpot(){
+
+  const area =
+    document.querySelector('.ad');
+
+
+  if(!area) return;
+
+
+  const approved =
+    ads
+      .filter(
+        ad => ad.status === 'aprobado'
+      )
+      .sort(
+        (a,b) =>
+          new Date(b.createdAt || 0)
+          -
+          new Date(a.createdAt || 0)
+      );
+
+
+  if(!approved.length){
+
+    area.innerHTML = `
+
+      <button
+        class="ad-button"
+        onclick="openAdvertising()">
+
+        <small>
+          PUBLICIDAD
+        </small>
+
+        <h3>
+          📣 Publicita tu negocio
+          en Market Flash
+        </h3>
+
+        <p>
+          Toca aquí para crear y publicar
+          tu anuncio.
+        </p>
+
+      </button>
+
+    `;
+
+    return;
+
+  }
+
+
+  const ad =
+    approved[0];
+
+
+  let media='';
+
+
+  if(ad.mediaType === 'video'){
+
+    media = `
+
+      <video
+        class="ad-live-media"
+        controls
+        playsinline
+        src="${ad.media}">
+      </video>
+
+    `;
+
+  }else{
+
+    media = `
+
+      <img
+        class="ad-live-media"
+        src="${ad.media}"
+        alt="${escapeHtml(ad.title)}"
+      >
+
+    `;
+
+  }
+
+
+  area.innerHTML = `
+
+    <div style="width:100%">
+
+      <small>
+        PUBLICIDAD
+      </small>
+
+      <h3>
+        ${escapeHtml(ad.title)}
+      </h3>
+
+      ${media}
+
+
+      ${
+        ad.description
+        ?
+        `
+        <p style="margin-top:8px">
+          ${escapeHtml(ad.description)}
+        </p>
+        `
+        :
+        ''
+      }
+
+
+      ${
+        ad.destinationType !== 'none'
+        ?
+        `
+        <button
+          class="primary"
+          style="margin-top:10px"
+          onclick="openAdDestination(${ad.id})">
+
+          ${
+            ad.destinationType === 'whatsapp'
+            ? '🟢 WhatsApp'
+            : ad.destinationType === 'messenger'
+            ? '🔵 Messenger'
+            : '🌐 Ver enlace'
+          }
+
+        </button>
+        `
+        :
+        ''
+      }
+
+
+      <button
+        class="secondary"
+        style="margin-top:8px"
+        onclick="openAdvertising()">
+
+        📣 Crear mi publicidad
+
+      </button>
+
+    </div>
+
+  `;
+
+}
+
+
+/* =========================================
+   DESTINO DE PUBLICIDAD
+========================================= */
+
+function openAdDestination(id){
+
+  const ad =
+    ads.find(
+      x => x.id === id
+    );
+
+
+  if(!ad ||
+     !ad.destination){
+
+    return;
+
+  }
+
+
+  let url =
+    ad.destination;
+
+
+  if(
+    ad.destinationType ===
+    'whatsapp'
+  ){
+
+    url =
+      'https://wa.me/' +
+      String(
+        ad.destination
+      ).replace(/\D/g,'') +
+      '?text=' +
+      encodeURIComponent(
+        'Hola, vi tu publicidad "' +
+        ad.title +
+        '" en Market Flash.'
+      );
+
+  }
+
+
+  if(
+    ad.destinationType !==
+    'whatsapp' &&
+    !/^https?:\/\//i.test(url)
+  ){
+
+    url =
+      'https://' + url;
+
+  }
+
+
+  window.open(
+    url,
+    '_blank'
+  );
+
+}
+
+
+/* =========================================
    INICIO
-================================ */
+========================================= */
 
-document.addEventListener('DOMContentLoaded',()=>{
+document.addEventListener(
+  'DOMContentLoaded',
+  function(){
 
-  renderAdvertisingSpot();
+    render();
 
-});
+    renderAdvertisingSpot();
+
+  }
+);
 
 </script>
-
-</body>
-</html>
