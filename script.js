@@ -1,263 +1,293 @@
 /* =========================================================
-   MARKET FLASH
-   JAVASCRIPT PRINCIPAL
-   ========================================================= */
+   MARKET FLASH — SCRIPT.JS
+   Versión base funcional
+========================================================= */
 
 "use strict";
 
 /* =========================================================
-   CONFIGURACIÓN
-   ========================================================= */
+   ESTADO DE LA APLICACIÓN
+========================================================= */
 
-const STORAGE_KEY = "marketFlashData_v2";
+const MF = {
+  storageKey: "marketFlashData",
 
-/* Administrador principal */
-const ADMIN_CEDULA = "402-1260-49-75-3";
+  data: {
+    user: {
+      name: "Usuario",
+      phone: "",
+      cedula: "",
+      messenger: "",
+      whatsapp: "",
+      avatar: "",
+      password: ""
+    },
 
-/* =========================================================
-   DATOS
-   ========================================================= */
+    products: [],
 
-const defaultData = {
-  currentUser: {
-    id: "user_local",
-    name: "Usuario",
-    phone: "",
-    whatsapp: "",
-    cedula: "",
-    messenger: "",
-    password: "1234",
-    avatar: "",
-    isAdmin: false
-  },
+    conversations: [],
 
-  users: [],
+    contacts: [],
 
-  products: [],
+    activity: [],
 
-  conversations: [],
+    ads: [],
 
-  contactRequests: [],
+    settings: {
+      appColor: "#1677ff",
+      chatStyle: "normal",
+      chatBackground: "",
+      chatCustomImage: ""
+    },
 
-  contacts: [],
-
-  notifications: [],
-
-  activity: [],
-
-  settings: {
-    appColor: "#1677ff",
-    chatStyle: "normal",
-    chatBackground: "",
-    chatCustomImage: ""
-  },
-
-  flashAds: [],
-
-  currentFlashIndex: 0
+    admin: {
+      enabled: false,
+      administrators: []
+    }
+  }
 };
 
-let data = loadData();
-let selectedCategory = "Todas";
-let searchText = "";
+
+/* =========================================================
+   REFERENCIAS HTML
+========================================================= */
+
+const $ = (id) => document.getElementById(id);
+
+const modal = $("modal");
+const modalCard = $("modalCard");
+const toast = $("toast");
+
+const pages = {
+  home: $("homePage"),
+  chat: $("chatPage"),
+  activity: $("activityPage"),
+  profile: $("profilePage")
+};
+
 
 /* =========================================================
    UTILIDADES
-   ========================================================= */
-
-function $(id) {
-  return document.getElementById(id);
-}
+========================================================= */
 
 function escapeHTML(value) {
   return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-function saveData() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
 
-function loadData() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-
-    if (!saved) {
-      return structuredClone(defaultData);
-    }
-
-    const parsed = JSON.parse(saved);
-
-    return {
-      ...structuredClone(defaultData),
-      ...parsed,
-      currentUser: {
-        ...defaultData.currentUser,
-        ...(parsed.currentUser || {})
-      },
-      settings: {
-        ...defaultData.settings,
-        ...(parsed.settings || {})
-      }
-    };
-
-  } catch (error) {
-    console.error("Error cargando datos:", error);
-    return structuredClone(defaultData);
-  }
-}
-
-function toast(message) {
-  const el = $("toast");
-
-  if (!el) return;
-
-  el.textContent = message;
-  el.classList.remove("hidden");
-
-  clearTimeout(window.toastTimer);
-
-  window.toastTimer = setTimeout(() => {
-    el.classList.add("hidden");
-  }, 2800);
-}
-
-function money(value) {
-  return new Intl.NumberFormat("es-DO", {
-    style: "currency",
-    currency: "DOP",
-    maximumFractionDigits: 0
-  }).format(Number(value) || 0);
-}
-
-function now() {
-  return new Date().toISOString();
-}
-
-function currentUserId() {
-  return data.currentUser.id;
-}
-
-function isAdmin() {
-  return (
-    data.currentUser.isAdmin === true ||
-    data.currentUser.cedula === ADMIN_CEDULA
-  );
-}
-
-function makeId(prefix = "id") {
+function createId(prefix = "mf") {
   return (
     prefix +
     "_" +
     Date.now() +
     "_" +
-    Math.random().toString(36).slice(2, 8)
+    Math.random().toString(36).slice(2, 9)
   );
 }
 
-/* =========================================================
-   ADMINISTRADOR PRINCIPAL
-   ========================================================= */
 
-function checkAdmin() {
-  if (data.currentUser.cedula === ADMIN_CEDULA) {
-    data.currentUser.isAdmin = true;
-    saveData();
-  }
+function saveData() {
+  localStorage.setItem(
+    MF.storageKey,
+    JSON.stringify(MF.data)
+  );
+}
 
-  const button = $("adminPanelBtn");
 
-  if (button) {
-    button.classList.toggle("hidden", !isAdmin());
+function loadData() {
+  try {
+    const saved = localStorage.getItem(MF.storageKey);
+
+    if (!saved) {
+      saveData();
+      return;
+    }
+
+    const parsed = JSON.parse(saved);
+
+    if (parsed && typeof parsed === "object") {
+      MF.data = {
+        ...MF.data,
+        ...parsed,
+        user: {
+          ...MF.data.user,
+          ...(parsed.user || {})
+        },
+        settings: {
+          ...MF.data.settings,
+          ...(parsed.settings || {})
+        },
+        admin: {
+          ...MF.data.admin,
+          ...(parsed.admin || {})
+        }
+      };
+    }
+
+  } catch (error) {
+    console.error("Error cargando Market Flash:", error);
   }
 }
 
-/* =========================================================
-   NAVEGACIÓN
-   ========================================================= */
 
-function showPage(page) {
-  const pages = {
-    home: $("homePage"),
-    chat: $("chatPage"),
-    activity: $("activityPage"),
-    profile: $("profilePage")
-  };
+function showToast(message) {
+  if (!toast) return;
 
-  Object.values(pages).forEach(pageEl => {
-    if (pageEl) pageEl.classList.add("hidden");
-  });
+  toast.textContent = message;
+  toast.classList.remove("hidden");
 
-  if (pages[page]) {
-    pages[page].classList.remove("hidden");
-  }
+  clearTimeout(window.mfToastTimer);
 
-  document.querySelectorAll(".nav-item").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.page === page
-    );
-  });
-
-  if (page === "home") renderProducts();
-  if (page === "chat") renderChat();
-  if (page === "activity") renderActivity();
-  if (page === "profile") renderProfile();
+  window.mfToastTimer = setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 2600);
 }
+
 
 /* =========================================================
    MODAL
-   ========================================================= */
+========================================================= */
 
-function openModal(html) {
-  const modal = $("modal");
-  const card = $("modalCard");
+function openModal(content) {
+  if (!modal || !modalCard) return;
 
-  if (!modal || !card) return;
-
-  card.innerHTML = html;
-
+  modalCard.innerHTML = content;
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
+
+  document.body.classList.add("modal-open");
 }
 
-function closeModal() {
-  const modal = $("modal");
 
-  if (!modal) return;
+function closeModal() {
+  if (!modal || !modalCard) return;
 
   modal.classList.add("hidden");
   modal.setAttribute("aria-hidden", "true");
+  modalCard.innerHTML = "";
 
-  const card = $("modalCard");
-
-  if (card) card.innerHTML = "";
+  document.body.classList.remove("modal-open");
 }
 
-function modalCloseButton() {
-  return `
-    <button
-      type="button"
-      class="modal-close mf-press"
-      onclick="closeModal()"
-    >
-      ✕
-    </button>
-  `;
+
+if (modal) {
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
 }
+
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeModal();
+  }
+});
+
+
+/* =========================================================
+   NAVEGACIÓN
+========================================================= */
+
+function showPage(pageName) {
+
+  Object.values(pages).forEach((page) => {
+    if (page) {
+      page.classList.add("hidden");
+    }
+  });
+
+  if (pages[pageName]) {
+    pages[pageName].classList.remove("hidden");
+  }
+
+  document.querySelectorAll(".nav-item").forEach((button) => {
+    button.classList.toggle(
+      "active",
+      button.dataset.page === pageName
+    );
+  });
+
+  if (pageName === "home") {
+    renderProducts();
+  }
+
+  if (pageName === "chat") {
+    renderChat();
+  }
+
+  if (pageName === "activity") {
+    renderActivity();
+  }
+
+  if (pageName === "profile") {
+    renderProfile();
+  }
+}
+
+
+document.querySelectorAll(".nav-item").forEach((button) => {
+
+  button.addEventListener("click", () => {
+
+    const page = button.dataset.page;
+
+    if (page) {
+      showPage(page);
+    }
+
+  });
+
+});
+
+
+/* =========================================================
+   PRODUCTOS DE EJEMPLO
+========================================================= */
+
+function createDemoProducts() {
+
+  if (MF.data.products.length > 0) {
+    return;
+  }
+
+  MF.data.products = [
+    {
+      id: createId("product"),
+      title: "Publicación de ejemplo",
+      description: "Aquí aparecerán las publicaciones de los usuarios.",
+      price: 0,
+      category: "Todos",
+      seller: "Usuario",
+      sellerId: "demo",
+      image: "",
+      whatsapp: "",
+      messenger: "",
+      views: 0,
+      likes: 0,
+      dislikes: 0,
+      createdAt: Date.now()
+    }
+  ];
+
+  saveData();
+}
+
 
 /* =========================================================
    CATEGORÍAS
-   ========================================================= */
+========================================================= */
 
 const categories = [
-  "Todas",
-  "Celulares",
-  "Electrónica",
+  "Todos",
+  "Tecnología",
+  "Teléfonos",
   "Vehículos",
   "Hogar",
   "Ropa",
@@ -265,57 +295,98 @@ const categories = [
   "Otros"
 ];
 
+
 function renderCategories() {
+
   const row = $("categoryRow");
 
   if (!row) return;
 
-  row.innerHTML = categories.map(category => `
-    <button
-      type="button"
-      class="chip ${selectedCategory === category ? "active" : ""}"
-      onclick="selectCategory('${escapeHTML(category)}')"
-    >
-      ${escapeHTML(category)}
-    </button>
-  `).join("");
+  row.innerHTML = "";
+
+  categories.forEach((category, index) => {
+
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "chip";
+
+    if (index === 0) {
+      button.classList.add("active");
+    }
+
+    button.textContent = category;
+
+    button.addEventListener("click", () => {
+
+      document
+        .querySelectorAll("#categoryRow .chip")
+        .forEach((chip) => chip.classList.remove("active"));
+
+      button.classList.add("active");
+
+      renderProducts(category);
+
+    });
+
+    row.appendChild(button);
+
+  });
 }
 
-function selectCategory(category) {
-  selectedCategory = category;
-  renderCategories();
-  renderProducts();
-}
 
 /* =========================================================
    PRODUCTOS
-   ========================================================= */
+========================================================= */
 
-function renderProducts() {
+let currentCategory = "Todos";
+
+
+function renderProducts(category = currentCategory) {
+
+  currentCategory = category;
+
   const grid = $("productsGrid");
 
   if (!grid) return;
 
-  const query = searchText.toLowerCase();
+  let products = [...MF.data.products];
 
-  let products = data.products.filter(product => {
+  if (category !== "Todos") {
+    products = products.filter(
+      product => product.category === category
+    );
+  }
 
-    const matchesCategory =
-      selectedCategory === "Todas" ||
-      product.category === selectedCategory;
+  const searchInput = $("searchInput");
 
-    const text = [
-      product.title,
-      product.description,
-      product.location,
-      product.category,
-      product.sellerName
-    ]
-      .join(" ")
-      .toLowerCase();
+  const search = searchInput
+    ? searchInput.value.trim().toLowerCase()
+    : "";
 
-    return matchesCategory && text.includes(query);
-  });
+  if (search) {
+    products = products.filter(product => {
+
+      return (
+        String(product.title || "")
+          .toLowerCase()
+          .includes(search) ||
+
+        String(product.description || "")
+          .toLowerCase()
+          .includes(search) ||
+
+        String(product.category || "")
+          .toLowerCase()
+          .includes(search) ||
+
+        String(product.seller || "")
+          .toLowerCase()
+          .includes(search)
+      );
+
+    });
+  }
 
   const count = $("productCount");
 
@@ -323,35 +394,33 @@ function renderProducts() {
     count.textContent = `${products.length} publicación${products.length === 1 ? "" : "es"}`;
   }
 
-  if (!products.length) {
+  grid.innerHTML = "";
+
+  if (products.length === 0) {
+
     grid.innerHTML = `
-      <div class="empty-state">
-        <div>📦</div>
+      <div class="page-card">
         <h3>No hay publicaciones</h3>
-        <p>Cuando alguien publique algo aparecerá aquí.</p>
+        <p>No encontramos publicaciones con esos criterios.</p>
       </div>
     `;
+
     return;
   }
 
-  grid.innerHTML = products.map(productCard).join("");
-}
+  products.forEach(product => {
 
-function productCard(product) {
+    const card = document.createElement("article");
 
-  const image =
-    product.images && product.images.length
-      ? `<img src="${product.images[0]}" alt="${escapeHTML(product.title)}">`
-      : `<div class="product-placeholder">📦</div>`;
+    card.className = "product-card";
 
-  return `
-    <article
-      class="product-card mf-press"
-      onclick="openProduct('${product.id}')"
-    >
-
+    card.innerHTML = `
       <div class="product-image">
-        ${image}
+        ${
+          product.image
+            ? `<img src="${escapeHTML(product.image)}" alt="${escapeHTML(product.title)}">`
+            : `<span>📦</span>`
+        }
       </div>
 
       <div class="product-body">
@@ -364,1241 +433,536 @@ function productCard(product) {
           ${escapeHTML(product.title)}
         </h3>
 
-        <strong class="product-price">
-          ${money(product.price)}
-        </strong>
-
         <p>
-          📍 ${escapeHTML(product.location || "República Dominicana")}
+          ${escapeHTML(product.description || "")}
         </p>
 
-        <small>
-          👤 ${escapeHTML(product.sellerName || "Usuario")}
-        </small>
+        ${
+          Number(product.price) > 0
+            ? `<strong class="product-price">RD$ ${Number(product.price).toLocaleString("es-DO")}</strong>`
+            : ""
+        }
+
+        <div class="product-meta">
+          <span>👁️ ${Number(product.views || 0)}</span>
+          <span>👍 ${Number(product.likes || 0)}</span>
+          <span>👎 ${Number(product.dislikes || 0)}</span>
+        </div>
 
       </div>
+    `;
 
-    </article>
-  `;
+    card.addEventListener("click", () => {
+      openProduct(product.id);
+    });
+
+    grid.appendChild(card);
+
+  });
 }
 
+
 /* =========================================================
-   DETALLE DE PUBLICACIÓN
-   ========================================================= */
+   VER PUBLICACIÓN
+========================================================= */
 
-function openProduct(id) {
+function openProduct(productId) {
 
-  const product = data.products.find(p => p.id === id);
+  const product = MF.data.products.find(
+    item => item.id === productId
+  );
 
   if (!product) return;
 
   product.views = Number(product.views || 0) + 1;
 
   addActivity(
-    `Viste la publicación "${product.title}"`
+    `Viste la publicación "${product.title}".`
   );
 
   saveData();
 
-  const own =
-    product.sellerId === currentUserId();
-
-  const whatsapp = product.whatsapp || "";
-  const messenger = product.messenger || "";
-
-  let contactButtons = "";
-
-  if (!own) {
-    contactButtons += `
-      <button
-        class="primary-btn"
-        onclick="contactSeller('${product.id}')"
-      >
-        💬 Chat Market Flash
-      </button>
-    `;
-  } else {
-    contactButtons += `
-      <button
-        class="secondary-btn"
-        onclick="editProduct('${product.id}')"
-      >
-        ✏️ Editar publicación
-      </button>
-    `;
-  }
-
-  if (whatsapp) {
-    const clean = whatsapp.replace(/\D/g, "");
-
-    contactButtons += `
-      <a
-        class="secondary-btn"
-        href="https://wa.me/${clean}"
-        target="_blank"
-        rel="noopener"
-      >
-        🟢 WhatsApp
-      </a>
-    `;
-  }
-
-  if (messenger) {
-    contactButtons += `
-      <a
-        class="secondary-btn"
-        href="${escapeHTML(messenger)}"
-        target="_blank"
-        rel="noopener"
-      >
-        🔵 Messenger
-      </a>
-    `;
-  }
-
   openModal(`
-    <div class="modal-content">
 
-      ${modalCloseButton()}
+    <div class="modal-header">
 
-      <h2>
-        ${escapeHTML(product.title)}
-      </h2>
+      <div>
+        <small>PUBLICACIÓN</small>
+        <h2>${escapeHTML(product.title)}</h2>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <div class="product-detail">
 
       <div class="product-detail-image">
 
         ${
-          product.images?.length
-            ? `<img src="${product.images[0]}" alt="">`
-            : "📦"
+          product.image
+            ? `<img src="${escapeHTML(product.image)}" alt="">`
+            : `<div class="empty-product-image">📦</div>`
         }
 
       </div>
 
-      <h3>
-        ${money(product.price)}
-      </h3>
-
       <p>
-        ${escapeHTML(product.description || "")}
+        ${escapeHTML(product.description || "Sin descripción.")}
       </p>
 
-      <p>
-        📍 ${escapeHTML(product.location || "")}
-      </p>
+      ${
+        Number(product.price) > 0
+          ? `<h3>RD$ ${Number(product.price).toLocaleString("es-DO")}</h3>`
+          : ""
+      }
 
       <p>
-        👤 ${escapeHTML(product.sellerName || "")}
+        Publicado por:
+        <strong>${escapeHTML(product.seller || "Usuario")}</strong>
       </p>
-
-      <div class="contact-buttons">
-        ${contactButtons}
-      </div>
 
       <div class="reaction-buttons">
 
         <button
-          class="secondary-btn"
-          onclick="likeProduct('${product.id}')"
+          type="button"
+          class="primary-btn"
+          data-like="${product.id}"
         >
           👍 Me gusta
         </button>
 
         <button
+          type="button"
           class="secondary-btn"
-          onclick="dislikeProduct('${product.id}')"
+          data-dislike="${product.id}"
         >
           👎 No me gusta
         </button>
 
-        <button
-          class="danger-outline"
-          onclick="reportProduct('${product.id}')"
-        >
-          🚩 Reclamar
-        </button>
-
       </div>
 
-    </div>
-  `);
-}
+      <div class="contact-options">
 
-/* =========================================================
-   ME GUSTA / NO ME GUSTA
-   ========================================================= */
+        <h3>Contactar</h3>
 
-function likeProduct(id) {
-
-  const product = data.products.find(p => p.id === id);
-
-  if (!product) return;
-
-  product.likes = Number(product.likes || 0) + 1;
-
-  addActivity(`Marcaste "Me gusta" en "${product.title}"`);
-
-  saveData();
-
-  toast("👍 Me gusta registrado");
-}
-
-function dislikeProduct(id) {
-
-  const product = data.products.find(p => p.id === id);
-
-  if (!product) return;
-
-  product.dislikes = Number(product.dislikes || 0) + 1;
-
-  addActivity(`Marcaste "No me gusta" en "${product.title}"`);
-
-  saveData();
-
-  toast("👎 No me gusta registrado");
-}
-
-/* =========================================================
-   RECLAMOS
-   ========================================================= */
-
-function reportProduct(id) {
-
-  const product = data.products.find(p => p.id === id);
-
-  if (!product) return;
-
-  openModal(`
-    <div class="modal-content">
-
-      ${modalCloseButton()}
-
-      <h2>
-        🚩 Reclamar publicación
-      </h2>
-
-      <p>
-        Indica el motivo del reclamo.
-      </p>
-
-      <select id="reportReason">
-
-        <option value="Contenido inapropiado">
-          Contenido inapropiado
-        </option>
-
-        <option value="Fraude o estafa">
-          Fraude o estafa
-        </option>
-
-        <option value="Producto prohibido">
-          Producto prohibido
-        </option>
-
-        <option value="Información falsa">
-          Información falsa
-        </option>
-
-        <option value="Otro">
-          Otro
-        </option>
-
-      </select>
-
-      <textarea
-        id="reportDescription"
-        placeholder="Describe el problema..."
-      ></textarea>
-
-      <button
-        class="danger-outline"
-        onclick="submitReport('${product.id}')"
-      >
-        Enviar reclamo
-      </button>
-
-    </div>
-  `);
-}
-
-function submitReport(productId) {
-
-  const reason = $("reportReason")?.value;
-  const description = $("reportDescription")?.value.trim();
-
-  data.notifications.push({
-    id: makeId("report"),
-    type: "report",
-    productId,
-    reason,
-    description,
-    from: currentUserId(),
-    createdAt: now(),
-    status: "pendiente"
-  });
-
-  addActivity("Enviaste un reclamo");
-
-  saveData();
-
-  closeModal();
-
-  toast("🚩 Reclamo enviado correctamente");
-}
-
-/* =========================================================
-   CONTACTOS
-   ========================================================= */
-
-function contactSeller(productId) {
-
-  const product = data.products.find(p => p.id === productId);
-
-  if (!product) return;
-
-  if (product.sellerId === currentUserId()) {
-    toast("Esta publicación pertenece a tu cuenta.");
-    return;
-  }
-
-  const existing = data.contacts.find(
-    c =>
-      c.userA === currentUserId() &&
-      c.userB === product.sellerId ||
-      c.userB === currentUserId() &&
-      c.userA === product.sellerId
-  );
-
-  if (existing) {
-    openConversation(product.sellerId);
-    return;
-  }
-
-  sendContactRequest(product.sellerId);
-}
-
-function sendContactRequest(userId) {
-
-  const exists = data.contactRequests.find(
-    request =>
-      request.from === currentUserId() &&
-      request.to === userId &&
-      request.status === "pendiente"
-  );
-
-  if (exists) {
-    toast("Ya enviaste una solicitud.");
-    return;
-  }
-
-  data.contactRequests.push({
-    id: makeId("request"),
-    from: currentUserId(),
-    to: userId,
-    status: "pendiente",
-    createdAt: now()
-  });
-
-  saveData();
-
-  toast("👥 Solicitud de contacto enviada");
-}
-
-function acceptContactRequest(id) {
-
-  const request = data.contactRequests.find(
-    r => r.id === id
-  );
-
-  if (!request) return;
-
-  request.status = "aceptada";
-
-  data.contacts.push({
-    id: makeId("contact"),
-    userA: request.from,
-    userB: request.to,
-    createdAt: now()
-  });
-
-  saveData();
-
-  renderChat();
-
-  toast("👥 Contacto agregado");
-}
-
-function rejectContactRequest(id) {
-
-  const request = data.contactRequests.find(
-    r => r.id === id
-  );
-
-  if (!request) return;
-
-  request.status = "rechazada";
-
-  saveData();
-
-  renderChat();
-
-  toast("Solicitud rechazada");
-}
-
-/* =========================================================
-   OBTENER USUARIO
-   ========================================================= */
-
-function getUser(id) {
-
-  if (id === currentUserId()) {
-    return data.currentUser;
-  }
-
-  return data.users.find(user => user.id === id) || {
-    id,
-    name: "Usuario",
-    phone: "",
-    whatsapp: "",
-    messenger: "",
-    avatar: ""
-  };
-}
-
-/* =========================================================
-   CHAT
-   ========================================================= */
-
-function renderChat() {
-
-  renderContactRequests();
-
-  const list = $("conversationList");
-  const empty = $("chatEmpty");
-
-  if (!list) return;
-
-  const conversations = data.conversations.filter(
-    conversation =>
-      conversation.userA === currentUserId() ||
-      conversation.userB === currentUserId()
-  );
-
-  if (!conversations.length) {
-
-    list.innerHTML = "";
-
-    if (empty) {
-      empty.classList.remove("hidden");
-    }
-
-    return;
-  }
-
-  if (empty) {
-    empty.classList.add("hidden");
-  }
-
-  list.innerHTML = conversations
-    .map(conversation => {
-
-      const otherId =
-        conversation.userA === currentUserId()
-          ? conversation.userB
-          : conversation.userA;
-
-      const user = getUser(otherId);
-
-      const messages = conversation.messages || [];
-
-      const last =
-        messages[messages.length - 1];
-
-      return `
         <button
           type="button"
-          class="conversation-item"
-          onclick="openConversation('${otherId}')"
+          class="primary-btn"
+          data-platform-chat="${product.id}"
         >
-
-          <div class="conversation-avatar">
-            ${user.avatar
-              ? `<img src="${user.avatar}" alt="">`
-              : "👤"
-            }
-          </div>
-
-          <div>
-
-            <strong>
-              ${escapeHTML(user.name)}
-            </strong>
-
-            <p>
-              ${escapeHTML(last?.text || "Nueva conversación")}
-            </p>
-
-          </div>
-
+          💬 Chat Market Flash
         </button>
-      `;
-
-    })
-    .join("");
-}
-
-function renderContactRequests() {
-
-  const section = $("contactRequestsSection");
-  const list = $("contactRequestsList");
-  const count = $("contactRequestCount");
-
-  if (!section || !list) return;
-
-  const requests = data.contactRequests.filter(
-    r =>
-      r.to === currentUserId() &&
-      r.status === "pendiente"
-  );
-
-  section.classList.toggle(
-    "hidden",
-    requests.length === 0
-  );
-
-  if (count) {
-    count.textContent = requests.length;
-    count.classList.toggle(
-      "hidden",
-      requests.length === 0
-    );
-  }
-
-  list.innerHTML = requests.map(request => {
-
-    const user = getUser(request.from);
-
-    return `
-      <div class="request-card">
-
-        <strong>
-          ${escapeHTML(user.name)}
-        </strong>
-
-        <p>
-          Quiere agregarte como contacto.
-        </p>
-
-        <div>
-
-          <button
-            class="primary-btn"
-            onclick="acceptContactRequest('${request.id}')"
-          >
-            ✓ Aceptar
-          </button>
-
-          <button
-            class="secondary-btn"
-            onclick="rejectContactRequest('${request.id}')"
-          >
-            ✕ Rechazar
-          </button>
-
-        </div>
-
-      </div>
-    `;
-
-  }).join("");
-}
-
-function openConversation(userId) {
-
-  let conversation = data.conversations.find(
-    c =>
-      c.userA === currentUserId() &&
-      c.userB === userId ||
-      c.userB === currentUserId() &&
-      c.userA === userId
-  );
-
-  if (!conversation) {
-
-    conversation = {
-      id: makeId("conversation"),
-      userA: currentUserId(),
-      userB: userId,
-      messages: []
-    };
-
-    data.conversations.push(conversation);
-  }
-
-  const user = getUser(userId);
-
-  openModal(`
-    <div class="modal-content chat-modal">
-
-      ${modalCloseButton()}
-
-      <h2>
-        💬 ${escapeHTML(user.name)}
-      </h2>
-
-      <div
-        id="chatMessages"
-        class="chat-messages"
-      >
 
         ${
-          conversation.messages.length
-            ? conversation.messages.map(message => `
-              <div class="
-                chat-message
-                ${message.sender === currentUserId() ? "mine" : ""}
-              ">
-                ${escapeHTML(message.text)}
-              </div>
-            `).join("")
-            : `
-              <div class="chat-empty">
-                No hay mensajes todavía.
-              </div>
+          product.whatsapp
+            ? `
+              <button
+                type="button"
+                class="secondary-btn"
+                data-whatsapp="${escapeHTML(product.whatsapp)}"
+              >
+                🟢 WhatsApp
+              </button>
             `
+            : ""
+        }
+
+        ${
+          product.messenger
+            ? `
+              <button
+                type="button"
+                class="secondary-btn"
+                data-messenger="${escapeHTML(product.messenger)}"
+              >
+                🔵 Messenger
+              </button>
+            `
+            : ""
         }
 
       </div>
 
-      <div class="chat-input-row">
+    </div>
+  `);
 
-        <input
-          id="chatMessageInput"
-          type="text"
-          placeholder="Escribe un mensaje..."
-        >
+  bindModalActions();
+}
+
+
+/* =========================================================
+   ACCIONES DEL MODAL
+========================================================= */
+
+function bindModalActions() {
+
+  document
+    .querySelectorAll("[data-close-modal]")
+    .forEach(button => {
+
+      button.addEventListener("click", closeModal);
+
+    });
+
+
+  document
+    .querySelectorAll("[data-like]")
+    .forEach(button => {
+
+      button.addEventListener("click", () => {
+
+        const product = MF.data.products.find(
+          item => item.id === button.dataset.like
+        );
+
+        if (!product) return;
+
+        product.likes = Number(product.likes || 0) + 1;
+
+        saveData();
+
+        showToast("👍 Me gusta registrado");
+
+        openProduct(product.id);
+
+      });
+
+    });
+
+
+  document
+    .querySelectorAll("[data-dislike]")
+    .forEach(button => {
+
+      button.addEventListener("click", () => {
+
+        const product = MF.data.products.find(
+          item => item.id === button.dataset.dislike
+        );
+
+        if (!product) return;
+
+        product.dislikes = Number(product.dislikes || 0) + 1;
+
+        saveData();
+
+        showToast("👎 No me gusta registrado");
+
+        openProduct(product.id);
+
+      });
+
+    });
+
+
+  document
+    .querySelectorAll("[data-platform-chat]")
+    .forEach(button => {
+
+      button.addEventListener("click", () => {
+
+        const product = MF.data.products.find(
+          item => item.id === button.dataset.platformChat
+        );
+
+        if (!product) return;
+
+        startConversation(product);
+
+      });
+
+    });
+
+
+  document
+    .querySelectorAll("[data-whatsapp]")
+    .forEach(button => {
+
+      button.addEventListener("click", () => {
+
+        const number = button.dataset.whatsapp
+          .replace(/\D/g, "");
+
+        if (!number) {
+          showToast("Este usuario no tiene WhatsApp configurado.");
+          return;
+        }
+
+        window.open(
+          `https://wa.me/${number}`,
+          "_blank",
+          "noopener,noreferrer"
+        );
+
+      });
+
+    });
+
+
+  document
+    .querySelectorAll("[data-messenger]")
+    .forEach(button => {
+
+      button.addEventListener("click", () => {
+
+        const url = button.dataset.messenger;
+
+        if (url) {
+          window.open(
+            url,
+            "_blank",
+            "noopener,noreferrer"
+          );
+        }
+
+      });
+
+    });
+
+}
+
+
+/* =========================================================
+   PUBLICAR
+========================================================= */
+
+const publishBtn = $("publishBtn");
+
+if (publishBtn) {
+
+  publishBtn.addEventListener("click", () => {
+
+    openPublishModal();
+
+  });
+
+}
+
+
+function openPublishModal() {
+
+  openModal(`
+
+    <div class="modal-header">
+
+      <div>
+        <small>MARKET FLASH</small>
+        <h2>Publicar producto</h2>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <form id="publishForm">
+
+      <label>Título</label>
+
+      <input
+        id="publishTitle"
+        type="text"
+        required
+        maxlength="100"
+        placeholder="Ej. iPhone 14 Pro"
+      >
+
+      <label>Categoría</label>
+
+      <select id="publishCategory">
+
+        ${categories
+          .filter(c => c !== "Todos")
+          .map(c => `<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`)
+          .join("")}
+
+      </select>
+
+      <label>Descripción</label>
+
+      <textarea
+        id="publishDescription"
+        rows="4"
+        maxlength="1000"
+        placeholder="Describe tu publicación..."
+      ></textarea>
+
+      <label>Precio</label>
+
+      <input
+        id="publishPrice"
+        type="number"
+        min="0"
+        step="1"
+        placeholder="0"
+      >
+
+      <label>WhatsApp</label>
+
+      <input
+        id="publishWhatsapp"
+        type="tel"
+        placeholder="8090000000"
+        value="${escapeHTML(MF.data.user.whatsapp || MF.data.user.phone || "")}"
+      >
+
+      <label>Messenger</label>
+
+      <input
+        id="publishMessenger"
+        type="url"
+        placeholder="https://m.me/..."
+        value="${escapeHTML(MF.data.user.messenger || "")}"
+      >
+
+      <div class="form-actions">
 
         <button
-          class="primary-btn"
-          onclick="sendMessage('${conversation.id}')"
+          type="button"
+          class="secondary-btn"
+          id="chooseProductPhoto"
         >
-          ➤
+          📷 Foto
+        </button>
+
+        <button
+          type="button"
+          class="secondary-btn"
+          id="chooseProductGallery"
+        >
+          🖼️ Galería
         </button>
 
       </div>
 
-    </div>
+      <div id="publishPreview"></div>
+
+      <button
+        type="submit"
+        class="primary-btn"
+      >
+        Publicar
+      </button>
+
+    </form>
   `);
 
-  setTimeout(() => {
-    $("chatMessageInput")?.focus();
-  }, 100);
-}
+  bindModalActions();
 
-function sendMessage(conversationId) {
+  const photoInput = $("productCameraInput");
+  const galleryInput = $("productGalleryInput");
 
-  const input = $("chatMessageInput");
-
-  if (!input) return;
-
-  const text = input.value.trim();
-
-  if (!text) return;
-
-  const conversation =
-    data.conversations.find(
-      c => c.id === conversationId
-    );
-
-  if (!conversation) return;
-
-  conversation.messages.push({
-    id: makeId("message"),
-    sender: currentUserId(),
-    text,
-    createdAt: now()
-  });
-
-  saveData();
-
-  const otherId =
-    conversation.userA === currentUserId()
-      ? conversation.userB
-      : conversation.userA;
-
-  openConversation(otherId);
-}
-
-/* =========================================================
-   ACTIVIDAD
-   ========================================================= */
-
-function addActivity(text) {
-
-  data.activity.unshift({
-    id: makeId("activity"),
-    text,
-    createdAt: now()
-  });
-
-  data.activity =
-    data.activity.slice(0, 100);
-
-  saveData();
-}
-
-function renderActivity() {
-
-  const publications =
-    data.products.filter(
-      p => p.sellerId === currentUserId()
-    );
-
-  const contacts =
-    data.contacts.filter(
-      c =>
-        c.userA === currentUserId() ||
-        c.userB === currentUserId()
-    ).length;
-
-  let views = 0;
-  let likes = 0;
-  let dislikes = 0;
-
-  publications.forEach(product => {
-    views += Number(product.views || 0);
-    likes += Number(product.likes || 0);
-    dislikes += Number(product.dislikes || 0);
-  });
-
-  if ($("activityContactsCount"))
-    $("activityContactsCount").textContent = contacts;
-
-  if ($("activityViewsCount"))
-    $("activityViewsCount").textContent = views;
-
-  if ($("activityLikesCount"))
-    $("activityLikesCount").textContent = likes;
-
-  if ($("activityDislikesCount"))
-    $("activityDislikesCount").textContent = dislikes;
-
-  if ($("activityProductCount"))
-    $("activityProductCount").textContent = publications.length;
-
-  const publicationBox =
-    $("activityPublications");
-
-  if (publicationBox) {
-
-    publicationBox.innerHTML =
-      publications.length
-        ? publications.map(p => `
-          <div class="activity-publication">
-
-            <strong>
-              ${escapeHTML(p.title)}
-            </strong>
-
-            <span>
-              👁️ ${p.views || 0}
-              &nbsp; 👍 ${p.likes || 0}
-              &nbsp; 👎 ${p.dislikes || 0}
-            </span>
-
-          </div>
-        `).join("")
-        : `
-          <p>
-            Todavía no tienes publicaciones.
-          </p>
-        `;
-  }
-
-  const box = $("activityContent");
-
-  if (!box) return;
-
-  box.innerHTML =
-    data.activity.length
-      ? data.activity.map(item => `
-        <div class="activity-row">
-
-          <span>
-            •
-          </span>
-
-          <div>
-            ${escapeHTML(item.text)}
-
-            <small>
-              ${new Date(item.createdAt).toLocaleString("es-DO")}
-            </small>
-          </div>
-
-        </div>
-      `).join("")
-      : `
-        <p>
-          No hay actividad reciente.
-        </p>
-      `;
-}
-
-/* =========================================================
-   PERFIL
-   ========================================================= */
-
-function renderProfile() {
-
-  const user = data.currentUser;
-
-  setText("profileName", user.name || "Usuario");
-  setText("profilePhone", user.phone || "Teléfono no registrado");
-
-  setText(
-    "profileCedula",
-    user.cedula
-      ? "Cédula: protegida"
-      : "Cédula: no registrada"
+  $("chooseProductPhoto")?.addEventListener(
+    "click",
+    () => photoInput?.click()
   );
 
-  setText("profileNameInfo", user.name || "-");
-  setText("profilePhoneInfo", user.phone || "-");
-
-  setText(
-    "profileMessengerInfo",
-    user.messenger
-      ? "Conectado"
-      : "No conectado"
+  $("chooseProductGallery")?.addEventListener(
+    "click",
+    () => galleryInput?.click()
   );
 
-  setText(
-    "profileWhatsappInfo",
-    user.whatsapp
-      ? user.whatsapp
-      : "No configurado"
+  photoInput?.addEventListener("change", handleProductImage);
+
+  galleryInput?.addEventListener("change", handleProductImage);
+
+  $("publishForm")?.addEventListener(
+    "submit",
+    handlePublish
   );
-
-  const publications =
-    data.products.filter(
-      p => p.sellerId === currentUserId()
-    );
-
-  const contacts =
-    data.contacts.filter(
-      c =>
-        c.userA === currentUserId() ||
-        c.userB === currentUserId()
-    );
-
-  let views = 0;
-
-  publications.forEach(
-    p => views += Number(p.views || 0)
-  );
-
-  setText(
-    "profilePublicationsCount",
-    publications.length
-  );
-
-  setText(
-    "profileContactsCount",
-    contacts.length
-  );
-
-  setText(
-    "profileViewsCount",
-    views
-  );
-
-  setText(
-    "myProductCount",
-    publications.length
-  );
-
-  const myProducts = $("myProducts");
-
-  if (myProducts) {
-    myProducts.innerHTML =
-      publications.length
-        ? publications.map(productCard).join("")
-        : `
-          <div class="empty-state">
-            <div>📦</div>
-            <h3>No tienes publicaciones</h3>
-          </div>
-        `;
-  }
-
-  checkAdmin();
-
-  updateProfileAvatar();
 }
 
-function setText(id, text) {
 
-  const el = $(id);
+let selectedProductImage = "";
 
-  if (el) {
-    el.textContent = text;
-  }
-}
 
-function updateProfileAvatar() {
+function handleProductImage(event) {
 
-  const buttons = [
-    $("profileAvatarBtn"),
-    $("editProfilePhotoBtn")
-  ];
-
-  buttons.forEach(button => {
-
-    if (!button) return;
-
-    if (data.currentUser.avatar) {
-      button.innerHTML = `
-        <img
-          src="${data.currentUser.avatar}"
-          alt="Foto de perfil"
-        >
-      `;
-    } else {
-      button.textContent = "👤";
-    }
-
-  });
-}
-
-/* =========================================================
-   EDITAR PERFIL
-   ========================================================= */
-
-function openEditProfile() {
-
-  const user = data.currentUser;
-
-  if ($("editProfileNameInput"))
-    $("editProfileNameInput").value = user.name || "";
-
-  if ($("editProfilePhoneInput"))
-    $("editProfilePhoneInput").value = user.phone || "";
-
-  if ($("editProfileWhatsappInput"))
-    $("editProfileWhatsappInput").value =
-      user.whatsapp || "";
-
-  $("profileEditSection")?.classList.remove("hidden");
-
-  $("profileEditSection")?.scrollIntoView({
-    behavior: "smooth"
-  });
-}
-
-function saveProfile() {
-
-  const name =
-    $("editProfileNameInput")?.value.trim();
-
-  const phone =
-    $("editProfilePhoneInput")?.value.trim();
-
-  const whatsapp =
-    $("editProfileWhatsappInput")?.value.trim();
-
-  if (name) data.currentUser.name = name;
-
-  data.currentUser.phone = phone;
-  data.currentUser.whatsapp = whatsapp;
-
-  saveData();
-
-  renderProfile();
-
-  toast("✅ Perfil actualizado");
-}
-
-function handleProfileImage(file) {
+  const file = event.target.files?.[0];
 
   if (!file) return;
 
+  if (!file.type.startsWith("image/")) {
+    showToast("Selecciona una imagen válida.");
+    return;
+  }
+
   const reader = new FileReader();
 
-  reader.onload = event => {
+  reader.onload = () => {
 
-    data.currentUser.avatar =
-      event.target.result;
+    selectedProductImage = reader.result;
 
-    saveData();
+    const preview = $("publishPreview");
 
-    renderProfile();
+    if (preview) {
+      preview.innerHTML = `
+        <img
+          src="${escapeHTML(selectedProductImage)}"
+          alt="Vista previa"
+          style="max-width:100%;border-radius:12px;"
+        >
+      `;
+    }
 
-    toast("📷 Foto de perfil actualizada");
   };
 
   reader.readAsDataURL(file);
 }
 
-/* =========================================================
-   CONFIGURACIÓN
-   ========================================================= */
 
-function toggleSettings() {
+function handlePublish(event) {
 
-  const settings = $("profileSettings");
+  event.preventDefault();
 
-  if (!settings) return;
-
-  settings.classList.toggle("hidden");
-
-  if (!settings.classList.contains("hidden")) {
-    settings.scrollIntoView({
-      behavior: "smooth"
-    });
-  }
-}
-
-function savePhone() {
-
-  const value =
-    $("newPhoneInput")?.value.trim();
-
-  if (!value) {
-    toast("Escribe un número.");
-    return;
-  }
-
-  data.currentUser.phone = value;
-
-  saveData();
-  renderProfile();
-
-  toast("📱 Número guardado");
-}
-
-function saveWhatsapp() {
-
-  const value =
-    $("whatsappNumberInput")?.value.trim();
-
-  data.currentUser.whatsapp = value;
-
-  saveData();
-  renderProfile();
-
-  toast("🟢 WhatsApp guardado");
-}
-
-function saveMessenger() {
-
-  const value =
-    $("messengerLinkInput")?.value.trim();
-
-  data.currentUser.messenger = value;
-
-  saveData();
-  renderProfile();
-
-  toast("💬 Messenger guardado");
-}
-
-function changePassword() {
-
-  const current =
-    $("currentPasswordInput")?.value;
-
-  const next =
-    $("newPasswordInput")?.value;
-
-  if (current !== data.currentUser.password) {
-    toast("❌ La contraseña actual no coincide.");
-    return;
-  }
-
-  if (!next || next.length < 4) {
-    toast("La nueva contraseña debe tener al menos 4 caracteres.");
-    return;
-  }
-
-  data.currentUser.password = next;
-
-  saveData();
-
-  $("currentPasswordInput").value = "";
-  $("newPasswordInput").value = "";
-
-  toast("🔐 Contraseña cambiada");
-}
-
-/* =========================================================
-   PUBLICAR PRODUCTO
-   ========================================================= */
-
-function openPublishModal() {
-
-  openModal(`
-    <div class="modal-content">
-
-      ${modalCloseButton()}
-
-      <h2>
-        ➕ Publicar producto
-      </h2>
-
-      <label>
-        Título
-      </label>
-
-      <input
-        id="productTitleInput"
-        type="text"
-        placeholder="Ej.: iPhone 14 Pro"
-      >
-
-      <label>
-        Precio
-      </label>
-
-      <input
-        id="productPriceInput"
-        type="number"
-        placeholder="Precio"
-      >
-
-      <label>
-        Categoría
-      </label>
-
-      <select id="productCategoryInput">
-
-        ${categories
-          .filter(c => c !== "Todas")
-          .map(c => `
-            <option value="${escapeHTML(c)}">
-              ${escapeHTML(c)}
-            </option>
-          `)
-          .join("")
-        }
-
-      </select>
-
-      <label>
-        Ubicación
-      </label>
-
-      <input
-        id="productLocationInput"
-        type="text"
-        placeholder="Santo Domingo"
-      >
-
-      <label>
-        Descripción
-      </label>
-
-      <textarea
-        id="productDescriptionInput"
-        placeholder="Describe tu producto..."
-      ></textarea>
-
-      <div class="upload-buttons">
-
-        <button
-          class="secondary-btn"
-          onclick="$('productCameraInput').click()"
-        >
-          📷 Cámara
-        </button>
-
-        <button
-          class="secondary-btn"
-          onclick="$('productGalleryInput').click()"
-        >
-          🖼️ Galería
-        </button>
-
-        <button
-          class="secondary-btn"
-          onclick="$('productVideoCameraInput').click()"
-        >
-          🎥 Grabar video
-        </button>
-
-        <button
-          class="secondary-btn"
-          onclick="$('productVideoGalleryInput').click()"
-        >
-          🎬 Video
-        </button>
-
-      </div>
-
-      <div id="productMediaPreview"></div>
-
-      <button
-        class="primary-btn"
-        onclick="createProduct()"
-      >
-        Publicar
-      </button>
-
-    </div>
-  `);
-
-  window.tempProductImages = [];
-}
-
-function createProduct() {
-
-  const title =
-    $("productTitleInput")?.value.trim();
-
-  const price =
-    Number($("productPriceInput")?.value || 0);
-
-  const category =
-    $("productCategoryInput")?.value;
-
-  const location =
-    $("productLocationInput")?.value.trim();
-
-  const description =
-    $("productDescriptionInput")?.value.trim();
+  const title = $("publishTitle")?.value.trim();
 
   if (!title) {
-    toast("Escribe el título.");
+    showToast("Escribe el título de la publicación.");
     return;
   }
 
   const product = {
 
-    id: makeId("product"),
-
-    sellerId: currentUserId(),
-
-    sellerName: data.currentUser.name,
-
-    phone: data.currentUser.phone,
-
-    whatsapp: data.currentUser.whatsapp,
-
-    messenger: data.currentUser.messenger,
+    id: createId("product"),
 
     title,
 
-    price,
+    category:
+      $("publishCategory")?.value || "Otros",
 
-    category,
+    description:
+      $("publishDescription")?.value.trim() || "",
 
-    location,
+    price:
+      Number($("publishPrice")?.value || 0),
 
-    description,
+    seller:
+      MF.data.user.name || "Usuario",
 
-    images: window.tempProductImages || [],
+    sellerId:
+      MF.data.user.cedula || createId("user"),
 
-    video: "",
+    image:
+      selectedProductImage,
+
+    whatsapp:
+      $("publishWhatsapp")?.value.trim() || "",
+
+    messenger:
+      $("publishMessenger")?.value.trim() || "",
 
     views: 0,
 
@@ -1606,170 +970,226 @@ function createProduct() {
 
     dislikes: 0,
 
-    createdAt: now()
+    createdAt: Date.now()
+
   };
 
-  data.products.unshift(product);
+  MF.data.products.unshift(product);
 
   addActivity(
-    `Publicaste "${title}"`
+    `Publicaste "${product.title}".`
   );
 
   saveData();
+
+  selectedProductImage = "";
 
   closeModal();
 
   renderProducts();
 
-  toast("✅ Publicación creada");
+  renderProfile();
+
+  showToast("✅ Publicación creada correctamente.");
 }
 
-/* =========================================================
-   IMÁGENES
-   ========================================================= */
-
-function processImage(file) {
-
-  if (!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = event => {
-
-    window.tempProductImages =
-      window.tempProductImages || [];
-
-    window.tempProductImages.push(
-      event.target.result
-    );
-
-    renderMediaPreview();
-  };
-
-  reader.readAsDataURL(file);
-}
-
-function renderMediaPreview() {
-
-  const box = $("productMediaPreview");
-
-  if (!box) return;
-
-  box.innerHTML =
-    (window.tempProductImages || [])
-      .map((image, index) => `
-        <div class="media-preview-item">
-
-          <img src="${image}" alt="">
-
-          <button
-            type="button"
-            onclick="removeTempImage(${index})"
-          >
-            ✕
-          </button>
-
-        </div>
-      `)
-      .join("");
-}
-
-function removeTempImage(index) {
-
-  window.tempProductImages.splice(
-    index,
-    1
-  );
-
-  renderMediaPreview();
-}
 
 /* =========================================================
    FLASH DEL DÍA
-   ========================================================= */
+========================================================= */
+
+$("flashDayBtn")?.addEventListener(
+  "click",
+  openFlashDay
+);
+
 
 function openFlashDay() {
 
+  const approvedAds = MF.data.ads.filter(
+    ad => ad.status === "approved"
+  );
+
   openModal(`
-    <div class="modal-content">
 
-      ${modalCloseButton()}
+    <div class="modal-header">
 
-      <h2>
-        ⚡ Publicación Flash del Día
-      </h2>
+      <div>
+        <small>PUBLICIDAD</small>
+        <h2>Publicación Flash del Día</h2>
+      </div>
 
-      <p>
-        Publicidad destacada que aparecerá en primera plana.
-      </p>
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
 
-      <label>
-        Título
-      </label>
+    </div>
+
+    ${
+      approvedAds.length
+        ? `
+          <div class="flash-ads">
+
+            ${approvedAds.map(ad => `
+              <article class="flash-ad">
+
+                ${
+                  ad.media
+                    ? `<img src="${escapeHTML(ad.media)}" alt="">`
+                    : `<div class="empty-product-image">⚡</div>`
+                }
+
+                <small>${escapeHTML(ad.plan || "Plan")}</small>
+
+                <h3>
+                  ${escapeHTML(ad.title || "Publicidad")}
+                </h3>
+
+                <p>
+                  ${escapeHTML(ad.description || "")}
+                </p>
+
+                ${
+                  ad.contact
+                    ? `<a href="${escapeHTML(ad.contact)}" target="_blank" rel="noopener noreferrer" class="primary-btn">Contactar</a>`
+                    : ""
+                }
+
+              </article>
+            `).join("")}
+
+          </div>
+        `
+        : `
+          <div class="page-card">
+
+            <h3>⚡ Flash del Día</h3>
+
+            <p>
+              Todavía no hay publicidad aprobada para mostrar.
+            </p>
+
+          </div>
+        `
+    }
+
+    <button
+      type="button"
+      class="primary-btn"
+      id="createFlashAdBtn"
+    >
+      📢 Crear publicidad Flash
+    </button>
+
+  `);
+
+  bindModalActions();
+
+  $("createFlashAdBtn")?.addEventListener(
+    "click",
+    openFlashAdForm
+  );
+}
+
+
+/* =========================================================
+   CREAR PUBLICIDAD FLASH
+========================================================= */
+
+function openFlashAdForm() {
+
+  openModal(`
+
+    <div class="modal-header">
+
+      <div>
+        <small>PUBLICIDAD</small>
+        <h2>Crear Flash del Día</h2>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <form id="flashAdForm">
+
+      <label>Título</label>
 
       <input
-        id="flashTitleInput"
-        type="text"
+        id="flashTitle"
+        required
+        maxlength="100"
         placeholder="Título de la publicidad"
       >
 
-      <label>
-        Descripción
-      </label>
+      <label>Descripción</label>
 
       <textarea
-        id="flashDescriptionInput"
+        id="flashDescription"
+        rows="4"
         placeholder="Describe tu publicidad..."
       ></textarea>
 
-      <label>
-        Número de contacto
-      </label>
+      <label>Plan</label>
+
+      <select id="flashPlan">
+
+        <option value="basico">Básico</option>
+        <option value="estandar">Estándar</option>
+        <option value="premium">Premium</option>
+
+      </select>
+
+      <label>Número de contacto o URL</label>
 
       <input
-        id="flashContactInput"
-        type="tel"
-        placeholder="809-000-0000"
+        id="flashContact"
+        type="text"
+        placeholder="WhatsApp, teléfono o URL"
       >
 
-      <label>
-        URL de contacto
-      </label>
-
-      <input
-        id="flashUrlInput"
-        type="url"
-        placeholder="https://..."
-      >
-
-      <div class="upload-buttons">
+      <div class="form-actions">
 
         <button
+          type="button"
           class="secondary-btn"
-          onclick="$('flashPhotoCameraInput').click()"
+          id="flashCameraBtn"
         >
           📷 Tomar foto
         </button>
 
         <button
+          type="button"
           class="secondary-btn"
-          onclick="$('flashPhotoGalleryInput').click()"
+          id="flashGalleryBtn"
         >
           🖼️ Galería
         </button>
 
         <button
+          type="button"
           class="secondary-btn"
-          onclick="$('flashVideoCameraInput').click()"
+          id="flashVideoCameraBtn"
         >
-          🎥 Grabar video
+          🎥 Grabar vídeo
         </button>
 
         <button
+          type="button"
           class="secondary-btn"
-          onclick="$('flashVideoGalleryInput').click()"
+          id="flashVideoGalleryBtn"
         >
-          🎬 Elegir video
+          🎬 Vídeo
         </button>
 
       </div>
@@ -1777,1198 +1197,2283 @@ function openFlashDay() {
       <div id="flashMediaPreview"></div>
 
       <button
+        type="submit"
         class="primary-btn"
-        onclick="createFlashAd()"
       >
-        ⚡ Enviar publicidad
+        Enviar para revisión
       </button>
 
-    </div>
+    </form>
   `);
 
-  window.tempFlashImages = [];
-  window.tempFlashVideo = "";
+  bindModalActions();
+
+  let selectedMedia = "";
+
+  function selectMedia(input) {
+
+    const file = input.files?.[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+
+      selectedMedia = reader.result;
+
+      const preview = $("flashMediaPreview");
+
+      if (!preview) return;
+
+      if (file.type.startsWith("video/")) {
+
+        preview.innerHTML = `
+          <video
+            src="${escapeHTML(selectedMedia)}"
+            controls
+            style="width:100%;border-radius:12px;"
+          ></video>
+        `;
+
+      } else {
+
+        preview.innerHTML = `
+          <img
+            src="${escapeHTML(selectedMedia)}"
+            alt="Vista previa"
+            style="width:100%;border-radius:12px;"
+          >
+        `;
+
+      }
+
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+
+  $("flashCameraBtn")?.addEventListener(
+    "click",
+    () => $("productCameraInput")?.click()
+  );
+
+  $("flashGalleryBtn")?.addEventListener(
+    "click",
+    () => $("productGalleryInput")?.click()
+  );
+
+  $("flashVideoCameraBtn")?.addEventListener(
+    "click",
+    () => $("productVideoCameraInput")?.click()
+  );
+
+  $("flashVideoGalleryBtn")?.addEventListener(
+    "click",
+    () => $("productVideoGalleryInput")?.click()
+  );
+
+
+  [
+    $("productCameraInput"),
+    $("productGalleryInput"),
+    $("productVideoCameraInput"),
+    $("productVideoGalleryInput")
+  ]
+    .filter(Boolean)
+    .forEach(input => {
+
+      input.addEventListener(
+        "change",
+        () => selectMedia(input)
+      );
+
+    });
+
+
+  $("flashAdForm")?.addEventListener(
+    "submit",
+    (event) => {
+
+      event.preventDefault();
+
+      const ad = {
+
+        id: createId("ad"),
+
+        user:
+          MF.data.user.name || "Usuario",
+
+        title:
+          $("flashTitle")?.value.trim() || "",
+
+        description:
+          $("flashDescription")?.value.trim() || "",
+
+        plan:
+          $("flashPlan")?.value || "basico",
+
+        contact:
+          $("flashContact")?.value.trim() || "",
+
+        media:
+          selectedMedia,
+
+        status:
+          "pending",
+
+        views: 0,
+
+        likes: 0,
+
+        dislikes: 0,
+
+        createdAt:
+          Date.now()
+
+      };
+
+      MF.data.ads.push(ad);
+
+      addActivity(
+        "Enviaste una publicidad Flash del Día para revisión."
+      );
+
+      saveData();
+
+      closeModal();
+
+      updateMyAdStatus();
+
+      showToast(
+        "📢 Publicidad enviada para revisión."
+      );
+
+    }
+  );
 }
 
-function createFlashAd() {
 
-  const title =
-    $("flashTitleInput")?.value.trim();
+/* =========================================================
+   ESTADO DE MI PUBLICIDAD
+========================================================= */
 
-  const description =
-    $("flashDescriptionInput")?.value.trim();
+function updateMyAdStatus() {
 
-  const contact =
-    $("flashContactInput")?.value.trim();
+  const button = $("myAdStatusBtn");
 
-  const url =
-    $("flashUrlInput")?.value.trim();
+  if (!button) return;
 
-  if (!title) {
-    toast("Escribe un título.");
+  const myAds = MF.data.ads.filter(
+    ad =>
+      ad.user === MF.data.user.name
+  );
+
+  if (!myAds.length) {
+
+    button.classList.add("hidden");
+
     return;
   }
 
-  const ad = {
+  const latest = myAds[myAds.length - 1];
 
-    id: makeId("flash"),
+  button.classList.remove("hidden");
 
-    userId: currentUserId(),
+  const title = $("myAdStatusTitle");
+  const text = $("myAdStatusText");
+  const icon = $("myAdStatusIcon");
 
-    userName: data.currentUser.name,
+  const states = {
 
-    title,
+    pending: {
+      title: "Publicidad en revisión",
+      text: "Tu publicidad está pendiente de revisión.",
+      icon: "⏳"
+    },
 
-    description,
+    approved: {
+      title: "Publicidad aprobada",
+      text: "Tu publicidad está aprobada para Flash del Día.",
+      icon: "✅"
+    },
 
-    contact,
+    rejected: {
+      title: "Publicidad rechazada",
+      text: latest.reason || "Consulta los detalles de la revisión.",
+      icon: "❌"
+    }
 
-    url,
-
-    images: window.tempFlashImages || [],
-
-    video: window.tempFlashVideo || "",
-
-    plan: "premium",
-
-    status: "pendiente",
-
-    createdAt: now(),
-
-    views: 0,
-
-    likes: 0,
-
-    dislikes: 0
   };
 
-  data.flashAds.push(ad);
+  const state =
+    states[latest.status] || states.pending;
+
+  if (title) title.textContent = state.title;
+  if (text) text.textContent = state.text;
+  if (icon) icon.textContent = state.icon;
+}
+
+
+$("myAdStatusBtn")?.addEventListener(
+  "click",
+  () => {
+
+    const myAds = MF.data.ads.filter(
+      ad => ad.user === MF.data.user.name
+    );
+
+    openModal(`
+
+      <div class="modal-header">
+
+        <div>
+          <small>MI PUBLICIDAD</small>
+          <h2>Estado</h2>
+        </div>
+
+        <button
+          type="button"
+          class="secondary-btn"
+          data-close-modal
+        >
+          ✕
+        </button>
+
+      </div>
+
+      ${myAds.map(ad => `
+
+        <div class="page-card">
+
+          <h3>
+            ${escapeHTML(ad.title)}
+          </h3>
+
+          <p>
+            Plan:
+            <strong>${escapeHTML(ad.plan)}</strong>
+          </p>
+
+          <p>
+            Estado:
+            <strong>${escapeHTML(ad.status)}</strong>
+          </p>
+
+          ${
+            ad.reason
+              ? `<p>${escapeHTML(ad.reason)}</p>`
+              : ""
+          }
+
+        </div>
+
+      `).join("")}
+
+    `);
+
+    bindModalActions();
+
+  }
+);
+
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+function renderChat() {
+
+  const list = $("conversationList");
+  const empty = $("chatEmpty");
+  const contacts = $("contactsList");
+
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  if (!MF.data.conversations.length) {
+
+    if (empty) {
+      empty.classList.remove("hidden");
+    }
+
+  } else {
+
+    if (empty) {
+      empty.classList.add("hidden");
+    }
+
+    MF.data.conversations.forEach(conversation => {
+
+      const item = document.createElement("button");
+
+      item.type = "button";
+      item.className = "conversation-item";
+
+      item.innerHTML = `
+        <strong>${escapeHTML(conversation.name)}</strong>
+        <span>${escapeHTML(conversation.lastMessage || "Sin mensajes")}</span>
+      `;
+
+      item.addEventListener(
+        "click",
+        () => openConversation(conversation.id)
+      );
+
+      list.appendChild(item);
+
+    });
+
+  }
+
+  if (contacts) {
+    renderContacts();
+  }
+
+  updateBadges();
+}
+
+
+function renderContacts() {
+
+  const list = $("contactsList");
+
+  if (!list) return;
+
+  list.innerHTML = "";
+
+  if (!MF.data.contacts.length) {
+
+    list.innerHTML = `
+      <div class="page-card">
+        <h3>No tienes contactos</h3>
+        <p>Puedes enviar y aceptar solicitudes desde aquí.</p>
+      </div>
+    `;
+
+    return;
+  }
+
+  MF.data.contacts.forEach(contact => {
+
+    const item = document.createElement("div");
+
+    item.className = "conversation-item";
+
+    item.innerHTML = `
+      <strong>${escapeHTML(contact.name)}</strong>
+
+      <span>
+        ${contact.status === "accepted"
+          ? "✅ Contacto"
+          : "⏳ Solicitud pendiente"}
+      </span>
+
+      ${
+        contact.status !== "accepted"
+          ? `
+            <button
+              type="button"
+              class="primary-btn"
+              data-accept-contact="${contact.id}"
+            >
+              Aceptar
+            </button>
+          `
+          : ""
+      }
+    `;
+
+    list.appendChild(item);
+
+  });
+
+  list.querySelectorAll(
+    "[data-accept-contact]"
+  ).forEach(button => {
+
+    button.addEventListener("click", () => {
+
+      const contact = MF.data.contacts.find(
+        c => c.id === button.dataset.acceptContact
+      );
+
+      if (!contact) return;
+
+      contact.status = "accepted";
+
+      saveData();
+
+      renderContacts();
+
+      showToast("✅ Contacto agregado.");
+
+    });
+
+  });
+}
+
+
+function startConversation(product) {
+
+  let conversation = MF.data.conversations.find(
+    c => c.userId === product.sellerId
+  );
+
+  if (!conversation) {
+
+    conversation = {
+
+      id: createId("conversation"),
+
+      userId: product.sellerId,
+
+      name: product.seller || "Usuario",
+
+      lastMessage: "",
+
+      messages: []
+
+    };
+
+    MF.data.conversations.push(conversation);
+
+  }
 
   saveData();
 
   closeModal();
 
-  updateFlashStatus();
+  showPage("chat");
 
-  toast(
-    "⚡ Publicidad enviada para revisión"
-  );
+  openConversation(conversation.id);
+
 }
 
-/* =========================================================
-   ESTADO FLASH
-   ========================================================= */
 
-function updateFlashStatus() {
+function openConversation(conversationId) {
 
-  const button =
-    $("myAdStatusBtn");
-
-  if (!button) return;
-
-  const mine =
-    data.flashAds
-      .filter(
-        ad => ad.userId === currentUserId()
-      )
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt) -
-          new Date(a.createdAt)
-      )[0];
-
-  if (!mine) {
-    button.classList.add("hidden");
-    return;
-  }
-
-  button.classList.remove("hidden");
-
-  setText(
-    "myAdStatusTitle",
-    mine.status === "aprobada"
-      ? "Publicidad aprobada"
-      : mine.status === "rechazada"
-      ? "Publicidad rechazada"
-      : "Publicidad en revisión"
+  const conversation = MF.data.conversations.find(
+    c => c.id === conversationId
   );
 
-  setText(
-    "myAdStatusText",
-    mine.status === "aprobada"
-      ? "Tu publicidad está activa."
-      : mine.status === "rechazada"
-      ? "Tu publicidad fue rechazada."
-      : "Tu publicidad está esperando revisión."
-  );
-}
-
-/* =========================================================
-   ADMINISTRADOR
-   ========================================================= */
-
-function openAdminPanel() {
-
-  if (!isAdmin()) {
-    toast("⛔ Acceso de administrador requerido.");
-    return;
-  }
+  if (!conversation) return;
 
   openModal(`
-    <div class="modal-content admin-panel">
 
-      ${modalCloseButton()}
-
-      <h2>
-        🛡️ Panel de Administrador
-      </h2>
-
-      <p>
-        Administración de Market Flash.
-      </p>
-
-      <div class="admin-actions">
-
-        <button
-          class="primary-btn"
-          onclick="manageFlashAds()"
-        >
-          ⚡ Publicidades Flash
-        </button>
-
-        <button
-          class="secondary-btn"
-          onclick="manageReports()"
-        >
-          🚩 Reclamos
-        </button>
-
-        <button
-          class="secondary-btn"
-          onclick="manageAdmins()"
-        >
-          👥 Administradores
-        </button>
-
-        <button
-          class="secondary-btn"
-          onclick="adminStatistics()"
-        >
-          📊 Estadísticas
-        </button>
-
-      </div>
-
-    </div>
-  `);
-}
-
-/* =========================================================
-   ADMIN - FLASH
-   ========================================================= */
-
-function manageFlashAds() {
-
-  const ads = data.flashAds;
-
-  openModal(`
-    <div class="modal-content">
-
-      ${modalCloseButton()}
-
-      <h2>
-        ⚡ Publicidades Flash
-      </h2>
-
-      ${
-        ads.length
-          ? ads.map(ad => `
-            <div class="admin-item">
-
-              <strong>
-                ${escapeHTML(ad.title)}
-              </strong>
-
-              <p>
-                ${escapeHTML(ad.userName)}
-              </p>
-
-              <small>
-                Plan: ${escapeHTML(ad.plan)}
-                · Estado: ${escapeHTML(ad.status)}
-              </small>
-
-              <div>
-
-                <button
-                  class="primary-btn"
-                  onclick="approveFlash('${ad.id}')"
-                >
-                  ✓ Aprobar
-                </button>
-
-                <button
-                  class="danger-outline"
-                  onclick="rejectFlash('${ad.id}')"
-                >
-                  ✕ Rechazar
-                </button>
-
-              </div>
-
-            </div>
-          `).join("")
-          : "<p>No hay publicidades.</p>"
-      }
-
-    </div>
-  `);
-}
-
-function approveFlash(id) {
-
-  const ad =
-    data.flashAds.find(a => a.id === id);
-
-  if (!ad) return;
-
-  ad.status = "aprobada";
-
-  saveData();
-
-  manageFlashAds();
-
-  toast("⚡ Publicidad aprobada");
-}
-
-function rejectFlash(id) {
-
-  const ad =
-    data.flashAds.find(a => a.id === id);
-
-  if (!ad) return;
-
-  ad.status = "rechazada";
-
-  saveData();
-
-  manageFlashAds();
-
-  toast("Publicidad rechazada");
-}
-
-/* =========================================================
-   ADMIN - RECLAMOS
-   ========================================================= */
-
-function manageReports() {
-
-  const reports =
-    data.notifications.filter(
-      n => n.type === "report"
-    );
-
-  openModal(`
-    <div class="modal-content">
-
-      ${modalCloseButton()}
-
-      <h2>
-        🚩 Reclamos
-      </h2>
-
-      ${
-        reports.length
-          ? reports.map(report => `
-            <div class="admin-item">
-
-              <strong>
-                ${escapeHTML(report.reason)}
-              </strong>
-
-              <p>
-                ${escapeHTML(report.description || "")}
-              </p>
-
-              <small>
-                Estado: ${escapeHTML(report.status)}
-              </small>
-
-            </div>
-          `).join("")
-          : "<p>No hay reclamos.</p>"
-      }
-
-    </div>
-  `);
-}
-
-/* =========================================================
-   ADMIN - AGREGAR ADMINISTRADORES
-   ========================================================= */
-
-function manageAdmins() {
-
-  if (!isAdmin()) return;
-
-  openModal(`
-    <div class="modal-content">
-
-      ${modalCloseButton()}
-
-      <h2>
-        👥 Administradores
-      </h2>
-
-      <div class="form-card">
-
-        <input
-          id="adminNameInput"
-          type="text"
-          placeholder="Nombre"
-        >
-
-        <input
-          id="adminCedulaInput"
-          type="text"
-          placeholder="Cédula"
-        >
-
-        <input
-          id="adminPasswordInput"
-          type="password"
-          placeholder="Contraseña"
-        >
-
-        <button
-          class="primary-btn"
-          onclick="addAdministrator()"
-        >
-          ➕ Agregar administrador
-        </button>
-
-      </div>
+    <div class="modal-header">
 
       <div>
+        <small>CHAT MARKET FLASH</small>
+        <h2>${escapeHTML(conversation.name)}</h2>
+      </div>
 
-        ${
-          data.users
-            .filter(user => user.isAdmin)
-            .map(user => `
-              <div class="admin-item">
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
 
-                <strong>
-                  ${escapeHTML(user.name)}
-                </strong>
+    </div>
 
-                <small>
-                  Administrador
-                </small>
+    <div
+      id="messagesContainer"
+      class="messages-container"
+    >
 
+      ${
+        conversation.messages.length
+          ? conversation.messages.map(message => `
+              <div class="message">
+                ${escapeHTML(message.text)}
               </div>
-            `)
-            .join("")
-          || "<p>No hay administradores adicionales.</p>"
-        }
-
-      </div>
-
-    </div>
-  `);
-}
-
-function addAdministrator() {
-
-  const name =
-    $("adminNameInput")?.value.trim();
-
-  const cedula =
-    $("adminCedulaInput")?.value.trim();
-
-  const password =
-    $("adminPasswordInput")?.value;
-
-  if (!name || !cedula || !password) {
-    toast("Completa todos los campos.");
-    return;
-  }
-
-  const exists =
-    data.users.some(
-      user => user.cedula === cedula
-    );
-
-  if (exists) {
-    toast("Esa cédula ya existe.");
-    return;
-  }
-
-  data.users.push({
-    id: makeId("admin"),
-    name,
-    cedula,
-    password,
-    phone: "",
-    whatsapp: "",
-    messenger: "",
-    avatar: "",
-    isAdmin: true
-  });
-
-  saveData();
-
-  manageAdmins();
-
-  toast("👥 Administrador agregado");
-}
-
-/* =========================================================
-   ESTADÍSTICAS ADMIN
-   ========================================================= */
-
-function adminStatistics() {
-
-  const totalViews =
-    data.products.reduce(
-      (sum, p) => sum + Number(p.views || 0),
-      0
-    );
-
-  const totalLikes =
-    data.products.reduce(
-      (sum, p) => sum + Number(p.likes || 0),
-      0
-    );
-
-  const totalDislikes =
-    data.products.reduce(
-      (sum, p) => sum + Number(p.dislikes || 0),
-      0
-    );
-
-  openModal(`
-    <div class="modal-content">
-
-      ${modalCloseButton()}
-
-      <h2>
-        📊 Estadísticas
-      </h2>
-
-      <div class="activity-stats">
-
-        <div class="stat-card">
-          <small>Usuarios</small>
-          <strong>${data.users.length + 1}</strong>
-        </div>
-
-        <div class="stat-card">
-          <small>Publicaciones</small>
-          <strong>${data.products.length}</strong>
-        </div>
-
-        <div class="stat-card">
-          <small>Vistas</small>
-          <strong>${totalViews}</strong>
-        </div>
-
-        <div class="stat-card">
-          <small>Me gusta</small>
-          <strong>${totalLikes}</strong>
-        </div>
-
-        <div class="stat-card">
-          <small>No me gusta</small>
-          <strong>${totalDislikes}</strong>
-        </div>
-
-      </div>
+            `).join("")
+          : `
+            <div class="chat-empty">
+              <div>💬</div>
+              <p>Comienza la conversación.</p>
+            </div>
+          `
+      }
 
     </div>
+
+    <form id="messageForm">
+
+      <input
+        id="messageInput"
+        type="text"
+        placeholder="Escribe un mensaje..."
+        autocomplete="off"
+        required
+      >
+
+      <button
+        type="submit"
+        class="primary-btn"
+      >
+        Enviar
+      </button>
+
+    </form>
   `);
-}
 
-/* =========================================================
-   CAMBIAR COLOR
-   ========================================================= */
+  bindModalActions();
 
-function changeAppColor() {
+  $("messageForm")?.addEventListener(
+    "submit",
+    event => {
 
-  const colors = [
-    "#1677ff",
-    "#7c3aed",
-    "#059669",
-    "#ea580c",
-    "#dc2626"
-  ];
+      event.preventDefault();
 
-  const current =
-    data.settings.appColor;
+      const input = $("messageInput");
 
-  let index =
-    colors.indexOf(current);
+      const text = input?.value.trim();
 
-  index =
-    (index + 1) % colors.length;
+      if (!text) return;
 
-  data.settings.appColor =
-    colors[index];
+      conversation.messages.push({
 
-  applySettings();
+        id: createId("message"),
 
-  saveData();
+        text,
 
-  toast("🎨 Color actualizado");
-}
+        sender:
+          MF.data.user.name,
 
-function applySettings() {
+        createdAt:
+          Date.now()
 
-  document.documentElement.style.setProperty(
-    "--mf-primary",
-    data.settings.appColor
+      });
+
+      conversation.lastMessage = text;
+
+      saveData();
+
+      openConversation(conversation.id);
+
+      showToast("Mensaje enviado.");
+
+    }
   );
 }
 
-/* =========================================================
-   BUSCADOR
-   ========================================================= */
-
-function handleSearch(event) {
-
-  searchText =
-    event.target.value.trim();
-
-  renderProducts();
-}
-
-/* =========================================================
-   EVENTOS
-   ========================================================= */
-
-function setupEvents() {
-
-  document.querySelectorAll(
-    ".nav-item[data-page]"
-  ).forEach(button => {
-
-    button.addEventListener(
-      "click",
-      () => showPage(button.dataset.page)
-    );
-
-  });
-
-
-  $("searchInput")
-    ?.addEventListener(
-      "input",
-      handleSearch
-    );
-
-
-  $("publishBtn")
-    ?.addEventListener(
-      "click",
-      openPublishModal
-    );
-
-
-  $("flashDayBtn")
-    ?.addEventListener(
-      "click",
-      openFlashDay
-    );
-
-
-  $("myAdStatusBtn")
-    ?.addEventListener(
-      "click",
-      updateFlashStatus
-    );
-
-
-  $("notifyBtn")
-    ?.addEventListener(
-      "click",
-      showNotifications
-    );
-
-
-  $("editProfileBtn")
-    ?.addEventListener(
-      "click",
-      openEditProfile
-    );
-
-
-  $("profileAvatarBtn")
-    ?.addEventListener(
-      "click",
-      () => $("profileImageInput")?.click()
-    );
-
-
-  $("editProfilePhotoBtn")
-    ?.addEventListener(
-      "click",
-      () => $("profileImageInput")?.click()
-    );
-
-
-  $("profileImageInput")
-    ?.addEventListener(
-      "change",
-      event =>
-        handleProfileImage(
-          event.target.files[0]
-        )
-    );
-
-
-  $("saveProfileBtn")
-    ?.addEventListener(
-      "click",
-      saveProfile
-    );
-
-
-  $("profileSettingsBtn")
-    ?.addEventListener(
-      "click",
-      toggleSettings
-    );
-
-
-  $("savePhoneBtn")
-    ?.addEventListener(
-      "click",
-      savePhone
-    );
-
-
-  $("saveWhatsappBtn")
-    ?.addEventListener(
-      "click",
-      saveWhatsapp
-    );
-
-
-  $("saveMessengerBtn")
-    ?.addEventListener(
-      "click",
-      saveMessenger
-    );
-
-
-  $("changePasswordBtn")
-    ?.addEventListener(
-      "click",
-      changePassword
-    );
-
-
-  $("appColorBtn")
-    ?.addEventListener(
-      "click",
-      changeAppColor
-    );
-
-
-  $("myContactsBtn")
-    ?.addEventListener(
-      "click",
-      () => showPage("chat")
-    );
-
-
-  $("myActivityBtn")
-    ?.addEventListener(
-      "click",
-      () => showPage("activity")
-    );
-
-
-  $("chatContactsBtn")
-    ?.addEventListener(
-      "click",
-      showContacts
-    );
-
-
-  $("adminPanelBtn")
-    ?.addEventListener(
-      "click",
-      openAdminPanel
-    );
-
-
-  /* Productos - cámara */
-  $("productCameraInput")
-    ?.addEventListener(
-      "change",
-      event =>
-        processImage(
-          event.target.files[0]
-        )
-    );
-
-
-  /* Productos - galería */
-  $("productGalleryInput")
-    ?.addEventListener(
-      "change",
-      event => {
-
-        [...event.target.files]
-          .forEach(processImage);
-
-      }
-    );
-
-
-  /* Flash - cámara */
-  $("flashPhotoCameraInput")
-    ?.addEventListener(
-      "change",
-      event =>
-        processFlashImage(
-          event.target.files[0]
-        )
-    );
-
-
-  /* Flash - galería */
-  $("flashPhotoGalleryInput")
-    ?.addEventListener(
-      "change",
-      event => {
-
-        [...event.target.files]
-          .forEach(processFlashImage);
-
-      }
-    );
-
-
-  /* Flash - video */
-  $("flashVideoCameraInput")
-    ?.addEventListener(
-      "change",
-      event =>
-        processFlashVideo(
-          event.target.files[0]
-        )
-    );
-
-
-  $("flashVideoGalleryInput")
-    ?.addEventListener(
-      "change",
-      event =>
-        processFlashVideo(
-          event.target.files[0]
-        )
-    );
-
-
-  /* Video producto */
-  $("productVideoCameraInput")
-    ?.addEventListener(
-      "change",
-      event =>
-        processProductVideo(
-          event.target.files[0]
-        )
-    );
-
-
-  $("productVideoGalleryInput")
-    ?.addEventListener(
-      "change",
-      event =>
-        processProductVideo(
-          event.target.files[0]
-        )
-    );
-
-
-  /* Cerrar modal */
-  $("modal")
-    ?.addEventListener(
-      "click",
-      event => {
-
-        if (event.target.id === "modal") {
-          closeModal();
-        }
-
-      }
-    );
-
-}
-
-/* =========================================================
-   FLASH MEDIA
-   ========================================================= */
-
-function processFlashImage(file) {
-
-  if (!file) return;
-
-  const reader = new FileReader();
-
-  reader.onload = event => {
-
-    window.tempFlashImages =
-      window.tempFlashImages || [];
-
-    window.tempFlashImages.push(
-      event.target.result
-    );
-
-    renderFlashPreview();
-  };
-
-  reader.readAsDataURL(file);
-}
-
-function processFlashVideo(file) {
-
-  if (!file) return;
-
-  if (file.size > 20 * 1024 * 1024) {
-    toast("El video no puede superar 20 MB.");
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = event => {
-
-    window.tempFlashVideo =
-      event.target.result;
-
-    renderFlashPreview();
-  };
-
-  reader.readAsDataURL(file);
-}
-
-function renderFlashPreview() {
-
-  const box =
-    $("flashMediaPreview");
-
-  if (!box) return;
-
-  box.innerHTML = `
-    <div class="flash-media-preview">
-
-      ${(window.tempFlashImages || [])
-        .map(image =>
-          `<img src="${image}" alt="">`
-        )
-        .join("")
-      }
-
-      ${
-        window.tempFlashVideo
-          ? `
-            <video
-              src="${window.tempFlashVideo}"
-              controls
-              playsinline
-            ></video>
-          `
-          : ""
-      }
-
-    </div>
-  `;
-}
-
-function processProductVideo(file) {
-
-  if (!file) return;
-
-  if (file.size > 20 * 1024 * 1024) {
-    toast("El video no puede superar 20 MB.");
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = event => {
-
-    window.tempProductVideo =
-      event.target.result;
-
-    toast("🎥 Video preparado");
-
-  };
-
-  reader.readAsDataURL(file);
-}
 
 /* =========================================================
    CONTACTOS
-   ========================================================= */
+========================================================= */
 
-function showContacts() {
+$("chatContactsBtn")?.addEventListener(
+  "click",
+  () => {
 
-  const list =
-    $("contactsList");
+    const list = $("contactsList");
 
-  if (!list) return;
+    if (!list) return;
 
-  list.classList.remove("hidden");
+    list.classList.toggle("hidden");
 
-  const contacts =
-    data.contacts.filter(
-      c =>
-        c.userA === currentUserId() ||
-        c.userB === currentUserId()
-    );
+    renderContacts();
 
-  if (!contacts.length) {
+  }
+);
 
-    list.innerHTML = `
-      <div class="chat-empty">
 
-        <div>
-          👥
-        </div>
+/* =========================================================
+   ACTIVIDAD
+========================================================= */
 
-        <h3>
-          No tienes contactos
-        </h3>
+function addActivity(text) {
 
-        <p>
-          Puedes enviar solicitudes desde las publicaciones.
-        </p>
+  MF.data.activity.unshift({
 
+    id: createId("activity"),
+
+    text,
+
+    createdAt: Date.now()
+
+  });
+
+  MF.data.activity =
+    MF.data.activity.slice(0, 100);
+
+  saveData();
+}
+
+
+function renderActivity() {
+
+  const content = $("activityContent");
+
+  if (!content) return;
+
+  content.innerHTML = "";
+
+  if (!MF.data.activity.length) {
+
+    content.innerHTML = `
+      <div class="page-card">
+        <h3>Sin actividad todavía</h3>
+        <p>Aquí aparecerá tu actividad.</p>
       </div>
     `;
 
     return;
   }
 
-  list.innerHTML = contacts.map(contact => {
+  MF.data.activity.forEach(item => {
 
-    const id =
-      contact.userA === currentUserId()
-        ? contact.userB
-        : contact.userA;
+    const row = document.createElement("div");
 
-    const user =
-      getUser(id);
+    row.className = "activity-item";
 
-    return `
-      <button
-        class="conversation-item"
-        onclick="openConversation('${id}')"
-      >
+    row.innerHTML = `
 
-        <div class="conversation-avatar">
-          ${user.avatar
-            ? `<img src="${user.avatar}" alt="">`
-            : "👤"
+      <strong>
+        ${escapeHTML(item.text)}
+      </strong>
+
+      <small>
+        ${new Date(item.createdAt).toLocaleString("es-DO")}
+      </small>
+
+    `;
+
+    content.appendChild(row);
+
+  });
+}
+
+
+/* =========================================================
+   PERFIL
+========================================================= */
+
+function renderProfile() {
+
+  const user = MF.data.user;
+
+  if ($("profileName"))
+    $("profileName").textContent =
+      user.name || "Usuario";
+
+  if ($("profilePhone"))
+    $("profilePhone").textContent =
+      user.phone || "Teléfono no registrado";
+
+  if ($("profileCedula"))
+    $("profileCedula").textContent =
+      user.cedula
+        ? "Cédula: protegida"
+        : "Cédula: protegida";
+
+  if ($("profileNameInfo"))
+    $("profileNameInfo").textContent =
+      user.name || "-";
+
+  if ($("profilePhoneInfo"))
+    $("profilePhoneInfo").textContent =
+      user.phone || "-";
+
+  if ($("profileMessengerInfo"))
+    $("profileMessengerInfo").textContent =
+      user.messenger
+        ? "Conectado"
+        : "No conectado";
+
+  const myProducts =
+    MF.data.products.filter(
+      product =>
+        product.sellerId === user.cedula ||
+        product.seller === user.name
+    );
+
+  if ($("myProductCount"))
+    $("myProductCount").textContent =
+      `${myProducts.length}`;
+
+  const myProductsContainer =
+    $("myProducts");
+
+  if (myProductsContainer) {
+
+    myProductsContainer.innerHTML = "";
+
+    myProducts.forEach(product => {
+
+      const card = document.createElement("article");
+
+      card.className = "product-card";
+
+      card.innerHTML = `
+        <div class="product-image">
+          ${
+            product.image
+              ? `<img src="${escapeHTML(product.image)}" alt="">`
+              : `<span>📦</span>`
           }
         </div>
 
-        <div>
+        <div class="product-body">
 
-          <strong>
-            ${escapeHTML(user.name)}
-          </strong>
+          <small>
+            ${escapeHTML(product.category)}
+          </small>
 
-          <p>
-            Contacto agregado
-          </p>
+          <h3>
+            ${escapeHTML(product.title)}
+          </h3>
+
+          <div class="product-meta">
+            <span>👁️ ${product.views}</span>
+            <span>👍 ${product.likes}</span>
+            <span>👎 ${product.dislikes}</span>
+          </div>
 
         </div>
+      `;
 
-      </button>
-    `;
+      card.addEventListener(
+        "click",
+        () => openProduct(product.id)
+      );
 
-  }).join("");
-}
+      myProductsContainer.appendChild(card);
 
-/* =========================================================
-   NOTIFICACIONES
-   ========================================================= */
+    });
 
-function showNotifications() {
+  }
 
-  const notifications =
-    data.notifications;
+  updateAvatar();
 
-  openModal(`
-    <div class="modal-content">
-
-      ${modalCloseButton()}
-
-      <h2>
-        🔔 Notificaciones
-      </h2>
-
-      ${
-        notifications.length
-          ? notifications.map(n => `
-            <div class="notification-item">
-
-              <strong>
-                ${escapeHTML(
-                  n.reason ||
-                  n.text ||
-                  "Nueva notificación"
-                )}
-              </strong>
-
-              <small>
-                ${new Date(
-                  n.createdAt
-                ).toLocaleString("es-DO")}
-              </small>
-
-            </div>
-          `).join("")
-          : `
-            <p>
-              No tienes notificaciones.
-            </p>
-          `
-      }
-
-    </div>
-  `);
+  updateMyAdStatus();
 
   updateBadges();
 }
 
-function updateBadges() {
 
-  const requests =
-    data.contactRequests.filter(
-      r =>
-        r.to === currentUserId() &&
-        r.status === "pendiente"
-    ).length;
+/* =========================================================
+   FOTO DE PERFIL
+========================================================= */
 
-  const chatBadge =
-    $("chatBadge");
+$("profileAvatarBtn")?.addEventListener(
+  "click",
+  () => $("profileImageInput")?.click()
+);
 
-  if (chatBadge) {
-    chatBadge.textContent = requests;
-    chatBadge.classList.toggle(
-      "hidden",
-      requests === 0
-    );
+
+$("profileImageInput")?.addEventListener(
+  "change",
+  event => {
+
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("Selecciona una imagen.");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+
+      MF.data.user.avatar = reader.result;
+
+      saveData();
+
+      updateAvatar();
+
+      showToast("📷 Foto de perfil actualizada.");
+
+    };
+
+    reader.readAsDataURL(file);
+
   }
+);
 
-  const profileBadge =
-    $("profileBadge");
 
-  if (profileBadge) {
-    profileBadge.textContent = requests;
-    profileBadge.classList.toggle(
-      "hidden",
-      requests === 0
-    );
+function updateAvatar() {
+
+  const avatar = $("profileAvatarBtn");
+
+  if (!avatar) return;
+
+  if (MF.data.user.avatar) {
+
+    avatar.innerHTML = `
+      <img
+        src="${escapeHTML(MF.data.user.avatar)}"
+        alt="Foto de perfil"
+      >
+    `;
+
+  } else {
+
+    avatar.textContent = "👤";
+
   }
 }
 
+
 /* =========================================================
-   INICIALIZACIÓN
-   ========================================================= */
+   EDITAR PERFIL
+========================================================= */
 
-function init() {
+$("editProfileBtn")?.addEventListener(
+  "click",
+  openEditProfile
+);
 
-  applySettings();
 
-  checkAdmin();
+function openEditProfile() {
+
+  openModal(`
+
+    <div class="modal-header">
+
+      <div>
+        <small>MI PERFIL</small>
+        <h2>Editar perfil</h2>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <form id="editProfileForm">
+
+      <label>Nombre</label>
+
+      <input
+        id="editName"
+        value="${escapeHTML(MF.data.user.name)}"
+        required
+      >
+
+      <label>Teléfono</label>
+
+      <input
+        id="editPhone"
+        type="tel"
+        value="${escapeHTML(MF.data.user.phone)}"
+      >
+
+      <button
+        type="submit"
+        class="primary-btn"
+      >
+        Guardar cambios
+      </button>
+
+    </form>
+  `);
+
+  bindModalActions();
+
+  $("editProfileForm")?.addEventListener(
+    "submit",
+    event => {
+
+      event.preventDefault();
+
+      MF.data.user.name =
+        $("editName").value.trim();
+
+      MF.data.user.phone =
+        $("editPhone").value.trim();
+
+      saveData();
+
+      closeModal();
+
+      renderProfile();
+
+      showToast("✅ Perfil actualizado.");
+
+    }
+  );
+}
+
+
+/* =========================================================
+   CONFIGURACIÓN DEL PERFIL
+========================================================= */
+
+$("profileSettingsBtn")?.addEventListener(
+  "click",
+  () => {
+
+    const settings = $("profileSettings");
+
+    if (settings) {
+      settings.classList.toggle("hidden");
+    }
+
+  }
+);
+
+
+/* =========================================================
+   CAMBIAR TELÉFONO
+========================================================= */
+
+$("savePhoneBtn")?.addEventListener(
+  "click",
+  () => {
+
+    const input = $("newPhoneInput");
+
+    if (!input) return;
+
+    const phone = input.value.trim();
+
+    if (!phone) {
+      showToast("Escribe el nuevo número.");
+      return;
+    }
+
+    MF.data.user.phone = phone;
+    MF.data.user.whatsapp = phone;
+
+    saveData();
+
+    renderProfile();
+
+    showToast("📱 Número actualizado.");
+
+  }
+);
+
+
+/* =========================================================
+   MESSENGER
+========================================================= */
+
+$("messengerProfileBtn")?.addEventListener(
+  "click",
+  () => {
+
+    const settings = $("profileSettings");
+
+    if (settings) {
+      settings.classList.remove("hidden");
+    }
+
+    $("messengerLinkInput")?.focus();
+
+  }
+);
+
+
+$("saveMessengerBtn")?.addEventListener(
+  "click",
+  () => {
+
+    const input = $("messengerLinkInput");
+
+    if (!input) return;
+
+    const url = input.value.trim();
+
+    if (
+      url &&
+      !/^https?:\/\//i.test(url)
+    ) {
+
+      showToast(
+        "El enlace debe comenzar con https://"
+      );
+
+      return;
+
+    }
+
+    MF.data.user.messenger = url;
+
+    saveData();
+
+    renderProfile();
+
+    showToast(
+      url
+        ? "🔵 Messenger conectado."
+        : "Messenger desconectado."
+    );
+
+  }
+);
+
+
+/* =========================================================
+   CAMBIAR COLOR
+========================================================= */
+
+$("appColorBtn")?.addEventListener(
+  "click",
+  () => {
+
+    openModal(`
+
+      <div class="modal-header">
+
+        <div>
+          <small>CONFIGURACIÓN</small>
+          <h2>Color de la aplicación</h2>
+        </div>
+
+        <button
+          type="button"
+          class="secondary-btn"
+          data-close-modal
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div class="color-options">
+
+        <button
+          class="primary-btn"
+          data-app-color="#1677ff"
+        >
+          Azul
+        </button>
+
+        <button
+          class="secondary-btn"
+          data-app-color="#7c3aed"
+        >
+          Morado
+        </button>
+
+        <button
+          class="secondary-btn"
+          data-app-color="#059669"
+        >
+          Verde
+        </button>
+
+        <button
+          class="secondary-btn"
+          data-app-color="#ea580c"
+        >
+          Naranja
+        </button>
+
+      </div>
+    `);
+
+    bindModalActions();
+
+    document
+      .querySelectorAll("[data-app-color]")
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            MF.data.settings.appColor =
+              button.dataset.appColor;
+
+            applySettings();
+
+            saveData();
+
+            closeModal();
+
+            showToast("🎨 Color actualizado.");
+
+          }
+        );
+
+      });
+
+  }
+);
+
+
+/* =========================================================
+   CHAT — ESTILO
+========================================================= */
+
+$("chatStyleBtn")?.addEventListener(
+  "click",
+  () => {
+
+    const styles = [
+      "normal",
+      "compact",
+      "large"
+    ];
+
+    const current =
+      MF.data.settings.chatStyle;
+
+    const index =
+      styles.indexOf(current);
+
+    MF.data.settings.chatStyle =
+      styles[(index + 1) % styles.length];
+
+    saveData();
+
+    applySettings();
+
+    showToast(
+      `💬 Estilo de chat: ${MF.data.settings.chatStyle}`
+    );
+
+  }
+);
+
+
+/* =========================================================
+   FONDO DEL CHAT
+========================================================= */
+
+$("chatBackgroundBtn")?.addEventListener(
+  "click",
+  () => {
+
+    openModal(`
+
+      <div class="modal-header">
+
+        <div>
+          <small>CHAT</small>
+          <h2>Fondo del chat</h2>
+        </div>
+
+        <button
+          type="button"
+          class="secondary-btn"
+          data-close-modal
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <button
+        type="button"
+        class="primary-btn"
+        id="defaultChatBackground"
+      >
+        Fondo normal
+      </button>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        id="landscapeChatBackground"
+      >
+        🌴 Paisaje
+      </button>
+
+    `);
+
+    bindModalActions();
+
+    $("defaultChatBackground")?.addEventListener(
+      "click",
+      () => {
+
+        MF.data.settings.chatBackground = "";
+
+        saveData();
+
+        applySettings();
+
+        closeModal();
+
+      }
+    );
+
+    $("landscapeChatBackground")?.addEventListener(
+      "click",
+      () => {
+
+        MF.data.settings.chatBackground =
+          "linear-gradient(135deg,#1677ff,#7c3aed)";
+
+        saveData();
+
+        applySettings();
+
+        closeModal();
+
+      }
+    );
+
+  }
+);
+
+
+/* =========================================================
+   IMAGEN PERSONALIZADA DEL CHAT
+========================================================= */
+
+$("chatCustomImageBtn")?.addEventListener(
+  "click",
+  () => $("chatCustomImageInput")?.click()
+);
+
+
+$("chatCustomImageInput")?.addEventListener(
+  "change",
+  event => {
+
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+
+      MF.data.settings.chatCustomImage =
+        reader.result;
+
+      saveData();
+
+      applySettings();
+
+      showToast(
+        "🏞️ Fondo personalizado guardado."
+      );
+
+    };
+
+    reader.readAsDataURL(file);
+
+  }
+);
+
+
+/* =========================================================
+   PAISAJES
+========================================================= */
+
+$("builtInLandscapeBtn")?.addEventListener(
+  "click",
+  () => {
+
+    MF.data.settings.chatBackground =
+      "linear-gradient(135deg,#0ea5e9,#22c55e)";
+
+    MF.data.settings.chatCustomImage = "";
+
+    saveData();
+
+    applySettings();
+
+    showToast(
+      "🌴 Paisaje de Market Flash seleccionado."
+    );
+
+  }
+);
+
+
+/* =========================================================
+   APLICAR CONFIGURACIÓN
+========================================================= */
+
+function applySettings() {
+
+  const color =
+    MF.data.settings.appColor;
+
+  document.documentElement.style.setProperty(
+    "--mf-primary",
+    color
+  );
+
+  const root =
+    document.documentElement;
+
+  if (
+    MF.data.settings.chatCustomImage
+  ) {
+
+    root.style.setProperty(
+      "--mf-chat-background",
+      `url("${MF.data.settings.chatCustomImage}")`
+    );
+
+  } else if (
+    MF.data.settings.chatBackground
+  ) {
+
+    root.style.setProperty(
+      "--mf-chat-background",
+      MF.data.settings.chatBackground
+    );
+
+  } else {
+
+    root.style.removeProperty(
+      "--mf-chat-background"
+    );
+
+  }
+
+  document.body.dataset.chatStyle =
+    MF.data.settings.chatStyle;
+}
+
+
+/* =========================================================
+   CONTRASEÑA
+========================================================= */
+
+$("changePasswordBtn")?.addEventListener(
+  "click",
+  () => {
+
+    const current =
+      $("currentPasswordInput")?.value || "";
+
+    const next =
+      $("newPasswordInput")?.value || "";
+
+    if (!current || !next) {
+
+      showToast(
+        "Completa las dos contraseñas."
+      );
+
+      return;
+    }
+
+    if (
+      MF.data.user.password &&
+      current !== MF.data.user.password
+    ) {
+
+      showToast(
+        "❌ La contraseña actual no es correcta."
+      );
+
+      return;
+    }
+
+    if (next.length < 6) {
+
+      showToast(
+        "La nueva contraseña debe tener al menos 6 caracteres."
+      );
+
+      return;
+    }
+
+    MF.data.user.password = next;
+
+    saveData();
+
+    $("currentPasswordInput").value = "";
+    $("newPasswordInput").value = "";
+
+    showToast(
+      "🔐 Contraseña actualizada."
+    );
+
+  }
+);
+
+
+/* =========================================================
+   ELIMINAR CUENTA
+========================================================= */
+
+$("deleteAccountBtn")?.addEventListener(
+  "click",
+  () => {
+
+    openModal(`
+
+      <div class="modal-header">
+
+        <div>
+          <small>CUENTA</small>
+          <h2>Eliminar cuenta</h2>
+        </div>
+
+        <button
+          type="button"
+          class="secondary-btn"
+          data-close-modal
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <p>
+        Esta acción eliminará los datos guardados
+        localmente en este navegador.
+      </p>
+
+      <button
+        type="button"
+        class="danger-outline"
+        id="confirmDeleteAccount"
+      >
+        Eliminar definitivamente
+      </button>
+
+    `);
+
+    bindModalActions();
+
+    $("confirmDeleteAccount")?.addEventListener(
+      "click",
+      () => {
+
+        localStorage.removeItem(
+          MF.storageKey
+        );
+
+        location.reload();
+
+      }
+    );
+
+  }
+);
+
+
+/* =========================================================
+   PANEL DE ADMINISTRADOR
+========================================================= */
+
+function openAdminPanel() {
+
+  openModal(`
+
+    <div class="modal-header">
+
+      <div>
+        <small>MARKET FLASH</small>
+        <h2>🛡️ Panel de administrador</h2>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <div class="page-card">
+
+      <h3>Administración</h3>
+
+      <button
+        type="button"
+        class="primary-btn"
+        id="adminAdsBtn"
+      >
+        📢 Gestionar publicidad
+      </button>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        id="adminUsersBtn"
+      >
+        👥 Administrar usuarios
+      </button>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        id="adminStatsBtn"
+      >
+        📊 Estadísticas
+      </button>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        id="adminAddBtn"
+      >
+        ➕ Agregar administrador
+      </button>
+
+    </div>
+
+  `);
+
+  bindModalActions();
+
+  $("adminAdsBtn")?.addEventListener(
+    "click",
+    openAdminAds
+  );
+
+  $("adminUsersBtn")?.addEventListener(
+    "click",
+    openAdminUsers
+  );
+
+  $("adminStatsBtn")?.addEventListener(
+    "click",
+    openAdminStats
+  );
+
+  $("adminAddBtn")?.addEventListener(
+    "click",
+    openAddAdministrator
+  );
+}
+
+
+/* =========================================================
+   PUBLICIDADES — ADMIN
+========================================================= */
+
+function openAdminAds() {
+
+  const ads = MF.data.ads;
+
+  openModal(`
+
+    <div class="modal-header">
+
+      <div>
+        <small>ADMINISTRACIÓN</small>
+        <h2>Publicidad</h2>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
+
+    </div>
+
+    ${
+      ads.length
+        ? ads.map(ad => `
+
+          <div class="page-card">
+
+            <h3>
+              ${escapeHTML(ad.title)}
+            </h3>
+
+            <p>
+              Usuario:
+              ${escapeHTML(ad.user)}
+            </p>
+
+            <p>
+              Plan:
+              <strong>${escapeHTML(ad.plan)}</strong>
+            </p>
+
+            <p>
+              Estado:
+              <strong>${escapeHTML(ad.status)}</strong>
+            </p>
+
+            ${
+              ad.status === "pending"
+                ? `
+                  <button
+                    type="button"
+                    class="primary-btn"
+                    data-approve-ad="${ad.id}"
+                  >
+                    ✅ Aprobar
+                  </button>
+
+                  <button
+                    type="button"
+                    class="danger-outline"
+                    data-reject-ad="${ad.id}"
+                  >
+                    ❌ Rechazar
+                  </button>
+                `
+                : ""
+            }
+
+          </div>
+
+        `).join("")
+        : `
+          <div class="page-card">
+            <h3>No hay publicidad.</h3>
+          </div>
+        `
+    }
+
+  `);
+
+  bindModalActions();
+
+  document
+    .querySelectorAll("[data-approve-ad]")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const ad = MF.data.ads.find(
+            item => item.id === button.dataset.approveAd
+          );
+
+          if (!ad) return;
+
+          ad.status = "approved";
+
+          saveData();
+
+          openAdminAds();
+
+          updateMyAdStatus();
+
+          showToast("Publicidad aprobada.");
+
+        }
+      );
+
+    });
+
+
+  document
+    .querySelectorAll("[data-reject-ad]")
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const ad = MF.data.ads.find(
+            item => item.id === button.dataset.rejectAd
+          );
+
+          if (!ad) return;
+
+          ad.status = "rejected";
+
+          ad.reason =
+            "Publicidad no aprobada por el administrador.";
+
+          saveData();
+
+          openAdminAds();
+
+          updateMyAdStatus();
+
+          showToast("Publicidad rechazada.");
+
+        }
+      );
+
+    });
+
+}
+
+
+/* =========================================================
+   USUARIOS — ADMIN
+========================================================= */
+
+function openAdminUsers() {
+
+  const users = new Map();
+
+  MF.data.products.forEach(product => {
+
+    const id =
+      product.sellerId ||
+      product.seller;
+
+    if (!users.has(id)) {
+
+      users.set(id, {
+        name: product.seller,
+        products: 0
+      });
+
+    }
+
+    users.get(id).products++;
+
+  });
+
+  openModal(`
+
+    <div class="modal-header">
+
+      <div>
+        <small>ADMINISTRACIÓN</small>
+        <h2>Usuarios</h2>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
+
+    </div>
+
+    ${
+      users.size
+        ? [...users.values()].map(user => `
+
+            <div class="settings-row">
+
+              <span>
+                👤 ${escapeHTML(user.name)}
+              </span>
+
+              <strong>
+                ${user.products} publicaciones
+              </strong>
+
+            </div>
+
+        `).join("")
+        : `
+          <p>No hay usuarios registrados en los datos locales.</p>
+        `
+    }
+
+  `);
+
+  bindModalActions();
+}
+
+
+/* =========================================================
+   ESTADÍSTICAS — ADMIN
+========================================================= */
+
+function openAdminStats() {
+
+  const totalViews =
+    MF.data.products.reduce(
+      (sum, product) =>
+        sum + Number(product.views || 0),
+      0
+    );
+
+  const totalLikes =
+    MF.data.products.reduce(
+      (sum, product) =>
+        sum + Number(product.likes || 0),
+      0
+    );
+
+  const totalDislikes =
+    MF.data.products.reduce(
+      (sum, product) =>
+        sum + Number(product.dislikes || 0),
+      0
+    );
+
+  openModal(`
+
+    <div class="modal-header">
+
+      <div>
+        <small>ADMINISTRACIÓN</small>
+        <h2>📊 Estadísticas</h2>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <div class="settings-list">
+
+      <div class="settings-row">
+        <span>📦 Publicaciones</span>
+        <strong>${MF.data.products.length}</strong>
+      </div>
+
+      <div class="settings-row">
+        <span>👁️ Vistas</span>
+        <strong>${totalViews}</strong>
+      </div>
+
+      <div class="settings-row">
+        <span>👍 Me gusta</span>
+        <strong>${totalLikes}</strong>
+      </div>
+
+      <div class="settings-row">
+        <span>👎 No me gusta</span>
+        <strong>${totalDislikes}</strong>
+      </div>
+
+      <div class="settings-row">
+        <span>📢 Publicidades</span>
+        <strong>${MF.data.ads.length}</strong>
+      </div>
+
+    </div>
+  `);
+
+  bindModalActions();
+}
+
+
+/* =========================================================
+   AGREGAR ADMINISTRADOR
+========================================================= */
+
+function openAddAdministrator() {
+
+  openModal(`
+
+    <div class="modal-header">
+
+      <div>
+        <small>SEGURIDAD</small>
+        <h2>➕ Agregar administrador</h2>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <form id="addAdminForm">
+
+      <label>Nombre</label>
+
+      <input
+        id="newAdminName"
+        required
+      >
+
+      <label>Identificador del administrador</label>
+
+      <input
+        id="newAdminId"
+        required
+        placeholder="Identificador"
+      >
+
+      <button
+        type="submit"
+        class="primary-btn"
+      >
+        Agregar administrador
+      </button>
+
+    </form>
+
+  `);
+
+  bindModalActions();
+
+  $("addAdminForm")?.addEventListener(
+    "submit",
+    event => {
+
+      event.preventDefault();
+
+      const name =
+        $("newAdminName").value.trim();
+
+      const id =
+        $("newAdminId").value.trim();
+
+      if (!name || !id) return;
+
+      MF.data.admin.administrators.push({
+
+        id,
+
+        name,
+
+        createdAt: Date.now()
+
+      });
+
+      saveData();
+
+      closeModal();
+
+      showToast(
+        "🛡️ Administrador agregado."
+      );
+
+    }
+  );
+}
+
+
+/* =========================================================
+   BOTÓN DE PANEL DE ADMINISTRADOR
+   Se agrega dentro de configuración.
+========================================================= */
+
+function createAdminButton() {
+
+  const settings =
+    $("profileSettings");
+
+  if (!settings) return;
+
+  if ($("adminPanelBtn")) return;
+
+  const wrapper =
+    document.createElement("div");
+
+  wrapper.className = "account-admin";
+
+  wrapper.innerHTML = `
+
+    <button
+      id="adminPanelBtn"
+      type="button"
+      class="primary-btn admin-highlight"
+    >
+      🛡️ PANEL DE ADMINISTRADOR
+    </button>
+
+  `;
+
+  settings.appendChild(wrapper);
+
+  $("adminPanelBtn")?.addEventListener(
+    "click",
+    openAdminLogin
+  );
+}
+
+
+/* =========================================================
+   ACCESO ADMIN
+========================================================= */
+
+function openAdminLogin() {
+
+  openModal(`
+
+    <div class="modal-header">
+
+      <div>
+        <small>MARKET FLASH</small>
+        <h2>🛡️ Panel de administrador</h2>
+      </div>
+
+      <button
+        type="button"
+        class="secondary-btn"
+        data-close-modal
+      >
+        ✕
+      </button>
+
+    </div>
+
+    <form id="adminLoginForm">
+
+      <label>Identificador / cédula</label>
+
+      <input
+        id="adminIdInput"
+        type="text"
+        autocomplete="off"
+        required
+      >
+
+      <label>Contraseña del panel</label>
+
+      <input
+        id="adminPasswordInput"
+        type="password"
+        autocomplete="current-password"
+        required
+      >
+
+      <button
+        type="submit"
+        class="primary-btn admin-highlight"
+      >
+        🔐 Entrar al panel
+      </button>
+
+    </form>
+  `);
+
+  bindModalActions();
+
+  $("adminLoginForm")?.addEventListener(
+    "submit",
+    event => {
+
+      event.preventDefault();
+
+      const id =
+        $("adminIdInput").value.trim();
+
+      const password =
+        $("adminPasswordInput").value;
+
+      /*
+        La autenticación definitiva debe hacerse
+        en el servidor/backend.
+
+        Aquí solamente comprobamos administradores
+        guardados en la aplicación local.
+      */
+
+      const admin =
+        MF.data.admin.administrators.find(
+          item => item.id === id
+        );
+
+      if (!admin) {
+
+        showToast(
+          "❌ Administrador no encontrado."
+        );
+
+        return;
+      }
+
+      if (
+        MF.data.admin.password &&
+        password !== MF.data.admin.password
+      ) {
+
+        showToast(
+          "❌ Contraseña incorrecta."
+        );
+
+        return;
+      }
+
+      MF.data.admin.enabled = true;
+
+      saveData();
+
+      openAdminPanel();
+
+    }
+  );
+}
+
+
+/* =========================================================
+   BÚSQUEDA
+========================================================= */
+
+$("searchInput")?.addEventListener(
+  "input",
+  () => renderProducts(currentCategory)
+);
+
+
+/* =========================================================
+   NOTIFICACIONES
+========================================================= */
+
+$("notifyBtn")?.addEventListener(
+  "click",
+  () => {
+
+    openModal(`
+
+      <div class="modal-header">
+
+        <div>
+          <small>MARKET FLASH</small>
+          <h2>🔔 Notificaciones</h2>
+        </div>
+
+        <button
+          type="button"
+          class="secondary-btn"
+          data-close-modal
+        >
+          ✕
+        </button>
+
+      </div>
+
+      <div class="page-card">
+
+        <h3>Sin notificaciones nuevas</h3>
+
+        <p>
+          Aquí aparecerán avisos de Market Flash.
+        </p>
+
+      </div>
+
+    `);
+
+    bindModalActions();
+
+  }
+);
+
+
+/* =========================================================
+   BADGES
+========================================================= */
+
+function updateBadges() {
+
+  const chatBadge = $("chatBadge");
+
+  if (chatBadge) {
+
+    const count =
+      MF.data.conversations.length;
+
+    chatBadge.textContent = count;
+
+    chatBadge.classList.toggle(
+      "hidden",
+      count === 0
+    );
+
+  }
+
+  const notifyBadge =
+    $("notifyBadge");
+
+  if (notifyBadge) {
+
+    notifyBadge.classList.add("hidden");
+
+  }
+
+}
+
+
+/* =========================================================
+   BOTÓN DE MESSENGER
+========================================================= */
+
+$("messengerProfileBtn")?.addEventListener(
+  "click",
+  () => {
+
+    if (MF.data.user.messenger) {
+
+      window.open(
+        MF.data.user.messenger,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+      return;
+    }
+
+    const settings =
+      $("profileSettings");
+
+    settings?.classList.remove("hidden");
+
+    $("messengerLinkInput")?.focus();
+
+  }
+);
+
+
+/* =========================================================
+   INICIO DE LA APLICACIÓN
+========================================================= */
+
+function initMarketFlash() {
+
+  loadData();
+
+  createDemoProducts();
 
   renderCategories();
+
+  applySettings();
 
   renderProducts();
 
   renderProfile();
 
-  renderActivity();
-
   renderChat();
 
-  updateFlashStatus();
+  renderActivity();
 
-  updateBadges();
+  createAdminButton();
 
-  setupEvents();
+  updateMyAdStatus();
 
-  /* Firma al llegar al final */
-  const signature =
-    $("ownerSignature");
-
-  if (signature) {
-
-    const observer =
-      new IntersectionObserver(
-        entries => {
-
-          entries.forEach(entry => {
-
-            if (entry.isIntersecting) {
-              signature.classList.add("visible");
-            }
-
-          });
-
-        }
-      );
-
-    observer.observe(signature);
-  }
+  showPage("home");
 
 }
 
-/* =========================================================
-   DOM READY
-   ========================================================= */
 
 document.addEventListener(
   "DOMContentLoaded",
-  init
+  initMarketFlash
 );
 
-/* =========================================================
-   FUNCIONES DISPONIBLES GLOBALMENTE
-   ========================================================= */
 
-window.closeModal = closeModal;
-window.selectCategory = selectCategory;
-window.openProduct = openProduct;
-window.likeProduct = likeProduct;
-window.dislikeProduct = dislikeProduct;
-window.reportProduct = reportProduct;
-window.submitReport = submitReport;
-window.contactSeller = contactSeller;
-window.sendContactRequest = sendContactRequest;
-window.acceptContactRequest = acceptContactRequest;
-window.rejectContactRequest = rejectContactRequest;
-window.openConversation = openConversation;
-window.sendMessage = sendMessage;
-window.removeTempImage = removeTempImage;
-window.createProduct = createProduct;
-window.openFlashDay = openFlashDay;
-window.createFlashAd = createFlashAd;
-window.approveFlash = approveFlash;
-window.rejectFlash = rejectFlash;
-window.manageFlashAds = manageFlashAds;
-window.manageReports = manageReports;
-window.manageAdmins = manageAdmins;
-window.addAdministrator = addAdministrator;
-window.adminStatistics = adminStatistics;
-window.openAdminPanel = openAdminPanel;
-window.showContacts = showContacts;
-window.processFlashImage = processFlashImage;
-window.processFlashVideo = processFlashVideo;
-window.processProductVideo = processProductVideo;
+/* =========================================================
+   PROTECCIÓN BÁSICA DE ERRORES
+========================================================= */
+
+window.addEventListener(
+  "error",
+  event => {
+
+    console.error(
+      "Market Flash:",
+      event.error || event.message
+    );
+
+  }
+);
+
+
+/* =========================================================
+   FIN SCRIPT.JS
+========================================================= */
