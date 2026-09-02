@@ -2,251 +2,151 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#2563eb">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Market Flash">
-  <title>Market Flash</title>
-
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market Flash - Crear cuenta</title>
 </head>
 
 <body>
 
-<div id="app">
+  <main class="auth-container">
 
-  <!-- BARRA SUPERIOR -->
-  <header class="topbar">
+    <section class="auth-card">
 
-    <div class="brand">
-      <span>Market</span> Flash
-    </div>
+      <div class="logo">
+        <span>Market</span>
+        <span class="flash">⚡</span>
+        <span>Flash</span>
+      </div>
 
-    <div class="search-wrap">
-      <span>⌕</span>
+      <h1>Crear cuenta</h1>
+      <p class="subtitle">Únete a Market Flash</p>
 
-      <input
-        id="searchInput"
-        type="search"
-        placeholder="Buscar en Market Flash..."
-      >
-    </div>
+      <form id="registerForm">
 
-    <button
-      class="round-btn"
-      id="notifyBtn"
-      aria-label="Notificaciones"
-    >
-      🔔
-      <b id="notifyBadge" class="badge hidden">0</b>
-    </button>
+        <div class="input-group">
+          <label for="nombre">Nombre</label>
+          <input
+            type="text"
+            id="nombre"
+            name="nombre"
+            placeholder="Tu nombre"
+            required
+          >
+        </div>
 
-  </header>
+        <div class="input-group">
+          <label for="apellido">Apellido</label>
+          <input
+            type="text"
+            id="apellido"
+            name="apellido"
+            placeholder="Tu apellido"
+            required
+          >
+        </div>
 
+        <div class="input-group">
+          <label for="apodo">Apodo</label>
+          <input
+            type="text"
+            id="apodo"
+            name="apodo"
+            placeholder="¿Cómo quieres que te conozcan?"
+            required
+          >
+        </div>
 
-  <!-- CONTENIDO PRINCIPAL -->
-  <main id="mainContent" class="main-content">
+        <div class="input-group">
+          <label for="cedula">Número de cédula</label>
+          <input
+            type="text"
+            id="cedula"
+            name="cedula"
+            placeholder="000-0000000-0"
+            required
+          >
+        </div>
 
-    <!-- PRESENTACIÓN -->
-    <section class="hero">
+        <div class="input-group">
+          <label for="direccion">Dirección</label>
+          <input
+            type="text"
+            id="direccion"
+            name="direccion"
+            placeholder="¿Dónde vives?"
+            required
+          >
+        </div>
 
-      <div>
+        <div class="input-group">
+          <label for="telefono">
+            Número de teléfono
+            <span>(opcional)</span>
+          </label>
+          <input
+            type="tel"
+            id="telefono"
+            name="telefono"
+            placeholder="Tu número de contacto"
+          >
+        </div>
 
-        <small>MARKET FLASH</small>
+        <div class="input-group">
+          <label for="correo">
+            Correo electrónico
+            <span>(opcional)</span>
+          </label>
+          <input
+            type="email"
+            id="correo"
+            name="correo"
+            placeholder="tucorreo@email.com"
+          >
+        </div>
 
-        <h1>
-          Encuentra lo que necesitas
-        </h1>
+        <div class="input-group">
+          <label for="password">Contraseña</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Crea una contraseña"
+            required
+          >
+        </div>
 
-        <p>
-          Compra, vende y conecta con personas de tu zona.
-        </p>
+        <div class="input-group">
+          <label for="confirmPassword">Confirmar contraseña</label>
+          <input
+            type="password"
+            id="confirmPassword"
+            name="confirmPassword"
+            placeholder="Repite tu contraseña"
+            required
+          >
+        </div>
 
+        <label class="terms">
+          <input type="checkbox" id="terms" required>
+          <span>Acepto los términos y condiciones de Market Flash.</span>
+        </label>
+
+        <button type="submit" id="registerButton">
+          ⚡ Crear cuenta
+        </button>
+
+      </form>
+
+      <div class="login-link">
+        <p>¿Ya tienes una cuenta?</p>
+        <button type="button" id="showLogin">
+          Iniciar sesión
+        </button>
       </div>
 
     </section>
 
-
-    <!-- FLASH DEL DÍA -->
-    <button
-      id="flashDayBtn"
-      class="flash-day"
-      type="button"
-    >
-
-      <div class="flash-icon">
-        ⚡
-      </div>
-
-      <div class="flash-copy">
-
-        <span>
-          PUBLICIDAD
-        </span>
-
-        <strong>
-          Publicación Flash del Día
-        </strong>
-
-        <small>
-          Descubre anuncios destacados y oportunidades.
-        </small>
-
-      </div>
-
-      <div class="arrow">
-        ›
-      </div>
-
-    </button>
-
-
-    <!-- TÍTULO DE PUBLICACIONES -->
-    <div class="section-title">
-
-      <h2>
-        Publicaciones
-      </h2>
-
-      <span id="productCount"></span>
-
-    </div>
-
-
-    <!-- CATEGORÍAS -->
-    <div
-      id="categoryRow"
-      class="chips"
-    ></div>
-
-
-    <!-- PRODUCTOS -->
-    <section
-      id="productsGrid"
-      class="products-grid"
-    ></section>
-
   </main>
-
-
-  <!-- BARRA INFERIOR -->
-  <nav
-    class="bottom-nav"
-    aria-label="Navegación principal"
-  >
-
-    <!-- CHAT -->
-    <button
-      class="nav-item"
-      data-page="chat"
-    >
-
-      <span>
-        💬
-      </span>
-
-      <small>
-        Chat
-      </small>
-
-      <b
-        id="chatBadge"
-        class="nav-badge hidden"
-      >
-        0
-      </b>
-
-    </button>
-
-
-    <!-- INICIO -->
-    <button
-      class="nav-item active"
-      data-page="home"
-    >
-
-      <span>
-        ⌂
-      </span>
-
-      <small>
-        Inicio
-      </small>
-
-    </button>
-
-
-    <!-- BOTÓN PUBLICAR -->
-    <button
-      id="publishBtn"
-      class="publish-plus"
-      aria-label="Publicar"
-    >
-      ＋
-    </button>
-
-
-    <!-- ACTIVIDAD -->
-    <button
-      class="nav-item"
-      data-page="activity"
-    >
-
-      <span>
-        ▣
-      </span>
-
-      <small>
-        Actividad
-      </small>
-
-    </button>
-
-
-    <!-- PERFIL -->
-    <button
-      class="nav-item"
-      data-page="profile"
-    >
-
-      <span>
-        ●
-      </span>
-
-      <small>
-        Mi perfil
-      </small>
-
-    </button>
-
-  </nav>
-
-</div>
-
-
-<!-- VENTANA MODAL -->
-<div
-  id="modal"
-  class="modal hidden"
->
-
-  <div
-    id="modalCard"
-    class="modal-card"
-  ></div>
-
-</div>
-
-
-<!-- MENSAJE TEMPORAL -->
-<div
-  id="toast"
-  class="toast hidden"
-></div>
-
-
-<!-- JAVASCRIPT -->
-<script src="script.js"></script>
 
 </body>
 </html>
