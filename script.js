@@ -1,30 +1,45 @@
 /* =========================================================
    MARKET FLASH
-   script.js
-   Versión frontend/local
-========================================================= */
+   JAVASCRIPT PRINCIPAL
+   ========================================================= */
 
 "use strict";
 
 /* =========================================================
    CONFIGURACIÓN
-========================================================= */
+   ========================================================= */
 
-const STORAGE_KEY = "marketFlashData_v1";
+const STORAGE_KEY = "marketFlashData_v2";
 
-const DEFAULT_DATA = {
-  profile: {
+/* Administrador principal */
+const ADMIN_CEDULA = "402-1260-49-75-3";
+
+/* =========================================================
+   DATOS
+   ========================================================= */
+
+const defaultData = {
+  currentUser: {
+    id: "user_local",
     name: "Usuario",
     phone: "",
+    whatsapp: "",
     cedula: "",
     messenger: "",
     password: "1234",
-    avatar: ""
+    avatar: "",
+    isAdmin: false
   },
+
+  users: [],
 
   products: [],
 
   conversations: [],
+
+  contactRequests: [],
+
+  contacts: [],
 
   notifications: [],
 
@@ -32,111 +47,27 @@ const DEFAULT_DATA = {
 
   settings: {
     appColor: "#1677ff",
-    chatStyle: "bubble",
-    chatBackground: "default",
+    chatStyle: "normal",
+    chatBackground: "",
     chatCustomImage: ""
   },
 
-  advertising: {
-    status: "",
-    title: "",
-    text: "",
-    submittedAt: null
-  }
+  flashAds: [],
+
+  currentFlashIndex: 0
 };
 
+let data = loadData();
+let selectedCategory = "Todas";
+let searchText = "";
 
 /* =========================================================
    UTILIDADES
-========================================================= */
+   ========================================================= */
 
-function cloneDefaultData() {
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+function $(id) {
+  return document.getElementById(id);
 }
-
-
-function loadData() {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-
-    if (!saved) {
-      const fresh = cloneDefaultData();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
-      return fresh;
-    }
-
-    const parsed = JSON.parse(saved);
-
-    return {
-      ...cloneDefaultData(),
-      ...parsed,
-      profile: {
-        ...DEFAULT_DATA.profile,
-        ...(parsed.profile || {})
-      },
-      settings: {
-        ...DEFAULT_DATA.settings,
-        ...(parsed.settings || {})
-      },
-      products: Array.isArray(parsed.products) ? parsed.products : [],
-      conversations: Array.isArray(parsed.conversations)
-        ? parsed.conversations
-        : [],
-      notifications: Array.isArray(parsed.notifications)
-        ? parsed.notifications
-        : [],
-      activity: Array.isArray(parsed.activity)
-        ? parsed.activity
-        : [],
-      advertising: {
-        ...DEFAULT_DATA.advertising,
-        ...(parsed.advertising || {})
-      }
-    };
-
-  } catch (error) {
-    console.error("Error cargando datos:", error);
-
-    const fresh = cloneDefaultData();
-
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
-    } catch (_) {}
-
-    return fresh;
-  }
-}
-
-
-let data = loadData();
-
-
-function saveData() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    return true;
-  } catch (error) {
-    console.error("No se pudieron guardar los datos:", error);
-
-    showToast(
-      "No hay suficiente espacio del navegador. Algunas fotos o videos pueden ser demasiado grandes."
-    );
-
-    return false;
-  }
-}
-
-
-function generateId(prefix = "id") {
-  return (
-    prefix +
-    "_" +
-    Date.now() +
-    "_" +
-    Math.random().toString(36).substring(2, 9)
-  );
-}
-
 
 function escapeHTML(value) {
   return String(value ?? "")
@@ -147,1016 +78,285 @@ function escapeHTML(value) {
     .replace(/'/g, "&#039;");
 }
 
+function saveData() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
 
-function formatMoney(value) {
-  const number = Number(value) || 0;
+function loadData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
 
+    if (!saved) {
+      return structuredClone(defaultData);
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return {
+      ...structuredClone(defaultData),
+      ...parsed,
+      currentUser: {
+        ...defaultData.currentUser,
+        ...(parsed.currentUser || {})
+      },
+      settings: {
+        ...defaultData.settings,
+        ...(parsed.settings || {})
+      }
+    };
+
+  } catch (error) {
+    console.error("Error cargando datos:", error);
+    return structuredClone(defaultData);
+  }
+}
+
+function toast(message) {
+  const el = $("toast");
+
+  if (!el) return;
+
+  el.textContent = message;
+  el.classList.remove("hidden");
+
+  clearTimeout(window.toastTimer);
+
+  window.toastTimer = setTimeout(() => {
+    el.classList.add("hidden");
+  }, 2800);
+}
+
+function money(value) {
   return new Intl.NumberFormat("es-DO", {
     style: "currency",
     currency: "DOP",
     maximumFractionDigits: 0
-  }).format(number);
+  }).format(Number(value) || 0);
 }
 
+function now() {
+  return new Date().toISOString();
+}
 
-function formatDate(timestamp) {
-  if (!timestamp) return "";
+function currentUserId() {
+  return data.currentUser.id;
+}
 
-  try {
-    return new Date(timestamp).toLocaleString("es-DO", {
-      dateStyle: "short",
-      timeStyle: "short"
-    });
-  } catch (_) {
-    return "";
+function isAdmin() {
+  return (
+    data.currentUser.isAdmin === true ||
+    data.currentUser.cedula === ADMIN_CEDULA
+  );
+}
+
+function makeId(prefix = "id") {
+  return (
+    prefix +
+    "_" +
+    Date.now() +
+    "_" +
+    Math.random().toString(36).slice(2, 8)
+  );
+}
+
+/* =========================================================
+   ADMINISTRADOR PRINCIPAL
+   ========================================================= */
+
+function checkAdmin() {
+  if (data.currentUser.cedula === ADMIN_CEDULA) {
+    data.currentUser.isAdmin = true;
+    saveData();
+  }
+
+  const button = $("adminPanelBtn");
+
+  if (button) {
+    button.classList.toggle("hidden", !isAdmin());
   }
 }
 
-
-function showToast(message) {
-  const toast = document.getElementById("toast");
-
-  if (!toast) return;
-
-  toast.textContent = message;
-  toast.classList.remove("hidden");
-
-  clearTimeout(window.marketFlashToastTimer);
-
-  window.marketFlashToastTimer = setTimeout(() => {
-    toast.classList.add("hidden");
-  }, 3000);
-}
-
-
 /* =========================================================
-   REFERENCIAS HTML
-========================================================= */
+   NAVEGACIÓN
+   ========================================================= */
 
-const $ = (id) => document.getElementById(id);
+function showPage(page) {
+  const pages = {
+    home: $("homePage"),
+    chat: $("chatPage"),
+    activity: $("activityPage"),
+    profile: $("profilePage")
+  };
 
+  Object.values(pages).forEach(pageEl => {
+    if (pageEl) pageEl.classList.add("hidden");
+  });
+
+  if (pages[page]) {
+    pages[page].classList.remove("hidden");
+  }
+
+  document.querySelectorAll(".nav-item").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.page === page
+    );
+  });
+
+  if (page === "home") renderProducts();
+  if (page === "chat") renderChat();
+  if (page === "activity") renderActivity();
+  if (page === "profile") renderProfile();
+}
 
 /* =========================================================
    MODAL
-========================================================= */
+   ========================================================= */
 
-function openModal(content, options = {}) {
+function openModal(html) {
   const modal = $("modal");
   const card = $("modalCard");
 
   if (!modal || !card) return;
 
-  card.innerHTML = content;
+  card.innerHTML = html;
 
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
-
-  if (options.onOpen) {
-    setTimeout(() => options.onOpen(), 0);
-  }
 }
-
 
 function closeModal() {
-  const modal = $("modal");
-  const card = $("modalCard");
-
-  if (!modal || !card) return;
-
-  modal.classList.add("hidden");
-  modal.setAttribute("aria-hidden", "true");
-  card.innerHTML = "";
-}
-
-
-function bindModalClose() {
   const modal = $("modal");
 
   if (!modal) return;
 
-  modal.addEventListener("click", (event) => {
-    if (event.target === modal) {
-      closeModal();
-    }
-  });
+  modal.classList.add("hidden");
+  modal.setAttribute("aria-hidden", "true");
+
+  const card = $("modalCard");
+
+  if (card) card.innerHTML = "";
 }
 
-
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    closeModal();
-  }
-});
-
+function modalCloseButton() {
+  return `
+    <button
+      type="button"
+      class="modal-close mf-press"
+      onclick="closeModal()"
+    >
+      ✕
+    </button>
+  `;
+}
 
 /* =========================================================
-   NAVEGACIÓN
-========================================================= */
-
-const pages = {
-  home: "homePage",
-  chat: "chatPage",
-  activity: "activityPage",
-  profile: "profilePage"
-};
-
-
-function showPage(pageName) {
-  Object.values(pages).forEach((id) => {
-    const section = $(id);
-
-    if (section) {
-      section.classList.add("hidden");
-    }
-  });
-
-  const selected = $(pages[pageName]);
-
-  if (selected) {
-    selected.classList.remove("hidden");
-  }
-
-  document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
-    button.classList.toggle(
-      "active",
-      button.dataset.page === pageName
-    );
-  });
-
-  if (pageName === "home") {
-    renderHome();
-  }
-
-  if (pageName === "chat") {
-    renderChat();
-  }
-
-  if (pageName === "activity") {
-    renderActivity();
-  }
-
-  if (pageName === "profile") {
-    renderProfile();
-  }
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
-}
-
-
-function bindNavigation() {
-  document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
-    button.addEventListener("click", () => {
-      showPage(button.dataset.page);
-    });
-  });
-}
-
-
-/* =========================================================
-   PERFIL
-========================================================= */
-
-function renderProfile() {
-  const profile = data.profile;
-
-  if ($("profileName")) {
-    $("profileName").textContent =
-      profile.name || "Usuario";
-  }
-
-  if ($("profilePhone")) {
-    $("profilePhone").textContent =
-      profile.phone || "Teléfono no registrado";
-  }
-
-  if ($("profileCedula")) {
-    $("profileCedula").textContent =
-      profile.cedula
-        ? "Cédula: " + maskCedula(profile.cedula)
-        : "Cédula: protegida";
-  }
-
-  if ($("profileNameInfo")) {
-    $("profileNameInfo").textContent =
-      profile.name || "-";
-  }
-
-  if ($("profilePhoneInfo")) {
-    $("profilePhoneInfo").textContent =
-      profile.phone || "-";
-  }
-
-  if ($("profileMessengerInfo")) {
-    $("profileMessengerInfo").textContent =
-      profile.messenger
-        ? "Conectado"
-        : "No conectado";
-  }
-
-  renderAvatar();
-  renderMyProducts();
-  updateProfileBadge();
-}
-
-
-function maskCedula(cedula) {
-  const value = String(cedula || "");
-
-  if (value.length <= 4) {
-    return "protegida";
-  }
-
-  return "******" + value.slice(-4);
-}
-
-
-function renderAvatar() {
-  const avatar = $("profileAvatarBtn");
-
-  if (!avatar) return;
-
-  if (data.profile.avatar) {
-    avatar.innerHTML = `
-      <img
-        src="${escapeHTML(data.profile.avatar)}"
-        alt="Foto de perfil"
-      >
-    `;
-  } else {
-    avatar.textContent = "👤";
-  }
-}
-
-
-function bindProfileButtons() {
-
-  const avatarButton = $("profileAvatarBtn");
-
-  if (avatarButton) {
-    avatarButton.addEventListener("click", () => {
-      const input = $("profileImageInput");
-
-      if (input) {
-        input.click();
-      }
-    });
-  }
-
-
-  const profileImageInput = $("profileImageInput");
-
-  if (profileImageInput) {
-    profileImageInput.addEventListener("change", async () => {
-
-      const file = profileImageInput.files[0];
-
-      if (!file) return;
-
-      if (!file.type.startsWith("image/")) {
-        showToast("Selecciona una imagen.");
-        return;
-      }
-
-      try {
-        const image = await fileToCompressedDataURL(
-          file,
-          700,
-          0.75
-        );
-
-        data.profile.avatar = image;
-
-        saveData();
-        renderProfile();
-
-        showToast("Foto de perfil actualizada.");
-      } catch (error) {
-        console.error(error);
-        showToast("No se pudo cargar la foto.");
-      }
-
-      profileImageInput.value = "";
-    });
-  }
-
-
-  const editProfileBtn = $("editProfileBtn");
-
-  if (editProfileBtn) {
-    editProfileBtn.addEventListener("click", openEditProfile);
-  }
-
-
-  const settingsButton = $("profileSettingsBtn");
-
-  if (settingsButton) {
-    settingsButton.addEventListener("click", () => {
-      const settings = $("profileSettings");
-
-      if (!settings) return;
-
-      settings.classList.toggle("hidden");
-
-      if (!settings.classList.contains("hidden")) {
-        setTimeout(() => {
-          settings.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-          });
-        }, 100);
-      }
-    });
-  }
-
-
-  const messengerButton = $("messengerProfileBtn");
-
-  if (messengerButton) {
-    messengerButton.addEventListener("click", openMessengerModal);
-  }
-
-
-  const savePhoneButton = $("savePhoneBtn");
-
-  if (savePhoneButton) {
-    savePhoneButton.addEventListener("click", savePhone);
-  }
-
-
-  const saveMessengerButton = $("saveMessengerBtn");
-
-  if (saveMessengerButton) {
-    saveMessengerButton.addEventListener(
-      "click",
-      saveMessenger
-    );
-  }
-
-
-  const changePasswordButton = $("changePasswordBtn");
-
-  if (changePasswordButton) {
-    changePasswordButton.addEventListener(
-      "click",
-      changePassword
-    );
-  }
-
-
-  const deleteAccountButton = $("deleteAccountBtn");
-
-  if (deleteAccountButton) {
-    deleteAccountButton.addEventListener(
-      "click",
-      deleteAccount
-    );
-  }
-
-
-  const appColorButton = $("appColorBtn");
-
-  if (appColorButton) {
-    appColorButton.addEventListener(
-      "click",
-      openColorSettings
-    );
-  }
-
-
-  const chatStyleButton = $("chatStyleBtn");
-
-  if (chatStyleButton) {
-    chatStyleButton.addEventListener(
-      "click",
-      openChatStyleSettings
-    );
-  }
-
-
-  const chatBackgroundButton = $("chatBackgroundBtn");
-
-  if (chatBackgroundButton) {
-    chatBackgroundButton.addEventListener(
-      "click",
-      openChatBackgroundSettings
-    );
-  }
-
-
-  const customImageButton = $("chatCustomImageBtn");
-
-  if (customImageButton) {
-    customImageButton.addEventListener(
-      "click",
-      () => {
-        const input = $("chatCustomImageInput");
-
-        if (input) {
-          input.click();
-        }
-      }
-    );
-  }
-
-
-  const customImageInput = $("chatCustomImageInput");
-
-  if (customImageInput) {
-    customImageInput.addEventListener(
-      "change",
-      async () => {
-
-        const file = customImageInput.files[0];
-
-        if (!file) return;
-
-        if (!file.type.startsWith("image/")) {
-          showToast("Selecciona una imagen.");
-          return;
-        }
-
-        try {
-          const image =
-            await fileToCompressedDataURL(
-              file,
-              1200,
-              0.78
-            );
-
-          data.settings.chatCustomImage = image;
-          data.settings.chatBackground = "custom";
-
-          saveData();
-          applyChatBackground();
-
-          showToast(
-            "Fondo personalizado guardado."
-          );
-
-        } catch (error) {
-          console.error(error);
-          showToast(
-            "No se pudo cargar la imagen."
-          );
-        }
-
-        customImageInput.value = "";
-      }
-    );
-  }
-
-
-  const landscapeButton = $("builtInLandscapeBtn");
-
-  if (landscapeButton) {
-    landscapeButton.addEventListener(
-      "click",
-      () => {
-        data.settings.chatBackground = "landscape";
-
-        saveData();
-        applyChatBackground();
-
-        showToast(
-          "Paisaje de Market Flash seleccionado."
-        );
-      }
-    );
-  }
-}
-
-
-function openEditProfile() {
-
-  openModal(`
-    <div class="modal-header">
-      <div>
-        <small>MI PERFIL</small>
-        <h2>Editar perfil</h2>
-      </div>
-
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
-    </div>
-
-    <div class="form-card">
-
-      <label for="editNameInput">
-        Nombre
-      </label>
-
-      <input
-        id="editNameInput"
-        type="text"
-        maxlength="60"
-        value="${escapeHTML(data.profile.name)}"
-        placeholder="Tu nombre"
-      >
-
-      <button
-        id="saveProfileBtn"
-        class="primary-btn"
-        type="button"
-      >
-        Guardar cambios
-      </button>
-
-    </div>
-  `);
-
-  bindModalButtons();
-
-  const button = $("saveProfileBtn");
-
-  if (button) {
-    button.addEventListener("click", () => {
-
-      const input = $("editNameInput");
-
-      const name = input
-        ? input.value.trim()
-        : "";
-
-      if (name.length < 2) {
-        showToast(
-          "Escribe un nombre válido."
-        );
-        return;
-      }
-
-      data.profile.name = name;
-
-      saveData();
-      renderProfile();
-
-      addActivity(
-        "profile",
-        "Actualizaste tu nombre de perfil."
-      );
-
-      closeModal();
-
-      showToast(
-        "Perfil actualizado."
-      );
-    });
-  }
-}
-
-
-function savePhone() {
-
-  const input = $("newPhoneInput");
-
-  if (!input) return;
-
-  const phone = input.value.trim();
-
-  if (phone.length < 7) {
-    showToast(
-      "Escribe un número de teléfono válido."
-    );
-    return;
-  }
-
-  data.profile.phone = phone;
-
-  saveData();
-
-  addActivity(
-    "profile",
-    "Actualizaste tu número de teléfono."
-  );
-
-  renderProfile();
-
-  input.value = "";
-
-  showToast(
-    "Número guardado correctamente."
-  );
-}
-
-
-function openMessengerModal() {
-
-  openModal(`
-    <div class="modal-header">
-      <div>
-        <small>CONTACTO</small>
-        <h2>Messenger</h2>
-      </div>
-
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
-    </div>
-
-    <div class="form-card">
-
-      <p>
-        Introduce el enlace de tu perfil de Messenger.
-      </p>
-
-      <input
-        id="messengerModalInput"
-        type="url"
-        placeholder="https://m.me/..."
-        value="${escapeHTML(data.profile.messenger)}"
-      >
-
-      <button
-        id="saveMessengerModalBtn"
-        class="primary-btn"
-        type="button"
-      >
-        Guardar
-      </button>
-
-    </div>
-  `);
-
-  bindModalButtons();
-
-  const button = $("saveMessengerModalBtn");
-
-  if (button) {
-    button.addEventListener(
-      "click",
-      () => {
-
-        const input = $("messengerModalInput");
-
-        const value = input
-          ? input.value.trim()
-          : "";
-
-        if (
-          value &&
-          !/^https?:\/\/.+/i.test(value)
-        ) {
-          showToast(
-            "Escribe un enlace válido."
-          );
-          return;
-        }
-
-        data.profile.messenger = value;
-
-        saveData();
-        renderProfile();
-
-        addActivity(
-          "messenger",
-          value
-            ? "Conectaste tu perfil de Messenger."
-            : "Desconectaste Messenger."
-        );
-
-        closeModal();
-
-        showToast(
-          value
-            ? "Messenger conectado."
-            : "Messenger desconectado."
-        );
-      }
-    );
-  }
-}
-
-
-function saveMessenger() {
-
-  const input = $("messengerLinkInput");
-
-  if (!input) return;
-
-  const value = input.value.trim();
-
-  if (
-    value &&
-    !/^https?:\/\/.+/i.test(value)
-  ) {
-    showToast(
-      "Escribe un enlace válido."
-    );
-    return;
-  }
-
-  data.profile.messenger = value;
-
-  saveData();
-
-  addActivity(
-    "messenger",
-    value
-      ? "Conectaste tu perfil de Messenger."
-      : "Desconectaste Messenger."
-  );
-
-  renderProfile();
-
-  showToast(
-    value
-      ? "Messenger conectado."
-      : "Messenger desconectado."
-  );
-}
-
-
-function changePassword() {
-
-  const current = $("currentPasswordInput");
-  const next = $("newPasswordInput");
-
-  if (!current || !next) return;
-
-  if (
-    current.value !== data.profile.password
-  ) {
-    showToast(
-      "La contraseña actual no es correcta."
-    );
-    return;
-  }
-
-  if (next.value.length < 4) {
-    showToast(
-      "La nueva contraseña debe tener al menos 4 caracteres."
-    );
-    return;
-  }
-
-  data.profile.password = next.value;
-
-  saveData();
-
-  current.value = "";
-  next.value = "";
-
-  addActivity(
-    "security",
-    "Cambiaste la contraseña de tu cuenta."
-  );
-
-  showToast(
-    "Contraseña cambiada correctamente."
-  );
-}
-
-
-function deleteAccount() {
-
-  const confirmed = window.confirm(
-    "¿Seguro que quieres eliminar todos los datos locales de Market Flash en este dispositivo?"
-  );
-
-  if (!confirmed) return;
-
-  localStorage.removeItem(STORAGE_KEY);
-
-  data = cloneDefaultData();
-
-  saveData();
-
-  renderAll();
-
-  showPage("home");
-
-  showToast(
-    "Los datos locales de la cuenta fueron eliminados."
-  );
-}
-
-
-/* =========================================================
-   PRODUCTOS
-========================================================= */
-
-function renderHome() {
-
-  renderCategories();
-  renderProducts();
-  renderProductCount();
-  renderAdvertisingStatus();
-  updateNotificationBadge();
-}
-
-
-function renderProductCount() {
-
-  const count = $("productCount");
-
-  if (!count) return;
-
-  count.textContent =
-    `${data.products.length} ${
-      data.products.length === 1
-        ? "publicación"
-        : "publicaciones"
-    }`;
-}
-
-
-function getCategories() {
-
-  const categories = new Set();
-
-  data.products.forEach((product) => {
-    if (product.category) {
-      categories.add(product.category);
-    }
-  });
-
-  const defaultCategories = [
-    "Todos",
-    "Celulares",
-    "Electrónica",
-    "Vehículos",
-    "Hogar",
-    "Ropa",
-    "Servicios",
-    "Otros"
-  ];
-
-  defaultCategories.forEach((category) => {
-    categories.add(category);
-  });
-
-  return Array.from(categories);
-}
-
-
-let selectedCategory = "Todos";
-
+   CATEGORÍAS
+   ========================================================= */
+
+const categories = [
+  "Todas",
+  "Celulares",
+  "Electrónica",
+  "Vehículos",
+  "Hogar",
+  "Ropa",
+  "Servicios",
+  "Otros"
+];
 
 function renderCategories() {
-
   const row = $("categoryRow");
 
   if (!row) return;
 
-  row.innerHTML = getCategories()
-    .map((category) => `
-      <button
-        class="chip ${
-          selectedCategory === category
-            ? "active"
-            : ""
-        }"
-        type="button"
-        data-category="${escapeHTML(category)}"
-      >
-        ${escapeHTML(category)}
-      </button>
-    `)
-    .join("");
-
-  row.querySelectorAll(
-    "[data-category]"
-  ).forEach((button) => {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        selectedCategory =
-          button.dataset.category;
-
-        renderCategories();
-        renderProducts();
-      }
-    );
-  });
+  row.innerHTML = categories.map(category => `
+    <button
+      type="button"
+      class="chip ${selectedCategory === category ? "active" : ""}"
+      onclick="selectCategory('${escapeHTML(category)}')"
+    >
+      ${escapeHTML(category)}
+    </button>
+  `).join("");
 }
 
+function selectCategory(category) {
+  selectedCategory = category;
+  renderCategories();
+  renderProducts();
+}
 
-function getFilteredProducts() {
+/* =========================================================
+   PRODUCTOS
+   ========================================================= */
 
-  const input = $("searchInput");
+function renderProducts() {
+  const grid = $("productsGrid");
 
-  const search = input
-    ? input.value.trim().toLowerCase()
-    : "";
+  if (!grid) return;
 
-  return data.products.filter((product) => {
+  const query = searchText.toLowerCase();
 
-    const categoryMatches =
-      selectedCategory === "Todos" ||
+  let products = data.products.filter(product => {
+
+    const matchesCategory =
+      selectedCategory === "Todas" ||
       product.category === selectedCategory;
-
-    if (!categoryMatches) {
-      return false;
-    }
-
-    if (!search) {
-      return true;
-    }
 
     const text = [
       product.title,
       product.description,
-      product.category,
       product.location,
+      product.category,
       product.sellerName
     ]
       .join(" ")
       .toLowerCase();
 
-    return text.includes(search);
+    return matchesCategory && text.includes(query);
   });
-}
 
+  const count = $("productCount");
 
-function renderProducts() {
-
-  const grid = $("productsGrid");
-
-  if (!grid) return;
-
-  const products = getFilteredProducts();
+  if (count) {
+    count.textContent = `${products.length} publicación${products.length === 1 ? "" : "es"}`;
+  }
 
   if (!products.length) {
-
     grid.innerHTML = `
       <div class="empty-state">
         <div>📦</div>
-
-        <h3>
-          No hay publicaciones
-        </h3>
-
-        <p>
-          ${
-            data.products.length
-              ? "Prueba otra búsqueda o categoría."
-              : "Sé el primero en publicar algo."
-          }
-        </p>
+        <h3>No hay publicaciones</h3>
+        <p>Cuando alguien publique algo aparecerá aquí.</p>
       </div>
     `;
-
     return;
   }
 
-  grid.innerHTML = products
-    .map(productCardHTML)
-    .join("");
-
-  bindProductCards();
+  grid.innerHTML = products.map(productCard).join("");
 }
 
-
-function productCardHTML(product) {
+function productCard(product) {
 
   const image =
-    Array.isArray(product.images) &&
-    product.images.length
-      ? product.images[0]
-      : "";
-
-  const imageHTML = image
-    ? `
-      <img
-        src="${escapeHTML(image)}"
-        alt="${escapeHTML(product.title)}"
-        loading="lazy"
-      >
-    `
-    : `
-      <div class="product-placeholder">
-        📦
-      </div>
-    `;
+    product.images && product.images.length
+      ? `<img src="${product.images[0]}" alt="${escapeHTML(product.title)}">`
+      : `<div class="product-placeholder">📦</div>`;
 
   return `
     <article
-      class="product-card"
-      data-product-id="${escapeHTML(product.id)}"
+      class="product-card mf-press"
+      onclick="openProduct('${product.id}')"
     >
 
       <div class="product-image">
-        ${imageHTML}
-
-        ${
-          product.featured
-            ? `<span class="product-featured">FLASH</span>`
-            : ""
-        }
+        ${image}
       </div>
 
       <div class="product-body">
 
-        <small class="product-category">
+        <small>
           ${escapeHTML(product.category || "Otros")}
         </small>
 
@@ -1165,16 +365,16 @@ function productCardHTML(product) {
         </h3>
 
         <strong class="product-price">
-          ${formatMoney(product.price)}
+          ${money(product.price)}
         </strong>
 
-        <p class="product-location">
+        <p>
           📍 ${escapeHTML(product.location || "República Dominicana")}
         </p>
 
-        <div class="product-seller">
-          ${escapeHTML(product.sellerName || "Usuario")}
-        </div>
+        <small>
+          👤 ${escapeHTML(product.sellerName || "Usuario")}
+        </small>
 
       </div>
 
@@ -1182,588 +382,1209 @@ function productCardHTML(product) {
   `;
 }
 
+/* =========================================================
+   DETALLE DE PUBLICACIÓN
+   ========================================================= */
 
-function bindProductCards() {
+function openProduct(id) {
 
-  document
-    .querySelectorAll(".product-card[data-product-id]")
-    .forEach((card) => {
+  const product = data.products.find(p => p.id === id);
 
-      card.addEventListener(
-        "click",
-        () => {
+  if (!product) return;
 
-          const product =
-            data.products.find(
-              (item) =>
-                item.id ===
-                card.dataset.productId
-            );
+  product.views = Number(product.views || 0) + 1;
 
-          if (product) {
-            openProductDetails(product);
-          }
+  addActivity(
+    `Viste la publicación "${product.title}"`
+  );
+
+  saveData();
+
+  const own =
+    product.sellerId === currentUserId();
+
+  const whatsapp = product.whatsapp || "";
+  const messenger = product.messenger || "";
+
+  let contactButtons = "";
+
+  if (!own) {
+    contactButtons += `
+      <button
+        class="primary-btn"
+        onclick="contactSeller('${product.id}')"
+      >
+        💬 Chat Market Flash
+      </button>
+    `;
+  } else {
+    contactButtons += `
+      <button
+        class="secondary-btn"
+        onclick="editProduct('${product.id}')"
+      >
+        ✏️ Editar publicación
+      </button>
+    `;
+  }
+
+  if (whatsapp) {
+    const clean = whatsapp.replace(/\D/g, "");
+
+    contactButtons += `
+      <a
+        class="secondary-btn"
+        href="https://wa.me/${clean}"
+        target="_blank"
+        rel="noopener"
+      >
+        🟢 WhatsApp
+      </a>
+    `;
+  }
+
+  if (messenger) {
+    contactButtons += `
+      <a
+        class="secondary-btn"
+        href="${escapeHTML(messenger)}"
+        target="_blank"
+        rel="noopener"
+      >
+        🔵 Messenger
+      </a>
+    `;
+  }
+
+  openModal(`
+    <div class="modal-content">
+
+      ${modalCloseButton()}
+
+      <h2>
+        ${escapeHTML(product.title)}
+      </h2>
+
+      <div class="product-detail-image">
+
+        ${
+          product.images?.length
+            ? `<img src="${product.images[0]}" alt="">`
+            : "📦"
         }
-      );
-    });
+
+      </div>
+
+      <h3>
+        ${money(product.price)}
+      </h3>
+
+      <p>
+        ${escapeHTML(product.description || "")}
+      </p>
+
+      <p>
+        📍 ${escapeHTML(product.location || "")}
+      </p>
+
+      <p>
+        👤 ${escapeHTML(product.sellerName || "")}
+      </p>
+
+      <div class="contact-buttons">
+        ${contactButtons}
+      </div>
+
+      <div class="reaction-buttons">
+
+        <button
+          class="secondary-btn"
+          onclick="likeProduct('${product.id}')"
+        >
+          👍 Me gusta
+        </button>
+
+        <button
+          class="secondary-btn"
+          onclick="dislikeProduct('${product.id}')"
+        >
+          👎 No me gusta
+        </button>
+
+        <button
+          class="danger-outline"
+          onclick="reportProduct('${product.id}')"
+        >
+          🚩 Reclamar
+        </button>
+
+      </div>
+
+    </div>
+  `);
 }
 
+/* =========================================================
+   ME GUSTA / NO ME GUSTA
+   ========================================================= */
+
+function likeProduct(id) {
+
+  const product = data.products.find(p => p.id === id);
+
+  if (!product) return;
+
+  product.likes = Number(product.likes || 0) + 1;
+
+  addActivity(`Marcaste "Me gusta" en "${product.title}"`);
+
+  saveData();
+
+  toast("👍 Me gusta registrado");
+}
+
+function dislikeProduct(id) {
+
+  const product = data.products.find(p => p.id === id);
+
+  if (!product) return;
+
+  product.dislikes = Number(product.dislikes || 0) + 1;
+
+  addActivity(`Marcaste "No me gusta" en "${product.title}"`);
+
+  saveData();
+
+  toast("👎 No me gusta registrado");
+}
+
+/* =========================================================
+   RECLAMOS
+   ========================================================= */
+
+function reportProduct(id) {
+
+  const product = data.products.find(p => p.id === id);
+
+  if (!product) return;
+
+  openModal(`
+    <div class="modal-content">
+
+      ${modalCloseButton()}
+
+      <h2>
+        🚩 Reclamar publicación
+      </h2>
+
+      <p>
+        Indica el motivo del reclamo.
+      </p>
+
+      <select id="reportReason">
+
+        <option value="Contenido inapropiado">
+          Contenido inapropiado
+        </option>
+
+        <option value="Fraude o estafa">
+          Fraude o estafa
+        </option>
+
+        <option value="Producto prohibido">
+          Producto prohibido
+        </option>
+
+        <option value="Información falsa">
+          Información falsa
+        </option>
+
+        <option value="Otro">
+          Otro
+        </option>
+
+      </select>
+
+      <textarea
+        id="reportDescription"
+        placeholder="Describe el problema..."
+      ></textarea>
+
+      <button
+        class="danger-outline"
+        onclick="submitReport('${product.id}')"
+      >
+        Enviar reclamo
+      </button>
+
+    </div>
+  `);
+}
+
+function submitReport(productId) {
+
+  const reason = $("reportReason")?.value;
+  const description = $("reportDescription")?.value.trim();
+
+  data.notifications.push({
+    id: makeId("report"),
+    type: "report",
+    productId,
+    reason,
+    description,
+    from: currentUserId(),
+    createdAt: now(),
+    status: "pendiente"
+  });
+
+  addActivity("Enviaste un reclamo");
+
+  saveData();
+
+  closeModal();
+
+  toast("🚩 Reclamo enviado correctamente");
+}
+
+/* =========================================================
+   CONTACTOS
+   ========================================================= */
+
+function contactSeller(productId) {
+
+  const product = data.products.find(p => p.id === productId);
+
+  if (!product) return;
+
+  if (product.sellerId === currentUserId()) {
+    toast("Esta publicación pertenece a tu cuenta.");
+    return;
+  }
+
+  const existing = data.contacts.find(
+    c =>
+      c.userA === currentUserId() &&
+      c.userB === product.sellerId ||
+      c.userB === currentUserId() &&
+      c.userA === product.sellerId
+  );
+
+  if (existing) {
+    openConversation(product.sellerId);
+    return;
+  }
+
+  sendContactRequest(product.sellerId);
+}
+
+function sendContactRequest(userId) {
+
+  const exists = data.contactRequests.find(
+    request =>
+      request.from === currentUserId() &&
+      request.to === userId &&
+      request.status === "pendiente"
+  );
+
+  if (exists) {
+    toast("Ya enviaste una solicitud.");
+    return;
+  }
+
+  data.contactRequests.push({
+    id: makeId("request"),
+    from: currentUserId(),
+    to: userId,
+    status: "pendiente",
+    createdAt: now()
+  });
+
+  saveData();
+
+  toast("👥 Solicitud de contacto enviada");
+}
+
+function acceptContactRequest(id) {
+
+  const request = data.contactRequests.find(
+    r => r.id === id
+  );
+
+  if (!request) return;
+
+  request.status = "aceptada";
+
+  data.contacts.push({
+    id: makeId("contact"),
+    userA: request.from,
+    userB: request.to,
+    createdAt: now()
+  });
+
+  saveData();
+
+  renderChat();
+
+  toast("👥 Contacto agregado");
+}
+
+function rejectContactRequest(id) {
+
+  const request = data.contactRequests.find(
+    r => r.id === id
+  );
+
+  if (!request) return;
+
+  request.status = "rechazada";
+
+  saveData();
+
+  renderChat();
+
+  toast("Solicitud rechazada");
+}
+
+/* =========================================================
+   OBTENER USUARIO
+   ========================================================= */
+
+function getUser(id) {
+
+  if (id === currentUserId()) {
+    return data.currentUser;
+  }
+
+  return data.users.find(user => user.id === id) || {
+    id,
+    name: "Usuario",
+    phone: "",
+    whatsapp: "",
+    messenger: "",
+    avatar: ""
+  };
+}
+
+/* =========================================================
+   CHAT
+   ========================================================= */
+
+function renderChat() {
+
+  renderContactRequests();
+
+  const list = $("conversationList");
+  const empty = $("chatEmpty");
+
+  if (!list) return;
+
+  const conversations = data.conversations.filter(
+    conversation =>
+      conversation.userA === currentUserId() ||
+      conversation.userB === currentUserId()
+  );
+
+  if (!conversations.length) {
+
+    list.innerHTML = "";
+
+    if (empty) {
+      empty.classList.remove("hidden");
+    }
+
+    return;
+  }
+
+  if (empty) {
+    empty.classList.add("hidden");
+  }
+
+  list.innerHTML = conversations
+    .map(conversation => {
+
+      const otherId =
+        conversation.userA === currentUserId()
+          ? conversation.userB
+          : conversation.userA;
+
+      const user = getUser(otherId);
+
+      const messages = conversation.messages || [];
+
+      const last =
+        messages[messages.length - 1];
+
+      return `
+        <button
+          type="button"
+          class="conversation-item"
+          onclick="openConversation('${otherId}')"
+        >
+
+          <div class="conversation-avatar">
+            ${user.avatar
+              ? `<img src="${user.avatar}" alt="">`
+              : "👤"
+            }
+          </div>
+
+          <div>
+
+            <strong>
+              ${escapeHTML(user.name)}
+            </strong>
+
+            <p>
+              ${escapeHTML(last?.text || "Nueva conversación")}
+            </p>
+
+          </div>
+
+        </button>
+      `;
+
+    })
+    .join("");
+}
+
+function renderContactRequests() {
+
+  const section = $("contactRequestsSection");
+  const list = $("contactRequestsList");
+  const count = $("contactRequestCount");
+
+  if (!section || !list) return;
+
+  const requests = data.contactRequests.filter(
+    r =>
+      r.to === currentUserId() &&
+      r.status === "pendiente"
+  );
+
+  section.classList.toggle(
+    "hidden",
+    requests.length === 0
+  );
+
+  if (count) {
+    count.textContent = requests.length;
+    count.classList.toggle(
+      "hidden",
+      requests.length === 0
+    );
+  }
+
+  list.innerHTML = requests.map(request => {
+
+    const user = getUser(request.from);
+
+    return `
+      <div class="request-card">
+
+        <strong>
+          ${escapeHTML(user.name)}
+        </strong>
+
+        <p>
+          Quiere agregarte como contacto.
+        </p>
+
+        <div>
+
+          <button
+            class="primary-btn"
+            onclick="acceptContactRequest('${request.id}')"
+          >
+            ✓ Aceptar
+          </button>
+
+          <button
+            class="secondary-btn"
+            onclick="rejectContactRequest('${request.id}')"
+          >
+            ✕ Rechazar
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
+  }).join("");
+}
+
+function openConversation(userId) {
+
+  let conversation = data.conversations.find(
+    c =>
+      c.userA === currentUserId() &&
+      c.userB === userId ||
+      c.userB === currentUserId() &&
+      c.userA === userId
+  );
+
+  if (!conversation) {
+
+    conversation = {
+      id: makeId("conversation"),
+      userA: currentUserId(),
+      userB: userId,
+      messages: []
+    };
+
+    data.conversations.push(conversation);
+  }
+
+  const user = getUser(userId);
+
+  openModal(`
+    <div class="modal-content chat-modal">
+
+      ${modalCloseButton()}
+
+      <h2>
+        💬 ${escapeHTML(user.name)}
+      </h2>
+
+      <div
+        id="chatMessages"
+        class="chat-messages"
+      >
+
+        ${
+          conversation.messages.length
+            ? conversation.messages.map(message => `
+              <div class="
+                chat-message
+                ${message.sender === currentUserId() ? "mine" : ""}
+              ">
+                ${escapeHTML(message.text)}
+              </div>
+            `).join("")
+            : `
+              <div class="chat-empty">
+                No hay mensajes todavía.
+              </div>
+            `
+        }
+
+      </div>
+
+      <div class="chat-input-row">
+
+        <input
+          id="chatMessageInput"
+          type="text"
+          placeholder="Escribe un mensaje..."
+        >
+
+        <button
+          class="primary-btn"
+          onclick="sendMessage('${conversation.id}')"
+        >
+          ➤
+        </button>
+
+      </div>
+
+    </div>
+  `);
+
+  setTimeout(() => {
+    $("chatMessageInput")?.focus();
+  }, 100);
+}
+
+function sendMessage(conversationId) {
+
+  const input = $("chatMessageInput");
+
+  if (!input) return;
+
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  const conversation =
+    data.conversations.find(
+      c => c.id === conversationId
+    );
+
+  if (!conversation) return;
+
+  conversation.messages.push({
+    id: makeId("message"),
+    sender: currentUserId(),
+    text,
+    createdAt: now()
+  });
+
+  saveData();
+
+  const otherId =
+    conversation.userA === currentUserId()
+      ? conversation.userB
+      : conversation.userA;
+
+  openConversation(otherId);
+}
+
+/* =========================================================
+   ACTIVIDAD
+   ========================================================= */
+
+function addActivity(text) {
+
+  data.activity.unshift({
+    id: makeId("activity"),
+    text,
+    createdAt: now()
+  });
+
+  data.activity =
+    data.activity.slice(0, 100);
+
+  saveData();
+}
+
+function renderActivity() {
+
+  const publications =
+    data.products.filter(
+      p => p.sellerId === currentUserId()
+    );
+
+  const contacts =
+    data.contacts.filter(
+      c =>
+        c.userA === currentUserId() ||
+        c.userB === currentUserId()
+    ).length;
+
+  let views = 0;
+  let likes = 0;
+  let dislikes = 0;
+
+  publications.forEach(product => {
+    views += Number(product.views || 0);
+    likes += Number(product.likes || 0);
+    dislikes += Number(product.dislikes || 0);
+  });
+
+  if ($("activityContactsCount"))
+    $("activityContactsCount").textContent = contacts;
+
+  if ($("activityViewsCount"))
+    $("activityViewsCount").textContent = views;
+
+  if ($("activityLikesCount"))
+    $("activityLikesCount").textContent = likes;
+
+  if ($("activityDislikesCount"))
+    $("activityDislikesCount").textContent = dislikes;
+
+  if ($("activityProductCount"))
+    $("activityProductCount").textContent = publications.length;
+
+  const publicationBox =
+    $("activityPublications");
+
+  if (publicationBox) {
+
+    publicationBox.innerHTML =
+      publications.length
+        ? publications.map(p => `
+          <div class="activity-publication">
+
+            <strong>
+              ${escapeHTML(p.title)}
+            </strong>
+
+            <span>
+              👁️ ${p.views || 0}
+              &nbsp; 👍 ${p.likes || 0}
+              &nbsp; 👎 ${p.dislikes || 0}
+            </span>
+
+          </div>
+        `).join("")
+        : `
+          <p>
+            Todavía no tienes publicaciones.
+          </p>
+        `;
+  }
+
+  const box = $("activityContent");
+
+  if (!box) return;
+
+  box.innerHTML =
+    data.activity.length
+      ? data.activity.map(item => `
+        <div class="activity-row">
+
+          <span>
+            •
+          </span>
+
+          <div>
+            ${escapeHTML(item.text)}
+
+            <small>
+              ${new Date(item.createdAt).toLocaleString("es-DO")}
+            </small>
+          </div>
+
+        </div>
+      `).join("")
+      : `
+        <p>
+          No hay actividad reciente.
+        </p>
+      `;
+}
+
+/* =========================================================
+   PERFIL
+   ========================================================= */
+
+function renderProfile() {
+
+  const user = data.currentUser;
+
+  setText("profileName", user.name || "Usuario");
+  setText("profilePhone", user.phone || "Teléfono no registrado");
+
+  setText(
+    "profileCedula",
+    user.cedula
+      ? "Cédula: protegida"
+      : "Cédula: no registrada"
+  );
+
+  setText("profileNameInfo", user.name || "-");
+  setText("profilePhoneInfo", user.phone || "-");
+
+  setText(
+    "profileMessengerInfo",
+    user.messenger
+      ? "Conectado"
+      : "No conectado"
+  );
+
+  setText(
+    "profileWhatsappInfo",
+    user.whatsapp
+      ? user.whatsapp
+      : "No configurado"
+  );
+
+  const publications =
+    data.products.filter(
+      p => p.sellerId === currentUserId()
+    );
+
+  const contacts =
+    data.contacts.filter(
+      c =>
+        c.userA === currentUserId() ||
+        c.userB === currentUserId()
+    );
+
+  let views = 0;
+
+  publications.forEach(
+    p => views += Number(p.views || 0)
+  );
+
+  setText(
+    "profilePublicationsCount",
+    publications.length
+  );
+
+  setText(
+    "profileContactsCount",
+    contacts.length
+  );
+
+  setText(
+    "profileViewsCount",
+    views
+  );
+
+  setText(
+    "myProductCount",
+    publications.length
+  );
+
+  const myProducts = $("myProducts");
+
+  if (myProducts) {
+    myProducts.innerHTML =
+      publications.length
+        ? publications.map(productCard).join("")
+        : `
+          <div class="empty-state">
+            <div>📦</div>
+            <h3>No tienes publicaciones</h3>
+          </div>
+        `;
+  }
+
+  checkAdmin();
+
+  updateProfileAvatar();
+}
+
+function setText(id, text) {
+
+  const el = $(id);
+
+  if (el) {
+    el.textContent = text;
+  }
+}
+
+function updateProfileAvatar() {
+
+  const buttons = [
+    $("profileAvatarBtn"),
+    $("editProfilePhotoBtn")
+  ];
+
+  buttons.forEach(button => {
+
+    if (!button) return;
+
+    if (data.currentUser.avatar) {
+      button.innerHTML = `
+        <img
+          src="${data.currentUser.avatar}"
+          alt="Foto de perfil"
+        >
+      `;
+    } else {
+      button.textContent = "👤";
+    }
+
+  });
+}
+
+/* =========================================================
+   EDITAR PERFIL
+   ========================================================= */
+
+function openEditProfile() {
+
+  const user = data.currentUser;
+
+  if ($("editProfileNameInput"))
+    $("editProfileNameInput").value = user.name || "";
+
+  if ($("editProfilePhoneInput"))
+    $("editProfilePhoneInput").value = user.phone || "";
+
+  if ($("editProfileWhatsappInput"))
+    $("editProfileWhatsappInput").value =
+      user.whatsapp || "";
+
+  $("profileEditSection")?.classList.remove("hidden");
+
+  $("profileEditSection")?.scrollIntoView({
+    behavior: "smooth"
+  });
+}
+
+function saveProfile() {
+
+  const name =
+    $("editProfileNameInput")?.value.trim();
+
+  const phone =
+    $("editProfilePhoneInput")?.value.trim();
+
+  const whatsapp =
+    $("editProfileWhatsappInput")?.value.trim();
+
+  if (name) data.currentUser.name = name;
+
+  data.currentUser.phone = phone;
+  data.currentUser.whatsapp = whatsapp;
+
+  saveData();
+
+  renderProfile();
+
+  toast("✅ Perfil actualizado");
+}
+
+function handleProfileImage(file) {
+
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = event => {
+
+    data.currentUser.avatar =
+      event.target.result;
+
+    saveData();
+
+    renderProfile();
+
+    toast("📷 Foto de perfil actualizada");
+  };
+
+  reader.readAsDataURL(file);
+}
+
+/* =========================================================
+   CONFIGURACIÓN
+   ========================================================= */
+
+function toggleSettings() {
+
+  const settings = $("profileSettings");
+
+  if (!settings) return;
+
+  settings.classList.toggle("hidden");
+
+  if (!settings.classList.contains("hidden")) {
+    settings.scrollIntoView({
+      behavior: "smooth"
+    });
+  }
+}
+
+function savePhone() {
+
+  const value =
+    $("newPhoneInput")?.value.trim();
+
+  if (!value) {
+    toast("Escribe un número.");
+    return;
+  }
+
+  data.currentUser.phone = value;
+
+  saveData();
+  renderProfile();
+
+  toast("📱 Número guardado");
+}
+
+function saveWhatsapp() {
+
+  const value =
+    $("whatsappNumberInput")?.value.trim();
+
+  data.currentUser.whatsapp = value;
+
+  saveData();
+  renderProfile();
+
+  toast("🟢 WhatsApp guardado");
+}
+
+function saveMessenger() {
+
+  const value =
+    $("messengerLinkInput")?.value.trim();
+
+  data.currentUser.messenger = value;
+
+  saveData();
+  renderProfile();
+
+  toast("💬 Messenger guardado");
+}
+
+function changePassword() {
+
+  const current =
+    $("currentPasswordInput")?.value;
+
+  const next =
+    $("newPasswordInput")?.value;
+
+  if (current !== data.currentUser.password) {
+    toast("❌ La contraseña actual no coincide.");
+    return;
+  }
+
+  if (!next || next.length < 4) {
+    toast("La nueva contraseña debe tener al menos 4 caracteres.");
+    return;
+  }
+
+  data.currentUser.password = next;
+
+  saveData();
+
+  $("currentPasswordInput").value = "";
+  $("newPasswordInput").value = "";
+
+  toast("🔐 Contraseña cambiada");
+}
 
 /* =========================================================
    PUBLICAR PRODUCTO
-========================================================= */
+   ========================================================= */
 
 function openPublishModal() {
 
   openModal(`
-    <div class="modal-header">
+    <div class="modal-content">
 
-      <div>
-        <small>MARKET FLASH</small>
-        <h2>Publicar producto</h2>
-      </div>
+      ${modalCloseButton()}
 
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
+      <h2>
+        ➕ Publicar producto
+      </h2>
 
-    </div>
+      <label>
+        Título
+      </label>
 
-    <form id="publishForm">
+      <input
+        id="productTitleInput"
+        type="text"
+        placeholder="Ej.: iPhone 14 Pro"
+      >
 
-      <div class="form-card">
+      <label>
+        Precio
+      </label>
 
-        <label for="productTitleInput">
-          Título
-        </label>
+      <input
+        id="productPriceInput"
+        type="number"
+        placeholder="Precio"
+      >
 
-        <input
-          id="productTitleInput"
-          type="text"
-          maxlength="80"
-          placeholder="Ej. iPhone 14 Pro"
-          required
+      <label>
+        Categoría
+      </label>
+
+      <select id="productCategoryInput">
+
+        ${categories
+          .filter(c => c !== "Todas")
+          .map(c => `
+            <option value="${escapeHTML(c)}">
+              ${escapeHTML(c)}
+            </option>
+          `)
+          .join("")
+        }
+
+      </select>
+
+      <label>
+        Ubicación
+      </label>
+
+      <input
+        id="productLocationInput"
+        type="text"
+        placeholder="Santo Domingo"
+      >
+
+      <label>
+        Descripción
+      </label>
+
+      <textarea
+        id="productDescriptionInput"
+        placeholder="Describe tu producto..."
+      ></textarea>
+
+      <div class="upload-buttons">
+
+        <button
+          class="secondary-btn"
+          onclick="$('productCameraInput').click()"
         >
+          📷 Cámara
+        </button>
 
-        <label for="productPriceInput">
-          Precio
-        </label>
-
-        <input
-          id="productPriceInput"
-          type="number"
-          min="0"
-          step="1"
-          placeholder="Ej. 35000"
-          required
+        <button
+          class="secondary-btn"
+          onclick="$('productGalleryInput').click()"
         >
+          🖼️ Galería
+        </button>
 
-        <label for="productCategoryInput">
-          Categoría
-        </label>
-
-        <select id="productCategoryInput">
-          <option>Celulares</option>
-          <option>Electrónica</option>
-          <option>Vehículos</option>
-          <option>Hogar</option>
-          <option>Ropa</option>
-          <option>Servicios</option>
-          <option>Otros</option>
-        </select>
-
-        <label for="productLocationInput">
-          Ubicación
-        </label>
-
-        <input
-          id="productLocationInput"
-          type="text"
-          maxlength="80"
-          placeholder="Ej. Santo Domingo"
+        <button
+          class="secondary-btn"
+          onclick="$('productVideoCameraInput').click()"
         >
+          🎥 Grabar video
+        </button>
 
-        <label for="productDescriptionInput">
-          Descripción
-        </label>
-
-        <textarea
-          id="productDescriptionInput"
-          rows="4"
-          maxlength="800"
-          placeholder="Describe el producto..."
-        ></textarea>
+        <button
+          class="secondary-btn"
+          onclick="$('productVideoGalleryInput').click()"
+        >
+          🎬 Video
+        </button>
 
       </div>
 
-
-      <div class="form-card">
-
-        <h3>📷 Fotos</h3>
-
-        <p>
-          Puedes usar la cámara o seleccionar fotos de tu galería.
-        </p>
-
-        <div class="profile-actions">
-
-          <button
-            id="takeProductPhotoBtn"
-            class="secondary-btn"
-            type="button"
-          >
-            📷 Cámara
-          </button>
-
-          <button
-            id="chooseProductPhotosBtn"
-            class="secondary-btn"
-            type="button"
-          >
-            🖼️ Galería
-          </button>
-
-        </div>
-
-        <div
-          id="productImagePreview"
-          class="upload-preview"
-        ></div>
-
-      </div>
-
-
-      <div class="form-card">
-
-        <h3>🎥 Video</h3>
-
-        <p>
-          Opcional. Para evitar problemas de almacenamiento,
-          utiliza videos pequeños.
-        </p>
-
-        <div class="profile-actions">
-
-          <button
-            id="takeProductVideoBtn"
-            class="secondary-btn"
-            type="button"
-          >
-            🎥 Grabar
-          </button>
-
-          <button
-            id="chooseProductVideoBtn"
-            class="secondary-btn"
-            type="button"
-          >
-            🎞️ Galería
-          </button>
-
-        </div>
-
-        <div
-          id="productVideoPreview"
-          class="upload-preview"
-        ></div>
-
-      </div>
-
+      <div id="productMediaPreview"></div>
 
       <button
         class="primary-btn"
-        type="submit"
+        onclick="createProduct()"
       >
-        🚀 Publicar ahora
-      </button>
-
-    </form>
-  `);
-
-  bindModalButtons();
-
-  const form = $("publishForm");
-
-  const cameraButton =
-    $("takeProductPhotoBtn");
-
-  const galleryButton =
-    $("chooseProductPhotosBtn");
-
-  const videoCameraButton =
-    $("takeProductVideoBtn");
-
-  const videoGalleryButton =
-    $("chooseProductVideoBtn");
-
-  const cameraInput =
-    $("productCameraInput");
-
-  const galleryInput =
-    $("productGalleryInput");
-
-  const videoCameraInput =
-    $("productVideoCameraInput");
-
-  const videoGalleryInput =
-    $("productVideoGalleryInput");
-
-
-  window.marketFlashPublishImages = [];
-  window.marketFlashPublishVideo = null;
-
-
-  if (cameraButton && cameraInput) {
-    cameraButton.addEventListener(
-      "click",
-      () => cameraInput.click()
-    );
-
-    cameraInput.onchange =
-      async () => {
-
-        const file = cameraInput.files[0];
-
-        if (!file) return;
-
-        await addPublishImage(file);
-
-        cameraInput.value = "";
-      };
-  }
-
-
-  if (galleryButton && galleryInput) {
-    galleryButton.addEventListener(
-      "click",
-      () => galleryInput.click()
-    );
-
-    galleryInput.onchange =
-      async () => {
-
-        const files =
-          Array.from(galleryInput.files || []);
-
-        for (const file of files) {
-          await addPublishImage(file);
-        }
-
-        galleryInput.value = "";
-      };
-  }
-
-
-  if (
-    videoCameraButton &&
-    videoCameraInput
-  ) {
-
-    videoCameraButton.addEventListener(
-      "click",
-      () => videoCameraInput.click()
-    );
-
-    videoCameraInput.onchange =
-      async () => {
-
-        const file =
-          videoCameraInput.files[0];
-
-        if (!file) return;
-
-        await addPublishVideo(file);
-
-        videoCameraInput.value = "";
-      };
-  }
-
-
-  if (
-    videoGalleryButton &&
-    videoGalleryInput
-  ) {
-
-    videoGalleryButton.addEventListener(
-      "click",
-      () => videoGalleryInput.click()
-    );
-
-    videoGalleryInput.onchange =
-      async () => {
-
-        const file =
-          videoGalleryInput.files[0];
-
-        if (!file) return;
-
-        await addPublishVideo(file);
-
-        videoGalleryInput.value = "";
-      };
-  }
-
-
-  if (form) {
-    form.addEventListener(
-      "submit",
-      async (event) => {
-
-        event.preventDefault();
-
-        await createProduct();
-      }
-    );
-  }
-}
-
-
-async function addPublishImage(file) {
-
-  if (!file.type.startsWith("image/")) {
-    showToast("El archivo no es una imagen.");
-    return;
-  }
-
-  if (
-    window.marketFlashPublishImages.length >= 8
-  ) {
-    showToast(
-      "Puedes agregar hasta 8 fotos."
-    );
-    return;
-  }
-
-  try {
-
-    showToast("Procesando foto...");
-
-    const image =
-      await fileToCompressedDataURL(
-        file,
-        1200,
-        0.78
-      );
-
-    window.marketFlashPublishImages.push(
-      image
-    );
-
-    renderPublishImagePreview();
-
-  } catch (error) {
-
-    console.error(error);
-
-    showToast(
-      "No se pudo procesar la foto."
-    );
-  }
-}
-
-
-function renderPublishImagePreview() {
-
-  const preview =
-    $("productImagePreview");
-
-  if (!preview) return;
-
-  preview.innerHTML =
-    window.marketFlashPublishImages
-      .map(
-        (image, index) => `
-          <div class="upload-item">
-
-            <img
-              src="${escapeHTML(image)}"
-              alt="Foto ${index + 1}"
-            >
-
-            <button
-              type="button"
-              class="danger-outline"
-              data-remove-image="${index}"
-            >
-              Eliminar
-            </button>
-
-          </div>
-        `
-      )
-      .join("");
-
-  preview
-    .querySelectorAll(
-      "[data-remove-image]"
-    )
-    .forEach((button) => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          const index =
-            Number(
-              button.dataset.removeImage
-            );
-
-          window.marketFlashPublishImages
-            .splice(index, 1);
-
-          renderPublishImagePreview();
-        }
-      );
-    });
-}
-
-
-async function addPublishVideo(file) {
-
-  if (!file.type.startsWith("video/")) {
-    showToast("El archivo no es un video.");
-    return;
-  }
-
-  const maxVideoSize =
-    3 * 1024 * 1024;
-
-  if (file.size > maxVideoSize) {
-
-    showToast(
-      "El video debe pesar menos de 3 MB."
-    );
-
-    return;
-  }
-
-  try {
-
-    showToast("Procesando video...");
-
-    window.marketFlashPublishVideo =
-      await fileToDataURL(file);
-
-    renderPublishVideoPreview();
-
-  } catch (error) {
-
-    console.error(error);
-
-    showToast(
-      "No se pudo procesar el video."
-    );
-  }
-}
-
-
-function renderPublishVideoPreview() {
-
-  const preview =
-    $("productVideoPreview");
-
-  if (!preview) return;
-
-  if (!window.marketFlashPublishVideo) {
-    preview.innerHTML = "";
-    return;
-  }
-
-  preview.innerHTML = `
-    <div class="upload-item">
-
-      <video
-        src="${escapeHTML(window.marketFlashPublishVideo)}"
-        controls
-        playsinline
-      ></video>
-
-      <button
-        id="removeProductVideoBtn"
-        type="button"
-        class="danger-outline"
-      >
-        Eliminar video
+        Publicar
       </button>
 
     </div>
-  `;
+  `);
 
-  const remove =
-    $("removeProductVideoBtn");
-
-  if (remove) {
-    remove.addEventListener(
-      "click",
-      () => {
-
-        window.marketFlashPublishVideo =
-          null;
-
-        renderPublishVideoPreview();
-      }
-    );
-  }
+  window.tempProductImages = [];
 }
 
-
-async function createProduct() {
+function createProduct() {
 
   const title =
-    $("productTitleInput")?.value.trim() || "";
+    $("productTitleInput")?.value.trim();
 
   const price =
-    Number(
-      $("productPriceInput")?.value || 0
-    );
+    Number($("productPriceInput")?.value || 0);
 
   const category =
-    $("productCategoryInput")?.value ||
-    "Otros";
+    $("productCategoryInput")?.value;
 
   const location =
-    $("productLocationInput")?.value.trim() ||
-    "República Dominicana";
+    $("productLocationInput")?.value.trim();
 
   const description =
-    $("productDescriptionInput")?.value.trim() ||
-    "";
+    $("productDescriptionInput")?.value.trim();
 
-
-  if (title.length < 2) {
-    showToast(
-      "Escribe el nombre del producto."
-    );
+  if (!title) {
+    toast("Escribe el título.");
     return;
   }
-
-
-  if (price <= 0) {
-    showToast(
-      "Escribe un precio válido."
-    );
-    return;
-  }
-
-
-  if (
-    !window.marketFlashPublishImages.length
-  ) {
-    const continueWithoutPhoto =
-      window.confirm(
-        "No agregaste una foto. ¿Quieres publicar sin foto?"
-      );
-
-    if (!continueWithoutPhoto) {
-      return;
-    }
-  }
-
 
   const product = {
-    id: generateId("product"),
+
+    id: makeId("product"),
+
+    sellerId: currentUserId(),
+
+    sellerName: data.currentUser.name,
+
+    phone: data.currentUser.phone,
+
+    whatsapp: data.currentUser.whatsapp,
+
+    messenger: data.currentUser.messenger,
 
     title,
 
@@ -1775,2445 +1596,1379 @@ async function createProduct() {
 
     description,
 
-    sellerName:
-      data.profile.name || "Usuario",
+    images: window.tempProductImages || [],
 
-    sellerPhone:
-      data.profile.phone || "",
+    video: "",
 
-    sellerMessenger:
-      data.profile.messenger || "",
+    views: 0,
 
-    sellerAvatar:
-      data.profile.avatar || "",
+    likes: 0,
 
-    images:
-      [...window.marketFlashPublishImages],
+    dislikes: 0,
 
-    videos:
-      window.marketFlashPublishVideo
-        ? [window.marketFlashPublishVideo]
-        : [],
-
-    featured: false,
-
-    createdAt: Date.now()
+    createdAt: now()
   };
-
 
   data.products.unshift(product);
 
-  const saved = saveData();
-
-  if (!saved) {
-
-    data.products =
-      data.products.filter(
-        (item) =>
-          item.id !== product.id
-      );
-
-    return;
-  }
-
-
   addActivity(
-    "product",
-    `Publicaste "${title}".`
+    `Publicaste "${title}"`
   );
-
-
-  addNotification(
-    "Nueva publicación",
-    `Tu publicación "${title}" fue creada.`
-  );
-
-
-  window.marketFlashPublishImages = [];
-  window.marketFlashPublishVideo = null;
-
-
-  closeModal();
-
-  renderHome();
-  renderProfile();
-
-  showPage("home");
-
-  showToast(
-    "¡Publicación creada correctamente!"
-  );
-}
-
-
-/* =========================================================
-   DETALLES DE PRODUCTO
-========================================================= */
-
-function openProductDetails(product) {
-
-  const isMine =
-    product.sellerName ===
-      data.profile.name &&
-    (
-      product.sellerPhone ===
-      data.profile.phone
-    );
-
-
-  const images =
-    Array.isArray(product.images)
-      ? product.images
-      : [];
-
-
-  const videos =
-    Array.isArray(product.videos)
-      ? product.videos
-      : [];
-
-
-  let mediaHTML = "";
-
-
-  if (images.length) {
-
-    mediaHTML += `
-      <div class="product-detail-gallery">
-
-        ${images
-          .map(
-            (image) => `
-              <img
-                src="${escapeHTML(image)}"
-                alt="${escapeHTML(product.title)}"
-              >
-            `
-          )
-          .join("")}
-
-      </div>
-    `;
-  } else {
-
-    mediaHTML += `
-      <div class="product-detail-no-image">
-        📦
-      </div>
-    `;
-  }
-
-
-  if (videos.length) {
-
-    mediaHTML += `
-      <div class="product-detail-videos">
-
-        ${videos
-          .map(
-            (video) => `
-              <video
-                src="${escapeHTML(video)}"
-                controls
-                playsinline
-              ></video>
-            `
-          )
-          .join("")}
-
-      </div>
-    `;
-  }
-
-
-  openModal(`
-    <div class="modal-header">
-
-      <div>
-        <small>
-          ${escapeHTML(product.category || "OTROS")}
-        </small>
-
-        <h2>
-          ${escapeHTML(product.title)}
-        </h2>
-      </div>
-
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
-
-    </div>
-
-
-    ${mediaHTML}
-
-
-    <div class="page-card">
-
-      <strong class="product-price">
-        ${formatMoney(product.price)}
-      </strong>
-
-      <p>
-        ${escapeHTML(
-          product.description ||
-          "Sin descripción."
-        )}
-      </p>
-
-      <p>
-        📍 ${escapeHTML(
-          product.location ||
-          "República Dominicana"
-        )}
-      </p>
-
-      <p>
-        👤 ${escapeHTML(
-          product.sellerName ||
-          "Usuario"
-        )}
-      </p>
-
-      <small>
-        Publicado:
-        ${formatDate(product.createdAt)}
-      </small>
-
-    </div>
-
-
-    <div class="profile-actions">
-
-      ${
-        isMine
-          ? `
-            <button
-              id="deleteProductDetailBtn"
-              class="danger-outline"
-              type="button"
-            >
-              🗑️ Eliminar publicación
-            </button>
-          `
-          : `
-            <button
-              id="contactSellerBtn"
-              class="primary-btn"
-              type="button"
-            >
-              💬 Contactar vendedor
-            </button>
-
-            ${
-              product.sellerMessenger
-                ? `
-                  <button
-                    id="openSellerMessengerBtn"
-                    class="secondary-btn"
-                    type="button"
-                  >
-                    Messenger
-                  </button>
-                `
-                : ""
-            }
-          `
-      }
-
-    </div>
-  `);
-
-
-  bindModalButtons();
-
-
-  const deleteButton =
-    $("deleteProductDetailBtn");
-
-  if (deleteButton) {
-
-    deleteButton.addEventListener(
-      "click",
-      () => {
-
-        const confirmed =
-          window.confirm(
-            "¿Quieres eliminar esta publicación?"
-          );
-
-        if (!confirmed) return;
-
-        data.products =
-          data.products.filter(
-            (item) =>
-              item.id !== product.id
-          );
-
-        saveData();
-
-        addActivity(
-          "product",
-          `Eliminaste "${product.title}".`
-        );
-
-        closeModal();
-
-        renderAll();
-
-        showToast(
-          "Publicación eliminada."
-        );
-      }
-    );
-  }
-
-
-  const contactButton =
-    $("contactSellerBtn");
-
-  if (contactButton) {
-
-    contactButton.addEventListener(
-      "click",
-      () => {
-
-        openChatWithSeller(product);
-
-      }
-    );
-  }
-
-
-  const messengerButton =
-    $("openSellerMessengerBtn");
-
-  if (messengerButton) {
-
-    messengerButton.addEventListener(
-      "click",
-      () => {
-
-        if (product.sellerMessenger) {
-
-          window.open(
-            product.sellerMessenger,
-            "_blank",
-            "noopener,noreferrer"
-          );
-
-        }
-      }
-    );
-  }
-}
-
-
-/* =========================================================
-   MIS PRODUCTOS
-========================================================= */
-
-function getMyProducts() {
-
-  return data.products.filter(
-    (product) => {
-
-      const sameName =
-        product.sellerName ===
-        data.profile.name;
-
-      const samePhone =
-        product.sellerPhone &&
-        data.profile.phone &&
-        product.sellerPhone ===
-        data.profile.phone;
-
-      return sameName || samePhone;
-    }
-  );
-}
-
-
-function renderMyProducts() {
-
-  const grid = $("myProducts");
-  const count = $("myProductCount");
-
-  if (!grid) return;
-
-  const products = getMyProducts();
-
-  if (count) {
-    count.textContent =
-      String(products.length);
-  }
-
-  if (!products.length) {
-
-    grid.innerHTML = `
-      <div class="empty-state">
-        <div>📦</div>
-        <h3>No tienes publicaciones</h3>
-        <p>
-          Pulsa "Publicar" para comenzar.
-        </p>
-      </div>
-    `;
-
-    return;
-  }
-
-  grid.innerHTML =
-    products
-      .map(productCardHTML)
-      .join("");
-
-  bindProductCards();
-}
-
-
-/* =========================================================
-   CHAT
-========================================================= */
-
-function renderChat() {
-
-  const list =
-    $("conversationList");
-
-  const empty =
-    $("chatEmpty");
-
-  const contacts =
-    $("contactsList");
-
-
-  if (!list) return;
-
-
-  if (!data.conversations.length) {
-
-    list.innerHTML = "";
-
-    if (empty) {
-      empty.classList.remove("hidden");
-    }
-
-  } else {
-
-    if (empty) {
-      empty.classList.add("hidden");
-    }
-
-    list.innerHTML =
-      data.conversations
-        .slice()
-        .sort(
-          (a, b) =>
-            (b.updatedAt || 0) -
-            (a.updatedAt || 0)
-        )
-        .map(conversationHTML)
-        .join("");
-
-    bindConversationButtons();
-  }
-
-
-  if (contacts) {
-    renderContacts(contacts);
-  }
-
-  updateChatBadge();
-}
-
-
-function conversationHTML(conversation) {
-
-  const messages =
-    Array.isArray(conversation.messages)
-      ? conversation.messages
-      : [];
-
-  const last =
-    messages.length
-      ? messages[messages.length - 1]
-      : null;
-
-
-  return `
-    <button
-      class="conversation-item"
-      type="button"
-      data-conversation-id="${escapeHTML(conversation.id)}"
-    >
-
-      <div class="conversation-avatar">
-        💬
-      </div>
-
-      <div class="conversation-copy">
-
-        <strong>
-          ${escapeHTML(
-            conversation.name ||
-            "Usuario"
-          )}
-        </strong>
-
-        <p>
-          ${escapeHTML(
-            last
-              ? last.text
-              : "Nueva conversación"
-          )}
-        </p>
-
-      </div>
-
-      <small>
-        ${
-          conversation.updatedAt
-            ? formatDate(
-                conversation.updatedAt
-              )
-            : ""
-        }
-      </small>
-
-    </button>
-  `;
-}
-
-
-function bindConversationButtons() {
-
-  document
-    .querySelectorAll(
-      "[data-conversation-id]"
-    )
-    .forEach((button) => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          const conversation =
-            data.conversations.find(
-              (item) =>
-                item.id ===
-                button.dataset.conversationId
-            );
-
-          if (conversation) {
-            openConversation(conversation);
-          }
-        }
-      );
-    });
-}
-
-
-function renderContacts(container) {
-
-  const contacts = getContacts();
-
-  if (!contacts.length) {
-
-    container.innerHTML = `
-      <div class="empty-state">
-        <div>👥</div>
-        <h3>No tienes contactos</h3>
-        <p>
-          Tus contactos aparecerán aquí
-          cuando inicies conversaciones.
-        </p>
-      </div>
-    `;
-
-    return;
-  }
-
-
-  container.innerHTML =
-    contacts
-      .map(
-        (contact) => `
-          <button
-            class="conversation-item"
-            type="button"
-            data-contact-id="${escapeHTML(contact.id)}"
-          >
-
-            <div class="conversation-avatar">
-              👤
-            </div>
-
-            <div class="conversation-copy">
-
-              <strong>
-                ${escapeHTML(contact.name)}
-              </strong>
-
-              <p>
-                ${escapeHTML(
-                  contact.phone ||
-                  "Contacto de Market Flash"
-                )}
-              </p>
-
-            </div>
-
-          </button>
-        `
-      )
-      .join("");
-
-
-  container
-    .querySelectorAll(
-      "[data-contact-id]"
-    )
-    .forEach((button) => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          const contact =
-            contacts.find(
-              (item) =>
-                item.id ===
-                button.dataset.contactId
-            );
-
-          if (contact) {
-            startConversationWithContact(
-              contact
-            );
-          }
-        }
-      );
-    });
-}
-
-
-function getContacts() {
-
-  const map = new Map();
-
-  data.conversations.forEach(
-    (conversation) => {
-
-      if (!conversation.name) {
-        return;
-      }
-
-      map.set(
-        conversation.contactId ||
-          conversation.id,
-        {
-          id:
-            conversation.contactId ||
-            conversation.id,
-
-          name:
-            conversation.name,
-
-          phone:
-            conversation.phone || "",
-
-          messenger:
-            conversation.messenger || ""
-        }
-      );
-    }
-  );
-
-  return Array.from(map.values());
-}
-
-
-function bindChatButtons() {
-
-  const contactsButton =
-    $("chatContactsBtn");
-
-  if (contactsButton) {
-
-    contactsButton.addEventListener(
-      "click",
-      () => {
-
-        const list =
-          $("contactsList");
-
-        if (!list) return;
-
-        list.classList.toggle("hidden");
-
-        if (!list.classList.contains("hidden")) {
-          renderContacts(list);
-        }
-      }
-    );
-  }
-}
-
-
-function openChatWithSeller(product) {
-
-  closeModal();
-
-  const conversation =
-    findOrCreateConversation(
-      product.id,
-      product.sellerName,
-      product.sellerPhone,
-      product.sellerMessenger
-    );
-
-  showPage("chat");
-
-  setTimeout(() => {
-    openConversation(conversation);
-  }, 100);
-}
-
-
-function findOrCreateConversation(
-  contactId,
-  name,
-  phone,
-  messenger
-) {
-
-  let conversation =
-    data.conversations.find(
-      (item) =>
-        item.contactId === contactId
-    );
-
-
-  if (!conversation) {
-
-    conversation = {
-      id: generateId("conversation"),
-
-      contactId,
-
-      name:
-        name || "Usuario",
-
-      phone:
-        phone || "",
-
-      messenger:
-        messenger || "",
-
-      messages: [],
-
-      updatedAt: Date.now()
-    };
-
-    data.conversations.push(
-      conversation
-    );
-
-    saveData();
-  }
-
-  return conversation;
-}
-
-
-function startConversationWithContact(
-  contact
-) {
-
-  const conversation =
-    findOrCreateConversation(
-      contact.id,
-      contact.name,
-      contact.phone,
-      contact.messenger
-    );
-
-  openConversation(conversation);
-}
-
-
-function openConversation(conversation) {
-
-  openModal(`
-    <div class="modal-header">
-
-      <div>
-        <small>CHAT</small>
-
-        <h2>
-          ${escapeHTML(
-            conversation.name ||
-            "Usuario"
-          )}
-        </h2>
-      </div>
-
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
-
-    </div>
-
-
-    <div
-      id="messageList"
-      class="message-list"
-    >
-
-      ${
-        conversation.messages.length
-          ? conversation.messages
-              .map(messageHTML)
-              .join("")
-          : `
-            <div class="empty-state">
-              <div>💬</div>
-              <p>
-                Comienza la conversación.
-              </p>
-            </div>
-          `
-      }
-
-    </div>
-
-
-    <form
-      id="messageForm"
-      class="message-form"
-    >
-
-      <input
-        id="messageInput"
-        type="text"
-        maxlength="500"
-        placeholder="Escribe un mensaje..."
-        autocomplete="off"
-        required
-      >
-
-      <button
-        class="primary-btn"
-        type="submit"
-      >
-        Enviar
-      </button>
-
-    </form>
-
-
-    ${
-      conversation.messenger
-        ? `
-          <button
-            id="conversationMessengerBtn"
-            class="secondary-btn"
-            type="button"
-          >
-            💬 Abrir Messenger
-          </button>
-        `
-        : ""
-    }
-  `);
-
-
-  bindModalButtons();
-
-
-  const form =
-    $("messageForm");
-
-  if (form) {
-
-    form.addEventListener(
-      "submit",
-      (event) => {
-
-        event.preventDefault();
-
-        const input =
-          $("messageInput");
-
-        if (!input) return;
-
-        const text =
-          input.value.trim();
-
-        if (!text) return;
-
-        conversation.messages.push({
-          id: generateId("message"),
-
-          sender: "me",
-
-          text,
-
-          createdAt: Date.now()
-        });
-
-        conversation.updatedAt =
-          Date.now();
-
-        saveData();
-
-        input.value = "";
-
-        refreshConversationModal(
-          conversation
-        );
-
-        renderChat();
-
-        addActivity(
-          "chat",
-          `Enviaste un mensaje a ${conversation.name}.`
-        );
-      }
-    );
-  }
-
-
-  const messenger =
-    $("conversationMessengerBtn");
-
-  if (messenger) {
-
-    messenger.addEventListener(
-      "click",
-      () => {
-
-        if (conversation.messenger) {
-
-          window.open(
-            conversation.messenger,
-            "_blank",
-            "noopener,noreferrer"
-          );
-
-        }
-      }
-    );
-  }
-}
-
-
-function refreshConversationModal(
-  conversation
-) {
-
-  const messageList =
-    $("messageList");
-
-  if (!messageList) return;
-
-  messageList.innerHTML =
-    conversation.messages.length
-      ? conversation.messages
-          .map(messageHTML)
-          .join("")
-      : `
-        <div class="empty-state">
-          <div>💬</div>
-          <p>
-            Comienza la conversación.
-          </p>
-        </div>
-      `;
-
-  messageList.scrollTop =
-    messageList.scrollHeight;
-}
-
-
-function messageHTML(message) {
-
-  return `
-    <div
-      class="message ${
-        message.sender === "me"
-          ? "message-me"
-          : "message-other"
-      }"
-    >
-
-      <div class="message-bubble">
-        ${escapeHTML(message.text)}
-      </div>
-
-      <small>
-        ${formatDate(message.createdAt)}
-      </small>
-
-    </div>
-  `;
-}
-
-
-function updateChatBadge() {
-
-  const badge =
-    $("chatBadge");
-
-  if (!badge) return;
-
-  const unread =
-    data.conversations.reduce(
-      (total, conversation) =>
-        total +
-        Number(
-          conversation.unread || 0
-        ),
-      0
-    );
-
-  if (unread > 0) {
-
-    badge.textContent =
-      unread > 99
-        ? "99+"
-        : String(unread);
-
-    badge.classList.remove("hidden");
-
-  } else {
-
-    badge.classList.add("hidden");
-  }
-}
-
-
-/* =========================================================
-   ACTIVIDAD
-========================================================= */
-
-function addActivity(type, text) {
-
-  data.activity.unshift({
-    id: generateId("activity"),
-
-    type,
-
-    text,
-
-    createdAt: Date.now()
-  });
-
-  data.activity =
-    data.activity.slice(0, 100);
 
   saveData();
+
+  closeModal();
+
+  renderProducts();
+
+  toast("✅ Publicación creada");
 }
 
+/* =========================================================
+   IMÁGENES
+   ========================================================= */
 
-function renderActivity() {
+function processImage(file) {
 
-  const container =
-    $("activityContent");
+  if (!file) return;
 
-  if (!container) return;
+  const reader = new FileReader();
 
-  if (!data.activity.length) {
+  reader.onload = event => {
 
-    container.innerHTML = `
-      <div class="empty-state">
-        <div>📋</div>
+    window.tempProductImages =
+      window.tempProductImages || [];
 
-        <h3>
-          No hay actividad todavía
-        </h3>
+    window.tempProductImages.push(
+      event.target.result
+    );
 
-        <p>
-          Aquí aparecerán tus publicaciones,
-          mensajes y cambios de cuenta.
-        </p>
-      </div>
-    `;
-
-    return;
-  }
-
-
-  container.innerHTML =
-    data.activity
-      .map(
-        (item) => `
-          <div class="activity-item">
-
-            <div class="activity-icon">
-              ${activityIcon(item.type)}
-            </div>
-
-            <div>
-
-              <strong>
-                ${escapeHTML(item.text)}
-              </strong>
-
-              <small>
-                ${formatDate(item.createdAt)}
-              </small>
-
-            </div>
-
-          </div>
-        `
-      )
-      .join("");
-}
-
-
-function activityIcon(type) {
-
-  const icons = {
-    product: "📦",
-    chat: "💬",
-    profile: "👤",
-    security: "🔐",
-    messenger: "🟢",
-    advertising: "📣",
-    system: "⚙️"
+    renderMediaPreview();
   };
 
-  return icons[type] || "📋";
+  reader.readAsDataURL(file);
 }
 
+function renderMediaPreview() {
 
-/* =========================================================
-   NOTIFICACIONES
-========================================================= */
+  const box = $("productMediaPreview");
 
-function addNotification(title, text) {
+  if (!box) return;
 
-  data.notifications.unshift({
-    id: generateId("notification"),
+  box.innerHTML =
+    (window.tempProductImages || [])
+      .map((image, index) => `
+        <div class="media-preview-item">
 
-    title,
+          <img src="${image}" alt="">
 
-    text,
+          <button
+            type="button"
+            onclick="removeTempImage(${index})"
+          >
+            ✕
+          </button>
 
-    read: false,
-
-    createdAt: Date.now()
-  });
-
-  data.notifications =
-    data.notifications.slice(0, 50);
-
-  saveData();
-
-  updateNotificationBadge();
+        </div>
+      `)
+      .join("");
 }
 
+function removeTempImage(index) {
 
-function updateNotificationBadge() {
-
-  const badge =
-    $("notifyBadge");
-
-  if (!badge) return;
-
-  const unread =
-    data.notifications.filter(
-      (item) => !item.read
-    ).length;
-
-
-  if (unread > 0) {
-
-    badge.textContent =
-      unread > 99
-        ? "99+"
-        : String(unread);
-
-    badge.classList.remove(
-      "hidden"
-    );
-
-  } else {
-
-    badge.classList.add("hidden");
-  }
-}
-
-
-function updateProfileBadge() {
-
-  const badge =
-    $("profileBadge");
-
-  if (!badge) return;
-
-  badge.classList.add("hidden");
-}
-
-
-function openNotifications() {
-
-  data.notifications.forEach(
-    (notification) => {
-      notification.read = true;
-    }
+  window.tempProductImages.splice(
+    index,
+    1
   );
 
-  saveData();
-
-  updateNotificationBadge();
-
-
-  const notifications =
-    data.notifications;
-
-
-  openModal(`
-    <div class="modal-header">
-
-      <div>
-        <small>MARKET FLASH</small>
-        <h2>Notificaciones</h2>
-      </div>
-
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
-
-    </div>
-
-
-    <div class="notification-list">
-
-      ${
-        notifications.length
-          ? notifications
-              .map(
-                (item) => `
-                  <div class="notification-item">
-
-                    <strong>
-                      ${escapeHTML(item.title)}
-                    </strong>
-
-                    <p>
-                      ${escapeHTML(item.text)}
-                    </p>
-
-                    <small>
-                      ${formatDate(item.createdAt)}
-                    </small>
-
-                  </div>
-                `
-              )
-              .join("")
-          : `
-            <div class="empty-state">
-              <div>🔔</div>
-              <h3>
-                No tienes notificaciones
-              </h3>
-            </div>
-          `
-      }
-
-    </div>
-  `);
-
-
-  bindModalButtons();
+  renderMediaPreview();
 }
-
 
 /* =========================================================
-   FLASH DEL DÍA / PUBLICIDAD
-========================================================= */
-
-function bindAdvertisingButtons() {
-
-  const flashButton =
-    $("flashDayBtn");
-
-  if (flashButton) {
-
-    flashButton.addEventListener(
-      "click",
-      openFlashDay
-    );
-  }
-
-
-  const statusButton =
-    $("myAdStatusBtn");
-
-  if (statusButton) {
-
-    statusButton.addEventListener(
-      "click",
-      openAdvertisingStatus
-    );
-  }
-}
-
+   FLASH DEL DÍA
+   ========================================================= */
 
 function openFlashDay() {
 
   openModal(`
-    <div class="modal-header">
+    <div class="modal-content">
 
-      <div>
-        <small>PUBLICIDAD</small>
+      ${modalCloseButton()}
 
-        <h2>
-          Publicación Flash del Día
-        </h2>
-      </div>
-
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
-
-    </div>
-
-
-    <div class="page-card">
+      <h2>
+        ⚡ Publicación Flash del Día
+      </h2>
 
       <p>
-        Envía tu propuesta para aparecer
-        como publicidad destacada en
-        Market Flash.
+        Publicidad destacada que aparecerá en primera plana.
       </p>
 
-      <div class="form-card">
+      <label>
+        Título
+      </label>
 
-        <label for="adTitleInput">
-          Título de la publicidad
-        </label>
+      <input
+        id="flashTitleInput"
+        type="text"
+        placeholder="Título de la publicidad"
+      >
 
-        <input
-          id="adTitleInput"
-          type="text"
-          maxlength="100"
-          placeholder="Ej. Oferta especial"
-        >
+      <label>
+        Descripción
+      </label>
 
-        <label for="adTextInput">
-          Descripción
-        </label>
+      <textarea
+        id="flashDescriptionInput"
+        placeholder="Describe tu publicidad..."
+      ></textarea>
 
-        <textarea
-          id="adTextInput"
-          rows="5"
-          maxlength="800"
-          placeholder="Describe tu promoción..."
-        ></textarea>
+      <label>
+        Número de contacto
+      </label>
+
+      <input
+        id="flashContactInput"
+        type="tel"
+        placeholder="809-000-0000"
+      >
+
+      <label>
+        URL de contacto
+      </label>
+
+      <input
+        id="flashUrlInput"
+        type="url"
+        placeholder="https://..."
+      >
+
+      <div class="upload-buttons">
 
         <button
-          id="submitAdBtn"
-          class="primary-btn"
-          type="button"
+          class="secondary-btn"
+          onclick="$('flashPhotoCameraInput').click()"
         >
-          📣 Enviar publicidad
+          📷 Tomar foto
+        </button>
+
+        <button
+          class="secondary-btn"
+          onclick="$('flashPhotoGalleryInput').click()"
+        >
+          🖼️ Galería
+        </button>
+
+        <button
+          class="secondary-btn"
+          onclick="$('flashVideoCameraInput').click()"
+        >
+          🎥 Grabar video
+        </button>
+
+        <button
+          class="secondary-btn"
+          onclick="$('flashVideoGalleryInput').click()"
+        >
+          🎬 Elegir video
+        </button>
+
+      </div>
+
+      <div id="flashMediaPreview"></div>
+
+      <button
+        class="primary-btn"
+        onclick="createFlashAd()"
+      >
+        ⚡ Enviar publicidad
+      </button>
+
+    </div>
+  `);
+
+  window.tempFlashImages = [];
+  window.tempFlashVideo = "";
+}
+
+function createFlashAd() {
+
+  const title =
+    $("flashTitleInput")?.value.trim();
+
+  const description =
+    $("flashDescriptionInput")?.value.trim();
+
+  const contact =
+    $("flashContactInput")?.value.trim();
+
+  const url =
+    $("flashUrlInput")?.value.trim();
+
+  if (!title) {
+    toast("Escribe un título.");
+    return;
+  }
+
+  const ad = {
+
+    id: makeId("flash"),
+
+    userId: currentUserId(),
+
+    userName: data.currentUser.name,
+
+    title,
+
+    description,
+
+    contact,
+
+    url,
+
+    images: window.tempFlashImages || [],
+
+    video: window.tempFlashVideo || "",
+
+    plan: "premium",
+
+    status: "pendiente",
+
+    createdAt: now(),
+
+    views: 0,
+
+    likes: 0,
+
+    dislikes: 0
+  };
+
+  data.flashAds.push(ad);
+
+  saveData();
+
+  closeModal();
+
+  updateFlashStatus();
+
+  toast(
+    "⚡ Publicidad enviada para revisión"
+  );
+}
+
+/* =========================================================
+   ESTADO FLASH
+   ========================================================= */
+
+function updateFlashStatus() {
+
+  const button =
+    $("myAdStatusBtn");
+
+  if (!button) return;
+
+  const mine =
+    data.flashAds
+      .filter(
+        ad => ad.userId === currentUserId()
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt) -
+          new Date(a.createdAt)
+      )[0];
+
+  if (!mine) {
+    button.classList.add("hidden");
+    return;
+  }
+
+  button.classList.remove("hidden");
+
+  setText(
+    "myAdStatusTitle",
+    mine.status === "aprobada"
+      ? "Publicidad aprobada"
+      : mine.status === "rechazada"
+      ? "Publicidad rechazada"
+      : "Publicidad en revisión"
+  );
+
+  setText(
+    "myAdStatusText",
+    mine.status === "aprobada"
+      ? "Tu publicidad está activa."
+      : mine.status === "rechazada"
+      ? "Tu publicidad fue rechazada."
+      : "Tu publicidad está esperando revisión."
+  );
+}
+
+/* =========================================================
+   ADMINISTRADOR
+   ========================================================= */
+
+function openAdminPanel() {
+
+  if (!isAdmin()) {
+    toast("⛔ Acceso de administrador requerido.");
+    return;
+  }
+
+  openModal(`
+    <div class="modal-content admin-panel">
+
+      ${modalCloseButton()}
+
+      <h2>
+        🛡️ Panel de Administrador
+      </h2>
+
+      <p>
+        Administración de Market Flash.
+      </p>
+
+      <div class="admin-actions">
+
+        <button
+          class="primary-btn"
+          onclick="manageFlashAds()"
+        >
+          ⚡ Publicidades Flash
+        </button>
+
+        <button
+          class="secondary-btn"
+          onclick="manageReports()"
+        >
+          🚩 Reclamos
+        </button>
+
+        <button
+          class="secondary-btn"
+          onclick="manageAdmins()"
+        >
+          👥 Administradores
+        </button>
+
+        <button
+          class="secondary-btn"
+          onclick="adminStatistics()"
+        >
+          📊 Estadísticas
         </button>
 
       </div>
 
     </div>
   `);
-
-
-  bindModalButtons();
-
-
-  const submit =
-    $("submitAdBtn");
-
-  if (submit) {
-
-    submit.addEventListener(
-      "click",
-      submitAdvertising
-    );
-  }
 }
 
+/* =========================================================
+   ADMIN - FLASH
+   ========================================================= */
 
-function submitAdvertising() {
+function manageFlashAds() {
 
-  const title =
-    $("adTitleInput")?.value.trim() || "";
+  const ads = data.flashAds;
 
-  const text =
-    $("adTextInput")?.value.trim() || "";
+  openModal(`
+    <div class="modal-content">
 
+      ${modalCloseButton()}
 
-  if (title.length < 3) {
+      <h2>
+        ⚡ Publicidades Flash
+      </h2>
 
-    showToast(
-      "Escribe un título para la publicidad."
-    );
+      ${
+        ads.length
+          ? ads.map(ad => `
+            <div class="admin-item">
 
-    return;
-  }
+              <strong>
+                ${escapeHTML(ad.title)}
+              </strong>
 
+              <p>
+                ${escapeHTML(ad.userName)}
+              </p>
 
-  if (text.length < 5) {
+              <small>
+                Plan: ${escapeHTML(ad.plan)}
+                · Estado: ${escapeHTML(ad.status)}
+              </small>
 
-    showToast(
-      "Escribe una descripción."
-    );
+              <div>
 
-    return;
-  }
+                <button
+                  class="primary-btn"
+                  onclick="approveFlash('${ad.id}')"
+                >
+                  ✓ Aprobar
+                </button>
 
+                <button
+                  class="danger-outline"
+                  onclick="rejectFlash('${ad.id}')"
+                >
+                  ✕ Rechazar
+                </button>
 
-  data.advertising = {
-    status: "pending",
+              </div>
 
-    title,
+            </div>
+          `).join("")
+          : "<p>No hay publicidades.</p>"
+      }
 
-    text,
+    </div>
+  `);
+}
 
-    submittedAt: Date.now()
-  };
+function approveFlash(id) {
 
+  const ad =
+    data.flashAds.find(a => a.id === id);
+
+  if (!ad) return;
+
+  ad.status = "aprobada";
 
   saveData();
 
-  addActivity(
-    "advertising",
-    "Enviaste una publicidad para revisión."
-  );
+  manageFlashAds();
 
-
-  addNotification(
-    "Publicidad enviada",
-    "Tu publicidad está pendiente de revisión."
-  );
-
-
-  closeModal();
-
-  renderAdvertisingStatus();
-
-  showToast(
-    "Publicidad enviada para revisión."
-  );
+  toast("⚡ Publicidad aprobada");
 }
 
-
-function renderAdvertisingStatus() {
-
-  const button =
-    $("myAdStatusBtn");
-
-  if (!button) return;
+function rejectFlash(id) {
 
   const ad =
-    data.advertising;
+    data.flashAds.find(a => a.id === id);
 
+  if (!ad) return;
 
-  if (!ad.status) {
+  ad.status = "rechazada";
 
-    button.classList.add("hidden");
+  saveData();
 
+  manageFlashAds();
+
+  toast("Publicidad rechazada");
+}
+
+/* =========================================================
+   ADMIN - RECLAMOS
+   ========================================================= */
+
+function manageReports() {
+
+  const reports =
+    data.notifications.filter(
+      n => n.type === "report"
+    );
+
+  openModal(`
+    <div class="modal-content">
+
+      ${modalCloseButton()}
+
+      <h2>
+        🚩 Reclamos
+      </h2>
+
+      ${
+        reports.length
+          ? reports.map(report => `
+            <div class="admin-item">
+
+              <strong>
+                ${escapeHTML(report.reason)}
+              </strong>
+
+              <p>
+                ${escapeHTML(report.description || "")}
+              </p>
+
+              <small>
+                Estado: ${escapeHTML(report.status)}
+              </small>
+
+            </div>
+          `).join("")
+          : "<p>No hay reclamos.</p>"
+      }
+
+    </div>
+  `);
+}
+
+/* =========================================================
+   ADMIN - AGREGAR ADMINISTRADORES
+   ========================================================= */
+
+function manageAdmins() {
+
+  if (!isAdmin()) return;
+
+  openModal(`
+    <div class="modal-content">
+
+      ${modalCloseButton()}
+
+      <h2>
+        👥 Administradores
+      </h2>
+
+      <div class="form-card">
+
+        <input
+          id="adminNameInput"
+          type="text"
+          placeholder="Nombre"
+        >
+
+        <input
+          id="adminCedulaInput"
+          type="text"
+          placeholder="Cédula"
+        >
+
+        <input
+          id="adminPasswordInput"
+          type="password"
+          placeholder="Contraseña"
+        >
+
+        <button
+          class="primary-btn"
+          onclick="addAdministrator()"
+        >
+          ➕ Agregar administrador
+        </button>
+
+      </div>
+
+      <div>
+
+        ${
+          data.users
+            .filter(user => user.isAdmin)
+            .map(user => `
+              <div class="admin-item">
+
+                <strong>
+                  ${escapeHTML(user.name)}
+                </strong>
+
+                <small>
+                  Administrador
+                </small>
+
+              </div>
+            `)
+            .join("")
+          || "<p>No hay administradores adicionales.</p>"
+        }
+
+      </div>
+
+    </div>
+  `);
+}
+
+function addAdministrator() {
+
+  const name =
+    $("adminNameInput")?.value.trim();
+
+  const cedula =
+    $("adminCedulaInput")?.value.trim();
+
+  const password =
+    $("adminPasswordInput")?.value;
+
+  if (!name || !cedula || !password) {
+    toast("Completa todos los campos.");
     return;
   }
 
+  const exists =
+    data.users.some(
+      user => user.cedula === cedula
+    );
 
-  button.classList.remove("hidden");
-
-
-  const title =
-    $("myAdStatusTitle");
-
-  const text =
-    $("myAdStatusText");
-
-  const icon =
-    $("myAdStatusIcon");
-
-
-  if (
-    ad.status === "pending"
-  ) {
-
-    if (title) {
-      title.textContent =
-        "Publicidad en revisión";
-    }
-
-    if (text) {
-      text.textContent =
-        "Tu publicidad fue enviada y está pendiente.";
-    }
-
-    if (icon) {
-      icon.textContent = "⏳";
-    }
-
-  } else if (
-    ad.status === "approved"
-  ) {
-
-    if (title) {
-      title.textContent =
-        "Publicidad aprobada";
-    }
-
-    if (text) {
-      text.textContent =
-        "Tu publicidad fue aprobada.";
-    }
-
-    if (icon) {
-      icon.textContent = "✅";
-    }
-
-  } else if (
-    ad.status === "rejected"
-  ) {
-
-    if (title) {
-      title.textContent =
-        "Publicidad rechazada";
-    }
-
-    if (text) {
-      text.textContent =
-        "Revisa los detalles de tu publicidad.";
-    }
-
-    if (icon) {
-      icon.textContent = "❌";
-    }
+  if (exists) {
+    toast("Esa cédula ya existe.");
+    return;
   }
+
+  data.users.push({
+    id: makeId("admin"),
+    name,
+    cedula,
+    password,
+    phone: "",
+    whatsapp: "",
+    messenger: "",
+    avatar: "",
+    isAdmin: true
+  });
+
+  saveData();
+
+  manageAdmins();
+
+  toast("👥 Administrador agregado");
 }
-
-
-function openAdvertisingStatus() {
-
-  const ad =
-    data.advertising;
-
-
-  openModal(`
-    <div class="modal-header">
-
-      <div>
-        <small>MI PUBLICIDAD</small>
-        <h2>
-          Estado de publicidad
-        </h2>
-      </div>
-
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
-
-    </div>
-
-
-    <div class="page-card">
-
-      <h3>
-        ${escapeHTML(
-          ad.title || "Sin título"
-        )}
-      </h3>
-
-      <p>
-        ${escapeHTML(
-          ad.text || ""
-        )}
-      </p>
-
-      <p>
-        <strong>Estado:</strong>
-        ${advertisingStatusText(
-          ad.status
-        )}
-      </p>
-
-      ${
-        ad.submittedAt
-          ? `
-            <small>
-              Enviada:
-              ${formatDate(
-                ad.submittedAt
-              )}
-            </small>
-          `
-          : ""
-      }
-
-    </div>
-  `);
-
-
-  bindModalButtons();
-}
-
-
-function advertisingStatusText(status) {
-
-  const states = {
-    pending: "⏳ Pendiente",
-    approved: "✅ Aprobada",
-    rejected: "❌ Rechazada"
-  };
-
-  return states[status] || "Sin estado";
-}
-
 
 /* =========================================================
-   CONFIGURACIÓN DE COLOR
-========================================================= */
+   ESTADÍSTICAS ADMIN
+   ========================================================= */
 
-function openColorSettings() {
+function adminStatistics() {
+
+  const totalViews =
+    data.products.reduce(
+      (sum, p) => sum + Number(p.views || 0),
+      0
+    );
+
+  const totalLikes =
+    data.products.reduce(
+      (sum, p) => sum + Number(p.likes || 0),
+      0
+    );
+
+  const totalDislikes =
+    data.products.reduce(
+      (sum, p) => sum + Number(p.dislikes || 0),
+      0
+    );
 
   openModal(`
-    <div class="modal-header">
+    <div class="modal-content">
 
-      <div>
-        <small>CONFIGURACIÓN</small>
-        <h2>Color de Market Flash</h2>
+      ${modalCloseButton()}
+
+      <h2>
+        📊 Estadísticas
+      </h2>
+
+      <div class="activity-stats">
+
+        <div class="stat-card">
+          <small>Usuarios</small>
+          <strong>${data.users.length + 1}</strong>
+        </div>
+
+        <div class="stat-card">
+          <small>Publicaciones</small>
+          <strong>${data.products.length}</strong>
+        </div>
+
+        <div class="stat-card">
+          <small>Vistas</small>
+          <strong>${totalViews}</strong>
+        </div>
+
+        <div class="stat-card">
+          <small>Me gusta</small>
+          <strong>${totalLikes}</strong>
+        </div>
+
+        <div class="stat-card">
+          <small>No me gusta</small>
+          <strong>${totalDislikes}</strong>
+        </div>
+
       </div>
-
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
-
-    </div>
-
-
-    <div class="form-card">
-
-      <label for="appColorInput">
-        Selecciona un color
-      </label>
-
-      <input
-        id="appColorInput"
-        type="color"
-        value="${escapeHTML(
-          data.settings.appColor
-        )}"
-      >
-
-      <button
-        id="saveAppColorBtn"
-        class="primary-btn"
-        type="button"
-      >
-        Guardar color
-      </button>
 
     </div>
   `);
-
-
-  bindModalButtons();
-
-
-  const button =
-    $("saveAppColorBtn");
-
-  if (button) {
-
-    button.addEventListener(
-      "click",
-      () => {
-
-        const input =
-          $("appColorInput");
-
-        if (!input) return;
-
-        data.settings.appColor =
-          input.value;
-
-        saveData();
-
-        applyTheme();
-
-        closeModal();
-
-        showToast(
-          "Color de la aplicación actualizado."
-        );
-      }
-    );
-  }
 }
 
+/* =========================================================
+   CAMBIAR COLOR
+   ========================================================= */
 
-function applyTheme() {
+function changeAppColor() {
 
-  const color =
-    data.settings.appColor ||
-    "#1677ff";
+  const colors = [
+    "#1677ff",
+    "#7c3aed",
+    "#059669",
+    "#ea580c",
+    "#dc2626"
+  ];
 
+  const current =
+    data.settings.appColor;
+
+  let index =
+    colors.indexOf(current);
+
+  index =
+    (index + 1) % colors.length;
+
+  data.settings.appColor =
+    colors[index];
+
+  applySettings();
+
+  saveData();
+
+  toast("🎨 Color actualizado");
+}
+
+function applySettings() {
 
   document.documentElement.style.setProperty(
     "--mf-primary",
-    color
-  );
-
-
-  document.documentElement.style.setProperty(
-    "--mf-primary-dark",
-    darkenColor(color, 20)
-  );
-
-
-  document.documentElement.style.setProperty(
-    "--mf-primary-light",
-    lightenColor(color, 85)
+    data.settings.appColor
   );
 }
-
-
-function darkenColor(hex, amount) {
-
-  const rgb = hexToRGB(hex);
-
-  if (!rgb) return hex;
-
-  const factor =
-    1 - amount / 100;
-
-  return rgbToHex(
-    Math.round(rgb.r * factor),
-    Math.round(rgb.g * factor),
-    Math.round(rgb.b * factor)
-  );
-}
-
-
-function lightenColor(hex, amount) {
-
-  const rgb = hexToRGB(hex);
-
-  if (!rgb) return hex;
-
-  return rgbToHex(
-    Math.round(
-      rgb.r +
-      (255 - rgb.r) *
-      (amount / 100)
-    ),
-
-    Math.round(
-      rgb.g +
-      (255 - rgb.g) *
-      (amount / 100)
-    ),
-
-    Math.round(
-      rgb.b +
-      (255 - rgb.b) *
-      (amount / 100)
-    )
-  );
-}
-
-
-function hexToRGB(hex) {
-
-  const value =
-    String(hex || "")
-      .replace("#", "");
-
-  if (value.length !== 6) {
-    return null;
-  }
-
-  const number =
-    parseInt(value, 16);
-
-  if (Number.isNaN(number)) {
-    return null;
-  }
-
-  return {
-    r: (number >> 16) & 255,
-    g: (number >> 8) & 255,
-    b: number & 255
-  };
-}
-
-
-function rgbToHex(r, g, b) {
-
-  return (
-    "#" +
-    [r, g, b]
-      .map(
-        (value) =>
-          value
-            .toString(16)
-            .padStart(2, "0")
-      )
-      .join("")
-  );
-}
-
 
 /* =========================================================
-   ESTILO DEL CHAT
-========================================================= */
+   BUSCADOR
+   ========================================================= */
 
-function openChatStyleSettings() {
+function handleSearch(event) {
 
-  openModal(`
-    <div class="modal-header">
+  searchText =
+    event.target.value.trim();
 
-      <div>
-        <small>CHAT</small>
-        <h2>Estilo del chat</h2>
-      </div>
+  renderProducts();
+}
 
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
+/* =========================================================
+   EVENTOS
+   ========================================================= */
 
-    </div>
+function setupEvents() {
 
+  document.querySelectorAll(
+    ".nav-item[data-page]"
+  ).forEach(button => {
 
-    <div class="form-card">
+    button.addEventListener(
+      "click",
+      () => showPage(button.dataset.page)
+    );
 
-      <button
-        class="secondary-btn"
-        type="button"
-        data-chat-style="bubble"
-      >
-        💬 Burbujas
-      </button>
-
-      <button
-        class="secondary-btn"
-        type="button"
-        data-chat-style="minimal"
-      >
-        ▫️ Minimalista
-      </button>
-
-      <button
-        class="secondary-btn"
-        type="button"
-        data-chat-style="rounded"
-      >
-        🔵 Redondeado
-      </button>
-
-    </div>
-  `);
+  });
 
 
-  bindModalButtons();
+  $("searchInput")
+    ?.addEventListener(
+      "input",
+      handleSearch
+    );
 
 
-  document
-    .querySelectorAll(
-      "[data-chat-style]"
-    )
-    .forEach((button) => {
+  $("publishBtn")
+    ?.addEventListener(
+      "click",
+      openPublishModal
+    );
 
-      button.addEventListener(
-        "click",
-        () => {
 
-          data.settings.chatStyle =
-            button.dataset.chatStyle;
+  $("flashDayBtn")
+    ?.addEventListener(
+      "click",
+      openFlashDay
+    );
 
-          saveData();
 
-          applyChatStyle();
+  $("myAdStatusBtn")
+    ?.addEventListener(
+      "click",
+      updateFlashStatus
+    );
 
+
+  $("notifyBtn")
+    ?.addEventListener(
+      "click",
+      showNotifications
+    );
+
+
+  $("editProfileBtn")
+    ?.addEventListener(
+      "click",
+      openEditProfile
+    );
+
+
+  $("profileAvatarBtn")
+    ?.addEventListener(
+      "click",
+      () => $("profileImageInput")?.click()
+    );
+
+
+  $("editProfilePhotoBtn")
+    ?.addEventListener(
+      "click",
+      () => $("profileImageInput")?.click()
+    );
+
+
+  $("profileImageInput")
+    ?.addEventListener(
+      "change",
+      event =>
+        handleProfileImage(
+          event.target.files[0]
+        )
+    );
+
+
+  $("saveProfileBtn")
+    ?.addEventListener(
+      "click",
+      saveProfile
+    );
+
+
+  $("profileSettingsBtn")
+    ?.addEventListener(
+      "click",
+      toggleSettings
+    );
+
+
+  $("savePhoneBtn")
+    ?.addEventListener(
+      "click",
+      savePhone
+    );
+
+
+  $("saveWhatsappBtn")
+    ?.addEventListener(
+      "click",
+      saveWhatsapp
+    );
+
+
+  $("saveMessengerBtn")
+    ?.addEventListener(
+      "click",
+      saveMessenger
+    );
+
+
+  $("changePasswordBtn")
+    ?.addEventListener(
+      "click",
+      changePassword
+    );
+
+
+  $("appColorBtn")
+    ?.addEventListener(
+      "click",
+      changeAppColor
+    );
+
+
+  $("myContactsBtn")
+    ?.addEventListener(
+      "click",
+      () => showPage("chat")
+    );
+
+
+  $("myActivityBtn")
+    ?.addEventListener(
+      "click",
+      () => showPage("activity")
+    );
+
+
+  $("chatContactsBtn")
+    ?.addEventListener(
+      "click",
+      showContacts
+    );
+
+
+  $("adminPanelBtn")
+    ?.addEventListener(
+      "click",
+      openAdminPanel
+    );
+
+
+  /* Productos - cámara */
+  $("productCameraInput")
+    ?.addEventListener(
+      "change",
+      event =>
+        processImage(
+          event.target.files[0]
+        )
+    );
+
+
+  /* Productos - galería */
+  $("productGalleryInput")
+    ?.addEventListener(
+      "change",
+      event => {
+
+        [...event.target.files]
+          .forEach(processImage);
+
+      }
+    );
+
+
+  /* Flash - cámara */
+  $("flashPhotoCameraInput")
+    ?.addEventListener(
+      "change",
+      event =>
+        processFlashImage(
+          event.target.files[0]
+        )
+    );
+
+
+  /* Flash - galería */
+  $("flashPhotoGalleryInput")
+    ?.addEventListener(
+      "change",
+      event => {
+
+        [...event.target.files]
+          .forEach(processFlashImage);
+
+      }
+    );
+
+
+  /* Flash - video */
+  $("flashVideoCameraInput")
+    ?.addEventListener(
+      "change",
+      event =>
+        processFlashVideo(
+          event.target.files[0]
+        )
+    );
+
+
+  $("flashVideoGalleryInput")
+    ?.addEventListener(
+      "change",
+      event =>
+        processFlashVideo(
+          event.target.files[0]
+        )
+    );
+
+
+  /* Video producto */
+  $("productVideoCameraInput")
+    ?.addEventListener(
+      "change",
+      event =>
+        processProductVideo(
+          event.target.files[0]
+        )
+    );
+
+
+  $("productVideoGalleryInput")
+    ?.addEventListener(
+      "change",
+      event =>
+        processProductVideo(
+          event.target.files[0]
+        )
+    );
+
+
+  /* Cerrar modal */
+  $("modal")
+    ?.addEventListener(
+      "click",
+      event => {
+
+        if (event.target.id === "modal") {
           closeModal();
-
-          showToast(
-            "Estilo del chat actualizado."
-          );
         }
-      );
-    });
+
+      }
+    );
+
 }
-
-
-function applyChatStyle() {
-
-  document.body.dataset.chatStyle =
-    data.settings.chatStyle ||
-    "bubble";
-}
-
 
 /* =========================================================
-   FONDO DEL CHAT
-========================================================= */
+   FLASH MEDIA
+   ========================================================= */
 
-function openChatBackgroundSettings() {
+function processFlashImage(file) {
 
-  openModal(`
-    <div class="modal-header">
+  if (!file) return;
 
-      <div>
-        <small>CHAT</small>
-        <h2>Fondo del chat</h2>
-      </div>
+  const reader = new FileReader();
 
-      <button
-        class="modal-close"
-        type="button"
-        data-close-modal
-      >×</button>
+  reader.onload = event => {
 
-    </div>
+    window.tempFlashImages =
+      window.tempFlashImages || [];
 
+    window.tempFlashImages.push(
+      event.target.result
+    );
 
-    <div class="form-card">
+    renderFlashPreview();
+  };
 
-      <button
-        class="secondary-btn"
-        type="button"
-        data-chat-bg="default"
-      >
-        ◻️ Fondo normal
-      </button>
+  reader.readAsDataURL(file);
+}
 
-      <button
-        class="secondary-btn"
-        type="button"
-        data-chat-bg="landscape"
-      >
-        🌴 Paisaje
-      </button>
+function processFlashVideo(file) {
+
+  if (!file) return;
+
+  if (file.size > 20 * 1024 * 1024) {
+    toast("El video no puede superar 20 MB.");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = event => {
+
+    window.tempFlashVideo =
+      event.target.result;
+
+    renderFlashPreview();
+  };
+
+  reader.readAsDataURL(file);
+}
+
+function renderFlashPreview() {
+
+  const box =
+    $("flashMediaPreview");
+
+  if (!box) return;
+
+  box.innerHTML = `
+    <div class="flash-media-preview">
+
+      ${(window.tempFlashImages || [])
+        .map(image =>
+          `<img src="${image}" alt="">`
+        )
+        .join("")
+      }
 
       ${
-        data.settings.chatCustomImage
+        window.tempFlashVideo
           ? `
-            <button
-              class="secondary-btn"
-              type="button"
-              data-chat-bg="custom"
-            >
-              🖼️ Mi imagen
-            </button>
+            <video
+              src="${window.tempFlashVideo}"
+              controls
+              playsinline
+            ></video>
           `
           : ""
       }
 
     </div>
-  `);
-
-
-  bindModalButtons();
-
-
-  document
-    .querySelectorAll(
-      "[data-chat-bg]"
-    )
-    .forEach((button) => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          const value =
-            button.dataset.chatBg;
-
-          if (
-            value === "custom" &&
-            !data.settings.chatCustomImage
-          ) {
-            showToast(
-              "Primero sube una imagen."
-            );
-            return;
-          }
-
-          data.settings.chatBackground =
-            value;
-
-          saveData();
-
-          applyChatBackground();
-
-          closeModal();
-
-          showToast(
-            "Fondo del chat actualizado."
-          );
-        }
-      );
-    });
+  `;
 }
 
+function processProductVideo(file) {
 
-function applyChatBackground() {
+  if (!file) return;
 
-  const root =
-    document.documentElement;
-
-  root.style.removeProperty(
-    "--mf-chat-background"
-  );
-
-
-  if (
-    data.settings.chatBackground ===
-    "custom"
-  ) {
-
-    if (data.settings.chatCustomImage) {
-
-      root.style.setProperty(
-        "--mf-chat-background",
-        `url("${data.settings.chatCustomImage}")`
-      );
-    }
-
+  if (file.size > 20 * 1024 * 1024) {
+    toast("El video no puede superar 20 MB.");
     return;
   }
 
+  const reader = new FileReader();
 
-  if (
-    data.settings.chatBackground ===
-    "landscape"
-  ) {
+  reader.onload = event => {
 
-    root.style.setProperty(
-      "--mf-chat-background",
-      "linear-gradient(160deg, #87ceeb 0%, #dff6ff 45%, #80c783 46%, #4e9f4a 100%)"
+    window.tempProductVideo =
+      event.target.result;
+
+    toast("🎥 Video preparado");
+
+  };
+
+  reader.readAsDataURL(file);
+}
+
+/* =========================================================
+   CONTACTOS
+   ========================================================= */
+
+function showContacts() {
+
+  const list =
+    $("contactsList");
+
+  if (!list) return;
+
+  list.classList.remove("hidden");
+
+  const contacts =
+    data.contacts.filter(
+      c =>
+        c.userA === currentUserId() ||
+        c.userB === currentUserId()
     );
 
+  if (!contacts.length) {
+
+    list.innerHTML = `
+      <div class="chat-empty">
+
+        <div>
+          👥
+        </div>
+
+        <h3>
+          No tienes contactos
+        </h3>
+
+        <p>
+          Puedes enviar solicitudes desde las publicaciones.
+        </p>
+
+      </div>
+    `;
+
     return;
   }
 
+  list.innerHTML = contacts.map(contact => {
 
-  root.style.setProperty(
-    "--mf-chat-background",
-    "linear-gradient(135deg, #f4f7fb, #ffffff)"
-  );
-}
+    const id =
+      contact.userA === currentUserId()
+        ? contact.userB
+        : contact.userA;
 
+    const user =
+      getUser(id);
 
-/* =========================================================
-   BOTONES DEL MODAL
-========================================================= */
+    return `
+      <button
+        class="conversation-item"
+        onclick="openConversation('${id}')"
+      >
 
-function bindModalButtons() {
-
-  document
-    .querySelectorAll(
-      "[data-close-modal]"
-    )
-    .forEach((button) => {
-
-      button.addEventListener(
-        "click",
-        closeModal
-      );
-    });
-}
-
-
-/* =========================================================
-   ARCHIVOS
-========================================================= */
-
-function fileToDataURL(file) {
-
-  return new Promise(
-    (resolve, reject) => {
-
-      const reader =
-        new FileReader();
-
-      reader.onload = () =>
-        resolve(reader.result);
-
-      reader.onerror = reject;
-
-      reader.readAsDataURL(file);
-    }
-  );
-}
-
-
-function fileToCompressedDataURL(
-  file,
-  maxSize = 1200,
-  quality = 0.78
-) {
-
-  return new Promise(
-    (resolve, reject) => {
-
-      const reader =
-        new FileReader();
-
-      reader.onload = () => {
-
-        const image =
-          new Image();
-
-        image.onload = () => {
-
-          let width =
-            image.naturalWidth;
-
-          let height =
-            image.naturalHeight;
-
-
-          if (
-            width > maxSize ||
-            height > maxSize
-          ) {
-
-            const ratio =
-              Math.min(
-                maxSize / width,
-                maxSize / height
-              );
-
-            width =
-              Math.round(
-                width * ratio
-              );
-
-            height =
-              Math.round(
-                height * ratio
-              );
+        <div class="conversation-avatar">
+          ${user.avatar
+            ? `<img src="${user.avatar}" alt="">`
+            : "👤"
           }
+        </div>
 
+        <div>
 
-          const canvas =
-            document.createElement(
-              "canvas"
-            );
+          <strong>
+            ${escapeHTML(user.name)}
+          </strong>
 
-          canvas.width = width;
-          canvas.height = height;
+          <p>
+            Contacto agregado
+          </p>
 
+        </div>
 
-          const context =
-            canvas.getContext(
-              "2d"
-            );
+      </button>
+    `;
 
-          if (!context) {
-            reject(
-              new Error(
-                "Canvas no disponible."
-              )
-            );
-            return;
-          }
-
-
-          context.drawImage(
-            image,
-            0,
-            0,
-            width,
-            height
-          );
-
-
-          resolve(
-            canvas.toDataURL(
-              "image/jpeg",
-              quality
-            )
-          );
-        };
-
-
-        image.onerror = () =>
-          reject(
-            new Error(
-              "No se pudo leer la imagen."
-            )
-          );
-
-
-        image.src =
-          reader.result;
-      };
-
-
-      reader.onerror = reject;
-
-      reader.readAsDataURL(file);
-    }
-  );
+  }).join("");
 }
-
-
-/* =========================================================
-   BUSCADOR
-========================================================= */
-
-function bindSearch() {
-
-  const input =
-    $("searchInput");
-
-  if (!input) return;
-
-  input.addEventListener(
-    "input",
-    () => {
-
-      if (
-        !document
-          .getElementById("homePage")
-          ?.classList.contains("hidden")
-      ) {
-        renderProducts();
-      }
-    }
-  );
-}
-
-
-/* =========================================================
-   BOTÓN DE PUBLICAR
-========================================================= */
-
-function bindPublishButton() {
-
-  const button =
-    $("publishBtn");
-
-  if (!button) return;
-
-  button.addEventListener(
-    "click",
-    openPublishModal
-  );
-}
-
 
 /* =========================================================
    NOTIFICACIONES
-========================================================= */
+   ========================================================= */
 
-function bindNotificationButton() {
+function showNotifications() {
 
-  const button =
-    $("notifyBtn");
+  const notifications =
+    data.notifications;
 
-  if (!button) return;
+  openModal(`
+    <div class="modal-content">
 
-  button.addEventListener(
-    "click",
-    openNotifications
-  );
+      ${modalCloseButton()}
+
+      <h2>
+        🔔 Notificaciones
+      </h2>
+
+      ${
+        notifications.length
+          ? notifications.map(n => `
+            <div class="notification-item">
+
+              <strong>
+                ${escapeHTML(
+                  n.reason ||
+                  n.text ||
+                  "Nueva notificación"
+                )}
+              </strong>
+
+              <small>
+                ${new Date(
+                  n.createdAt
+                ).toLocaleString("es-DO")}
+              </small>
+
+            </div>
+          `).join("")
+          : `
+            <p>
+              No tienes notificaciones.
+            </p>
+          `
+      }
+
+    </div>
+  `);
+
+  updateBadges();
 }
 
+function updateBadges() {
 
-/* =========================================================
-   FIRMA DEL PROPIETARIO
-========================================================= */
+  const requests =
+    data.contactRequests.filter(
+      r =>
+        r.to === currentUserId() &&
+        r.status === "pendiente"
+    ).length;
 
-function setupOwnerSignature() {
+  const chatBadge =
+    $("chatBadge");
 
-  const signature =
-    $("ownerSignature");
+  if (chatBadge) {
+    chatBadge.textContent = requests;
+    chatBadge.classList.toggle(
+      "hidden",
+      requests === 0
+    );
+  }
 
-  if (!signature) return;
+  const profileBadge =
+    $("profileBadge");
 
-
-  if (
-    "IntersectionObserver" in window
-  ) {
-
-    const observer =
-      new IntersectionObserver(
-        (entries) => {
-
-          entries.forEach(
-            (entry) => {
-
-              if (entry.isIntersecting) {
-
-                signature.classList.add(
-                  "visible"
-                );
-
-              }
-            }
-          );
-        },
-        {
-          threshold: 0.25
-        }
-      );
-
-
-    observer.observe(signature);
-
-  } else {
-
-    signature.classList.add(
-      "visible"
+  if (profileBadge) {
+    profileBadge.textContent = requests;
+    profileBadge.classList.toggle(
+      "hidden",
+      requests === 0
     );
   }
 }
 
-
 /* =========================================================
-   BOTONES DE ARCHIVOS DE COMPROBANTE
-   Preparados para futuras funciones de pago/publicidad.
-========================================================= */
+   INICIALIZACIÓN
+   ========================================================= */
 
-function bindPaymentProofInputs() {
+function init() {
 
-  [
-    "paymentProofCameraInput",
-    "paymentProofGalleryInput"
-  ].forEach((id) => {
+  applySettings();
 
-    const input = $(id);
+  checkAdmin();
 
-    if (!input) return;
+  renderCategories();
 
-    input.addEventListener(
-      "change",
-      () => {
-
-        if (input.files.length) {
-
-          showToast(
-            "Comprobante seleccionado."
-          );
-        }
-      }
-    );
-  });
-}
-
-
-/* =========================================================
-   RENDER GENERAL
-========================================================= */
-
-function renderAll() {
-
-  renderHome();
+  renderProducts();
 
   renderProfile();
 
-  renderChat();
-
   renderActivity();
 
-  updateNotificationBadge();
+  renderChat();
 
-  updateChatBadge();
+  updateFlashStatus();
 
-  applyTheme();
+  updateBadges();
 
-  applyChatStyle();
+  setupEvents();
 
-  applyChatBackground();
+  /* Firma al llegar al final */
+  const signature =
+    $("ownerSignature");
+
+  if (signature) {
+
+    const observer =
+      new IntersectionObserver(
+        entries => {
+
+          entries.forEach(entry => {
+
+            if (entry.isIntersecting) {
+              signature.classList.add("visible");
+            }
+
+          });
+
+        }
+      );
+
+    observer.observe(signature);
+  }
+
 }
-
 
 /* =========================================================
-   INICIALIZACIÓN
-========================================================= */
+   DOM READY
+   ========================================================= */
 
-function initMarketFlash() {
-
-  console.log(
-    "Market Flash iniciado correctamente."
-  );
-
-
-  bindNavigation();
-
-  bindSearch();
-
-  bindPublishButton();
-
-  bindNotificationButton();
-
-  bindProfileButtons();
-
-  bindChatButtons();
-
-  bindAdvertisingButtons();
-
-  bindPaymentProofInputs();
-
-  bindModalClose();
-
-  setupOwnerSignature();
-
-
-  applyTheme();
-
-  applyChatStyle();
-
-  applyChatBackground();
-
-
-  renderAll();
-
-
-  showPage("home");
-}
-
+document.addEventListener(
+  "DOMContentLoaded",
+  init
+);
 
 /* =========================================================
-   INICIAR CUANDO EL DOM ESTÉ LISTO
-========================================================= */
+   FUNCIONES DISPONIBLES GLOBALMENTE
+   ========================================================= */
 
-if (
-  document.readyState ===
-  "loading"
-) {
-
-  document.addEventListener(
-    "DOMContentLoaded",
-    initMarketFlash
-  );
-
-} else {
-
-  initMarketFlash();
-}
+window.closeModal = closeModal;
+window.selectCategory = selectCategory;
+window.openProduct = openProduct;
+window.likeProduct = likeProduct;
+window.dislikeProduct = dislikeProduct;
+window.reportProduct = reportProduct;
+window.submitReport = submitReport;
+window.contactSeller = contactSeller;
+window.sendContactRequest = sendContactRequest;
+window.acceptContactRequest = acceptContactRequest;
+window.rejectContactRequest = rejectContactRequest;
+window.openConversation = openConversation;
+window.sendMessage = sendMessage;
+window.removeTempImage = removeTempImage;
+window.createProduct = createProduct;
+window.openFlashDay = openFlashDay;
+window.createFlashAd = createFlashAd;
+window.approveFlash = approveFlash;
+window.rejectFlash = rejectFlash;
+window.manageFlashAds = manageFlashAds;
+window.manageReports = manageReports;
+window.manageAdmins = manageAdmins;
+window.addAdministrator = addAdministrator;
+window.adminStatistics = adminStatistics;
+window.openAdminPanel = openAdminPanel;
+window.showContacts = showContacts;
+window.processFlashImage = processFlashImage;
+window.processFlashVideo = processFlashVideo;
+window.processProductVideo = processProductVideo;
