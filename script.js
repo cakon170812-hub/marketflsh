@@ -1,22 +1,17 @@
-/* =========================================================
-   MARKET FLASH
-   SCRIPT PRINCIPAL
-   ========================================================= */
-
 document.addEventListener("DOMContentLoaded", () => {
 
-    /* =====================================================
-       PANTALLAS
-       ===================================================== */
+    // ==============================
+    // PANTALLAS
+    // ==============================
 
     const welcomeScreen = document.getElementById("welcome-screen");
     const loginScreen = document.getElementById("login-screen");
     const registerScreen = document.getElementById("register-screen");
     const dashboardScreen = document.getElementById("dashboard-screen");
 
-    /* =====================================================
-       BOTONES
-       ===================================================== */
+    // ==============================
+    // BOTONES
+    // ==============================
 
     const loginButton = document.getElementById("login-button");
     const registerButton = document.getElementById("register-button");
@@ -24,28 +19,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const backFromLogin = document.getElementById("back-from-login");
     const backFromRegister = document.getElementById("back-from-register");
 
+    const loginForm = document.getElementById("login-form");
+    const registerForm = document.getElementById("register-form");
+
     const settingsButton = document.getElementById("settings-button");
-    const closeSettings = document.getElementById("close-settings");
+    const closeSettingsButton = document.getElementById("close-settings");
     const logoutButton = document.getElementById("logout-button");
 
     const settingsPanel = document.getElementById("settings-panel");
 
-    /* =====================================================
-       FORMULARIOS
-       ===================================================== */
+    const dashboardUserName = document.getElementById("dashboard-user-name");
 
-    const loginForm = document.getElementById("login-form");
-    const registerForm = document.getElementById("register-form");
+    // ==============================
+    // MOSTRAR PANTALLA
+    // ==============================
 
-    const userNameDisplay =
-        document.getElementById("user-name-display");
+    function showScreen(screen) {
 
-
-    /* =====================================================
-       FUNCIONES DE NAVEGACIÓN
-       ===================================================== */
-
-    function showScreen(screenToShow) {
+        if (!screen) return;
 
         const screens = [
             welcomeScreen,
@@ -54,364 +45,314 @@ document.addEventListener("DOMContentLoaded", () => {
             dashboardScreen
         ];
 
-        screens.forEach(screen => {
-
-            if (!screen) return;
-
-            screen.classList.remove("active");
-
+        screens.forEach((item) => {
+            if (item) {
+                item.classList.remove("active");
+            }
         });
 
-        if (screenToShow) {
-
-            screenToShow.classList.add("active");
-
-        }
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
+        screen.classList.add("active");
     }
 
+    // ==============================
+    // OBTENER USUARIO GUARDADO
+    // ==============================
 
-    /* =====================================================
-       IR A INICIO DE SESIÓN
-       ===================================================== */
+    function getSavedUser() {
 
-    loginButton.addEventListener("click", () => {
-
-        showScreen(loginScreen);
-
-    });
-
-
-    /* =====================================================
-       IR A CREAR CUENTA
-       ===================================================== */
-
-    registerButton.addEventListener("click", () => {
-
-        showScreen(registerScreen);
-
-    });
-
-
-    /* =====================================================
-       VOLVER DESDE LOGIN
-       ===================================================== */
-
-    backFromLogin.addEventListener("click", () => {
-
-        loginForm.reset();
-
-        showScreen(welcomeScreen);
-
-    });
-
-
-    /* =====================================================
-       VOLVER DESDE REGISTRO
-       ===================================================== */
-
-    backFromRegister.addEventListener("click", () => {
-
-        registerForm.reset();
-
-        showScreen(welcomeScreen);
-
-    });
-
-
-    /* =====================================================
-       REGISTRO DE USUARIO
-       ===================================================== */
-
-    registerForm.addEventListener("submit", event => {
-
-        event.preventDefault();
-
-
-        const name =
-            document.getElementById("register-name").value.trim();
-
-        const cedula =
-            document.getElementById("register-cedula").value.trim();
-
-        const phone =
-            document.getElementById("register-phone").value.trim();
-
-        const password =
-            document.getElementById("register-password").value;
-
-        const passwordConfirm =
-            document.getElementById("register-password-confirm").value;
-
-
-        /* -----------------------------------------------
-           VALIDACIONES
-           ----------------------------------------------- */
-
-        if (!name || !cedula || !phone || !password || !passwordConfirm) {
-
-            alert("Por favor, completa todos los campos.");
-
-            return;
-        }
-
-
-        if (password !== passwordConfirm) {
-
-            alert("Las contraseñas no coinciden.");
-
-            return;
-        }
-
-
-        if (password.length < 6) {
-
-            alert("La contraseña debe tener al menos 6 caracteres.");
-
-            return;
-        }
-
-
-        /* -----------------------------------------------
-           CREAR USUARIO LOCAL
-           ----------------------------------------------- */
-
-        const user = {
-
-            name: name,
-
-            cedula: cedula,
-
-            phone: phone,
-
-            password: password
-
-        };
-
-
-        /*
-         * NOTA:
-         * Esto es almacenamiento local para la primera versión.
-         * Más adelante conectaremos un sistema seguro de usuarios.
-         */
-
-        localStorage.setItem(
-            "marketFlashUser",
-            JSON.stringify(user)
-        );
-
-
-        /* -----------------------------------------------
-           SESIÓN AUTOMÁTICA
-           ----------------------------------------------- */
-
-        localStorage.setItem(
-            "marketFlashLoggedIn",
-            "true"
-        );
-
-
-        /* -----------------------------------------------
-           MOSTRAR NOMBRE
-           ----------------------------------------------- */
-
-        userNameDisplay.textContent = name;
-
-
-        /* -----------------------------------------------
-           LIMPIAR FORMULARIO
-           ----------------------------------------------- */
-
-        registerForm.reset();
-
-
-        /* -----------------------------------------------
-           ENTRAR DIRECTAMENTE AL PANEL
-           ----------------------------------------------- */
-
-        showScreen(dashboardScreen);
-
-
-        alert(
-            "Cuenta creada correctamente. Bienvenido a Market Flash."
-        );
-
-    });
-
-
-    /* =====================================================
-       INICIO DE SESIÓN
-       ===================================================== */
-
-    loginForm.addEventListener("submit", event => {
-
-        event.preventDefault();
-
-
-        const cedula =
-            document.getElementById("login-cedula").value.trim();
-
-        const password =
-            document.getElementById("login-password").value;
-
-
-        /* -----------------------------------------------
-           BUSCAR USUARIO
-           ----------------------------------------------- */
-
-        const savedUser =
-            localStorage.getItem("marketFlashUser");
-
+        const savedUser = localStorage.getItem("marketFlashUser");
 
         if (!savedUser) {
-
-            alert(
-                "No existe una cuenta registrada en este dispositivo."
-            );
-
-            return;
+            return null;
         }
-
-
-        let user;
 
         try {
-
-            user = JSON.parse(savedUser);
-
+            return JSON.parse(savedUser);
         } catch (error) {
+            console.error("Error leyendo el usuario guardado:", error);
+            return null;
+        }
+    }
 
-            alert(
-                "No se pudo leer la información de la cuenta."
+    // ==============================
+    // ACTUALIZAR NOMBRE DEL USUARIO
+    // ==============================
+
+    function updateDashboardUser() {
+
+        const user = getSavedUser();
+
+        if (dashboardUserName && user) {
+            dashboardUserName.textContent = user.name || "Usuario";
+        }
+    }
+
+    // ==============================
+    // INICIO
+    // ==============================
+
+    if (loginButton) {
+
+        loginButton.addEventListener("click", () => {
+
+            showScreen(loginScreen);
+
+        });
+
+    }
+
+    // ==============================
+    // CREAR CUENTA
+    // ==============================
+
+    if (registerButton) {
+
+        registerButton.addEventListener("click", () => {
+
+            showScreen(registerScreen);
+
+        });
+
+    }
+
+    // ==============================
+    // VOLVER DESDE LOGIN
+    // ==============================
+
+    if (backFromLogin) {
+
+        backFromLogin.addEventListener("click", () => {
+
+            showScreen(welcomeScreen);
+
+        });
+
+    }
+
+    // ==============================
+    // VOLVER DESDE REGISTRO
+    // ==============================
+
+    if (backFromRegister) {
+
+        backFromRegister.addEventListener("click", () => {
+
+            showScreen(welcomeScreen);
+
+        });
+
+    }
+
+    // ==============================
+    // REGISTRAR CUENTA
+    // ==============================
+
+    if (registerForm) {
+
+        registerForm.addEventListener("submit", (event) => {
+
+            event.preventDefault();
+
+            const name = document.getElementById("register-name").value.trim();
+            const cedula = document.getElementById("register-cedula").value.trim();
+            const phone = document.getElementById("register-phone").value.trim();
+            const password = document.getElementById("register-password").value;
+            const passwordConfirm = document.getElementById("register-password-confirm").value;
+
+            // Verificar campos
+            if (!name || !cedula || !phone || !password || !passwordConfirm) {
+
+                alert("Por favor, completa todos los campos.");
+
+                return;
+
+            }
+
+            // Verificar contraseña
+            if (password !== passwordConfirm) {
+
+                alert("Las contraseñas no coinciden.");
+
+                return;
+
+            }
+
+            // Longitud mínima
+            if (password.length < 6) {
+
+                alert("La contraseña debe tener al menos 6 caracteres.");
+
+                return;
+
+            }
+
+            // Crear usuario
+            const user = {
+                name: name,
+                cedula: cedula,
+                phone: phone,
+                password: password
+            };
+
+            // Guardar usuario
+            localStorage.setItem(
+                "marketFlashUser",
+                JSON.stringify(user)
             );
 
-            return;
-        }
+            // Mantener sesión iniciada
+            localStorage.setItem(
+                "marketFlashLoggedIn",
+                "true"
+            );
 
+            // Actualizar nombre
+            updateDashboardUser();
 
-        /* -----------------------------------------------
-           COMPROBAR CÉDULA
-           ----------------------------------------------- */
+            // Limpiar formulario
+            registerForm.reset();
 
-        if (cedula !== user.cedula) {
+            // Entrar directamente a Market Flash
+            showScreen(dashboardScreen);
 
-            alert("El número de cédula no es correcto.");
+            alert("¡Cuenta creada correctamente! Bienvenido a Market Flash.");
 
-            return;
-        }
+        });
 
+    }
 
-        /* -----------------------------------------------
-           COMPROBAR CONTRASEÑA
-           ----------------------------------------------- */
+    // ==============================
+    // INICIAR SESIÓN
+    // ==============================
 
-        if (password !== user.password) {
+    if (loginForm) {
 
-            alert("La contraseña no es correcta.");
+        loginForm.addEventListener("submit", (event) => {
 
-            return;
-        }
+            event.preventDefault();
 
+            const cedula = document.getElementById("login-cedula").value.trim();
+            const password = document.getElementById("login-password").value;
 
-        /* -----------------------------------------------
-           CREAR SESIÓN
-           ----------------------------------------------- */
+            const user = getSavedUser();
 
-        localStorage.setItem(
-            "marketFlashLoggedIn",
-            "true"
-        );
+            // No existe cuenta
+            if (!user) {
 
+                alert("No existe una cuenta registrada. Primero debes crear una cuenta.");
 
-        userNameDisplay.textContent = user.name;
+                return;
 
+            }
 
-        loginForm.reset();
+            // Verificar datos
+            if (
+                cedula === user.cedula &&
+                password === user.password
+            ) {
 
+                // Guardar sesión
+                localStorage.setItem(
+                    "marketFlashLoggedIn",
+                    "true"
+                );
 
-        showScreen(dashboardScreen);
+                // Actualizar nombre
+                updateDashboardUser();
 
-    });
+                // Limpiar formulario
+                loginForm.reset();
 
+                // Entrar al Dashboard
+                showScreen(dashboardScreen);
 
-    /* =====================================================
-       ABRIR CONFIGURACIÓN
-       ===================================================== */
+            } else {
 
-    settingsButton.addEventListener("click", () => {
+                alert("La cédula o la contraseña son incorrectas.");
 
-        settingsPanel.classList.add("open");
+            }
 
-    });
+        });
 
+    }
 
-    /* =====================================================
-       CERRAR CONFIGURACIÓN
-       ===================================================== */
+    // ==============================
+    // ABRIR CONFIGURACIÓN
+    // ==============================
 
-    closeSettings.addEventListener("click", () => {
+    if (settingsButton) {
 
-        settingsPanel.classList.remove("open");
+        settingsButton.addEventListener("click", () => {
 
-    });
+            if (settingsPanel) {
+                settingsPanel.classList.add("open");
+            }
 
+        });
 
-    /* =====================================================
-       CERRAR SESIÓN
-       ===================================================== */
+    }
 
-    logoutButton.addEventListener("click", () => {
+    // ==============================
+    // CERRAR CONFIGURACIÓN
+    // ==============================
 
-        localStorage.removeItem(
-            "marketFlashLoggedIn"
-        );
+    if (closeSettingsButton) {
 
-        settingsPanel.classList.remove("open");
+        closeSettingsButton.addEventListener("click", () => {
 
-        showScreen(welcomeScreen);
+            if (settingsPanel) {
+                settingsPanel.classList.remove("open");
+            }
 
-    });
+        });
 
+    }
 
-    /* =====================================================
-       COMPROBAR SI YA EXISTE UNA SESIÓN
-       ===================================================== */
+    // ==============================
+    // CERRAR SESIÓN
+    // ==============================
 
-    const loggedIn =
-        localStorage.getItem("marketFlashLoggedIn");
+    if (logoutButton) {
 
-    const savedUser =
-        localStorage.getItem("marketFlashUser");
+        logoutButton.addEventListener("click", () => {
 
+            // Eliminar solamente la sesión activa
+            localStorage.removeItem("marketFlashLoggedIn");
+
+            // Cerrar panel de configuración
+            if (settingsPanel) {
+                settingsPanel.classList.remove("open");
+            }
+
+            // Volver a pantalla inicial
+            showScreen(welcomeScreen);
+
+        });
+
+    }
+
+    // ==============================
+    // RECUPERAR SESIÓN AL CARGAR
+    // ==============================
+
+    const loggedIn = localStorage.getItem("marketFlashLoggedIn");
+    const savedUser = getSavedUser();
 
     if (loggedIn === "true" && savedUser) {
 
-        try {
+        // Hay una sesión activa.
+        // No mostrar INICIO ni CREAR CUENTA.
+        // Entrar directamente al Dashboard.
 
-            const user = JSON.parse(savedUser);
+        updateDashboardUser();
 
-            userNameDisplay.textContent =
-                user.name || "Market Flash";
+        showScreen(dashboardScreen);
 
-        } catch (error) {
+    } else {
 
-            localStorage.removeItem(
-                "marketFlashLoggedIn"
-            );
-
-        }
+        // No hay sesión activa.
+        showScreen(welcomeScreen);
 
     }
-
-
-    /* =====================================================
-       PANTALLA INICIAL
-       ===================================================== */
-
-    showScreen(welcomeScreen);
 
 });
