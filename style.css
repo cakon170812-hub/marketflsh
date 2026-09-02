@@ -1,25 +1,27 @@
-/* ========================================
-   MARKET FLASH
-   DISEÑO DIGITAL 2028
-======================================== */
-
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
 }
+
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
 
 body {
     font-family: Arial, Helvetica, sans-serif;
 
-    min-height: 100vh;
-
     background:
         radial-gradient(
             circle at center,
-            #12243d 0%,
-            #07101c 45%,
-            #02050a 100%
+            #08283a 0%,
+            #03111c 35%,
+            #01060b 70%,
+            #000208 100%
         );
 
     color: white;
@@ -28,9 +30,9 @@ body {
 }
 
 
-/* ========================================
+/* =========================================
    FONDO DIGITAL
-======================================== */
+========================================= */
 
 body::before {
 
@@ -40,50 +42,44 @@ body::before {
 
     inset: 0;
 
-    background:
+    pointer-events: none;
+
+    background-image:
+
         linear-gradient(
-            rgba(0, 217, 255, 0.035) 1px,
+            rgba(0, 229, 255, 0.035) 1px,
             transparent 1px
         ),
+
         linear-gradient(
             90deg,
-            rgba(0, 217, 255, 0.035) 1px,
+            rgba(0, 229, 255, 0.035) 1px,
             transparent 1px
         );
 
     background-size: 35px 35px;
 
-    pointer-events: none;
-
     z-index: 0;
 }
 
 
-/* ========================================
+/* =========================================
    PANTALLAS
-======================================== */
+========================================= */
 
 .pantalla {
 
-    position: relative;
-
-    z-index: 2;
+    display: none;
 
     min-height: 100vh;
 
-    width: 100%;
+    position: relative;
 
-    display: none;
+    z-index: 1;
 
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    padding: 30px;
-
+    padding: 25px 20px;
 }
+
 
 .pantalla.activa {
 
@@ -92,399 +88,522 @@ body::before {
 }
 
 
-/* ========================================
-   LOGO
-======================================== */
+/* =========================================
+   PANTALLA PRINCIPAL
+========================================= */
 
-.logo-container {
+#pantallaPrincipal {
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
 
     text-align: center;
 
+}
+
+
+/* =========================================
+   LOGO
+========================================= */
+
+.logo-principal {
+
+    position: relative;
+
     margin-bottom: 55px;
-
-}
-
-.rayo {
-
-    font-size: 100px;
-
-    color: #00eaff;
-
-    display: inline-block;
-
-    animation: rayoEnergia 1.4s infinite alternate;
-
-}
-
-.logo-container h1 {
-
-    font-size: 42px;
-
-    letter-spacing: 5px;
-
-    font-weight: 900;
-
-    margin-top: 10px;
-
-    text-shadow:
-        0 0 8px #00eaff,
-        0 0 20px #008cff,
-        0 0 40px #006eff;
-
-}
-
-.logo-container p {
-
-    margin-top: 12px;
-
-    font-size: 13px;
-
-    letter-spacing: 6px;
-
-    color: #72eaff;
-
-}
-
-
-/* ========================================
-   ANIMACIÓN DEL RAYO
-======================================== */
-
-@keyframes rayoEnergia {
-
-    0% {
-
-        opacity: 0.35;
-
-        transform: scale(0.96);
-
-        filter:
-            drop-shadow(0 0 3px #00eaff)
-            drop-shadow(0 0 8px #008cff);
-
-    }
-
-    50% {
-
-        opacity: 1;
-
-        transform: scale(1.03);
-
-    }
-
-    100% {
-
-        opacity: 0.45;
-
-        transform: scale(0.98);
-
-        filter:
-            drop-shadow(0 0 10px #00eaff)
-            drop-shadow(0 0 35px #008cff)
-            drop-shadow(0 0 60px #00eaff);
-
-    }
-
-}
-
-
-/* ========================================
-   BOTONES PRINCIPALES
-======================================== */
-
-.menu-principal {
-
-    width: 100%;
-
-    max-width: 430px;
 
     display: flex;
 
     flex-direction: column;
 
-    gap: 20px;
+    align-items: center;
 
 }
 
-.boton-principal {
+
+/* FLASH GRANDE DETRÁS */
+
+.flash-detras {
+
+    position: absolute;
+
+    top: -90px;
+
+    font-size: 230px;
+
+    line-height: 1;
+
+    color: #00eaff;
+
+    opacity: .20;
+
+    filter:
+
+        drop-shadow(0 0 15px #00eaff)
+
+        drop-shadow(0 0 40px #00aaff)
+
+        drop-shadow(0 0 80px #0077ff);
+
+    animation: flashGrande 1.8s infinite;
+
+    z-index: -1;
+}
+
+
+@keyframes flashGrande {
+
+    0% {
+
+        opacity: .18;
+
+        transform: scale(.95);
+
+    }
+
+    35% {
+
+        opacity: .38;
+
+        transform: scale(1.05);
+
+    }
+
+    50% {
+
+        opacity: .08;
+
+        transform: scale(.98);
+
+    }
+
+    65% {
+
+        opacity: .42;
+
+        transform: scale(1.08);
+
+    }
+
+    100% {
+
+        opacity: .18;
+
+        transform: scale(.95);
+
+    }
+}
+
+
+/* MICHAEL */
+
+.nombre-michael {
+
+    font-size: clamp(42px, 10vw, 85px);
+
+    font-weight: 900;
+
+    letter-spacing: 8px;
+
+    color: white;
+
+    text-shadow:
+
+        0 0 8px #ffffff,
+
+        0 0 18px #00eaff,
+
+        0 0 35px #009dff,
+
+        0 0 65px #006cff;
+}
+
+
+/* FLASH */
+
+.nombre-flash {
+
+    margin-top: -4px;
+
+    font-size: clamp(52px, 12vw, 100px);
+
+    font-weight: 900;
+
+    letter-spacing: 12px;
+
+    color: #00eaff;
+
+    text-shadow:
+
+        0 0 10px #00eaff,
+
+        0 0 25px #00d4ff,
+
+        0 0 50px #008cff,
+
+        0 0 90px #0066ff;
+
+    animation: textoFlash 1.8s infinite;
+}
+
+
+@keyframes textoFlash {
+
+    0%,
+    45%,
+    100% {
+
+        opacity: 1;
+
+    }
+
+    50%,
+    60% {
+
+        opacity: .55;
+
+    }
+}
+
+
+.subtitulo {
+
+    margin-top: 18px;
+
+    color: #8edce9;
+
+    font-size: 11px;
+
+    letter-spacing: 4px;
+}
+
+
+/* =========================================
+   BOTONES PRINCIPALES
+========================================= */
+
+.botones-principales {
+
+    width: min(430px, 100%);
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 18px;
+}
+
+
+.boton {
 
     width: 100%;
 
-    height: 68px;
+    min-height: 62px;
 
-    border-radius: 18px;
+    border-radius: 15px;
 
-    border: 1px solid rgba(0, 234, 255, 0.8);
+    border: 1px solid rgba(0, 225, 255, .7);
 
     background:
+
         linear-gradient(
-            135deg,
-            rgba(0, 234, 255, 0.13),
-            rgba(0, 80, 150, 0.08)
+            100deg,
+            rgba(0, 100, 150, .25),
+            rgba(0, 220, 255, .08)
         );
 
     color: white;
 
-    font-size: 17px;
+    font-weight: 800;
 
-    font-weight: bold;
+    font-size: 15px;
 
     letter-spacing: 2px;
 
     cursor: pointer;
 
-    box-shadow:
-        0 0 12px rgba(0, 234, 255, 0.25),
-        inset 0 0 20px rgba(0, 234, 255, 0.05);
+    transition: .3s;
 
-    transition: 0.3s;
+    position: relative;
+
+    overflow: hidden;
+
+    box-shadow:
+
+        0 0 12px rgba(0, 220, 255, .20),
+
+        inset 0 0 15px rgba(0, 220, 255, .05);
+}
+
+
+.boton:hover {
+
+    transform: translateY(-3px);
+
+    box-shadow:
+
+        0 0 25px rgba(0, 220, 255, .50),
+
+        inset 0 0 25px rgba(0, 220, 255, .12);
+}
+
+
+.boton:active {
+
+    transform: scale(.97);
 
 }
 
-.boton-principal span {
+
+.boton-flash {
 
     margin-right: 12px;
 
-    animation: rayoEnergia 1.4s infinite alternate;
+    font-size: 22px;
 
+    animation: botonRayo 1.5s infinite;
 }
 
-.boton-principal:hover {
 
-    transform: translateY(-3px) scale(1.02);
+@keyframes botonRayo {
+
+    0%,
+    45%,
+    100% {
+
+        opacity: 1;
+
+    }
+
+    50%,
+    60% {
+
+        opacity: .25;
+
+    }
+}
+
+
+/* INICIO */
+
+.boton-inicio {
 
     border-color: #00eaff;
 
-    box-shadow:
-        0 0 20px #00eaff,
-        0 0 45px rgba(0, 174, 255, 0.35);
-
 }
 
 
-/* ========================================
+/* CREAR CUENTA */
+
+.boton-registro {
+
+    border-color: #a855ff;
+
+    background:
+
+        linear-gradient(
+            100deg,
+            rgba(130, 30, 200, .22),
+            rgba(0, 210, 255, .10)
+        );
+}
+
+
+.boton-registro:hover {
+
+    box-shadow:
+
+        0 0 25px rgba(170, 70, 255, .45),
+
+        0 0 45px rgba(0, 220, 255, .20);
+}
+
+
+/* =========================================
    VENTANAS
-======================================== */
+========================================= */
 
 .ventana {
 
-    width: 100%;
+    width: min(500px, 100%);
 
-    max-width: 470px;
+    margin: auto;
 
-    padding: 35px;
+    padding: 30px;
 
-    border-radius: 25px;
+    border-radius: 22px;
 
-    border: 1px solid rgba(0, 234, 255, 0.5);
+    border: 1px solid rgba(0, 220, 255, .35);
 
     background:
-        rgba(3, 13, 25, 0.88);
+
+        rgba(2, 13, 23, .90);
 
     box-shadow:
-        0 0 30px rgba(0, 217, 255, 0.15),
-        inset 0 0 30px rgba(0, 217, 255, 0.04);
 
-    backdrop-filter: blur(12px);
+        0 0 30px rgba(0, 200, 255, .14),
+
+        inset 0 0 30px rgba(0, 200, 255, .04);
+
+    backdrop-filter: blur(15px);
+}
+
+
+.titulo {
 
     text-align: center;
 
-}
+    font-size: 24px;
 
-.rayo-pequeno {
+    font-weight: 900;
 
-    font-size: 50px;
+    letter-spacing: 3px;
 
-    color: #00eaff;
+    color: #8cecff;
 
-    animation: rayoEnergia 1.4s infinite alternate;
-
-}
-
-.ventana h2 {
-
-    margin-top: 10px;
-
-    font-size: 30px;
-
-    letter-spacing: 2px;
+    margin-bottom: 10px;
 
     text-shadow:
-        0 0 10px #00eaff;
 
-}
-
-.subtitulo {
-
-    color: #7adff0;
-
-    margin: 10px 0 25px;
-
+        0 0 15px #00d9ff;
 }
 
 
-/* ========================================
-   CAMPOS
-======================================== */
+.titulo span {
 
-.ventana input[type="text"],
-.ventana input[type="tel"],
-.ventana input[type="password"] {
+    margin-right: 8px;
+
+}
+
+
+.descripcion {
+
+    text-align: center;
+
+    color: #638c98;
+
+    font-size: 13px;
+
+    margin-bottom: 25px;
+}
+
+
+/* =========================================
+   INPUTS
+========================================= */
+
+.ventana input {
 
     width: 100%;
 
-    height: 55px;
+    height: 53px;
 
-    margin-bottom: 15px;
+    margin-bottom: 13px;
 
-    padding: 0 17px;
+    padding: 0 16px;
 
-    border-radius: 14px;
+    border-radius: 11px;
 
-    border: 1px solid rgba(0, 217, 255, 0.35);
-
-    background: rgba(0, 0, 0, 0.35);
-
-    color: white;
-
-    font-size: 15px;
+    border: 1px solid rgba(0, 220, 255, .22);
 
     outline: none;
 
+    background: rgba(0, 0, 0, .35);
+
+    color: white;
+
+    font-size: 14px;
+
+    transition: .25s;
 }
+
 
 .ventana input:focus {
 
     border-color: #00eaff;
 
     box-shadow:
-        0 0 15px rgba(0, 234, 255, 0.25);
 
+        0 0 15px rgba(0, 220, 255, .22);
 }
+
 
 .ventana input::placeholder {
 
-    color: #78909c;
-
+    color: #577680;
 }
 
 
-/* ========================================
-   TÉRMINOS
-======================================== */
+/* =========================================
+   BOTONES INTERNOS
+========================================= */
 
-.terminos {
+.boton-crear {
 
-    display: flex;
+    margin-top: 8px;
 
-    align-items: center;
-
-    gap: 8px;
-
-    font-size: 12px;
-
-    color: #a7c9d0;
-
-    margin: 5px 0 20px;
-
-    text-align: left;
-
-}
-
-.terminos input {
-
-    width: 17px;
-
-    height: 17px;
-
+    border-color: #a855ff;
 }
 
 
-/* ========================================
-   BOTÓN ACCIÓN
-======================================== */
+.boton-entrar {
 
-.boton-accion {
+    margin-top: 8px;
 
-    width: 100%;
-
-    height: 58px;
-
-    border: none;
-
-    border-radius: 15px;
-
-    background:
-        linear-gradient(
-            90deg,
-            #0077ff,
-            #00d9ff
-        );
-
-    color: white;
-
-    font-size: 16px;
-
-    font-weight: bold;
-
-    letter-spacing: 1px;
-
-    cursor: pointer;
-
-    box-shadow:
-        0 0 15px rgba(0, 217, 255, 0.4);
-
-    transition: 0.3s;
-
+    border-color: #00eaff;
 }
 
-.boton-accion:hover {
-
-    transform: scale(1.02);
-
-    box-shadow:
-        0 0 25px #00d9ff,
-        0 0 50px rgba(0, 217, 255, 0.3);
-
-}
-
-
-/* ========================================
-   VOLVER
-======================================== */
 
 .boton-volver {
 
-    margin-top: 18px;
+    width: 100%;
 
-    background: transparent;
+    margin-top: 12px;
 
-    border: none;
+    min-height: 48px;
 
-    color: #72eaff;
+    border-radius: 11px;
+
+    border: 1px solid rgba(130, 170, 180, .25);
+
+    background: rgba(255, 255, 255, .03);
+
+    color: #8aaeb7;
 
     cursor: pointer;
 
-    font-size: 14px;
-
+    transition: .25s;
 }
 
 
-/* ========================================
-   BARRA SUPERIOR
-======================================== */
+.boton-volver:hover {
+
+    color: white;
+
+    border-color: #00d9ff;
+}
+
+
+/* =========================================
+   PANEL PRINCIPAL
+========================================= */
+
+#panelPrincipal {
+
+    padding: 0 0 30px;
+
+    flex-direction: column;
+}
+
 
 .barra-superior {
 
-    position: fixed;
-
-    top: 0;
-
-    left: 0;
-
     width: 100%;
 
-    height: 70px;
+    height: 72px;
 
     display: flex;
 
@@ -492,363 +611,291 @@ body::before {
 
     justify-content: space-between;
 
-    padding: 0 25px;
+    padding: 0 18px;
 
-    background:
-        rgba(2, 8, 16, 0.92);
+    border-bottom: 1px solid rgba(0, 220, 255, .15);
 
-    border-bottom:
-        1px solid rgba(0, 217, 255, 0.25);
+    background: rgba(1, 8, 15, .90);
 
-    backdrop-filter: blur(10px);
-
+    backdrop-filter: blur(15px);
 }
 
-.marca {
 
-    color: #00eaff;
+.marca-pequena {
+
+    font-size: 14px;
 
     font-weight: bold;
 
     letter-spacing: 2px;
 
-    text-shadow:
-        0 0 10px #00eaff;
+    color: #8cecff;
+
+    text-shadow: 0 0 10px #00d9ff;
+}
+
+
+.marca-pequena span {
+
+    color: #00eaff;
 
 }
 
-.cerrar-sesion {
 
-    background: transparent;
+.boton-configuracion {
 
-    border: 1px solid rgba(0, 217, 255, 0.4);
+    width: 45px;
+
+    height: 45px;
+
+    border-radius: 50%;
+
+    border: 1px solid rgba(0, 220, 255, .4);
+
+    background: rgba(0, 150, 200, .08);
 
     color: white;
 
-    padding: 9px 15px;
-
-    border-radius: 10px;
+    font-size: 20px;
 
     cursor: pointer;
 
+    transition: .3s;
 }
 
 
-/* ========================================
-   CONTENIDO DE INICIO
-======================================== */
+.boton-configuracion:hover {
 
-.contenido-inicio {
+    transform: rotate(25deg);
 
-    width: 100%;
-
-    max-width: 1000px;
-
-    padding-top: 100px;
-
-    padding-bottom: 100px;
-
-}
-
-.contenido-inicio h2 {
-
-    font-size: 30px;
-
-    text-shadow:
-        0 0 10px #00d9ff;
-
-}
-
-.texto-inicio {
-
-    margin-top: 8px;
-
-    color: #8fbac4;
-
+    box-shadow: 0 0 18px rgba(0, 220, 255, .4);
 }
 
 
-/* ========================================
-   BUSCADOR
-======================================== */
+/* =========================================
+   CONTENIDO PANEL
+========================================= */
 
-.buscador {
+.contenido-panel {
 
-    display: flex;
+    width: min(900px, 100%);
 
-    margin: 30px 0;
+    margin: auto;
 
-    width: 100%;
-
-}
-
-.buscador input {
-
-    flex: 1;
-
-    height: 55px;
-
-    border-radius: 15px 0 0 15px;
-
-    border: 1px solid rgba(0, 217, 255, 0.35);
-
-    background: rgba(0, 0, 0, 0.35);
-
-    color: white;
-
-    padding: 0 18px;
-
-    outline: none;
-
-}
-
-.buscador button {
-
-    width: 65px;
-
-    border: none;
-
-    border-radius: 0 15px 15px 0;
-
-    background: #0077ff;
-
-    color: white;
-
-    cursor: pointer;
-
+    padding: 35px 20px;
 }
 
 
-/* ========================================
-   PUBLICACIONES
-======================================== */
-
-.publicaciones {
-
-    display: grid;
-
-    grid-template-columns:
-        repeat(auto-fit, minmax(250px, 1fr));
-
-    gap: 20px;
-
-}
-
-.sin-publicaciones {
-
-    grid-column: 1 / -1;
+.flash-panel {
 
     text-align: center;
 
-    padding: 60px 20px;
-
-    border:
-        1px dashed rgba(0, 217, 255, 0.3);
-
-    border-radius: 20px;
-
+    padding: 30px 10px;
 }
 
-.icono-publicacion {
+
+.flash-panel-rayo {
 
     font-size: 55px;
 
     color: #00eaff;
 
-    animation: rayoEnergia 1.4s infinite alternate;
+    filter: drop-shadow(0 0 20px #00eaff);
 
-}
-
-.sin-publicaciones h3 {
-
-    margin: 15px 0 8px;
-
-}
-
-.sin-publicaciones p {
-
-    color: #78909c;
-
+    animation: botonRayo 1.6s infinite;
 }
 
 
-/* ========================================
-   NAVEGACIÓN
-======================================== */
+.flash-panel h1 {
 
-.navegacion {
+    font-size: clamp(30px, 7vw, 60px);
 
-    position: fixed;
+    letter-spacing: 5px;
 
-    bottom: 0;
+    text-shadow:
 
-    left: 0;
+        0 0 15px #00d9ff,
 
-    width: 100%;
-
-    height: 75px;
-
-    display: flex;
-
-    justify-content: center;
-
-    gap: 25px;
-
-    background:
-        rgba(2, 8, 16, 0.95);
-
-    border-top:
-        1px solid rgba(0, 217, 255, 0.25);
-
-    backdrop-filter: blur(10px);
-
+        0 0 35px #008cff;
 }
 
-.navegacion button {
 
-    background: transparent;
+.flash-panel p {
 
-    border: none;
+    margin-top: 8px;
 
-    color: #a6cbd2;
+    color: #6094a0;
 
-    min-width: 70px;
-
-    cursor: pointer;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 4px;
-
-}
-
-.navegacion button:hover {
-
-    color: #00eaff;
-
-}
-
-.navegacion span {
+    letter-spacing: 4px;
 
     font-size: 11px;
+}
+
+
+.mensaje-panel {
+
+    text-align: center;
+
+    margin: 30px 0;
 
 }
 
 
-/* ========================================
-   PERFIL
-======================================== */
+.mensaje-panel h2 {
 
-.perfil {
+    font-size: 25px;
 
-    max-width: 450px;
-
+    color: #ffffff;
 }
 
-.foto-perfil {
 
-    width: 90px;
+.mensaje-panel p {
 
-    height: 90px;
+    margin-top: 10px;
 
-    margin: 20px auto;
+    color: #7197a1;
+}
 
-    border-radius: 50%;
 
-    display: flex;
+.espacio-funciones {
 
-    align-items: center;
+    padding: 30px;
 
-    justify-content: center;
+    border-radius: 18px;
 
-    font-size: 40px;
+    border: 1px dashed rgba(0, 220, 255, .25);
 
-    border: 2px solid #00d9ff;
+    text-align: center;
+
+    background: rgba(0, 150, 200, .04);
+}
+
+
+.titulo-funciones {
+
+    color: #7eddea;
+
+    letter-spacing: 2px;
+
+    font-weight: bold;
+
+    margin-bottom: 12px;
+}
+
+
+.espacio-funciones p {
+
+    color: #587b85;
+
+    line-height: 1.6;
+}
+
+
+/* =========================================
+   CONFIGURACIÓN
+========================================= */
+
+.opcion-config {
+
+    padding: 17px;
+
+    border-radius: 12px;
+
+    border: 1px solid rgba(0, 220, 255, .15);
+
+    margin-bottom: 20px;
+}
+
+
+.opcion-config strong {
+
+    display: block;
+
+    color: #8cecff;
+}
+
+
+.opcion-config small {
+
+    display: block;
+
+    margin-top: 6px;
+
+    color: #668a94;
+}
+
+
+.boton-cerrar {
+
+    border-color: rgba(255, 70, 90, .65);
+}
+
+
+.boton-cerrar:hover {
 
     box-shadow:
-        0 0 20px rgba(0, 217, 255, 0.4);
 
-}
-
-.datos-perfil {
-
-    text-align: left;
-
-    margin-top: 25px;
-
-    padding: 20px;
-
-    border-radius: 15px;
-
-    background: rgba(0, 0, 0, 0.25);
-
-}
-
-.datos-perfil p {
-
-    margin: 12px 0;
-
-    color: #a8cbd1;
-
+        0 0 20px rgba(255, 50, 80, .30);
 }
 
 
-/* ========================================
+/* =========================================
    PROPIEDAD
-======================================== */
+========================================= */
 
 .propiedad {
 
     position: fixed;
 
-    right: 15px;
+    right: 10px;
 
-    bottom: 8px;
+    bottom: 7px;
 
-    z-index: 20;
+    z-index: 100;
 
-    font-size: 9px;
+    color: rgba(120, 200, 215, .48);
 
-    color: rgba(255, 255, 255, 0.4);
+    font-size: 8px;
 
+    letter-spacing: .5px;
 }
 
 
-/* ========================================
-   MÓVIL
-======================================== */
+/* =========================================
+   CELULARES
+========================================= */
 
-@media (max-width: 600px) {
-
-    .logo-container h1 {
-
-        font-size: 30px;
-
-        letter-spacing: 3px;
-
-    }
-
-    .rayo {
-
-        font-size: 80px;
-
-    }
+@media (max-width: 500px) {
 
     .ventana {
 
-        padding: 25px 20px;
+        padding: 22px;
 
     }
 
-    .navegacion {
+    .flash-detras {
 
-        gap: 5px;
+        font-size: 190px;
+
+        top: -70px;
+
+    }
+
+    .nombre-michael {
+
+        letter-spacing: 4px;
+
+    }
+
+    .nombre-flash {
+
+        letter-spacing: 6px;
+
+    }
+
+    .subtitulo {
+
+        letter-spacing: 2px;
 
     }
 
