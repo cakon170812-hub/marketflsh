@@ -2,64 +2,50 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    <title>Michael Flash</title>
+    <title>Market Flash</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <!-- ==============================
+    <!-- =========================
          PANTALLA PRINCIPAL
-    =============================== -->
-
+    ========================== -->
     <section id="pantallaPrincipal" class="pantalla activa">
 
-        <div class="logo-principal">
+        <div class="efecto-grid"></div>
+        <div class="particulas"></div>
 
-            <div class="flash-detras">
-                ⚡
-            </div>
+        <div class="logo-contenedor">
 
-            <div class="nombre-michael">
-                MICHAEL
-            </div>
+            <div class="flash-detras">⚡</div>
 
-            <div class="nombre-flash">
-                FLASH
-            </div>
+            <h1 class="logo-market">MARKET</h1>
+            <h1 class="logo-flash">FLASH</h1>
 
             <p class="subtitulo">
-                EL MERCADO DIGITAL DEL FUTURO
+                TU MERCADO DIGITAL DEL FUTURO
             </p>
 
         </div>
 
-
         <div class="botones-principales">
 
-            <button
-                class="boton boton-inicio"
-                onclick="abrirInicio()"
-            >
-                <span class="boton-flash">⚡</span>
+            <button class="boton boton-inicio" onclick="abrirInicio()">
+                <span class="rayo-boton">⚡</span>
                 <span>INICIO</span>
             </button>
 
-
-            <button
-                class="boton boton-registro"
-                onclick="abrirRegistro()"
-            >
-                <span class="boton-flash">⚡</span>
+            <button class="boton boton-registro" onclick="abrirRegistro()">
+                <span class="rayo-boton">⚡</span>
                 <span>CREAR CUENTA</span>
             </button>
 
         </div>
 
-
         <div class="propiedad">
             Propiedad Julio Alcántara Gomeras
         </div>
@@ -67,99 +53,92 @@
     </section>
 
 
-
-    <!-- ==============================
+    <!-- =========================
          REGISTRO
-    =============================== -->
-
+    ========================== -->
     <section id="pantallaRegistro" class="pantalla">
 
         <div class="ventana">
 
-            <div class="titulo">
-                <span>⚡</span>
-                CREAR CUENTA
+            <div class="mini-logo">
+                ⚡ MARKET FLASH
             </div>
 
+            <h2>CREAR CUENTA</h2>
+
             <p class="descripcion">
-                Regístrate en Michael Flash
+                Regístrate para entrar a Market Flash
             </p>
 
+            <div class="formulario">
 
-            <input
-                id="nombre"
-                type="text"
-                placeholder="Nombre completo"
-            >
+                <input
+                    type="text"
+                    id="nombreCompleto"
+                    placeholder="Nombre completo"
+                    autocomplete="name"
+                >
 
+                <input
+                    type="text"
+                    id="apodo"
+                    placeholder="Apodo / nombre de usuario"
+                    autocomplete="username"
+                >
 
-            <input
-                id="apodo"
-                type="text"
-                placeholder="Apodo / nombre de usuario"
-            >
+                <input
+                    type="text"
+                    id="cedula"
+                    placeholder="Número de cédula"
+                    inputmode="numeric"
+                >
 
+                <input
+                    type="tel"
+                    id="telefono"
+                    placeholder="Número de teléfono"
+                    inputmode="tel"
+                >
 
-            <input
-                id="cedula"
-                type="text"
-                placeholder="Número de cédula"
-            >
+                <input
+                    type="email"
+                    id="correo"
+                    placeholder="Correo electrónico"
+                    autocomplete="email"
+                >
 
+                <input
+                    type="password"
+                    id="contrasena"
+                    placeholder="Contraseña"
+                    autocomplete="new-password"
+                >
 
-            <input
-                id="telefono"
-                type="tel"
-                placeholder="Número de teléfono"
-            >
+                <input
+                    type="password"
+                    id="confirmarContrasena"
+                    placeholder="Confirmar contraseña"
+                    autocomplete="new-password"
+                >
 
+                <input
+                    type="text"
+                    id="direccion"
+                    placeholder="Dirección"
+                    autocomplete="street-address"
+                >
 
-            <input
-                id="correo"
-                type="email"
-                placeholder="Correo electrónico"
-            >
+                <button class="boton boton-accion" onclick="crearCuenta()">
+                    ⚡ CREAR CUENTA
+                </button>
 
+                <button class="boton boton-secundario" onclick="volverPrincipal()">
+                    VOLVER
+                </button>
 
-            <input
-                id="password"
-                type="password"
-                placeholder="Contraseña"
-            >
-
-
-            <input
-                id="confirmarPassword"
-                type="password"
-                placeholder="Confirmar contraseña"
-            >
-
-
-            <input
-                id="direccion"
-                type="text"
-                placeholder="Dirección"
-            >
-
-
-            <button
-                class="boton boton-crear"
-                onclick="crearCuenta()"
-            >
-                <span>⚡</span>
-                CREAR CUENTA
-            </button>
-
-
-            <button
-                class="boton-volver"
-                onclick="volverPrincipal()"
-            >
-                ← VOLVER
-            </button>
+            </div>
 
         </div>
-
 
         <div class="propiedad">
             Propiedad Julio Alcántara Gomeras
@@ -168,57 +147,51 @@
     </section>
 
 
-
-    <!-- ==============================
+    <!-- =========================
          INICIO DE SESIÓN
-    =============================== -->
-
+    ========================== -->
     <section id="pantallaLogin" class="pantalla">
 
-        <div class="ventana">
+        <div class="ventana ventana-login">
 
-            <div class="titulo">
-                <span>⚡</span>
-                INICIO
+            <div class="mini-logo">
+                ⚡ MARKET FLASH
             </div>
 
+            <h2>INICIO</h2>
+
             <p class="descripcion">
-                Entra a Michael Flash
+                Entra a tu cuenta
             </p>
 
+            <div class="formulario">
 
-            <input
-                id="loginCedula"
-                type="text"
-                placeholder="Número de cédula"
-            >
+                <input
+                    type="text"
+                    id="loginCedula"
+                    placeholder="Número de cédula"
+                    inputmode="numeric"
+                    autocomplete="username"
+                >
 
+                <input
+                    type="password"
+                    id="loginContrasena"
+                    placeholder="Contraseña"
+                    autocomplete="current-password"
+                >
 
-            <input
-                id="loginPassword"
-                type="password"
-                placeholder="Contraseña"
-            >
+                <button class="boton boton-accion" onclick="iniciarSesion()">
+                    ⚡ ENTRAR
+                </button>
 
+                <button class="boton boton-secundario" onclick="volverPrincipal()">
+                    VOLVER
+                </button>
 
-            <button
-                class="boton boton-entrar"
-                onclick="iniciarSesion()"
-            >
-                <span>⚡</span>
-                ENTRAR
-            </button>
-
-
-            <button
-                class="boton-volver"
-                onclick="volverPrincipal()"
-            >
-                ← VOLVER
-            </button>
+            </div>
 
         </div>
-
 
         <div class="propiedad">
             Propiedad Julio Alcántara Gomeras
@@ -227,79 +200,50 @@
     </section>
 
 
-
-    <!-- ==============================
+    <!-- =========================
          PANEL PRINCIPAL
-    =============================== -->
-
+    ========================== -->
     <section id="panelPrincipal" class="pantalla panel">
 
         <header class="barra-superior">
 
-            <div class="marca-pequena">
+            <div class="marca-panel">
                 <span>⚡</span>
-                MICHAEL FLASH
+                MARKET FLASH
             </div>
-
 
             <button
                 class="boton-configuracion"
                 onclick="abrirConfiguracion()"
+                aria-label="Configuración"
             >
                 ⚙️
             </button>
 
         </header>
 
-
         <main class="contenido-panel">
 
-            <div class="flash-panel">
+            <div class="tarjeta-bienvenida">
 
-                <div class="flash-panel-rayo">
+                <div class="rayo-panel">
                     ⚡
                 </div>
 
-                <h1>
-                    MICHAEL FLASH
-                </h1>
+                <h1>MARKET FLASH</h1>
 
                 <p>
-                    PANEL PRINCIPAL
+                    Bienvenido a tu mercado digital.
                 </p>
 
-            </div>
-
-
-            <div class="mensaje-panel">
-
-                <h2>
-                    Bienvenidos a Michael Flash
-                </h2>
-
-                <p>
-                    Este será el inicio de tu plataforma.
-                </p>
-
-            </div>
-
-
-            <div class="espacio-funciones">
-
-                <div class="titulo-funciones">
-                    ⚡ MICHAEL FLASH
+                <div class="estado-sistema">
+                    SISTEMA ACTIVO
                 </div>
-
-                <p>
-                    Aquí iremos agregando todas las funciones
-                    de la plataforma paso a paso.
-                </p>
 
             </div>
 
         </main>
 
-
         <div class="propiedad">
             Propiedad Julio Alcántara Gomeras
         </div>
@@ -307,51 +251,46 @@
     </section>
 
 
-
-    <!-- ==============================
+    <!-- =========================
          CONFIGURACIÓN
-    =============================== -->
-
+    ========================== -->
     <section id="pantallaConfiguracion" class="pantalla">
 
-        <div class="ventana">
+        <div class="ventana configuracion">
 
-            <div class="titulo">
-                <span>⚙️</span>
-                CONFIGURACIÓN
+            <div class="mini-logo">
+                ⚡ MARKET FLASH
             </div>
 
+            <h2>CONFIGURACIÓN</h2>
 
-            <div class="opcion-config">
+            <div class="opciones-configuracion">
 
-                <strong>
-                    CUENTA
-                </strong>
+                <div class="opcion">
+                    <span>👤</span>
+                    <div>
+                        <strong>CUENTA</strong>
+                        <small>Configuración de la cuenta</small>
+                    </div>
+                </div>
 
-                <small>
-                    Opciones de tu cuenta
-                </small>
+                <button
+                    class="boton boton-salir"
+                    onclick="cerrarSesion()"
+                >
+                    🚪 CERRAR SESIÓN
+                </button>
+
+                <button
+                    class="boton boton-secundario"
+                    onclick="volverPanel()"
+                >
+                    VOLVER
+                </button>
 
             </div>
-
-
-            <button
-                class="boton boton-cerrar"
-                onclick="cerrarSesion()"
-            >
-                🚪 CERRAR SESIÓN
-            </button>
-
-
-            <button
-                class="boton-volver"
-                onclick="volverPanel()"
-            >
-                ← VOLVER
-            </button>
 
         </div>
-
 
         <div class="propiedad">
             Propiedad Julio Alcántara Gomeras
@@ -359,11 +298,6 @@
 
     </section>
 
-
-
-    <!-- ==============================
-         JAVASCRIPT
-    =============================== -->
 
     <script src="script.js"></script>
 
