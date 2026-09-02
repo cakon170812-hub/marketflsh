@@ -1,1 +1,855 @@
+/* ========================================
+   MARKET FLASH
+   DISEÑO DIGITAL 2028
+======================================== */
 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+
+    min-height: 100vh;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #12243d 0%,
+            #07101c 45%,
+            #02050a 100%
+        );
+
+    color: white;
+
+    overflow-x: hidden;
+}
+
+
+/* ========================================
+   FONDO DIGITAL
+======================================== */
+
+body::before {
+
+    content: "";
+
+    position: fixed;
+
+    inset: 0;
+
+    background:
+        linear-gradient(
+            rgba(0, 217, 255, 0.035) 1px,
+            transparent 1px
+        ),
+        linear-gradient(
+            90deg,
+            rgba(0, 217, 255, 0.035) 1px,
+            transparent 1px
+        );
+
+    background-size: 35px 35px;
+
+    pointer-events: none;
+
+    z-index: 0;
+}
+
+
+/* ========================================
+   PANTALLAS
+======================================== */
+
+.pantalla {
+
+    position: relative;
+
+    z-index: 2;
+
+    min-height: 100vh;
+
+    width: 100%;
+
+    display: none;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 30px;
+
+}
+
+.pantalla.activa {
+
+    display: flex;
+
+}
+
+
+/* ========================================
+   LOGO
+======================================== */
+
+.logo-container {
+
+    text-align: center;
+
+    margin-bottom: 55px;
+
+}
+
+.rayo {
+
+    font-size: 100px;
+
+    color: #00eaff;
+
+    display: inline-block;
+
+    animation: rayoEnergia 1.4s infinite alternate;
+
+}
+
+.logo-container h1 {
+
+    font-size: 42px;
+
+    letter-spacing: 5px;
+
+    font-weight: 900;
+
+    margin-top: 10px;
+
+    text-shadow:
+        0 0 8px #00eaff,
+        0 0 20px #008cff,
+        0 0 40px #006eff;
+
+}
+
+.logo-container p {
+
+    margin-top: 12px;
+
+    font-size: 13px;
+
+    letter-spacing: 6px;
+
+    color: #72eaff;
+
+}
+
+
+/* ========================================
+   ANIMACIÓN DEL RAYO
+======================================== */
+
+@keyframes rayoEnergia {
+
+    0% {
+
+        opacity: 0.35;
+
+        transform: scale(0.96);
+
+        filter:
+            drop-shadow(0 0 3px #00eaff)
+            drop-shadow(0 0 8px #008cff);
+
+    }
+
+    50% {
+
+        opacity: 1;
+
+        transform: scale(1.03);
+
+    }
+
+    100% {
+
+        opacity: 0.45;
+
+        transform: scale(0.98);
+
+        filter:
+            drop-shadow(0 0 10px #00eaff)
+            drop-shadow(0 0 35px #008cff)
+            drop-shadow(0 0 60px #00eaff);
+
+    }
+
+}
+
+
+/* ========================================
+   BOTONES PRINCIPALES
+======================================== */
+
+.menu-principal {
+
+    width: 100%;
+
+    max-width: 430px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 20px;
+
+}
+
+.boton-principal {
+
+    width: 100%;
+
+    height: 68px;
+
+    border-radius: 18px;
+
+    border: 1px solid rgba(0, 234, 255, 0.8);
+
+    background:
+        linear-gradient(
+            135deg,
+            rgba(0, 234, 255, 0.13),
+            rgba(0, 80, 150, 0.08)
+        );
+
+    color: white;
+
+    font-size: 17px;
+
+    font-weight: bold;
+
+    letter-spacing: 2px;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 0 12px rgba(0, 234, 255, 0.25),
+        inset 0 0 20px rgba(0, 234, 255, 0.05);
+
+    transition: 0.3s;
+
+}
+
+.boton-principal span {
+
+    margin-right: 12px;
+
+    animation: rayoEnergia 1.4s infinite alternate;
+
+}
+
+.boton-principal:hover {
+
+    transform: translateY(-3px) scale(1.02);
+
+    border-color: #00eaff;
+
+    box-shadow:
+        0 0 20px #00eaff,
+        0 0 45px rgba(0, 174, 255, 0.35);
+
+}
+
+
+/* ========================================
+   VENTANAS
+======================================== */
+
+.ventana {
+
+    width: 100%;
+
+    max-width: 470px;
+
+    padding: 35px;
+
+    border-radius: 25px;
+
+    border: 1px solid rgba(0, 234, 255, 0.5);
+
+    background:
+        rgba(3, 13, 25, 0.88);
+
+    box-shadow:
+        0 0 30px rgba(0, 217, 255, 0.15),
+        inset 0 0 30px rgba(0, 217, 255, 0.04);
+
+    backdrop-filter: blur(12px);
+
+    text-align: center;
+
+}
+
+.rayo-pequeno {
+
+    font-size: 50px;
+
+    color: #00eaff;
+
+    animation: rayoEnergia 1.4s infinite alternate;
+
+}
+
+.ventana h2 {
+
+    margin-top: 10px;
+
+    font-size: 30px;
+
+    letter-spacing: 2px;
+
+    text-shadow:
+        0 0 10px #00eaff;
+
+}
+
+.subtitulo {
+
+    color: #7adff0;
+
+    margin: 10px 0 25px;
+
+}
+
+
+/* ========================================
+   CAMPOS
+======================================== */
+
+.ventana input[type="text"],
+.ventana input[type="tel"],
+.ventana input[type="password"] {
+
+    width: 100%;
+
+    height: 55px;
+
+    margin-bottom: 15px;
+
+    padding: 0 17px;
+
+    border-radius: 14px;
+
+    border: 1px solid rgba(0, 217, 255, 0.35);
+
+    background: rgba(0, 0, 0, 0.35);
+
+    color: white;
+
+    font-size: 15px;
+
+    outline: none;
+
+}
+
+.ventana input:focus {
+
+    border-color: #00eaff;
+
+    box-shadow:
+        0 0 15px rgba(0, 234, 255, 0.25);
+
+}
+
+.ventana input::placeholder {
+
+    color: #78909c;
+
+}
+
+
+/* ========================================
+   TÉRMINOS
+======================================== */
+
+.terminos {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    font-size: 12px;
+
+    color: #a7c9d0;
+
+    margin: 5px 0 20px;
+
+    text-align: left;
+
+}
+
+.terminos input {
+
+    width: 17px;
+
+    height: 17px;
+
+}
+
+
+/* ========================================
+   BOTÓN ACCIÓN
+======================================== */
+
+.boton-accion {
+
+    width: 100%;
+
+    height: 58px;
+
+    border: none;
+
+    border-radius: 15px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #0077ff,
+            #00d9ff
+        );
+
+    color: white;
+
+    font-size: 16px;
+
+    font-weight: bold;
+
+    letter-spacing: 1px;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 0 15px rgba(0, 217, 255, 0.4);
+
+    transition: 0.3s;
+
+}
+
+.boton-accion:hover {
+
+    transform: scale(1.02);
+
+    box-shadow:
+        0 0 25px #00d9ff,
+        0 0 50px rgba(0, 217, 255, 0.3);
+
+}
+
+
+/* ========================================
+   VOLVER
+======================================== */
+
+.boton-volver {
+
+    margin-top: 18px;
+
+    background: transparent;
+
+    border: none;
+
+    color: #72eaff;
+
+    cursor: pointer;
+
+    font-size: 14px;
+
+}
+
+
+/* ========================================
+   BARRA SUPERIOR
+======================================== */
+
+.barra-superior {
+
+    position: fixed;
+
+    top: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 70px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding: 0 25px;
+
+    background:
+        rgba(2, 8, 16, 0.92);
+
+    border-bottom:
+        1px solid rgba(0, 217, 255, 0.25);
+
+    backdrop-filter: blur(10px);
+
+}
+
+.marca {
+
+    color: #00eaff;
+
+    font-weight: bold;
+
+    letter-spacing: 2px;
+
+    text-shadow:
+        0 0 10px #00eaff;
+
+}
+
+.cerrar-sesion {
+
+    background: transparent;
+
+    border: 1px solid rgba(0, 217, 255, 0.4);
+
+    color: white;
+
+    padding: 9px 15px;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+}
+
+
+/* ========================================
+   CONTENIDO DE INICIO
+======================================== */
+
+.contenido-inicio {
+
+    width: 100%;
+
+    max-width: 1000px;
+
+    padding-top: 100px;
+
+    padding-bottom: 100px;
+
+}
+
+.contenido-inicio h2 {
+
+    font-size: 30px;
+
+    text-shadow:
+        0 0 10px #00d9ff;
+
+}
+
+.texto-inicio {
+
+    margin-top: 8px;
+
+    color: #8fbac4;
+
+}
+
+
+/* ========================================
+   BUSCADOR
+======================================== */
+
+.buscador {
+
+    display: flex;
+
+    margin: 30px 0;
+
+    width: 100%;
+
+}
+
+.buscador input {
+
+    flex: 1;
+
+    height: 55px;
+
+    border-radius: 15px 0 0 15px;
+
+    border: 1px solid rgba(0, 217, 255, 0.35);
+
+    background: rgba(0, 0, 0, 0.35);
+
+    color: white;
+
+    padding: 0 18px;
+
+    outline: none;
+
+}
+
+.buscador button {
+
+    width: 65px;
+
+    border: none;
+
+    border-radius: 0 15px 15px 0;
+
+    background: #0077ff;
+
+    color: white;
+
+    cursor: pointer;
+
+}
+
+
+/* ========================================
+   PUBLICACIONES
+======================================== */
+
+.publicaciones {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(250px, 1fr));
+
+    gap: 20px;
+
+}
+
+.sin-publicaciones {
+
+    grid-column: 1 / -1;
+
+    text-align: center;
+
+    padding: 60px 20px;
+
+    border:
+        1px dashed rgba(0, 217, 255, 0.3);
+
+    border-radius: 20px;
+
+}
+
+.icono-publicacion {
+
+    font-size: 55px;
+
+    color: #00eaff;
+
+    animation: rayoEnergia 1.4s infinite alternate;
+
+}
+
+.sin-publicaciones h3 {
+
+    margin: 15px 0 8px;
+
+}
+
+.sin-publicaciones p {
+
+    color: #78909c;
+
+}
+
+
+/* ========================================
+   NAVEGACIÓN
+======================================== */
+
+.navegacion {
+
+    position: fixed;
+
+    bottom: 0;
+
+    left: 0;
+
+    width: 100%;
+
+    height: 75px;
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 25px;
+
+    background:
+        rgba(2, 8, 16, 0.95);
+
+    border-top:
+        1px solid rgba(0, 217, 255, 0.25);
+
+    backdrop-filter: blur(10px);
+
+}
+
+.navegacion button {
+
+    background: transparent;
+
+    border: none;
+
+    color: #a6cbd2;
+
+    min-width: 70px;
+
+    cursor: pointer;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 4px;
+
+}
+
+.navegacion button:hover {
+
+    color: #00eaff;
+
+}
+
+.navegacion span {
+
+    font-size: 11px;
+
+}
+
+
+/* ========================================
+   PERFIL
+======================================== */
+
+.perfil {
+
+    max-width: 450px;
+
+}
+
+.foto-perfil {
+
+    width: 90px;
+
+    height: 90px;
+
+    margin: 20px auto;
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 40px;
+
+    border: 2px solid #00d9ff;
+
+    box-shadow:
+        0 0 20px rgba(0, 217, 255, 0.4);
+
+}
+
+.datos-perfil {
+
+    text-align: left;
+
+    margin-top: 25px;
+
+    padding: 20px;
+
+    border-radius: 15px;
+
+    background: rgba(0, 0, 0, 0.25);
+
+}
+
+.datos-perfil p {
+
+    margin: 12px 0;
+
+    color: #a8cbd1;
+
+}
+
+
+/* ========================================
+   PROPIEDAD
+======================================== */
+
+.propiedad {
+
+    position: fixed;
+
+    right: 15px;
+
+    bottom: 8px;
+
+    z-index: 20;
+
+    font-size: 9px;
+
+    color: rgba(255, 255, 255, 0.4);
+
+}
+
+
+/* ========================================
+   MÓVIL
+======================================== */
+
+@media (max-width: 600px) {
+
+    .logo-container h1 {
+
+        font-size: 30px;
+
+        letter-spacing: 3px;
+
+    }
+
+    .rayo {
+
+        font-size: 80px;
+
+    }
+
+    .ventana {
+
+        padding: 25px 20px;
+
+    }
+
+    .navegacion {
+
+        gap: 5px;
+
+    }
+
+}
