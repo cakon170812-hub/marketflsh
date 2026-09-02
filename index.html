@@ -1,411 +1,371 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Market Flash</title>
+    <title>Michael Flash</title>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: Arial, Helvetica, sans-serif;
-    }
-
-    body {
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at center, #14233d 0%, #070b13 45%, #020409 100%);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    /* Fondo digital */
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background:
-        linear-gradient(rgba(0, 200, 255, 0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 200, 255, 0.04) 1px, transparent 1px);
-      background-size: 35px 35px;
-      pointer-events: none;
-    }
-
-    .pantalla {
-      width: 100%;
-      max-width: 500px;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 30px;
-      position: relative;
-      z-index: 2;
-    }
-
-    /* Logo */
-    .logo {
-      text-align: center;
-      margin-bottom: 55px;
-    }
-
-    .rayo {
-      font-size: 90px;
-      display: inline-block;
-      color: #00d9ff;
-      filter:
-        drop-shadow(0 0 5px #00d9ff)
-        drop-shadow(0 0 20px #00d9ff)
-        drop-shadow(0 0 45px #008cff);
-
-      animation: energia 1.5s infinite alternate;
-    }
-
-    .logo h1 {
-      margin-top: 8px;
-      font-size: 42px;
-      letter-spacing: 4px;
-      font-weight: 900;
-      color: white;
-      text-shadow:
-        0 0 8px #00d9ff,
-        0 0 20px #008cff;
-    }
-
-    .logo p {
-      margin-top: 8px;
-      color: #7eeeff;
-      font-size: 13px;
-      letter-spacing: 5px;
-      text-transform: uppercase;
-    }
-
-    /* Botones */
-    .botones {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .boton {
-      width: 100%;
-      height: 65px;
-      border: 1px solid rgba(0, 217, 255, 0.7);
-      border-radius: 18px;
-
-      background:
-        linear-gradient(
-          135deg,
-          rgba(0, 217, 255, 0.14),
-          rgba(0, 80, 150, 0.08)
-        );
-
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
-      letter-spacing: 2px;
-
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-
-      box-shadow:
-        0 0 10px rgba(0, 217, 255, 0.3),
-        inset 0 0 15px rgba(0, 217, 255, 0.05);
-
-      transition: 0.3s ease;
-    }
-
-    .boton::before {
-      content: "⚡";
-      position: absolute;
-      left: 22px;
-      font-size: 25px;
-
-      filter:
-        drop-shadow(0 0 5px #00d9ff)
-        drop-shadow(0 0 15px #00d9ff);
-
-      animation: energia 1.5s infinite alternate;
-    }
-
-    .boton:hover {
-      transform: scale(1.03);
-      border-color: #00eaff;
-
-      box-shadow:
-        0 0 15px #00d9ff,
-        0 0 35px rgba(0, 217, 255, 0.4),
-        inset 0 0 20px rgba(0, 217, 255, 0.1);
-    }
-
-    .boton:active {
-      transform: scale(0.98);
-    }
-
-    /* Animación de encendido/apagado */
-    @keyframes energia {
-      0% {
-        opacity: 0.35;
-        filter:
-          drop-shadow(0 0 2px #00d9ff)
-          drop-shadow(0 0 5px #008cff);
-      }
-
-      50% {
-        opacity: 1;
-      }
-
-      100% {
-        opacity: 0.45;
-        filter:
-          drop-shadow(0 0 8px #00d9ff)
-          drop-shadow(0 0 30px #008cff)
-          drop-shadow(0 0 50px #00d9ff);
-      }
-    }
-
-    /* Texto de propiedad */
-    .propiedad {
-      position: fixed;
-      bottom: 15px;
-      right: 18px;
-
-      font-size: 10px;
-      letter-spacing: 1px;
-
-      color: rgba(255, 255, 255, 0.45);
-
-      text-shadow: 0 0 5px rgba(0, 217, 255, 0.3);
-    }
-
-    /* Pantallas internas */
-    .oculto {
-      display: none;
-    }
-
-    .panel {
-      width: 100%;
-      text-align: center;
-    }
-
-    .panel h2 {
-      font-size: 30px;
-      margin-bottom: 25px;
-      text-shadow: 0 0 15px #00d9ff;
-    }
-
-    .entrada {
-      width: 100%;
-      height: 55px;
-      margin-bottom: 15px;
-
-      border-radius: 14px;
-      border: 1px solid rgba(0, 217, 255, 0.5);
-
-      background: rgba(0, 0, 0, 0.35);
-      color: white;
-
-      padding: 0 18px;
-      font-size: 16px;
-      outline: none;
-    }
-
-    .entrada:focus {
-      border-color: #00eaff;
-      box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
-    }
-
-    .volver {
-      margin-top: 15px;
-      background: transparent;
-      border: none;
-      color: #7eeeff;
-      cursor: pointer;
-    }
-  </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <main class="pantalla">
+    <!-- ==============================
+         PANTALLA PRINCIPAL
+    =============================== -->
 
-    <!-- INICIO -->
-    <section id="inicio">
+    <section id="pantallaPrincipal" class="pantalla activa">
 
-      <div class="logo">
-        <div class="rayo">⚡</div>
+        <div class="logo-principal">
 
-        <h1>MARKET FLASH</h1>
+            <div class="flash-detras">
+                ⚡
+            </div>
 
-        <p>Tu mercado digital</p>
-      </div>
+            <div class="nombre-michael">
+                MICHAEL
+            </div>
 
-      <div class="botones">
+            <div class="nombre-flash">
+                FLASH
+            </div>
 
-        <button class="boton" onclick="mostrarCrearCuenta()">
-          CREAR CUENTA
-        </button>
+            <p class="subtitulo">
+                EL MERCADO DIGITAL DEL FUTURO
+            </p>
 
-        <button class="boton" onclick="entrar()">
-          INICIO
-        </button>
-
-      </div>
-
-    </section>
+        </div>
 
 
-    <!-- CREAR CUENTA -->
-    <section id="crearCuenta" class="panel oculto">
+        <div class="botones-principales">
 
-      <div class="rayo">⚡</div>
+            <button
+                class="boton boton-inicio"
+                onclick="abrirInicio()"
+            >
+                <span class="boton-flash">⚡</span>
+                <span>INICIO</span>
+            </button>
 
-      <h2>CREAR CUENTA</h2>
 
-      <input
-        class="entrada"
-        type="text"
-        id="nombre"
-        placeholder="Nombre completo"
-      >
+            <button
+                class="boton boton-registro"
+                onclick="abrirRegistro()"
+            >
+                <span class="boton-flash">⚡</span>
+                <span>CREAR CUENTA</span>
+            </button>
 
-      <input
-        class="entrada"
-        type="text"
-        id="cedula"
-        placeholder="Número de cédula"
-      >
+        </div>
 
-      <input
-        class="entrada"
-        type="tel"
-        id="telefono"
-        placeholder="Número de teléfono"
-      >
 
-      <input
-        class="entrada"
-        type="password"
-        id="clave"
-        placeholder="Crear contraseña"
-      >
-
-      <button class="boton" onclick="crearCuenta()">
-        ⚡ CREAR CUENTA
-      </button>
-
-      <button class="volver" onclick="volverInicio()">
-        ← Volver al inicio
-      </button>
+        <div class="propiedad">
+            Propiedad Julio Alcántara Gomeras
+        </div>
 
     </section>
 
 
-    <!-- LOGIN -->
-    <section id="login" class="panel oculto">
 
-      <div class="rayo">⚡</div>
+    <!-- ==============================
+         REGISTRO
+    =============================== -->
 
-      <h2>INICIAR SESIÓN</h2>
+    <section id="pantallaRegistro" class="pantalla">
 
-      <input
-        class="entrada"
-        type="tel"
-        id="loginTelefono"
-        placeholder="Número de teléfono"
-      >
+        <div class="ventana">
 
-      <input
-        class="entrada"
-        type="password"
-        id="loginClave"
-        placeholder="Contraseña"
-      >
+            <div class="titulo">
+                <span>⚡</span>
+                CREAR CUENTA
+            </div>
 
-      <button class="boton" onclick="iniciarSesion()">
-        ⚡ ENTRAR
-      </button>
+            <p class="descripcion">
+                Regístrate en Michael Flash
+            </p>
 
-      <button class="volver" onclick="volverInicio()">
-        ← Volver al inicio
-      </button>
+
+            <input
+                id="nombre"
+                type="text"
+                placeholder="Nombre completo"
+            >
+
+
+            <input
+                id="apodo"
+                type="text"
+                placeholder="Apodo / nombre de usuario"
+            >
+
+
+            <input
+                id="cedula"
+                type="text"
+                placeholder="Número de cédula"
+            >
+
+
+            <input
+                id="telefono"
+                type="tel"
+                placeholder="Número de teléfono"
+            >
+
+
+            <input
+                id="correo"
+                type="email"
+                placeholder="Correo electrónico"
+            >
+
+
+            <input
+                id="password"
+                type="password"
+                placeholder="Contraseña"
+            >
+
+
+            <input
+                id="confirmarPassword"
+                type="password"
+                placeholder="Confirmar contraseña"
+            >
+
+
+            <input
+                id="direccion"
+                type="text"
+                placeholder="Dirección"
+            >
+
+
+            <button
+                class="boton boton-crear"
+                onclick="crearCuenta()"
+            >
+                <span>⚡</span>
+                CREAR CUENTA
+            </button>
+
+
+            <button
+                class="boton-volver"
+                onclick="volverPrincipal()"
+            >
+                ← VOLVER
+            </button>
+
+        </div>
+
+
+        <div class="propiedad">
+            Propiedad Julio Alcántara Gomeras
+        </div>
 
     </section>
 
-  </main>
-
-  <!-- Propiedad -->
-  <div class="propiedad">
-    Propiedad Julio Alcántara Gomeras
-  </div>
 
 
-  <script>
+    <!-- ==============================
+         INICIO DE SESIÓN
+    =============================== -->
 
-    function ocultarTodo() {
-      document.getElementById("inicio").classList.add("oculto");
-      document.getElementById("crearCuenta").classList.add("oculto");
-      document.getElementById("login").classList.add("oculto");
-    }
+    <section id="pantallaLogin" class="pantalla">
 
-    function mostrarCrearCuenta() {
-      ocultarTodo();
-      document.getElementById("crearCuenta").classList.remove("oculto");
-    }
+        <div class="ventana">
 
-    function entrar() {
-      ocultarTodo();
-      document.getElementById("login").classList.remove("oculto");
-    }
+            <div class="titulo">
+                <span>⚡</span>
+                INICIO
+            </div>
 
-    function volverInicio() {
-      ocultarTodo();
-      document.getElementById("inicio").classList.remove("oculto");
-    }
+            <p class="descripcion">
+                Entra a Michael Flash
+            </p>
 
-    function crearCuenta() {
 
-      const nombre = document.getElementById("nombre").value;
-      const cedula = document.getElementById("cedula").value;
-      const telefono = document.getElementById("telefono").value;
-      const clave = document.getElementById("clave").value;
+            <input
+                id="loginCedula"
+                type="text"
+                placeholder="Número de cédula"
+            >
 
-      if (!nombre || !cedula || !telefono || !clave) {
-        alert("Completa todos los campos.");
-        return;
-      }
 
-      alert("Cuenta creada correctamente.");
+            <input
+                id="loginPassword"
+                type="password"
+                placeholder="Contraseña"
+            >
 
-      volverInicio();
-    }
 
-    function iniciarSesion() {
+            <button
+                class="boton boton-entrar"
+                onclick="iniciarSesion()"
+            >
+                <span>⚡</span>
+                ENTRAR
+            </button>
 
-      const telefono =
-        document.getElementById("loginTelefono").value;
 
-      const clave =
-        document.getElementById("loginClave").value;
+            <button
+                class="boton-volver"
+                onclick="volverPrincipal()"
+            >
+                ← VOLVER
+            </button>
 
-      if (!telefono || !clave) {
-        alert("Introduce tu teléfono y contraseña.");
-        return;
-      }
+        </div>
 
-      alert("Inicio de sesión correcto.");
-    }
 
-  </script>
+        <div class="propiedad">
+            Propiedad Julio Alcántara Gomeras
+        </div>
+
+    </section>
+
+
+
+    <!-- ==============================
+         PANEL PRINCIPAL
+    =============================== -->
+
+    <section id="panelPrincipal" class="pantalla panel">
+
+        <header class="barra-superior">
+
+            <div class="marca-pequena">
+                <span>⚡</span>
+                MICHAEL FLASH
+            </div>
+
+
+            <button
+                class="boton-configuracion"
+                onclick="abrirConfiguracion()"
+            >
+                ⚙️
+            </button>
+
+        </header>
+
+
+        <main class="contenido-panel">
+
+            <div class="flash-panel">
+
+                <div class="flash-panel-rayo">
+                    ⚡
+                </div>
+
+                <h1>
+                    MICHAEL FLASH
+                </h1>
+
+                <p>
+                    PANEL PRINCIPAL
+                </p>
+
+            </div>
+
+
+            <div class="mensaje-panel">
+
+                <h2>
+                    Bienvenidos a Michael Flash
+                </h2>
+
+                <p>
+                    Este será el inicio de tu plataforma.
+                </p>
+
+            </div>
+
+
+            <div class="espacio-funciones">
+
+                <div class="titulo-funciones">
+                    ⚡ MICHAEL FLASH
+                </div>
+
+                <p>
+                    Aquí iremos agregando todas las funciones
+                    de la plataforma paso a paso.
+                </p>
+
+            </div>
+
+        </main>
+
+
+        <div class="propiedad">
+            Propiedad Julio Alcántara Gomeras
+        </div>
+
+    </section>
+
+
+
+    <!-- ==============================
+         CONFIGURACIÓN
+    =============================== -->
+
+    <section id="pantallaConfiguracion" class="pantalla">
+
+        <div class="ventana">
+
+            <div class="titulo">
+                <span>⚙️</span>
+                CONFIGURACIÓN
+            </div>
+
+
+            <div class="opcion-config">
+
+                <strong>
+                    CUENTA
+                </strong>
+
+                <small>
+                    Opciones de tu cuenta
+                </small>
+
+            </div>
+
+
+            <button
+                class="boton boton-cerrar"
+                onclick="cerrarSesion()"
+            >
+                🚪 CERRAR SESIÓN
+            </button>
+
+
+            <button
+                class="boton-volver"
+                onclick="volverPanel()"
+            >
+                ← VOLVER
+            </button>
+
+        </div>
+
+
+        <div class="propiedad">
+            Propiedad Julio Alcántara Gomeras
+        </div>
+
+    </section>
+
+
+
+    <!-- ==============================
+         JAVASCRIPT
+    =============================== -->
+
+    <script src="script.js"></script>
 
 </body>
 </html>
