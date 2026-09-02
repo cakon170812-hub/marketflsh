@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#2563eb">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Market Flash">
+  <meta name="mobile-web-app-capable" content="yes">
+
   <title>Market Flash</title>
 
   <link rel="stylesheet" href="style.css">
@@ -15,26 +17,36 @@
 
 <div id="app">
 
-  <!-- BARRA SUPERIOR -->
+  <!-- =====================================================
+       BARRA SUPERIOR
+  ====================================================== -->
   <header class="topbar">
 
-    <div class="brand">
-      <span>Market</span> Flash
+    <div class="brand-wrap">
+      <div class="brand">
+        <span>Market</span> Flash
+      </div>
+
+      <div class="owner-line">
+        Propiedad Julio Alcántara Gómez
+      </div>
     </div>
 
     <div class="search-wrap">
-      <span>⌕</span>
+      <span aria-hidden="true">⌕</span>
 
       <input
         id="searchInput"
         type="search"
         placeholder="Buscar en Market Flash..."
+        autocomplete="off"
       >
     </div>
 
     <button
       class="round-btn"
       id="notifyBtn"
+      type="button"
       aria-label="Notificaciones"
     >
       🔔
@@ -44,101 +56,516 @@
   </header>
 
 
-  <!-- CONTENIDO PRINCIPAL -->
+  <!-- =====================================================
+       CONTENIDO PRINCIPAL
+  ====================================================== -->
   <main id="mainContent" class="main-content">
 
-    <!-- PRESENTACIÓN -->
-    <section class="hero">
+    <!-- ===================================================
+         INICIO
+    ==================================================== -->
+    <section
+      id="homePage"
+      class="app-page"
+      data-page-content="home"
+    >
 
-      <div>
+      <!-- PRESENTACIÓN -->
+      <section class="hero">
 
-        <small>MARKET FLASH</small>
+        <div>
 
-        <h1>
-          Encuentra lo que necesitas
-        </h1>
+          <small>MARKET FLASH</small>
 
-        <p>
-          Compra, vende y conecta con personas de tu zona.
-        </p>
+          <h1>
+            Encuentra lo que necesitas
+          </h1>
+
+          <p>
+            Compra, vende y conecta con personas de tu zona.
+          </p>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================================
+           FLASH DEL DÍA
+      ================================================== -->
+      <button
+        id="flashDayBtn"
+        class="flash-day"
+        type="button"
+      >
+
+        <div class="flash-icon">
+          ⚡
+        </div>
+
+        <div class="flash-copy">
+
+          <span>
+            PUBLICIDAD
+          </span>
+
+          <strong>
+            Publicación Flash del Día
+          </strong>
+
+          <small>
+            Descubre anuncios destacados y oportunidades.
+          </small>
+
+        </div>
+
+        <div class="arrow">
+          ›
+        </div>
+
+      </button>
+
+
+      <!-- =================================================
+           ESTADO DE MI PUBLICIDAD
+           SE ACTIVA CUANDO EL USUARIO ENVÍA UNA PUBLICIDAD
+      ================================================== -->
+      <button
+        id="adStatusBtn"
+        class="ad-status-btn hidden"
+        type="button"
+      >
+
+        <div class="status-icon">
+          ⏳
+        </div>
+
+        <div class="status-copy">
+
+          <span>
+            MI PUBLICIDAD
+          </span>
+
+          <strong id="adStatusTitle">
+            Publicidad en revisión
+          </strong>
+
+          <small id="adStatusText">
+            Estamos comprobando tu solicitud.
+          </small>
+
+        </div>
+
+        <div class="status-arrow">
+          ›
+        </div>
+
+      </button>
+
+
+      <!-- TÍTULO DE PUBLICACIONES -->
+      <div class="section-title">
+
+        <h2>
+          Publicaciones
+        </h2>
+
+        <span id="productCount"></span>
+
+      </div>
+
+
+      <!-- CATEGORÍAS -->
+      <div
+        id="categoryRow"
+        class="chips"
+      ></div>
+
+
+      <!-- PRODUCTOS -->
+      <section
+        id="productsGrid"
+        class="products-grid"
+      ></section>
+
+    </section>
+
+
+    <!-- ===================================================
+         CHAT
+    ==================================================== -->
+    <section
+      id="chatPage"
+      class="app-page hidden"
+      data-page-content="chat"
+    >
+
+      <div class="page-card chat-page-card">
+
+        <div class="page-heading">
+
+          <div>
+            <small>MARKET FLASH</small>
+
+            <h2>
+              Mis chats
+            </h2>
+
+            <p>
+              Contacta directamente con compradores y vendedores.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div
+          id="conversationList"
+          class="conversation-list"
+        ></div>
+
+
+        <!-- CHAT ABIERTO -->
+        <div
+          id="chatWindow"
+          class="chat-window hidden"
+        >
+
+          <div class="chat-header">
+
+            <button
+              id="backToChatsBtn"
+              class="icon-btn"
+              type="button"
+              aria-label="Volver"
+            >
+              ‹
+            </button>
+
+            <div class="chat-person">
+
+              <div
+                id="chatAvatar"
+                class="chat-avatar"
+              >
+                👤
+              </div>
+
+              <div>
+
+                <strong id="chatPersonName">
+                  Usuario
+                </strong>
+
+                <small id="chatProductName">
+                  Publicación
+                </small>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div
+            id="chatMessages"
+            class="chat-messages"
+          ></div>
+
+
+          <!-- ACCIONES DEL CHAT -->
+          <div class="chat-controls">
+
+            <button
+              id="chatPhotoBtn"
+              class="chat-media-btn"
+              type="button"
+            >
+              🖼️
+            </button>
+
+            <button
+              id="chatCameraBtn"
+              class="chat-media-btn"
+              type="button"
+            >
+              📷
+            </button>
+
+            <button
+              id="chatVideoBtn"
+              class="chat-media-btn"
+              type="button"
+            >
+              🎥
+            </button>
+
+            <input
+              id="chatMessageInput"
+              type="text"
+              placeholder="Escribe un mensaje..."
+              autocomplete="off"
+            >
+
+            <button
+              id="sendChatBtn"
+              class="send-btn"
+              type="button"
+            >
+              ➤
+            </button>
+
+          </div>
+
+
+          <div class="chat-buttons">
+
+            <button
+              id="reportChatBtn"
+              class="danger-outline"
+              type="button"
+            >
+              ⚠️ Reporte / Reclamo / Soporte
+            </button>
+
+          </div>
+
+        </div>
 
       </div>
 
     </section>
 
 
-    <!-- FLASH DEL DÍA -->
-    <button
-      id="flashDayBtn"
-      class="flash-day"
-      type="button"
+    <!-- ===================================================
+         ACTIVIDAD
+    ==================================================== -->
+    <section
+      id="activityPage"
+      class="app-page hidden"
+      data-page-content="activity"
     >
 
-      <div class="flash-icon">
-        ⚡
+      <div class="page-card">
+
+        <div class="page-heading">
+
+          <div>
+
+            <small>MARKET FLASH</small>
+
+            <h2>
+              Actividad
+            </h2>
+
+            <p>
+              Revisa tus publicaciones y operaciones.
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="activityList"
+          class="activity-list"
+        ></div>
+
       </div>
 
-      <div class="flash-copy">
-
-        <span>
-          PUBLICIDAD
-        </span>
-
-        <strong>
-          Publicación Flash del Día
-        </strong>
-
-        <small>
-          Descubre anuncios destacados y oportunidades.
-        </small>
-
-      </div>
-
-      <div class="arrow">
-        ›
-      </div>
-
-    </button>
+    </section>
 
 
-    <!-- TÍTULO DE PUBLICACIONES -->
-    <div class="section-title">
-
-      <h2>
-        Publicaciones
-      </h2>
-
-      <span id="productCount"></span>
-
-    </div>
-
-
-    <!-- CATEGORÍAS -->
-    <div
-      id="categoryRow"
-      class="chips"
-    ></div>
-
-
-    <!-- PRODUCTOS -->
+    <!-- ===================================================
+         PERFIL
+    ==================================================== -->
     <section
-      id="productsGrid"
-      class="products-grid"
-    ></section>
+      id="profilePage"
+      class="app-page hidden"
+      data-page-content="profile"
+    >
+
+      <div class="page-card">
+
+        <div class="profile-header">
+
+          <div
+            id="profileAvatar"
+            class="avatar-large"
+          >
+            👤
+          </div>
+
+          <div class="profile-info">
+
+            <small>
+              MI PERFIL
+            </small>
+
+            <h2 id="profileName">
+              Usuario
+            </h2>
+
+            <p id="profilePhone">
+              Teléfono no configurado
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="profile-actions">
+
+          <button
+            id="editProfileBtn"
+            class="primary-btn"
+            type="button"
+          >
+            ✏️ Editar perfil
+          </button>
+
+          <button
+            id="settingsBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            ⚙️ Configuración
+          </button>
+
+          <button
+            id="adminPanelBtn"
+            class="admin-link"
+            type="button"
+          >
+            🛡️ Panel de administración
+          </button>
+
+          <button
+            id="deleteAccountBtn"
+            class="delete-account-btn"
+            type="button"
+          >
+            Eliminar cuenta
+          </button>
+
+        </div>
+
+
+        <div class="profile-stats">
+
+          <div>
+            <strong id="profileProductsCount">0</strong>
+            <span>Publicaciones</span>
+          </div>
+
+          <div>
+            <strong id="profileViewsCount">0</strong>
+            <span>Vistas</span>
+          </div>
+
+          <div>
+            <strong id="profileLikesCount">0</strong>
+            <span>Me gusta</span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
 
   </main>
 
 
-  <!-- BARRA INFERIOR -->
+  <!-- =====================================================
+       BARRA INFERIOR
+       CHAT E INICIO INTERCAMBIADOS
+  ====================================================== -->
   <nav
     class="bottom-nav"
     aria-label="Navegación principal"
   >
 
-    <!-- CHAT -->
+    <!-- INICIO: AHORA OCUPA EL PRIMER LUGAR -->
+    <button
+      class="nav-item"
+      data-page="home"
+      type="button"
+    >
+
+      <span>
+        ⌂
+      </span>
+
+      <small>
+        Inicio
+      </small>
+
+    </button>
+
+
+    <!-- BOTÓN PUBLICAR PRODUCTO GRATIS -->
+    <button
+      id="publishBtn"
+      class="publish-plus"
+      type="button"
+      aria-label="Publicar producto"
+    >
+      ＋
+    </button>
+
+
+    <!-- ACTIVIDAD -->
+    <button
+      class="nav-item"
+      data-page="activity"
+      type="button"
+    >
+
+      <span>
+        ▣
+      </span>
+
+      <small>
+        Actividad
+      </small>
+
+    </button>
+
+
+    <!-- PERFIL -->
+    <button
+      class="nav-item"
+      data-page="profile"
+      type="button"
+    >
+
+      <span>
+        ●
+      </span>
+
+      <small>
+        Mi perfil
+      </small>
+
+      <b
+        id="profileBadge"
+        class="nav-badge hidden"
+      >
+        0
+      </b>
+
+    </button>
+
+
+    <!-- CHAT: AHORA OCUPA EL LUGAR DEL INICIO -->
     <button
       class="nav-item"
       data-page="chat"
+      type="button"
     >
 
       <span>
@@ -158,76 +585,18 @@
 
     </button>
 
-
-    <!-- INICIO -->
-    <button
-      class="nav-item active"
-      data-page="home"
-    >
-
-      <span>
-        ⌂
-      </span>
-
-      <small>
-        Inicio
-      </small>
-
-    </button>
-
-
-    <!-- BOTÓN PUBLICAR -->
-    <button
-      id="publishBtn"
-      class="publish-plus"
-      aria-label="Publicar"
-    >
-      ＋
-    </button>
-
-
-    <!-- ACTIVIDAD -->
-    <button
-      class="nav-item"
-      data-page="activity"
-    >
-
-      <span>
-        ▣
-      </span>
-
-      <small>
-        Actividad
-      </small>
-
-    </button>
-
-
-    <!-- PERFIL -->
-    <button
-      class="nav-item"
-      data-page="profile"
-    >
-
-      <span>
-        ●
-      </span>
-
-      <small>
-        Mi perfil
-      </small>
-
-    </button>
-
   </nav>
 
 </div>
 
 
-<!-- VENTANA MODAL -->
+<!-- =====================================================
+     MODAL PRINCIPAL
+====================================================== -->
 <div
   id="modal"
   class="modal hidden"
+  aria-hidden="true"
 >
 
   <div
@@ -238,14 +607,58 @@
 </div>
 
 
-<!-- MENSAJE TEMPORAL -->
+<!-- =====================================================
+     INPUTS OCULTOS PARA FOTOS Y VIDEOS
+====================================================== -->
+
+<!-- Cámara -->
+<input
+  id="cameraInput"
+  class="file-input-hidden"
+  type="file"
+  accept="image/*"
+  capture="environment"
+>
+
+<!-- Galería de fotos -->
+<input
+  id="galleryPhotoInput"
+  class="file-input-hidden"
+  type="file"
+  accept="image/*"
+>
+
+<!-- Galería de videos -->
+<input
+  id="galleryVideoInput"
+  class="file-input-hidden"
+  type="file"
+  accept="video/*"
+>
+
+<!-- Foto o video general -->
+<input
+  id="mediaInput"
+  class="file-input-hidden"
+  type="file"
+  accept="image/*,video/*"
+  multiple
+>
+
+
+<!-- =====================================================
+     MENSAJE TEMPORAL
+====================================================== -->
 <div
   id="toast"
   class="toast hidden"
+  role="status"
 ></div>
 
 
-<!-- JAVASCRIPT -->
+<!-- =====================================================
+     JAVASCRIPT
+====================================================== -->
 <script src="script.js"></script>
 
 </body>
