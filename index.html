@@ -21,18 +21,15 @@
 
         <section id="welcome-screen" class="screen active">
 
-            <!-- Rayo de fondo -->
             <div class="background-lightning" aria-hidden="true">
                 ⚡
             </div>
 
-            <!-- Nombre de la aplicación -->
             <div class="brand">
                 <h1>MARKET <span>FLASH</span></h1>
                 <p>Tu mercado. Tu espacio.</p>
             </div>
 
-            <!-- Botones principales -->
             <div class="main-buttons">
 
                 <button
@@ -67,6 +64,7 @@
                 </div>
 
                 <h3>Iniciar sesión</h3>
+
                 <p class="form-description">
                     Accede a tu cuenta
                 </p>
@@ -134,6 +132,7 @@
                 </div>
 
                 <h3>Crear cuenta</h3>
+
                 <p class="form-description">
                     Regístrate para entrar a Market Flash
                 </p>
@@ -253,37 +252,161 @@
 
             </header>
 
+
             <div class="dashboard-content">
 
+                <!-- Bienvenida -->
                 <div class="dashboard-welcome">
+
                     <p>Bienvenido</p>
+
                     <h2 id="user-name-display">
                         Market Flash
                     </h2>
+
                 </div>
 
-                <div class="dashboard-placeholder">
-                    <div class="dashboard-lightning">⚡</div>
 
-                    <h3>Panel principal</h3>
+                <!-- =================================================
+                     BOTONES PRINCIPALES
+                     ================================================= -->
+
+                <div class="market-buttons">
+
+                    <button
+                        id="products-button"
+                        class="market-button"
+                        type="button">
+
+                        <span class="market-button-icon">📦</span>
+
+                        <span class="market-button-text">
+                            PRODUCTOS
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        id="inventory-button"
+                        class="market-button"
+                        type="button">
+
+                        <span class="market-button-icon">📊</span>
+
+                        <span class="market-button-text">
+                            INVENTARIO
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        id="sales-button"
+                        class="market-button"
+                        type="button">
+
+                        <span class="market-button-icon">💰</span>
+
+                        <span class="market-button-text">
+                            VENTAS
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        id="receipts-button"
+                        class="market-button"
+                        type="button">
+
+                        <span class="market-button-icon">🧾</span>
+
+                        <span class="market-button-text">
+                            RECIBOS
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        id="customers-button"
+                        class="market-button"
+                        type="button">
+
+                        <span class="market-button-icon">👥</span>
+
+                        <span class="market-button-text">
+                            CLIENTES
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        id="promotions-button"
+                        class="market-button"
+                        type="button">
+
+                        <span class="market-button-icon">📢</span>
+
+                        <span class="market-button-text">
+                            PROMOCIONES
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        id="notifications-button"
+                        class="market-button"
+                        type="button">
+
+                        <span class="market-button-icon">🔔</span>
+
+                        <span class="market-button-text">
+                            NOTIFICACIONES
+                        </span>
+
+                    </button>
+
+                </div>
+
+
+                <!-- Panel informativo -->
+                <div class="dashboard-placeholder">
+
+                    <div class="dashboard-lightning">
+                        ⚡
+                    </div>
+
+                    <h3>
+                        Panel principal
+                    </h3>
 
                     <p>
-                        Aquí construiremos las funciones de
-                        Market Flash.
+                        Selecciona una función para comenzar
+                        a utilizar Market Flash.
                     </p>
+
                 </div>
 
             </div>
 
 
-            <!-- Menú de configuración -->
+            <!-- =====================================================
+                 MENÚ DE CONFIGURACIÓN
+                 ===================================================== -->
+
             <aside
                 id="settings-panel"
                 class="settings-panel">
 
                 <div class="settings-header">
 
-                    <h3>Configuración</h3>
+                    <h3>
+                        Configuración
+                    </h3>
 
                     <button
                         id="close-settings"
@@ -319,13 +442,10 @@
          JAVASCRIPT
          ===================================================== -->
 
-    <!-- Datos generales -->
     <script src="data.js"></script>
 
-    <!-- Datos/configuración de Market Flash -->
     <script src="appData.js"></script>
 
-    <!-- Funcionamiento principal -->
     <script src="script.js"></script>
 
 </body>
