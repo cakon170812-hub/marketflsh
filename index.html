@@ -10,7 +10,6 @@
 
   <meta name="theme-color" content="#1677ff">
 
-  <!-- Preparación para convertir Market Flash en aplicación -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,10 +22,7 @@
 
   <title>Market Flash</title>
 
-  <!-- Estilos -->
   <link rel="stylesheet" href="style.css">
-
-  <!-- Preparación PWA -->
   <link rel="manifest" href="manifest.json">
 </head>
 
@@ -79,7 +75,6 @@
     id="mainContent"
     class="main-content"
   >
-
 
     <!-- ===================================================
          INICIO
@@ -147,8 +142,6 @@
 
       <!-- =================================================
            ESTADO DE MI PUBLICIDAD
-           Aparece cuando el usuario tiene una publicidad
-           enviada/revisada/aprobada/rechazada.
       ================================================== -->
       <button
         id="myAdStatusBtn"
@@ -192,6 +185,7 @@
       <div class="section-title">
 
         <div>
+
           <small class="section-kicker">
             MARKETPLACE
           </small>
@@ -199,6 +193,7 @@
           <h2>
             Publicaciones
           </h2>
+
         </div>
 
         <span id="productCount"></span>
@@ -220,14 +215,7 @@
       ></section>
 
 
-      <!-- =================================================
-           FIRMA DEL PROPIETARIO
-
-           Se colocará visualmente al final de las
-           publicaciones, no junto al logo.
-           El CSS/JS podrá hacerla aparecer cuando el
-           usuario llegue al fondo.
-      ================================================== -->
+      <!-- FIRMA -->
       <div
         id="ownerSignature"
         class="owner-signature"
@@ -275,14 +263,55 @@
       </div>
 
 
-      <!-- LISTA DE CONVERSACIONES -->
+      <!-- =================================================
+           SOLICITUDES DE CONTACTO
+      ================================================== -->
+      <div
+        id="contactRequestsSection"
+        class="page-card hidden"
+      >
+
+        <div class="card-title-row">
+
+          <div>
+            <small>
+              CONTACTOS
+            </small>
+
+            <h3>
+              Solicitudes de contacto
+            </h3>
+          </div>
+
+          <span
+            id="contactRequestCount"
+            class="nav-badge hidden"
+          >
+            0
+          </span>
+
+        </div>
+
+        <div
+          id="contactRequestsList"
+          class="conversation"
+        ></div>
+
+      </div>
+
+
+      <!-- =================================================
+           LISTA DE CONVERSACIONES
+      ================================================== -->
       <div
         id="conversationList"
         class="conversation"
       ></div>
 
 
-      <!-- CONTACTOS -->
+      <!-- =================================================
+           CONTACTOS
+      ================================================== -->
       <div
         id="contactsList"
         class="conversation hidden"
@@ -334,17 +363,133 @@
           </h2>
 
           <p>
-            Revisa tus publicaciones, ventas y actividad.
+            Consulta el rendimiento de tus publicaciones
+            y la actividad de tu cuenta.
           </p>
 
         </div>
 
       </div>
 
+
+      <!-- =================================================
+           ESTADÍSTICAS
+      ================================================== -->
       <div
-        id="activityContent"
-        class="activity-list"
-      ></div>
+        id="activityStats"
+        class="activity-stats"
+      >
+
+        <div class="stat-card">
+
+          <span class="stat-icon">
+            👥
+          </span>
+
+          <small>
+            Contactos
+          </small>
+
+          <strong id="activityContactsCount">
+            0
+          </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span class="stat-icon">
+            👁️
+          </span>
+
+          <small>
+            Vistas
+          </small>
+
+          <strong id="activityViewsCount">
+            0
+          </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span class="stat-icon">
+            👍
+          </span>
+
+          <small>
+            Me gusta
+          </small>
+
+          <strong id="activityLikesCount">
+            0
+          </strong>
+
+        </div>
+
+
+        <div class="stat-card">
+
+          <span class="stat-icon">
+            👎
+          </span>
+
+          <small>
+            No me gusta
+          </small>
+
+          <strong id="activityDislikesCount">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           ESTADÍSTICAS DE PUBLICACIONES
+      ================================================== -->
+      <div class="page-card">
+
+        <div class="card-title-row">
+
+          <h3>
+            📊 Mis publicaciones
+          </h3>
+
+          <span id="activityProductCount">
+            0
+          </span>
+
+        </div>
+
+        <div
+          id="activityPublications"
+          class="activity-list"
+        ></div>
+
+      </div>
+
+
+      <!-- =================================================
+           ACTIVIDAD RECIENTE
+      ================================================== -->
+      <div class="page-card">
+
+        <h3>
+          🕘 Actividad reciente
+        </h3>
+
+        <div
+          id="activityContent"
+          class="activity-list"
+        ></div>
+
+      </div>
 
     </section>
 
@@ -357,7 +502,9 @@
       class="page-section hidden"
     >
 
-      <!-- CABECERA DEL PERFIL -->
+      <!-- =================================================
+           CABECERA DEL PERFIL
+      ================================================== -->
       <div class="profile-header">
 
         <button
@@ -392,37 +539,197 @@
       </div>
 
 
-      <!-- ACCIONES -->
-      <div class="profile-actions">
+      <!-- =================================================
+           RESUMEN DEL PERFIL
+      ================================================== -->
+      <div class="profile-summary">
+
+        <div>
+          <strong id="profilePublicationsCount">
+            0
+          </strong>
+
+          <small>
+            Publicaciones
+          </small>
+        </div>
+
+
+        <div>
+          <strong id="profileContactsCount">
+            0
+          </strong>
+
+          <small>
+            Contactos
+          </small>
+        </div>
+
+
+        <div>
+          <strong id="profileViewsCount">
+            0
+          </strong>
+
+          <small>
+            Vistas
+          </small>
+        </div>
+
+      </div>
+
+
+      <!-- =================================================
+           MENÚ PRINCIPAL DEL PERFIL
+      ================================================== -->
+      <div class="profile-menu">
 
         <button
           id="editProfileBtn"
-          class="primary-btn mf-press"
+          class="profile-menu-item mf-press"
           type="button"
         >
-          ✏️ Editar perfil
+
+          <span class="profile-menu-icon">
+            ✏️
+          </span>
+
+          <span>
+            <strong>
+              Editar perfil
+            </strong>
+
+            <small>
+              Foto, nombre y datos de contacto
+            </small>
+          </span>
+
+          <b>
+            ›
+          </b>
+
         </button>
+
+
+        <button
+          id="myContactsBtn"
+          class="profile-menu-item mf-press"
+          type="button"
+        >
+
+          <span class="profile-menu-icon">
+            👥
+          </span>
+
+          <span>
+            <strong>
+              Mis contactos
+            </strong>
+
+            <small>
+              Personas agregadas y solicitudes
+            </small>
+          </span>
+
+          <b>
+            ›
+          </b>
+
+        </button>
+
+
+        <button
+          id="myActivityBtn"
+          class="profile-menu-item mf-press"
+          type="button"
+        >
+
+          <span class="profile-menu-icon">
+            📊
+          </span>
+
+          <span>
+            <strong>
+              Mi actividad
+            </strong>
+
+            <small>
+              Vistas, me gusta y publicaciones
+            </small>
+          </span>
+
+          <b>
+            ›
+          </b>
+
+        </button>
+
 
         <button
           id="profileSettingsBtn"
-          class="secondary-btn mf-press"
+          class="profile-menu-item mf-press"
           type="button"
         >
-          ⚙️ Configuración
+
+          <span class="profile-menu-icon">
+            ⚙️
+          </span>
+
+          <span>
+            <strong>
+              Configuración
+            </strong>
+
+            <small>
+              Cuenta, seguridad y preferencias
+            </small>
+          </span>
+
+          <b>
+            ›
+          </b>
+
         </button>
 
+
+        <!-- =================================================
+             PANEL DE ADMINISTRADOR
+             El JavaScript decidirá si debe mostrarse.
+        ================================================== -->
         <button
-          id="messengerProfileBtn"
-          class="secondary-btn mf-press"
+          id="adminPanelBtn"
+          class="profile-menu-item admin-panel-button hidden mf-press"
           type="button"
         >
-          💬 Conectar Messenger
+
+          <span class="profile-menu-icon admin-icon">
+            🛡️
+          </span>
+
+          <span>
+
+            <strong>
+              Panel de Administrador
+            </strong>
+
+            <small>
+              Administración y control de Market Flash
+            </small>
+
+          </span>
+
+          <b>
+            ›
+          </b>
+
         </button>
 
       </div>
 
 
-      <!-- INFORMACIÓN DE LA CUENTA -->
+      <!-- =================================================
+           INFORMACIÓN DE LA CUENTA
+      ================================================== -->
       <div class="page-card">
 
         <h3>
@@ -432,35 +739,67 @@
         <div class="settings-list">
 
           <div class="settings-row">
-            <span>👤 Nombre</span>
+
+            <span>
+              👤 Nombre
+            </span>
 
             <strong id="profileNameInfo">
               -
             </strong>
+
           </div>
 
+
           <div class="settings-row">
-            <span>📱 Número de teléfono</span>
+
+            <span>
+              📱 Número de teléfono
+            </span>
 
             <strong id="profilePhoneInfo">
               -
             </strong>
+
           </div>
 
+
           <div class="settings-row">
-            <span>🪪 Número de cédula</span>
+
+            <span>
+              🪪 Número de cédula
+            </span>
 
             <strong>
-              No editable
+              Protegida
             </strong>
+
           </div>
 
+
           <div class="settings-row">
-            <span>💬 Messenger</span>
+
+            <span>
+              💬 Messenger
+            </span>
 
             <strong id="profileMessengerInfo">
               No conectado
             </strong>
+
+          </div>
+
+
+          <div class="settings-row">
+
+            <span>
+              🟢 WhatsApp
+            </span>
+
+            <strong id="profileWhatsappInfo">
+              No configurado
+            </strong>
+
           </div>
 
         </div>
@@ -468,7 +807,9 @@
       </div>
 
 
-      <!-- MIS PUBLICACIONES -->
+      <!-- =================================================
+           MIS PUBLICACIONES
+      ================================================== -->
       <div class="page-card">
 
         <div class="card-title-row">
@@ -477,7 +818,9 @@
             Mis publicaciones
           </h3>
 
-          <span id="myProductCount"></span>
+          <span id="myProductCount">
+            0
+          </span>
 
         </div>
 
@@ -485,6 +828,86 @@
           id="myProducts"
           class="products-grid"
         ></div>
+
+      </div>
+
+
+      <!-- =================================================
+           EDITAR PERFIL
+      ================================================== -->
+      <div
+        id="profileEditSection"
+        class="page-card hidden"
+      >
+
+        <h3>
+          ✏️ Editar perfil
+        </h3>
+
+        <div class="profile-edit-photo">
+
+          <button
+            id="editProfilePhotoBtn"
+            class="avatar-large mf-press"
+            type="button"
+          >
+            👤
+          </button>
+
+          <p>
+            Cambia tu foto de perfil
+          </p>
+
+        </div>
+
+
+        <div class="form-card">
+
+          <label for="editProfileNameInput">
+            Nombre
+          </label>
+
+          <input
+            id="editProfileNameInput"
+            type="text"
+            placeholder="Tu nombre"
+            autocomplete="name"
+          >
+
+
+          <label for="editProfilePhoneInput">
+            Número de teléfono
+          </label>
+
+          <input
+            id="editProfilePhoneInput"
+            type="tel"
+            placeholder="809-000-0000"
+            autocomplete="tel"
+          >
+
+
+          <label for="editProfileWhatsappInput">
+            Número de WhatsApp
+          </label>
+
+          <input
+            id="editProfileWhatsappInput"
+            type="tel"
+            placeholder="809-000-0000"
+            autocomplete="tel"
+          >
+
+
+          <button
+            id="saveProfileBtn"
+            class="primary-btn mf-press"
+            type="button"
+          >
+            Guardar cambios
+          </button>
+
+        </div>
 
       </div>
 
@@ -573,11 +996,6 @@
             📱 Cambiar número de teléfono
           </h3>
 
-          <p>
-            Puedes actualizar tu número de teléfono.
-            La cédula permanece protegida y no puede modificarse.
-          </p>
-
           <label for="newPhoneInput">
             Nuevo número de teléfono
           </label>
@@ -595,6 +1013,42 @@
             type="button"
           >
             Guardar número
+          </button>
+
+        </div>
+
+
+        <!-- =================================================
+             WHATSAPP
+        ================================================== -->
+        <div class="form-card">
+
+          <h3>
+            🟢 WhatsApp
+          </h3>
+
+          <p>
+            Este número aparecerá como opción de contacto
+            cuando alguien vea tus publicaciones.
+          </p>
+
+          <label for="whatsappNumberInput">
+            Número de WhatsApp
+          </label>
+
+          <input
+            id="whatsappNumberInput"
+            type="tel"
+            placeholder="809-000-0000"
+            autocomplete="tel"
+          >
+
+          <button
+            id="saveWhatsappBtn"
+            class="primary-btn mf-press"
+            type="button"
+          >
+            Guardar WhatsApp
           </button>
 
         </div>
@@ -637,7 +1091,7 @@
 
 
         <!-- =================================================
-             CONTRASEÑA DEL USUARIO
+             CONTRASEÑA
         ================================================== -->
         <div class="form-card">
 
@@ -743,9 +1197,7 @@
     </button>
 
 
-    <!-- =================================================
-         BOTÓN PRINCIPAL PUBLICAR
-    ================================================== -->
+    <!-- PUBLICAR -->
     <button
       id="publishBtn"
       class="publish-plus mf-press"
@@ -813,16 +1265,6 @@
 
 <!-- =======================================================
      MODAL PRINCIPAL
-     El JavaScript utilizará este espacio para:
-     - Publicar
-     - Ver publicaciones
-     - Flash del Día
-     - Chat
-     - Reclamos
-     - Contactos
-     - Configuración
-     - Panel administrador
-     - Etc.
 ======================================================== -->
 <div
   id="modal"
@@ -841,7 +1283,7 @@
 
 
 <!-- =======================================================
-     MENSAJE TEMPORAL
+     TOAST
 ======================================================== -->
 <div
   id="toast"
@@ -852,16 +1294,10 @@
 
 
 <!-- =======================================================
-     ARCHIVOS DE CÁMARA / GALERÍA
-
-     Se utilizarán para:
-     - Foto del producto
-     - Vídeo del producto
-     - Comprobante de pago
-     - Foto de perfil
-     - Fondo personalizado del chat
+     ARCHIVOS
 ======================================================== -->
 
+<!-- FOTO DEL PRODUCTO: CÁMARA -->
 <input
   id="productCameraInput"
   type="file"
@@ -870,6 +1306,7 @@
   hidden
 >
 
+<!-- FOTO DEL PRODUCTO: GALERÍA -->
 <input
   id="productGalleryInput"
   type="file"
@@ -878,6 +1315,7 @@
   hidden
 >
 
+<!-- VIDEO DEL PRODUCTO: CÁMARA -->
 <input
   id="productVideoCameraInput"
   type="file"
@@ -886,6 +1324,7 @@
   hidden
 >
 
+<!-- VIDEO DEL PRODUCTO: GALERÍA -->
 <input
   id="productVideoGalleryInput"
   type="file"
@@ -893,6 +1332,7 @@
   hidden
 >
 
+<!-- COMPROBANTE DE PAGO: CÁMARA -->
 <input
   id="paymentProofCameraInput"
   type="file"
@@ -901,6 +1341,7 @@
   hidden
 >
 
+<!-- COMPROBANTE DE PAGO: GALERÍA -->
 <input
   id="paymentProofGalleryInput"
   type="file"
@@ -908,6 +1349,7 @@
   hidden
 >
 
+<!-- FOTO DE PERFIL -->
 <input
   id="profileImageInput"
   type="file"
@@ -918,28 +1360,66 @@
 
 
 <!-- =======================================================
-     JAVASCRIPT PRINCIPAL
+     FLASH DEL DÍA
+     ARCHIVOS
 ======================================================== -->
-<script src="script.js"></script>
+
+<input
+  id="flashPhotoCameraInput"
+  type="file"
+  accept="image/*"
+  capture="environment"
+  hidden
+>
+
+<input
+  id="flashPhotoGalleryInput"
+  type="file"
+  accept="image/*"
+  multiple
+  hidden
+>
+
+<input
+  id="flashVideoCameraInput"
+  type="file"
+  accept="video/*"
+  capture="environment"
+  hidden
+>
+
+<input
+  id="flashVideoGalleryInput"
+  type="file"
+  accept="video/*"
+  hidden
+>
 
 
 <!-- =======================================================
-     REGISTRO DEL SERVICE WORKER
-     Esto se utilizará cuando preparemos la versión
-     instalable/PWA.
+     SERVICE WORKER
 ======================================================== -->
+<script src="script.js"></script>
+
 <script>
   if ("serviceWorker" in navigator) {
+
     window.addEventListener("load", function () {
-      navigator.serviceWorker.register("./service-worker.js")
+
+      navigator.serviceWorker
+        .register("./service-worker.js")
         .catch(function () {
+
           /*
             Si todavía no existe service-worker.js,
-            la aplicación continúa funcionando normalmente
-            como página web.
+            Market Flash continúa funcionando como
+            página web normal.
           */
+
         });
+
     });
+
   }
 </script>
 
