@@ -1,28 +1,36 @@
 /* =========================================================
    MARKET FLASH
-   ESTILO PRINCIPAL
+   DISEÑO DIGITAL • ELEGANTE • RESPONSIVE
+   iPhone • Android • Tablet • Laptop • PC
+   ========================================================= */
+
+:root {
+    --bg-main: #05070c;
+    --bg-secondary: #0b0f18;
+    --panel: rgba(13, 18, 30, 0.92);
+
+    --text-main: #ffffff;
+    --text-soft: #aeb8c9;
+
+    --accent: #00d9ff;
+    --accent-soft: rgba(0, 217, 255, 0.18);
+
+    --border: rgba(255, 255, 255, 0.10);
+
+    --shadow: 0 15px 45px rgba(0, 0, 0, 0.45);
+
+    --radius: 18px;
+}
+
+
+/* =========================================================
+   CONFIGURACIÓN GENERAL
    ========================================================= */
 
 * {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-}
-
-:root {
-    --bg-main: #05070d;
-    --bg-secondary: #0a0e18;
-    --text-main: #f4f7ff;
-    --text-soft: #8f9ab0;
-    --line: rgba(255, 255, 255, 0.10);
-    --glass: rgba(255, 255, 255, 0.045);
-
-    --flash-blue: #35aaff;
-    --flash-cyan: #62f3ff;
-    --flash-violet: #8c6cff;
-
-    --shadow-blue: rgba(53, 170, 255, 0.22);
-    --shadow-violet: rgba(140, 108, 255, 0.18);
 }
 
 html,
@@ -32,14 +40,15 @@ body {
 }
 
 body {
-    font-family:
-        Inter,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
+    background:
+        radial-gradient(
+            circle at 50% 20%,
+            rgba(0, 217, 255, 0.08),
+            transparent 35%
+        ),
+        var(--bg-main);
 
-    background: var(--bg-main);
     color: var(--text-main);
 
     overflow-x: hidden;
@@ -47,13 +56,12 @@ body {
 
 
 /* =========================================================
-   CONTENEDOR PRINCIPAL
+   APP PRINCIPAL
    ========================================================= */
 
 #app {
     width: 100%;
     min-height: 100vh;
-    position: relative;
 }
 
 
@@ -69,11 +77,28 @@ body {
 
     position: relative;
 
-    overflow: hidden;
+    padding: 30px;
+
+    animation: screenAppear 0.35s ease;
 }
 
 .screen.active {
     display: flex;
+    flex-direction: column;
+}
+
+@keyframes screenAppear {
+
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
 }
 
 
@@ -84,162 +109,102 @@ body {
 #welcome-screen {
     align-items: center;
     justify-content: center;
-    flex-direction: column;
 
-    padding: 30px;
+    text-align: center;
 
-    background:
-        radial-gradient(
-            circle at 50% 45%,
-            rgba(53, 170, 255, 0.07),
-            transparent 30%
-        ),
-        radial-gradient(
-            circle at 50% 80%,
-            rgba(140, 108, 255, 0.05),
-            transparent 35%
-        ),
-        var(--bg-main);
+    overflow: hidden;
 }
 
 
 /* =========================================================
-   LUCES SUAVES DEL FONDO
-   ========================================================= */
-
-#welcome-screen::before,
-#welcome-screen::after {
-    content: "";
-
-    position: absolute;
-
-    width: 280px;
-    height: 280px;
-
-    border-radius: 50%;
-
-    filter: blur(100px);
-
-    opacity: 0.12;
-
-    pointer-events: none;
-
-    animation: softPulse 5s ease-in-out infinite;
-}
-
-#welcome-screen::before {
-    background: var(--flash-blue);
-    top: 10%;
-    left: 15%;
-}
-
-#welcome-screen::after {
-    background: var(--flash-violet);
-    bottom: 10%;
-    right: 15%;
-
-    animation-delay: 2s;
-}
-
-@keyframes softPulse {
-    0%,
-    100% {
-        opacity: 0.08;
-        transform: scale(0.95);
-    }
-
-    50% {
-        opacity: 0.16;
-        transform: scale(1.05);
-    }
-}
-
-
-/* =========================================================
-   RAYO GRANDE DETRÁS DEL NOMBRE
+   RAYO DE FONDO
    ========================================================= */
 
 .background-lightning {
     position: absolute;
 
     left: 50%;
-    top: 42%;
+    top: 50%;
 
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -53%);
 
-    font-size: clamp(180px, 30vw, 420px);
+    font-size: clamp(180px, 30vw, 430px);
 
     line-height: 1;
 
-    color: rgba(53, 170, 255, 0.045);
+    opacity: 0.08;
 
-    text-shadow:
-        0 0 20px rgba(53, 170, 255, 0.10),
-        0 0 70px rgba(53, 170, 255, 0.08);
-
-    z-index: 0;
+    filter:
+        drop-shadow(0 0 25px rgba(0, 217, 255, 0.5));
 
     pointer-events: none;
 
-    animation: lightningGlow 4.5s ease-in-out infinite;
+    animation: lightningPulse 3.5s ease-in-out infinite;
 }
 
-@keyframes lightningGlow {
+@keyframes lightningPulse {
+
     0%,
     100% {
-        opacity: 0.45;
-        transform: translate(-50%, -50%) scale(0.98);
+        opacity: 0.06;
+        transform: translate(-50%, -53%) scale(1);
     }
 
     50% {
-        opacity: 0.85;
-        transform: translate(-50%, -50%) scale(1.02);
+        opacity: 0.11;
+        transform: translate(-50%, -53%) scale(1.04);
     }
+
 }
 
 
 /* =========================================================
-   MARCA MARKET FLASH
+   MARCA
    ========================================================= */
 
 .brand {
     position: relative;
     z-index: 2;
 
-    text-align: center;
-
-    margin-bottom: 55px;
+    margin-bottom: 45px;
 }
 
 .brand h1 {
-    font-size: clamp(38px, 7vw, 78px);
+    font-size: clamp(38px, 7vw, 82px);
 
     font-weight: 800;
 
-    letter-spacing: 0.08em;
+    letter-spacing: 3px;
 
-    line-height: 1.05;
-
-    color: var(--text-main);
+    text-transform: uppercase;
 
     text-shadow:
-        0 0 12px rgba(255, 255, 255, 0.08),
-        0 0 30px rgba(53, 170, 255, 0.12);
+        0 0 10px rgba(255, 255, 255, 0.25),
+        0 0 30px rgba(0, 217, 255, 0.20);
 
-    animation: brandGlow 4s ease-in-out infinite;
+    animation: brandGlow 3s ease-in-out infinite;
 }
 
 .brand h1 span {
-    color: var(--flash-blue);
+    color: var(--accent);
 
     text-shadow:
-        0 0 8px rgba(53, 170, 255, 0.45),
-        0 0 25px rgba(53, 170, 255, 0.25);
+        0 0 8px var(--accent),
+        0 0 25px rgba(0, 217, 255, 0.55);
+}
 
-    animation: flashText 3.5s ease-in-out infinite;
+.brand p {
+    margin-top: 12px;
+
+    color: var(--text-soft);
+
+    font-size: clamp(14px, 2vw, 20px);
+
+    letter-spacing: 1px;
 }
 
 @keyframes brandGlow {
+
     0%,
     100% {
         opacity: 0.92;
@@ -248,29 +213,7 @@ body {
     50% {
         opacity: 1;
     }
-}
 
-@keyframes flashText {
-    0%,
-    100% {
-        opacity: 0.78;
-    }
-
-    50% {
-        opacity: 1;
-    }
-}
-
-.brand p {
-    margin-top: 14px;
-
-    color: var(--text-soft);
-
-    font-size: clamp(12px, 2vw, 15px);
-
-    letter-spacing: 0.20em;
-
-    text-transform: uppercase;
 }
 
 
@@ -280,89 +223,64 @@ body {
 
 .main-buttons {
     position: relative;
-    z-index: 3;
+    z-index: 2;
 
     width: min(420px, 100%);
 
     display: flex;
     flex-direction: column;
 
-    gap: 18px;
+    gap: 16px;
 }
 
 button {
     font-family: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .primary-button,
 .secondary-button {
     width: 100%;
 
-    min-height: 62px;
+    min-height: 58px;
 
-    border-radius: 16px;
+    border-radius: 15px;
 
-    padding: 14px 24px;
+    font-size: 16px;
 
-    font-size: 15px;
+    font-weight: 800;
 
-    font-weight: 700;
-
-    letter-spacing: 0.12em;
-
-    cursor: pointer;
+    letter-spacing: 1.5px;
 
     transition:
-        transform 0.25s ease,
-        box-shadow 0.25s ease,
-        border-color 0.25s ease,
-        background 0.25s ease;
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
 }
 
 .primary-button {
-    color: #ffffff;
+    color: #031018;
 
-    border: 1px solid rgba(53, 170, 255, 0.55);
+    background: var(--accent);
 
-    background:
-        linear-gradient(
-            135deg,
-            rgba(53, 170, 255, 0.18),
-            rgba(140, 108, 255, 0.12)
-        );
+    border: 1px solid var(--accent);
 
     box-shadow:
-        0 0 22px rgba(53, 170, 255, 0.12),
-        inset 0 0 20px rgba(53, 170, 255, 0.04);
-}
-
-.primary-button:hover {
-    transform: translateY(-2px);
-
-    border-color: rgba(98, 243, 255, 0.8);
-
-    box-shadow:
-        0 0 30px rgba(53, 170, 255, 0.22),
-        inset 0 0 25px rgba(53, 170, 255, 0.07);
+        0 0 18px rgba(0, 217, 255, 0.22);
 }
 
 .secondary-button {
-    color: #dce6f8;
+    color: var(--text-main);
 
-    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.04);
 
-    background: rgba(255, 255, 255, 0.035);
-
-    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 217, 255, 0.35);
 }
 
+.primary-button:hover,
 .secondary-button:hover {
     transform: translateY(-2px);
-
-    border-color: rgba(140, 108, 255, 0.45);
-
-    box-shadow:
-        0 0 25px rgba(140, 108, 255, 0.12);
 }
 
 .primary-button:active,
@@ -372,65 +290,51 @@ button {
 
 
 /* =========================================================
-   PANTALLAS DE FORMULARIO
+   FORMULARIOS
    ========================================================= */
 
-#login-screen,
-#register-screen {
-    align-items: center;
-    justify-content: center;
-
-    padding: 25px;
-
-    background:
-        radial-gradient(
-            circle at 50% 20%,
-            rgba(53, 170, 255, 0.06),
-            transparent 32%
-        ),
-        var(--bg-main);
-}
-
 .form-container {
-    width: min(450px, 100%);
+    width: min(480px, 100%);
 
-    padding: 38px;
+    margin: auto;
 
-    border: 1px solid var(--line);
+    padding: 35px;
+
+    background: var(--panel);
+
+    border: 1px solid var(--border);
 
     border-radius: 24px;
 
-    background: rgba(10, 14, 24, 0.78);
+    box-shadow: var(--shadow);
 
-    backdrop-filter: blur(20px);
-
-    box-shadow:
-        0 25px 80px rgba(0, 0, 0, 0.35),
-        0 0 35px rgba(53, 170, 255, 0.05);
+    backdrop-filter: blur(15px);
 }
 
 .form-brand {
     display: flex;
 
     align-items: center;
+
     justify-content: center;
 
-    gap: 10px;
+    gap: 8px;
 
     margin-bottom: 28px;
 }
 
 .form-brand h2 {
-    font-size: 19px;
+    font-size: 22px;
 
-    letter-spacing: 0.08em;
+    letter-spacing: 2px;
 }
 
 .mini-lightning {
-    color: var(--flash-blue);
+    color: var(--accent);
 
-    text-shadow:
-        0 0 12px rgba(53, 170, 255, 0.55);
+    font-size: 25px;
+
+    text-shadow: 0 0 12px var(--accent);
 }
 
 .form-container h3 {
@@ -446,137 +350,89 @@ button {
 
     color: var(--text-soft);
 
-    font-size: 14px;
-
-    margin-bottom: 30px;
+    margin-bottom: 28px;
 }
 
-
-/* =========================================================
-   CAMPOS
-   ========================================================= */
-
 .input-group {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
     margin-bottom: 18px;
 }
 
 .input-group label {
-    display: block;
+    color: var(--text-soft);
 
-    margin-bottom: 8px;
-
-    color: #c6d0e1;
-
-    font-size: 13px;
-
-    font-weight: 600;
+    font-size: 14px;
 }
 
 .input-group input {
     width: 100%;
 
-    height: 52px;
+    min-height: 52px;
 
     padding: 0 15px;
 
-    color: #ffffff;
+    color: white;
 
-    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.045);
+
+    border: 1px solid rgba(255, 255, 255, 0.12);
 
     border-radius: 12px;
 
     outline: none;
 
-    background: rgba(255, 255, 255, 0.035);
+    font-size: 16px;
 
     transition:
-        border-color 0.25s ease,
-        box-shadow 0.25s ease,
-        background 0.25s ease;
-}
-
-.input-group input::placeholder {
-    color: #69758a;
+        border 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .input-group input:focus {
-    border-color: rgba(53, 170, 255, 0.55);
-
-    background: rgba(53, 170, 255, 0.035);
+    border-color: var(--accent);
 
     box-shadow:
-        0 0 20px rgba(53, 170, 255, 0.08);
+        0 0 0 3px rgba(0, 217, 255, 0.10);
 }
 
 .form-button {
     margin-top: 8px;
 }
 
-
-/* =========================================================
-   BOTÓN VOLVER
-   ========================================================= */
-
 .back-button {
-    display: block;
+    width: 100%;
 
-    margin: 22px auto 0;
+    margin-top: 18px;
 
-    padding: 8px 15px;
+    padding: 12px;
 
     color: var(--text-soft);
 
-    border: none;
-
     background: transparent;
 
-    cursor: pointer;
+    border: none;
 
-    transition:
-        color 0.2s ease,
-        transform 0.2s ease;
-}
-
-.back-button:hover {
-    color: #ffffff;
-
-    transform: translateX(-2px);
+    font-size: 15px;
 }
 
 
 /* =========================================================
-   PANEL PRINCIPAL
+   DASHBOARD
    ========================================================= */
 
 #dashboard-screen {
-    display: none;
-
-    flex-direction: column;
-
-    background:
-        radial-gradient(
-            circle at 50% 0%,
-            rgba(53, 170, 255, 0.06),
-            transparent 30%
-        ),
-        var(--bg-main);
+    padding: 0;
 }
-
-#dashboard-screen.active {
-    display: flex;
-}
-
-
-/* =========================================================
-   CABECERA
-   ========================================================= */
 
 .dashboard-header {
     width: 100%;
 
-    min-height: 74px;
-
-    padding: 0 25px;
+    min-height: 72px;
 
     display: flex;
 
@@ -584,15 +440,19 @@ button {
 
     justify-content: space-between;
 
-    border-bottom: 1px solid var(--line);
+    padding: 0 clamp(18px, 4vw, 55px);
 
-    background: rgba(5, 7, 13, 0.75);
+    background: rgba(5, 7, 12, 0.90);
 
-    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
 
-    position: relative;
+    position: sticky;
 
-    z-index: 5;
+    top: 0;
+
+    z-index: 10;
+
+    backdrop-filter: blur(15px);
 }
 
 .dashboard-brand {
@@ -602,80 +462,92 @@ button {
 
     gap: 9px;
 
-    letter-spacing: 0.07em;
+    font-size: clamp(16px, 2vw, 22px);
+
+    letter-spacing: 1.5px;
 }
 
 .dashboard-brand span {
-    color: var(--flash-blue);
+    color: var(--accent);
 
-    text-shadow:
-        0 0 12px rgba(53, 170, 255, 0.45);
+    text-shadow: 0 0 12px var(--accent);
 }
 
 .settings-button {
-    width: 44px;
-    height: 44px;
+    width: 46px;
 
-    color: #ffffff;
+    height: 46px;
 
-    border: 1px solid var(--line);
+    border-radius: 13px;
 
-    border-radius: 12px;
+    color: white;
 
-    background: rgba(255, 255, 255, 0.035);
+    background: rgba(255, 255, 255, 0.05);
 
-    cursor: pointer;
+    border: 1px solid var(--border);
 
-    font-size: 20px;
+    font-size: 23px;
 
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease,
-        transform 0.2s ease;
+    transition: 0.2s ease;
 }
 
 .settings-button:hover {
-    transform: rotate(5deg);
-
-    border-color: rgba(53, 170, 255, 0.45);
+    border-color: var(--accent);
 
     box-shadow:
-        0 0 18px rgba(53, 170, 255, 0.10);
+        0 0 15px rgba(0, 217, 255, 0.15);
 }
 
 
 /* =========================================================
-   CONTENIDO DEL PANEL
+   CONTENIDO DEL DASHBOARD
    ========================================================= */
 
 .dashboard-content {
-    width: min(1100px, 100%);
+    width: min(1200px, 100%);
 
     margin: 0 auto;
 
-    padding: 55px 25px;
+    padding: clamp(25px, 5vw, 60px);
+}
+
+.dashboard-welcome {
+    margin-bottom: 30px;
 }
 
 .dashboard-welcome p {
     color: var(--text-soft);
 
-    font-size: 14px;
+    font-size: 15px;
 
     margin-bottom: 5px;
 }
 
 .dashboard-welcome h2 {
-    font-size: clamp(28px, 5vw, 42px);
+    font-size: clamp(25px, 4vw, 38px);
 }
 
-.dashboard-placeholder {
-    margin-top: 45px;
 
-    min-height: 300px;
+/* =========================================================
+   BOTONES DE MARKET FLASH
+   ========================================================= */
 
-    border: 1px solid var(--line);
+.market-buttons {
+    width: 100%;
 
-    border-radius: 24px;
+    display: grid;
+
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    gap: 16px;
+
+    margin-bottom: 30px;
+}
+
+.market-button {
+    min-height: 145px;
+
+    padding: 20px 15px;
 
     display: flex;
 
@@ -685,26 +557,100 @@ button {
 
     justify-content: center;
 
+    gap: 13px;
+
+    color: white;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.07),
+            rgba(255, 255, 255, 0.025)
+        );
+
+    border: 1px solid rgba(0, 217, 255, 0.14);
+
+    border-radius: var(--radius);
+
+    box-shadow:
+        0 8px 25px rgba(0, 0, 0, 0.22);
+
+    transition:
+        transform 0.22s ease,
+        border-color 0.22s ease,
+        box-shadow 0.22s ease,
+        background 0.22s ease;
+}
+
+.market-button:hover {
+    transform: translateY(-4px);
+
+    border-color: rgba(0, 217, 255, 0.55);
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(0, 217, 255, 0.10),
+            rgba(255, 255, 255, 0.035)
+        );
+
+    box-shadow:
+        0 12px 35px rgba(0, 0, 0, 0.30),
+        0 0 20px rgba(0, 217, 255, 0.08);
+}
+
+.market-button:active {
+    transform: scale(0.97);
+}
+
+.market-button-icon {
+    font-size: clamp(30px, 4vw, 43px);
+
+    line-height: 1;
+}
+
+.market-button-text {
+    font-size: clamp(12px, 1.5vw, 15px);
+
+    font-weight: 800;
+
+    letter-spacing: 1px;
+
+    text-align: center;
+}
+
+
+/* =========================================================
+   PANEL INFORMATIVO
+   ========================================================= */
+
+.dashboard-placeholder {
+    width: 100%;
+
+    padding: 35px 25px;
+
     text-align: center;
 
-    background: var(--glass);
+    background: rgba(255, 255, 255, 0.025);
 
-    backdrop-filter: blur(15px);
+    border: 1px solid var(--border);
+
+    border-radius: 20px;
 }
 
 .dashboard-lightning {
-    font-size: 55px;
+    color: var(--accent);
 
-    color: var(--flash-blue);
+    font-size: 38px;
+
+    margin-bottom: 12px;
 
     text-shadow:
-        0 0 25px rgba(53, 170, 255, 0.35);
-
-    margin-bottom: 15px;
+        0 0 15px var(--accent);
 }
 
 .dashboard-placeholder h3 {
-    font-size: 23px;
+    font-size: 22px;
 
     margin-bottom: 8px;
 }
@@ -712,7 +658,7 @@ button {
 .dashboard-placeholder p {
     color: var(--text-soft);
 
-    font-size: 14px;
+    line-height: 1.6;
 }
 
 
@@ -732,20 +678,19 @@ button {
 
     padding: 25px;
 
-    background: rgba(8, 12, 21, 0.96);
+    background:
+        rgba(8, 12, 20, 0.97);
 
-    border-left: 1px solid var(--line);
-
-    backdrop-filter: blur(25px);
-
-    z-index: 20;
-
-    transform: translateX(100%);
-
-    transition: transform 0.3s ease;
+    border-left: 1px solid var(--border);
 
     box-shadow:
-        -20px 0 60px rgba(0, 0, 0, 0.30);
+        -15px 0 45px rgba(0, 0, 0, 0.40);
+
+    z-index: 50;
+
+    transform: translateX(105%);
+
+    transition: transform 0.3s ease;
 }
 
 .settings-panel.open {
@@ -761,28 +706,29 @@ button {
 
     padding-bottom: 20px;
 
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--border);
+
+    margin-bottom: 20px;
 }
 
 .settings-header h3 {
-    font-size: 20px;
+    font-size: 21px;
 }
 
 .settings-header button {
-    width: 38px;
-    height: 38px;
+    width: 40px;
 
-    color: #ffffff;
+    height: 40px;
 
-    border: 1px solid var(--line);
+    color: white;
+
+    background: transparent;
+
+    border: 1px solid var(--border);
 
     border-radius: 10px;
 
-    background: rgba(255, 255, 255, 0.04);
-
-    cursor: pointer;
-
-    font-size: 24px;
+    font-size: 27px;
 }
 
 .settings-options {
@@ -790,9 +736,7 @@ button {
 
     flex-direction: column;
 
-    gap: 10px;
-
-    margin-top: 25px;
+    gap: 12px;
 }
 
 .settings-options button {
@@ -802,121 +746,128 @@ button {
 
     text-align: left;
 
-    color: #dce5f4;
+    color: white;
 
-    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.045);
+
+    border: 1px solid var(--border);
 
     border-radius: 12px;
 
-    background: rgba(255, 255, 255, 0.035);
-
-    cursor: pointer;
-
-    transition:
-        background 0.2s ease,
-        border-color 0.2s ease;
+    font-size: 15px;
 }
 
 .settings-options button:hover {
-    background: rgba(53, 170, 255, 0.06);
-
-    border-color: rgba(53, 170, 255, 0.25);
+    border-color: rgba(0, 217, 255, 0.45);
 }
 
 
 /* =========================================================
-   ADAPTACIÓN PARA TELÉFONOS
+   TABLET
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    .market-buttons {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+}
+
+
+/* =========================================================
+   TELÉFONOS
    ========================================================= */
 
 @media (max-width: 600px) {
 
-    #welcome-screen {
-        padding: 22px;
+    .screen {
+        padding: 18px;
     }
 
     .brand {
-        margin-bottom: 42px;
+        margin-bottom: 35px;
     }
 
     .brand h1 {
-        letter-spacing: 0.045em;
-    }
-
-    .brand p {
-        letter-spacing: 0.12em;
-    }
-
-    .background-lightning {
-        font-size: 240px;
+        letter-spacing: 2px;
     }
 
     .form-container {
-        padding: 28px 22px;
+        padding: 25px 20px;
 
         border-radius: 20px;
     }
 
     .dashboard-header {
-        padding: 0 17px;
+        min-height: 64px;
     }
 
     .dashboard-content {
-        padding: 40px 17px;
+        padding: 25px 16px 40px;
     }
 
-    .dashboard-placeholder {
-        min-height: 260px;
+    .market-buttons {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+        gap: 12px;
     }
+
+    .market-button {
+        min-height: 125px;
+
+        padding: 16px 10px;
+    }
+
 }
 
 
 /* =========================================================
-   PANTALLAS MUY PEQUEÑAS
+   TELÉFONOS PEQUEÑOS
    ========================================================= */
 
 @media (max-width: 360px) {
 
     .brand h1 {
-        font-size: 32px;
+        font-size: 34px;
     }
 
-    .main-buttons {
-        gap: 13px;
+    .market-buttons {
+        gap: 9px;
     }
 
-    .primary-button,
-    .secondary-button {
-        min-height: 56px;
+    .market-button {
+        min-height: 112px;
+
+        border-radius: 15px;
     }
 
-    .form-container {
-        padding: 23px 17px;
+    .market-button-icon {
+        font-size: 28px;
     }
+
+    .market-button-text {
+        font-size: 11px;
+    }
+
 }
 
 
 /* =========================================================
-   PANTALLAS GRANDES
+   COMPUTADORAS GRANDES
    ========================================================= */
 
 @media (min-width: 1200px) {
 
-    #welcome-screen {
-        padding-top: 20px;
+    .market-buttons {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
-    .brand {
-        margin-bottom: 60px;
-    }
-
-    .main-buttons {
-        width: 430px;
-    }
 }
 
 
 /* =========================================================
-   REDUCIR ANIMACIONES SI EL DISPOSITIVO LO SOLICITA
+   ACCESIBILIDAD
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
@@ -925,10 +876,7 @@ button {
     *::before,
     *::after {
         animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-
-        scroll-behavior: auto !important;
-
         transition-duration: 0.01ms !important;
     }
+
 }
