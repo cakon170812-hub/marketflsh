@@ -1,4267 +1,1952 @@
 /* =========================================================
-   MARKET FLASH — SCRIPT.JS
-========================================================= */
+   MARKET FLASH — style.css
+   Diseño completo, grande, moderno y responsive
+   ========================================================= */
 
-const ADMIN_CREDENTIALS = {
-    username: "admin",
-    password: "admin123"
-};
+:root {
+  --primary: #ff5a1f;
+  --primary-dark: #e9470d;
+  --secondary: #ffb703;
+  --accent: #7c3aed;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --info: #2563eb;
 
-const STORAGE_KEYS = {
-    users: "mf_users",
-    products: "mf_products",
-    currentUser: "mf_current_user",
-    notifications: "mf_notifications",
-    chats: "mf_chats",
-    advertising: "mf_advertising",
-    paymentMethods: "mf_payment_methods",
-    settings: "mf_settings"
-};
+  --bg: #f6f7fb;
+  --card: #ffffff;
+  --text: #171717;
+  --muted: #6b7280;
+  --border: #e5e7eb;
 
-let selectedCategory = "Todos";
-let currentProductId = null;
-let currentChatId = null;
-let currentImageIndex = 0;
-let currentProductImages = [];
-let editingProductId = null;
-let editingPaymentMethodId = null;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, .07);
+  --shadow: 0 8px 25px rgba(0, 0, 0, .09);
+  --shadow-lg: 0 15px 45px rgba(0, 0, 0, .14);
 
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 22px;
+
+  --nav-height: 72px;
+}
 
 /* =========================================================
-   UTILIDADES
-========================================================= */
+   RESET
+   ========================================================= */
 
-function generateId(prefix = "mf") {
-    return prefix + "_" + Date.now() + "_" +
-        Math.random().toString(36).substring(2, 9);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-function getStorage(key, fallback = []) {
-    try {
-        const value = localStorage.getItem(key);
-        return value ? JSON.parse(value) : fallback;
-    } catch (error) {
-        return fallback;
-    }
+html {
+  scroll-behavior: smooth;
 }
 
-function setStorage(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
 }
 
-function escapeHTML(value) {
-    if (value === null || value === undefined) return "";
-
-    return String(value)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
-function formatPrice(price) {
-    return Number(price || 0).toLocaleString("es-DO", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
+button {
+  cursor: pointer;
 }
 
-function formatDate(date) {
-    if (!date) return "";
-
-    return new Date(date).toLocaleDateString("es-DO", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric"
-    });
+img {
+  max-width: 100%;
+  display: block;
 }
 
-function getCurrentUser() {
-    return JSON.parse(
-        localStorage.getItem(STORAGE_KEYS.currentUser) || "null"
-    );
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-function saveCurrentUser(user) {
-    localStorage.setItem(
-        STORAGE_KEYS.currentUser,
-        JSON.stringify(user)
-    );
+.hidden {
+  display: none !important;
 }
-
 
 /* =========================================================
-   INICIALIZACIÓN
-========================================================= */
+   GENERAL
+   ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
-
-    initializeStorage();
-    initializeSearch();
-    updateInterface();
-
-    const currentUser = getCurrentUser();
-
-    if (currentUser) {
-        showPage("homePage");
-    } else {
-        showPage("homePage");
-    }
-
-});
-
-
-function initializeStorage() {
-
-    if (!localStorage.getItem(STORAGE_KEYS.users)) {
-        setStorage(STORAGE_KEYS.users, []);
-    }
-
-    if (!localStorage.getItem(STORAGE_KEYS.products)) {
-        setStorage(STORAGE_KEYS.products, []);
-    }
-
-    if (!localStorage.getItem(STORAGE_KEYS.notifications)) {
-        setStorage(STORAGE_KEYS.notifications, []);
-    }
-
-    if (!localStorage.getItem(STORAGE_KEYS.chats)) {
-        setStorage(STORAGE_KEYS.chats, []);
-    }
-
-    if (!localStorage.getItem(STORAGE_KEYS.advertising)) {
-        setStorage(STORAGE_KEYS.advertising, {
-            enabled: true,
-            price: 500,
-            requests: []
-        });
-    }
-
-    if (!localStorage.getItem(STORAGE_KEYS.paymentMethods)) {
-        setStorage(STORAGE_KEYS.paymentMethods, [
-            {
-                id: generateId("pay"),
-                name: "Transferencia bancaria",
-                price: 0
-            }
-        ]);
-    }
-
-    if (!localStorage.getItem(STORAGE_KEYS.settings)) {
-        setStorage(STORAGE_KEYS.settings, {
-            advertisingEnabled: true,
-            advertisingPrice: 500
-        });
-    }
+.text-center {
+  text-align: center;
 }
 
+.text-muted {
+  color: var(--muted);
+}
+
+.mt-1 { margin-top: 8px; }
+.mt-2 { margin-top: 16px; }
+.mt-3 { margin-top: 24px; }
+
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.mb-3 { margin-bottom: 24px; }
+
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gap-1 { gap: 8px; }
+.gap-2 { gap: 16px; }
+.gap-3 { gap: 24px; }
 
 /* =========================================================
-   NAVEGACIÓN
-========================================================= */
+   APP / PAGES
+   ========================================================= */
 
-function showPage(pageId) {
-
-    document.querySelectorAll(".page").forEach(page => {
-        page.classList.remove("active");
-    });
-
-    const page = document.getElementById(pageId);
-
-    if (page) {
-        page.classList.add("active");
-    }
-
-    document.querySelectorAll(".nav-item").forEach(item => {
-        item.classList.remove("active");
-
-        if (item.dataset.page === pageId) {
-            item.classList.add("active");
-        }
-    });
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-
-    updateInterface();
+.app-shell {
+  min-height: 100vh;
+  width: 100%;
 }
 
-
-function openLogin() {
-    showPage("loginPage");
+.page {
+  display: none;
+  min-height: 100vh;
 }
 
-function openRegister() {
-    showPage("registerPage");
+.page.active {
+  display: block;
 }
 
-function openRecovery() {
-    showPage("recoveryPage");
+.page-container {
+  width: min(1200px, 100%);
+  margin: 0 auto;
+  padding: 24px 16px calc(var(--nav-height) + 30px);
 }
-
-function openPublish() {
-
-    const user = getCurrentUser();
-
-    if (!user) {
-        showToast("Debes iniciar sesión para publicar.");
-        openLogin();
-        return;
-    }
-
-    editingProductId = null;
-
-    resetPublishForm();
-
-    showPage("publishPage");
-}
-
-function openProfile() {
-
-    const user = getCurrentUser();
-
-    if (!user) {
-        openLogin();
-        return;
-    }
-
-    renderProfile();
-    showPage("profilePage");
-}
-
-function openMyPublications() {
-
-    const user = getCurrentUser();
-
-    if (!user) {
-        openLogin();
-        return;
-    }
-
-    renderMyPublications();
-    showPage("myPublicationsPage");
-}
-
-function openMyChats() {
-
-    const user = getCurrentUser();
-
-    if (!user) {
-        openLogin();
-        return;
-    }
-
-    renderChatList();
-    showPage("chatsPage");
-}
-
-function openSettings() {
-    showPage("settingsPage");
-}
-
 
 /* =========================================================
-   BUSCADOR
-========================================================= */
+   TOP BAR
+   ========================================================= */
 
-function initializeSearch() {
-
-    const input = document.getElementById("searchInput");
-
-    if (!input) return;
-
-    input.addEventListener("input", () => {
-        renderProducts();
-    });
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, .96);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 3px 15px rgba(0, 0, 0, .06);
 }
 
-
-function filterCategory(category) {
-
-    selectedCategory = category;
-
-    document.querySelectorAll(".category-btn").forEach(button => {
-
-        button.classList.toggle(
-            "active",
-            button.dataset.category === category
-        );
-
-    });
-
-    renderProducts();
+.topbar-inner {
+  width: min(1200px, 100%);
+  min-height: 78px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.brand-mark {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #fff;
+  font-size: 27px;
+  font-weight: 900;
+  box-shadow: 0 7px 18px rgba(255, 90, 31, .28);
+}
+
+.brand-text {
+  min-width: 0;
+}
+
+.brand-title {
+  color: var(--primary);
+  font-size: 27px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -.8px;
+}
+
+.brand-subtitle {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-btn {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  transition: .2s;
+}
+
+.icon-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+#notificationBadge {
+  position: absolute;
+  top: -4px;
+  right: -3px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 50px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* =========================================================
-   PUBLICACIONES
-========================================================= */
+   SEARCH
+   ========================================================= */
 
-function getProducts() {
-    return getStorage(STORAGE_KEYS.products, []);
+.search-wrapper {
+  margin: 20px 0;
+  position: relative;
 }
 
-function saveProducts(products) {
-    setStorage(STORAGE_KEYS.products, products);
+#searchInput {
+  width: 100%;
+  height: 56px;
+  padding: 0 20px;
+  border: 2px solid var(--border);
+  border-radius: 18px;
+  outline: none;
+  background: #fff;
+  font-size: 17px;
+  transition: .2s;
+  box-shadow: var(--shadow-sm);
 }
 
-
-function renderProducts() {
-
-    const grid = document.getElementById("productsGrid");
-
-    if (!grid) return;
-
-    const searchInput = document.getElementById("searchInput");
-
-    const search = searchInput
-        ? searchInput.value.toLowerCase().trim()
-        : "";
-
-    let products = getProducts();
-
-    products = products.filter(product => {
-
-        const categoryMatch =
-            selectedCategory === "Todos" ||
-            product.category === selectedCategory;
-
-        const text =
-            `${product.name} ${product.description} ${product.location}`
-                .toLowerCase();
-
-        const searchMatch =
-            !search || text.includes(search);
-
-        return categoryMatch && searchMatch;
-    });
-
-
-    grid.innerHTML = "";
-
-    products.forEach(product => {
-
-        grid.insertAdjacentHTML(
-            "beforeend",
-            createProductCard(product)
-        );
-
-    });
-
-
-    const count = document.getElementById("publicationCount");
-
-    if (count) {
-        count.textContent =
-            `${products.length} publicación${products.length === 1 ? "" : "es"}`;
-    }
-
-
-    const empty = document.getElementById("emptyProducts");
-
-    if (empty) {
-        empty.classList.toggle(
-            "hidden",
-            products.length > 0
-        );
-    }
+#searchInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(255, 90, 31, .10);
 }
-
-
-function createProductCard(product) {
-
-    const image =
-        product.images && product.images.length
-            ? product.images[0]
-            : "";
-
-
-    const likedBy =
-        product.likedBy || [];
-
-    const dislikedBy =
-        product.dislikedBy || [];
-
-    const currentUser = getCurrentUser();
-
-    const userId = currentUser
-        ? currentUser.id
-        : null;
-
-
-    const liked =
-        userId && likedBy.includes(userId);
-
-    const disliked =
-        userId && dislikedBy.includes(userId);
-
-
-    return `
-        <article class="product-card">
-
-            <div
-                class="product-image-container"
-                onclick="openProductDetail('${product.id}')">
-
-                ${
-                    image
-                    ? `
-                        <img
-                            src="${image}"
-                            alt="${escapeHTML(product.name)}"
-                            class="product-image">
-                    `
-                    : `
-                        <div class="product-no-image">
-                            📦
-                        </div>
-                    `
-                }
-
-                ${
-                    product.images && product.images.length > 1
-                    ? `
-                        <span class="image-count">
-                            📷 ${product.images.length}
-                        </span>
-                    `
-                    : ""
-                }
-
-            </div>
-
-
-            <div class="product-card-body">
-
-                <div class="product-category">
-                    ${escapeHTML(product.category || "Otros")}
-                </div>
-
-                <h3>
-                    ${escapeHTML(product.name)}
-                </h3>
-
-                <div class="product-price">
-                    RD$ ${formatPrice(product.price)}
-                </div>
-
-                ${
-                    product.location
-                    ? `
-                        <div class="product-location">
-                            📍 ${escapeHTML(product.location)}
-                        </div>
-                    `
-                    : ""
-                }
-
-
-                <div class="product-actions">
-
-                    <button
-                        class="like-btn ${liked ? "active" : ""}"
-                        onclick="toggleLike('${product.id}')">
-
-                        👍
-                        <span>
-                            ${likedBy.length}
-                        </span>
-
-                    </button>
-
-
-                    <button
-                        class="dislike-btn ${disliked ? "active" : ""}"
-                        onclick="toggleDislike('${product.id}')">
-
-                        👎
-                        <span>
-                            ${dislikedBy.length}
-                        </span>
-
-                    </button>
-
-
-                    <button
-                        class="chat-product-btn"
-                        onclick="startChatFromProduct('${product.id}')">
-
-                        💬 Chat
-
-                    </button>
-
-
-                    <button
-                        class="whatsapp-btn"
-                        onclick="openWhatsApp('${product.id}')">
-
-                        WhatsApp
-
-                    </button>
-
-                </div>
-
-            </div>
-
-        </article>
-    `;
-}
-
 
 /* =========================================================
-   DETALLE DEL PRODUCTO
-========================================================= */
+   CATEGORIES
+   ========================================================= */
 
-function openProductDetail(productId) {
-
-    const products = getProducts();
-
-    const product =
-        products.find(item => item.id === productId);
-
-    if (!product) return;
-
-    currentProductId = productId;
-
-    product.views = Number(product.views || 0) + 1;
-
-    saveProducts(products);
-
-    renderProductDetail(product);
-
-    showPage("productDetailPage");
+.categories {
+  display: flex;
+  gap: 9px;
+  overflow-x: auto;
+  padding: 3px 1px 10px;
+  scrollbar-width: none;
 }
 
-
-function renderProductDetail(product) {
-
-    const container =
-        document.getElementById("productDetail");
-
-    if (!container) return;
-
-
-    currentProductImages =
-        product.images && product.images.length
-            ? product.images
-            : [];
-
-
-    const currentUser = getCurrentUser();
-
-    const isOwner =
-        currentUser &&
-        product.userId === currentUser.id;
-
-
-    const likedBy =
-        product.likedBy || [];
-
-    const dislikedBy =
-        product.dislikedBy || [];
-
-
-    const liked =
-        currentUser &&
-        likedBy.includes(currentUser.id);
-
-    const disliked =
-        currentUser &&
-        dislikedBy.includes(currentUser.id);
-
-
-    const imagesHTML =
-        currentProductImages.length
-        ? `
-            <div class="detail-images">
-
-                <div
-                    class="detail-main-image"
-                    onclick="openImageViewer(0)">
-
-                    <img
-                        src="${currentProductImages[0]}"
-                        alt="${escapeHTML(product.name)}">
-
-                    <div class="expand-image-hint">
-                        ⛶ Ampliar
-                    </div>
-
-                </div>
-
-
-                ${
-                    currentProductImages.length > 1
-                    ? `
-                        <div class="detail-thumbnails">
-
-                            ${currentProductImages.map(
-                                (image, index) => `
-                                    <button
-                                        onclick="openImageViewer(${index})">
-
-                                        <img
-                                            src="${image}"
-                                            alt="Imagen ${index + 1}">
-
-                                    </button>
-                                `
-                            ).join("")}
-
-                        </div>
-                    `
-                    : ""
-                }
-
-            </div>
-        `
-        : `
-            <div class="detail-no-image">
-                📦
-            </div>
-        `;
-
-
-    container.innerHTML = `
-
-        ${imagesHTML}
-
-
-        <div class="detail-body">
-
-            <div class="product-category">
-                ${escapeHTML(product.category || "Otros")}
-            </div>
-
-
-            <h1>
-                ${escapeHTML(product.name)}
-            </h1>
-
-
-            <div class="detail-price">
-                RD$ ${formatPrice(product.price)}
-            </div>
-
-
-            ${
-                product.location
-                ? `
-                    <div class="detail-location">
-                        📍 ${escapeHTML(product.location)}
-                    </div>
-                `
-                : ""
-            }
-
-
-            <div class="detail-stats">
-
-                <span>
-                    👁️ ${product.views || 0} vistas
-                </span>
-
-                <span>
-                    👍 ${likedBy.length}
-                </span>
-
-                <span>
-                    👎 ${dislikedBy.length}
-                </span>
-
-            </div>
-
-
-            <div class="detail-description">
-
-                <h3>Descripción</h3>
-
-                <p>
-                    ${escapeHTML(
-                        product.description ||
-                        "Sin descripción."
-                    )}
-                </p>
-
-            </div>
-
-
-            <div class="detail-actions">
-
-                <button
-                    class="like-large-btn ${liked ? "active" : ""}"
-                    onclick="toggleLike('${product.id}')">
-
-                    👍 Me gusta
-                    (${likedBy.length})
-
-                </button>
-
-
-                <button
-                    class="dislike-large-btn ${disliked ? "active" : ""}"
-                    onclick="toggleDislike('${product.id}')">
-
-                    👎 No me gusta
-                    (${dislikedBy.length})
-
-                </button>
-
-
-                <button
-                    class="chat-large-btn"
-                    onclick="startChatFromProduct('${product.id}')">
-
-                    💬 Chat
-
-                </button>
-
-
-                <button
-                    class="whatsapp-large-btn"
-                    onclick="openWhatsApp('${product.id}')">
-
-                    🟢 WhatsApp
-
-                </button>
-
-            </div>
-
-
-            ${
-                isOwner
-                ? `
-                    <div class="owner-actions">
-
-                        <h3>
-                            Administrar publicación
-                        </h3>
-
-
-                        <button
-                            class="edit-product-btn"
-                            onclick="editProduct('${product.id}')">
-
-                            ✏️ Editar publicación
-
-                        </button>
-
-
-                        <button
-                            class="delete-product-btn"
-                            onclick="deleteProduct('${product.id}')">
-
-                            🗑️ Eliminar publicación
-
-                        </button>
-
-                    </div>
-                `
-                : ""
-            }
-
-        </div>
-    `;
+.categories::-webkit-scrollbar {
+  display: none;
 }
 
+.category-btn {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: #444;
+  border-radius: 50px;
+  padding: 11px 17px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: .2s;
+}
+
+.category-btn:hover {
+  border-color: var(--primary);
+}
+
+.category-btn.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(255, 90, 31, .22);
+}
 
 /* =========================================================
-   ME GUSTA
-========================================================= */
+   PROMO BANNER
+   ========================================================= */
 
-function toggleLike(productId) {
-
-    const user = getCurrentUser();
-
-    if (!user) {
-        showToast("Inicia sesión para votar.");
-        openLogin();
-        return;
-    }
-
-
-    const products = getProducts();
-
-    const product =
-        products.find(item => item.id === productId);
-
-    if (!product) return;
-
-
-    product.likedBy = product.likedBy || [];
-    product.dislikedBy = product.dislikedBy || [];
-
-
-    const likedIndex =
-        product.likedBy.indexOf(user.id);
-
-    const dislikedIndex =
-        product.dislikedBy.indexOf(user.id);
-
-
-    if (likedIndex >= 0) {
-
-        product.likedBy.splice(likedIndex, 1);
-
-    } else {
-
-        product.likedBy.push(user.id);
-
-        if (dislikedIndex >= 0) {
-            product.dislikedBy.splice(dislikedIndex, 1);
-        }
-
-    }
-
-
-    saveProducts(products);
-
-    renderProducts();
-
-
-    if (currentProductId === productId) {
-        renderProductDetail(product);
-    }
+.promo-banner {
+  margin: 20px 0 26px;
+  padding: 24px;
+  border-radius: 22px;
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgba(255, 90, 31, .98), rgba(124, 58, 237, .94));
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  position: relative;
 }
 
+.promo-banner::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  right: -45px;
+  top: -55px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .12);
+}
+
+.promo-banner h2,
+.promo-banner h3 {
+  position: relative;
+  z-index: 1;
+}
+
+.promo-banner p {
+  margin-top: 5px;
+  position: relative;
+  z-index: 1;
+  opacity: .93;
+}
 
 /* =========================================================
-   NO ME GUSTA
-========================================================= */
+   SECTION HEADERS
+   ========================================================= */
 
-function toggleDislike(productId) {
-
-    const user = getCurrentUser();
-
-    if (!user) {
-        showToast("Inicia sesión para votar.");
-        openLogin();
-        return;
-    }
-
-
-    const products = getProducts();
-
-    const product =
-        products.find(item => item.id === productId);
-
-    if (!product) return;
-
-
-    product.likedBy = product.likedBy || [];
-    product.dislikedBy = product.dislikedBy || [];
-
-
-    const likedIndex =
-        product.likedBy.indexOf(user.id);
-
-    const dislikedIndex =
-        product.dislikedBy.indexOf(user.id);
-
-
-    if (dislikedIndex >= 0) {
-
-        product.dislikedBy.splice(dislikedIndex, 1);
-
-    } else {
-
-        product.dislikedBy.push(user.id);
-
-        if (likedIndex >= 0) {
-            product.likedBy.splice(likedIndex, 1);
-        }
-
-    }
-
-
-    saveProducts(products);
-
-    renderProducts();
-
-
-    if (currentProductId === productId) {
-        renderProductDetail(product);
-    }
+.section-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 24px 0 16px;
 }
 
+.section-title {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -.4px;
+}
+
+.section-subtitle {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.publication-count {
+  color: var(--primary);
+  font-weight: 800;
+  white-space: nowrap;
+}
 
 /* =========================================================
-   WHATSAPP
-========================================================= */
+   PRODUCT GRID
+   ========================================================= */
 
-function openWhatsApp(productId) {
-
-    const product =
-        getProducts().find(item => item.id === productId);
-
-    if (!product) return;
-
-
-    let phone =
-        product.whatsapp ||
-        "";
-
-
-    phone = phone.replace(/\D/g, "");
-
-
-    if (!phone) {
-        showToast(
-            "Esta publicación no tiene WhatsApp registrado."
-        );
-        return;
-    }
-
-
-    if (phone.length === 10) {
-        phone = "1" + phone;
-    }
-
-
-    const message =
-        `Hola, vi tu publicación "${product.name}" en Market Flash y estoy interesado/a.`;
-
-
-    const url =
-        `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-
-
-    window.open(url, "_blank");
+#productsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
 }
 
+#emptyProducts {
+  padding: 45px 20px;
+  text-align: center;
+  color: var(--muted);
+}
 
 /* =========================================================
-   CÁMARA Y GALERÍA
-========================================================= */
+   PRODUCT CARD
+   ========================================================= */
 
-function openCamera() {
-
-    const input =
-        document.getElementById("cameraInput");
-
-    if (input) {
-        input.click();
-    }
+.product-card {
+  min-width: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform .2s, box-shadow .2s;
 }
 
-
-function openGallery() {
-
-    const input =
-        document.getElementById("galleryInput");
-
-    if (input) {
-        input.click();
-    }
+.product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
 }
 
-
-function handleImageSelection(event) {
-
-    const files =
-        Array.from(event.target.files || []);
-
-    if (!files.length) return;
-
-
-    const preview =
-        document.getElementById("imagePreview");
-
-    if (!preview) return;
-
-
-    preview.innerHTML = "";
-
-
-    files.forEach((file, index) => {
-
-        if (!file.type.startsWith("image/")) {
-            return;
-        }
-
-
-        const reader = new FileReader();
-
-
-        reader.onload = function(e) {
-
-            const wrapper =
-                document.createElement("div");
-
-            wrapper.className =
-                "preview-image-wrapper";
-
-
-            wrapper.innerHTML = `
-
-                <img
-                    src="${e.target.result}"
-                    alt="Vista previa">
-
-                <button
-                    type="button"
-                    onclick="removePreviewImage(this)">
-
-                    ✕
-
-                </button>
-
-            `;
-
-
-            preview.appendChild(wrapper);
-
-        };
-
-
-        reader.readAsDataURL(file);
-    });
+.product-image-container {
+  position: relative;
+  width: 100%;
+  height: 175px;
+  background: #f0f1f4;
+  overflow: hidden;
 }
 
-
-function removePreviewImage(button) {
-
-    const wrapper =
-        button.parentElement;
-
-    if (wrapper) {
-        wrapper.remove();
-    }
+.product-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
+.product-no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  font-size: 42px;
+}
+
+.image-count {
+  position: absolute;
+  left: 9px;
+  bottom: 9px;
+  padding: 5px 9px;
+  border-radius: 50px;
+  background: rgba(0, 0, 0, .62);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.product-card-body {
+  padding: 13px;
+}
+
+.product-category {
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.product-price {
+  margin-top: 3px;
+  font-size: 21px;
+  font-weight: 900;
+  color: #111;
+}
+
+.product-location {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.product-actions button {
+  min-height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  transition: .2s;
+}
+
+.product-actions button:hover {
+  transform: translateY(-1px);
+}
+
+.like-btn.active,
+.like-large-btn.active {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: rgba(255, 90, 31, .08);
+}
+
+.dislike-btn.active,
+.dislike-large-btn.active {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: rgba(220, 38, 38, .07);
+}
+
+.chat-product-btn,
+.chat-large-btn {
+  color: var(--accent);
+  border-color: rgba(124, 58, 237, .25) !important;
+}
+
+.whatsapp-btn,
+.whatsapp-large-btn {
+  color: var(--success);
+  border-color: rgba(22, 163, 74, .28) !important;
+}
 
 /* =========================================================
-   PUBLICAR PRODUCTO
-========================================================= */
+   BUTTONS
+   ========================================================= */
 
-async function publishProduct(event) {
-
-    event.preventDefault();
-
-
-    const user = getCurrentUser();
-
-    if (!user) {
-        showToast("Debes iniciar sesión.");
-        return;
-    }
-
-
-    const name =
-        document.getElementById("productName").value.trim();
-
-    const category =
-        document.getElementById("productCategory").value;
-
-    const price =
-        document.getElementById("productPrice").value;
-
-    const location =
-        document.getElementById("productLocation").value.trim();
-
-    const description =
-        document.getElementById("productDescription").value.trim();
-
-    const whatsapp =
-        document.getElementById("productWhatsapp").value.trim();
-
-
-    const images =
-        Array.from(
-            document.querySelectorAll(
-                "#imagePreview img"
-            )
-        ).map(img => img.src);
-
-
-    const products = getProducts();
-
-
-    if (editingProductId) {
-
-        const index =
-            products.findIndex(
-                product =>
-                    product.id === editingProductId
-            );
-
-
-        if (index === -1) {
-            showToast("No se encontró la publicación.");
-            return;
-        }
-
-
-        products[index] = {
-            ...products[index],
-            name,
-            category,
-            price: Number(price),
-            location,
-            description,
-            whatsapp,
-            images:
-                images.length
-                    ? images
-                    : products[index].images || [],
-            updatedAt: new Date().toISOString()
-        };
-
-
-        saveProducts(products);
-
-        showToast("Publicación actualizada.");
-
-    } else {
-
-        const product = {
-
-            id: generateId("product"),
-
-            userId: user.id,
-
-            sellerName: user.name,
-
-            name,
-
-            category,
-
-            price: Number(price),
-
-            location,
-
-            description,
-
-            whatsapp,
-
-            images,
-
-            likedBy: [],
-
-            dislikedBy: [],
-
-            views: 0,
-
-            createdAt: new Date().toISOString(),
-
-            status: "approved"
-
-        };
-
-
-        products.unshift(product);
-
-        saveProducts(products);
-
-        showToast("Publicación creada correctamente.");
-    }
-
-
-    editingProductId = null;
-
-    resetPublishForm();
-
-    renderProducts();
-
-    openMyPublications();
+.primary-btn,
+.secondary-btn,
+.danger-btn,
+.full-btn {
+  min-height: 48px;
+  border-radius: 13px;
+  padding: 12px 18px;
+  font-weight: 800;
+  border: none;
+  transition: .2s;
 }
 
+.primary-btn,
+.full-btn {
+  background: var(--primary);
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(255, 90, 31, .20);
+}
+
+.primary-btn:hover,
+.full-btn:hover {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.secondary-btn {
+  background: #fff;
+  color: #333;
+  border: 1px solid var(--border);
+}
+
+.secondary-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.danger-btn {
+  background: var(--danger);
+  color: #fff;
+}
+
+.danger-btn:hover {
+  filter: brightness(.93);
+}
+
+.full-btn {
+  width: 100%;
+}
 
 /* =========================================================
-   EDITAR PUBLICACIÓN
-========================================================= */
+   FORMS
+   ========================================================= */
 
-function editProduct(productId) {
-
-    const user = getCurrentUser();
-
-    if (!user) return;
-
-
-    const products = getProducts();
-
-    const product =
-        products.find(
-            item =>
-                item.id === productId
-        );
-
-
-    if (!product) return;
-
-
-    if (product.userId !== user.id) {
-
-        showToast(
-            "Solo puedes editar tus propias publicaciones."
-        );
-
-        return;
-    }
-
-
-    editingProductId = productId;
-
-
-    document.getElementById("productName").value =
-        product.name || "";
-
-    document.getElementById("productCategory").value =
-        product.category || "";
-
-    document.getElementById("productPrice").value =
-        product.price || "";
-
-    document.getElementById("productLocation").value =
-        product.location || "";
-
-    document.getElementById("productDescription").value =
-        product.description || "";
-
-    document.getElementById("productWhatsapp").value =
-        product.whatsapp || "";
-
-
-    const preview =
-        document.getElementById("imagePreview");
-
-
-    if (preview) {
-
-        preview.innerHTML = "";
-
-
-        (product.images || []).forEach(image => {
-
-            preview.insertAdjacentHTML(
-                "beforeend",
-                `
-                    <div class="preview-image-wrapper">
-
-                        <img
-                            src="${image}"
-                            alt="Imagen">
-
-                        <button
-                            type="button"
-                            onclick="removePreviewImage(this)">
-
-                            ✕
-
-                        </button>
-
-                    </div>
-                `
-            );
-
-        });
-    }
-
-
-    showPage("publishPage");
+.form-card {
+  max-width: 650px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  box-shadow: var(--shadow);
 }
 
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #333;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  min-height: 50px;
+  padding: 12px 14px;
+  border: 2px solid var(--border);
+  border-radius: 13px;
+  background: #fff;
+  color: #222;
+  outline: none;
+  font-size: 16px;
+  transition: .2s;
+}
+
+.form-group textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(255, 90, 31, .09);
+}
 
 /* =========================================================
-   ELIMINAR PUBLICACIÓN DEL USUARIO
-========================================================= */
+   IMAGE UPLOAD
+   ========================================================= */
 
-function deleteProduct(productId) {
-
-    const user = getCurrentUser();
-
-    if (!user) return;
-
-
-    const products = getProducts();
-
-    const product =
-        products.find(
-            item =>
-                item.id === productId
-        );
-
-
-    if (!product) return;
-
-
-    if (product.userId !== user.id) {
-
-        showToast(
-            "No puedes eliminar esta publicación."
-        );
-
-        return;
-    }
-
-
-    openConfirmModal(
-        "Eliminar publicación",
-        "¿Seguro que quieres eliminar esta publicación? Esta acción no se puede deshacer.",
-        () => {
-
-            const updatedProducts =
-                getProducts().filter(
-                    item =>
-                        item.id !== productId
-                );
-
-
-            saveProducts(updatedProducts);
-
-            showToast(
-                "La publicación fue eliminada por completo."
-            );
-
-
-            currentProductId = null;
-
-            renderProducts();
-
-            openMyPublications();
-
-        }
-    );
+.image-upload-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 10px;
 }
 
+.image-upload-btn {
+  min-height: 100px;
+  border: 2px dashed #d5d7dc;
+  border-radius: 17px;
+  background: #fafafa;
+  color: #444;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 800;
+  transition: .2s;
+}
+
+.image-upload-btn:hover {
+  border-color: var(--primary);
+  background: rgba(255, 90, 31, .04);
+  color: var(--primary);
+}
+
+.upload-icon {
+  font-size: 30px;
+}
+
+#imagePreview {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 9px;
+  margin-top: 14px;
+}
+
+.preview-image-wrapper {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eee;
+}
+
+.preview-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-image-wrapper button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .7);
+  color: #fff;
+  font-weight: 900;
+}
 
 /* =========================================================
-   MIS PUBLICACIONES
-========================================================= */
+   AUTH
+   ========================================================= */
 
-function renderMyPublications() {
-
-    const user = getCurrentUser();
-
-    const container =
-        document.getElementById(
-            "myPublicationsList"
-        );
-
-    const empty =
-        document.getElementById(
-            "emptyMyPublications"
-        );
-
-
-    if (!container || !user) return;
-
-
-    const products =
-        getProducts().filter(
-            product =>
-                product.userId === user.id
-        );
-
-
-    container.innerHTML = "";
-
-
-    products.forEach(product => {
-
-        const image =
-            product.images &&
-            product.images.length
-                ? product.images[0]
-                : "";
-
-
-        container.insertAdjacentHTML(
-            "beforeend",
-            `
-                <div class="my-publication-card">
-
-                    <div class="my-publication-image">
-
-                        ${
-                            image
-                            ? `
-                                <img
-                                    src="${image}"
-                                    alt="${escapeHTML(product.name)}">
-                            `
-                            : `
-                                <span>📦</span>
-                            `
-                        }
-
-                    </div>
-
-
-                    <div class="my-publication-info">
-
-                        <h3>
-                            ${escapeHTML(product.name)}
-                        </h3>
-
-                        <strong>
-                            RD$ ${formatPrice(product.price)}
-                        </strong>
-
-                        <small>
-                            ${escapeHTML(product.category || "")}
-                        </small>
-
-                    </div>
-
-
-                    <div class="my-publication-actions">
-
-                        <button
-                            onclick="editProduct('${product.id}')">
-
-                            ✏️ Editar
-
-                        </button>
-
-
-                        <button
-                            class="danger-btn"
-                            onclick="deleteProduct('${product.id}')">
-
-                            🗑️ Eliminar
-
-                        </button>
-
-                    </div>
-
-                </div>
-            `
-        );
-
-    });
-
-
-    if (empty) {
-
-        empty.classList.toggle(
-            "hidden",
-            products.length > 0
-        );
-
-    }
+.auth-page {
+  min-height: 100vh;
+  padding: 30px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top left, rgba(255, 183, 3, .18), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(124, 58, 237, .15), transparent 35%),
+    var(--bg);
 }
 
+.auth-card {
+  width: min(440px, 100%);
+  padding: 30px 24px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 25px;
+  box-shadow: var(--shadow-lg);
+}
+
+.auth-logo-circle {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 16px;
+  border-radius: 25px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 38px;
+  font-weight: 900;
+  box-shadow: 0 10px 25px rgba(255, 90, 31, .25);
+}
+
+.auth-card h1,
+.auth-card h2 {
+  text-align: center;
+  font-size: 27px;
+  font-weight: 900;
+}
+
+.auth-subtitle {
+  margin: 7px 0 23px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.auth-links {
+  margin-top: 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  text-align: center;
+}
+
+.auth-links button {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-weight: 800;
+}
 
 /* =========================================================
-   RESET FORMULARIO
-========================================================= */
+   PROFILE
+   ========================================================= */
 
-function resetPublishForm() {
-
-    const form =
-        document.getElementById("publishForm");
-
-    if (form) {
-        form.reset();
-    }
-
-
-    const preview =
-        document.getElementById("imagePreview");
-
-    if (preview) {
-        preview.innerHTML = "";
-    }
-
-
-    const camera =
-        document.getElementById("cameraInput");
-
-    const gallery =
-        document.getElementById("galleryInput");
-
-
-    if (camera) camera.value = "";
-
-    if (gallery) gallery.value = "";
+.profile-card {
+  max-width: 700px;
+  margin: 0 auto;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 23px;
+  box-shadow: var(--shadow);
 }
 
+.profile-header {
+  padding: 30px 20px;
+  text-align: center;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+}
+
+.profile-avatar {
+  width: 105px;
+  height: 105px;
+  margin: 0 auto 13px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid rgba(255, 255, 255, .9);
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+#profileAvatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#profileName {
+  font-size: 23px;
+  font-weight: 900;
+}
+
+#profilePhone {
+  margin-top: 3px;
+  opacity: .9;
+}
+
+.profile-body {
+  padding: 22px;
+}
 
 /* =========================================================
-   VISOR DE IMÁGENES A PANTALLA COMPLETA
-========================================================= */
+   BOTTOM NAV
+   ========================================================= */
 
-function openImageViewer(index = 0) {
-
-    if (!currentProductImages.length) return;
-
-    currentImageIndex = index;
-
-    renderImageViewer();
-
-    const viewer =
-        document.getElementById("imageViewer");
-
-    if (viewer) {
-        viewer.classList.remove("hidden");
-    }
+.bottom-nav {
+  position: fixed;
+  z-index: 1100;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--nav-height);
+  background: rgba(255, 255, 255, .97);
+  backdrop-filter: blur(15px);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -5px 20px rgba(0, 0, 0, .07);
 }
 
-
-function renderImageViewer() {
-
-    const image =
-        document.getElementById(
-            "fullScreenImage"
-        );
-
-    const counter =
-        document.getElementById(
-            "imageViewerCounter"
-        );
-
-
-    if (!image) return;
-
-
-    image.src =
-        currentProductImages[currentImageIndex];
-
-
-    if (counter) {
-
-        counter.textContent =
-            `${currentImageIndex + 1} / ${currentProductImages.length}`;
-
-    }
+.bottom-nav-inner {
+  width: min(700px, 100%);
+  height: 100%;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
 }
 
-
-function closeImageViewer() {
-
-    const viewer =
-        document.getElementById("imageViewer");
-
-    if (viewer) {
-        viewer.classList.add("hidden");
-    }
+.nav-item {
+  border: 0;
+  background: transparent;
+  color: #7b7f87;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 700;
 }
 
-
-function previousImage() {
-
-    if (!currentProductImages.length) return;
-
-
-    currentImageIndex--;
-
-    if (currentImageIndex < 0) {
-        currentImageIndex =
-            currentProductImages.length - 1;
-    }
-
-
-    renderImageViewer();
+.nav-icon {
+  font-size: 22px;
+  line-height: 1;
 }
 
-
-function nextImage() {
-
-    if (!currentProductImages.length) return;
-
-
-    currentImageIndex++;
-
-    if (
-        currentImageIndex >=
-        currentProductImages.length
-    ) {
-        currentImageIndex = 0;
-    }
-
-
-    renderImageViewer();
+.nav-item.active {
+  color: var(--primary);
 }
 
+/* =========================================================
+   PRODUCT DETAIL
+   ========================================================= */
+
+.detail-card {
+  max-width: 850px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 23px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.detail-images {
+  background: #f1f2f4;
+}
+
+.detail-main-image {
+  width: 100%;
+  height: 320px;
+  object-fit: contain;
+  background: #f1f2f4;
+  cursor: zoom-in;
+}
+
+.expand-image-hint {
+  padding: 8px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  background: #fff;
+}
+
+.detail-thumbnails {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px;
+  background: #fff;
+}
+
+.detail-thumbnails button {
+  flex: 0 0 65px;
+  width: 65px;
+  height: 65px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #eee;
+}
+
+.detail-thumbnails button.active {
+  border-color: var(--primary);
+}
+
+.detail-thumbnails img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-no-image {
+  height: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 55px;
+}
+
+.detail-body {
+  padding: 22px;
+}
+
+.detail-body h1 {
+  font-size: 27px;
+  line-height: 1.15;
+}
+
+.detail-price {
+  margin-top: 8px;
+  font-size: 30px;
+  color: var(--primary);
+  font-weight: 900;
+}
+
+.detail-location {
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.detail-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.detail-stats span {
+  padding: 8px 12px;
+  border-radius: 50px;
+  background: #f5f5f6;
+  color: #555;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.detail-description {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  white-space: pre-wrap;
+}
+
+.detail-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.detail-actions button {
+  min-height: 48px;
+  border-radius: 12px;
+  font-weight: 800;
+  background: #fff;
+  border: 1px solid var(--border);
+}
+
+.owner-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.edit-product-btn {
+  background: #eff6ff !important;
+  color: var(--info);
+  border-color: #bfdbfe !important;
+}
+
+.delete-product-btn {
+  background: #fef2f2 !important;
+  color: var(--danger);
+  border-color: #fecaca !important;
+}
 
 /* =========================================================
    CHAT
-========================================================= */
+   ========================================================= */
 
-function getChats() {
-    return getStorage(STORAGE_KEYS.chats, []);
+.chat-list {
+  max-width: 750px;
+  margin: 0 auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
 }
 
-function saveChats(chats) {
-    setStorage(STORAGE_KEYS.chats, chats);
+.chat-list-item {
+  min-height: 80px;
+  padding: 13px 15px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
 }
 
-
-function startChatFromProduct(productId) {
-
-    const user = getCurrentUser();
-
-    if (!user) {
-
-        showToast(
-            "Inicia sesión para usar el chat."
-        );
-
-        openLogin();
-
-        return;
-    }
-
-
-    const product =
-        getProducts().find(
-            item =>
-                item.id === productId
-        );
-
-
-    if (!product) return;
-
-
-    if (product.userId === user.id) {
-
-        showToast(
-            "No puedes iniciar un chat contigo mismo."
-        );
-
-        return;
-    }
-
-
-    const chats = getChats();
-
-
-    let chat =
-        chats.find(item =>
-            item.productId === productId &&
-            (
-                item.buyerId === user.id ||
-                item.sellerId === user.id
-            )
-        );
-
-
-    if (!chat) {
-
-        chat = {
-
-            id: generateId("chat"),
-
-            productId: product.id,
-
-            productName: product.name,
-
-            buyerId: user.id,
-
-            buyerName: user.name,
-
-            sellerId: product.userId,
-
-            sellerName: product.sellerName,
-
-            messages: [],
-
-            createdAt: new Date().toISOString()
-
-        };
-
-
-        chats.unshift(chat);
-
-        saveChats(chats);
-    }
-
-
-    openChat(chat.id);
+.chat-list-item:last-child {
+  border-bottom: 0;
 }
 
-
-function openChat(chatId) {
-
-    const chat =
-        getChats().find(
-            item =>
-                item.id === chatId
-        );
-
-
-    if (!chat) return;
-
-
-    currentChatId = chatId;
-
-
-    const user =
-        getCurrentUser();
-
-
-    const otherName =
-        chat.buyerId === user.id
-            ? chat.sellerName
-            : chat.buyerName;
-
-
-    document.getElementById(
-        "chatUserName"
-    ).textContent = otherName || "Usuario";
-
-
-    document.getElementById(
-        "chatProductName"
-    ).textContent =
-        chat.productName || "Producto";
-
-
-    renderMessages(chat);
-
-    showPage("chatPage");
+.chat-list-item:hover {
+  background: #fafafa;
 }
 
-
-function renderMessages(chat) {
-
-    const container =
-        document.getElementById(
-            "messagesContainer"
-        );
-
-
-    if (!container) return;
-
-
-    const user =
-        getCurrentUser();
-
-
-    container.innerHTML = "";
-
-
-    chat.messages.forEach(message => {
-
-        const mine =
-            message.senderId === user.id;
-
-
-        container.insertAdjacentHTML(
-            "beforeend",
-            `
-                <div
-                    class="message ${mine ? "mine" : "received"}">
-
-                    <div class="message-bubble">
-
-                        ${escapeHTML(message.text)}
-
-                    </div>
-
-                    <small>
-                        ${formatDate(message.createdAt)}
-                    </small>
-
-                </div>
-            `
-        );
-
-    });
-
-
-    container.scrollTop =
-        container.scrollHeight;
+.chat-list-avatar {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  font-weight: 900;
 }
 
-
-function sendMessage(event) {
-
-    event.preventDefault();
-
-
-    const user =
-        getCurrentUser();
-
-
-    if (!user || !currentChatId) return;
-
-
-    const input =
-        document.getElementById(
-            "chatMessageInput"
-        );
-
-
-    const text =
-        input.value.trim();
-
-
-    if (!text) return;
-
-
-    const chats =
-        getChats();
-
-
-    const chat =
-        chats.find(
-            item =>
-                item.id === currentChatId
-        );
-
-
-    if (!chat) return;
-
-
-    chat.messages =
-        chat.messages || [];
-
-
-    chat.messages.push({
-
-        id: generateId("msg"),
-
-        senderId: user.id,
-
-        senderName: user.name,
-
-        text,
-
-        createdAt: new Date().toISOString()
-
-    });
-
-
-    chat.lastMessage = text;
-
-    chat.lastMessageAt =
-        new Date().toISOString();
-
-
-    saveChats(chats);
-
-
-    input.value = "";
-
-
-    renderMessages(chat);
+.chat-list-info {
+  min-width: 0;
+  flex: 1;
 }
 
-
-function renderChatList() {
-
-    const user =
-        getCurrentUser();
-
-
-    const container =
-        document.getElementById(
-            "chatList"
-        );
-
-
-    const empty =
-        document.getElementById(
-            "emptyChats"
-        );
-
-
-    if (!container || !user) return;
-
-
-    const chats =
-        getChats().filter(
-            chat =>
-                chat.buyerId === user.id ||
-                chat.sellerId === user.id
-        );
-
-
-    container.innerHTML = "";
-
-
-    chats.forEach(chat => {
-
-        const otherName =
-            chat.buyerId === user.id
-                ? chat.sellerName
-                : chat.buyerName;
-
-
-        container.insertAdjacentHTML(
-            "beforeend",
-            `
-                <button
-                    class="chat-list-item"
-                    onclick="openChat('${chat.id}')">
-
-                    <div class="chat-list-avatar">
-                        💬
-                    </div>
-
-                    <div class="chat-list-info">
-
-                        <strong>
-                            ${escapeHTML(otherName || "Usuario")}
-                        </strong>
-
-                        <small>
-                            ${escapeHTML(
-                                chat.lastMessage ||
-                                "Nueva conversación"
-                            )}
-                        </small>
-
-                    </div>
-
-                    <span>›</span>
-
-                </button>
-            `
-        );
-
-    });
-
-
-    if (empty) {
-
-        empty.classList.toggle(
-            "hidden",
-            chats.length > 0
-        );
-
-    }
+.chat-list-info strong {
+  display: block;
+  font-size: 16px;
 }
 
+.chat-list-info span {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-header {
+  max-width: 750px;
+  margin: 0 auto;
+  padding: 15px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 18px 18px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chat-header-info {
+  min-width: 0;
+}
+
+#chatUserName {
+  font-size: 18px;
+  font-weight: 900;
+}
+
+#chatProductName {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#messagesContainer {
+  max-width: 750px;
+  height: 52vh;
+  margin: 0 auto;
+  padding: 18px;
+  background: #eef1f5;
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.message {
+  display: flex;
+  margin-bottom: 11px;
+}
+
+.message.mine {
+  justify-content: flex-end;
+}
+
+.message.received {
+  justify-content: flex-start;
+}
+
+.message-bubble {
+  max-width: 78%;
+  padding: 10px 13px;
+  border-radius: 16px;
+  font-size: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.message.mine .message-bubble {
+  background: var(--primary);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+
+.message.received .message-bubble {
+  background: #fff;
+  color: #222;
+  border-bottom-left-radius: 4px;
+}
+
+.message-time {
+  display: block;
+  margin-top: 3px;
+  font-size: 10px;
+  opacity: .65;
+}
+
+.chat-input-area {
+  max-width: 750px;
+  margin: 0 auto;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 0 0 18px 18px;
+  display: flex;
+  gap: 8px;
+}
+
+#chatMessageInput {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  padding: 0 14px;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  outline: none;
+}
+
+#chatMessageInput:focus {
+  border-color: var(--primary);
+}
+
+.chat-send-btn {
+  width: 50px;
+  height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 20px;
+  font-weight: 900;
+}
 
 /* =========================================================
-   REGISTRO
-========================================================= */
+   NOTIFICATIONS
+   ========================================================= */
 
-function registerUser(event) {
-
-    event.preventDefault();
-
-
-    const name =
-        document.getElementById(
-            "registerName"
-        ).value.trim();
-
-
-    const cedula =
-        document.getElementById(
-            "registerCedula"
-        ).value.trim();
-
-
-    const phone =
-        document.getElementById(
-            "registerPhone"
-        ).value.trim();
-
-
-    const password =
-        document.getElementById(
-            "registerPassword"
-        ).value;
-
-
-    const confirmPassword =
-        document.getElementById(
-            "registerPasswordConfirm"
-        ).value;
-
-
-    if (password !== confirmPassword) {
-
-        showToast(
-            "Las contraseñas no coinciden."
-        );
-
-        return;
-    }
-
-
-    const users =
-        getStorage(STORAGE_KEYS.users, []);
-
-
-    if (
-        users.some(
-            user =>
-                user.phone === phone
-        )
-    ) {
-
-        showToast(
-            "Ese número ya está registrado."
-        );
-
-        return;
-    }
-
-
-    const user = {
-
-        id: generateId("user"),
-
-        name,
-
-        cedula,
-
-        phone,
-
-        password,
-
-        createdAt:
-            new Date().toISOString()
-
-    };
-
-
-    users.push(user);
-
-    setStorage(
-        STORAGE_KEYS.users,
-        users
-    );
-
-
-    saveCurrentUser(user);
-
-
-    showToast(
-        "Cuenta creada correctamente."
-    );
-
-
-    openProfile();
+#notificationsPanel {
+  position: fixed;
+  z-index: 2000;
+  top: 78px;
+  right: 12px;
+  width: min(390px, calc(100vw - 24px));
+  max-height: 75vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
 }
 
+#notificationsPanel.hidden {
+  display: none !important;
+}
+
+#notificationsPanel > div:first-child {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 15px;
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#closeNotificationsBtn {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: #f1f1f1;
+}
+
+.notification-item {
+  padding: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.notification-item strong {
+  display: block;
+}
+
+.notification-item p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.empty-notifications {
+  padding: 35px 20px;
+  text-align: center;
+  color: var(--muted);
+}
 
 /* =========================================================
-   LOGIN
-========================================================= */
+   ADMIN
+   ========================================================= */
 
-function login(event) {
-
-    event.preventDefault();
-
-
-    const phone =
-        document.getElementById(
-            "loginPhone"
-        ).value.trim();
-
-
-    const password =
-        document.getElementById(
-            "loginPassword"
-        ).value;
-
-
-    const users =
-        getStorage(STORAGE_KEYS.users, []);
-
-
-    const user =
-        users.find(
-            item =>
-                item.phone === phone &&
-                item.password === password
-        );
-
-
-    if (!user) {
-
-        showToast(
-            "Teléfono o contraseña incorrectos."
-        );
-
-        return;
-    }
-
-
-    saveCurrentUser(user);
-
-
-    showToast(
-        `Bienvenido/a, ${user.name}.`
-    );
-
-
-    openProfile();
+.admin-page {
+  min-height: 100vh;
+  background: #f4f5f8;
 }
 
+.admin-header {
+  padding: 22px 16px;
+  color: #fff;
+  background: linear-gradient(135deg, #111827, #374151);
+}
+
+.admin-header h1 {
+  font-size: 27px;
+  font-weight: 900;
+}
+
+.admin-header p {
+  margin-top: 4px;
+  opacity: .75;
+}
+
+.admin-page > .page-container {
+  padding-top: 18px;
+}
+
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-stat-card {
+  padding: 17px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-stat-card span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-stat-card strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 28px;
+}
+
+.admin-section {
+  margin-bottom: 20px;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 19px;
+  box-shadow: var(--shadow-sm);
+}
+
+.admin-section-title {
+  margin-bottom: 14px;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.admin-publication-card {
+  padding: 13px;
+  margin-bottom: 11px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: #fafafa;
+}
+
+.admin-publication-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-publication-image {
+  width: 75px;
+  height: 75px;
+  flex: 0 0 75px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #e5e7eb;
+}
+
+.admin-publication-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.admin-publication-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-publication-info strong {
+  display: block;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-publication-info p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.status-badge {
+  display: inline-flex;
+  margin-top: 5px;
+  padding: 4px 8px;
+  border-radius: 50px;
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.status-approved {
+  color: #166534;
+  background: #dcfce7;
+}
+
+.status-pending {
+  color: #92400e;
+  background: #fef3c7;
+}
+
+.status-rejected {
+  color: #991b1b;
+  background: #fee2e2;
+}
+
+/* LOS 4 BOTONES SIEMPRE EN UNA SOLA FILA */
+
+.admin-publication-actions {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.admin-action {
+  min-width: 0;
+  min-height: 39px;
+  padding: 5px 3px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1.1;
+  transition: .2s;
+}
+
+.admin-action:hover {
+  transform: translateY(-1px);
+}
+
+.receipt-action {
+  color: var(--info);
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.approve-action {
+  color: #166534;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+.reject-action {
+  color: #92400e;
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.delete-action {
+  color: #991b1b;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
 
 /* =========================================================
-   RECUPERAR CONTRASEÑA
-========================================================= */
+   PAYMENT METHODS
+   ========================================================= */
 
-function recoverPassword(event) {
-
-    event.preventDefault();
-
-
-    const phone =
-        document.getElementById(
-            "recoveryPhone"
-        ).value.trim();
-
-
-    const users =
-        getStorage(STORAGE_KEYS.users, []);
-
-
-    const user =
-        users.find(
-            item =>
-                item.phone === phone
-        );
-
-
-    if (!user) {
-
-        showToast(
-            "No encontramos una cuenta con ese teléfono."
-        );
-
-        return;
-    }
-
-
-    showToast(
-        "La recuperación está preparada para conectarse a un sistema real de recuperación."
-    );
+.payment-method-card {
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
 }
 
+.payment-method-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.payment-method-info strong {
+  display: block;
+}
+
+.payment-method-icon {
+  width: 45px;
+  height: 45px;
+  flex: 0 0 45px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+}
+
+.payment-method-price {
+  margin-top: 3px;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.payment-method-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.danger-icon-btn {
+  width: 38px;
+  height: 38px;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: var(--danger);
+}
 
 /* =========================================================
-   PERFIL
-========================================================= */
+   ADVERTISING
+   ========================================================= */
 
-function renderProfile() {
-
-    const user =
-        getCurrentUser();
-
-
-    if (!user) return;
-
-
-    const name =
-        document.getElementById(
-            "profileName"
-        );
-
-
-    const phone =
-        document.getElementById(
-            "profilePhone"
-        );
-
-
-    if (name) {
-        name.textContent =
-            user.name || "Usuario";
-    }
-
-
-    if (phone) {
-        phone.textContent =
-            user.phone || "";
-    }
-
-
-    const avatar =
-        document.getElementById(
-            "profileAvatar"
-        );
-
-
-    if (avatar) {
-
-        if (user.photo) {
-
-            avatar.innerHTML =
-                `<img src="${user.photo}" alt="Perfil">`;
-
-        } else {
-
-            avatar.textContent = "👤";
-
-        }
-    }
+.advertising-status-card {
+  padding: 20px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fff7ed, #fffbeb);
+  border: 1px solid #fed7aa;
 }
 
-
-function openEditProfile() {
-
-    const user =
-        getCurrentUser();
-
-
-    if (!user) return;
-
-
-    document.getElementById(
-        "editName"
-    ).value =
-        user.name || "";
-
-
-    document.getElementById(
-        "editPhone"
-    ).value =
-        user.phone || "";
-
-
-    showPage("editProfilePage");
+.admin-request-card {
+  padding: 15px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #fff;
 }
 
-
-function saveProfile(event) {
-
-    event.preventDefault();
-
-
-    const user =
-        getCurrentUser();
-
-
-    if (!user) return;
-
-
-    const name =
-        document.getElementById(
-            "editName"
-        ).value.trim();
-
-
-    const phone =
-        document.getElementById(
-            "editPhone"
-        ).value.trim();
-
-
-    const users =
-        getStorage(STORAGE_KEYS.users, []);
-
-
-    const index =
-        users.findIndex(
-            item =>
-                item.id === user.id
-        );
-
-
-    if (index === -1) return;
-
-
-    users[index].name = name;
-
-    users[index].phone = phone;
-
-
-    setStorage(
-        STORAGE_KEYS.users,
-        users
-    );
-
-
-    saveCurrentUser(users[index]);
-
-
-    showToast(
-        "Perfil actualizado."
-    );
-
-
-    openProfile();
+.request-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
 }
-
 
 /* =========================================================
-   FOTO DE PERFIL
-========================================================= */
+   SWITCH
+   ========================================================= */
 
-function openProfileImageOptions() {
-
-    openModal(`
-        <div class="profile-photo-options">
-
-            <h3>Cambiar foto de perfil</h3>
-
-            <button
-                class="primary-btn"
-                onclick="closeModal(); document.getElementById('profileCameraInput').click();">
-
-                📷 Tomar foto
-
-            </button>
-
-            <button
-                class="secondary-btn"
-                onclick="closeModal(); document.getElementById('profileGalleryInput').click();">
-
-                🖼️ Elegir de galería
-
-            </button>
-
-        </div>
-    `);
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 13px 0;
 }
 
-
-function handleProfileImage(event) {
-
-    const file =
-        event.target.files &&
-        event.target.files[0];
-
-
-    if (!file) return;
-
-
-    const reader =
-        new FileReader();
-
-
-    reader.onload =
-        function(e) {
-
-            const user =
-                getCurrentUser();
-
-
-            if (!user) return;
-
-
-            const users =
-                getStorage(
-                    STORAGE_KEYS.users,
-                    []
-                );
-
-
-            const index =
-                users.findIndex(
-                    item =>
-                        item.id === user.id
-                );
-
-
-            if (index === -1) return;
-
-
-            users[index].photo =
-                e.target.result;
-
-
-            setStorage(
-                STORAGE_KEYS.users,
-                users
-            );
-
-
-            saveCurrentUser(
-                users[index]
-            );
-
-
-            renderProfile();
-
-            showToast(
-                "Foto de perfil actualizada."
-            );
-
-        };
-
-
-    reader.readAsDataURL(file);
+.switch {
+  position: relative;
+  width: 54px;
+  height: 30px;
+  flex: 0 0 54px;
 }
 
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  border-radius: 50px;
+  background: #d1d5db;
+  transition: .2s;
+}
+
+.slider::before {
+  content: "";
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  left: 4px;
+  top: 4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, .2);
+  transition: .2s;
+}
+
+.switch input:checked + .slider {
+  background: var(--primary);
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(24px);
+}
 
 /* =========================================================
-   ADMINISTRADOR
-========================================================= */
+   RECEIPT
+   ========================================================= */
 
-function openAdminLogin() {
-
-    showPage("adminLoginPage");
+.receipt {
+  padding: 22px;
+  background: #fff;
+  color: #111;
+  border: 1px dashed #bbb;
+  border-radius: 8px;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-
-function adminLogin(event) {
-
-    event.preventDefault();
-
-
-    const username =
-        document.getElementById(
-            "adminUsername"
-        ).value.trim();
-
-
-    const password =
-        document.getElementById(
-            "adminPassword"
-        ).value;
-
-
-    if (
-        username ===
-        ADMIN_CREDENTIALS.username &&
-        password ===
-        ADMIN_CREDENTIALS.password
-    ) {
-
-        sessionStorage.setItem(
-            "mf_admin_logged",
-            "true"
-        );
-
-
-        showToast(
-            "Acceso de administrador correcto."
-        );
-
-
-        openAdminPanel();
-
-    } else {
-
-        showToast(
-            "Usuario o contraseña incorrectos."
-        );
-
-    }
+.receipt-header {
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+  text-align: center;
+  border-bottom: 1px dashed #aaa;
 }
 
-
-function isAdminLogged() {
-
-    return (
-        sessionStorage.getItem(
-            "mf_admin_logged"
-        ) === "true"
-    );
+.receipt-header h2 {
+  font-size: 23px;
 }
 
-
-function openAdminPanel() {
-
-    if (!isAdminLogged()) {
-
-        openAdminLogin();
-
-        return;
-    }
-
-
-    renderAdminPanel();
-
-    showPage("adminPanelPage");
+.receipt-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 8px 0;
+  border-bottom: 1px dotted #ddd;
 }
-
-
-function adminLogout() {
-
-    sessionStorage.removeItem(
-        "mf_admin_logged"
-    );
-
-
-    showToast(
-        "Sesión de administrador cerrada."
-    );
-
-
-    openProfile();
-}
-
 
 /* =========================================================
-   PANEL ADMIN
-========================================================= */
+   MODALS
+   ========================================================= */
 
-function renderAdminPanel() {
-
-    if (!isAdminLogged()) return;
-
-
-    const users =
-        getStorage(
-            STORAGE_KEYS.users,
-            []
-        );
-
-
-    const products =
-        getProducts();
-
-
-    const chats =
-        getChats();
-
-
-    const advertising =
-        getStorage(
-            STORAGE_KEYS.advertising,
-            {}
-        );
-
-
-    document.getElementById(
-        "adminUsersCount"
-    ).textContent =
-        users.length;
-
-
-    document.getElementById(
-        "adminProductsCount"
-    ).textContent =
-        products.length;
-
-
-    document.getElementById(
-        "adminAdsCount"
-    ).textContent =
-        (advertising.requests || []).length;
-
-
-    document.getElementById(
-        "adminChatsCount"
-    ).textContent =
-        chats.length;
-
-
-    const toggle =
-        document.getElementById(
-            "advertisingToggle"
-        );
-
-
-    if (toggle) {
-        toggle.checked =
-            advertising.enabled !== false;
-    }
-
-
-    const price =
-        document.getElementById(
-            "advertisingPrice"
-        );
-
-
-    if (price) {
-        price.value =
-            advertising.price || 0;
-    }
-
-
-    renderAdminPublications();
-
-    renderPaymentMethods();
-
-    renderAdminAdvertisingRequests();
+#modalOverlay,
+#confirmModal,
+#paymentMethodModal,
+#receiptModal {
+  position: fixed;
+  z-index: 3000;
+  inset: 0;
+  padding: 18px;
+  background: rgba(0, 0, 0, .60);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+#modalOverlay.hidden,
+#confirmModal.hidden,
+#paymentMethodModal.hidden,
+#receiptModal.hidden {
+  display: none !important;
+}
+
+#modalContent {
+  width: min(600px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 22px;
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: var(--shadow-lg);
+}
+
+#confirmModal > div,
+#paymentMethodModal > div,
+#receiptModal > div {
+  width: min(600px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 22px;
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: var(--shadow-lg);
+}
+
+#confirmTitle,
+#paymentModalTitle {
+  font-size: 21px;
+  font-weight: 900;
+}
+
+#confirmMessage {
+  margin-top: 9px;
+  color: var(--muted);
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 20px;
+}
 
 /* =========================================================
-   PUBLICACIONES DEL PANEL ADMIN
-========================================================= */
+   IMAGE FULLSCREEN VIEWER
+   ========================================================= */
 
-function renderAdminPublications() {
-
-    const container =
-        document.getElementById(
-            "adminPublicationsList"
-        );
-
-
-    if (!container) return;
-
-
-    const products =
-        getProducts();
-
-
-    container.innerHTML = "";
-
-
-    if (!products.length) {
-
-        container.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-icon">📦</div>
-                <h3>No hay publicaciones</h3>
-                <p>No hay publicaciones registradas.</p>
-            </div>
-        `;
-
-        return;
-    }
-
-
-    products.forEach(product => {
-
-        const status =
-            product.status || "approved";
-
-
-        container.insertAdjacentHTML(
-            "beforeend",
-            `
-                <div class="admin-publication-card">
-
-                    <div class="admin-publication-main">
-
-                        <div class="admin-publication-image">
-
-                            ${
-                                product.images &&
-                                product.images.length
-                                ? `
-                                    <img
-                                        src="${product.images[0]}"
-                                        alt="${escapeHTML(product.name)}">
-                                `
-                                : `
-                                    <span>📦</span>
-                                `
-                            }
-
-                        </div>
-
-
-                        <div class="admin-publication-info">
-
-                            <h3>
-                                ${escapeHTML(product.name)}
-                            </h3>
-
-                            <strong>
-                                RD$ ${formatPrice(product.price)}
-                            </strong>
-
-                            <small>
-                                Vendedor:
-                                ${escapeHTML(
-                                    product.sellerName ||
-                                    "Usuario"
-                                )}
-                            </small>
-
-                            <span
-                                class="status-badge status-${status}">
-                                ${getStatusText(status)}
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- CUATRO BOTONES -->
-
-                    <div class="admin-publication-actions">
-
-                        <button
-                            class="admin-action receipt-action"
-                            onclick="viewProductReceipt('${product.id}')">
-
-                            🧾
-                            <span>Ver comprobante</span>
-
-                        </button>
-
-
-                        <button
-                            class="admin-action approve-action"
-                            onclick="approveProduct('${product.id}')">
-
-                            ✓
-                            <span>Aprobar</span>
-
-                        </button>
-
-
-                        <button
-                            class="admin-action reject-action"
-                            onclick="rejectProduct('${product.id}')">
-
-                            ✕
-                            <span>Rechazar</span>
-
-                        </button>
-
-
-                        <button
-                            class="admin-action delete-action"
-                            onclick="adminDeleteProduct('${product.id}')">
-
-                            🗑️
-                            <span>Eliminar</span>
-
-                        </button>
-
-                    </div>
-
-                </div>
-            `
-        );
-
-    });
+#imageViewer {
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
+  background: rgba(0, 0, 0, .94);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
-
-function getStatusText(status) {
-
-    const statuses = {
-
-        approved: "Aprobada",
-
-        pending: "Pendiente",
-
-        rejected: "Rechazada"
-
-    };
-
-
-    return (
-        statuses[status] ||
-        "Sin estado"
-    );
+#imageViewer.hidden {
+  display: none !important;
 }
 
-
-/* =========================================================
-   APROBAR
-========================================================= */
-
-function approveProduct(productId) {
-
-    const products =
-        getProducts();
-
-
-    const product =
-        products.find(
-            item =>
-                item.id === productId
-        );
-
-
-    if (!product) return;
-
-
-    product.status =
-        "approved";
-
-
-    saveProducts(products);
-
-
-    addNotification(
-        product.userId,
-        "Tu publicación fue aprobada."
-    );
-
-
-    showToast(
-        "Publicación aprobada."
-    );
-
-
-    renderAdminPanel();
-
-    renderProducts();
+#fullScreenImage {
+  max-width: 96vw;
+  max-height: 88vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
 }
 
-
-/* =========================================================
-   RECHAZAR
-========================================================= */
-
-function rejectProduct(productId) {
-
-    openConfirmModal(
-        "Rechazar publicación",
-        "¿Quieres rechazar esta publicación?",
-        () => {
-
-            const products =
-                getProducts();
-
-
-            const product =
-                products.find(
-                    item =>
-                        item.id === productId
-                );
-
-
-            if (!product) return;
-
-
-            product.status =
-                "rejected";
-
-
-            saveProducts(products);
-
-
-            addNotification(
-                product.userId,
-                "Tu publicación fue rechazada."
-            );
-
-
-            showToast(
-                "Publicación rechazada."
-            );
-
-
-            renderAdminPanel();
-
-            renderProducts();
-
-        }
-    );
+.image-viewer-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .15);
+  color: #fff;
+  font-size: 25px;
 }
 
-
-/* =========================================================
-   ELIMINAR DESDE ADMIN
-========================================================= */
-
-function adminDeleteProduct(productId) {
-
-    openConfirmModal(
-        "Eliminar publicación",
-        "Esta publicación será eliminada completamente. ¿Deseas continuar?",
-        () => {
-
-            const products =
-                getProducts();
-
-
-            const exists =
-                products.some(
-                    item =>
-                        item.id === productId
-                );
-
-
-            if (!exists) return;
-
-
-            const updated =
-                products.filter(
-                    item =>
-                        item.id !== productId
-                );
-
-
-            saveProducts(updated);
-
-
-            showToast(
-                "Publicación eliminada completamente."
-            );
-
-
-            renderAdminPanel();
-
-            renderProducts();
-
-        }
-    );
+#closeImageViewerBtn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
 }
 
-
-/* =========================================================
-   COMPROBANTE
-========================================================= */
-
-function viewProductReceipt(productId) {
-
-    const product =
-        getProducts().find(
-            item =>
-                item.id === productId
-        );
-
-
-    if (!product) return;
-
-
-    const receipt =
-        document.getElementById(
-            "receiptContent"
-        );
-
-
-    receipt.innerHTML = `
-
-        <div class="receipt">
-
-            <div class="receipt-header">
-
-                <strong>
-                    MARKET FLASH
-                </strong>
-
-                <small>
-                    Comprobante de publicación
-                </small>
-
-            </div>
-
-
-            <div class="receipt-row">
-
-                <span>Producto</span>
-
-                <strong>
-                    ${escapeHTML(product.name)}
-                </strong>
-
-            </div>
-
-
-            <div class="receipt-row">
-
-                <span>Precio</span>
-
-                <strong>
-                    RD$ ${formatPrice(product.price)}
-                </strong>
-
-            </div>
-
-
-            <div class="receipt-row">
-
-                <span>Categoría</span>
-
-                <strong>
-                    ${escapeHTML(product.category || "")}
-                </strong>
-
-            </div>
-
-
-            <div class="receipt-row">
-
-                <span>Vendedor</span>
-
-                <strong>
-                    ${escapeHTML(
-                        product.sellerName || ""
-                    )}
-                </strong>
-
-            </div>
-
-
-            <div class="receipt-row">
-
-                <span>Fecha</span>
-
-                <strong>
-                    ${formatDate(product.createdAt)}
-                </strong>
-
-            </div>
-
-        </div>
-    `;
-
-
-    document
-        .getElementById("receiptModal")
-        .classList.remove("hidden");
+#imageViewerCounter {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, .15);
+  color: #fff;
+  font-size: 13px;
 }
-
-
-function closeReceiptModal() {
-
-    document
-        .getElementById("receiptModal")
-        .classList.add("hidden");
-}
-
-
-/* =========================================================
-   MÉTODOS DE PAGO
-========================================================= */
-
-function getPaymentMethods() {
-
-    return getStorage(
-        STORAGE_KEYS.paymentMethods,
-        []
-    );
-}
-
-
-function savePaymentMethods(methods) {
-
-    setStorage(
-        STORAGE_KEYS.paymentMethods,
-        methods
-    );
-}
-
-
-function openAddPaymentMethod() {
-
-    editingPaymentMethodId = null;
-
-
-    document.getElementById(
-        "paymentModalTitle"
-    ).textContent =
-        "Agregar método de pago";
-
-
-    document.getElementById(
-        "paymentMethodName"
-    ).value = "";
-
-
-    document.getElementById(
-        "paymentMethodPrice"
-    ).value = "";
-
-
-    document
-        .getElementById(
-            "paymentMethodModal"
-        )
-        .classList.remove("hidden");
-}
-
-
-function editPaymentMethod(id) {
-
-    const method =
-        getPaymentMethods().find(
-            item =>
-                item.id === id
-        );
-
-
-    if (!method) return;
-
-
-    editingPaymentMethodId = id;
-
-
-    document.getElementById(
-        "paymentModalTitle"
-    ).textContent =
-        "Editar método de pago";
-
-
-    document.getElementById(
-        "paymentMethodName"
-    ).value =
-        method.name || "";
-
-
-    document.getElementById(
-        "paymentMethodPrice"
-    ).value =
-        method.price || "";
-
-
-    document
-        .getElementById(
-            "paymentMethodModal"
-        )
-        .classList.remove("hidden");
-}
-
-
-function closePaymentMethodModal() {
-
-    document
-        .getElementById(
-            "paymentMethodModal"
-        )
-        .classList.add("hidden");
-}
-
-
-function savePaymentMethod() {
-
-    const name =
-        document.getElementById(
-            "paymentMethodName"
-        ).value.trim();
-
-
-    const price =
-        Number(
-            document.getElementById(
-                "paymentMethodPrice"
-            ).value || 0
-        );
-
-
-    if (!name) {
-
-        showToast(
-            "Escribe el nombre del método de pago."
-        );
-
-        return;
-    }
-
-
-    const methods =
-        getPaymentMethods();
-
-
-    if (editingPaymentMethodId) {
-
-        const method =
-            methods.find(
-                item =>
-                    item.id ===
-                    editingPaymentMethodId
-            );
-
-
-        if (method) {
-
-            method.name = name;
-
-            method.price = price;
-
-        }
-
-    } else {
-
-        methods.push({
-
-            id: generateId("pay"),
-
-            name,
-
-            price
-
-        });
-
-    }
-
-
-    savePaymentMethods(methods);
-
-
-    closePaymentMethodModal();
-
-
-    showToast(
-        "Método de pago guardado."
-    );
-
-
-    renderPaymentMethods();
-}
-
-
-function deletePaymentMethod(id) {
-
-    openConfirmModal(
-        "Eliminar método",
-        "¿Quieres eliminar este método de pago?",
-        () => {
-
-            const methods =
-                getPaymentMethods()
-                    .filter(
-                        item =>
-                            item.id !== id
-                    );
-
-
-            savePaymentMethods(methods);
-
-            renderPaymentMethods();
-
-            showToast(
-                "Método de pago eliminado."
-            );
-
-        }
-    );
-}
-
-
-function renderPaymentMethods() {
-
-    const container =
-        document.getElementById(
-            "paymentMethodsList"
-        );
-
-
-    if (!container) return;
-
-
-    const methods =
-        getPaymentMethods();
-
-
-    container.innerHTML = "";
-
-
-    methods.forEach(method => {
-
-        container.insertAdjacentHTML(
-            "beforeend",
-            `
-                <div class="payment-method-card">
-
-                    <div class="payment-method-info">
-
-                        <div class="payment-method-icon">
-                            💳
-                        </div>
-
-                        <div>
-
-                            <strong>
-                                ${escapeHTML(method.name)}
-                            </strong>
-
-                            <small>
-                                Precio:
-                                RD$ ${formatPrice(method.price)}
-                            </small>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="payment-method-actions">
-
-                        <button
-                            onclick="editPaymentMethod('${method.id}')">
-
-                            ✏️
-
-                        </button>
-
-
-                        <button
-                            class="danger-icon-btn"
-                            onclick="deletePaymentMethod('${method.id}')">
-
-                            🗑️
-
-                        </button>
-
-                    </div>
-
-                </div>
-            `
-        );
-
-    });
-}
-
-
-/* =========================================================
-   PUBLICIDAD ADMIN
-========================================================= */
-
-function toggleAdvertising() {
-
-    const toggle =
-        document.getElementById(
-            "advertisingToggle"
-        );
-
-
-    const advertising =
-        getStorage(
-            STORAGE_KEYS.advertising,
-            {}
-        );
-
-
-    advertising.enabled =
-        toggle.checked;
-
-
-    setStorage(
-        STORAGE_KEYS.advertising,
-        advertising
-    );
-
-
-    showToast(
-        advertising.enabled
-            ? "Publicidad activada."
-            : "Publicidad desactivada."
-    );
-}
-
-
-function saveAdvertisingSettings() {
-
-    const price =
-        Number(
-            document.getElementById(
-                "advertisingPrice"
-            ).value || 0
-        );
-
-
-    const advertising =
-        getStorage(
-            STORAGE_KEYS.advertising,
-            {}
-        );
-
-
-    advertising.price =
-        price;
-
-
-    setStorage(
-        STORAGE_KEYS.advertising,
-        advertising
-    );
-
-
-    showToast(
-        "Precio de publicidad guardado."
-    );
-}
-
-
-/* =========================================================
-   SOLICITUDES DE PUBLICIDAD
-========================================================= */
-
-function createAdvertising(event) {
-
-    event.preventDefault();
-
-
-    const user =
-        getCurrentUser();
-
-
-    if (!user) {
-
-        showToast(
-            "Debes iniciar sesión."
-        );
-
-        return;
-    }
-
-
-    const title =
-        document.getElementById(
-            "adTitle"
-        ).value.trim();
-
-
-    const description =
-        document.getElementById(
-            "adDescription"
-        ).value.trim();
-
-
-    const whatsapp =
-        document.getElementById(
-            "adWhatsapp"
-        ).value.trim();
-
-
-    const advertising =
-        getStorage(
-            STORAGE_KEYS.advertising,
-            {}
-        );
-
-
-    advertising.requests =
-        advertising.requests || [];
-
-
-    advertising.requests.unshift({
-
-        id: generateId("ad"),
-
-        userId: user.id,
-
-        userName: user.name,
-
-        title,
-
-        description,
-
-        whatsapp,
-
-        status: "pending",
-
-        createdAt:
-            new Date().toISOString()
-
-    });
-
-
-    setStorage(
-        STORAGE_KEYS.advertising,
-        advertising
-    );
-
-
-    showToast(
-        "Solicitud de publicidad enviada."
-    );
-
-
-    openAdvertisingStatus();
-}
-
-
-function renderAdminAdvertisingRequests() {
-
-    const container =
-        document.getElementById(
-            "adminAdvertisingRequests"
-        );
-
-
-    if (!container) return;
-
-
-    const advertising =
-        getStorage(
-            STORAGE_KEYS.advertising,
-            {}
-        );
-
-
-    const requests =
-        advertising.requests || [];
-
-
-    container.innerHTML = "";
-
-
-    requests.forEach(request => {
-
-        container.insertAdjacentHTML(
-            "beforeend",
-            `
-                <div class="admin-request-card">
-
-                    <div>
-
-                        <strong>
-                            ${escapeHTML(request.title)}
-                        </strong>
-
-                        <p>
-                            ${escapeHTML(request.description)}
-                        </p>
-
-                        <small>
-                            ${escapeHTML(
-                                request.userName
-                            )}
-                        </small>
-
-                    </div>
-
-
-                    <div class="request-actions">
-
-                        <button
-                            onclick="approveAdvertising('${request.id}')">
-
-                            ✓ Aprobar
-
-                        </button>
-
-
-                        <button
-                            onclick="rejectAdvertising('${request.id}')">
-
-                            ✕ Rechazar
-
-                        </button>
-
-                    </div>
-
-                </div>
-            `
-        );
-
-    });
-}
-
-
-function approveAdvertising(id) {
-
-    const advertising =
-        getStorage(
-            STORAGE_KEYS.advertising,
-            {}
-        );
-
-
-    const request =
-        (advertising.requests || [])
-            .find(
-                item =>
-                    item.id === id
-            );
-
-
-    if (!request) return;
-
-
-    request.status =
-        "approved";
-
-
-    setStorage(
-        STORAGE_KEYS.advertising,
-        advertising
-    );
-
-
-    addNotification(
-        request.userId,
-        "Tu publicidad fue aprobada."
-    );
-
-
-    renderAdminPanel();
-
-
-    showToast(
-        "Publicidad aprobada."
-    );
-}
-
-
-function rejectAdvertising(id) {
-
-    const advertising =
-        getStorage(
-            STORAGE_KEYS.advertising,
-            {}
-        );
-
-
-    const request =
-        (advertising.requests || [])
-            .find(
-                item =>
-                    item.id === id
-            );
-
-
-    if (!request) return;
-
-
-    request.status =
-        "rejected";
-
-
-    setStorage(
-        STORAGE_KEYS.advertising,
-        advertising
-    );
-
-
-    addNotification(
-        request.userId,
-        "Tu publicidad fue rechazada."
-    );
-
-
-    renderAdminPanel();
-
-
-    showToast(
-        "Publicidad rechazada."
-    );
-}
-
-
-/* =========================================================
-   PUBLICIDAD DEL USUARIO
-========================================================= */
-
-function openAdvertisingIntro() {
-
-    const advertising =
-        getStorage(
-            STORAGE_KEYS.advertising,
-            {}
-        );
-
-
-    if (advertising.enabled === false) {
-
-        showToast(
-            "La publicidad está temporalmente desactivada."
-        );
-
-        return;
-    }
-
-
-    showPage(
-        "advertisingIntroPage"
-    );
-}
-
-
-function openAdvertisingCreate() {
-
-    showPage(
-        "advertisingCreatePage"
-    );
-}
-
-
-function openAdvertisingInfo() {
-
-    showPage(
-        "advertisingInfoPage"
-    );
-}
-
-
-function openAdvertisingStatus() {
-
-    renderAdvertisingStatus();
-
-    showPage(
-        "advertisingStatusPage"
-    );
-}
-
-
-function renderAdvertisingStatus() {
-
-    const container =
-        document.getElementById(
-            "advertisingStatus"
-        );
-
-
-    const user =
-        getCurrentUser();
-
-
-    if (!container || !user) return;
-
-
-    const advertising =
-        getStorage(
-            STORAGE_KEYS.advertising,
-            {}
-        );
-
-
-    const requests =
-        (advertising.requests || [])
-            .filter(
-                item =>
-                    item.userId === user.id
-            );
-
-
-    container.innerHTML = "";
-
-
-    requests.forEach(request => {
-
-        container.insertAdjacentHTML(
-            "beforeend",
-            `
-                <div class="advertising-status-card">
-
-                    <h3>
-                        ${escapeHTML(request.title)}
-                    </h3>
-
-                    <p>
-                        ${escapeHTML(request.description)}
-                    </p>
-
-                    <strong>
-                        Estado:
-                        ${getStatusText(request.status)}
-                    </strong>
-
-                </div>
-            `
-        );
-
-    });
-
-
-    if (!requests.length) {
-
-        container.innerHTML = `
-            <div class="empty-state">
-
-                <div class="empty-icon">
-                    📢
-                </div>
-
-                <h3>
-                    No tienes solicitudes
-                </h3>
-
-                <p>
-                    Aquí aparecerán tus solicitudes de publicidad.
-                </p>
-
-            </div>
-        `;
-
-    }
-}
-
-
-/* =========================================================
-   NOTIFICACIONES
-========================================================= */
-
-function addNotification(userId, message) {
-
-    const notifications =
-        getStorage(
-            STORAGE_KEYS.notifications,
-            []
-        );
-
-
-    notifications.unshift({
-
-        id: generateId("notification"),
-
-        userId,
-
-        message,
-
-        read: false,
-
-        createdAt:
-            new Date().toISOString()
-
-    });
-
-
-    setStorage(
-        STORAGE_KEYS.notifications,
-        notifications
-    );
-
-
-    updateNotificationBadge();
-}
-
-
-function openNotifications() {
-
-    renderNotifications();
-
-
-    const panel =
-        document.getElementById(
-            "notificationsPanel"
-        );
-
-
-    if (panel) {
-        panel.classList.remove("hidden");
-    }
-}
-
-
-function closeNotifications() {
-
-    const panel =
-        document.getElementById(
-            "notificationsPanel"
-        );
-
-
-    if (panel) {
-        panel.classList.add("hidden");
-    }
-}
-
-
-function renderNotifications() {
-
-    const container =
-        document.getElementById(
-            "notificationsList"
-        );
-
-
-    const user =
-        getCurrentUser();
-
-
-    if (!container || !user) return;
-
-
-    const notifications =
-        getStorage(
-            STORAGE_KEYS.notifications,
-            []
-        ).filter(
-            item =>
-                item.userId === user.id
-        );
-
-
-    container.innerHTML = "";
-
-
-    notifications.forEach(notification => {
-
-        container.insertAdjacentHTML(
-            "beforeend",
-            `
-                <div class="notification-item">
-
-                    <span>🔔</span>
-
-                    <div>
-
-                        <p>
-                            ${escapeHTML(
-                                notification.message
-                            )}
-                        </p>
-
-                        <small>
-                            ${formatDate(
-                                notification.createdAt
-                            )}
-                        </small>
-
-                    </div>
-
-                </div>
-            `
-        );
-
-    });
-
-
-    if (!notifications.length) {
-
-        container.innerHTML = `
-            <div class="empty-notifications">
-                No tienes notificaciones.
-            </div>
-        `;
-
-    }
-
-
-    notifications.forEach(item => {
-        item.read = true;
-    });
-
-
-    const all =
-        getStorage(
-            STORAGE_KEYS.notifications,
-            []
-        );
-
-
-    notifications.forEach(item => {
-
-        const original =
-            all.find(
-                notification =>
-                    notification.id === item.id
-            );
-
-
-        if (original) {
-            original.read = true;
-        }
-
-    });
-
-
-    setStorage(
-        STORAGE_KEYS.notifications,
-        all
-    );
-
-
-    updateNotificationBadge();
-}
-
-
-function updateNotificationBadge() {
-
-    const user =
-        getCurrentUser();
-
-
-    const badge =
-        document.getElementById(
-            "notificationBadge"
-        );
-
-
-    if (!badge || !user) return;
-
-
-    const notifications =
-        getStorage(
-            STORAGE_KEYS.notifications,
-            []
-        );
-
-
-    const unread =
-        notifications.filter(
-            item =>
-                item.userId === user.id &&
-                !item.read
-        ).length;
-
-
-    badge.textContent =
-        unread;
-
-
-    badge.classList.toggle(
-        "hidden",
-        unread === 0
-    );
-}
-
-
-/* =========================================================
-   MODALES
-========================================================= */
-
-function openModal(content) {
-
-    const overlay =
-        document.getElementById(
-            "modalOverlay"
-        );
-
-
-    const modalContent =
-        document.getElementById(
-            "modalContent"
-        );
-
-
-    if (!overlay || !modalContent) return;
-
-
-    modalContent.innerHTML =
-        content;
-
-
-    overlay.classList.remove(
-        "hidden"
-    );
-}
-
-
-function closeModal(event) {
-
-    if (
-        event &&
-        event.target !==
-        document.getElementById(
-            "modalOverlay"
-        )
-    ) {
-        return;
-    }
-
-
-    document
-        .getElementById(
-            "modalOverlay"
-        )
-        .classList.add("hidden");
-}
-
-
-function openConfirmModal(
-    title,
-    message,
-    callback
-) {
-
-    const modal =
-        document.getElementById(
-            "confirmModal"
-        );
-
-
-    document.getElementById(
-        "confirmTitle"
-    ).textContent =
-        title;
-
-
-    document.getElementById(
-        "confirmMessage"
-    ).textContent =
-        message;
-
-
-    const button =
-        document.getElementById(
-            "confirmActionBtn"
-        );
-
-
-    button.onclick = () => {
-
-        closeConfirmModal();
-
-        callback();
-
-    };
-
-
-    modal.classList.remove(
-        "hidden"
-    );
-}
-
-
-function closeConfirmModal() {
-
-    document
-        .getElementById(
-            "confirmModal"
-        )
-        .classList.add("hidden");
-}
-
 
 /* =========================================================
    TOAST
-========================================================= */
+   ========================================================= */
 
-let toastTimeout;
-
-
-function showToast(message) {
-
-    const toast =
-        document.getElementById(
-            "toast"
-        );
-
-
-    if (!toast) return;
-
-
-    toast.textContent =
-        message;
-
-
-    toast.classList.add(
-        "show"
-    );
-
-
-    clearTimeout(
-        toastTimeout
-    );
-
-
-    toastTimeout =
-        setTimeout(() => {
-
-            toast.classList.remove(
-                "show"
-            );
-
-        }, 3000);
+#toast {
+  position: fixed;
+  z-index: 6000;
+  left: 50%;
+  bottom: calc(var(--nav-height) + 18px);
+  transform: translate(-50%, 20px);
+  max-width: calc(100vw - 30px);
+  padding: 13px 18px;
+  border-radius: 13px;
+  background: #171717;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  pointer-events: none;
+  transition: .25s;
 }
 
-
-/* =========================================================
-   INFORMACIÓN
-========================================================= */
-
-function showPrivacyInfo() {
-
-    openModal(`
-        <div class="info-modal">
-
-            <h2>
-                Privacidad y seguridad
-            </h2>
-
-            <p>
-                Market Flash protege los datos
-                dentro de las funciones disponibles
-                en esta versión.
-            </p>
-
-            <button
-                class="primary-btn"
-                onclick="closeModal()">
-
-                Cerrar
-
-            </button>
-
-        </div>
-    `);
+#toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
+/* =========================================================
+   DESKTOP
+   ========================================================= */
 
-function showAbout() {
+@media (min-width: 700px) {
 
-    openModal(`
-        <div class="info-modal">
+  :root {
+    --nav-height: 0px;
+  }
 
-            <div class="auth-logo-circle">
-                ⚡
-            </div>
+  .page-container {
+    padding: 30px 24px 50px;
+  }
 
-            <h2>
-                Market Flash
-            </h2>
+  .topbar-inner {
+    min-height: 88px;
+    padding: 13px 24px;
+  }
 
-            <p>
-                Plataforma para comprar,
-                vender y conectar.
-            </p>
+  .brand-mark {
+    width: 58px;
+    height: 58px;
+    flex-basis: 58px;
+    font-size: 30px;
+  }
 
-            <button
-                class="primary-btn"
-                onclick="closeModal()">
+  .brand-title {
+    font-size: 32px;
+  }
 
-                Cerrar
+  .brand-subtitle {
+    font-size: 12px;
+  }
 
-            </button>
+  #productsGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
 
-        </div>
-    `);
+  .product-image-container {
+    height: 220px;
+  }
+
+  .product-card-body {
+    padding: 16px;
+  }
+
+  .product-price {
+    font-size: 23px;
+  }
+
+  .product-actions {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .bottom-nav {
+    position: static;
+    height: 64px;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    box-shadow: none;
+  }
+
+  .bottom-nav-inner {
+    max-width: 700px;
+  }
+
+  .nav-item {
+    flex-direction: row;
+    gap: 7px;
+    font-size: 13px;
+  }
+
+  .nav-icon {
+    font-size: 20px;
+  }
+
+  .detail-main-image {
+    height: 400px;
+  }
+
+  .detail-no-image {
+    height: 400px;
+  }
+
+  .admin-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .admin-section {
+    padding: 22px;
+  }
+
+  #toast {
+    bottom: 25px;
+  }
 }
 
-
 /* =========================================================
-   LOGOUT
-========================================================= */
+   LARGE DESKTOP
+   ========================================================= */
 
-function logout() {
+@media (min-width: 1050px) {
 
-    openConfirmModal(
-        "Cerrar sesión",
-        "¿Quieres cerrar tu sesión?",
-        () => {
+  #productsGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 
-            localStorage.removeItem(
-                STORAGE_KEYS.currentUser
-            );
+  .product-image-container {
+    height: 230px;
+  }
 
-
-            showToast(
-                "Sesión cerrada."
-            );
-
-
-            showPage(
-                "homePage"
-            );
-
-        }
-    );
+  .page-container {
+    padding-left: 30px;
+    padding-right: 30px;
+  }
 }
 
-
 /* =========================================================
-   ACTUALIZAR INTERFAZ
-========================================================= */
+   SMALL PHONES
+   ========================================================= */
 
-function updateInterface() {
+@media (max-width: 380px) {
 
-    renderProducts();
+  .brand-title {
+    font-size: 23px;
+  }
 
-    updateNotificationBadge();
+  .brand-mark {
+    width: 46px;
+    height: 46px;
+    flex-basis: 46px;
+    font-size: 23px;
+    border-radius: 13px;
+  }
 
-    const user =
-        getCurrentUser();
+  .icon-btn {
+    width: 42px;
+    height: 42px;
+  }
 
+  #productsGrid {
+    gap: 9px;
+  }
 
-    if (user) {
-        renderProfile();
-    }
+  .product-image-container {
+    height: 150px;
+  }
 
+  .product-card-body {
+    padding: 10px;
+  }
+
+  .product-price {
+    font-size: 18px;
+  }
+
+  .product-actions {
+    gap: 5px;
+  }
+
+  .product-actions button {
+    font-size: 10px;
+    min-height: 37px;
+  }
+
+  .admin-publication-actions {
+    gap: 4px;
+  }
+
+  .admin-action {
+    font-size: 9px;
+  }
 }
-
-
-/* =========================================================
-   ATAJOS DEL TECLADO PARA EL VISOR
-========================================================= */
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        const viewer =
-            document.getElementById(
-                "imageViewer"
-            );
-
-
-        if (
-            viewer &&
-            !viewer.classList.contains(
-                "hidden"
-            )
-        ) {
-
-            if (event.key === "Escape") {
-                closeImageViewer();
-            }
-
-            if (event.key === "ArrowLeft") {
-                previousImage();
-            }
-
-            if (event.key === "ArrowRight") {
-                nextImage();
-            }
-
-        }
-
-    }
-);
-
-
-/* =========================================================
-   FIN DE SCRIPT.JS
-========================================================= */
