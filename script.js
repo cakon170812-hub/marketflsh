@@ -1,240 +1,56 @@
 /* =========================================================
-   MARKET FLASH - JAVASCRIPT COMPLETO
-   ========================================================= */
+   MARKET FLASH — SCRIPT.JS
+========================================================= */
 
-"use strict";
-
-/* =========================================================
-   DATOS Y CONFIGURACIÓN
-   ========================================================= */
+const ADMIN_CREDENTIALS = {
+    username: "admin",
+    password: "admin123"
+};
 
 const STORAGE_KEYS = {
-    user: "mf_user",
+    users: "mf_users",
     products: "mf_products",
-    config: "mf_config",
-    ads: "mf_ads",
-    stats: "mf_stats",
-    notifications: "mf_notifications"
+    currentUser: "mf_current_user",
+    notifications: "mf_notifications",
+    chats: "mf_chats",
+    advertising: "mf_advertising",
+    paymentMethods: "mf_payment_methods",
+    settings: "mf_settings"
 };
 
-let currentCategory = "Todos";
+let selectedCategory = "Todos";
 let currentProductId = null;
-let selectedProductImages = [];
-let selectedAdvertisingImage = "";
-let selectedProofImage = "";
-let selectedProfileImage = "";
-
-
-/* =========================================================
-   CONFIGURACIÓN INICIAL
-   ========================================================= */
-
-const DEFAULT_CONFIG = {
-    advertisingEnabled: true,
-    advertisingPrice: 500,
-    paymentMethods: [
-        "Transferencia bancaria",
-        "Pago móvil",
-        "Depósito bancario"
-    ]
-};
-
-
-/* =========================================================
-   PRODUCTOS INICIALES
-   ========================================================= */
-
-const DEFAULT_PRODUCTS = [
-    {
-        id: "seed-iphone-15-pro",
-        name: "iPhone 15 Pro",
-        category: "Celulares",
-        price: 65000,
-        location: "Santo Domingo",
-        description: "iPhone 15 Pro en excelentes condiciones.",
-        whatsapp: "8090000000",
-        images: [],
-        ownerId: "demo",
-        ownerName: "Market Flash",
-        createdAt: new Date().toISOString(),
-        views: 0,
-        likes: 0
-    },
-    {
-        id: "seed-samsung-s24",
-        name: "Samsung Galaxy S24",
-        category: "Celulares",
-        price: 45000,
-        location: "Santo Domingo",
-        description: "Samsung Galaxy S24 disponible.",
-        whatsapp: "8090000000",
-        images: [],
-        ownerId: "demo",
-        ownerName: "Market Flash",
-        createdAt: new Date().toISOString(),
-        views: 0,
-        likes: 0
-    },
-    {
-        id: "seed-laptop",
-        name: "Laptop profesional",
-        category: "Computadoras",
-        price: 55000,
-        location: "Santo Domingo",
-        description: "Laptop ideal para trabajo y estudios.",
-        whatsapp: "8090000000",
-        images: [],
-        ownerId: "demo",
-        ownerName: "Market Flash",
-        createdAt: new Date().toISOString(),
-        views: 0,
-        likes: 0
-    },
-    {
-        id: "seed-ps5",
-        name: "PlayStation 5",
-        category: "Videojuegos",
-        price: 35000,
-        location: "Santo Domingo",
-        description: "PlayStation 5 en buen estado.",
-        whatsapp: "8090000000",
-        images: [],
-        ownerId: "demo",
-        ownerName: "Market Flash",
-        createdAt: new Date().toISOString(),
-        views: 0,
-        likes: 0
-    }
-];
+let currentChatId = null;
+let currentImageIndex = 0;
+let currentProductImages = [];
+let editingProductId = null;
+let editingPaymentMethodId = null;
 
 
 /* =========================================================
    UTILIDADES
-   ========================================================= */
+========================================================= */
 
-function getStorage(key, fallback) {
+function generateId(prefix = "mf") {
+    return prefix + "_" + Date.now() + "_" +
+        Math.random().toString(36).substring(2, 9);
+}
+
+function getStorage(key, fallback = []) {
     try {
         const value = localStorage.getItem(key);
-
-        if (value === null) {
-            return fallback;
-        }
-
-        return JSON.parse(value);
+        return value ? JSON.parse(value) : fallback;
     } catch (error) {
-        console.error("Error leyendo almacenamiento:", error);
         return fallback;
     }
 }
 
-
 function setStorage(key, value) {
-    try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-    } catch (error) {
-        console.error("Error guardando almacenamiento:", error);
-        return false;
-    }
+    localStorage.setItem(key, JSON.stringify(value));
 }
-
-
-function getUser() {
-    return getStorage(STORAGE_KEYS.user, null);
-}
-
-
-function getProducts() {
-    return getStorage(STORAGE_KEYS.products, []);
-}
-
-
-function saveProducts(products) {
-    return setStorage(STORAGE_KEYS.products, products);
-}
-
-
-function getConfig() {
-    const config = getStorage(
-        STORAGE_KEYS.config,
-        DEFAULT_CONFIG
-    );
-
-    return {
-        ...DEFAULT_CONFIG,
-        ...config,
-        paymentMethods:
-            Array.isArray(config.paymentMethods)
-                ? config.paymentMethods
-                : DEFAULT_CONFIG.paymentMethods
-    };
-}
-
-
-function saveConfig(config) {
-    return setStorage(STORAGE_KEYS.config, config);
-}
-
-
-function getAds() {
-    return getStorage(STORAGE_KEYS.ads, []);
-}
-
-
-function saveAds(ads) {
-    return setStorage(STORAGE_KEYS.ads, ads);
-}
-
-
-function getStats() {
-    return getStorage(
-        STORAGE_KEYS.stats,
-        {
-            registered: 0,
-            deleted: 0
-        }
-    );
-}
-
-
-function saveStats(stats) {
-    return setStorage(STORAGE_KEYS.stats, stats);
-}
-
-
-function getNotifications() {
-    return getStorage(
-        STORAGE_KEYS.notifications,
-        []
-    );
-}
-
-
-function saveNotifications(notifications) {
-    return setStorage(
-        STORAGE_KEYS.notifications,
-        notifications
-    );
-}
-
-
-function generateId(prefix = "mf") {
-    return (
-        prefix +
-        "-" +
-        Date.now() +
-        "-" +
-        Math.random()
-            .toString(36)
-            .substring(2, 9)
-    );
-}
-
 
 function escapeHTML(value) {
-    if (value === null || value === undefined) {
-        return "";
-    }
+    if (value === null || value === undefined) return "";
 
     return String(value)
         .replace(/&/g, "&amp;")
@@ -244,727 +60,1395 @@ function escapeHTML(value) {
         .replace(/'/g, "&#039;");
 }
 
+function formatPrice(price) {
+    return Number(price || 0).toLocaleString("es-DO", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
 
-function formatPrice(value) {
-    const number = Number(value) || 0;
+function formatDate(date) {
+    if (!date) return "";
 
-    return number.toLocaleString(
-        "es-DO",
-        {
-            style: "currency",
-            currency: "DOP",
-            maximumFractionDigits: 0
-        }
+    return new Date(date).toLocaleDateString("es-DO", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric"
+    });
+}
+
+function getCurrentUser() {
+    return JSON.parse(
+        localStorage.getItem(STORAGE_KEYS.currentUser) || "null"
+    );
+}
+
+function saveCurrentUser(user) {
+    localStorage.setItem(
+        STORAGE_KEYS.currentUser,
+        JSON.stringify(user)
     );
 }
 
 
-function formatDate(dateValue) {
-    if (!dateValue) {
-        return "";
-    }
-
-    const date = new Date(dateValue);
-
-    if (Number.isNaN(date.getTime())) {
-        return "";
-    }
-
-    return date.toLocaleDateString(
-        "es-DO",
-        {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric"
-        }
-    );
-}
-
-
-function normalizePhone(phone) {
-    return String(phone || "")
-        .replace(/\D/g, "");
-}
-
-
-function showElement(id) {
-    const element = document.getElementById(id);
-
-    if (element) {
-        element.classList.remove("hidden");
-    }
-}
-
-
-function hideElement(id) {
-    const element = document.getElementById(id);
-
-    if (element) {
-        element.classList.add("hidden");
-    }
-}
-
-
-function setText(id, text) {
-    const element = document.getElementById(id);
-
-    if (element) {
-        element.textContent = text;
-    }
-}
-
-
 /* =========================================================
-   TOAST
-   ========================================================= */
+   INICIALIZACIÓN
+========================================================= */
 
-function toast(message, type = "success") {
+document.addEventListener("DOMContentLoaded", () => {
 
-    const container =
-        document.getElementById("toastContainer");
+    initializeStorage();
+    initializeSearch();
+    updateInterface();
 
-    if (!container) {
-        alert(message);
-        return;
+    const currentUser = getCurrentUser();
+
+    if (currentUser) {
+        showPage("homePage");
+    } else {
+        showPage("homePage");
     }
 
-    const toastElement =
-        document.createElement("div");
-
-    toastElement.className =
-        "toast toast-" + type;
-
-    toastElement.textContent = message;
-
-    container.appendChild(toastElement);
-
-    setTimeout(() => {
-        toastElement.classList.add("toast-hide");
-
-        setTimeout(() => {
-            toastElement.remove();
-        }, 300);
-
-    }, 3000);
-}
+});
 
 
-/* =========================================================
-   OVERLAY
-   ========================================================= */
+function initializeStorage() {
 
-function openOverlay() {
-    const overlay =
-        document.getElementById("overlay");
-
-    if (overlay) {
-        overlay.classList.remove("hidden");
-    }
-}
-
-
-function closeOverlay(event) {
-
-    if (
-        event &&
-        event.target &&
-        event.target.id !== "overlay"
-    ) {
-        return;
+    if (!localStorage.getItem(STORAGE_KEYS.users)) {
+        setStorage(STORAGE_KEYS.users, []);
     }
 
-    const overlay =
-        document.getElementById("overlay");
-
-    if (overlay) {
-        overlay.classList.add("hidden");
-    }
-}
-
-
-/* =========================================================
-   MODALES
-   ========================================================= */
-
-function openModal(id) {
-
-    const modal =
-        document.getElementById(id);
-
-    if (!modal) {
-        return;
+    if (!localStorage.getItem(STORAGE_KEYS.products)) {
+        setStorage(STORAGE_KEYS.products, []);
     }
 
-    modal.classList.remove("hidden");
-
-    openOverlay();
-}
-
-
-function closeModal(id) {
-
-    const modal =
-        document.getElementById(id);
-
-    if (modal) {
-        modal.classList.add("hidden");
+    if (!localStorage.getItem(STORAGE_KEYS.notifications)) {
+        setStorage(STORAGE_KEYS.notifications, []);
     }
 
-    const visibleModals =
-        document.querySelectorAll(
-            ".modal:not(.hidden)"
-        );
+    if (!localStorage.getItem(STORAGE_KEYS.chats)) {
+        setStorage(STORAGE_KEYS.chats, []);
+    }
 
-    if (visibleModals.length === 0) {
-        const overlay =
-            document.getElementById("overlay");
+    if (!localStorage.getItem(STORAGE_KEYS.advertising)) {
+        setStorage(STORAGE_KEYS.advertising, {
+            enabled: true,
+            price: 500,
+            requests: []
+        });
+    }
 
-        if (overlay) {
-            overlay.classList.add("hidden");
-        }
+    if (!localStorage.getItem(STORAGE_KEYS.paymentMethods)) {
+        setStorage(STORAGE_KEYS.paymentMethods, [
+            {
+                id: generateId("pay"),
+                name: "Transferencia bancaria",
+                price: 0
+            }
+        ]);
+    }
+
+    if (!localStorage.getItem(STORAGE_KEYS.settings)) {
+        setStorage(STORAGE_KEYS.settings, {
+            advertisingEnabled: true,
+            advertisingPrice: 500
+        });
     }
 }
 
 
 /* =========================================================
    NAVEGACIÓN
-   ========================================================= */
+========================================================= */
 
-function hideAllPages() {
+function showPage(pageId) {
 
-    document
-        .querySelectorAll(".page")
-        .forEach(page => {
-            page.classList.remove("active-page");
-        });
-}
+    document.querySelectorAll(".page").forEach(page => {
+        page.classList.remove("active");
+    });
 
-
-function goHome() {
-
-    hideAllPages();
-
-    const home =
-        document.getElementById("homePage");
-
-    if (home) {
-        home.classList.add("active-page");
-    }
-
-    updateBottomNavigation("home");
-
-    renderProducts();
-}
-
-
-function openActivity() {
-
-    hideAllPages();
-
-    const page =
-        document.getElementById("activityPage");
+    const page = document.getElementById(pageId);
 
     if (page) {
-        page.classList.add("active-page");
+        page.classList.add("active");
     }
 
-    updateBottomNavigation("activity");
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.remove("active");
 
-    renderActivity();
+        if (item.dataset.page === pageId) {
+            item.classList.add("active");
+        }
+    });
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+    updateInterface();
 }
 
+
+function openLogin() {
+    showPage("loginPage");
+}
+
+function openRegister() {
+    showPage("registerPage");
+}
+
+function openRecovery() {
+    showPage("recoveryPage");
+}
+
+function openPublish() {
+
+    const user = getCurrentUser();
+
+    if (!user) {
+        showToast("Debes iniciar sesión para publicar.");
+        openLogin();
+        return;
+    }
+
+    editingProductId = null;
+
+    resetPublishForm();
+
+    showPage("publishPage");
+}
 
 function openProfile() {
 
-    hideAllPages();
+    const user = getCurrentUser();
 
-    const page =
-        document.getElementById("profilePage");
-
-    if (page) {
-        page.classList.add("active-page");
+    if (!user) {
+        openLogin();
+        return;
     }
-
-    updateBottomNavigation("profile");
 
     renderProfile();
+    showPage("profilePage");
 }
 
+function openMyPublications() {
+
+    const user = getCurrentUser();
+
+    if (!user) {
+        openLogin();
+        return;
+    }
+
+    renderMyPublications();
+    showPage("myPublicationsPage");
+}
+
+function openMyChats() {
+
+    const user = getCurrentUser();
+
+    if (!user) {
+        openLogin();
+        return;
+    }
+
+    renderChatList();
+    showPage("chatsPage");
+}
 
 function openSettings() {
-
-    hideAllPages();
-
-    const page =
-        document.getElementById("settingsPage");
-
-    if (page) {
-        page.classList.add("active-page");
-    }
-
-    updateBottomNavigation("profile");
-}
-
-
-function updateBottomNavigation(active) {
-
-    const homeButton =
-        document.getElementById("homeNavBtn");
-
-    const activityButton =
-        document.getElementById("activityNavBtn");
-
-    if (homeButton) {
-        homeButton.classList.toggle(
-            "active",
-            active === "home"
-        );
-    }
-
-    if (activityButton) {
-        activityButton.classList.toggle(
-            "active",
-            active === "activity"
-        );
-    }
+    showPage("settingsPage");
 }
 
 
 /* =========================================================
-   PRODUCTOS
-   ========================================================= */
+   BUSCADOR
+========================================================= */
 
-function initializeProducts() {
+function initializeSearch() {
 
-    const products =
-        getProducts();
+    const input = document.getElementById("searchInput");
 
-    if (!Array.isArray(products) || products.length === 0) {
-        saveProducts(DEFAULT_PRODUCTS);
-    }
-}
+    if (!input) return;
 
-
-function renderProducts() {
-
-    const grid =
-        document.getElementById("productsGrid");
-
-    const empty =
-        document.getElementById("emptyProducts");
-
-    if (!grid) {
-        return;
-    }
-
-    const searchInput =
-        document.getElementById("searchInput");
-
-    const search =
-        searchInput
-            ? searchInput.value.trim().toLowerCase()
-            : "";
-
-    const products =
-        getProducts();
-
-    const filtered =
-        products.filter(product => {
-
-            const categoryMatch =
-                currentCategory === "Todos" ||
-                product.category === currentCategory;
-
-            const searchableText = [
-                product.name,
-                product.category,
-                product.location,
-                product.description
-            ]
-                .join(" ")
-                .toLowerCase();
-
-            const searchMatch =
-                !search ||
-                searchableText.includes(search);
-
-            return categoryMatch && searchMatch;
-        });
-
-
-    grid.innerHTML = "";
-
-
-    if (filtered.length === 0) {
-
-        if (empty) {
-            empty.classList.remove("hidden");
-        }
-
-        setText(
-            "productsCounter",
-            "0 productos encontrados"
-        );
-
-        return;
-    }
-
-
-    if (empty) {
-        empty.classList.add("hidden");
-    }
-
-
-    filtered.forEach(product => {
-
-        const card =
-            createProductCard(product);
-
-        grid.appendChild(card);
-
+    input.addEventListener("input", () => {
+        renderProducts();
     });
-
-
-    setText(
-        "productsCounter",
-        `${filtered.length} ${
-            filtered.length === 1
-                ? "producto"
-                : "productos"
-        }`
-    );
-}
-
-
-function createProductCard(product) {
-
-    const card =
-        document.createElement("article");
-
-    card.className = "product-card";
-
-    card.dataset.productId =
-        product.id;
-
-
-    let imageHTML = "";
-
-    if (
-        Array.isArray(product.images) &&
-        product.images.length > 0
-    ) {
-
-        imageHTML = `
-            <img
-                src="${product.images[0]}"
-                alt="${escapeHTML(product.name)}"
-                class="product-card-image"
-            >
-        `;
-
-    } else {
-
-        imageHTML = `
-            <div class="product-card-placeholder">
-                📦
-            </div>
-        `;
-    }
-
-
-    card.innerHTML = `
-
-        <div
-            class="product-card-image-wrapper"
-            onclick="openProductDetail('${product.id}')"
-        >
-            ${imageHTML}
-
-            <span class="product-category-badge">
-                ${escapeHTML(product.category)}
-            </span>
-        </div>
-
-        <div class="product-card-body">
-
-            <h3>
-                ${escapeHTML(product.name)}
-            </h3>
-
-            <strong class="product-price">
-                ${formatPrice(product.price)}
-            </strong>
-
-            <p class="product-location">
-                📍 ${escapeHTML(product.location)}
-            </p>
-
-            <div class="product-card-footer">
-
-                <span>
-                    👁️ ${Number(product.views) || 0}
-                </span>
-
-                <span>
-                    ❤️ ${Number(product.likes) || 0}
-                </span>
-
-            </div>
-
-        </div>
-    `;
-
-    return card;
 }
 
 
 function filterCategory(category) {
 
-    currentCategory = category;
+    selectedCategory = category;
 
-    document
-        .querySelectorAll(".category-button")
-        .forEach(button => {
+    document.querySelectorAll(".category-btn").forEach(button => {
 
-            button.classList.toggle(
-                "active",
-                button.dataset.category === category
-            );
+        button.classList.toggle(
+            "active",
+            button.dataset.category === category
+        );
 
-        });
-
-    renderProducts();
-}
-
-
-function searchProducts() {
-    renderProducts();
-}
-
-
-function clearSearch() {
-
-    const input =
-        document.getElementById("searchInput");
-
-    if (input) {
-        input.value = "";
-    }
+    });
 
     renderProducts();
 }
 
 
 /* =========================================================
+   PUBLICACIONES
+========================================================= */
+
+function getProducts() {
+    return getStorage(STORAGE_KEYS.products, []);
+}
+
+function saveProducts(products) {
+    setStorage(STORAGE_KEYS.products, products);
+}
+
+
+function renderProducts() {
+
+    const grid = document.getElementById("productsGrid");
+
+    if (!grid) return;
+
+    const searchInput = document.getElementById("searchInput");
+
+    const search = searchInput
+        ? searchInput.value.toLowerCase().trim()
+        : "";
+
+    let products = getProducts();
+
+    products = products.filter(product => {
+
+        const categoryMatch =
+            selectedCategory === "Todos" ||
+            product.category === selectedCategory;
+
+        const text =
+            `${product.name} ${product.description} ${product.location}`
+                .toLowerCase();
+
+        const searchMatch =
+            !search || text.includes(search);
+
+        return categoryMatch && searchMatch;
+    });
+
+
+    grid.innerHTML = "";
+
+    products.forEach(product => {
+
+        grid.insertAdjacentHTML(
+            "beforeend",
+            createProductCard(product)
+        );
+
+    });
+
+
+    const count = document.getElementById("publicationCount");
+
+    if (count) {
+        count.textContent =
+            `${products.length} publicación${products.length === 1 ? "" : "es"}`;
+    }
+
+
+    const empty = document.getElementById("emptyProducts");
+
+    if (empty) {
+        empty.classList.toggle(
+            "hidden",
+            products.length > 0
+        );
+    }
+}
+
+
+function createProductCard(product) {
+
+    const image =
+        product.images && product.images.length
+            ? product.images[0]
+            : "";
+
+
+    const likedBy =
+        product.likedBy || [];
+
+    const dislikedBy =
+        product.dislikedBy || [];
+
+    const currentUser = getCurrentUser();
+
+    const userId = currentUser
+        ? currentUser.id
+        : null;
+
+
+    const liked =
+        userId && likedBy.includes(userId);
+
+    const disliked =
+        userId && dislikedBy.includes(userId);
+
+
+    return `
+        <article class="product-card">
+
+            <div
+                class="product-image-container"
+                onclick="openProductDetail('${product.id}')">
+
+                ${
+                    image
+                    ? `
+                        <img
+                            src="${image}"
+                            alt="${escapeHTML(product.name)}"
+                            class="product-image">
+                    `
+                    : `
+                        <div class="product-no-image">
+                            📦
+                        </div>
+                    `
+                }
+
+                ${
+                    product.images && product.images.length > 1
+                    ? `
+                        <span class="image-count">
+                            📷 ${product.images.length}
+                        </span>
+                    `
+                    : ""
+                }
+
+            </div>
+
+
+            <div class="product-card-body">
+
+                <div class="product-category">
+                    ${escapeHTML(product.category || "Otros")}
+                </div>
+
+                <h3>
+                    ${escapeHTML(product.name)}
+                </h3>
+
+                <div class="product-price">
+                    RD$ ${formatPrice(product.price)}
+                </div>
+
+                ${
+                    product.location
+                    ? `
+                        <div class="product-location">
+                            📍 ${escapeHTML(product.location)}
+                        </div>
+                    `
+                    : ""
+                }
+
+
+                <div class="product-actions">
+
+                    <button
+                        class="like-btn ${liked ? "active" : ""}"
+                        onclick="toggleLike('${product.id}')">
+
+                        👍
+                        <span>
+                            ${likedBy.length}
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        class="dislike-btn ${disliked ? "active" : ""}"
+                        onclick="toggleDislike('${product.id}')">
+
+                        👎
+                        <span>
+                            ${dislikedBy.length}
+                        </span>
+
+                    </button>
+
+
+                    <button
+                        class="chat-product-btn"
+                        onclick="startChatFromProduct('${product.id}')">
+
+                        💬 Chat
+
+                    </button>
+
+
+                    <button
+                        class="whatsapp-btn"
+                        onclick="openWhatsApp('${product.id}')">
+
+                        WhatsApp
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </article>
+    `;
+}
+
+
+/* =========================================================
    DETALLE DEL PRODUCTO
-   ========================================================= */
+========================================================= */
 
 function openProductDetail(productId) {
 
-    const products =
-        getProducts();
+    const products = getProducts();
 
     const product =
-        products.find(
-            item => item.id === productId
-        );
+        products.find(item => item.id === productId);
 
-    if (!product) {
-        toast(
-            "Producto no encontrado.",
-            "error"
-        );
-
-        return;
-    }
+    if (!product) return;
 
     currentProductId = productId;
 
-    product.views =
-        (Number(product.views) || 0) + 1;
+    product.views = Number(product.views || 0) + 1;
 
     saveProducts(products);
 
+    renderProductDetail(product);
+
+    showPage("productDetailPage");
+}
+
+
+function renderProductDetail(product) {
 
     const container =
         document.getElementById("productDetail");
 
-    if (!container) {
-        return;
-    }
+    if (!container) return;
 
 
-    let galleryHTML = "";
+    currentProductImages =
+        product.images && product.images.length
+            ? product.images
+            : [];
 
-    if (
-        Array.isArray(product.images) &&
-        product.images.length > 0
-    ) {
 
-        galleryHTML = `
-            <div class="detail-gallery">
-                ${product.images.map(image => `
+    const currentUser = getCurrentUser();
+
+    const isOwner =
+        currentUser &&
+        product.userId === currentUser.id;
+
+
+    const likedBy =
+        product.likedBy || [];
+
+    const dislikedBy =
+        product.dislikedBy || [];
+
+
+    const liked =
+        currentUser &&
+        likedBy.includes(currentUser.id);
+
+    const disliked =
+        currentUser &&
+        dislikedBy.includes(currentUser.id);
+
+
+    const imagesHTML =
+        currentProductImages.length
+        ? `
+            <div class="detail-images">
+
+                <div
+                    class="detail-main-image"
+                    onclick="openImageViewer(0)">
+
                     <img
-                        src="${image}"
-                        alt="${escapeHTML(product.name)}"
-                    >
-                `).join("")}
+                        src="${currentProductImages[0]}"
+                        alt="${escapeHTML(product.name)}">
+
+                    <div class="expand-image-hint">
+                        ⛶ Ampliar
+                    </div>
+
+                </div>
+
+
+                ${
+                    currentProductImages.length > 1
+                    ? `
+                        <div class="detail-thumbnails">
+
+                            ${currentProductImages.map(
+                                (image, index) => `
+                                    <button
+                                        onclick="openImageViewer(${index})">
+
+                                        <img
+                                            src="${image}"
+                                            alt="Imagen ${index + 1}">
+
+                                    </button>
+                                `
+                            ).join("")}
+
+                        </div>
+                    `
+                    : ""
+                }
+
             </div>
-        `;
-
-    } else {
-
-        galleryHTML = `
-            <div class="detail-placeholder">
+        `
+        : `
+            <div class="detail-no-image">
                 📦
             </div>
         `;
-    }
-
-
-    const whatsapp =
-        normalizePhone(product.whatsapp);
-
-
-    const whatsappURL =
-        `https://wa.me/${whatsapp}`;
 
 
     container.innerHTML = `
 
-        ${galleryHTML}
+        ${imagesHTML}
 
-        <div class="detail-information">
 
-            <span class="detail-category">
-                ${escapeHTML(product.category)}
-            </span>
+        <div class="detail-body">
 
-            <h2>
+            <div class="product-category">
+                ${escapeHTML(product.category || "Otros")}
+            </div>
+
+
+            <h1>
                 ${escapeHTML(product.name)}
-            </h2>
+            </h1>
 
-            <strong class="detail-price">
-                ${formatPrice(product.price)}
-            </strong>
 
-            <p>
-                📍 ${escapeHTML(product.location)}
-            </p>
+            <div class="detail-price">
+                RD$ ${formatPrice(product.price)}
+            </div>
 
-            <p>
-                ${escapeHTML(product.description)}
-            </p>
+
+            ${
+                product.location
+                ? `
+                    <div class="detail-location">
+                        📍 ${escapeHTML(product.location)}
+                    </div>
+                `
+                : ""
+            }
+
 
             <div class="detail-stats">
 
                 <span>
-                    👁️ ${Number(product.views) || 0}
+                    👁️ ${product.views || 0} vistas
                 </span>
 
                 <span>
-                    ❤️ ${Number(product.likes) || 0}
+                    👍 ${likedBy.length}
+                </span>
+
+                <span>
+                    👎 ${dislikedBy.length}
                 </span>
 
             </div>
+
+
+            <div class="detail-description">
+
+                <h3>Descripción</h3>
+
+                <p>
+                    ${escapeHTML(
+                        product.description ||
+                        "Sin descripción."
+                    )}
+                </p>
+
+            </div>
+
 
             <div class="detail-actions">
 
                 <button
-                    type="button"
-                    class="secondary-button"
-                    onclick="likeProduct('${product.id}')"
-                >
-                    ❤️ Me interesa
+                    class="like-large-btn ${liked ? "active" : ""}"
+                    onclick="toggleLike('${product.id}')">
+
+                    👍 Me gusta
+                    (${likedBy.length})
+
                 </button>
 
-                <a
-                    class="primary-button whatsapp-button"
-                    href="${whatsappURL}"
-                    target="_blank"
-                    rel="noopener"
-                >
-                    WhatsApp
-                </a>
+
+                <button
+                    class="dislike-large-btn ${disliked ? "active" : ""}"
+                    onclick="toggleDislike('${product.id}')">
+
+                    👎 No me gusta
+                    (${dislikedBy.length})
+
+                </button>
+
+
+                <button
+                    class="chat-large-btn"
+                    onclick="startChatFromProduct('${product.id}')">
+
+                    💬 Chat
+
+                </button>
+
+
+                <button
+                    class="whatsapp-large-btn"
+                    onclick="openWhatsApp('${product.id}')">
+
+                    🟢 WhatsApp
+
+                </button>
 
             </div>
 
+
+            ${
+                isOwner
+                ? `
+                    <div class="owner-actions">
+
+                        <h3>
+                            Administrar publicación
+                        </h3>
+
+
+                        <button
+                            class="edit-product-btn"
+                            onclick="editProduct('${product.id}')">
+
+                            ✏️ Editar publicación
+
+                        </button>
+
+
+                        <button
+                            class="delete-product-btn"
+                            onclick="deleteProduct('${product.id}')">
+
+                            🗑️ Eliminar publicación
+
+                        </button>
+
+                    </div>
+                `
+                : ""
+            }
+
         </div>
     `;
-
-
-    openModal("productDetailModal");
 }
 
 
-function closeProductDetail() {
+/* =========================================================
+   ME GUSTA
+========================================================= */
 
-    currentProductId = null;
+function toggleLike(productId) {
 
-    closeModal("productDetailModal");
-}
+    const user = getCurrentUser();
 
-
-function likeProduct(productId) {
-
-    const products =
-        getProducts();
-
-    const product =
-        products.find(
-            item => item.id === productId
-        );
-
-    if (!product) {
+    if (!user) {
+        showToast("Inicia sesión para votar.");
+        openLogin();
         return;
     }
 
-    product.likes =
-        (Number(product.likes) || 0) + 1;
+
+    const products = getProducts();
+
+    const product =
+        products.find(item => item.id === productId);
+
+    if (!product) return;
+
+
+    product.likedBy = product.likedBy || [];
+    product.dislikedBy = product.dislikedBy || [];
+
+
+    const likedIndex =
+        product.likedBy.indexOf(user.id);
+
+    const dislikedIndex =
+        product.dislikedBy.indexOf(user.id);
+
+
+    if (likedIndex >= 0) {
+
+        product.likedBy.splice(likedIndex, 1);
+
+    } else {
+
+        product.likedBy.push(user.id);
+
+        if (dislikedIndex >= 0) {
+            product.dislikedBy.splice(dislikedIndex, 1);
+        }
+
+    }
+
 
     saveProducts(products);
 
-    toast(
-        "Marcaste este producto como interesado.",
-        "success"
-    );
+    renderProducts();
+
 
     if (currentProductId === productId) {
-        openProductDetail(productId);
+        renderProductDetail(product);
+    }
+}
+
+
+/* =========================================================
+   NO ME GUSTA
+========================================================= */
+
+function toggleDislike(productId) {
+
+    const user = getCurrentUser();
+
+    if (!user) {
+        showToast("Inicia sesión para votar.");
+        openLogin();
+        return;
+    }
+
+
+    const products = getProducts();
+
+    const product =
+        products.find(item => item.id === productId);
+
+    if (!product) return;
+
+
+    product.likedBy = product.likedBy || [];
+    product.dislikedBy = product.dislikedBy || [];
+
+
+    const likedIndex =
+        product.likedBy.indexOf(user.id);
+
+    const dislikedIndex =
+        product.dislikedBy.indexOf(user.id);
+
+
+    if (dislikedIndex >= 0) {
+
+        product.dislikedBy.splice(dislikedIndex, 1);
+
+    } else {
+
+        product.dislikedBy.push(user.id);
+
+        if (likedIndex >= 0) {
+            product.likedBy.splice(likedIndex, 1);
+        }
+
+    }
+
+
+    saveProducts(products);
+
+    renderProducts();
+
+
+    if (currentProductId === productId) {
+        renderProductDetail(product);
+    }
+}
+
+
+/* =========================================================
+   WHATSAPP
+========================================================= */
+
+function openWhatsApp(productId) {
+
+    const product =
+        getProducts().find(item => item.id === productId);
+
+    if (!product) return;
+
+
+    let phone =
+        product.whatsapp ||
+        "";
+
+
+    phone = phone.replace(/\D/g, "");
+
+
+    if (!phone) {
+        showToast(
+            "Esta publicación no tiene WhatsApp registrado."
+        );
+        return;
+    }
+
+
+    if (phone.length === 10) {
+        phone = "1" + phone;
+    }
+
+
+    const message =
+        `Hola, vi tu publicación "${product.name}" en Market Flash y estoy interesado/a.`;
+
+
+    const url =
+        `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+
+    window.open(url, "_blank");
+}
+
+
+/* =========================================================
+   CÁMARA Y GALERÍA
+========================================================= */
+
+function openCamera() {
+
+    const input =
+        document.getElementById("cameraInput");
+
+    if (input) {
+        input.click();
+    }
+}
+
+
+function openGallery() {
+
+    const input =
+        document.getElementById("galleryInput");
+
+    if (input) {
+        input.click();
+    }
+}
+
+
+function handleImageSelection(event) {
+
+    const files =
+        Array.from(event.target.files || []);
+
+    if (!files.length) return;
+
+
+    const preview =
+        document.getElementById("imagePreview");
+
+    if (!preview) return;
+
+
+    preview.innerHTML = "";
+
+
+    files.forEach((file, index) => {
+
+        if (!file.type.startsWith("image/")) {
+            return;
+        }
+
+
+        const reader = new FileReader();
+
+
+        reader.onload = function(e) {
+
+            const wrapper =
+                document.createElement("div");
+
+            wrapper.className =
+                "preview-image-wrapper";
+
+
+            wrapper.innerHTML = `
+
+                <img
+                    src="${e.target.result}"
+                    alt="Vista previa">
+
+                <button
+                    type="button"
+                    onclick="removePreviewImage(this)">
+
+                    ✕
+
+                </button>
+
+            `;
+
+
+            preview.appendChild(wrapper);
+
+        };
+
+
+        reader.readAsDataURL(file);
+    });
+}
+
+
+function removePreviewImage(button) {
+
+    const wrapper =
+        button.parentElement;
+
+    if (wrapper) {
+        wrapper.remove();
     }
 }
 
 
 /* =========================================================
    PUBLICAR PRODUCTO
-   ========================================================= */
+========================================================= */
 
-function openPublish() {
+async function publishProduct(event) {
 
-    const user = getUser();
+    event.preventDefault();
+
+
+    const user = getCurrentUser();
 
     if (!user) {
+        showToast("Debes iniciar sesión.");
+        return;
+    }
 
-        toast(
-            "Debes iniciar sesión para publicar.",
-            "error"
+
+    const name =
+        document.getElementById("productName").value.trim();
+
+    const category =
+        document.getElementById("productCategory").value;
+
+    const price =
+        document.getElementById("productPrice").value;
+
+    const location =
+        document.getElementById("productLocation").value.trim();
+
+    const description =
+        document.getElementById("productDescription").value.trim();
+
+    const whatsapp =
+        document.getElementById("productWhatsapp").value.trim();
+
+
+    const images =
+        Array.from(
+            document.querySelectorAll(
+                "#imagePreview img"
+            )
+        ).map(img => img.src);
+
+
+    const products = getProducts();
+
+
+    if (editingProductId) {
+
+        const index =
+            products.findIndex(
+                product =>
+                    product.id === editingProductId
+            );
+
+
+        if (index === -1) {
+            showToast("No se encontró la publicación.");
+            return;
+        }
+
+
+        products[index] = {
+            ...products[index],
+            name,
+            category,
+            price: Number(price),
+            location,
+            description,
+            whatsapp,
+            images:
+                images.length
+                    ? images
+                    : products[index].images || [],
+            updatedAt: new Date().toISOString()
+        };
+
+
+        saveProducts(products);
+
+        showToast("Publicación actualizada.");
+
+    } else {
+
+        const product = {
+
+            id: generateId("product"),
+
+            userId: user.id,
+
+            sellerName: user.name,
+
+            name,
+
+            category,
+
+            price: Number(price),
+
+            location,
+
+            description,
+
+            whatsapp,
+
+            images,
+
+            likedBy: [],
+
+            dislikedBy: [],
+
+            views: 0,
+
+            createdAt: new Date().toISOString(),
+
+            status: "approved"
+
+        };
+
+
+        products.unshift(product);
+
+        saveProducts(products);
+
+        showToast("Publicación creada correctamente.");
+    }
+
+
+    editingProductId = null;
+
+    resetPublishForm();
+
+    renderProducts();
+
+    openMyPublications();
+}
+
+
+/* =========================================================
+   EDITAR PUBLICACIÓN
+========================================================= */
+
+function editProduct(productId) {
+
+    const user = getCurrentUser();
+
+    if (!user) return;
+
+
+    const products = getProducts();
+
+    const product =
+        products.find(
+            item =>
+                item.id === productId
         );
 
-        openLogin();
+
+    if (!product) return;
+
+
+    if (product.userId !== user.id) {
+
+        showToast(
+            "Solo puedes editar tus propias publicaciones."
+        );
 
         return;
     }
 
-    resetPublishForm();
 
-    openModal("publishModal");
+    editingProductId = productId;
+
+
+    document.getElementById("productName").value =
+        product.name || "";
+
+    document.getElementById("productCategory").value =
+        product.category || "";
+
+    document.getElementById("productPrice").value =
+        product.price || "";
+
+    document.getElementById("productLocation").value =
+        product.location || "";
+
+    document.getElementById("productDescription").value =
+        product.description || "";
+
+    document.getElementById("productWhatsapp").value =
+        product.whatsapp || "";
+
+
+    const preview =
+        document.getElementById("imagePreview");
+
+
+    if (preview) {
+
+        preview.innerHTML = "";
+
+
+        (product.images || []).forEach(image => {
+
+            preview.insertAdjacentHTML(
+                "beforeend",
+                `
+                    <div class="preview-image-wrapper">
+
+                        <img
+                            src="${image}"
+                            alt="Imagen">
+
+                        <button
+                            type="button"
+                            onclick="removePreviewImage(this)">
+
+                            ✕
+
+                        </button>
+
+                    </div>
+                `
+            );
+
+        });
+    }
+
+
+    showPage("publishPage");
 }
 
 
-function closePublish() {
-    closeModal("publishModal");
+/* =========================================================
+   ELIMINAR PUBLICACIÓN DEL USUARIO
+========================================================= */
+
+function deleteProduct(productId) {
+
+    const user = getCurrentUser();
+
+    if (!user) return;
+
+
+    const products = getProducts();
+
+    const product =
+        products.find(
+            item =>
+                item.id === productId
+        );
+
+
+    if (!product) return;
+
+
+    if (product.userId !== user.id) {
+
+        showToast(
+            "No puedes eliminar esta publicación."
+        );
+
+        return;
+    }
+
+
+    openConfirmModal(
+        "Eliminar publicación",
+        "¿Seguro que quieres eliminar esta publicación? Esta acción no se puede deshacer.",
+        () => {
+
+            const updatedProducts =
+                getProducts().filter(
+                    item =>
+                        item.id !== productId
+                );
+
+
+            saveProducts(updatedProducts);
+
+            showToast(
+                "La publicación fue eliminada por completo."
+            );
+
+
+            currentProductId = null;
+
+            renderProducts();
+
+            openMyPublications();
+
+        }
+    );
 }
 
+
+/* =========================================================
+   MIS PUBLICACIONES
+========================================================= */
+
+function renderMyPublications() {
+
+    const user = getCurrentUser();
+
+    const container =
+        document.getElementById(
+            "myPublicationsList"
+        );
+
+    const empty =
+        document.getElementById(
+            "emptyMyPublications"
+        );
+
+
+    if (!container || !user) return;
+
+
+    const products =
+        getProducts().filter(
+            product =>
+                product.userId === user.id
+        );
+
+
+    container.innerHTML = "";
+
+
+    products.forEach(product => {
+
+        const image =
+            product.images &&
+            product.images.length
+                ? product.images[0]
+                : "";
+
+
+        container.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="my-publication-card">
+
+                    <div class="my-publication-image">
+
+                        ${
+                            image
+                            ? `
+                                <img
+                                    src="${image}"
+                                    alt="${escapeHTML(product.name)}">
+                            `
+                            : `
+                                <span>📦</span>
+                            `
+                        }
+
+                    </div>
+
+
+                    <div class="my-publication-info">
+
+                        <h3>
+                            ${escapeHTML(product.name)}
+                        </h3>
+
+                        <strong>
+                            RD$ ${formatPrice(product.price)}
+                        </strong>
+
+                        <small>
+                            ${escapeHTML(product.category || "")}
+                        </small>
+
+                    </div>
+
+
+                    <div class="my-publication-actions">
+
+                        <button
+                            onclick="editProduct('${product.id}')">
+
+                            ✏️ Editar
+
+                        </button>
+
+
+                        <button
+                            class="danger-btn"
+                            onclick="deleteProduct('${product.id}')">
+
+                            🗑️ Eliminar
+
+                        </button>
+
+                    </div>
+
+                </div>
+            `
+        );
+
+    });
+
+
+    if (empty) {
+
+        empty.classList.toggle(
+            "hidden",
+            products.length > 0
+        );
+
+    }
+}
+
+
+/* =========================================================
+   RESET FORMULARIO
+========================================================= */
 
 function resetPublishForm() {
 
@@ -975,394 +1459,146 @@ function resetPublishForm() {
         form.reset();
     }
 
-    selectedProductImages = [];
 
     const preview =
-        document.getElementById(
-            "productImagePreview"
-        );
+        document.getElementById("imagePreview");
 
     if (preview) {
         preview.innerHTML = "";
     }
 
 
-    const user =
-        getUser();
+    const camera =
+        document.getElementById("cameraInput");
 
-    const whatsapp =
-        document.getElementById(
-            "productWhatsapp"
-        );
+    const gallery =
+        document.getElementById("galleryInput");
 
-    if (user && whatsapp) {
-        whatsapp.value =
-            user.whatsapp || "";
-    }
-}
 
+    if (camera) camera.value = "";
 
-function openProductCamera() {
-
-    const input =
-        document.getElementById(
-            "productCameraInput"
-        );
-
-    if (input) {
-        input.click();
-    }
-}
-
-
-function openProductGallery() {
-
-    const input =
-        document.getElementById(
-            "productGalleryInput"
-        );
-
-    if (input) {
-        input.click();
-    }
-}
-
-
-function handleProductImages(files) {
-
-    if (!files || files.length === 0) {
-        return;
-    }
-
-    const fileArray =
-        Array.from(files);
-
-    selectedProductImages = [];
-
-    let processed = 0;
-
-
-    fileArray.forEach(file => {
-
-        if (!file.type.startsWith("image/")) {
-            processed++;
-            return;
-        }
-
-        const reader =
-            new FileReader();
-
-        reader.onload = event => {
-
-            selectedProductImages.push(
-                event.target.result
-            );
-
-            processed++;
-
-            if (processed === fileArray.length) {
-                renderProductImagePreview();
-            }
-
-        };
-
-        reader.readAsDataURL(file);
-    });
-}
-
-
-function renderProductImagePreview() {
-
-    const preview =
-        document.getElementById(
-            "productImagePreview"
-        );
-
-    if (!preview) {
-        return;
-    }
-
-    preview.innerHTML = "";
-
-
-    selectedProductImages.forEach(
-        (image, index) => {
-
-            const wrapper =
-                document.createElement("div");
-
-            wrapper.className =
-                "preview-image-wrapper";
-
-            wrapper.innerHTML = `
-
-                <img
-                    src="${image}"
-                    alt="Vista previa"
-                >
-
-                <button
-                    type="button"
-                    class="preview-remove"
-                    onclick="removeProductImage(${index})"
-                >
-                    ✕
-                </button>
-
-            `;
-
-            preview.appendChild(wrapper);
-        }
-    );
-}
-
-
-function removeProductImage(index) {
-
-    selectedProductImages.splice(
-        index,
-        1
-    );
-
-    renderProductImagePreview();
-}
-
-
-function publishProduct(event) {
-
-    event.preventDefault();
-
-
-    const user =
-        getUser();
-
-    if (!user) {
-
-        toast(
-            "Debes iniciar sesión.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const name =
-        document.getElementById(
-            "productName"
-        )?.value.trim();
-
-
-    const category =
-        document.getElementById(
-            "productCategory"
-        )?.value;
-
-
-    const price =
-        Number(
-            document.getElementById(
-                "productPrice"
-            )?.value
-        );
-
-
-    const location =
-        document.getElementById(
-            "productLocation"
-        )?.value.trim();
-
-
-    const description =
-        document.getElementById(
-            "productDescription"
-        )?.value.trim();
-
-
-    const whatsapp =
-        document.getElementById(
-            "productWhatsapp"
-        )?.value.trim();
-
-
-    if (!name || !category || !price || !location || !description || !whatsapp) {
-
-        toast(
-            "Completa todos los campos obligatorios.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const product = {
-
-        id: generateId("product"),
-
-        name,
-
-        category,
-
-        price,
-
-        location,
-
-        description,
-
-        whatsapp,
-
-        images: [
-            ...selectedProductImages
-        ],
-
-        ownerId:
-            user.cedula,
-
-        ownerName:
-            user.name,
-
-        createdAt:
-            new Date().toISOString(),
-
-        views: 0,
-
-        likes: 0
-    };
-
-
-    const products =
-        getProducts();
-
-    products.unshift(product);
-
-    saveProducts(products);
-
-
-    addNotification(
-        "Nueva publicación",
-        `Tu producto "${name}" fue publicado correctamente.`
-    );
-
-
-    closePublish();
-
-    renderProducts();
-
-    renderActivity();
-
-    toast(
-        "Producto publicado correctamente.",
-        "success"
-    );
+    if (gallery) gallery.value = "";
 }
 
 
 /* =========================================================
-   PERFIL
-   ========================================================= */
+   VISOR DE IMÁGENES A PANTALLA COMPLETA
+========================================================= */
 
-function renderProfile() {
+function openImageViewer(index = 0) {
 
-    const user =
-        getUser();
+    if (!currentProductImages.length) return;
 
-    if (!user) {
+    currentImageIndex = index;
 
-        setText(
-            "profileName",
-            "Invitado"
-        );
+    renderImageViewer();
 
-        setText(
-            "profilePhone",
-            "Inicia sesión para ver tu perfil"
-        );
+    const viewer =
+        document.getElementById("imageViewer");
 
-        return;
+    if (viewer) {
+        viewer.classList.remove("hidden");
     }
+}
 
 
-    setText(
-        "profileName",
-        user.name || "Usuario"
-    );
-
-
-    setText(
-        "profilePhone",
-        user.whatsapp
-            ? `WhatsApp: ${user.whatsapp}`
-            : "WhatsApp no registrado"
-    );
-
-
-    setText(
-        "profileCedula",
-        user.cedula
-            ? `Cédula: ${user.cedula}`
-            : ""
-    );
-
+function renderImageViewer() {
 
     const image =
         document.getElementById(
-            "profilePhoto"
+            "fullScreenImage"
         );
 
-    const placeholder =
+    const counter =
         document.getElementById(
-            "profilePhotoPlaceholder"
+            "imageViewerCounter"
         );
 
 
-    if (user.profilePhoto) {
+    if (!image) return;
 
-        if (image) {
-            image.src =
-                user.profilePhoto;
 
-            image.classList.remove(
-                "hidden"
-            );
-        }
+    image.src =
+        currentProductImages[currentImageIndex];
 
-        if (placeholder) {
-            placeholder.classList.add(
-                "hidden"
-            );
-        }
 
-    } else {
+    if (counter) {
 
-        if (image) {
-            image.classList.add(
-                "hidden"
-            );
-        }
+        counter.textContent =
+            `${currentImageIndex + 1} / ${currentProductImages.length}`;
 
-        if (placeholder) {
-            placeholder.classList.remove(
-                "hidden"
-            );
-        }
     }
 }
 
 
+function closeImageViewer() {
+
+    const viewer =
+        document.getElementById("imageViewer");
+
+    if (viewer) {
+        viewer.classList.add("hidden");
+    }
+}
+
+
+function previousImage() {
+
+    if (!currentProductImages.length) return;
+
+
+    currentImageIndex--;
+
+    if (currentImageIndex < 0) {
+        currentImageIndex =
+            currentProductImages.length - 1;
+    }
+
+
+    renderImageViewer();
+}
+
+
+function nextImage() {
+
+    if (!currentProductImages.length) return;
+
+
+    currentImageIndex++;
+
+    if (
+        currentImageIndex >=
+        currentProductImages.length
+    ) {
+        currentImageIndex = 0;
+    }
+
+
+    renderImageViewer();
+}
+
+
 /* =========================================================
-   FOTO DE PERFIL
-   ========================================================= */
+   CHAT
+========================================================= */
 
-function openProfilePhotoOptions() {
+function getChats() {
+    return getStorage(STORAGE_KEYS.chats, []);
+}
 
-    const user = getUser();
+function saveChats(chats) {
+    setStorage(STORAGE_KEYS.chats, chats);
+}
+
+
+function startChatFromProduct(productId) {
+
+    const user = getCurrentUser();
 
     if (!user) {
 
-        toast(
-            "Debes iniciar sesión.",
-            "error"
+        showToast(
+            "Inicia sesión para usar el chat."
         );
 
         openLogin();
@@ -1370,122 +1606,332 @@ function openProfilePhotoOptions() {
         return;
     }
 
-    openModal("profilePhotoModal");
-}
 
-
-function closeProfilePhotoOptions() {
-    closeModal("profilePhotoModal");
-}
-
-
-function openProfileCamera() {
-
-    const input =
-        document.getElementById(
-            "profileCameraInput"
+    const product =
+        getProducts().find(
+            item =>
+                item.id === productId
         );
 
-    if (input) {
-        input.click();
-    }
-}
+
+    if (!product) return;
 
 
-function openProfileGallery() {
+    if (product.userId === user.id) {
 
-    const input =
-        document.getElementById(
-            "profileGalleryInput"
-        );
-
-    if (input) {
-        input.click();
-    }
-}
-
-
-function handleProfileImage(file) {
-
-    if (!file) {
-        return;
-    }
-
-    if (!file.type.startsWith("image/")) {
-
-        toast(
-            "Selecciona una imagen válida.",
-            "error"
+        showToast(
+            "No puedes iniciar un chat contigo mismo."
         );
 
         return;
     }
 
 
-    const reader =
-        new FileReader();
+    const chats = getChats();
 
 
-    reader.onload = event => {
-
-        selectedProfileImage =
-            event.target.result;
-
-        const user =
-            getUser();
-
-        if (!user) {
-            return;
-        }
-
-        user.profilePhoto =
-            selectedProfileImage;
-
-        setStorage(
-            STORAGE_KEYS.user,
-            user
+    let chat =
+        chats.find(item =>
+            item.productId === productId &&
+            (
+                item.buyerId === user.id ||
+                item.sellerId === user.id
+            )
         );
 
-        renderProfile();
 
-        closeProfilePhotoOptions();
+    if (!chat) {
 
-        toast(
-            "Foto de perfil actualizada.",
-            "success"
+        chat = {
+
+            id: generateId("chat"),
+
+            productId: product.id,
+
+            productName: product.name,
+
+            buyerId: user.id,
+
+            buyerName: user.name,
+
+            sellerId: product.userId,
+
+            sellerName: product.sellerName,
+
+            messages: [],
+
+            createdAt: new Date().toISOString()
+
+        };
+
+
+        chats.unshift(chat);
+
+        saveChats(chats);
+    }
+
+
+    openChat(chat.id);
+}
+
+
+function openChat(chatId) {
+
+    const chat =
+        getChats().find(
+            item =>
+                item.id === chatId
         );
-    };
 
 
-    reader.readAsDataURL(file);
+    if (!chat) return;
+
+
+    currentChatId = chatId;
+
+
+    const user =
+        getCurrentUser();
+
+
+    const otherName =
+        chat.buyerId === user.id
+            ? chat.sellerName
+            : chat.buyerName;
+
+
+    document.getElementById(
+        "chatUserName"
+    ).textContent = otherName || "Usuario";
+
+
+    document.getElementById(
+        "chatProductName"
+    ).textContent =
+        chat.productName || "Producto";
+
+
+    renderMessages(chat);
+
+    showPage("chatPage");
+}
+
+
+function renderMessages(chat) {
+
+    const container =
+        document.getElementById(
+            "messagesContainer"
+        );
+
+
+    if (!container) return;
+
+
+    const user =
+        getCurrentUser();
+
+
+    container.innerHTML = "";
+
+
+    chat.messages.forEach(message => {
+
+        const mine =
+            message.senderId === user.id;
+
+
+        container.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div
+                    class="message ${mine ? "mine" : "received"}">
+
+                    <div class="message-bubble">
+
+                        ${escapeHTML(message.text)}
+
+                    </div>
+
+                    <small>
+                        ${formatDate(message.createdAt)}
+                    </small>
+
+                </div>
+            `
+        );
+
+    });
+
+
+    container.scrollTop =
+        container.scrollHeight;
+}
+
+
+function sendMessage(event) {
+
+    event.preventDefault();
+
+
+    const user =
+        getCurrentUser();
+
+
+    if (!user || !currentChatId) return;
+
+
+    const input =
+        document.getElementById(
+            "chatMessageInput"
+        );
+
+
+    const text =
+        input.value.trim();
+
+
+    if (!text) return;
+
+
+    const chats =
+        getChats();
+
+
+    const chat =
+        chats.find(
+            item =>
+                item.id === currentChatId
+        );
+
+
+    if (!chat) return;
+
+
+    chat.messages =
+        chat.messages || [];
+
+
+    chat.messages.push({
+
+        id: generateId("msg"),
+
+        senderId: user.id,
+
+        senderName: user.name,
+
+        text,
+
+        createdAt: new Date().toISOString()
+
+    });
+
+
+    chat.lastMessage = text;
+
+    chat.lastMessageAt =
+        new Date().toISOString();
+
+
+    saveChats(chats);
+
+
+    input.value = "";
+
+
+    renderMessages(chat);
+}
+
+
+function renderChatList() {
+
+    const user =
+        getCurrentUser();
+
+
+    const container =
+        document.getElementById(
+            "chatList"
+        );
+
+
+    const empty =
+        document.getElementById(
+            "emptyChats"
+        );
+
+
+    if (!container || !user) return;
+
+
+    const chats =
+        getChats().filter(
+            chat =>
+                chat.buyerId === user.id ||
+                chat.sellerId === user.id
+        );
+
+
+    container.innerHTML = "";
+
+
+    chats.forEach(chat => {
+
+        const otherName =
+            chat.buyerId === user.id
+                ? chat.sellerName
+                : chat.buyerName;
+
+
+        container.insertAdjacentHTML(
+            "beforeend",
+            `
+                <button
+                    class="chat-list-item"
+                    onclick="openChat('${chat.id}')">
+
+                    <div class="chat-list-avatar">
+                        💬
+                    </div>
+
+                    <div class="chat-list-info">
+
+                        <strong>
+                            ${escapeHTML(otherName || "Usuario")}
+                        </strong>
+
+                        <small>
+                            ${escapeHTML(
+                                chat.lastMessage ||
+                                "Nueva conversación"
+                            )}
+                        </small>
+
+                    </div>
+
+                    <span>›</span>
+
+                </button>
+            `
+        );
+
+    });
+
+
+    if (empty) {
+
+        empty.classList.toggle(
+            "hidden",
+            chats.length > 0
+        );
+
+    }
 }
 
 
 /* =========================================================
    REGISTRO
-   ========================================================= */
-
-function openRegister() {
-
-    closeLogin();
-
-    const form =
-        document.getElementById(
-            "registerForm"
-        );
-
-    if (form) {
-        form.reset();
-    }
-
-    openModal("registerModal");
-}
-
-
-function closeRegister() {
-    closeModal("registerModal");
-}
-
+========================================================= */
 
 function registerUser(event) {
 
@@ -1495,89 +1941,63 @@ function registerUser(event) {
     const name =
         document.getElementById(
             "registerName"
-        )?.value.trim();
+        ).value.trim();
 
 
     const cedula =
         document.getElementById(
             "registerCedula"
-        )?.value.trim();
+        ).value.trim();
 
 
-    const whatsapp =
+    const phone =
         document.getElementById(
-            "registerWhatsapp"
-        )?.value.trim();
+            "registerPhone"
+        ).value.trim();
 
 
     const password =
         document.getElementById(
             "registerPassword"
-        )?.value;
+        ).value;
 
 
-    const recoveryQuestion =
+    const confirmPassword =
         document.getElementById(
-            "registerRecoveryQuestion"
-        )?.value;
+            "registerPasswordConfirm"
+        ).value;
 
 
-    const recoveryAnswer =
-        document.getElementById(
-            "registerRecoveryAnswer"
-        )?.value.trim();
+    if (password !== confirmPassword) {
+
+        showToast(
+            "Las contraseñas no coinciden."
+        );
+
+        return;
+    }
 
 
-    const email =
-        document.getElementById(
-            "registerEmail"
-        )?.value.trim();
+    const users =
+        getStorage(STORAGE_KEYS.users, []);
 
 
     if (
-        !name ||
-        !cedula ||
-        !whatsapp ||
-        !password ||
-        !recoveryQuestion ||
-        !recoveryAnswer
+        users.some(
+            user =>
+                user.phone === phone
+        )
     ) {
 
-        toast(
-            "Completa todos los campos obligatorios.",
-            "error"
+        showToast(
+            "Ese número ya está registrado."
         );
 
         return;
     }
 
 
-    const existingUsers =
-        getStorage(
-            "mf_registered_users",
-            []
-        );
-
-
-    const exists =
-        existingUsers.some(
-            user =>
-                user.cedula === cedula
-        );
-
-
-    if (exists) {
-
-        toast(
-            "Ya existe una cuenta con esa cédula.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const newUser = {
+    const user = {
 
         id: generateId("user"),
 
@@ -1585,480 +2005,214 @@ function registerUser(event) {
 
         cedula,
 
-        whatsapp,
+        phone,
 
         password,
 
-        recoveryQuestion,
-
-        recoveryAnswer,
-
-        email,
-
-        profilePhoto: "",
-
         createdAt:
             new Date().toISOString()
+
     };
 
 
-    existingUsers.push(newUser);
+    users.push(user);
 
     setStorage(
-        "mf_registered_users",
-        existingUsers
+        STORAGE_KEYS.users,
+        users
     );
 
 
-    const stats =
-        getStats();
-
-    stats.registered =
-        (Number(stats.registered) || 0) + 1;
-
-    saveStats(stats);
+    saveCurrentUser(user);
 
 
-    setStorage(
-        STORAGE_KEYS.user,
-        newUser
+    showToast(
+        "Cuenta creada correctamente."
     );
 
 
-    addNotification(
-        "Bienvenido a Market Flash",
-        `Hola ${name}, tu cuenta fue creada correctamente.`
-    );
-
-
-    closeRegister();
-
-    renderProfile();
-
-    toast(
-        "Cuenta creada correctamente.",
-        "success"
-    );
+    openProfile();
 }
 
 
 /* =========================================================
    LOGIN
-   ========================================================= */
-
-function openLogin() {
-
-    closeRegister();
-
-    const form =
-        document.getElementById(
-            "loginForm"
-        );
-
-    if (form) {
-        form.reset();
-    }
-
-    openModal("loginModal");
-}
-
-
-function closeLogin() {
-    closeModal("loginModal");
-}
-
+========================================================= */
 
 function login(event) {
 
     event.preventDefault();
 
 
-    const cedula =
+    const phone =
         document.getElementById(
-            "loginCedula"
-        )?.value.trim();
+            "loginPhone"
+        ).value.trim();
 
 
     const password =
         document.getElementById(
             "loginPassword"
-        )?.value;
-
-
-    if (!cedula || !password) {
-
-        toast(
-            "Escribe tu cédula y contraseña.",
-            "error"
-        );
-
-        return;
-    }
+        ).value;
 
 
     const users =
-        getStorage(
-            "mf_registered_users",
-            []
-        );
+        getStorage(STORAGE_KEYS.users, []);
 
 
     const user =
         users.find(
             item =>
-                item.cedula === cedula &&
+                item.phone === phone &&
                 item.password === password
         );
 
 
     if (!user) {
 
-        toast(
-            "Cédula o contraseña incorrecta.",
-            "error"
+        showToast(
+            "Teléfono o contraseña incorrectos."
         );
 
         return;
     }
 
 
-    setStorage(
-        STORAGE_KEYS.user,
-        user
+    saveCurrentUser(user);
+
+
+    showToast(
+        `Bienvenido/a, ${user.name}.`
     );
 
 
-    closeLogin();
-
-    renderProfile();
-
-    toast(
-        `Bienvenido, ${user.name}.`,
-        "success"
-    );
+    openProfile();
 }
 
 
 /* =========================================================
-   RECUPERACIÓN DE CONTRASEÑA
-   ========================================================= */
-
-function openRecovery() {
-
-    closeLogin();
-
-    const form =
-        document.getElementById(
-            "recoveryForm"
-        );
-
-    if (form) {
-        form.reset();
-    }
-
-    hideElement(
-        "recoveryQuestionContainer"
-    );
-
-    openModal("recoveryModal");
-}
-
-
-function closeRecovery() {
-    closeModal("recoveryModal");
-}
-
-
-function findRecoveryQuestion() {
-
-    const cedula =
-        document.getElementById(
-            "recoveryCedula"
-        )?.value.trim();
-
-
-    if (!cedula) {
-
-        toast(
-            "Escribe tu número de cédula.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const users =
-        getStorage(
-            "mf_registered_users",
-            []
-        );
-
-
-    const user =
-        users.find(
-            item =>
-                item.cedula === cedula
-        );
-
-
-    if (!user) {
-
-        toast(
-            "No encontramos una cuenta con esa cédula.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const question =
-        document.getElementById(
-            "recoveryQuestion"
-        );
-
-
-    if (question) {
-        question.textContent =
-            getRecoveryQuestionText(
-                user.recoveryQuestion
-            );
-    }
-
-
-    showElement(
-        "recoveryQuestionContainer"
-    );
-}
-
-
-function getRecoveryQuestionText(value) {
-
-    const questions = {
-
-        mascota:
-            "¿Cuál era el nombre de tu primera mascota?",
-
-        ciudad:
-            "¿En qué ciudad naciste?",
-
-        madre:
-            "¿Cuál es el segundo nombre de tu madre?",
-
-        escuela:
-            "¿Cuál era el nombre de tu primera escuela?"
-    };
-
-
-    return (
-        questions[value] ||
-        "Pregunta de seguridad"
-    );
-}
-
+   RECUPERAR CONTRASEÑA
+========================================================= */
 
 function recoverPassword(event) {
 
     event.preventDefault();
 
 
-    const cedula =
+    const phone =
         document.getElementById(
-            "recoveryCedula"
-        )?.value.trim();
-
-
-    const answer =
-        document.getElementById(
-            "recoveryAnswer"
-        )?.value.trim();
-
-
-    const newPassword =
-        document.getElementById(
-            "newPassword"
-        )?.value;
-
-
-    if (!cedula || !answer || !newPassword) {
-
-        toast(
-            "Completa todos los campos.",
-            "error"
-        );
-
-        return;
-    }
+            "recoveryPhone"
+        ).value.trim();
 
 
     const users =
-        getStorage(
-            "mf_registered_users",
-            []
-        );
+        getStorage(STORAGE_KEYS.users, []);
 
 
-    const index =
-        users.findIndex(
+    const user =
+        users.find(
             item =>
-                item.cedula === cedula
+                item.phone === phone
         );
 
-
-    if (index === -1) {
-
-        toast(
-            "Cuenta no encontrada.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const user =
-        users[index];
-
-
-    if (
-        String(user.recoveryAnswer)
-            .toLowerCase()
-            .trim() !==
-        String(answer)
-            .toLowerCase()
-            .trim()
-    ) {
-
-        toast(
-            "La respuesta de seguridad no coincide.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    user.password =
-        newPassword;
-
-    users[index] =
-        user;
-
-
-    setStorage(
-        "mf_registered_users",
-        users
-    );
-
-
-    toast(
-        "Contraseña actualizada correctamente.",
-        "success"
-    );
-
-
-    closeRecovery();
-
-    openLogin();
-}
-
-
-/* =========================================================
-   CERRAR SESIÓN
-   ========================================================= */
-
-function logout() {
-
-    const confirmed =
-        confirm(
-            "¿Seguro que quieres cerrar sesión?"
-        );
-
-    if (!confirmed) {
-        return;
-    }
-
-
-    localStorage.removeItem(
-        STORAGE_KEYS.user
-    );
-
-
-    goHome();
-
-
-    toast(
-        "Sesión cerrada.",
-        "success"
-    );
-}
-
-
-/* =========================================================
-   EDITAR PERFIL
-   ========================================================= */
-
-function openEditProfile() {
-
-    const user =
-        getUser();
 
     if (!user) {
 
-        toast(
-            "Debes iniciar sesión.",
-            "error"
+        showToast(
+            "No encontramos una cuenta con ese teléfono."
         );
-
-        openLogin();
 
         return;
     }
+
+
+    showToast(
+        "La recuperación está preparada para conectarse a un sistema real de recuperación."
+    );
+}
+
+
+/* =========================================================
+   PERFIL
+========================================================= */
+
+function renderProfile() {
+
+    const user =
+        getCurrentUser();
+
+
+    if (!user) return;
 
 
     const name =
         document.getElementById(
-            "editName"
+            "profileName"
         );
 
 
-    const whatsapp =
+    const phone =
         document.getElementById(
-            "editWhatsapp"
-        );
-
-
-    const email =
-        document.getElementById(
-            "editEmail"
+            "profilePhone"
         );
 
 
     if (name) {
-        name.value =
-            user.name || "";
+        name.textContent =
+            user.name || "Usuario";
     }
 
 
-    if (whatsapp) {
-        whatsapp.value =
-            user.whatsapp || "";
+    if (phone) {
+        phone.textContent =
+            user.phone || "";
     }
 
 
-    if (email) {
-        email.value =
-            user.email || "";
+    const avatar =
+        document.getElementById(
+            "profileAvatar"
+        );
+
+
+    if (avatar) {
+
+        if (user.photo) {
+
+            avatar.innerHTML =
+                `<img src="${user.photo}" alt="Perfil">`;
+
+        } else {
+
+            avatar.textContent = "👤";
+
+        }
     }
-
-
-    openModal("editProfileModal");
 }
 
 
-function closeEditProfile() {
-    closeModal("editProfileModal");
+function openEditProfile() {
+
+    const user =
+        getCurrentUser();
+
+
+    if (!user) return;
+
+
+    document.getElementById(
+        "editName"
+    ).value =
+        user.name || "";
+
+
+    document.getElementById(
+        "editPhone"
+    ).value =
+        user.phone || "";
+
+
+    showPage("editProfilePage");
 }
 
 
@@ -2068,1394 +2222,169 @@ function saveProfile(event) {
 
 
     const user =
-        getUser();
-
-    if (!user) {
-        return;
-    }
+        getCurrentUser();
 
 
-    user.name =
+    if (!user) return;
+
+
+    const name =
         document.getElementById(
             "editName"
-        )?.value.trim();
+        ).value.trim();
 
 
-    user.whatsapp =
+    const phone =
         document.getElementById(
-            "editWhatsapp"
-        )?.value.trim();
-
-
-    user.email =
-        document.getElementById(
-            "editEmail"
-        )?.value.trim();
-
-
-    setStorage(
-        STORAGE_KEYS.user,
-        user
-    );
+            "editPhone"
+        ).value.trim();
 
 
     const users =
-        getStorage(
-            "mf_registered_users",
-            []
-        );
+        getStorage(STORAGE_KEYS.users, []);
 
 
     const index =
         users.findIndex(
             item =>
-                item.cedula === user.cedula
+                item.id === user.id
         );
 
 
-    if (index !== -1) {
-        users[index] =
-            user;
-
-        setStorage(
-            "mf_registered_users",
-            users
-        );
-    }
+    if (index === -1) return;
 
 
-    renderProfile();
+    users[index].name = name;
 
-    closeEditProfile();
-
-
-    toast(
-        "Perfil actualizado.",
-        "success"
-    );
-}
-
-
-/* =========================================================
-   ELIMINAR CUENTA
-   ========================================================= */
-
-function confirmDeleteAccount() {
-
-    const firstConfirm =
-        confirm(
-            "¿Seguro que quieres eliminar tu cuenta?"
-        );
-
-    if (!firstConfirm) {
-        return;
-    }
-
-
-    const secondConfirm =
-        confirm(
-            "Esta acción eliminará tu cuenta local. ¿Continuar?"
-        );
-
-    if (!secondConfirm) {
-        return;
-    }
-
-
-    deleteAccount();
-}
-
-
-function deleteAccount() {
-
-    const user =
-        getUser();
-
-    if (!user) {
-        return;
-    }
-
-
-    const users =
-        getStorage(
-            "mf_registered_users",
-            []
-        );
-
-
-    const remainingUsers =
-        users.filter(
-            item =>
-                item.cedula !== user.cedula
-        );
+    users[index].phone = phone;
 
 
     setStorage(
-        "mf_registered_users",
-        remainingUsers
+        STORAGE_KEYS.users,
+        users
     );
 
 
-    const products =
-        getProducts();
+    saveCurrentUser(users[index]);
 
 
-    const remainingProducts =
-        products.filter(
-            product =>
-                product.ownerId !== user.cedula
-        );
-
-
-    saveProducts(
-        remainingProducts
+    showToast(
+        "Perfil actualizado."
     );
 
 
-    const stats =
-        getStats();
-
-    stats.deleted =
-        (Number(stats.deleted) || 0) + 1;
-
-    saveStats(stats);
-
-
-    localStorage.removeItem(
-        STORAGE_KEYS.user
-    );
-
-
-    goHome();
-
-
-    toast(
-        "Cuenta eliminada.",
-        "success"
-    );
+    openProfile();
 }
 
 
 /* =========================================================
-   ACTIVIDAD
-   ========================================================= */
+   FOTO DE PERFIL
+========================================================= */
 
-function renderActivity() {
+function openProfileImageOptions() {
 
-    const user =
-        getUser();
+    openModal(`
+        <div class="profile-photo-options">
 
-    const products =
-        getProducts();
+            <h3>Cambiar foto de perfil</h3>
 
+            <button
+                class="primary-btn"
+                onclick="closeModal(); document.getElementById('profileCameraInput').click();">
 
-    if (!user) {
+                📷 Tomar foto
 
-        setText(
-            "myViews",
-            "0"
-        );
+            </button>
 
-        setText(
-            "myInterests",
-            "0"
-        );
+            <button
+                class="secondary-btn"
+                onclick="closeModal(); document.getElementById('profileGalleryInput').click();">
 
-        setText(
-            "myPublicationsCount",
-            "0"
-        );
+                🖼️ Elegir de galería
 
-        return;
-    }
+            </button>
 
-
-    const myProducts =
-        products.filter(
-            product =>
-                product.ownerId === user.cedula
-        );
-
-
-    const views =
-        myProducts.reduce(
-            (total, product) =>
-                total +
-                (Number(product.views) || 0),
-            0
-        );
-
-
-    const interests =
-        myProducts.reduce(
-            (total, product) =>
-                total +
-                (Number(product.likes) || 0),
-            0
-        );
-
-
-    setText(
-        "myViews",
-        String(views)
-    );
-
-
-    setText(
-        "myInterests",
-        String(interests)
-    );
-
-
-    setText(
-        "myPublicationsCount",
-        String(myProducts.length)
-    );
-
-
-    renderMyProducts();
-
-    renderReceipts();
+        </div>
+    `);
 }
 
 
-function renderMyProducts() {
+function handleProfileImage(event) {
 
-    const container =
-        document.getElementById(
-            "myProductsList"
-        );
+    const file =
+        event.target.files &&
+        event.target.files[0];
 
 
-    const empty =
-        document.getElementById(
-            "emptyMyProducts"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    const user =
-        getUser();
-
-
-    if (!user) {
-
-        container.innerHTML = "";
-
-        if (empty) {
-            empty.classList.remove(
-                "hidden"
-            );
-        }
-
-        return;
-    }
-
-
-    const products =
-        getProducts().filter(
-            product =>
-                product.ownerId === user.cedula
-        );
-
-
-    container.innerHTML = "";
-
-
-    if (products.length === 0) {
-
-        if (empty) {
-            empty.classList.remove(
-                "hidden"
-            );
-        }
-
-        return;
-    }
-
-
-    if (empty) {
-        empty.classList.add(
-            "hidden"
-        );
-    }
-
-
-    products.forEach(product => {
-
-        const item =
-            document.createElement("div");
-
-        item.className =
-            "my-product-item";
-
-
-        item.innerHTML = `
-
-            <div class="my-product-info">
-
-                <strong>
-                    ${escapeHTML(product.name)}
-                </strong>
-
-                <span>
-                    ${formatPrice(product.price)}
-                </span>
-
-                <small>
-                    ${escapeHTML(product.category)}
-                    ·
-                    ${formatDate(product.createdAt)}
-                </small>
-
-            </div>
-
-            <div class="my-product-stats">
-
-                <span>
-                    👁️ ${Number(product.views) || 0}
-                </span>
-
-                <span>
-                    ❤️ ${Number(product.likes) || 0}
-                </span>
-
-            </div>
-        `;
-
-
-        container.appendChild(item);
-
-    });
-}
-
-
-function renderReceipts() {
-
-    const container =
-        document.getElementById(
-            "receiptsList"
-        );
-
-
-    if (container) {
-        container.innerHTML = "";
-    }
-}
-
-
-/* =========================================================
-   NOTIFICACIONES
-   ========================================================= */
-
-function addNotification(title, message) {
-
-    const notifications =
-        getNotifications();
-
-
-    notifications.unshift({
-
-        id: generateId("notification"),
-
-        title,
-
-        message,
-
-        createdAt:
-            new Date().toISOString(),
-
-        read: false
-    });
-
-
-    if (notifications.length > 50) {
-        notifications.splice(
-            50
-        );
-    }
-
-
-    saveNotifications(
-        notifications
-    );
-}
-
-
-function openNotifications() {
-
-    renderNotifications();
-
-    openModal(
-        "notificationsModal"
-    );
-}
-
-
-function closeNotifications() {
-    closeModal(
-        "notificationsModal"
-    );
-}
-
-
-function renderNotifications() {
-
-    const list =
-        document.getElementById(
-            "notificationsList"
-        );
-
-
-    const empty =
-        document.getElementById(
-            "emptyNotifications"
-        );
-
-
-    if (!list) {
-        return;
-    }
-
-
-    const notifications =
-        getNotifications();
-
-
-    list.innerHTML = "";
-
-
-    if (notifications.length === 0) {
-
-        if (empty) {
-            empty.classList.remove(
-                "hidden"
-            );
-        }
-
-        return;
-    }
-
-
-    if (empty) {
-        empty.classList.add(
-            "hidden"
-        );
-    }
-
-
-    notifications.forEach(
-        notification => {
-
-            const item =
-                document.createElement(
-                    "div"
-                );
-
-
-            item.className =
-                "notification-item";
-
-
-            item.innerHTML = `
-
-                <div class="notification-icon">
-                    🔔
-                </div>
-
-                <div class="notification-content">
-
-                    <strong>
-                        ${escapeHTML(notification.title)}
-                    </strong>
-
-                    <p>
-                        ${escapeHTML(notification.message)}
-                    </p>
-
-                    <small>
-                        ${formatDate(notification.createdAt)}
-                    </small>
-
-                </div>
-
-            `;
-
-
-            list.appendChild(item);
-
-        }
-    );
-}
-
-
-/* =========================================================
-   PUBLICIDAD
-   ========================================================= */
-
-function openAdvertising() {
-
-    const config =
-        getConfig();
-
-
-    if (!config.advertisingEnabled) {
-
-        toast(
-            "La publicidad está desactivada actualmente.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    resetAdvertisingForm();
-
-    renderAdvertisingIntro();
-
-    openModal(
-        "advertisingModal"
-    );
-}
-
-
-function closeAdvertising() {
-    closeModal(
-        "advertisingModal"
-    );
-}
-
-
-function renderAdvertisingIntro() {
-
-    showElement(
-        "advertisingIntro"
-    );
-
-    hideElement(
-        "advertisingCreate"
-    );
-
-    hideElement(
-        "advertisingHowItWorks"
-    );
-
-    hideElement(
-        "advertisingStatus"
-    );
-}
-
-
-function openCreateAdvertising() {
-
-    const user =
-        getUser();
-
-
-    if (!user) {
-
-        toast(
-            "Debes iniciar sesión para crear publicidad.",
-            "error"
-        );
-
-        closeAdvertising();
-
-        openLogin();
-
-        return;
-    }
-
-
-    const config =
-        getConfig();
-
-
-    if (!config.advertisingEnabled) {
-
-        toast(
-            "La publicidad está desactivada.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    hideElement(
-        "advertisingIntro"
-    );
-
-    showElement(
-        "advertisingCreate"
-    );
-
-    hideElement(
-        "advertisingHowItWorks"
-    );
-
-    hideElement(
-        "advertisingStatus"
-    );
-
-
-    setText(
-        "advertisingPrice",
-        formatPrice(
-            config.advertisingPrice
-        )
-    );
-
-
-    renderPaymentMethods();
-}
-
-
-function resetAdvertisingForm() {
-
-    const form =
-        document.getElementById(
-            "advertisingForm"
-        );
-
-
-    if (form) {
-        form.reset();
-    }
-
-
-    selectedAdvertisingImage = "";
-
-    selectedProofImage = "";
-
-
-    const imagePreview =
-        document.getElementById(
-            "advertisingImagePreview"
-        );
-
-
-    const proofPreview =
-        document.getElementById(
-            "proofImagePreview"
-        );
-
-
-    if (imagePreview) {
-        imagePreview.innerHTML = "";
-    }
-
-
-    if (proofPreview) {
-        proofPreview.innerHTML = "";
-    }
-
-
-    const user =
-        getUser();
-
-
-    const whatsapp =
-        document.getElementById(
-            "advertisingWhatsapp"
-        );
-
-
-    if (user && whatsapp) {
-        whatsapp.value =
-            user.whatsapp || "";
-    }
-}
-
-
-function renderPaymentMethods() {
-
-    const container =
-        document.getElementById(
-            "paymentMethods"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    const config =
-        getConfig();
-
-
-    container.innerHTML = "";
-
-
-    config.paymentMethods.forEach(
-        (method, index) => {
-
-            const label =
-                document.createElement(
-                    "label"
-                );
-
-
-            label.className =
-                "payment-method-option";
-
-
-            label.innerHTML = `
-
-                <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="${escapeHTML(method)}"
-                    ${index === 0 ? "checked" : ""}
-                >
-
-                <span>
-                    ${escapeHTML(method)}
-                </span>
-
-            `;
-
-
-            container.appendChild(label);
-
-        }
-    );
-}
-
-
-/* =========================================================
-   IMAGEN PUBLICIDAD
-   ========================================================= */
-
-function openAdvertisingCamera() {
-
-    const input =
-        document.getElementById(
-            "advertisingCameraInput"
-        );
-
-
-    if (input) {
-        input.click();
-    }
-}
-
-
-function openAdvertisingGallery() {
-
-    const input =
-        document.getElementById(
-            "advertisingGalleryInput"
-        );
-
-
-    if (input) {
-        input.click();
-    }
-}
-
-
-function handleAdvertisingImage(file) {
-
-    if (!file) {
-        return;
-    }
-
-
-    if (!file.type.startsWith("image/")) {
-
-        toast(
-            "Selecciona una imagen válida.",
-            "error"
-        );
-
-        return;
-    }
+    if (!file) return;
 
 
     const reader =
         new FileReader();
 
 
-    reader.onload = event => {
+    reader.onload =
+        function(e) {
 
-        selectedAdvertisingImage =
-            event.target.result;
+            const user =
+                getCurrentUser();
 
 
-        const preview =
-            document.getElementById(
-                "advertisingImagePreview"
+            if (!user) return;
+
+
+            const users =
+                getStorage(
+                    STORAGE_KEYS.users,
+                    []
+                );
+
+
+            const index =
+                users.findIndex(
+                    item =>
+                        item.id === user.id
+                );
+
+
+            if (index === -1) return;
+
+
+            users[index].photo =
+                e.target.result;
+
+
+            setStorage(
+                STORAGE_KEYS.users,
+                users
             );
 
 
-        if (preview) {
+            saveCurrentUser(
+                users[index]
+            );
 
-            preview.innerHTML = `
 
-                <div class="preview-image-wrapper">
+            renderProfile();
 
-                    <img
-                        src="${selectedAdvertisingImage}"
-                        alt="Publicidad"
-                    >
+            showToast(
+                "Foto de perfil actualizada."
+            );
 
-                    <button
-                        type="button"
-                        class="preview-remove"
-                        onclick="removeAdvertisingImage()"
-                    >
-                        ✕
-                    </button>
-
-                </div>
-
-            `;
-        }
-    };
+        };
 
 
     reader.readAsDataURL(file);
-}
-
-
-function removeAdvertisingImage() {
-
-    selectedAdvertisingImage = "";
-
-
-    const preview =
-        document.getElementById(
-            "advertisingImagePreview"
-        );
-
-
-    if (preview) {
-        preview.innerHTML = "";
-    }
-}
-
-
-/* =========================================================
-   COMPROBANTE
-   ========================================================= */
-
-function openProofGallery() {
-
-    const input =
-        document.getElementById(
-            "proofGalleryInput"
-        );
-
-
-    if (input) {
-        input.click();
-    }
-}
-
-
-function handleProofImage(file) {
-
-    if (!file) {
-        return;
-    }
-
-
-    if (!file.type.startsWith("image/")) {
-
-        toast(
-            "Selecciona una imagen válida.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const reader =
-        new FileReader();
-
-
-    reader.onload = event => {
-
-        selectedProofImage =
-            event.target.result;
-
-
-        const preview =
-            document.getElementById(
-                "proofImagePreview"
-            );
-
-
-        if (preview) {
-
-            preview.innerHTML = `
-
-                <div class="preview-image-wrapper">
-
-                    <img
-                        src="${selectedProofImage}"
-                        alt="Comprobante"
-                    >
-
-                    <button
-                        type="button"
-                        class="preview-remove"
-                        onclick="removeProofImage()"
-                    >
-                        ✕
-                    </button>
-
-                </div>
-
-            `;
-        }
-    };
-
-
-    reader.readAsDataURL(file);
-}
-
-
-function removeProofImage() {
-
-    selectedProofImage = "";
-
-
-    const preview =
-        document.getElementById(
-            "proofImagePreview"
-        );
-
-
-    if (preview) {
-        preview.innerHTML = "";
-    }
-}
-
-
-/* =========================================================
-   CREAR PUBLICIDAD
-   ========================================================= */
-
-function createAdvertising(event) {
-
-    event.preventDefault();
-
-
-    const user =
-        getUser();
-
-
-    if (!user) {
-
-        toast(
-            "Debes iniciar sesión.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const title =
-        document.getElementById(
-            "advertisingTitle"
-        )?.value.trim();
-
-
-    const description =
-        document.getElementById(
-            "advertisingDescription"
-        )?.value.trim();
-
-
-    const whatsapp =
-        document.getElementById(
-            "advertisingWhatsapp"
-        )?.value.trim();
-
-
-    const payment =
-        document.querySelector(
-            'input[name="paymentMethod"]:checked'
-        )?.value;
-
-
-    if (
-        !title ||
-        !description ||
-        !whatsapp ||
-        !payment
-    ) {
-
-        toast(
-            "Completa todos los campos.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    if (!selectedAdvertisingImage) {
-
-        toast(
-            "Debes agregar una imagen para la publicidad.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    if (!selectedProofImage) {
-
-        toast(
-            "Debes agregar el comprobante de pago.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const config =
-        getConfig();
-
-
-    const ad = {
-
-        id: generateId("ad"),
-
-        ownerId:
-            user.cedula,
-
-        ownerName:
-            user.name,
-
-        title,
-
-        description,
-
-        whatsapp,
-
-        image:
-            selectedAdvertisingImage,
-
-        proof:
-            selectedProofImage,
-
-        paymentMethod:
-            payment,
-
-        price:
-            Number(config.advertisingPrice) || 0,
-
-        status:
-            "pending",
-
-        createdAt:
-            new Date().toISOString()
-    };
-
-
-    const ads =
-        getAds();
-
-
-    ads.unshift(ad);
-
-    saveAds(ads);
-
-
-    addNotification(
-        "Publicidad enviada",
-        "Tu publicidad fue enviada y está pendiente de revisión."
-    );
-
-
-    renderAdvertisingStatus(ad);
-
-
-    toast(
-        "Publicidad enviada correctamente.",
-        "success"
-    );
-}
-
-
-/* =========================================================
-   ESTADO DE PUBLICIDAD
-   ========================================================= */
-
-function renderAdvertisingStatus(ad) {
-
-    hideElement(
-        "advertisingIntro"
-    );
-
-    hideElement(
-        "advertisingCreate"
-    );
-
-    hideElement(
-        "advertisingHowItWorks"
-    );
-
-    showElement(
-        "advertisingStatus"
-    );
-
-
-    const container =
-        document.getElementById(
-            "advertisingStatus"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    let statusText =
-        "Pendiente de revisión";
-
-    let statusClass =
-        "status-pending";
-
-
-    if (ad.status === "approved") {
-
-        statusText =
-            "Publicidad aprobada";
-
-        statusClass =
-            "status-approved";
-
-    } else if (ad.status === "rejected") {
-
-        statusText =
-            "Publicidad rechazada";
-
-        statusClass =
-            "status-rejected";
-    }
-
-
-    container.innerHTML = `
-
-        <div class="advertising-status-card ${statusClass}">
-
-            <div class="status-icon">
-                ${
-                    ad.status === "approved"
-                        ? "✅"
-                        : ad.status === "rejected"
-                            ? "❌"
-                            : "⏳"
-                }
-            </div>
-
-            <h3>
-                ${statusText}
-            </h3>
-
-            <p>
-                ${escapeHTML(ad.title)}
-            </p>
-
-            <small>
-                Enviado el ${formatDate(ad.createdAt)}
-            </small>
-
-        </div>
-
-    `;
-}
-
-
-/* =========================================================
-   ANUNCIOS APROBADOS EN LA PÁGINA PRINCIPAL
-   ========================================================= */
-
-function renderAdvertisingSpot() {
-
-    const container =
-        document.getElementById(
-            "advertisingSpot"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    const ads =
-        getAds().filter(
-            ad =>
-                ad.status === "approved"
-        );
-
-
-    if (ads.length === 0) {
-
-        container.innerHTML = "";
-
-        return;
-    }
-
-
-    const ad =
-        ads[0];
-
-
-    container.innerHTML = `
-
-        <div
-            class="public-ad-card"
-            onclick="openPublicAd('${ad.id}')"
-        >
-
-            ${
-                ad.image
-                    ? `
-                        <img
-                            src="${ad.image}"
-                            alt="${escapeHTML(ad.title)}"
-                        >
-                    `
-                    : ""
-            }
-
-            <div class="public-ad-content">
-
-                <span>
-                    PUBLICIDAD
-                </span>
-
-                <h3>
-                    ${escapeHTML(ad.title)}
-                </h3>
-
-                <p>
-                    ${escapeHTML(ad.description)}
-                </p>
-
-            </div>
-
-        </div>
-    `;
-}
-
-
-function openPublicAd(adId) {
-
-    const ad =
-        getAds().find(
-            item =>
-                item.id === adId
-        );
-
-
-    if (!ad) {
-        return;
-    }
-
-
-    const phone =
-        normalizePhone(
-            ad.whatsapp
-        );
-
-
-    const url =
-        `https://wa.me/${phone}`;
-
-
-    alert(
-        `${ad.title}\n\n${ad.description}\n\nWhatsApp: ${ad.whatsapp}`
-    );
-
-
-    if (phone) {
-
-        const openWhatsApp =
-            confirm(
-                "¿Quieres contactar por WhatsApp?"
-            );
-
-
-        if (openWhatsApp) {
-            window.open(
-                url,
-                "_blank"
-            );
-        }
-    }
-}
-
-
-/* =========================================================
-   CÓMO FUNCIONA PUBLICIDAD
-   ========================================================= */
-
-function openAdvertisingHowItWorks() {
-
-    hideElement(
-        "advertisingIntro"
-    );
-
-    hideElement(
-        "advertisingCreate"
-    );
-
-    hideElement(
-        "advertisingStatus"
-    );
-
-    showElement(
-        "advertisingHowItWorks"
-    );
 }
 
 
 /* =========================================================
    ADMINISTRADOR
-   ========================================================= */
+========================================================= */
 
 function openAdminLogin() {
 
-    const form =
-        document.getElementById(
-            "adminLoginForm"
-        );
-
-
-    if (form) {
-        form.reset();
-    }
-
-
-    openModal(
-        "adminLoginModal"
-    );
-}
-
-
-function closeAdminLogin() {
-    closeModal(
-        "adminLoginModal"
-    );
+    showPage("adminLoginPage");
 }
 
 
@@ -3467,437 +2396,203 @@ function adminLogin(event) {
     const username =
         document.getElementById(
             "adminUsername"
-        )?.value.trim();
+        ).value.trim();
 
 
     const password =
         document.getElementById(
             "adminPassword"
-        )?.value;
+        ).value;
 
-
-    /*
-       Credenciales de demostración.
-       Deben cambiarse cuando se conecte
-       el sistema real de administración.
-    */
 
     if (
-        username !== "admin" ||
-        password !== "admin123"
+        username ===
+        ADMIN_CREDENTIALS.username &&
+        password ===
+        ADMIN_CREDENTIALS.password
     ) {
 
-        toast(
-            "Usuario o contraseña de administrador incorrectos.",
-            "error"
+        sessionStorage.setItem(
+            "mf_admin_logged",
+            "true"
         );
+
+
+        showToast(
+            "Acceso de administrador correcto."
+        );
+
+
+        openAdminPanel();
+
+    } else {
+
+        showToast(
+            "Usuario o contraseña incorrectos."
+        );
+
+    }
+}
+
+
+function isAdminLogged() {
+
+    return (
+        sessionStorage.getItem(
+            "mf_admin_logged"
+        ) === "true"
+    );
+}
+
+
+function openAdminPanel() {
+
+    if (!isAdminLogged()) {
+
+        openAdminLogin();
 
         return;
     }
 
 
-    closeAdminLogin();
+    renderAdminPanel();
 
-    openAdmin();
+    showPage("adminPanelPage");
 }
 
 
-function openAdmin() {
+function adminLogout() {
 
-    renderAdminStats();
-
-    renderAdminConfig();
-
-    renderAdminAds();
-
-    openModal(
-        "adminModal"
+    sessionStorage.removeItem(
+        "mf_admin_logged"
     );
-}
 
 
-function closeAdmin() {
-    closeModal(
-        "adminModal"
+    showToast(
+        "Sesión de administrador cerrada."
     );
+
+
+    openProfile();
 }
 
 
 /* =========================================================
-   ESTADÍSTICAS ADMIN
-   ========================================================= */
+   PANEL ADMIN
+========================================================= */
 
-function renderAdminStats() {
+function renderAdminPanel() {
 
-    const stats =
-        getStats();
+    if (!isAdminLogged()) return;
+
 
     const users =
         getStorage(
-            "mf_registered_users",
+            STORAGE_KEYS.users,
             []
         );
+
 
     const products =
         getProducts();
 
-    const ads =
-        getAds();
+
+    const chats =
+        getChats();
 
 
-    setText(
-        "adminRegisteredCount",
-        String(users.length)
-    );
-
-
-    setText(
-        "adminDeletedCount",
-        String(stats.deleted || 0)
-    );
-
-
-    setText(
-        "adminProductsCount",
-        String(products.length)
-    );
-
-
-    setText(
-        "adminAdsCount",
-        String(ads.length)
-    );
-}
-
-
-/* =========================================================
-   CONFIG ADMIN
-   ========================================================= */
-
-function renderAdminConfig() {
-
-    const config =
-        getConfig();
-
-
-    const enabled =
-        document.getElementById(
-            "adminAdvertisingEnabled"
+    const advertising =
+        getStorage(
+            STORAGE_KEYS.advertising,
+            {}
         );
+
+
+    document.getElementById(
+        "adminUsersCount"
+    ).textContent =
+        users.length;
+
+
+    document.getElementById(
+        "adminProductsCount"
+    ).textContent =
+        products.length;
+
+
+    document.getElementById(
+        "adminAdsCount"
+    ).textContent =
+        (advertising.requests || []).length;
+
+
+    document.getElementById(
+        "adminChatsCount"
+    ).textContent =
+        chats.length;
+
+
+    const toggle =
+        document.getElementById(
+            "advertisingToggle"
+        );
+
+
+    if (toggle) {
+        toggle.checked =
+            advertising.enabled !== false;
+    }
 
 
     const price =
         document.getElementById(
-            "adminAdvertisingPrice"
+            "advertisingPrice"
         );
-
-
-    if (enabled) {
-        enabled.checked =
-            Boolean(
-                config.advertisingEnabled
-            );
-    }
 
 
     if (price) {
         price.value =
-            Number(
-                config.advertisingPrice
-            ) || 0;
+            advertising.price || 0;
     }
 
 
-    renderAdminPaymentMethods();
-}
+    renderAdminPublications();
 
+    renderPaymentMethods();
 
-function toggleAdvertisingEnabled() {
-
-    const enabled =
-        document.getElementById(
-            "adminAdvertisingEnabled"
-        );
-
-
-    if (!enabled) {
-        return;
-    }
-
-
-    const config =
-        getConfig();
-
-
-    config.advertisingEnabled =
-        enabled.checked;
-
-
-    saveConfig(config);
-
-
-    toast(
-        enabled.checked
-            ? "Publicidad activada."
-            : "Publicidad desactivada.",
-        "success"
-    );
-}
-
-
-function saveAdvertisingConfig() {
-
-    const config =
-        getConfig();
-
-
-    const enabled =
-        document.getElementById(
-            "adminAdvertisingEnabled"
-        );
-
-
-    const price =
-        document.getElementById(
-            "adminAdvertisingPrice"
-        );
-
-
-    if (enabled) {
-        config.advertisingEnabled =
-            enabled.checked;
-    }
-
-
-    if (price) {
-        config.advertisingPrice =
-            Number(price.value) || 0;
-    }
-
-
-    saveConfig(config);
-
-
-    toast(
-        "Configuración guardada.",
-        "success"
-    );
-
-
-    renderAdvertisingSpot();
+    renderAdminAdvertisingRequests();
 }
 
 
 /* =========================================================
-   MÉTODOS DE PAGO ADMIN
-   ========================================================= */
+   PUBLICACIONES DEL PANEL ADMIN
+========================================================= */
 
-function renderAdminPaymentMethods() {
+function renderAdminPublications() {
 
     const container =
         document.getElementById(
-            "adminPaymentMethods"
+            "adminPublicationsList"
         );
 
 
-    if (!container) {
-        return;
-    }
+    if (!container) return;
 
 
-    const config =
-        getConfig();
+    const products =
+        getProducts();
 
 
     container.innerHTML = "";
 
 
-    config.paymentMethods.forEach(
-        (method, index) => {
-
-            const item =
-                document.createElement(
-                    "div"
-                );
-
-
-            item.className =
-                "admin-payment-method";
-
-
-            item.innerHTML = `
-
-                <span>
-                    ${escapeHTML(method)}
-                </span>
-
-                <button
-                    type="button"
-                    class="danger-button"
-                    onclick="removePaymentMethod(${index})"
-                >
-                    Eliminar
-                </button>
-
-            `;
-
-
-            container.appendChild(item);
-
-        }
-    );
-}
-
-
-function addPaymentMethod() {
-
-    const input =
-        document.getElementById(
-            "newPaymentMethod"
-        );
-
-
-    if (!input) {
-        return;
-    }
-
-
-    const method =
-        input.value.trim();
-
-
-    if (!method) {
-
-        toast(
-            "Escribe el método de pago.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const config =
-        getConfig();
-
-
-    const exists =
-        config.paymentMethods.some(
-            item =>
-                item.toLowerCase() ===
-                method.toLowerCase()
-        );
-
-
-    if (exists) {
-
-        toast(
-            "Ese método de pago ya existe.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    config.paymentMethods.push(
-        method
-    );
-
-
-    saveConfig(config);
-
-
-    input.value = "";
-
-    renderAdminPaymentMethods();
-
-    toast(
-        "Método de pago agregado.",
-        "success"
-    );
-}
-
-
-function removePaymentMethod(index) {
-
-    const config =
-        getConfig();
-
-
-    if (
-        index < 0 ||
-        index >= config.paymentMethods.length
-    ) {
-        return;
-    }
-
-
-    const method =
-        config.paymentMethods[index];
-
-
-    const confirmed =
-        confirm(
-            `¿Eliminar "${method}"?`
-        );
-
-
-    if (!confirmed) {
-        return;
-    }
-
-
-    config.paymentMethods.splice(
-        index,
-        1
-    );
-
-
-    saveConfig(config);
-
-    renderAdminPaymentMethods();
-
-    toast(
-        "Método de pago eliminado.",
-        "success"
-    );
-}
-
-
-/* =========================================================
-   PUBLICIDADES ADMIN
-   ========================================================= */
-
-function renderAdminAds() {
-
-    const container =
-        document.getElementById(
-            "adminAdsList"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    const ads =
-        getAds();
-
-
-    container.innerHTML = "";
-
-
-    if (ads.length === 0) {
+    if (!products.length) {
 
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📢</div>
-                <h3>No hay publicidades</h3>
-                <p>
-                    Todavía no se han enviado anuncios.
-                </p>
+                <div class="empty-icon">📦</div>
+                <h3>No hay publicaciones</h3>
+                <p>No hay publicaciones registradas.</p>
             </div>
         `;
 
@@ -3905,515 +2600,1662 @@ function renderAdminAds() {
     }
 
 
-    ads.forEach(ad => {
+    products.forEach(product => {
 
-        const item =
-            document.createElement(
-                "div"
-            );
+        const status =
+            product.status || "approved";
 
 
-        item.className =
-            "admin-ad-item";
+        container.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="admin-publication-card">
+
+                    <div class="admin-publication-main">
+
+                        <div class="admin-publication-image">
+
+                            ${
+                                product.images &&
+                                product.images.length
+                                ? `
+                                    <img
+                                        src="${product.images[0]}"
+                                        alt="${escapeHTML(product.name)}">
+                                `
+                                : `
+                                    <span>📦</span>
+                                `
+                            }
+
+                        </div>
 
 
-        const statusText =
-            ad.status === "approved"
-                ? "Aprobada"
-                : ad.status === "rejected"
-                    ? "Rechazada"
-                    : "Pendiente";
+                        <div class="admin-publication-info">
+
+                            <h3>
+                                ${escapeHTML(product.name)}
+                            </h3>
+
+                            <strong>
+                                RD$ ${formatPrice(product.price)}
+                            </strong>
+
+                            <small>
+                                Vendedor:
+                                ${escapeHTML(
+                                    product.sellerName ||
+                                    "Usuario"
+                                )}
+                            </small>
+
+                            <span
+                                class="status-badge status-${status}">
+                                ${getStatusText(status)}
+                            </span>
+
+                        </div>
+
+                    </div>
 
 
-        item.innerHTML = `
+                    <!-- CUATRO BOTONES -->
 
-            <div class="admin-ad-image">
+                    <div class="admin-publication-actions">
 
-                ${
-                    ad.image
-                        ? `
-                            <img
-                                src="${ad.image}"
-                                alt="${escapeHTML(ad.title)}"
-                            >
-                        `
-                        : "📢"
-                }
+                        <button
+                            class="admin-action receipt-action"
+                            onclick="viewProductReceipt('${product.id}')">
 
-            </div>
+                            🧾
+                            <span>Ver comprobante</span>
+
+                        </button>
 
 
-            <div class="admin-ad-info">
+                        <button
+                            class="admin-action approve-action"
+                            onclick="approveProduct('${product.id}')">
 
-                <h4>
-                    ${escapeHTML(ad.title)}
-                </h4>
+                            ✓
+                            <span>Aprobar</span>
 
-                <p>
-                    ${escapeHTML(ad.description)}
-                </p>
-
-                <small>
-                    Usuario:
-                    ${escapeHTML(ad.ownerName)}
-                </small>
-
-                <small>
-                    Pago:
-                    ${escapeHTML(ad.paymentMethod)}
-                </small>
-
-                <small>
-                    Estado:
-                    ${statusText}
-                </small>
+                        </button>
 
 
-                <div class="admin-ad-actions">
+                        <button
+                            class="admin-action reject-action"
+                            onclick="rejectProduct('${product.id}')">
 
-                    <button
-                        type="button"
-                        class="secondary-button"
-                        onclick="viewProof('${ad.id}')"
-                    >
-                        Ver comprobante
-                    </button>
+                            ✕
+                            <span>Rechazar</span>
 
-
-                    <button
-                        type="button"
-                        class="primary-button"
-                        onclick="changeAdStatus('${ad.id}', 'approved')"
-                    >
-                        Aprobar
-                    </button>
+                        </button>
 
 
-                    <button
-                        type="button"
-                        class="danger-button"
-                        onclick="changeAdStatus('${ad.id}', 'rejected')"
-                    >
-                        Rechazar
-                    </button>
+                        <button
+                            class="admin-action delete-action"
+                            onclick="adminDeleteProduct('${product.id}')">
+
+                            🗑️
+                            <span>Eliminar</span>
+
+                        </button>
+
+                    </div>
 
                 </div>
-
-            </div>
-
-        `;
-
-
-        container.appendChild(item);
+            `
+        );
 
     });
 }
 
 
-function changeAdStatus(adId, status) {
+function getStatusText(status) {
 
-    const ads =
-        getAds();
+    const statuses = {
 
+        approved: "Aprobada",
 
-    const index =
-        ads.findIndex(
-            ad =>
-                ad.id === adId
-        );
+        pending: "Pendiente",
 
+        rejected: "Rechazada"
 
-    if (index === -1) {
-        return;
-    }
+    };
 
 
-    ads[index].status =
-        status;
-
-
-    ads[index].reviewedAt =
-        new Date().toISOString();
-
-
-    saveAds(ads);
-
-
-    const ad =
-        ads[index];
-
-
-    if (status === "approved") {
-
-        addNotification(
-            "Publicidad aprobada",
-            `La publicidad "${ad.title}" fue aprobada.`
-        );
-
-    } else {
-
-        addNotification(
-            "Publicidad rechazada",
-            `La publicidad "${ad.title}" fue rechazada.`
-        );
-    }
-
-
-    renderAdminAds();
-
-    renderAdminStats();
-
-    renderAdvertisingSpot();
-
-
-    toast(
-        status === "approved"
-            ? "Publicidad aprobada."
-            : "Publicidad rechazada.",
-        "success"
+    return (
+        statuses[status] ||
+        "Sin estado"
     );
 }
 
 
 /* =========================================================
-   COMPROBANTE ADMIN
-   ========================================================= */
+   APROBAR
+========================================================= */
 
-function viewProof(adId) {
+function approveProduct(productId) {
 
-    const ad =
-        getAds().find(
+    const products =
+        getProducts();
+
+
+    const product =
+        products.find(
             item =>
-                item.id === adId
+                item.id === productId
         );
 
 
-    if (!ad) {
-        return;
-    }
+    if (!product) return;
 
 
-    const viewer =
-        document.getElementById(
-            "proofViewer"
-        );
+    product.status =
+        "approved";
 
 
-    if (!viewer) {
-        return;
-    }
+    saveProducts(products);
 
 
-    viewer.innerHTML = `
+    addNotification(
+        product.userId,
+        "Tu publicación fue aprobada."
+    );
 
-        ${
-            ad.proof
-                ? `
-                    <img
-                        src="${ad.proof}"
-                        alt="Comprobante de pago"
-                        class="proof-image"
-                    >
-                `
-                : `
-                    <div class="empty-state">
-                        No hay comprobante.
-                    </div>
-                `
+
+    showToast(
+        "Publicación aprobada."
+    );
+
+
+    renderAdminPanel();
+
+    renderProducts();
+}
+
+
+/* =========================================================
+   RECHAZAR
+========================================================= */
+
+function rejectProduct(productId) {
+
+    openConfirmModal(
+        "Rechazar publicación",
+        "¿Quieres rechazar esta publicación?",
+        () => {
+
+            const products =
+                getProducts();
+
+
+            const product =
+                products.find(
+                    item =>
+                        item.id === productId
+                );
+
+
+            if (!product) return;
+
+
+            product.status =
+                "rejected";
+
+
+            saveProducts(products);
+
+
+            addNotification(
+                product.userId,
+                "Tu publicación fue rechazada."
+            );
+
+
+            showToast(
+                "Publicación rechazada."
+            );
+
+
+            renderAdminPanel();
+
+            renderProducts();
+
         }
+    );
+}
 
+
+/* =========================================================
+   ELIMINAR DESDE ADMIN
+========================================================= */
+
+function adminDeleteProduct(productId) {
+
+    openConfirmModal(
+        "Eliminar publicación",
+        "Esta publicación será eliminada completamente. ¿Deseas continuar?",
+        () => {
+
+            const products =
+                getProducts();
+
+
+            const exists =
+                products.some(
+                    item =>
+                        item.id === productId
+                );
+
+
+            if (!exists) return;
+
+
+            const updated =
+                products.filter(
+                    item =>
+                        item.id !== productId
+                );
+
+
+            saveProducts(updated);
+
+
+            showToast(
+                "Publicación eliminada completamente."
+            );
+
+
+            renderAdminPanel();
+
+            renderProducts();
+
+        }
+    );
+}
+
+
+/* =========================================================
+   COMPROBANTE
+========================================================= */
+
+function viewProductReceipt(productId) {
+
+    const product =
+        getProducts().find(
+            item =>
+                item.id === productId
+        );
+
+
+    if (!product) return;
+
+
+    const receipt =
+        document.getElementById(
+            "receiptContent"
+        );
+
+
+    receipt.innerHTML = `
+
+        <div class="receipt">
+
+            <div class="receipt-header">
+
+                <strong>
+                    MARKET FLASH
+                </strong>
+
+                <small>
+                    Comprobante de publicación
+                </small>
+
+            </div>
+
+
+            <div class="receipt-row">
+
+                <span>Producto</span>
+
+                <strong>
+                    ${escapeHTML(product.name)}
+                </strong>
+
+            </div>
+
+
+            <div class="receipt-row">
+
+                <span>Precio</span>
+
+                <strong>
+                    RD$ ${formatPrice(product.price)}
+                </strong>
+
+            </div>
+
+
+            <div class="receipt-row">
+
+                <span>Categoría</span>
+
+                <strong>
+                    ${escapeHTML(product.category || "")}
+                </strong>
+
+            </div>
+
+
+            <div class="receipt-row">
+
+                <span>Vendedor</span>
+
+                <strong>
+                    ${escapeHTML(
+                        product.sellerName || ""
+                    )}
+                </strong>
+
+            </div>
+
+
+            <div class="receipt-row">
+
+                <span>Fecha</span>
+
+                <strong>
+                    ${formatDate(product.createdAt)}
+                </strong>
+
+            </div>
+
+        </div>
     `;
 
 
-    openModal(
-        "proofViewerModal"
-    );
+    document
+        .getElementById("receiptModal")
+        .classList.remove("hidden");
 }
 
 
-function closeProofViewer() {
-    closeModal(
-        "proofViewerModal"
-    );
+function closeReceiptModal() {
+
+    document
+        .getElementById("receiptModal")
+        .classList.add("hidden");
 }
 
 
 /* =========================================================
-   INICIALIZACIÓN
-   ========================================================= */
+   MÉTODOS DE PAGO
+========================================================= */
 
-function initializeStorage() {
+function getPaymentMethods() {
 
-    initializeProducts();
+    return getStorage(
+        STORAGE_KEYS.paymentMethods,
+        []
+    );
+}
 
 
-    const config =
-        getStorage(
-            STORAGE_KEYS.config,
-            null
+function savePaymentMethods(methods) {
+
+    setStorage(
+        STORAGE_KEYS.paymentMethods,
+        methods
+    );
+}
+
+
+function openAddPaymentMethod() {
+
+    editingPaymentMethodId = null;
+
+
+    document.getElementById(
+        "paymentModalTitle"
+    ).textContent =
+        "Agregar método de pago";
+
+
+    document.getElementById(
+        "paymentMethodName"
+    ).value = "";
+
+
+    document.getElementById(
+        "paymentMethodPrice"
+    ).value = "";
+
+
+    document
+        .getElementById(
+            "paymentMethodModal"
+        )
+        .classList.remove("hidden");
+}
+
+
+function editPaymentMethod(id) {
+
+    const method =
+        getPaymentMethods().find(
+            item =>
+                item.id === id
         );
 
 
-    if (!config) {
-        saveConfig(
-            DEFAULT_CONFIG
+    if (!method) return;
+
+
+    editingPaymentMethodId = id;
+
+
+    document.getElementById(
+        "paymentModalTitle"
+    ).textContent =
+        "Editar método de pago";
+
+
+    document.getElementById(
+        "paymentMethodName"
+    ).value =
+        method.name || "";
+
+
+    document.getElementById(
+        "paymentMethodPrice"
+    ).value =
+        method.price || "";
+
+
+    document
+        .getElementById(
+            "paymentMethodModal"
+        )
+        .classList.remove("hidden");
+}
+
+
+function closePaymentMethodModal() {
+
+    document
+        .getElementById(
+            "paymentMethodModal"
+        )
+        .classList.add("hidden");
+}
+
+
+function savePaymentMethod() {
+
+    const name =
+        document.getElementById(
+            "paymentMethodName"
+        ).value.trim();
+
+
+    const price =
+        Number(
+            document.getElementById(
+                "paymentMethodPrice"
+            ).value || 0
         );
+
+
+    if (!name) {
+
+        showToast(
+            "Escribe el nombre del método de pago."
+        );
+
+        return;
     }
 
 
-    const stats =
-        getStorage(
-            STORAGE_KEYS.stats,
-            null
-        );
+    const methods =
+        getPaymentMethods();
 
 
-    if (!stats) {
+    if (editingPaymentMethodId) {
 
-        saveStats({
-            registered: 0,
-            deleted: 0
+        const method =
+            methods.find(
+                item =>
+                    item.id ===
+                    editingPaymentMethodId
+            );
+
+
+        if (method) {
+
+            method.name = name;
+
+            method.price = price;
+
+        }
+
+    } else {
+
+        methods.push({
+
+            id: generateId("pay"),
+
+            name,
+
+            price
+
         });
 
     }
 
 
-    const notifications =
-        getStorage(
-            STORAGE_KEYS.notifications,
-            null
+    savePaymentMethods(methods);
+
+
+    closePaymentMethodModal();
+
+
+    showToast(
+        "Método de pago guardado."
+    );
+
+
+    renderPaymentMethods();
+}
+
+
+function deletePaymentMethod(id) {
+
+    openConfirmModal(
+        "Eliminar método",
+        "¿Quieres eliminar este método de pago?",
+        () => {
+
+            const methods =
+                getPaymentMethods()
+                    .filter(
+                        item =>
+                            item.id !== id
+                    );
+
+
+            savePaymentMethods(methods);
+
+            renderPaymentMethods();
+
+            showToast(
+                "Método de pago eliminado."
+            );
+
+        }
+    );
+}
+
+
+function renderPaymentMethods() {
+
+    const container =
+        document.getElementById(
+            "paymentMethodsList"
         );
 
 
-    if (!notifications) {
-        saveNotifications([]);
+    if (!container) return;
+
+
+    const methods =
+        getPaymentMethods();
+
+
+    container.innerHTML = "";
+
+
+    methods.forEach(method => {
+
+        container.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="payment-method-card">
+
+                    <div class="payment-method-info">
+
+                        <div class="payment-method-icon">
+                            💳
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                ${escapeHTML(method.name)}
+                            </strong>
+
+                            <small>
+                                Precio:
+                                RD$ ${formatPrice(method.price)}
+                            </small>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="payment-method-actions">
+
+                        <button
+                            onclick="editPaymentMethod('${method.id}')">
+
+                            ✏️
+
+                        </button>
+
+
+                        <button
+                            class="danger-icon-btn"
+                            onclick="deletePaymentMethod('${method.id}')">
+
+                            🗑️
+
+                        </button>
+
+                    </div>
+
+                </div>
+            `
+        );
+
+    });
+}
+
+
+/* =========================================================
+   PUBLICIDAD ADMIN
+========================================================= */
+
+function toggleAdvertising() {
+
+    const toggle =
+        document.getElementById(
+            "advertisingToggle"
+        );
+
+
+    const advertising =
+        getStorage(
+            STORAGE_KEYS.advertising,
+            {}
+        );
+
+
+    advertising.enabled =
+        toggle.checked;
+
+
+    setStorage(
+        STORAGE_KEYS.advertising,
+        advertising
+    );
+
+
+    showToast(
+        advertising.enabled
+            ? "Publicidad activada."
+            : "Publicidad desactivada."
+    );
+}
+
+
+function saveAdvertisingSettings() {
+
+    const price =
+        Number(
+            document.getElementById(
+                "advertisingPrice"
+            ).value || 0
+        );
+
+
+    const advertising =
+        getStorage(
+            STORAGE_KEYS.advertising,
+            {}
+        );
+
+
+    advertising.price =
+        price;
+
+
+    setStorage(
+        STORAGE_KEYS.advertising,
+        advertising
+    );
+
+
+    showToast(
+        "Precio de publicidad guardado."
+    );
+}
+
+
+/* =========================================================
+   SOLICITUDES DE PUBLICIDAD
+========================================================= */
+
+function createAdvertising(event) {
+
+    event.preventDefault();
+
+
+    const user =
+        getCurrentUser();
+
+
+    if (!user) {
+
+        showToast(
+            "Debes iniciar sesión."
+        );
+
+        return;
+    }
+
+
+    const title =
+        document.getElementById(
+            "adTitle"
+        ).value.trim();
+
+
+    const description =
+        document.getElementById(
+            "adDescription"
+        ).value.trim();
+
+
+    const whatsapp =
+        document.getElementById(
+            "adWhatsapp"
+        ).value.trim();
+
+
+    const advertising =
+        getStorage(
+            STORAGE_KEYS.advertising,
+            {}
+        );
+
+
+    advertising.requests =
+        advertising.requests || [];
+
+
+    advertising.requests.unshift({
+
+        id: generateId("ad"),
+
+        userId: user.id,
+
+        userName: user.name,
+
+        title,
+
+        description,
+
+        whatsapp,
+
+        status: "pending",
+
+        createdAt:
+            new Date().toISOString()
+
+    });
+
+
+    setStorage(
+        STORAGE_KEYS.advertising,
+        advertising
+    );
+
+
+    showToast(
+        "Solicitud de publicidad enviada."
+    );
+
+
+    openAdvertisingStatus();
+}
+
+
+function renderAdminAdvertisingRequests() {
+
+    const container =
+        document.getElementById(
+            "adminAdvertisingRequests"
+        );
+
+
+    if (!container) return;
+
+
+    const advertising =
+        getStorage(
+            STORAGE_KEYS.advertising,
+            {}
+        );
+
+
+    const requests =
+        advertising.requests || [];
+
+
+    container.innerHTML = "";
+
+
+    requests.forEach(request => {
+
+        container.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="admin-request-card">
+
+                    <div>
+
+                        <strong>
+                            ${escapeHTML(request.title)}
+                        </strong>
+
+                        <p>
+                            ${escapeHTML(request.description)}
+                        </p>
+
+                        <small>
+                            ${escapeHTML(
+                                request.userName
+                            )}
+                        </small>
+
+                    </div>
+
+
+                    <div class="request-actions">
+
+                        <button
+                            onclick="approveAdvertising('${request.id}')">
+
+                            ✓ Aprobar
+
+                        </button>
+
+
+                        <button
+                            onclick="rejectAdvertising('${request.id}')">
+
+                            ✕ Rechazar
+
+                        </button>
+
+                    </div>
+
+                </div>
+            `
+        );
+
+    });
+}
+
+
+function approveAdvertising(id) {
+
+    const advertising =
+        getStorage(
+            STORAGE_KEYS.advertising,
+            {}
+        );
+
+
+    const request =
+        (advertising.requests || [])
+            .find(
+                item =>
+                    item.id === id
+            );
+
+
+    if (!request) return;
+
+
+    request.status =
+        "approved";
+
+
+    setStorage(
+        STORAGE_KEYS.advertising,
+        advertising
+    );
+
+
+    addNotification(
+        request.userId,
+        "Tu publicidad fue aprobada."
+    );
+
+
+    renderAdminPanel();
+
+
+    showToast(
+        "Publicidad aprobada."
+    );
+}
+
+
+function rejectAdvertising(id) {
+
+    const advertising =
+        getStorage(
+            STORAGE_KEYS.advertising,
+            {}
+        );
+
+
+    const request =
+        (advertising.requests || [])
+            .find(
+                item =>
+                    item.id === id
+            );
+
+
+    if (!request) return;
+
+
+    request.status =
+        "rejected";
+
+
+    setStorage(
+        STORAGE_KEYS.advertising,
+        advertising
+    );
+
+
+    addNotification(
+        request.userId,
+        "Tu publicidad fue rechazada."
+    );
+
+
+    renderAdminPanel();
+
+
+    showToast(
+        "Publicidad rechazada."
+    );
+}
+
+
+/* =========================================================
+   PUBLICIDAD DEL USUARIO
+========================================================= */
+
+function openAdvertisingIntro() {
+
+    const advertising =
+        getStorage(
+            STORAGE_KEYS.advertising,
+            {}
+        );
+
+
+    if (advertising.enabled === false) {
+
+        showToast(
+            "La publicidad está temporalmente desactivada."
+        );
+
+        return;
+    }
+
+
+    showPage(
+        "advertisingIntroPage"
+    );
+}
+
+
+function openAdvertisingCreate() {
+
+    showPage(
+        "advertisingCreatePage"
+    );
+}
+
+
+function openAdvertisingInfo() {
+
+    showPage(
+        "advertisingInfoPage"
+    );
+}
+
+
+function openAdvertisingStatus() {
+
+    renderAdvertisingStatus();
+
+    showPage(
+        "advertisingStatusPage"
+    );
+}
+
+
+function renderAdvertisingStatus() {
+
+    const container =
+        document.getElementById(
+            "advertisingStatus"
+        );
+
+
+    const user =
+        getCurrentUser();
+
+
+    if (!container || !user) return;
+
+
+    const advertising =
+        getStorage(
+            STORAGE_KEYS.advertising,
+            {}
+        );
+
+
+    const requests =
+        (advertising.requests || [])
+            .filter(
+                item =>
+                    item.userId === user.id
+            );
+
+
+    container.innerHTML = "";
+
+
+    requests.forEach(request => {
+
+        container.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="advertising-status-card">
+
+                    <h3>
+                        ${escapeHTML(request.title)}
+                    </h3>
+
+                    <p>
+                        ${escapeHTML(request.description)}
+                    </p>
+
+                    <strong>
+                        Estado:
+                        ${getStatusText(request.status)}
+                    </strong>
+
+                </div>
+            `
+        );
+
+    });
+
+
+    if (!requests.length) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+
+                <div class="empty-icon">
+                    📢
+                </div>
+
+                <h3>
+                    No tienes solicitudes
+                </h3>
+
+                <p>
+                    Aquí aparecerán tus solicitudes de publicidad.
+                </p>
+
+            </div>
+        `;
+
     }
 }
 
 
 /* =========================================================
-   EVENTOS DE ARCHIVOS
-   ========================================================= */
+   NOTIFICACIONES
+========================================================= */
 
-document.addEventListener(
-    "DOMContentLoaded",
-    () => {
+function addNotification(userId, message) {
 
-        initializeStorage();
+    const notifications =
+        getStorage(
+            STORAGE_KEYS.notifications,
+            []
+        );
 
 
-        const productCamera =
-            document.getElementById(
-                "productCameraInput"
-            );
+    notifications.unshift({
 
+        id: generateId("notification"),
 
-        const productGallery =
-            document.getElementById(
-                "productGalleryInput"
-            );
+        userId,
 
+        message,
 
-        if (productCamera) {
+        read: false,
 
-            productCamera.addEventListener(
-                "change",
-                event => {
+        createdAt:
+            new Date().toISOString()
 
-                    handleProductImages(
-                        event.target.files
-                    );
+    });
 
-                    event.target.value = "";
 
-                }
-            );
-        }
+    setStorage(
+        STORAGE_KEYS.notifications,
+        notifications
+    );
 
 
-        if (productGallery) {
+    updateNotificationBadge();
+}
 
-            productGallery.addEventListener(
-                "change",
-                event => {
 
-                    handleProductImages(
-                        event.target.files
-                    );
+function openNotifications() {
 
-                    event.target.value = "";
+    renderNotifications();
 
-                }
-            );
-        }
 
+    const panel =
+        document.getElementById(
+            "notificationsPanel"
+        );
 
-        const profileCamera =
-            document.getElementById(
-                "profileCameraInput"
-            );
 
+    if (panel) {
+        panel.classList.remove("hidden");
+    }
+}
 
-        const profileGallery =
-            document.getElementById(
-                "profileGalleryInput"
-            );
 
+function closeNotifications() {
 
-        if (profileCamera) {
+    const panel =
+        document.getElementById(
+            "notificationsPanel"
+        );
 
-            profileCamera.addEventListener(
-                "change",
-                event => {
 
-                    const file =
-                        event.target.files?.[0];
+    if (panel) {
+        panel.classList.add("hidden");
+    }
+}
 
-                    handleProfileImage(file);
 
-                    event.target.value = "";
+function renderNotifications() {
 
-                }
-            );
-        }
+    const container =
+        document.getElementById(
+            "notificationsList"
+        );
 
 
-        if (profileGallery) {
+    const user =
+        getCurrentUser();
 
-            profileGallery.addEventListener(
-                "change",
-                event => {
 
-                    const file =
-                        event.target.files?.[0];
+    if (!container || !user) return;
 
-                    handleProfileImage(file);
 
-                    event.target.value = "";
+    const notifications =
+        getStorage(
+            STORAGE_KEYS.notifications,
+            []
+        ).filter(
+            item =>
+                item.userId === user.id
+        );
 
-                }
-            );
-        }
 
+    container.innerHTML = "";
 
-        const advertisingCamera =
-            document.getElementById(
-                "advertisingCameraInput"
-            );
 
+    notifications.forEach(notification => {
 
-        const advertisingGallery =
-            document.getElementById(
-                "advertisingGalleryInput"
-            );
+        container.insertAdjacentHTML(
+            "beforeend",
+            `
+                <div class="notification-item">
 
+                    <span>🔔</span>
 
-        if (advertisingCamera) {
+                    <div>
 
-            advertisingCamera.addEventListener(
-                "change",
-                event => {
+                        <p>
+                            ${escapeHTML(
+                                notification.message
+                            )}
+                        </p>
 
-                    const file =
-                        event.target.files?.[0];
+                        <small>
+                            ${formatDate(
+                                notification.createdAt
+                            )}
+                        </small>
 
-                    handleAdvertisingImage(file);
+                    </div>
 
-                    event.target.value = "";
+                </div>
+            `
+        );
 
-                }
-            );
-        }
+    });
 
 
-        if (advertisingGallery) {
+    if (!notifications.length) {
 
-            advertisingGallery.addEventListener(
-                "change",
-                event => {
-
-                    const file =
-                        event.target.files?.[0];
-
-                    handleAdvertisingImage(file);
-
-                    event.target.value = "";
-
-                }
-            );
-        }
-
-
-        const proofInput =
-            document.getElementById(
-                "proofGalleryInput"
-            );
-
-
-        if (proofInput) {
-
-            proofInput.addEventListener(
-                "change",
-                event => {
-
-                    const file =
-                        event.target.files?.[0];
-
-                    handleProofImage(file);
-
-                    event.target.value = "";
-
-                }
-            );
-        }
-
-
-        renderProducts();
-
-        renderAdvertisingSpot();
-
-        renderProfile();
+        container.innerHTML = `
+            <div class="empty-notifications">
+                No tienes notificaciones.
+            </div>
+        `;
 
     }
-);
+
+
+    notifications.forEach(item => {
+        item.read = true;
+    });
+
+
+    const all =
+        getStorage(
+            STORAGE_KEYS.notifications,
+            []
+        );
+
+
+    notifications.forEach(item => {
+
+        const original =
+            all.find(
+                notification =>
+                    notification.id === item.id
+            );
+
+
+        if (original) {
+            original.read = true;
+        }
+
+    });
+
+
+    setStorage(
+        STORAGE_KEYS.notifications,
+        all
+    );
+
+
+    updateNotificationBadge();
+}
+
+
+function updateNotificationBadge() {
+
+    const user =
+        getCurrentUser();
+
+
+    const badge =
+        document.getElementById(
+            "notificationBadge"
+        );
+
+
+    if (!badge || !user) return;
+
+
+    const notifications =
+        getStorage(
+            STORAGE_KEYS.notifications,
+            []
+        );
+
+
+    const unread =
+        notifications.filter(
+            item =>
+                item.userId === user.id &&
+                !item.read
+        ).length;
+
+
+    badge.textContent =
+        unread;
+
+
+    badge.classList.toggle(
+        "hidden",
+        unread === 0
+    );
+}
 
 
 /* =========================================================
-   CERRAR MODALES CON ESC
-   ========================================================= */
+   MODALES
+========================================================= */
+
+function openModal(content) {
+
+    const overlay =
+        document.getElementById(
+            "modalOverlay"
+        );
+
+
+    const modalContent =
+        document.getElementById(
+            "modalContent"
+        );
+
+
+    if (!overlay || !modalContent) return;
+
+
+    modalContent.innerHTML =
+        content;
+
+
+    overlay.classList.remove(
+        "hidden"
+    );
+}
+
+
+function closeModal(event) {
+
+    if (
+        event &&
+        event.target !==
+        document.getElementById(
+            "modalOverlay"
+        )
+    ) {
+        return;
+    }
+
+
+    document
+        .getElementById(
+            "modalOverlay"
+        )
+        .classList.add("hidden");
+}
+
+
+function openConfirmModal(
+    title,
+    message,
+    callback
+) {
+
+    const modal =
+        document.getElementById(
+            "confirmModal"
+        );
+
+
+    document.getElementById(
+        "confirmTitle"
+    ).textContent =
+        title;
+
+
+    document.getElementById(
+        "confirmMessage"
+    ).textContent =
+        message;
+
+
+    const button =
+        document.getElementById(
+            "confirmActionBtn"
+        );
+
+
+    button.onclick = () => {
+
+        closeConfirmModal();
+
+        callback();
+
+    };
+
+
+    modal.classList.remove(
+        "hidden"
+    );
+}
+
+
+function closeConfirmModal() {
+
+    document
+        .getElementById(
+            "confirmModal"
+        )
+        .classList.add("hidden");
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+let toastTimeout;
+
+
+function showToast(message) {
+
+    const toast =
+        document.getElementById(
+            "toast"
+        );
+
+
+    if (!toast) return;
+
+
+    toast.textContent =
+        message;
+
+
+    toast.classList.add(
+        "show"
+    );
+
+
+    clearTimeout(
+        toastTimeout
+    );
+
+
+    toastTimeout =
+        setTimeout(() => {
+
+            toast.classList.remove(
+                "show"
+            );
+
+        }, 3000);
+}
+
+
+/* =========================================================
+   INFORMACIÓN
+========================================================= */
+
+function showPrivacyInfo() {
+
+    openModal(`
+        <div class="info-modal">
+
+            <h2>
+                Privacidad y seguridad
+            </h2>
+
+            <p>
+                Market Flash protege los datos
+                dentro de las funciones disponibles
+                en esta versión.
+            </p>
+
+            <button
+                class="primary-btn"
+                onclick="closeModal()">
+
+                Cerrar
+
+            </button>
+
+        </div>
+    `);
+}
+
+
+function showAbout() {
+
+    openModal(`
+        <div class="info-modal">
+
+            <div class="auth-logo-circle">
+                ⚡
+            </div>
+
+            <h2>
+                Market Flash
+            </h2>
+
+            <p>
+                Plataforma para comprar,
+                vender y conectar.
+            </p>
+
+            <button
+                class="primary-btn"
+                onclick="closeModal()">
+
+                Cerrar
+
+            </button>
+
+        </div>
+    `);
+}
+
+
+/* =========================================================
+   LOGOUT
+========================================================= */
+
+function logout() {
+
+    openConfirmModal(
+        "Cerrar sesión",
+        "¿Quieres cerrar tu sesión?",
+        () => {
+
+            localStorage.removeItem(
+                STORAGE_KEYS.currentUser
+            );
+
+
+            showToast(
+                "Sesión cerrada."
+            );
+
+
+            showPage(
+                "homePage"
+            );
+
+        }
+    );
+}
+
+
+/* =========================================================
+   ACTUALIZAR INTERFAZ
+========================================================= */
+
+function updateInterface() {
+
+    renderProducts();
+
+    updateNotificationBadge();
+
+    const user =
+        getCurrentUser();
+
+
+    if (user) {
+        renderProfile();
+    }
+
+}
+
+
+/* =========================================================
+   ATAJOS DEL TECLADO PARA EL VISOR
+========================================================= */
 
 document.addEventListener(
     "keydown",
     event => {
 
-        if (event.key !== "Escape") {
-            return;
-        }
-
-
-        document
-            .querySelectorAll(
-                ".modal:not(.hidden)"
-            )
-            .forEach(modal => {
-
-                modal.classList.add(
-                    "hidden"
-                );
-
-            });
-
-
-        const overlay =
+        const viewer =
             document.getElementById(
-                "overlay"
+                "imageViewer"
             );
 
 
-        if (overlay) {
-            overlay.classList.add(
+        if (
+            viewer &&
+            !viewer.classList.contains(
                 "hidden"
-            );
+            )
+        ) {
+
+            if (event.key === "Escape") {
+                closeImageViewer();
+            }
+
+            if (event.key === "ArrowLeft") {
+                previousImage();
+            }
+
+            if (event.key === "ArrowRight") {
+                nextImage();
+            }
+
         }
 
     }
@@ -4421,33 +4263,5 @@ document.addEventListener(
 
 
 /* =========================================================
-   ACTUALIZACIÓN DE PESTAÑA
-   ========================================================= */
-
-window.addEventListener(
-    "storage",
-    event => {
-
-        if (
-            event.key === STORAGE_KEYS.products
-        ) {
-            renderProducts();
-            renderActivity();
-        }
-
-
-        if (
-            event.key === STORAGE_KEYS.config
-        ) {
-            renderAdvertisingSpot();
-        }
-
-
-        if (
-            event.key === STORAGE_KEYS.ads
-        ) {
-            renderAdvertisingSpot();
-        }
-
-    }
-);
+   FIN DE SCRIPT.JS
+========================================================= */
