@@ -399,7 +399,6 @@
 
         <!-- =================================================
              PANEL PARA CREAR PUBLICACIÓN NORMAL
-             SIEMPRE GRATIS
         ================================================== -->
 
         <div
@@ -578,11 +577,18 @@
                 <form id="promotion-form">
 
 
-                    <!-- MEDIA DE LA PROMOCIÓN -->
+                    <!-- =========================================
+                         MATERIAL DE LA PROMOCIÓN
+                    ========================================== -->
 
                     <div class="form-section-title">
                         MATERIAL DE LA PROMOCIÓN
                     </div>
+
+
+                    <p class="media-help-text">
+                        Puedes agregar varias fotos y varios videos.
+                    </p>
 
 
                     <div class="media-actions">
@@ -629,7 +635,7 @@
                     >
 
 
-                    <!-- GALERÍA -->
+                    <!-- GALERÍA: VARIOS ARCHIVOS -->
 
                     <input
                         type="file"
@@ -646,7 +652,9 @@
                     ></div>
 
 
-                    <!-- INFORMACIÓN -->
+                    <!-- =========================================
+                         INFORMACIÓN
+                    ========================================== -->
 
                     <div class="form-section-title">
                         INFORMACIÓN
@@ -702,47 +710,9 @@
                     >
 
 
-                    <!-- COMPROBANTE -->
-
-                    <div class="payment-proof-box">
-
-                        <div class="form-section-title">
-                            COMPROBANTE DE PAGO
-                        </div>
-
-                        <p>
-                            Debes adjuntar una foto del comprobante
-                            de pago para enviar la solicitud.
-                        </p>
-
-
-                        <button
-                            type="button"
-                            id="payment-proof-button"
-                            class="proof-button"
-                        >
-                            📸 ADJUNTAR COMPROBANTE
-                        </button>
-
-
-                        <input
-                            type="file"
-                            id="payment-proof-input"
-                            accept="image/*"
-                            capture="environment"
-                            hidden
-                        >
-
-
-                        <div
-                            id="payment-proof-preview"
-                            class="proof-preview"
-                        ></div>
-
-                    </div>
-
-
-                    <!-- AVISO -->
+                    <!-- =========================================
+                         AVISO
+                    ========================================== -->
 
                     <div class="promotion-notice">
 
@@ -751,9 +721,8 @@
                         </strong>
 
                         <p>
-                            Tu promoción no se publicará
-                            automáticamente. Será enviada al
-                            administrador para revisión y aprobación.
+                            Al enviar la promoción podrás elegir
+                            la membresía que deseas pagar.
                         </p>
 
                     </div>
@@ -767,6 +736,180 @@
                     </button>
 
                 </form>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PANEL DE MEMBRESÍAS
+        ================================================== -->
+
+        <div
+            id="membership-panel"
+            class="modal-panel"
+        >
+
+            <div class="modal-content membership-modal">
+
+                <button
+                    id="close-membership-panel"
+                    class="modal-close"
+                    type="button"
+                >
+                    ×
+                </button>
+
+
+                <div class="membership-title-area">
+
+                    <div class="modal-icon flash-modal-icon">
+                        ⚡
+                    </div>
+
+                    <h2>
+                        ELIGE TU MEMBRESÍA
+                    </h2>
+
+                    <p>
+                        Selecciona la membresía para promocionar
+                        tu publicación en FLASH DEL DÍA.
+                    </p>
+
+                </div>
+
+
+                <!-- =========================================
+                     MEMBRESÍA BÁSICA
+                ========================================== -->
+
+                <button
+                    type="button"
+                    class="membership-card"
+                    data-membership="basica"
+                    data-price=""
+                >
+
+                    <div class="membership-card-header">
+
+                        <div>
+                            <span class="membership-badge">
+                                BÁSICA
+                            </span>
+
+                            <h3>
+                                Membresía Básica
+                            </h3>
+                        </div>
+
+                        <div class="membership-price">
+                            RD$ <span>POR DEFINIR</span>
+                        </div>
+
+                    </div>
+
+
+                    <ul>
+                        <li>⚡ Promoción destacada</li>
+                        <li>📱 Publicación en FLASH DEL DÍA</li>
+                        <li>📸 Fotos y videos</li>
+                    </ul>
+
+                </button>
+
+
+                <!-- =========================================
+                     MEMBRESÍA PREMIUM
+                ========================================== -->
+
+                <button
+                    type="button"
+                    class="membership-card"
+                    data-membership="premium"
+                    data-price=""
+                >
+
+                    <div class="membership-card-header">
+
+                        <div>
+                            <span class="membership-badge">
+                                PREMIUM
+                            </span>
+
+                            <h3>
+                                Membresía Premium
+                            </h3>
+                        </div>
+
+                        <div class="membership-price">
+                            RD$ <span>POR DEFINIR</span>
+                        </div>
+
+                    </div>
+
+
+                    <ul>
+                        <li>⚡ Mayor prioridad</li>
+                        <li>🔥 Mayor visibilidad</li>
+                        <li>📸 Fotos y videos</li>
+                    </ul>
+
+                </button>
+
+
+                <!-- =========================================
+                     MEMBRESÍA VIP
+                ========================================== -->
+
+                <button
+                    type="button"
+                    class="membership-card membership-vip"
+                    data-membership="vip"
+                    data-price=""
+                >
+
+                    <div class="membership-card-header">
+
+                        <div>
+                            <span class="membership-badge">
+                                VIP
+                            </span>
+
+                            <h3>
+                                Membresía VIP
+                            </h3>
+                        </div>
+
+                        <div class="membership-price">
+                            RD$ <span>POR DEFINIR</span>
+                        </div>
+
+                    </div>
+
+
+                    <ul>
+                        <li>👑 Máxima prioridad</li>
+                        <li>⚡ Máxima visibilidad</li>
+                        <li>🔥 Destacado VIP</li>
+                        <li>📸 Fotos y videos</li>
+                    </ul>
+
+                </button>
+
+
+                <div class="membership-notice">
+
+                    <strong>
+                        ⚡ IMPORTANTE
+                    </strong>
+
+                    <p>
+                        Después de seleccionar tu membresía,
+                        continuaremos con el proceso de pago.
+                    </p>
+
+                </div>
 
             </div>
 
@@ -832,7 +975,6 @@
 
 
                 <div class="profile-options">
-
 
                     <button
                         id="profile-settings-button"
