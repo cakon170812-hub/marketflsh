@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#2563eb">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Market Flash">
-  <meta name="mobile-web-app-capable" content="yes">
 
   <title>Market Flash</title>
 
@@ -17,23 +16,21 @@
 
 <div id="app">
 
-  <!-- =====================================================
+  <!-- =========================
        BARRA SUPERIOR
-  ====================================================== -->
+  ========================== -->
   <header class="topbar">
 
-    <div class="brand-wrap">
-      <div class="brand">
-        <span>Market</span> Flash
-      </div>
+    <div class="brand">
+      <span>Market</span> Flash
 
-      <div class="owner-line">
+      <small class="brand-owner">
         Propiedad Julio Alcántara Gómez
-      </div>
+      </small>
     </div>
 
     <div class="search-wrap">
-      <span aria-hidden="true">⌕</span>
+      <span>⌕</span>
 
       <input
         id="searchInput"
@@ -56,21 +53,16 @@
   </header>
 
 
-  <!-- =====================================================
+  <!-- =========================
        CONTENIDO PRINCIPAL
-  ====================================================== -->
+  ========================== -->
   <main id="mainContent" class="main-content">
 
-    <!-- ===================================================
+    <!-- =========================
          INICIO
-    ==================================================== -->
-    <section
-      id="homePage"
-      class="app-page"
-      data-page-content="home"
-    >
+    ========================== -->
+    <section id="homePage" class="page-section">
 
-      <!-- PRESENTACIÓN -->
       <section class="hero">
 
         <div>
@@ -90,9 +82,7 @@
       </section>
 
 
-      <!-- =================================================
-           FLASH DEL DÍA
-      ================================================== -->
+      <!-- FLASH DEL DÍA -->
       <button
         id="flashDayBtn"
         class="flash-day"
@@ -126,44 +116,44 @@
       </button>
 
 
-      <!-- =================================================
-           ESTADO DE MI PUBLICIDAD
-           SE ACTIVA CUANDO EL USUARIO ENVÍA UNA PUBLICIDAD
-      ================================================== -->
+      <!-- ESTADO DE MI PUBLICIDAD -->
       <button
-        id="adStatusBtn"
-        class="ad-status-btn hidden"
+        id="myAdStatusBtn"
+        class="flash-day ad-status-button hidden"
         type="button"
       >
 
-        <div class="status-icon">
-          ⏳
+        <div
+          id="myAdStatusIcon"
+          class="flash-icon"
+        >
+          ✨
         </div>
 
-        <div class="status-copy">
+        <div class="flash-copy">
 
           <span>
             MI PUBLICIDAD
           </span>
 
-          <strong id="adStatusTitle">
-            Publicidad en revisión
+          <strong id="myAdStatusTitle">
+            Estado de mi publicidad
           </strong>
 
-          <small id="adStatusText">
-            Estamos comprobando tu solicitud.
+          <small id="myAdStatusText">
+            Consulta el estado de tu publicidad.
           </small>
 
         </div>
 
-        <div class="status-arrow">
+        <div class="arrow">
           ›
         </div>
 
       </button>
 
 
-      <!-- TÍTULO DE PUBLICACIONES -->
+      <!-- TÍTULO -->
       <div class="section-title">
 
         <h2>
@@ -191,285 +181,399 @@
     </section>
 
 
-    <!-- ===================================================
+    <!-- =========================
          CHAT
-    ==================================================== -->
+    ========================== -->
     <section
       id="chatPage"
-      class="app-page hidden"
-      data-page-content="chat"
+      class="page-section hidden"
     >
 
-      <div class="page-card chat-page-card">
+      <div class="page-heading">
 
-        <div class="page-heading">
+        <div>
+          <small>MARKET FLASH</small>
 
-          <div>
-            <small>MARKET FLASH</small>
+          <h2>
+            Chat
+          </h2>
 
-            <h2>
-              Mis chats
-            </h2>
-
-            <p>
-              Contacta directamente con compradores y vendedores.
-            </p>
-          </div>
-
+          <p>
+            Contacta directamente con compradores y vendedores.
+          </p>
         </div>
 
-
-        <div
-          id="conversationList"
-          class="conversation-list"
-        ></div>
+      </div>
 
 
-        <!-- CHAT ABIERTO -->
-        <div
-          id="chatWindow"
-          class="chat-window hidden"
-        >
-
-          <div class="chat-header">
-
-            <button
-              id="backToChatsBtn"
-              class="icon-btn"
-              type="button"
-              aria-label="Volver"
-            >
-              ‹
-            </button>
-
-            <div class="chat-person">
-
-              <div
-                id="chatAvatar"
-                class="chat-avatar"
-              >
-                👤
-              </div>
-
-              <div>
-
-                <strong id="chatPersonName">
-                  Usuario
-                </strong>
-
-                <small id="chatProductName">
-                  Publicación
-                </small>
-
-              </div>
-
-            </div>
-
-          </div>
+      <div
+        id="conversationList"
+        class="conversation"
+      ></div>
 
 
-          <div
-            id="chatMessages"
-            class="chat-messages"
-          ></div>
+      <div
+        id="chatEmpty"
+        class="chat-empty hidden"
+      >
+        <div>💬</div>
 
+        <h3>
+          No tienes conversaciones
+        </h3>
 
-          <!-- ACCIONES DEL CHAT -->
-          <div class="chat-controls">
-
-            <button
-              id="chatPhotoBtn"
-              class="chat-media-btn"
-              type="button"
-            >
-              🖼️
-            </button>
-
-            <button
-              id="chatCameraBtn"
-              class="chat-media-btn"
-              type="button"
-            >
-              📷
-            </button>
-
-            <button
-              id="chatVideoBtn"
-              class="chat-media-btn"
-              type="button"
-            >
-              🎥
-            </button>
-
-            <input
-              id="chatMessageInput"
-              type="text"
-              placeholder="Escribe un mensaje..."
-              autocomplete="off"
-            >
-
-            <button
-              id="sendChatBtn"
-              class="send-btn"
-              type="button"
-            >
-              ➤
-            </button>
-
-          </div>
-
-
-          <div class="chat-buttons">
-
-            <button
-              id="reportChatBtn"
-              class="danger-outline"
-              type="button"
-            >
-              ⚠️ Reporte / Reclamo / Soporte
-            </button>
-
-          </div>
-
-        </div>
-
+        <p>
+          Cuando contactes a un comprador o vendedor,
+          tus conversaciones aparecerán aquí.
+        </p>
       </div>
 
     </section>
 
 
-    <!-- ===================================================
+    <!-- =========================
          ACTIVIDAD
-    ==================================================== -->
+    ========================== -->
     <section
       id="activityPage"
-      class="app-page hidden"
-      data-page-content="activity"
+      class="page-section hidden"
     >
 
-      <div class="page-card">
+      <div class="page-heading">
 
-        <div class="page-heading">
+        <div>
+          <small>MARKET FLASH</small>
 
-          <div>
+          <h2>
+            Actividad
+          </h2>
 
-            <small>MARKET FLASH</small>
-
-            <h2>
-              Actividad
-            </h2>
-
-            <p>
-              Revisa tus publicaciones y operaciones.
-            </p>
-
-          </div>
-
+          <p>
+            Revisa tus publicaciones, ventas y actividad.
+          </p>
         </div>
 
-
-        <div
-          id="activityList"
-          class="activity-list"
-        ></div>
-
       </div>
+
+
+      <div
+        id="activityContent"
+        class="activity-list"
+      ></div>
 
     </section>
 
 
-    <!-- ===================================================
+    <!-- =========================
          PERFIL
-    ==================================================== -->
+    ========================== -->
     <section
       id="profilePage"
-      class="app-page hidden"
-      data-page-content="profile"
+      class="page-section hidden"
     >
 
+      <div class="profile-header">
+
+        <div
+          id="profileAvatar"
+          class="avatar-large"
+        >
+          👤
+        </div>
+
+        <div class="profile-info">
+
+          <small>
+            MI PERFIL
+          </small>
+
+          <h2 id="profileName">
+            Usuario
+          </h2>
+
+          <p id="profilePhone">
+            Teléfono no registrado
+          </p>
+
+          <p id="profileCedula">
+            Cédula: protegida
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <!-- ACCIONES DEL PERFIL -->
+      <div class="profile-actions">
+
+        <button
+          id="editProfileBtn"
+          class="primary-btn"
+          type="button"
+        >
+          ✏️ Editar perfil
+        </button>
+
+        <button
+          id="profileSettingsBtn"
+          class="secondary-btn"
+          type="button"
+        >
+          ⚙️ Configuración
+        </button>
+
+        <button
+          id="messengerProfileBtn"
+          class="secondary-btn"
+          type="button"
+        >
+          💬 Conectar Messenger
+        </button>
+
+      </div>
+
+
+      <!-- INFORMACIÓN -->
       <div class="page-card">
 
-        <div class="profile-header">
+        <h3>
+          Información de la cuenta
+        </h3>
 
-          <div
-            id="profileAvatar"
-            class="avatar-large"
-          >
-            👤
+        <div class="settings-list">
+
+          <div class="settings-row">
+            <span>👤 Nombre</span>
+            <strong id="profileNameInfo">
+              -
+            </strong>
           </div>
 
-          <div class="profile-info">
+          <div class="settings-row">
+            <span>📱 Número de teléfono</span>
+            <strong id="profilePhoneInfo">
+              -
+            </strong>
+          </div>
 
-            <small>
-              MI PERFIL
-            </small>
+          <div class="settings-row">
+            <span>🪪 Número de cédula</span>
+            <strong>
+              No editable
+            </strong>
+          </div>
 
-            <h2 id="profileName">
-              Usuario
-            </h2>
-
-            <p id="profilePhone">
-              Teléfono no configurado
-            </p>
-
+          <div class="settings-row">
+            <span>💬 Messenger</span>
+            <strong id="profileMessengerInfo">
+              No conectado
+            </strong>
           </div>
 
         </div>
 
+      </div>
 
-        <div class="profile-actions">
+
+      <!-- MIS PUBLICACIONES -->
+      <div class="page-card">
+
+        <h3>
+          Mis publicaciones
+        </h3>
+
+        <div
+          id="myProducts"
+          class="products-grid"
+        ></div>
+
+      </div>
+
+
+      <!-- CONFIGURACIÓN -->
+      <div
+        id="profileSettings"
+        class="page-card hidden"
+      >
+
+        <h3>
+          ⚙️ Configuración
+        </h3>
+
+        <p>
+          Personaliza tu experiencia en Market Flash.
+        </p>
+
+
+        <!-- ESTILO DE LA APLICACIÓN -->
+        <div class="settings-list">
 
           <button
-            id="editProfileBtn"
-            class="primary-btn"
-            type="button"
-          >
-            ✏️ Editar perfil
-          </button>
-
-          <button
-            id="settingsBtn"
+            id="appColorBtn"
             class="secondary-btn"
             type="button"
           >
-            ⚙️ Configuración
+            🎨 Cambiar color de la aplicación
           </button>
 
+
+          <!-- ESTILO DEL CHAT -->
           <button
-            id="adminPanelBtn"
-            class="admin-link"
+            id="chatStyleBtn"
+            class="secondary-btn"
             type="button"
           >
-            🛡️ Panel de administración
+            💬 Personalizar estilo del chat
           </button>
+
+
+          <!-- FONDO DEL CHAT -->
+          <button
+            id="chatBackgroundBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            🏞️ Cambiar fondo del chat
+          </button>
+
+
+          <!-- IMAGEN PERSONALIZADA -->
+          <button
+            id="chatCustomImageBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            📷 Subir imagen personalizada para el chat
+          </button>
+
+
+          <input
+            id="chatCustomImageInput"
+            type="file"
+            accept="image/*"
+            hidden
+          >
+
+
+          <!-- PAISAJES INTEGRADOS -->
+          <button
+            id="builtInLandscapeBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            🌴 Elegir paisaje de Market Flash
+          </button>
+
+        </div>
+
+
+        <!-- CAMBIAR TELÉFONO -->
+        <div class="form-card">
+
+          <h3>
+            📱 Cambiar número de teléfono
+          </h3>
+
+          <p>
+            Puedes actualizar solamente tu número de teléfono.
+            La cédula no puede modificarse.
+          </p>
+
+          <label>
+            Nuevo número de teléfono
+          </label>
+
+          <input
+            id="newPhoneInput"
+            type="tel"
+            placeholder="809-000-0000"
+          >
+
+          <button
+            id="savePhoneBtn"
+            class="primary-btn"
+            type="button"
+          >
+            Guardar número
+          </button>
+
+        </div>
+
+
+        <!-- MESSENGER -->
+        <div class="form-card">
+
+          <h3>
+            💬 Conectar con Messenger
+          </h3>
+
+          <p>
+            Agrega el enlace de tu perfil de Messenger
+            para que puedan contactarte.
+          </p>
+
+          <label>
+            Enlace de Messenger
+          </label>
+
+          <input
+            id="messengerLinkInput"
+            type="url"
+            placeholder="https://m.me/..."
+          >
+
+          <button
+            id="saveMessengerBtn"
+            class="primary-btn"
+            type="button"
+          >
+            Guardar enlace de Messenger
+          </button>
+
+        </div>
+
+
+        <!-- CAMBIAR CONTRASEÑA -->
+        <div class="form-card">
+
+          <h3>
+            🔐 Cambiar contraseña
+          </h3>
+
+          <input
+            id="currentPasswordInput"
+            type="password"
+            placeholder="Contraseña actual"
+          >
+
+          <input
+            id="newPasswordInput"
+            type="password"
+            placeholder="Nueva contraseña"
+          >
+
+          <button
+            id="changePasswordBtn"
+            class="primary-btn"
+            type="button"
+          >
+            Cambiar contraseña
+          </button>
+
+        </div>
+
+
+        <!-- ELIMINAR CUENTA -->
+        <div class="account-danger">
 
           <button
             id="deleteAccountBtn"
-            class="delete-account-btn"
+            class="danger-outline small-danger"
             type="button"
           >
             Eliminar cuenta
           </button>
-
-        </div>
-
-
-        <div class="profile-stats">
-
-          <div>
-            <strong id="profileProductsCount">0</strong>
-            <span>Publicaciones</span>
-          </div>
-
-          <div>
-            <strong id="profileViewsCount">0</strong>
-            <span>Vistas</span>
-          </div>
-
-          <div>
-            <strong id="profileLikesCount">0</strong>
-            <span>Me gusta</span>
-          </div>
 
         </div>
 
@@ -480,18 +584,42 @@
   </main>
 
 
-  <!-- =====================================================
-       BARRA INFERIOR
-       CHAT E INICIO INTERCAMBIADOS
-  ====================================================== -->
+  <!-- =========================
+       NAVEGACIÓN INFERIOR
+  ========================== -->
   <nav
     class="bottom-nav"
     aria-label="Navegación principal"
   >
 
-    <!-- INICIO: AHORA OCUPA EL PRIMER LUGAR -->
+    <!-- CHAT -->
     <button
       class="nav-item"
+      data-page="chat"
+      type="button"
+    >
+
+      <span>
+        💬
+      </span>
+
+      <small>
+        Chat
+      </small>
+
+      <b
+        id="chatBadge"
+        class="nav-badge hidden"
+      >
+        0
+      </b>
+
+    </button>
+
+
+    <!-- INICIO -->
+    <button
+      class="nav-item active"
       data-page="home"
       type="button"
     >
@@ -507,12 +635,12 @@
     </button>
 
 
-    <!-- BOTÓN PUBLICAR PRODUCTO GRATIS -->
+    <!-- PUBLICAR -->
     <button
       id="publishBtn"
       class="publish-plus"
       type="button"
-      aria-label="Publicar producto"
+      aria-label="Publicar"
     >
       ＋
     </button>
@@ -560,39 +688,14 @@
 
     </button>
 
-
-    <!-- CHAT: AHORA OCUPA EL LUGAR DEL INICIO -->
-    <button
-      class="nav-item"
-      data-page="chat"
-      type="button"
-    >
-
-      <span>
-        💬
-      </span>
-
-      <small>
-        Chat
-      </small>
-
-      <b
-        id="chatBadge"
-        class="nav-badge hidden"
-      >
-        0
-      </b>
-
-    </button>
-
   </nav>
 
 </div>
 
 
-<!-- =====================================================
+<!-- =========================
      MODAL PRINCIPAL
-====================================================== -->
+========================== -->
 <div
   id="modal"
   class="modal hidden"
@@ -607,58 +710,18 @@
 </div>
 
 
-<!-- =====================================================
-     INPUTS OCULTOS PARA FOTOS Y VIDEOS
-====================================================== -->
-
-<!-- Cámara -->
-<input
-  id="cameraInput"
-  class="file-input-hidden"
-  type="file"
-  accept="image/*"
-  capture="environment"
->
-
-<!-- Galería de fotos -->
-<input
-  id="galleryPhotoInput"
-  class="file-input-hidden"
-  type="file"
-  accept="image/*"
->
-
-<!-- Galería de videos -->
-<input
-  id="galleryVideoInput"
-  class="file-input-hidden"
-  type="file"
-  accept="video/*"
->
-
-<!-- Foto o video general -->
-<input
-  id="mediaInput"
-  class="file-input-hidden"
-  type="file"
-  accept="image/*,video/*"
-  multiple
->
-
-
-<!-- =====================================================
+<!-- =========================
      MENSAJE TEMPORAL
-====================================================== -->
+========================== -->
 <div
   id="toast"
   class="toast hidden"
-  role="status"
 ></div>
 
 
-<!-- =====================================================
+<!-- =========================
      JAVASCRIPT
-====================================================== -->
+========================== -->
 <script src="script.js"></script>
 
 </body>
