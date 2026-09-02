@@ -1,13 +1,28 @@
-/* =========================================
+/* =========================================================
    MARKET FLASH
-   DISEÑO RESPONSIVE 2028
-========================================= */
+   ESTILO PRINCIPAL
+   ========================================================= */
 
 * {
-    box-sizing: border-box;
     margin: 0;
     padding: 0;
-    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-main: #05070d;
+    --bg-secondary: #0a0e18;
+    --text-main: #f4f7ff;
+    --text-soft: #8f9ab0;
+    --line: rgba(255, 255, 255, 0.10);
+    --glass: rgba(255, 255, 255, 0.045);
+
+    --flash-blue: #35aaff;
+    --flash-cyan: #62f3ff;
+    --flash-violet: #8c6cff;
+
+    --shadow-blue: rgba(53, 170, 255, 0.22);
+    --shadow-violet: rgba(140, 108, 255, 0.18);
 }
 
 html,
@@ -17,461 +32,551 @@ body {
 }
 
 body {
-    min-height: 100vh;
-    min-height: 100dvh;
-    font-family: Arial, Helvetica, sans-serif;
-    background:
-        radial-gradient(circle at 50% 35%, #17254d 0%, #090d20 38%, #03050d 100%);
-    color: white;
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    background: var(--bg-main);
+    color: var(--text-main);
+
     overflow-x: hidden;
 }
 
 
-/* =========================================
-   PANTALLAS
-========================================= */
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+   ========================================================= */
 
-.pantalla {
+#app {
     width: 100%;
     min-height: 100vh;
-    min-height: 100dvh;
-
-    display: none;
     position: relative;
+}
 
-    justify-content: center;
-    align-items: center;
 
-    flex-direction: column;
+/* =========================================================
+   PANTALLAS
+   ========================================================= */
 
-    padding:
-        clamp(20px, 4vw, 60px)
-        clamp(16px, 5vw, 80px);
+.screen {
+    display: none;
+
+    width: 100%;
+    min-height: 100vh;
+
+    position: relative;
 
     overflow: hidden;
 }
 
-.pantalla.activa {
+.screen.active {
     display: flex;
 }
 
 
-/* =========================================
-   FONDO DIGITAL
-========================================= */
+/* =========================================================
+   PANTALLA DE BIENVENIDA
+   ========================================================= */
 
-.efecto-grid {
-    position: absolute;
-    inset: 0;
+#welcome-screen {
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
 
-    background-image:
-        linear-gradient(rgba(0, 220, 255, 0.055) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 220, 255, 0.055) 1px, transparent 1px);
-
-    background-size:
-        clamp(25px, 4vw, 55px)
-        clamp(25px, 4vw, 55px);
-
-    mask-image: linear-gradient(
-        to bottom,
-        transparent,
-        black 20%,
-        black 80%,
-        transparent
-    );
-
-    pointer-events: none;
-}
-
-.particulas {
-    position: absolute;
-    inset: 0;
+    padding: 30px;
 
     background:
-        radial-gradient(circle at 20% 20%, rgba(0, 238, 255, .15), transparent 18%),
-        radial-gradient(circle at 80% 30%, rgba(157, 0, 255, .14), transparent 20%),
-        radial-gradient(circle at 50% 90%, rgba(0, 128, 255, .12), transparent 20%);
+        radial-gradient(
+            circle at 50% 45%,
+            rgba(53, 170, 255, 0.07),
+            transparent 30%
+        ),
+        radial-gradient(
+            circle at 50% 80%,
+            rgba(140, 108, 255, 0.05),
+            transparent 35%
+        ),
+        var(--bg-main);
+}
+
+
+/* =========================================================
+   LUCES SUAVES DEL FONDO
+   ========================================================= */
+
+#welcome-screen::before,
+#welcome-screen::after {
+    content: "";
+
+    position: absolute;
+
+    width: 280px;
+    height: 280px;
+
+    border-radius: 50%;
+
+    filter: blur(100px);
+
+    opacity: 0.12;
 
     pointer-events: none;
+
+    animation: softPulse 5s ease-in-out infinite;
+}
+
+#welcome-screen::before {
+    background: var(--flash-blue);
+    top: 10%;
+    left: 15%;
+}
+
+#welcome-screen::after {
+    background: var(--flash-violet);
+    bottom: 10%;
+    right: 15%;
+
+    animation-delay: 2s;
+}
+
+@keyframes softPulse {
+    0%,
+    100% {
+        opacity: 0.08;
+        transform: scale(0.95);
+    }
+
+    50% {
+        opacity: 0.16;
+        transform: scale(1.05);
+    }
 }
 
 
-/* =========================================
-   LOGO
-========================================= */
+/* =========================================================
+   RAYO GRANDE DETRÁS DEL NOMBRE
+   ========================================================= */
 
-.logo-contenedor {
-    position: relative;
-    z-index: 5;
-
-    text-align: center;
-
-    width: min(900px, 100%);
-}
-
-.flash-detras {
+.background-lightning {
     position: absolute;
 
     left: 50%;
-    top: 50%;
+    top: 42%;
 
     transform: translate(-50%, -50%);
 
-    font-size: clamp(120px, 24vw, 330px);
+    font-size: clamp(180px, 30vw, 420px);
 
-    color: #00eaff;
+    line-height: 1;
 
-    opacity: .15;
-
-    filter:
-        drop-shadow(0 0 15px #00eaff)
-        drop-shadow(0 0 45px #00eaff)
-        drop-shadow(0 0 100px #00eaff);
-
-    z-index: -1;
-
-    animation: flashGrande 1.7s infinite;
-}
-
-.logo-market,
-.logo-flash {
-    position: relative;
-    font-weight: 900;
-    letter-spacing: clamp(3px, 1vw, 12px);
-    line-height: .9;
-}
-
-.logo-market {
-    font-size: clamp(42px, 10vw, 125px);
-
-    color: white;
+    color: rgba(53, 170, 255, 0.045);
 
     text-shadow:
-        0 0 8px white,
-        0 0 20px rgba(255,255,255,.5);
+        0 0 20px rgba(53, 170, 255, 0.10),
+        0 0 70px rgba(53, 170, 255, 0.08);
+
+    z-index: 0;
+
+    pointer-events: none;
+
+    animation: lightningGlow 4.5s ease-in-out infinite;
 }
 
-.logo-flash {
-    margin-top: 8px;
+@keyframes lightningGlow {
+    0%,
+    100% {
+        opacity: 0.45;
+        transform: translate(-50%, -50%) scale(0.98);
+    }
 
-    font-size: clamp(50px, 12vw, 145px);
-
-    color: #00eaff;
-
-    text-shadow:
-        0 0 8px #00eaff,
-        0 0 25px #00eaff,
-        0 0 55px #00eaff;
-
-    animation: textoFlash 1.8s infinite;
-}
-
-.subtitulo {
-    margin-top: clamp(18px, 3vw, 30px);
-
-    font-size: clamp(10px, 1.7vw, 18px);
-
-    letter-spacing: clamp(2px, .7vw, 7px);
-
-    color: rgba(255,255,255,.7);
+    50% {
+        opacity: 0.85;
+        transform: translate(-50%, -50%) scale(1.02);
+    }
 }
 
 
-/* =========================================
-   BOTONES PRINCIPALES
-========================================= */
+/* =========================================================
+   MARCA MARKET FLASH
+   ========================================================= */
 
-.botones-principales {
+.brand {
     position: relative;
-    z-index: 10;
+    z-index: 2;
 
-    display: flex;
+    text-align: center;
 
-    justify-content: center;
-    align-items: center;
-
-    gap: clamp(12px, 2vw, 25px);
-
-    width: min(650px, 100%);
-
-    margin-top: clamp(45px, 8vh, 90px);
+    margin-bottom: 55px;
 }
 
-.boton {
-    border: none;
-    outline: none;
-
-    cursor: pointer;
-
-    color: white;
+.brand h1 {
+    font-size: clamp(38px, 7vw, 78px);
 
     font-weight: 800;
 
-    letter-spacing: 1px;
+    letter-spacing: 0.08em;
 
-    transition:
-        transform .2s ease,
-        box-shadow .2s ease;
+    line-height: 1.05;
 
-    user-select: none;
-
-    touch-action: manipulation;
-}
-
-.boton:hover {
-    transform: translateY(-3px) scale(1.02);
-}
-
-.boton:active {
-    transform: scale(.96);
-}
-
-.botones-principales .boton {
-    width: 100%;
-    min-height: clamp(58px, 8vw, 78px);
-
-    padding: 15px 25px;
-
-    border-radius: 18px;
-
-    font-size: clamp(13px, 1.8vw, 19px);
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-}
-
-.boton-inicio {
-    background: linear-gradient(
-        135deg,
-        #00d9ff,
-        #0077ff
-    );
-
-    box-shadow:
-        0 0 12px rgba(0,220,255,.8),
-        0 0 35px rgba(0,140,255,.35);
-
-    animation: botonInicio 1.8s infinite;
-}
-
-.boton-registro {
-    background: linear-gradient(
-        135deg,
-        #8a2be2,
-        #00aaff
-    );
-
-    box-shadow:
-        0 0 12px rgba(170,50,255,.7),
-        0 0 35px rgba(0,180,255,.3);
-
-    animation: botonRegistro 2s infinite;
-}
-
-.rayo-boton {
-    font-size: 1.3em;
-
-    animation: rayoBoton .8s infinite;
-}
-
-
-/* =========================================
-   VENTANAS / FORMULARIOS
-========================================= */
-
-.ventana {
-    position: relative;
-    z-index: 20;
-
-    width: min(600px, 100%);
-
-    max-height: calc(100dvh - 40px);
-
-    overflow-y: auto;
-
-    padding: clamp(22px, 5vw, 45px);
-
-    border-radius: clamp(20px, 4vw, 32px);
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(20,31,65,.94),
-            rgba(5,10,28,.97)
-        );
-
-    border: 1px solid rgba(0,220,255,.25);
-
-    box-shadow:
-        0 0 25px rgba(0,220,255,.12),
-        inset 0 0 35px rgba(0,160,255,.04);
-
-    backdrop-filter: blur(18px);
-}
-
-.mini-logo {
-    text-align: center;
-
-    font-size: clamp(15px, 2vw, 22px);
-
-    font-weight: 900;
-
-    color: #00eaff;
-
-    letter-spacing: 2px;
-
-    margin-bottom: 25px;
+    color: var(--text-main);
 
     text-shadow:
-        0 0 10px #00eaff;
+        0 0 12px rgba(255, 255, 255, 0.08),
+        0 0 30px rgba(53, 170, 255, 0.12);
+
+    animation: brandGlow 4s ease-in-out infinite;
 }
 
-.ventana h2 {
-    text-align: center;
+.brand h1 span {
+    color: var(--flash-blue);
 
-    font-size: clamp(25px, 5vw, 42px);
+    text-shadow:
+        0 0 8px rgba(53, 170, 255, 0.45),
+        0 0 25px rgba(53, 170, 255, 0.25);
 
-    margin-bottom: 8px;
-
-    letter-spacing: 2px;
+    animation: flashText 3.5s ease-in-out infinite;
 }
 
-.descripcion {
-    text-align: center;
+@keyframes brandGlow {
+    0%,
+    100% {
+        opacity: 0.92;
+    }
 
-    color: rgba(255,255,255,.55);
-
-    font-size: clamp(12px, 2vw, 16px);
-
-    margin-bottom: 25px;
+    50% {
+        opacity: 1;
+    }
 }
 
-.formulario {
+@keyframes flashText {
+    0%,
+    100% {
+        opacity: 0.78;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+.brand p {
+    margin-top: 14px;
+
+    color: var(--text-soft);
+
+    font-size: clamp(12px, 2vw, 15px);
+
+    letter-spacing: 0.20em;
+
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   BOTONES PRINCIPALES
+   ========================================================= */
+
+.main-buttons {
+    position: relative;
+    z-index: 3;
+
+    width: min(420px, 100%);
+
     display: flex;
     flex-direction: column;
 
-    gap: 13px;
+    gap: 18px;
 }
 
-.formulario input {
+button {
+    font-family: inherit;
+}
+
+.primary-button,
+.secondary-button {
     width: 100%;
 
-    min-height: 55px;
+    min-height: 62px;
 
-    padding: 14px 17px;
+    border-radius: 16px;
 
-    border-radius: 14px;
-
-    border: 1px solid rgba(0,220,255,.2);
-
-    outline: none;
-
-    background: rgba(0,0,0,.3);
-
-    color: white;
-
-    font-size: 16px;
-
-    transition: .2s ease;
-}
-
-.formulario input::placeholder {
-    color: rgba(255,255,255,.4);
-}
-
-.formulario input:focus {
-    border-color: #00eaff;
-
-    box-shadow:
-        0 0 12px rgba(0,220,255,.3);
-
-    background: rgba(0,20,40,.5);
-}
-
-
-/* =========================================
-   BOTONES DE ACCIÓN
-========================================= */
-
-.boton-accion {
-    width: 100%;
-
-    min-height: 56px;
-
-    margin-top: 8px;
-
-    border-radius: 14px;
-
-    background: linear-gradient(
-        135deg,
-        #00eaff,
-        #0077ff
-    );
-
-    box-shadow:
-        0 0 15px rgba(0,220,255,.45);
+    padding: 14px 24px;
 
     font-size: 15px;
 
-    animation: botonAccion 2s infinite;
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease,
+        background 0.25s ease;
 }
 
-.boton-secundario {
-    width: 100%;
+.primary-button {
+    color: #ffffff;
 
-    min-height: 52px;
+    border: 1px solid rgba(53, 170, 255, 0.55);
 
-    border-radius: 14px;
-
-    background: rgba(255,255,255,.06);
-
-    border: 1px solid rgba(255,255,255,.15);
-
-    font-size: 14px;
-}
-
-.boton-salir {
-    width: 100%;
-
-    min-height: 55px;
-
-    border-radius: 14px;
-
-    background: linear-gradient(
-        135deg,
-        #ff2449,
-        #b00030
-    );
+    background:
+        linear-gradient(
+            135deg,
+            rgba(53, 170, 255, 0.18),
+            rgba(140, 108, 255, 0.12)
+        );
 
     box-shadow:
-        0 0 15px rgba(255,0,60,.25);
+        0 0 22px rgba(53, 170, 255, 0.12),
+        inset 0 0 20px rgba(53, 170, 255, 0.04);
+}
+
+.primary-button:hover {
+    transform: translateY(-2px);
+
+    border-color: rgba(98, 243, 255, 0.8);
+
+    box-shadow:
+        0 0 30px rgba(53, 170, 255, 0.22),
+        inset 0 0 25px rgba(53, 170, 255, 0.07);
+}
+
+.secondary-button {
+    color: #dce6f8;
+
+    border: 1px solid var(--line);
+
+    background: rgba(255, 255, 255, 0.035);
+
+    backdrop-filter: blur(12px);
+}
+
+.secondary-button:hover {
+    transform: translateY(-2px);
+
+    border-color: rgba(140, 108, 255, 0.45);
+
+    box-shadow:
+        0 0 25px rgba(140, 108, 255, 0.12);
+}
+
+.primary-button:active,
+.secondary-button:active {
+    transform: scale(0.98);
+}
+
+
+/* =========================================================
+   PANTALLAS DE FORMULARIO
+   ========================================================= */
+
+#login-screen,
+#register-screen {
+    align-items: center;
+    justify-content: center;
+
+    padding: 25px;
+
+    background:
+        radial-gradient(
+            circle at 50% 20%,
+            rgba(53, 170, 255, 0.06),
+            transparent 32%
+        ),
+        var(--bg-main);
+}
+
+.form-container {
+    width: min(450px, 100%);
+
+    padding: 38px;
+
+    border: 1px solid var(--line);
+
+    border-radius: 24px;
+
+    background: rgba(10, 14, 24, 0.78);
+
+    backdrop-filter: blur(20px);
+
+    box-shadow:
+        0 25px 80px rgba(0, 0, 0, 0.35),
+        0 0 35px rgba(53, 170, 255, 0.05);
+}
+
+.form-brand {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 10px;
+
+    margin-bottom: 28px;
+}
+
+.form-brand h2 {
+    font-size: 19px;
+
+    letter-spacing: 0.08em;
+}
+
+.mini-lightning {
+    color: var(--flash-blue);
+
+    text-shadow:
+        0 0 12px rgba(53, 170, 255, 0.55);
+}
+
+.form-container h3 {
+    text-align: center;
+
+    font-size: 27px;
+
+    margin-bottom: 8px;
+}
+
+.form-description {
+    text-align: center;
+
+    color: var(--text-soft);
 
     font-size: 14px;
+
+    margin-bottom: 30px;
 }
 
 
-/* =========================================
-   PANEL PRINCIPAL
-========================================= */
+/* =========================================================
+   CAMPOS
+   ========================================================= */
 
-.panel {
-    justify-content: flex-start;
-
-    align-items: stretch;
-
-    padding: 0;
+.input-group {
+    margin-bottom: 18px;
 }
 
-.barra-superior {
+.input-group label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    color: #c6d0e1;
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+.input-group input {
     width: 100%;
 
-    min-height: clamp(65px, 9vh, 90px);
+    height: 52px;
 
-    padding:
-        12px
-        clamp(15px, 4vw, 50px);
+    padding: 0 15px;
+
+    color: #ffffff;
+
+    border: 1px solid var(--line);
+
+    border-radius: 12px;
+
+    outline: none;
+
+    background: rgba(255, 255, 255, 0.035);
+
+    transition:
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        background 0.25s ease;
+}
+
+.input-group input::placeholder {
+    color: #69758a;
+}
+
+.input-group input:focus {
+    border-color: rgba(53, 170, 255, 0.55);
+
+    background: rgba(53, 170, 255, 0.035);
+
+    box-shadow:
+        0 0 20px rgba(53, 170, 255, 0.08);
+}
+
+.form-button {
+    margin-top: 8px;
+}
+
+
+/* =========================================================
+   BOTÓN VOLVER
+   ========================================================= */
+
+.back-button {
+    display: block;
+
+    margin: 22px auto 0;
+
+    padding: 8px 15px;
+
+    color: var(--text-soft);
+
+    border: none;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.back-button:hover {
+    color: #ffffff;
+
+    transform: translateX(-2px);
+}
+
+
+/* =========================================================
+   PANEL PRINCIPAL
+   ========================================================= */
+
+#dashboard-screen {
+    display: none;
+
+    flex-direction: column;
+
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            rgba(53, 170, 255, 0.06),
+            transparent 30%
+        ),
+        var(--bg-main);
+}
+
+#dashboard-screen.active {
+    display: flex;
+}
+
+
+/* =========================================================
+   CABECERA
+   ========================================================= */
+
+.dashboard-header {
+    width: 100%;
+
+    min-height: 74px;
+
+    padding: 0 25px;
 
     display: flex;
 
@@ -479,439 +584,351 @@ body {
 
     justify-content: space-between;
 
-    background: rgba(3,8,22,.78);
+    border-bottom: 1px solid var(--line);
 
-    border-bottom: 1px solid rgba(0,220,255,.18);
+    background: rgba(5, 7, 13, 0.75);
 
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(18px);
 
     position: relative;
-    z-index: 50;
+
+    z-index: 5;
 }
 
-.marca-panel {
-    font-size: clamp(17px, 3vw, 28px);
+.dashboard-brand {
+    display: flex;
 
-    font-weight: 900;
+    align-items: center;
 
-    letter-spacing: 1px;
+    gap: 9px;
 
-    color: white;
+    letter-spacing: 0.07em;
+}
+
+.dashboard-brand span {
+    color: var(--flash-blue);
 
     text-shadow:
-        0 0 10px rgba(0,220,255,.5);
+        0 0 12px rgba(53, 170, 255, 0.45);
 }
 
-.marca-panel span {
-    color: #00eaff;
+.settings-button {
+    width: 44px;
+    height: 44px;
 
-    animation: rayoBoton .8s infinite;
-}
+    color: #ffffff;
 
-.boton-configuracion {
-    width: clamp(44px, 7vw, 58px);
-    height: clamp(44px, 7vw, 58px);
+    border: 1px solid var(--line);
 
-    border-radius: 50%;
+    border-radius: 12px;
 
-    border: 1px solid rgba(0,220,255,.3);
-
-    background: rgba(0,220,255,.08);
-
-    color: white;
-
-    font-size: clamp(21px, 3vw, 28px);
+    background: rgba(255, 255, 255, 0.035);
 
     cursor: pointer;
 
-    transition: .2s ease;
+    font-size: 20px;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
 }
 
-.boton-configuracion:hover {
-    transform: rotate(25deg);
+.settings-button:hover {
+    transform: rotate(5deg);
+
+    border-color: rgba(53, 170, 255, 0.45);
 
     box-shadow:
-        0 0 20px rgba(0,220,255,.5);
+        0 0 18px rgba(53, 170, 255, 0.10);
 }
 
-.contenido-panel {
-    flex: 1;
 
-    width: 100%;
+/* =========================================================
+   CONTENIDO DEL PANEL
+   ========================================================= */
+
+.dashboard-content {
+    width: min(1100px, 100%);
+
+    margin: 0 auto;
+
+    padding: 55px 25px;
+}
+
+.dashboard-welcome p {
+    color: var(--text-soft);
+
+    font-size: 14px;
+
+    margin-bottom: 5px;
+}
+
+.dashboard-welcome h2 {
+    font-size: clamp(28px, 5vw, 42px);
+}
+
+.dashboard-placeholder {
+    margin-top: 45px;
+
+    min-height: 300px;
+
+    border: 1px solid var(--line);
+
+    border-radius: 24px;
 
     display: flex;
+
+    flex-direction: column;
 
     align-items: center;
 
     justify-content: center;
 
-    padding: clamp(20px, 5vw, 60px);
-}
-
-.tarjeta-bienvenida {
-    width: min(750px, 100%);
-
-    padding: clamp(30px, 7vw, 70px);
-
     text-align: center;
 
-    border-radius: 30px;
+    background: var(--glass);
 
-    background:
-        linear-gradient(
-            145deg,
-            rgba(10,30,65,.75),
-            rgba(5,8,25,.8)
-        );
-
-    border: 1px solid rgba(0,220,255,.2);
-
-    box-shadow:
-        0 0 40px rgba(0,220,255,.08);
+    backdrop-filter: blur(15px);
 }
 
-.rayo-panel {
-    font-size: clamp(55px, 10vw, 100px);
+.dashboard-lightning {
+    font-size: 55px;
 
-    color: #00eaff;
-
-    filter:
-        drop-shadow(0 0 15px #00eaff);
-
-    animation: flashGrande 1.7s infinite;
-}
-
-.tarjeta-bienvenida h1 {
-    font-size: clamp(30px, 7vw, 70px);
-
-    margin-top: 10px;
+    color: var(--flash-blue);
 
     text-shadow:
-        0 0 15px rgba(255,255,255,.3);
+        0 0 25px rgba(53, 170, 255, 0.35);
+
+    margin-bottom: 15px;
 }
 
-.tarjeta-bienvenida p {
-    margin-top: 15px;
+.dashboard-placeholder h3 {
+    font-size: 23px;
 
-    color: rgba(255,255,255,.6);
-
-    font-size: clamp(13px, 2vw, 18px);
+    margin-bottom: 8px;
 }
 
-.estado-sistema {
-    display: inline-block;
-
-    margin-top: 25px;
-
-    padding: 10px 18px;
-
-    border-radius: 30px;
-
-    border: 1px solid rgba(0,255,150,.4);
-
-    color: #62ffbd;
-
-    background: rgba(0,255,150,.05);
-
-    font-size: 11px;
-
-    letter-spacing: 2px;
-}
-
-
-/* =========================================
-   CONFIGURACIÓN
-========================================= */
-
-.configuracion {
-    width: min(560px, 100%);
-}
-
-.opciones-configuracion {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 15px;
-}
-
-.opcion {
-    display: flex;
-
-    align-items: center;
-
-    gap: 15px;
-
-    padding: 17px;
-
-    border-radius: 15px;
-
-    background: rgba(255,255,255,.04);
-
-    border: 1px solid rgba(255,255,255,.08);
-}
-
-.opcion > span {
-    font-size: 27px;
-}
-
-.opcion strong {
-    display: block;
+.dashboard-placeholder p {
+    color: var(--text-soft);
 
     font-size: 14px;
 }
 
-.opcion small {
-    display: block;
 
-    margin-top: 4px;
+/* =========================================================
+   PANEL DE CONFIGURACIÓN
+   ========================================================= */
 
-    color: rgba(255,255,255,.45);
+.settings-panel {
+    position: fixed;
+
+    top: 0;
+    right: 0;
+
+    width: min(360px, 88vw);
+
+    height: 100vh;
+
+    padding: 25px;
+
+    background: rgba(8, 12, 21, 0.96);
+
+    border-left: 1px solid var(--line);
+
+    backdrop-filter: blur(25px);
+
+    z-index: 20;
+
+    transform: translateX(100%);
+
+    transition: transform 0.3s ease;
+
+    box-shadow:
+        -20px 0 60px rgba(0, 0, 0, 0.30);
+}
+
+.settings-panel.open {
+    transform: translateX(0);
+}
+
+.settings-header {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    padding-bottom: 20px;
+
+    border-bottom: 1px solid var(--line);
+}
+
+.settings-header h3 {
+    font-size: 20px;
+}
+
+.settings-header button {
+    width: 38px;
+    height: 38px;
+
+    color: #ffffff;
+
+    border: 1px solid var(--line);
+
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.04);
+
+    cursor: pointer;
+
+    font-size: 24px;
+}
+
+.settings-options {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+    margin-top: 25px;
+}
+
+.settings-options button {
+    width: 100%;
+
+    padding: 16px;
+
+    text-align: left;
+
+    color: #dce5f4;
+
+    border: 1px solid var(--line);
+
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.035);
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.settings-options button:hover {
+    background: rgba(53, 170, 255, 0.06);
+
+    border-color: rgba(53, 170, 255, 0.25);
 }
 
 
-/* =========================================
-   PROPIEDAD
-========================================= */
+/* =========================================================
+   ADAPTACIÓN PARA TELÉFONOS
+   ========================================================= */
 
-.propiedad {
-    position: absolute;
+@media (max-width: 600px) {
 
-    right: clamp(10px, 2vw, 25px);
-    bottom: clamp(8px, 2vw, 18px);
-
-    z-index: 100;
-
-    font-size: clamp(8px, 1vw, 11px);
-
-    color: rgba(255,255,255,.35);
-
-    letter-spacing: .5px;
-
-    text-align: right;
-}
-
-
-/* =========================================
-   ANIMACIONES
-========================================= */
-
-@keyframes flashGrande {
-
-    0%,
-    100% {
-        opacity: .08;
-        transform: translate(-50%, -50%) scale(.92);
+    #welcome-screen {
+        padding: 22px;
     }
 
-    50% {
-        opacity: .28;
-        transform: translate(-50%, -50%) scale(1.08);
-    }
-}
-
-@keyframes textoFlash {
-
-    0%,
-    100% {
-        opacity: .75;
+    .brand {
+        margin-bottom: 42px;
     }
 
-    50% {
-        opacity: 1;
-        filter:
-            drop-shadow(0 0 20px #00eaff);
-    }
-}
-
-@keyframes rayoBoton {
-
-    0%,
-    100% {
-        opacity: .55;
-        transform: scale(.95);
+    .brand h1 {
+        letter-spacing: 0.045em;
     }
 
-    50% {
-        opacity: 1;
-        transform: scale(1.12);
-        filter:
-            drop-shadow(0 0 8px currentColor);
-    }
-}
-
-@keyframes botonInicio {
-
-    0%,
-    100% {
-        box-shadow:
-            0 0 12px rgba(0,220,255,.7),
-            0 0 30px rgba(0,140,255,.25);
+    .brand p {
+        letter-spacing: 0.12em;
     }
 
-    50% {
-        box-shadow:
-            0 0 25px rgba(0,220,255,1),
-            0 0 55px rgba(0,140,255,.45);
-    }
-}
-
-@keyframes botonRegistro {
-
-    0%,
-    100% {
-        box-shadow:
-            0 0 12px rgba(170,50,255,.6),
-            0 0 30px rgba(0,180,255,.2);
+    .background-lightning {
+        font-size: 240px;
     }
 
-    50% {
-        box-shadow:
-            0 0 25px rgba(170,50,255,1),
-            0 0 55px rgba(0,180,255,.4);
-    }
-}
+    .form-container {
+        padding: 28px 22px;
 
-@keyframes botonAccion {
-
-    0%,
-    100% {
-        box-shadow:
-            0 0 12px rgba(0,220,255,.35);
+        border-radius: 20px;
     }
 
-    50% {
-        box-shadow:
-            0 0 25px rgba(0,220,255,.75);
-    }
-}
-
-
-/* =========================================
-   TABLET
-========================================= */
-
-@media (max-width: 800px) {
-
-    .botones-principales {
-        flex-direction: column;
-
-        width: min(430px, 100%);
+    .dashboard-header {
+        padding: 0 17px;
     }
 
-    .botones-principales .boton {
-        width: 100%;
+    .dashboard-content {
+        padding: 40px 17px;
     }
 
-    .ventana {
-        width: 100%;
-    }
-}
-
-
-/* =========================================
-   TELÉFONOS
-========================================= */
-
-@media (max-width: 480px) {
-
-    .pantalla {
-        padding:
-            18px
-            14px;
-    }
-
-    .logo-market {
-        letter-spacing: 3px;
-    }
-
-    .logo-flash {
-        letter-spacing: 4px;
-    }
-
-    .subtitulo {
-        letter-spacing: 2px;
-        line-height: 1.5;
-    }
-
-    .botones-principales {
-        margin-top: 42px;
-    }
-
-    .ventana {
-        padding: 22px 16px;
-
-        border-radius: 22px;
-    }
-
-    .formulario {
-        gap: 11px;
-    }
-
-    .formulario input {
-        min-height: 53px;
-    }
-
-    .marca-panel {
-        font-size: 16px;
-    }
-
-    .tarjeta-bienvenida {
-        border-radius: 22px;
-    }
-
-    .propiedad {
-        font-size: 8px;
+    .dashboard-placeholder {
+        min-height: 260px;
     }
 }
 
 
-/* =========================================
-   TELÉFONOS MUY PEQUEÑOS
-========================================= */
+/* =========================================================
+   PANTALLAS MUY PEQUEÑAS
+   ========================================================= */
 
-@media (max-height: 650px) and (max-width: 480px) {
+@media (max-width: 360px) {
 
-    .pantalla {
-        padding-top: 12px;
-        padding-bottom: 12px;
+    .brand h1 {
+        font-size: 32px;
     }
 
-    .botones-principales {
-        margin-top: 25px;
+    .main-buttons {
+        gap: 13px;
     }
 
-    .botones-principales .boton {
-        min-height: 52px;
+    .primary-button,
+    .secondary-button {
+        min-height: 56px;
     }
 
-    .ventana {
-        max-height: calc(100dvh - 25px);
-
-        padding: 18px 14px;
-    }
-
-    .mini-logo {
-        margin-bottom: 15px;
-    }
-
-    .ventana h2 {
-        font-size: 24px;
+    .form-container {
+        padding: 23px 17px;
     }
 }
 
 
-/* =========================================
-   PANTALLAS GRANDES / LAPTOP
-========================================= */
+/* =========================================================
+   PANTALLAS GRANDES
+   ========================================================= */
 
 @media (min-width: 1200px) {
 
-    .botones-principales {
-        max-width: 700px;
+    #welcome-screen {
+        padding-top: 20px;
     }
 
-    .botones-principales .boton {
-        min-height: 75px;
+    .brand {
+        margin-bottom: 60px;
+    }
+
+    .main-buttons {
+        width: 430px;
+    }
+}
+
+
+/* =========================================================
+   REDUCIR ANIMACIONES SI EL DISPOSITIVO LO SOLICITA
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+
+        scroll-behavior: auto !important;
+
+        transition-duration: 0.01ms !important;
     }
 }
