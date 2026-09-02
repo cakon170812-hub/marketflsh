@@ -1,3301 +1,3756 @@
 /* =========================================================
    MARKET FLASH — SCRIPT.JS
+   Versión frontend completa
    ========================================================= */
 
-const STORAGE_USER = 'mf_user';
-const STORAGE_PRODUCTS = 'mf_products_v2';
-const STORAGE_ADS = 'mf_ads_v2';
-const STORAGE_CONFIG = 'mf_config_v2';
-const STORAGE_MESSAGES = 'mf_messages_v2';
-const STORAGE_STATS = 'mf_stats_v2';
-const STORAGE_CLAIMS = 'mf_claims_v2';
-const STORAGE_SANCTIONS = 'mf_sanctions_v2';
+"use strict";
 
-let user = JSON.parse(localStorage.getItem(STORAGE_USER) || 'null');
-let products = JSON.parse(localStorage.getItem(STORAGE_PRODUCTS) || 'null');
-let ads = JSON.parse(localStorage.getItem(STORAGE_ADS) || '[]');
-let messages = JSON.parse(localStorage.getItem(STORAGE_MESSAGES) || '[]');
-let claims = JSON.parse(localStorage.getItem(STORAGE_CLAIMS) || '[]');
-let sanctions = JSON.parse(localStorage.getItem(STORAGE_SANCTIONS) || '[]');
+/* =========================
+   CONFIGURACIÓN
+========================= */
 
-let currentCategory = 'Todos';
-let flashIndex = 0;
-let flashTimer = null;
+const STORAGE = {
+  user: "mf_user",
+  products: "mf_products_v2",
+  ads: "mf_ads_v2",
+  config: "mf_config_v2",
+  messages: "mf_messages_v2",
+  claims: "mf_claims_v2",
+  sanctions: "mf_sanctions_v2",
+  stats: "mf_stats_v2"
+};
 
+const DEFAULT_CONFIG = {
+  adminPassword: "MarketFlash2026!",
+  siteName: "Market Flash",
+  tagline: "Encuentra lo que necesitas",
+  currency: "RD$",
 
-/* =========================================================
-   PRODUCTOS INICIALES
-   ========================================================= */
-
-const seedProducts = [
-  {
-    id: 1,
-    name: 'iPhone 15 Pro',
-    category: 'Celulares',
-    price: 45000,
-    location: 'Santo Domingo',
-    seller: 'Market Flash',
-    description: 'iPhone 15 Pro en excelente condición.',
-    image: 'https://images.unsplash.com/photo-1696446702183-cbd13d5f2e88?auto=format&fit=crop&w=900&q=80',
-    views: 1284,
-    likes: 86,
-    ranking: 5,
-    sold: false,
-    sellerConfirmed: false,
-    buyerConfirmed: false
+  plans: {
+    cheap: {
+      name: "Flash Básico",
+      price: 250
+    },
+    normal: {
+      name: "Flash Destacado",
+      price: 500
+    },
+    pro: {
+      name: "Flash Premium",
+      price: 1000
+    }
   },
-  {
-    id: 2,
-    name: 'Samsung Galaxy S24',
-    category: 'Celulares',
-    price: 38000,
-    location: 'Santiago',
-    seller: 'Tecnología RD',
-    description: 'Samsung Galaxy S24 totalmente funcional.',
-    image: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?auto=format&fit=crop&w=900&q=80',
-    views: 743,
-    likes: 51,
-    ranking: 5,
-    sold: false,
-    sellerConfirmed: false,
-    buyerConfirmed: false
+
+  payments: {
+    "Banco Popular": {
+      enabled: true,
+      account: "Configurar cuenta",
+      cheap: 250,
+      normal: 500,
+      pro: 1000
+    },
+
+    "Banreservas": {
+      enabled: true,
+      account: "Configurar cuenta",
+      cheap: 250,
+      normal: 500,
+      pro: 1000
+    },
+
+    "Binance": {
+      enabled: true,
+      account: "Configurar cuenta",
+      cheap: 250,
+      normal: 500,
+      pro: 1000
+    },
+
+    "PayPal": {
+      enabled: true,
+      account: "Configurar cuenta",
+      cheap: 250,
+      normal: 500,
+      pro: 1000
+    }
   },
-  {
-    id: 3,
-    name: 'Laptop profesional',
-    category: 'Computadoras',
-    price: 52000,
-    location: 'Santo Domingo',
-    seller: 'Tech Store',
-    description: 'Laptop profesional para trabajo y estudio.',
-    image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=80',
-    views: 491,
-    likes: 29,
-    ranking: 4,
-    sold: false,
-    sellerConfirmed: false,
-    buyerConfirmed: false
-  },
-  {
-    id: 4,
-    name: 'PlayStation 5',
-    category: 'Videojuegos',
-    price: 32000,
-    location: 'Santo Domingo Este',
-    seller: 'Gaming RD',
-    description: 'PlayStation 5 en buen estado.',
-    image: 'https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=900&q=80',
-    views: 952,
-    likes: 73,
-    ranking: 5,
-    sold: false,
-    sellerConfirmed: false,
-    buyerConfirmed: false
+
+  panel: {
+    compact: false,
+    rounded: true,
+    animations: true
   }
-];
+};
 
-if (!products) {
-  products = seedProducts;
-  saveProducts();
+/* =========================
+   UTILIDADES
+========================= */
+
+function getJSON(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value ? JSON.parse(value) : fallback;
+  } catch (error) {
+    return fallback;
+  }
 }
 
-
-/* =========================================================
-   CONFIGURACIÓN
-   ========================================================= */
+function saveJSON(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
 
 function getConfig() {
-  const saved = JSON.parse(localStorage.getItem(STORAGE_CONFIG) || 'null');
+  const stored = getJSON(STORAGE.config, null);
 
-  if (saved) {
-    return saved;
+  if (!stored) {
+    saveJSON(STORAGE.config, DEFAULT_CONFIG);
+    return structuredClone(DEFAULT_CONFIG);
   }
 
-  const config = {
-    adminPassword: 'MarketFlash2026!',
-
-    panel: {
-      compact: false,
-      notifications: true,
-      animations: true,
-      darkMode: false
-    },
-
-    advertising: {
-      enabled: true
-    },
-
+  return {
+    ...DEFAULT_CONFIG,
+    ...stored,
     plans: {
-      cheap: {
-        name: 'Económico',
-        description: 'Publicidad básica',
-        price: 500
-      },
-      normal: {
-        name: 'Normal',
-        description: 'Más visibilidad',
-        price: 1000
-      },
-      pro: {
-        name: 'PRO',
-        description: 'Máxima visibilidad',
-        price: 2000
-      }
+      ...DEFAULT_CONFIG.plans,
+      ...(stored.plans || {})
     },
-
-    paymentMethods: {
-      popular: {
-        name: 'Banco Popular',
-        enabled: true,
-        account: ''
-      },
-
-      banreservas: {
-        name: 'Banreservas',
-        enabled: true,
-        account: ''
-      },
-
-      binance: {
-        name: 'Binance',
-        enabled: true,
-        account: ''
-      },
-
-      paypal: {
-        name: 'PayPal',
-        enabled: true,
-        account: ''
-      }
+    payments: {
+      ...DEFAULT_CONFIG.payments,
+      ...(stored.payments || {})
+    },
+    panel: {
+      ...DEFAULT_CONFIG.panel,
+      ...(stored.panel || {})
     }
   };
-
-  localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
-
-  return config;
 }
 
-function saveConfig(config) {
-  localStorage.setItem(STORAGE_CONFIG, JSON.stringify(config));
+function currentUser() {
+  return getJSON(STORAGE.user, null);
 }
 
-
-/* =========================================================
-   UTILIDADES
-   ========================================================= */
-
-function saveProducts() {
-  localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
-}
-
-function saveAds() {
-  try {
-    localStorage.setItem(STORAGE_ADS, JSON.stringify(ads));
-  } catch (error) {
-    console.error(error);
-    toast('No se pudo guardar el archivo. Puede ser demasiado grande.');
+function setCurrentUser(user) {
+  if (user) {
+    saveJSON(STORAGE.user, user);
+  } else {
+    localStorage.removeItem(STORAGE.user);
   }
 }
 
-function saveMessages() {
-  localStorage.setItem(STORAGE_MESSAGES, JSON.stringify(messages));
+function uid(prefix = "mf") {
+  return prefix + "_" + Date.now() + "_" +
+    Math.random().toString(36).slice(2, 9);
 }
 
-function saveClaims() {
-  localStorage.setItem(STORAGE_CLAIMS, JSON.stringify(claims));
-}
-
-function saveSanctions() {
-  localStorage.setItem(STORAGE_SANCTIONS, JSON.stringify(sanctions));
-}
-
-function getStats() {
-  const saved = JSON.parse(localStorage.getItem(STORAGE_STATS) || 'null');
-
-  if (saved) return saved;
-
-  const stats = {
-    registeredTotal: user ? 1 : 0,
-    deletedTotal: 0
-  };
-
-  localStorage.setItem(STORAGE_STATS, JSON.stringify(stats));
-
-  return stats;
-}
-
-function saveStats(stats) {
-  localStorage.setItem(STORAGE_STATS, JSON.stringify(stats));
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function money(value) {
-  return new Intl.NumberFormat('es-DO', {
-    style: 'currency',
-    currency: 'DOP',
-    maximumFractionDigits: 0
-  }).format(Number(value) || 0);
+  const config = getConfig();
+  return config.currency + " " +
+    Number(value || 0).toLocaleString("es-DO");
 }
 
-function escapeHtml(value) {
-  return String(value ?? '').replace(/[&<>"']/g, function (char) {
-    return {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    }[char];
+function formatDate(date) {
+  return new Date(date).toLocaleString("es-DO", {
+    dateStyle: "short",
+    timeStyle: "short"
   });
 }
 
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+function toast(message, type = "") {
+  const el = document.getElementById("toast");
 
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
+  if (!el) return;
 
-    reader.readAsDataURL(file);
-  });
+  el.textContent = message;
+  el.className = "toast " + type;
+
+  clearTimeout(window.__mfToastTimer);
+
+  window.__mfToastTimer = setTimeout(() => {
+    el.className = "toast hidden";
+  }, 3000);
 }
 
-function toast(message) {
-  const element = document.getElementById('toast');
-
-  if (!element) {
-    alert(message);
-    return;
-  }
-
-  element.textContent = message;
-  element.classList.remove('hidden');
-
-  clearTimeout(window.marketFlashToast);
-
-  window.marketFlashToast = setTimeout(() => {
-    element.classList.add('hidden');
-  }, 2800);
-}
-
-function showModal(html) {
-  const modal = document.getElementById('modal');
-  const card = document.getElementById('modalCard');
-
-  if (!modal || !card) return;
+function openModal(html) {
+  const modal = document.getElementById("modal");
+  const card = document.getElementById("modalCard");
 
   card.innerHTML = html;
-  modal.classList.remove('hidden');
+  modal.classList.remove("hidden");
+
+  document.body.classList.add("modal-open");
 }
 
 function closeModal() {
-  const modal = document.getElementById('modal');
-  const card = document.getElementById('modalCard');
+  const modal = document.getElementById("modal");
 
-  if (modal) modal.classList.add('hidden');
-  if (card) card.innerHTML = '';
+  if (!modal) return;
+
+  modal.classList.add("hidden");
+  document.body.classList.remove("modal-open");
 }
 
-function getLoggedUserName() {
-  return user ? user.name : '';
+function randomId() {
+  return Math.floor(Math.random() * 999999);
 }
 
+/* =========================
+   DATOS INICIALES
+========================= */
 
-/* =========================================================
+function seedData() {
+  let products = getJSON(STORAGE.products, null);
+
+  if (!products) {
+    products = [
+      {
+        id: uid("product"),
+        title: "iPhone 15 Pro",
+        category: "Celulares",
+        price: 52000,
+        description: "iPhone 15 Pro en excelentes condiciones.",
+        image:
+          "https://images.unsplash.com/photo-1696446701796-da61225697cc?auto=format&fit=crop&w=900&q=80",
+        seller: "Vendedor Market Flash",
+        sellerId: "demo_seller_1",
+        views: 0,
+        likes: 0,
+        sold: false,
+        buyerConfirmed: false,
+        sellerConfirmed: false,
+        createdAt: Date.now()
+      },
+
+      {
+        id: uid("product"),
+        title: "Samsung Galaxy S24",
+        category: "Celulares",
+        price: 41000,
+        description: "Samsung Galaxy S24. Excelente equipo.",
+        image:
+          "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=900&q=80",
+        seller: "Tecnología Flash",
+        sellerId: "demo_seller_2",
+        views: 0,
+        likes: 0,
+        sold: false,
+        buyerConfirmed: false,
+        sellerConfirmed: false,
+        createdAt: Date.now()
+      },
+
+      {
+        id: uid("product"),
+        title: "Laptop",
+        category: "Computadoras",
+        price: 35000,
+        description: "Laptop para trabajo, estudios y entretenimiento.",
+        image:
+          "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=80",
+        seller: "Market Flash",
+        sellerId: "demo_seller_3",
+        views: 0,
+        likes: 0,
+        sold: false,
+        buyerConfirmed: false,
+        sellerConfirmed: false,
+        createdAt: Date.now()
+      },
+
+      {
+        id: uid("product"),
+        title: "PlayStation 5",
+        category: "Videojuegos",
+        price: 39000,
+        description: "PS5 en muy buen estado.",
+        image:
+          "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=900&q=80",
+        seller: "Game Flash",
+        sellerId: "demo_seller_4",
+        views: 0,
+        likes: 0,
+        sold: false,
+        buyerConfirmed: false,
+        sellerConfirmed: false,
+        createdAt: Date.now()
+      }
+    ];
+
+    saveJSON(STORAGE.products, products);
+  }
+
+  if (!localStorage.getItem(STORAGE.ads)) {
+    saveJSON(STORAGE.ads, []);
+  }
+
+  if (!localStorage.getItem(STORAGE.messages)) {
+    saveJSON(STORAGE.messages, []);
+  }
+
+  if (!localStorage.getItem(STORAGE.claims)) {
+    saveJSON(STORAGE.claims, []);
+  }
+
+  if (!localStorage.getItem(STORAGE.sanctions)) {
+    saveJSON(STORAGE.sanctions, []);
+  }
+
+  if (!localStorage.getItem(STORAGE.stats)) {
+    saveJSON(STORAGE.stats, {
+      totalViews: 0,
+      totalLikes: 0,
+      totalAds: 0,
+      totalUsers: 0
+    });
+  }
+}
+
+/* =========================
+   NAVEGACIÓN
+========================= */
+
+let currentPage = "home";
+let currentCategory = "Todos";
+let searchTerm = "";
+
+function setActiveNav(page) {
+  document.querySelectorAll(".nav-item").forEach(button => {
+    button.classList.toggle(
+      "active",
+      button.dataset.page === page
+    );
+  });
+}
+
+function goPage(page) {
+  currentPage = page;
+  setActiveNav(page);
+
+  if (page === "home") {
+    renderHome();
+  }
+
+  if (page === "chat") {
+    renderChat();
+  }
+
+  if (page === "activity") {
+    renderActivity();
+  }
+
+  if (page === "profile") {
+    renderProfile();
+  }
+}
+
+/* =========================
    INICIO
-   ========================================================= */
+========================= */
 
-function renderCategories() {
-  const row = document.getElementById('categoryRow');
+function renderHome() {
+  const main = document.getElementById("mainContent");
 
-  if (!row) return;
+  if (!main) return;
 
-  const categories = [
-    ['Todos', 'Todos'],
-    ['Celulares', '📱 Celulares'],
-    ['Computadoras', '💻 Computadoras'],
-    ['Videojuegos', '🎮 Videojuegos'],
-    ['Ropa', '👕 Ropa'],
-    ['Hogar', '🏠 Hogar'],
-    ['Vehículos', '🚗 Vehículos']
-  ];
-
-  row.innerHTML = categories.map(([value, label]) => `
-    <button
-      class="chip ${currentCategory === value ? 'active' : ''}"
-      onclick="setCategory('${value}')">
-      ${label}
-    </button>
-  `).join('');
-}
-
-function setCategory(category) {
-  currentCategory = category;
-
-  renderCategories();
-  renderProducts();
-}
-
-function renderProducts() {
-  const grid = document.getElementById('productsGrid');
-
-  if (!grid) return;
-
-  const searchElement = document.getElementById('searchInput');
-
-  const search = searchElement
-    ? searchElement.value.trim().toLowerCase()
-    : '';
-
-  const visibleProducts = products.filter(product => {
-    const categoryMatch =
-      currentCategory === 'Todos' ||
-      product.category === currentCategory;
-
-    const searchMatch =
-      !search ||
-      String(product.name).toLowerCase().includes(search) ||
-      String(product.category).toLowerCase().includes(search) ||
-      String(product.location).toLowerCase().includes(search);
-
-    return categoryMatch && searchMatch && !product.sold;
-  });
-
-  const count = document.getElementById('productCount');
-
-  if (count) {
-    count.textContent =
-      `${visibleProducts.length} ${visibleProducts.length === 1 ? 'producto' : 'productos'}`;
-  }
-
-  if (!visibleProducts.length) {
-    grid.innerHTML = `
-      <div class="empty-state">
-        <div style="font-size:45px">🔎</div>
-        <h3>No encontramos productos</h3>
-        <p>Prueba con otra búsqueda o categoría.</p>
+  main.innerHTML = `
+    <section class="hero">
+      <div>
+        <small>MARKET FLASH</small>
+        <h1>Encuentra lo que necesitas</h1>
+        <p>Compra, vende y conecta con personas de tu zona.</p>
       </div>
-    `;
+    </section>
 
-    return;
-  }
-
-  grid.innerHTML = visibleProducts.map(product => `
-    <article class="product-card" onclick="openProduct(${product.id})">
-
-      <div class="product-image-wrap">
-        <img
-          src="${escapeHtml(product.image)}"
-          alt="${escapeHtml(product.name)}"
-          class="product-image"
-        >
-      </div>
-
-      <div class="product-body">
-
-        <div class="product-category">
-          ${escapeHtml(product.category)}
-        </div>
-
-        <h3>${escapeHtml(product.name)}</h3>
-
-        <strong class="product-price">
-          ${money(product.price)}
-        </strong>
-
-        <div class="product-location">
-          📍 ${escapeHtml(product.location)}
-        </div>
-
-        <div class="product-stats">
-          <span>👁️ ${product.views || 0}</span>
-          <span>❤️ ${product.likes || 0}</span>
-          <span>⭐ ${product.ranking || 0}</span>
-        </div>
-
-      </div>
-
-    </article>
-  `).join('');
-}
-
-
-/* =========================================================
-   PRODUCTO
-   ========================================================= */
-
-function openProduct(id) {
-  const product = products.find(item => item.id === id);
-
-  if (!product) return;
-
-  product.views = Number(product.views || 0) + 1;
-
-  saveProducts();
-
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="closeModal()">←</button>
-      <h2>${escapeHtml(product.name)}</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <div class="product-detail">
-
-      <img
-        src="${escapeHtml(product.image)}"
-        alt="${escapeHtml(product.name)}"
-        class="detail-image"
-      >
-
-      <div class="detail-category">
-        ${escapeHtml(product.category)}
-      </div>
-
-      <h1>${escapeHtml(product.name)}</h1>
-
-      <div class="detail-price">
-        ${money(product.price)}
-      </div>
-
-      <p class="detail-description">
-        ${escapeHtml(product.description || 'Sin descripción.')}
-      </p>
-
-      <div class="detail-info">
-        <div>📍 ${escapeHtml(product.location)}</div>
-        <div>👤 ${escapeHtml(product.seller)}</div>
-        <div>👁️ ${product.views || 0} vistas</div>
-        <div>❤️ ${product.likes || 0} me gusta</div>
-        <div>⭐ Ranking del vendedor: ${product.ranking || 0}/5</div>
-      </div>
-
-      <div class="action-grid">
-
-        <button class="primary" onclick="startChat('${escapeHtml(product.seller)}', ${product.id})">
-          💬 Chat
-        </button>
-
-        <button class="primary whatsapp" onclick="contactWhatsApp(${product.id})">
-          🟢 WhatsApp
-        </button>
-
-        <button class="primary messenger" onclick="contactMessenger(${product.id})">
-          🔵 Messenger
-        </button>
-
-        <button class="secondary" onclick="likeProduct(${product.id})">
-          ❤️ Me gusta
-        </button>
-
-        <button class="danger" onclick="openClaim(${product.id})">
-          🚨 Reclamar
-        </button>
-
-      </div>
-
-      ${
-        product.buyerConfirmed
-          ? `<div class="notice success">✅ El comprador marcó este producto como comprado.</div>`
-          : ''
-      }
-
-      ${
-        product.sellerConfirmed
-          ? `<div class="notice success">✅ El vendedor marcó este producto como vendido.</div>`
-          : ''
-      }
-
-    </div>
-  `);
-}
-
-function likeProduct(id) {
-  const product = products.find(item => item.id === id);
-
-  if (!product) return;
-
-  product.likes = Number(product.likes || 0) + 1;
-
-  saveProducts();
-  renderProducts();
-
-  toast('❤️ Me gusta registrado');
-}
-
-function contactWhatsApp(id) {
-  const product = products.find(item => item.id === id);
-
-  if (!product) return;
-
-  const seller = product.whatsapp || '';
-
-  if (!seller) {
-    toast('El vendedor todavía no tiene WhatsApp configurado.');
-    return;
-  }
-
-  const number = String(seller).replace(/\D/g, '');
-
-  window.open(
-    `https://wa.me/${number}?text=${encodeURIComponent(
-      `Hola, vi "${product.name}" en Market Flash.`
-    )}`,
-    '_blank'
-  );
-}
-
-function contactMessenger(id) {
-  const product = products.find(item => item.id === id);
-
-  if (!product) return;
-
-  if (product.messenger) {
-    window.open(product.messenger, '_blank');
-    return;
-  }
-
-  toast('El vendedor todavía no tiene Messenger configurado.');
-}
-
-
-/* =========================================================
-   PUBLICAR PRODUCTO
-   ========================================================= */
-
-function openPublish() {
-  if (!user) {
-    loginRequired('Para publicar necesitas crear una cuenta.');
-    return;
-  }
-
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="closeModal()">←</button>
-      <h2>➕ Publicar</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <form id="publishForm" class="form">
-
-      <div class="field">
-        <label>📦 Nombre del producto</label>
-        <input id="publishName" required placeholder="Ej. iPhone 15 Pro">
-      </div>
-
-      <div class="field">
-        <label>🏷️ Categoría</label>
-        <select id="publishCategory" required>
-          <option value="Celulares">Celulares</option>
-          <option value="Computadoras">Computadoras</option>
-          <option value="Videojuegos">Videojuegos</option>
-          <option value="Ropa">Ropa</option>
-          <option value="Hogar">Hogar</option>
-          <option value="Vehículos">Vehículos</option>
-          <option value="Otros">Otros</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>💰 Precio</label>
-        <input id="publishPrice" type="number" min="0" required>
-      </div>
-
-      <div class="field">
-        <label>📍 Ubicación</label>
-        <input id="publishLocation" required placeholder="Santo Domingo">
-      </div>
-
-      <div class="field">
-        <label>📝 Descripción</label>
-        <textarea id="publishDescription" rows="4" required></textarea>
-      </div>
-
-      <div class="field">
-        <label>🖼️ Foto</label>
-        <input id="publishImage" type="file" accept="image/*" required>
-      </div>
-
-      <button class="primary" type="submit">
-        🚀 Publicar producto
-      </button>
-
-    </form>
-  `);
-
-  document.getElementById('publishForm').addEventListener('submit', publishProduct);
-}
-
-async function publishProduct(event) {
-  event.preventDefault();
-
-  const file = document.getElementById('publishImage').files[0];
-
-  if (!file) {
-    toast('Selecciona una foto.');
-    return;
-  }
-
-  try {
-    const image = await fileToDataUrl(file);
-
-    const product = {
-      id: Date.now(),
-      name: document.getElementById('publishName').value.trim(),
-      category: document.getElementById('publishCategory').value,
-      price: Number(document.getElementById('publishPrice').value),
-      location: document.getElementById('publishLocation').value.trim(),
-      description: document.getElementById('publishDescription').value.trim(),
-      image,
-      seller: user.name,
-      whatsapp: user.whatsapp || '',
-      messenger: user.messenger || '',
-      views: 0,
-      likes: 0,
-      ranking: 5,
-      sold: false,
-      sellerConfirmed: false,
-      buyerConfirmed: false,
-      createdAt: new Date().toISOString()
-    };
-
-    products.unshift(product);
-
-    saveProducts();
-    closeModal();
-    renderProducts();
-
-    toast('✅ Producto publicado correctamente');
-
-  } catch (error) {
-    console.error(error);
-    toast('No se pudo publicar el producto.');
-  }
-}
-
-
-/* =========================================================
-   LOGIN / REGISTRO
-   ========================================================= */
-
-function loginRequired(message) {
-  showModal(`
-    <div class="modal-header">
-      <h2>🔐 Cuenta necesaria</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <div class="notice">
-      ${escapeHtml(message)}
-    </div>
-
-    <button class="primary" onclick="register()">
-      📝 Crear cuenta
-    </button>
-
-    <button class="secondary" onclick="login()">
-      🔑 Iniciar sesión
-    </button>
-  `);
-}
-
-function register() {
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="closeModal()">←</button>
-      <h2>📝 Crear cuenta</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <form id="registerForm" class="form">
-
-      <div class="field">
-        <label>👤 Nombre completo</label>
-        <input id="registerName" required>
-      </div>
-
-      <div class="field">
-        <label>🪪 Número de cédula</label>
-        <input id="registerCedula" required>
-      </div>
-
-      <div class="field">
-        <label>📱 WhatsApp</label>
-        <input id="registerWhatsapp" type="tel" required>
-      </div>
-
-      <div class="field">
-        <label>📧 Correo</label>
-        <input id="registerEmail" type="email">
-      </div>
-
-      <div class="field">
-        <label>🔐 Contraseña</label>
-        <input id="registerPassword" type="password" minlength="6" required>
-      </div>
-
-      <button class="primary">
-        Crear cuenta
-      </button>
-
-    </form>
-  `);
-
-  document.getElementById('registerForm').addEventListener('submit', function (event) {
-    event.preventDefault();
-
-    const newUser = {
-      id: Date.now(),
-      name: document.getElementById('registerName').value.trim(),
-      cedula: document.getElementById('registerCedula').value.trim(),
-      whatsapp: document.getElementById('registerWhatsapp').value.trim(),
-      email: document.getElementById('registerEmail').value.trim(),
-      password: document.getElementById('registerPassword').value,
-      createdAt: new Date().toISOString(),
-      ranking: 5,
-      photo: ''
-    };
-
-    user = newUser;
-
-    localStorage.setItem(STORAGE_USER, JSON.stringify(user));
-
-    const stats = getStats();
-    stats.registeredTotal = Number(stats.registeredTotal || 0) + 1;
-    saveStats(stats);
-
-    closeModal();
-
-    toast('✅ Cuenta creada correctamente');
-
-    updateBadges();
-  });
-}
-
-function login() {
-  showModal(`
-    <div class="modal-header">
-      <h2>🔑 Iniciar sesión</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <form id="loginForm" class="form">
-
-      <div class="field">
-        <label>📱 WhatsApp</label>
-        <input id="loginWhatsapp" required>
-      </div>
-
-      <div class="field">
-        <label>🔐 Contraseña</label>
-        <input id="loginPassword" type="password" required>
-      </div>
-
-      <button class="primary">
-        Entrar
-      </button>
-
-    </form>
-  `);
-
-  document.getElementById('loginForm').addEventListener('submit', function (event) {
-    event.preventDefault();
-
-    const whatsapp = document.getElementById('loginWhatsapp').value.trim();
-    const password = document.getElementById('loginPassword').value;
-
-    const savedUser = JSON.parse(localStorage.getItem(STORAGE_USER) || 'null');
-
-    if (
-      savedUser &&
-      savedUser.whatsapp === whatsapp &&
-      savedUser.password === password
-    ) {
-      user = savedUser;
-
-      closeModal();
-
-      toast('✅ Bienvenido a Market Flash');
-
-      updateBadges();
-
-    } else {
-      toast('❌ Datos incorrectos');
-    }
-  });
-}
-
-
-/* =========================================================
-   PERFIL
-   ========================================================= */
-
-function openProfile() {
-  if (!user) {
-    loginRequired('Inicia sesión para acceder a tu perfil.');
-    return;
-  }
-
-  showModal(`
-    <div class="modal-header">
-      <h2>👤 Mi perfil</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <div class="profile">
-
-      ${
-        user.photo
-          ? `<img src="${user.photo}" class="profile-photo" alt="Foto">`
-          : `<div class="avatar">👤</div>`
-      }
-
-      <h2>${escapeHtml(user.name)}</h2>
-
-      <p class="muted">
-        ⭐ Ranking ${user.ranking || 5}/5
-      </p>
-
-      <div class="profile-menu">
-
-        <button class="menu-button" onclick="editProfile()">
-          ✏️ Editar perfil
-        </button>
-
-        <button class="menu-button" onclick="editProfilePhoto()">
-          📷 Foto de perfil
-        </button>
-
-        <button class="menu-button" onclick="openActivity()">
-          📊 Mi actividad
-        </button>
-
-        <button class="menu-button" onclick="settings()">
-          ⚙️ Configuración
-        </button>
-
-        <button class="menu-button" onclick="logout()">
-          🚪 Cerrar sesión
-        </button>
-
-      </div>
-
-    </div>
-  `);
-}
-
-function editProfile() {
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="openProfile()">←</button>
-      <h2>✏️ Editar perfil</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <form id="editProfileForm" class="form">
-
-      <div class="field">
-        <label>👤 Nombre</label>
-        <input id="editName" value="${escapeHtml(user.name)}" required>
-      </div>
-
-      <div class="field">
-        <label>📱 WhatsApp</label>
-        <input id="editWhatsapp" value="${escapeHtml(user.whatsapp || '')}" required>
-      </div>
-
-      <div class="field">
-        <label>📧 Correo</label>
-        <input id="editEmail" type="email" value="${escapeHtml(user.email || '')}">
-      </div>
-
-      <button class="primary">
-        💾 Guardar cambios
-      </button>
-
-    </form>
-  `);
-
-  document.getElementById('editProfileForm').addEventListener('submit', function (event) {
-    event.preventDefault();
-
-    user.name = document.getElementById('editName').value.trim();
-    user.whatsapp = document.getElementById('editWhatsapp').value.trim();
-    user.email = document.getElementById('editEmail').value.trim();
-
-    localStorage.setItem(STORAGE_USER, JSON.stringify(user));
-
-    products.forEach(product => {
-      if (product.seller === user.name) {
-        product.whatsapp = user.whatsapp;
-      }
-    });
-
-    saveProducts();
-
-    openProfile();
-
-    toast('✅ Perfil actualizado');
-  });
-}
-
-function editProfilePhoto() {
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="openProfile()">←</button>
-      <h2>📷 Foto de perfil</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <div class="profile">
-
-      ${
-        user.photo
-          ? `<img id="profilePreview" src="${user.photo}" class="profile-photo" alt="Foto">`
-          : `<div id="profilePreview" class="avatar">👤</div>`
-      }
-
-      <p class="muted">
-        Toma una foto o selecciona una de tu galería.
-      </p>
-
-      <div class="action-grid">
-
-        <button
-          class="secondary"
-          onclick="document.getElementById('profileCamera').click()">
-          📷 Cámara
-        </button>
-
-        <button
-          class="secondary"
-          onclick="document.getElementById('profileGallery').click()">
-          🖼️ Galería
-        </button>
-
-      </div>
-
-      <input
-        id="profileCamera"
-        type="file"
-        accept="image/*"
-        capture="user"
-        hidden
-      >
-
-      <input
-        id="profileGallery"
-        type="file"
-        accept="image/*"
-        hidden
-      >
-
-    </div>
-  `);
-
-  document.getElementById('profileCamera')
-    .addEventListener('change', handleProfilePhoto);
-
-  document.getElementById('profileGallery')
-    .addEventListener('change', handleProfilePhoto);
-}
-
-async function handleProfilePhoto(event) {
-  const file = event.target.files?.[0];
-
-  if (!file) return;
-
-  if (!file.type.startsWith('image/')) {
-    toast('Selecciona una imagen válida.');
-    return;
-  }
-
-  try {
-    user.photo = await fileToDataUrl(file);
-
-    localStorage.setItem(STORAGE_USER, JSON.stringify(user));
-
-    toast('✅ Foto actualizada');
-
-    openProfile();
-
-  } catch (error) {
-    console.error(error);
-    toast('No se pudo guardar la foto.');
-  }
-}
-
-function logout() {
-  user = null;
-  localStorage.removeItem(STORAGE_USER);
-
-  closeModal();
-
-  toast('👋 Sesión cerrada');
-}
-
-
-/* =========================================================
-   CONFIGURACIÓN DE USUARIO
-   ========================================================= */
-
-function settings() {
-  if (!user) return;
-
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="openProfile()">←</button>
-      <h2>⚙️ Configuración</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <div class="profile-menu">
-
-      <button class="menu-button" onclick="changePassword()">
-        🔐 Cambiar contraseña
-      </button>
-
-      <button class="menu-button" onclick="securityPage()">
-        🛡️ Seguridad
-      </button>
-
-      <button class="menu-button danger" onclick="deleteAccount()">
-        🗑️ Eliminar cuenta
-      </button>
-
-    </div>
-  `);
-}
-
-function changePassword() {
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="settings()">←</button>
-      <h2>🔐 Cambiar contraseña</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <form id="changePasswordForm" class="form">
-
-      <div class="field">
-        <label>Contraseña actual</label>
-        <input id="oldPassword" type="password" required>
-      </div>
-
-      <div class="field">
-        <label>Nueva contraseña</label>
-        <input id="newPassword" type="password" minlength="6" required>
-      </div>
-
-      <button class="primary">
-        Cambiar contraseña
-      </button>
-
-    </form>
-  `);
-
-  document.getElementById('changePasswordForm')
-    .addEventListener('submit', function (event) {
-      event.preventDefault();
-
-      const oldPassword =
-        document.getElementById('oldPassword').value;
-
-      const newPassword =
-        document.getElementById('newPassword').value;
-
-      if (oldPassword !== user.password) {
-        toast('❌ La contraseña actual es incorrecta.');
-        return;
-      }
-
-      user.password = newPassword;
-
-      localStorage.setItem(STORAGE_USER, JSON.stringify(user));
-
-      settings();
-
-      toast('✅ Contraseña actualizada');
-    });
-}
-
-function securityPage() {
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="settings()">←</button>
-      <h2>🛡️ Seguridad</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <div class="notice">
-      Market Flash protege las funciones principales de tu cuenta.
-    </div>
-
-    <div class="card">
-      <strong>📱 WhatsApp</strong>
-      <p>${escapeHtml(user.whatsapp || 'No configurado')}</p>
-    </div>
-
-    <div class="card">
-      <strong>📧 Correo</strong>
-      <p>${escapeHtml(user.email || 'No configurado')}</p>
-    </div>
-
-    <div class="card">
-      <strong>🪪 Cédula</strong>
-      <p>${escapeHtml(user.cedula || 'No registrada')}</p>
-    </div>
-  `);
-}
-
-function deleteAccount() {
-  if (!user) return;
-
-  const confirmation = confirm(
-    '¿Seguro que deseas eliminar tu cuenta?'
-  );
-
-  if (!confirmation) return;
-
-  const stats = getStats();
-
-  stats.deletedTotal =
-    Number(stats.deletedTotal || 0) + 1;
-
-  saveStats(stats);
-
-  localStorage.removeItem(STORAGE_USER);
-
-  user = null;
-
-  closeModal();
-
-  toast('🗑️ Cuenta eliminada');
-}
-
-
-/* =========================================================
-   ACTIVIDAD
-   ========================================================= */
-
-function openActivity() {
-  if (!user) {
-    loginRequired('Inicia sesión para ver tu actividad.');
-    return;
-  }
-
-  const mine = products.filter(
-    product => product.seller === user.name
-  );
-
-  showModal(`
-    <div class="modal-header">
-      <h2>📊 Actividad</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <div class="stats-grid">
-
-      <div class="stat-card">
-        <strong>${mine.length}</strong>
-        <span>Publicaciones</span>
-      </div>
-
-      <div class="stat-card">
-        <strong>
-          ${mine.reduce((sum, p) => sum + Number(p.views || 0), 0)}
-        </strong>
-        <span>Vistas</span>
-      </div>
-
-      <div class="stat-card">
-        <strong>
-          ${mine.reduce((sum, p) => sum + Number(p.likes || 0), 0)}
-        </strong>
-        <span>Me gusta</span>
-      </div>
-
-      <div class="stat-card">
-        <strong>${user.ranking || 5}/5</strong>
-        <span>Ranking</span>
-      </div>
-
-    </div>
-
-    <h3 style="margin-top:20px">Mis publicaciones</h3>
-
-    ${
-      mine.length
-        ? mine.map(product => `
-          <div class="card" style="margin-top:10px">
-
-            <strong>${escapeHtml(product.name)}</strong>
-
-            <p>${money(product.price)}</p>
-
-            <p class="muted">
-              👁️ ${product.views || 0}
-              · ❤️ ${product.likes || 0}
-            </p>
-
-            ${
-              product.sold
-                ? `<div class="notice success">✅ Vendido</div>`
-                : `
-                  <button
-                    class="primary"
-                    style="margin-top:8px"
-                    onclick="markSold(${product.id})">
-                    🏷️ Marcar como vendido
-                  </button>
-                `
-            }
-
-          </div>
-        `).join('')
-        : `<div class="empty-state">Todavía no tienes publicaciones.</div>`
-    }
-  `);
-}
-
-function markSold(id) {
-  const product = products.find(item => item.id === id);
-
-  if (!product) return;
-
-  product.sellerConfirmed = true;
-
-  checkSaleConfirmation(product);
-
-  saveProducts();
-
-  openActivity();
-
-  toast(
-    product.sold
-      ? '✅ Venta confirmada por ambas partes'
-      : '🕐 Esperando confirmación del comprador'
-  );
-}
-
-function markBought(id) {
-  const product = products.find(item => item.id === id);
-
-  if (!product) return;
-
-  product.buyerConfirmed = true;
-
-  checkSaleConfirmation(product);
-
-  saveProducts();
-
-  closeModal();
-
-  toast(
-    product.sold
-      ? '✅ Compra confirmada por ambas partes'
-      : '🕐 Esperando confirmación del vendedor'
-  );
-}
-
-function checkSaleConfirmation(product) {
-  if (product.sellerConfirmed && product.buyerConfirmed) {
-    product.sold = true;
-  }
-}
-
-
-/* =========================================================
-   CHAT
-   ========================================================= */
-
-function startChat(seller, productId) {
-  if (!user) {
-    loginRequired('Inicia sesión para usar el chat.');
-    return;
-  }
-
-  openChat(seller, productId);
-}
-
-function openChat(seller, productId) {
-  const conversation = messages.filter(message =>
-    (
-      message.from === user.name &&
-      message.to === seller
-    ) ||
-    (
-      message.from === seller &&
-      message.to === user.name
-    )
-  );
-
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="openProduct(${productId})">←</button>
-      <h2>💬 Chat con ${escapeHtml(seller)}</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <div class="chat-window">
-
-      <div class="chat-messages">
-
-        ${
-          conversation.length
-            ? conversation.map(message => `
-              <div class="chat-message ${
-                message.from === user.name
-                  ? 'mine'
-                  : 'theirs'
-              }">
-                <div>${escapeHtml(message.text)}</div>
-                <small>${escapeHtml(message.from)}</small>
-              </div>
-            `).join('')
-            : `
-              <div class="chat-empty">
-                💬<br>
-                Comienza la conversación.
-              </div>
-            `
-        }
-
-      </div>
-
-      <form id="chatForm" class="chat-form">
-
-        <input
-          id="chatText"
-          placeholder="Escribe un mensaje..."
-          required
-        >
-
-        <button class="primary">
-          ➤
-        </button>
-
-      </form>
-
-      <button
-        class="danger"
-        style="margin-top:10px"
-        onclick="openClaim(${productId}, '${escapeHtml(seller)}')">
-        🚨 Reclamar
-      </button>
-
-      <button
-        class="secondary"
-        style="margin-top:8px"
-        onclick="markBought(${productId})">
-        🛒 Marcar como comprado
-      </button>
-
-    </div>
-  `);
-
-  document.getElementById('chatForm').addEventListener(
-    'submit',
-    function (event) {
-      event.preventDefault();
-
-      const text =
-        document.getElementById('chatText').value.trim();
-
-      if (!text) return;
-
-      messages.push({
-        id: Date.now(),
-        from: user.name,
-        to: seller,
-        productId,
-        text,
-        read: false,
-        createdAt: new Date().toISOString()
-      });
-
-      saveMessages();
-
-      openChat(seller, productId);
-    }
-  );
-}
-
-
-/* =========================================================
-   RECLAMOS
-   ========================================================= */
-
-function openClaim(productId, seller) {
-  if (!user) {
-    loginRequired('Inicia sesión para presentar una reclamación.');
-    return;
-  }
-
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="openChat('${escapeHtml(seller)}', ${productId})">←</button>
-      <h2>🚨 Reclamar</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <form id="claimForm" class="form">
-
-      <div class="notice">
-        Tu reclamación será enviada al administrador.
-      </div>
-
-      <div class="field">
-        <label>Motivo</label>
-        <textarea
-          id="claimReason"
-          rows="5"
-          required
-          placeholder="Explica lo ocurrido..."
-        ></textarea>
-      </div>
-
-      <div class="field">
-        <label>📸 Evidencia</label>
-        <input
-          id="claimEvidence"
-          type="file"
-          accept="image/*"
-        >
-      </div>
-
-      <button class="danger">
-        🚨 Enviar reclamación
-      </button>
-
-    </form>
-  `);
-
-  document.getElementById('claimForm')
-    .addEventListener('submit', async function (event) {
-      event.preventDefault();
-
-      const reason =
-        document.getElementById('claimReason').value.trim();
-
-      const file =
-        document.getElementById('claimEvidence').files[0];
-
-      let evidence = '';
-
-      if (file) {
-        evidence = await fileToDataUrl(file);
-      }
-
-      claims.push({
-        id: Date.now(),
-        user: user.name,
-        productId,
-        seller,
-        reason,
-        evidence,
-        status: 'pendiente',
-        createdAt: new Date().toISOString()
-      });
-
-      saveClaims();
-
-      closeModal();
-
-      toast('🚨 Reclamo enviado al administrador');
-    });
-}
-
-
-/* =========================================================
-   PUBLICIDAD — FLASH DEL DÍA
-   ========================================================= */
-
-function openAdvertising() {
-  if (!user) {
-    loginRequired(
-      'Para publicar publicidad necesitas una cuenta.'
-    );
-    return;
-  }
-
-  const config = getConfig();
-
-  const plans = config.plans;
-
-  const methods =
-    Object.entries(config.paymentMethods)
-      .filter(([, method]) => method.enabled);
-
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="closeModal()">←</button>
-      <h2>⚡ Flash del Día</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <form id="advertisingForm" class="form">
-
-      <div class="notice">
-        Publica tu negocio en la zona destacada de Market Flash.
-      </div>
-
-      <div class="field">
-        <label>📸 Foto o vídeo</label>
-
-        <input
-          id="adMedia"
-          type="file"
-          accept="image/*,video/*"
-          capture
-          required
-        >
-      </div>
-
-      <div id="adMediaPreview" class="ad-preview">
-        Selecciona una foto o vídeo
-      </div>
-
-      <div class="field">
-        <label>🏷️ Título</label>
-        <input id="adTitle" required placeholder="Nombre de tu negocio">
-      </div>
-
-      <div class="field">
-        <label>📝 Descripción</label>
-        <textarea
-          id="adDescription"
-          rows="4"
-          required
-          placeholder="Describe tu promoción..."
-        ></textarea>
-      </div>
-
-      <h3>💎 Selecciona tu plan</h3>
-
-      <div class="plan-grid">
-
-        <label class="plan-card">
-          <input
-            type="radio"
-            name="adPlan"
-            value="cheap"
-            checked
-          >
-          <strong>${escapeHtml(plans.cheap.name)}</strong>
-          <span>${escapeHtml(plans.cheap.description)}</span>
-          <b>${money(plans.cheap.price)}</b>
-        </label>
-
-        <label class="plan-card">
-          <input
-            type="radio"
-            name="adPlan"
-            value="normal"
-          >
-          <strong>${escapeHtml(plans.normal.name)}</strong>
-          <span>${escapeHtml(plans.normal.description)}</span>
-          <b>${money(plans.normal.price)}</b>
-        </label>
-
-        <label class="plan-card">
-          <input
-            type="radio"
-            name="adPlan"
-            value="pro"
-          >
-          <strong>${escapeHtml(plans.pro.name)}</strong>
-          <span>${escapeHtml(plans.pro.description)}</span>
-          <b>${money(plans.pro.price)}</b>
-        </label>
-
-      </div>
-
-      <h3>💳 Método de pago</h3>
-
-      <div class="payment-options">
-
-        ${
-          methods.length
-            ? methods.map(([key, method], index) => `
-              <label class="payment-option">
-
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="${key}"
-                  ${index === 0 ? 'checked' : ''}
-                >
-
-                <strong>
-                  ${escapeHtml(method.name)}
-                </strong>
-
-                <small>
-                  ${escapeHtml(method.account || 'Cuenta no configurada')}
-                </small>
-
-              </label>
-            `).join('')
-            : `<div class="notice">No hay métodos de pago habilitados.</div>`
-        }
-
-      </div>
-
-      <div class="field">
-        <label>🧾 Comprobante de pago</label>
-        <input
-          id="adProof"
-          type="file"
-          accept="image/*"
-        >
-      </div>
-
-      <button class="primary" type="submit">
-        🚀 Enviar publicidad
-      </button>
-
-    </form>
-  `);
-
-  const mediaInput = document.getElementById('adMedia');
-
-  mediaInput.addEventListener('change', function () {
-    const file = mediaInput.files[0];
-    const preview = document.getElementById('adMediaPreview');
-
-    if (!file) return;
-
-    const url = URL.createObjectURL(file);
-
-    if (file.type.startsWith('video/')) {
-      preview.innerHTML = `
-        <video
-          src="${url}"
-          controls
-          muted
-          playsinline
-          style="width:100%;max-height:360px">
-        </video>
-      `;
-    } else {
-      preview.innerHTML = `
-        <img
-          src="${url}"
-          alt="Vista previa"
-          style="width:100%;max-height:360px;object-fit:cover">
-      `;
-    }
-  });
-
-  document.getElementById('advertisingForm')
-    .addEventListener('submit', submitAdvertising);
-}
-
-async function submitAdvertising(event) {
-  event.preventDefault();
-
-  const mediaFile =
-    document.getElementById('adMedia').files[0];
-
-  if (!mediaFile) {
-    toast('Selecciona una foto o vídeo.');
-    return;
-  }
-
-  const plan =
-    document.querySelector(
-      'input[name="adPlan"]:checked'
-    )?.value || 'cheap';
-
-  const payment =
-    document.querySelector(
-      'input[name="paymentMethod"]:checked'
-    )?.value || '';
-
-  const proofFile =
-    document.getElementById('adProof').files[0];
-
-  try {
-    const media = await fileToDataUrl(mediaFile);
-
-    let proof = '';
-
-    if (proofFile) {
-      proof = await fileToDataUrl(proofFile);
-    }
-
-    const config = getConfig();
-
-    const ad = {
-      id: Date.now(),
-      user: user.name,
-      userId: user.id,
-      title: document.getElementById('adTitle').value.trim(),
-      description: document.getElementById('adDescription').value.trim(),
-      media,
-      mediaType: mediaFile.type.startsWith('video/')
-        ? 'video'
-        : 'image',
-      plan,
-      paymentMethod: payment,
-      paymentProof: proof,
-      price: config.plans[plan].price,
-      status: 'pendiente',
-      createdAt: new Date().toISOString()
-    };
-
-    ads.unshift(ad);
-
-    saveAds();
-
-    closeModal();
-
-    toast(
-      '✅ Publicidad enviada. Esperando aprobación del administrador.'
-    );
-
-    updateBadges();
-
-  } catch (error) {
-    console.error(error);
-    toast('No se pudo enviar la publicidad.');
-  }
-}
-
-
-/* =========================================================
-   MOSTRAR FLASH DEL DÍA
-   ========================================================= */
-
-function getApprovedAds() {
-  return ads
-    .filter(ad => ad.status === 'aprobado')
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt || 0) -
-        new Date(a.createdAt || 0)
-    );
-}
-
-function renderFlashDay() {
-  const button = document.getElementById('flashDayBtn');
-
-  if (!button) return;
-
-  const approved = getApprovedAds();
-
-  if (!approved.length) {
-    button.innerHTML = `
+    <button id="flashDayBtn" class="flash-day" type="button">
       <div class="flash-icon">⚡</div>
 
       <div class="flash-copy">
         <span>PUBLICIDAD</span>
         <strong>Publicación Flash del Día</strong>
-        <small>
-          Descubre anuncios destacados y oportunidades.
-        </small>
+        <small>Descubre anuncios destacados y oportunidades.</small>
       </div>
 
       <div class="arrow">›</div>
+    </button>
+
+    <div class="section-title">
+      <h2>Publicaciones</h2>
+      <span id="productCount"></span>
+    </div>
+
+    <div id="categoryRow" class="chips"></div>
+
+    <section id="productsGrid" class="products-grid"></section>
+  `;
+
+  document
+    .getElementById("flashDayBtn")
+    ?.addEventListener("click", showFlashDay);
+
+  renderCategories();
+  renderProducts();
+}
+
+/* =========================
+   CATEGORÍAS
+========================= */
+
+function renderCategories() {
+  const products = getJSON(STORAGE.products, []);
+  const categories = [
+    "Todos",
+    ...new Set(
+      products.map(product => product.category).filter(Boolean)
+    )
+  ];
+
+  const row = document.getElementById("categoryRow");
+
+  if (!row) return;
+
+  row.innerHTML = categories.map(category => `
+    <button
+      class="chip ${currentCategory === category ? "active" : ""}"
+      data-category="${escapeHTML(category)}"
+    >
+      ${escapeHTML(category)}
+    </button>
+  `).join("");
+
+  row.querySelectorAll(".chip").forEach(button => {
+    button.addEventListener("click", () => {
+      currentCategory = button.dataset.category;
+      renderCategories();
+      renderProducts();
+    });
+  });
+}
+
+/* =========================
+   PRODUCTOS
+========================= */
+
+function renderProducts() {
+  const grid = document.getElementById("productsGrid");
+  const count = document.getElementById("productCount");
+
+  if (!grid) return;
+
+  let products = getJSON(STORAGE.products, []);
+
+  products = products.filter(product => !product.sold);
+
+  if (currentCategory !== "Todos") {
+    products = products.filter(
+      product => product.category === currentCategory
+    );
+  }
+
+  if (searchTerm.trim()) {
+    const query = searchTerm.toLowerCase();
+
+    products = products.filter(product =>
+      `${product.title} ${product.description} ${product.category} ${product.seller}`
+        .toLowerCase()
+        .includes(query)
+    );
+  }
+
+  if (count) {
+    count.textContent = products.length + " publicación" +
+      (products.length === 1 ? "" : "es");
+  }
+
+  if (!products.length) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div>🔎</div>
+        <h3>No encontramos publicaciones</h3>
+        <p>Prueba otra búsqueda o categoría.</p>
+      </div>
     `;
+    return;
+  }
+
+  grid.innerHTML = products.map(product => `
+    <article class="product-card">
+
+      <button
+        class="product-image-btn"
+        data-product="${product.id}"
+        type="button"
+      >
+        <img
+          src="${escapeHTML(product.image)}"
+          alt="${escapeHTML(product.title)}"
+          loading="lazy"
+        >
+      </button>
+
+      <div class="product-body">
+
+        <div class="product-category">
+          ${escapeHTML(product.category)}
+        </div>
+
+        <h3>${escapeHTML(product.title)}</h3>
+
+        <strong class="product-price">
+          ${money(product.price)}
+        </strong>
+
+        <p>
+          ${escapeHTML(product.description)}
+        </p>
+
+        <div class="product-meta">
+          <span>👁 ${product.views || 0}</span>
+          <span>❤️ ${product.likes || 0}</span>
+        </div>
+
+        <div class="seller-line">
+          <span>👤 ${escapeHTML(product.seller)}</span>
+        </div>
+
+        <button
+          class="primary-btn open-product"
+          data-product="${product.id}"
+          type="button"
+        >
+          Ver publicación
+        </button>
+
+      </div>
+
+    </article>
+  `).join("");
+
+  grid.querySelectorAll("[data-product]").forEach(button => {
+    button.addEventListener("click", () => {
+      openProduct(button.dataset.product);
+    });
+  });
+}
+
+/* =========================
+   DETALLE PRODUCTO
+========================= */
+
+function openProduct(productId) {
+  const products = getJSON(STORAGE.products, []);
+  const product = products.find(item => item.id === productId);
+
+  if (!product) return;
+
+  product.views = Number(product.views || 0) + 1;
+
+  saveJSON(STORAGE.products, products);
+
+  const stats = getJSON(STORAGE.stats, {});
+  stats.totalViews = Number(stats.totalViews || 0) + 1;
+  saveJSON(STORAGE.stats, stats);
+
+  openModal(`
+    <div class="modal-header">
+      <button class="close-modal" id="closeProduct">×</button>
+      <h2>${escapeHTML(product.title)}</h2>
+    </div>
+
+    <div class="product-detail">
+
+      <img
+        class="detail-image"
+        src="${escapeHTML(product.image)}"
+        alt="${escapeHTML(product.title)}"
+      >
+
+      <div class="detail-category">
+        ${escapeHTML(product.category)}
+      </div>
+
+      <h1>${escapeHTML(product.title)}</h1>
+
+      <div class="detail-price">
+        ${money(product.price)}
+      </div>
+
+      <p>${escapeHTML(product.description)}</p>
+
+      <div class="detail-info">
+        <span>👁 ${product.views || 0} vistas</span>
+        <span>❤️ ${product.likes || 0} me gusta</span>
+      </div>
+
+      <div class="seller-card">
+        <strong>Vendedor</strong>
+        <span>${escapeHTML(product.seller)}</span>
+        <small>⭐ Buena reputación</small>
+      </div>
+
+      <div class="action-stack">
+
+        <button
+          class="primary-btn"
+          id="chatSeller"
+        >
+          💬 Chatear con vendedor
+        </button>
+
+        <button
+          class="secondary-btn"
+          id="whatsappSeller"
+        >
+          WhatsApp
+        </button>
+
+        <button
+          class="secondary-btn"
+          id="messengerSeller"
+        >
+          Messenger
+        </button>
+
+        <button
+          class="secondary-btn"
+          id="likeProduct"
+        >
+          ❤️ Me gusta
+        </button>
+
+        <button
+          class="danger-outline"
+          id="claimProduct"
+        >
+          ⚠️ Reclamar publicación
+        </button>
+
+      </div>
+
+    </div>
+  `);
+
+  document
+    .getElementById("closeProduct")
+    ?.addEventListener("click", closeModal);
+
+  document
+    .getElementById("likeProduct")
+    ?.addEventListener("click", () => likeProduct(product.id));
+
+  document
+    .getElementById("chatSeller")
+    ?.addEventListener("click", () => openChatWithSeller(product));
+
+  document
+    .getElementById("whatsappSeller")
+    ?.addEventListener("click", () => {
+      const phone = product.phone || "";
+      const text = encodeURIComponent(
+        `Hola, vi tu publicación "${product.title}" en Market Flash.`
+      );
+
+      if (phone) {
+        window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
+      } else {
+        toast("El vendedor todavía no agregó WhatsApp.");
+      }
+    });
+
+  document
+    .getElementById("messengerSeller")
+    ?.addEventListener("click", () => {
+      window.open("https://www.facebook.com/messages/", "_blank");
+    });
+
+  document
+    .getElementById("claimProduct")
+    ?.addEventListener("click", () => showClaimForm(product.id));
+}
+
+/* =========================
+   LIKE
+========================= */
+
+function likeProduct(productId) {
+  const products = getJSON(STORAGE.products, []);
+  const product = products.find(item => item.id === productId);
+
+  if (!product) return;
+
+  product.likes = Number(product.likes || 0) + 1;
+
+  saveJSON(STORAGE.products, products);
+
+  const stats = getJSON(STORAGE.stats, {});
+  stats.totalLikes = Number(stats.totalLikes || 0) + 1;
+  saveJSON(STORAGE.stats, stats);
+
+  toast("❤️ Me gusta agregado");
+  closeModal();
+  renderProducts();
+}
+
+/* =========================
+   CHAT
+========================= */
+
+function getMessages() {
+  return getJSON(STORAGE.messages, []);
+}
+
+function saveMessages(messages) {
+  saveJSON(STORAGE.messages, messages);
+}
+
+function openChatWithSeller(product) {
+  const user = currentUser();
+
+  if (!user) {
+    showLogin();
+    return;
+  }
+
+  openChat(product.sellerId, product.seller, product.id);
+}
+
+function openChat(sellerId, sellerName, productId = "") {
+  const user = currentUser();
+
+  if (!user) {
+    showLogin();
+    return;
+  }
+
+  const messages = getMessages();
+
+  const conversation = messages.filter(message =>
+    (
+      message.from === user.id &&
+      message.to === sellerId
+    ) ||
+    (
+      message.from === sellerId &&
+      message.to === user.id
+    )
+  );
+
+  openModal(`
+    <div class="modal-header">
+      <button class="close-modal" id="closeChat">×</button>
+      <h2>💬 ${escapeHTML(sellerName)}</h2>
+    </div>
+
+    <div class="chat-window" id="chatWindow">
+
+      ${
+        conversation.length
+          ? conversation.map(message => `
+            <div class="chat-message ${
+              message.from === user.id ? "mine" : "theirs"
+            }">
+              <div>${escapeHTML(message.text)}</div>
+              <small>${formatDate(message.createdAt)}</small>
+            </div>
+          `).join("")
+          : `
+            <div class="chat-empty">
+              <div>💬</div>
+              <p>Comienza la conversación.</p>
+            </div>
+          `
+      }
+
+    </div>
+
+    <div class="chat-controls">
+
+      <textarea
+        id="chatText"
+        placeholder="Escribe un mensaje..."
+        rows="2"
+      ></textarea>
+
+      <div class="chat-buttons">
+
+        <button
+          class="primary-btn"
+          id="sendChat"
+        >
+          Enviar
+        </button>
+
+        <button
+          class="danger-outline"
+          id="claimChat"
+        >
+          ⚠️ Reclamar
+        </button>
+
+      </div>
+
+    </div>
+  `);
+
+  document
+    .getElementById("closeChat")
+    ?.addEventListener("click", closeModal);
+
+  document
+    .getElementById("sendChat")
+    ?.addEventListener("click", () => {
+      const input = document.getElementById("chatText");
+      const text = input.value.trim();
+
+      if (!text) {
+        toast("Escribe un mensaje.");
+        return;
+      }
+
+      const allMessages = getMessages();
+
+      allMessages.push({
+        id: uid("message"),
+        from: user.id,
+        to: sellerId,
+        productId,
+        text,
+        read: false,
+        createdAt: Date.now()
+      });
+
+      saveMessages(allMessages);
+
+      toast("Mensaje enviado");
+      openChat(sellerId, sellerName, productId);
+    });
+
+  document
+    .getElementById("claimChat")
+    ?.addEventListener("click", () => {
+      showClaimForm(productId, sellerId);
+    });
+
+  const windowChat = document.getElementById("chatWindow");
+
+  if (windowChat) {
+    windowChat.scrollTop = windowChat.scrollHeight;
+  }
+}
+
+function renderChat() {
+  const main = document.getElementById("mainContent");
+
+  if (!main) return;
+
+  const user = currentUser();
+
+  if (!user) {
+    main.innerHTML = `
+      <section class="page-card">
+        <div class="big-icon">💬</div>
+        <h2>Tu Chat</h2>
+        <p>Inicia sesión para ver tus conversaciones.</p>
+        <button class="primary-btn" id="loginFromChat">
+          Iniciar sesión
+        </button>
+      </section>
+    `;
+
+    document
+      .getElementById("loginFromChat")
+      ?.addEventListener("click", showLogin);
 
     return;
   }
 
-  const ad =
-    approved[flashIndex % approved.length];
+  const messages = getMessages();
 
-  button.innerHTML = `
-    <div class="flash-icon">⚡</div>
+  const conversations = {};
 
-    <div class="flash-copy">
-      <span>PUBLICIDAD</span>
-      <strong>${escapeHtml(ad.title)}</strong>
-      <small>${escapeHtml(ad.description || '')}</small>
-    </div>
+  messages.forEach(message => {
+    if (
+      message.from !== user.id &&
+      message.to !== user.id
+    ) return;
 
-    <div class="arrow">›</div>
-  `;
+    const other =
+      message.from === user.id
+        ? message.to
+        : message.from;
 
-  button.onclick = function () {
-    openFlashAd(ad.id);
-  };
+    conversations[other] = message;
+  });
 
-  clearTimeout(flashTimer);
+  const list = Object.values(conversations);
 
-  if (approved.length > 1) {
-    flashTimer = setTimeout(() => {
-      flashIndex++;
+  main.innerHTML = `
+    <section class="page-card chat-page">
 
-      renderFlashDay();
-    }, 5000);
-  }
-}
-
-function openFlashAd(id) {
-  const ad = ads.find(item => item.id === id);
-
-  if (!ad) return;
-
-  showModal(`
-    <div class="modal-header">
-      <h2>⚡ Flash del Día</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    <div class="flash-ad-detail">
-
-      <span class="badge-ad">PUBLICIDAD</span>
-
-      <h2>${escapeHtml(ad.title)}</h2>
+      <div class="page-heading">
+        <div>
+          <small>MARKET FLASH</small>
+          <h2>💬 Mis conversaciones</h2>
+        </div>
+      </div>
 
       ${
-        ad.mediaType === 'video'
-          ? `
-            <video
-              src="${ad.media}"
-              controls
-              autoplay
-              muted
-              playsinline
-              class="ad-live-media">
-            </video>
-          `
+        list.length
+          ? list.map(message => `
+            <button
+              class="conversation"
+              data-user="${escapeHTML(
+                message.from === user.id
+                  ? message.to
+                  : message.from
+              )}"
+            >
+              <span class="avatar">●</span>
+              <span>
+                <strong>
+                  ${
+                    message.from === user.id
+                      ? "Conversación"
+                      : "Nuevo mensaje"
+                  }
+                </strong>
+                <small>${escapeHTML(message.text)}</small>
+              </span>
+            </button>
+          `).join("")
           : `
-            <img
-              src="${ad.media}"
-              class="ad-live-media"
-              alt="${escapeHtml(ad.title)}">
+            <div class="empty-state">
+              <div>💬</div>
+              <h3>No tienes conversaciones</h3>
+              <p>Cuando contactes a un vendedor aparecerán aquí.</p>
+            </div>
           `
       }
 
-      <p>${escapeHtml(ad.description || '')}</p>
-
-      <div class="notice">
-        Plan: ${escapeHtml(ad.plan)}
-      </div>
-
-    </div>
-  `);
+    </section>
+  `;
 }
 
+/* =========================
+   RECLAMOS
+========================= */
 
-/* =========================================================
-   ADMIN
-   ========================================================= */
-
-function openAdmin() {
-  const config = getConfig();
-
-  showModal(`
+function showClaimForm(productId = "", otherUser = "") {
+  openModal(`
     <div class="modal-header">
-      <h2>🛡️ Panel de administrador</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
+      <button class="close-modal" id="closeClaim">×</button>
+      <h2>⚠️ Reclamar</h2>
     </div>
 
-    <form id="adminLoginForm" class="form">
+    <div class="form-card">
 
-      <div class="notice">
-        Área exclusiva del administrador.
-      </div>
+      <p>
+        Explica el problema. El reclamo será enviado al área
+        especial de administración.
+      </p>
 
-      <div class="field">
-        <label>🔐 Contraseña</label>
-        <input id="adminPassword" type="password" required>
-      </div>
+      <label>Motivo</label>
 
-      <button class="primary">
-        Entrar al panel
+      <select id="claimReason">
+        <option>Problema con la publicación</option>
+        <option>Posible estafa</option>
+        <option>Producto diferente al anunciado</option>
+        <option>Conducta inapropiada</option>
+        <option>Otro</option>
+      </select>
+
+      <label>Descripción</label>
+
+      <textarea
+        id="claimText"
+        rows="5"
+        placeholder="Explica detalladamente lo ocurrido..."
+      ></textarea>
+
+      <label>Información adicional / evidencia</label>
+
+      <textarea
+        id="claimEvidence"
+        rows="3"
+        placeholder="Escribe aquí cualquier información útil..."
+      ></textarea>
+
+      <button
+        class="primary-btn"
+        id="sendClaim"
+      >
+        Enviar reclamo al administrador
       </button>
 
-    </form>
+    </div>
   `);
 
-  document.getElementById('adminLoginForm')
-    .addEventListener('submit', function (event) {
-      event.preventDefault();
+  document
+    .getElementById("closeClaim")
+    ?.addEventListener("click", closeModal);
 
-      const password =
-        document.getElementById('adminPassword').value;
+  document
+    .getElementById("sendClaim")
+    ?.addEventListener("click", () => {
+      const user = currentUser();
 
-      if (password !== config.adminPassword) {
-        toast('❌ Contraseña incorrecta');
+      if (!user) {
+        showLogin();
         return;
       }
 
-      adminPanel();
-    });
-}
-
-function adminPanel() {
-  const stats = getStats();
-
-  const pendingAds =
-    ads.filter(ad => ad.status === 'pendiente').length;
-
-  const pendingClaims =
-    claims.filter(claim => claim.status === 'pendiente').length;
-
-  const unreadMessages =
-    messages.filter(message => !message.read).length;
-
-  showModal(`
-    <div class="modal-header">
-      <h2>🛡️ Administrador</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    ${
-      pendingAds > 0
-        ? `
-          <button
-            class="admin-alert"
-            onclick="adminAdvertising()">
-            🚨 ${pendingAds}
-            nueva${pendingAds === 1 ? '' : 's'}
-            solicitud${pendingAds === 1 ? '' : 'es'}
-            de publicidad
-          </button>
-        `
-        : ''
-    }
-
-    <div class="admin-grid">
-
-      <div class="admin-counter">
-        <b>${stats.registeredTotal || 0}</b>
-        <span>Usuarios registrados</span>
-      </div>
-
-      <div class="admin-counter">
-        <b>${stats.deletedTotal || 0}</b>
-        <span>Cuentas eliminadas</span>
-      </div>
-
-      <div class="admin-counter">
-        <b>${ads.length}</b>
-        <span>Publicidades</span>
-      </div>
-
-      <div class="admin-counter">
-        <b>${pendingClaims}</b>
-        <span>Reclamos pendientes</span>
-      </div>
-
-    </div>
-
-    <div class="admin-menu">
-
-      <button class="menu-button" onclick="adminAdvertising()">
-        📣 Publicidad
-        ${
-          pendingAds
-            ? `<span class="red-count">${pendingAds}</span>`
-            : ''
-        }
-      </button>
-
-      <button class="menu-button" onclick="adminPayments()">
-        💳 Pagos
-      </button>
-
-      <button class="menu-button" onclick="adminUsers()">
-        👥 Usuarios
-      </button>
-
-      <button class="menu-button" onclick="adminClaims()">
-        🚨 Reclamos
-        ${
-          pendingClaims
-            ? `<span class="red-count">${pendingClaims}</span>`
-            : ''
-        }
-      </button>
-
-      <button class="menu-button" onclick="adminChat()">
-        💬 Chat administrativo
-        ${
-          unreadMessages
-            ? `<span class="red-count">${unreadMessages}</span>`
-            : ''
-        }
-      </button>
-
-      <button class="menu-button" onclick="adminSanctions()">
-        ⚖️ Sanciones y multas
-      </button>
-
-      <button class="menu-button" onclick="adminPanelSettings()">
-        ⚙️ Configuración del panel
-      </button>
-
-      <button class="menu-button" onclick="changeAdminPassword()">
-        🔐 Cambiar contraseña del administrador
-      </button>
-
-    </div>
-  `);
-}
-
-
-/* =========================================================
-   ADMIN — PUBLICIDAD
-   ========================================================= */
-
-function adminAdvertising() {
-  const config = getConfig();
-
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="adminPanel()">←</button>
-      <h2>📣 Publicidad</h2>
-      <button class="close-btn" onclick="adminPanel()">×</button>
-    </div>
-
-    <div class="card">
-
-      <h3>Estado de publicidad</h3>
-
-      <label class="switch-row">
-
-        <span>
-          Publicidad habilitada
-        </span>
-
-        <input
-          type="checkbox"
-          id="advertisingEnabled"
-          ${config.advertising.enabled ? 'checked' : ''}
-        >
-
-      </label>
-
-    </div>
-
-    <h3 style="margin-top:18px">
-      💎 Planes
-    </h3>
-
-    <form id="plansForm" class="form">
-
-      <div class="field">
-        <label>Plan Económico</label>
-        <input
-          id="cheapPrice"
-          type="number"
-          value="${config.plans.cheap.price}">
-      </div>
-
-      <div class="field">
-        <label>Plan Normal</label>
-        <input
-          id="normalPrice"
-          type="number"
-          value="${config.plans.normal.price}">
-      </div>
-
-      <div class="field">
-        <label>Plan PRO</label>
-        <input
-          id="proPrice"
-          type="number"
-          value="${config.plans.pro.price}">
-      </div>
-
-      <button class="primary">
-        💾 Guardar precios
-      </button>
-
-    </form>
-
-    <h3 style="margin-top:18px">
-      💳 Métodos de pago
-    </h3>
-
-    <div class="payment-admin-list">
-
-      ${Object.entries(config.paymentMethods).map(
-        ([key, method]) => `
-          <div class="card" style="margin-top:10px">
-
-            <strong>${escapeHtml(method.name)}</strong>
-
-            <label class="switch-row">
-
-              <span>Habilitado</span>
-
-              <input
-                type="checkbox"
-                id="method_${key}"
-                ${method.enabled ? 'checked' : ''}
-              >
-
-            </label>
-
-            <div class="field">
-              <label>Cuenta / información</label>
-
-              <input
-                id="account_${key}"
-                value="${escapeHtml(method.account || '')}"
-              >
-            </div>
-
-          </div>
-        `
-      ).join('')}
-
-    </div>
-
-    <button
-      class="primary"
-      style="margin-top:14px"
-      onclick="saveAdvertisingConfig()">
-      💾 Guardar configuración
-    </button>
-
-    <h3 style="margin-top:22px">
-      📥 Solicitudes recibidas
-    </h3>
-
-    <div id="adminAdsList">
-      ${renderAdminAds()}
-    </div>
-  `);
-
-  document.getElementById('plansForm')
-    .addEventListener('submit', function (event) {
-      event.preventDefault();
-
-      config.plans.cheap.price =
-        Number(document.getElementById('cheapPrice').value) || 0;
-
-      config.plans.normal.price =
-        Number(document.getElementById('normalPrice').value) || 0;
-
-      config.plans.pro.price =
-        Number(document.getElementById('proPrice').value) || 0;
-
-      saveConfig(config);
-
-      toast('✅ Precios guardados');
-    });
-}
-
-function saveAdvertisingConfig() {
-  const config = getConfig();
-
-  config.advertising.enabled =
-    document.getElementById('advertisingEnabled').checked;
-
-  Object.keys(config.paymentMethods).forEach(key => {
-    const method = config.paymentMethods[key];
-
-    const toggle =
-      document.getElementById(`method_${key}`);
-
-    const account =
-      document.getElementById(`account_${key}`);
-
-    if (toggle) method.enabled = toggle.checked;
-    if (account) method.account = account.value.trim();
-  });
-
-  saveConfig(config);
-
-  toast('✅ Configuración guardada');
-
-  setTimeout(() => {
-    adminAdvertising();
-  }, 400);
-}
-
-function renderAdminAds() {
-  if (!ads.length) {
-    return `
-      <div class="empty-state">
-        📣<br><br>
-        No hay publicidades recibidas.
-      </div>
-    `;
-  }
-
-  return ads.map(ad => `
-    <div class="card" style="margin-top:10px">
-
-      <strong>
-        ${escapeHtml(ad.title)}
-      </strong>
-
-      <p class="muted">
-        👤 ${escapeHtml(ad.user)}
-      </p>
-
-      <p>
-        💎 Plan:
-        ${escapeHtml(ad.plan)}
-      </p>
-
-      <p>
-        💳 Método:
-        ${escapeHtml(ad.paymentMethod || 'No especificado')}
-      </p>
-
-      ${
-        ad.mediaType === 'video'
-          ? `
-            <video
-              src="${ad.media}"
-              controls
-              class="ad-live-media">
-            </video>
-          `
-          : `
-            <img
-              src="${ad.media}"
-              class="ad-live-media"
-              alt="${escapeHtml(ad.title)}">
-          `
+      const description =
+        document.getElementById("claimText").value.trim();
+
+      if (!description) {
+        toast("Escribe el motivo del reclamo.");
+        return;
       }
 
-      ${
-        ad.paymentProof
-          ? `
-            <p style="margin-top:10px">
-              🧾 Comprobante:
-            </p>
-
-            <img
-              src="${ad.paymentProof}"
-              class="proof-image"
-              alt="Comprobante">
-          `
-          : `
-            <div class="notice">
-              No hay comprobante guardado.
-            </div>
-          `
-      }
-
-      <div class="ad-status ${
-        ad.status === 'aprobado'
-          ? 'approved'
-          : ad.status === 'rechazado'
-            ? 'rejected'
-            : 'pending'
-      }">
-
-        ${
-          ad.status === 'aprobado'
-            ? '✅ Aprobada'
-            : ad.status === 'rechazado'
-              ? '❌ Rechazada'
-              : '⏳ Pendiente'
-        }
-
-      </div>
-
-      ${
-        ad.status === 'pendiente'
-          ? `
-            <button
-              class="primary"
-              style="margin-top:10px"
-              onclick="approveAd(${ad.id})">
-              ✅ Aprobar publicidad
-            </button>
-
-            <button
-              class="danger"
-              style="margin-top:8px"
-              onclick="rejectAd(${ad.id})">
-              ❌ Rechazar
-            </button>
-          `
-          : ''
-      }
-
-    </div>
-  `).join('');
-}
-
-function approveAd(id) {
-  const ad = ads.find(item => item.id === id);
-
-  if (!ad) return;
-
-  ad.status = 'aprobado';
-  ad.approvedAt = new Date().toISOString();
-
-  saveAds();
-
-  renderFlashDay();
-
-  adminAdvertising();
-
-  toast('✅ Publicidad aprobada y publicada');
-}
-
-function rejectAd(id) {
-  const ad = ads.find(item => item.id === id);
-
-  if (!ad) return;
-
-  ad.status = 'rechazado';
-  ad.rejectedAt = new Date().toISOString();
-
-  saveAds();
-
-  adminAdvertising();
-
-  toast('❌ Publicidad rechazada');
-}
-
-
-/* =========================================================
-   ADMIN — PAGOS
-   ========================================================= */
-
-function adminPayments() {
-  const config = getConfig();
-
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="adminPanel()">←</button>
-      <h2>💳 Pagos</h2>
-      <button class="close-btn" onclick="adminPanel()">×</button>
-    </div>
-
-    <div class="notice">
-      Aquí puedes revisar la información de los métodos de pago
-      configurados para la publicidad.
-    </div>
-
-    ${Object.values(config.paymentMethods).map(method => `
-      <div class="card" style="margin-top:10px">
-
-        <strong>
-          ${escapeHtml(method.name)}
-        </strong>
-
-        <p class="muted">
-          ${escapeHtml(method.account || 'No configurado')}
-        </p>
-
-        <span class="ad-status ${
-          method.enabled
-            ? 'approved'
-            : 'rejected'
-        }">
-
-          ${method.enabled ? '✅ Activo' : '⛔ Desactivado'}
-
-        </span>
-
-      </div>
-    `).join('')}
-
-    <button
-      class="primary"
-      style="margin-top:14px"
-      onclick="adminAdvertising()">
-      ⚙️ Configurar pagos
-    </button>
-  `);
-}
-
-
-/* =========================================================
-   ADMIN — USUARIOS
-   ========================================================= */
-
-function adminUsers() {
-  const stats = getStats();
-
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="adminPanel()">←</button>
-      <h2>👥 Usuarios</h2>
-      <button class="close-btn" onclick="adminPanel()">×</button>
-    </div>
-
-    <div class="stats-grid">
-
-      <div class="stat-card">
-        <strong>${stats.registeredTotal || 0}</strong>
-        <span>Registrados</span>
-      </div>
-
-      <div class="stat-card">
-        <strong>${stats.deletedTotal || 0}</strong>
-        <span>Eliminados</span>
-      </div>
-
-    </div>
-
-    ${
-      user
-        ? `
-          <div class="card" style="margin-top:14px">
-
-            <strong>Usuario actual</strong>
-
-            <p>
-              👤 ${escapeHtml(user.name)}
-            </p>
-
-            <p>
-              📱 ${escapeHtml(user.whatsapp)}
-            </p>
-
-            <p>
-              🪪 ${escapeHtml(user.cedula)}
-            </p>
-
-          </div>
-        `
-        : `
-          <div class="notice">
-            No hay un usuario conectado en este navegador.
-          </div>
-        `
-    }
-  `);
-}
-
-
-/* =========================================================
-   ADMIN — RECLAMOS
-   ========================================================= */
-
-function adminClaims() {
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="adminPanel()">←</button>
-      <h2>🚨 Reclamos</h2>
-      <button class="close-btn" onclick="adminPanel()">×</button>
-    </div>
-
-    ${
-      claims.length
-        ? claims.map(claim => `
-          <div class="card" style="margin-top:10px">
-
-            <strong>
-              🚨 Reclamo #${claim.id}
-            </strong>
-
-            <p>
-              👤 Usuario:
-              ${escapeHtml(claim.user)}
-            </p>
-
-            <p>
-              👤 Contra:
-              ${escapeHtml(claim.seller || '')}
-            </p>
-
-            <p>
-              📝 ${escapeHtml(claim.reason)}
-            </p>
-
-            ${
-              claim.evidence
-                ? `
-                  <img
-                    src="${claim.evidence}"
-                    class="proof-image"
-                    alt="Evidencia">
-                `
-                : ''
-            }
-
-            <span class="ad-status ${
-              claim.status === 'resuelto'
-                ? 'approved'
-                : 'pending'
-            }">
-
-              ${
-                claim.status === 'resuelto'
-                  ? '✅ Resuelto'
-                  : '⏳ Pendiente'
-              }
-
-            </span>
-
-            ${
-              claim.status !== 'resuelto'
-                ? `
-                  <button
-                    class="primary"
-                    style="margin-top:10px"
-                    onclick="resolveClaim(${claim.id})">
-                    ✅ Marcar como resuelto
-                  </button>
-
-                  <button
-                    class="danger"
-                    style="margin-top:8px"
-                    onclick="sanctionFromClaim(${claim.id})">
-                    ⚖️ Aplicar sanción
-                  </button>
-                `
-                : ''
-            }
-
-          </div>
-        `).join('')
-        : `
-          <div class="empty-state">
-            No hay reclamaciones.
-          </div>
-        `
-    }
-  `);
-}
-
-function resolveClaim(id) {
-  const claim = claims.find(item => item.id === id);
-
-  if (!claim) return;
-
-  claim.status = 'resuelto';
-  claim.resolvedAt = new Date().toISOString();
-
-  saveClaims();
-
-  adminClaims();
-
-  toast('✅ Reclamo resuelto');
-}
-
-function sanctionFromClaim(id) {
-  const claim = claims.find(item => item.id === id);
-
-  if (!claim) return;
-
-  openSanctionForm(claim.user, id);
-}
-
-
-/* =========================================================
-   ADMIN — SANCIONES Y MULTAS
-   ========================================================= */
-
-function adminSanctions() {
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="adminPanel()">←</button>
-      <h2>⚖️ Sanciones</h2>
-      <button class="close-btn" onclick="adminPanel()">×</button>
-    </div>
-
-    ${
-      sanctions.length
-        ? sanctions.map(sanction => `
-          <div class="card" style="margin-top:10px">
-
-            <strong>
-              ⚖️ ${escapeHtml(sanction.user)}
-            </strong>
-
-            <p>
-              Tipo:
-              ${escapeHtml(sanction.type)}
-            </p>
-
-            <p>
-              Motivo:
-              ${escapeHtml(sanction.reason)}
-            </p>
-
-            ${
-              sanction.amount
-                ? `
-                  <p>
-                    💰 Multa:
-                    ${money(sanction.amount)}
-                  </p>
-                `
-                : ''
-            }
-
-            <span class="ad-status ${
-              sanction.status === 'pagada'
-                ? 'approved'
-                : 'pending'
-            }">
-
-              ${
-                sanction.status === 'pagada'
-                  ? '✅ Pagada'
-                  : '⏳ Pendiente'
-              }
-
-            </span>
-
-          </div>
-        `).join('')
-        : `
-          <div class="empty-state">
-            No hay sanciones registradas.
-          </div>
-        `
-    }
-
-    <button
-      class="primary"
-      style="margin-top:14px"
-      onclick="openSanctionForm('')">
-      ➕ Crear sanción
-    </button>
-  `);
-}
-
-function openSanctionForm(targetUser, claimId) {
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="adminSanctions()">←</button>
-      <h2>⚖️ Nueva sanción</h2>
-      <button class="close-btn" onclick="adminSanctions()">×</button>
-    </div>
-
-    <form id="sanctionForm" class="form">
-
-      <div class="field">
-        <label>👤 Usuario</label>
-        <input
-          id="sanctionUser"
-          value="${escapeHtml(targetUser || '')}"
-          required>
-      </div>
-
-      <div class="field">
-        <label>Tipo de sanción</label>
-
-        <select id="sanctionType">
-          <option value="advertencia">Advertencia</option>
-          <option value="bloqueo">Bloqueo temporal</option>
-          <option value="eliminacion">Eliminar cuenta</option>
-          <option value="multa">Multa</option>
-        </select>
-
-      </div>
-
-      <div class="field">
-        <label>💰 Monto de multa</label>
-        <input
-          id="sanctionAmount"
-          type="number"
-          min="0"
-          value="0">
-      </div>
-
-      <div class="field">
-        <label>📝 Motivo</label>
-
-        <textarea
-          id="sanctionReason"
-          rows="5"
-          required></textarea>
-
-      </div>
-
-      <button class="danger">
-        ⚖️ Aplicar sanción
-      </button>
-
-    </form>
-  `);
-
-  document.getElementById('sanctionForm')
-    .addEventListener('submit', function (event) {
-      event.preventDefault();
-
-      sanctions.unshift({
-        id: Date.now(),
-        user:
-          document.getElementById('sanctionUser').value.trim(),
-        type:
-          document.getElementById('sanctionType').value,
-        amount:
-          Number(document.getElementById('sanctionAmount').value) || 0,
+      const claims = getJSON(STORAGE.claims, []);
+
+      claims.push({
+        id: uid("claim"),
+        userId: user.id,
+        userName: user.name,
+        productId,
+        otherUser,
         reason:
-          document.getElementById('sanctionReason').value.trim(),
-        claimId: claimId || null,
-        status: 'pendiente',
-        createdAt: new Date().toISOString()
+          document.getElementById("claimReason").value,
+        description,
+        evidence:
+          document.getElementById("claimEvidence").value.trim(),
+        status: "pending",
+        createdAt: Date.now()
       });
 
-      saveSanctions();
+      saveJSON(STORAGE.claims, claims);
 
-      if (claimId) {
-        const claim = claims.find(item => item.id === claimId);
-
-        if (claim) {
-          claim.status = 'resuelto';
-          saveClaims();
-        }
-      }
-
-      adminSanctions();
-
-      toast('⚖️ Sanción registrada');
+      toast("⚠️ Reclamo enviado al administrador");
+      closeModal();
+      updateBadges();
     });
 }
 
+/* =========================
+   ACTIVIDAD
+========================= */
 
-/* =========================================================
-   ADMIN — CHAT
-   ========================================================= */
+function renderActivity() {
+  const main = document.getElementById("mainContent");
 
-function adminChat() {
-  messages.forEach(message => {
-    message.read = true;
+  if (!main) return;
+
+  const user = currentUser();
+
+  if (!user) {
+    main.innerHTML = `
+      <section class="page-card">
+        <div class="big-icon">▣</div>
+        <h2>Actividad</h2>
+        <p>Inicia sesión para ver tu actividad.</p>
+        <button class="primary-btn" id="loginActivity">
+          Iniciar sesión
+        </button>
+      </section>
+    `;
+
+    document
+      .getElementById("loginActivity")
+      ?.addEventListener("click", showLogin);
+
+    return;
+  }
+
+  const products = getJSON(STORAGE.products, []);
+
+  const mine = products.filter(
+    product => product.sellerId === user.id
+  );
+
+  main.innerHTML = `
+    <section class="page-card">
+
+      <div class="page-heading">
+        <div>
+          <small>MARKET FLASH</small>
+          <h2>▣ Mi actividad</h2>
+        </div>
+      </div>
+
+      <div class="stats-grid">
+        <div>
+          <strong>${mine.length}</strong>
+          <small>Publicaciones</small>
+        </div>
+
+        <div>
+          <strong>
+            ${mine.reduce(
+              (sum, product) =>
+                sum + Number(product.views || 0),
+              0
+            )}
+          </strong>
+          <small>Vistas</small>
+        </div>
+
+        <div>
+          <strong>
+            ${mine.reduce(
+              (sum, product) =>
+                sum + Number(product.likes || 0),
+              0
+            )}
+          </strong>
+          <small>Me gusta</small>
+        </div>
+      </div>
+
+      <h3>Mis publicaciones</h3>
+
+      ${
+        mine.length
+          ? mine.map(product => `
+            <div class="activity-item">
+
+              <img
+                src="${escapeHTML(product.image)}"
+                alt=""
+              >
+
+              <div>
+                <strong>${escapeHTML(product.title)}</strong>
+                <span>${money(product.price)}</span>
+
+                ${
+                  product.sold
+                    ? `<small class="sold-label">VENDIDO</small>`
+                    : `
+                      <button
+                        class="secondary-btn mark-sold"
+                        data-id="${product.id}"
+                      >
+                        Marcar como Vendido
+                      </button>
+                    `
+                }
+
+                ${
+                  product.sellerConfirmed
+                    ? `<small>✓ Tú confirmaste vendido</small>`
+                    : ""
+                }
+
+              </div>
+
+            </div>
+          `).join("")
+          : `
+            <div class="empty-state">
+              <div>📦</div>
+              <p>Todavía no tienes publicaciones.</p>
+            </div>
+          `
+      }
+
+    </section>
+  `;
+
+  document.querySelectorAll(".mark-sold").forEach(button => {
+    button.addEventListener("click", () => {
+      markSold(button.dataset.id);
+    });
   });
+}
 
-  saveMessages();
+function markSold(productId) {
+  const user = currentUser();
 
-  showModal(`
+  if (!user) {
+    showLogin();
+    return;
+  }
+
+  const products = getJSON(STORAGE.products, []);
+  const product = products.find(item => item.id === productId);
+
+  if (!product) return;
+
+  product.sellerConfirmed = true;
+
+  if (product.buyerConfirmed) {
+    product.sold = true;
+  }
+
+  saveJSON(STORAGE.products, products);
+
+  toast(
+    product.sold
+      ? "✓ Venta confirmada por ambas partes"
+      : "✓ Marcaste el producto como vendido"
+  );
+
+  renderActivity();
+}
+
+/* =========================
+   PERFIL
+========================= */
+
+function renderProfile() {
+  const main = document.getElementById("mainContent");
+
+  if (!main) return;
+
+  const user = currentUser();
+
+  if (!user) {
+    main.innerHTML = `
+      <section class="page-card profile-login">
+
+        <div class="avatar-large">●</div>
+
+        <h2>Mi perfil</h2>
+
+        <p>
+          Crea tu cuenta para publicar, vender y chatear.
+        </p>
+
+        <button class="primary-btn" id="registerBtn">
+          Crear cuenta
+        </button>
+
+        <button class="secondary-btn" id="loginBtn">
+          Ya tengo una cuenta
+        </button>
+
+        <button class="admin-link" id="adminLoginBtn">
+          Panel de administrador
+        </button>
+
+      </section>
+    `;
+
+    document
+      .getElementById("registerBtn")
+      ?.addEventListener("click", showRegister);
+
+    document
+      .getElementById("loginBtn")
+      ?.addEventListener("click", showLogin);
+
+    document
+      .getElementById("adminLoginBtn")
+      ?.addEventListener("click", showAdminLogin);
+
+    return;
+  }
+
+  main.innerHTML = `
+    <section class="page-card">
+
+      <div class="profile-header">
+        <div class="avatar-large">●</div>
+
+        <div>
+          <small>MI PERFIL</small>
+          <h2>${escapeHTML(user.name)}</h2>
+          <p>⭐ Reputación del vendedor: Excelente</p>
+        </div>
+      </div>
+
+      <div class="profile-info">
+        <div>
+          <small>Cédula</small>
+          <strong>${escapeHTML(user.cedula)}</strong>
+        </div>
+
+        <div>
+          <small>Teléfono</small>
+          <strong>${escapeHTML(user.phone)}</strong>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+
+        <button class="secondary-btn" id="changePassword">
+          🔐 Cambiar contraseña
+        </button>
+
+        <button class="secondary-btn" id="adminPanel">
+          ⚙️ Panel de administración
+        </button>
+
+        <button class="secondary-btn" id="logoutBtn">
+          Cerrar sesión
+        </button>
+
+        <button class="danger-btn" id="deleteAccount">
+          Eliminar mi cuenta
+        </button>
+
+      </div>
+
+    </section>
+  `;
+
+  document
+    .getElementById("changePassword")
+    ?.addEventListener("click", showChangePassword);
+
+  document
+    .getElementById("adminPanel")
+    ?.addEventListener("click", showAdminLogin);
+
+  document
+    .getElementById("logoutBtn")
+    ?.addEventListener("click", () => {
+      setCurrentUser(null);
+      toast("Sesión cerrada");
+      renderProfile();
+      updateBadges();
+    });
+
+  document
+    .getElementById("deleteAccount")
+    ?.addEventListener("click", deleteAccount);
+}
+
+/* =========================
+   REGISTRO
+========================= */
+
+function showRegister() {
+  openModal(`
     <div class="modal-header">
-      <button class="back-btn" onclick="adminPanel()">←</button>
-      <h2>💬 Chat administrativo</h2>
-      <button class="close-btn" onclick="adminPanel()">×</button>
+      <button class="close-modal" id="closeRegister">×</button>
+      <h2>Crear cuenta</h2>
     </div>
 
-    ${
-      messages.length
-        ? messages.map(message => `
-          <div class="card" style="margin-top:10px">
+    <div class="form-card">
 
-            <strong>
-              ${escapeHtml(message.from)}
-              →
-              ${escapeHtml(message.to)}
-            </strong>
+      <label>Nombre completo</label>
+      <input id="registerName" placeholder="Tu nombre">
 
-            <p>
-              ${escapeHtml(message.text)}
-            </p>
+      <label>Número de cédula</label>
+      <input id="registerCedula" placeholder="000-0000000-0">
 
-            <small class="muted">
-              ${new Date(message.createdAt).toLocaleString('es-DO')}
-            </small>
+      <label>Número de teléfono</label>
+      <input id="registerPhone" placeholder="8090000000">
 
-          </div>
-        `).join('')
-        : `
-          <div class="empty-state">
-            No hay mensajes.
-          </div>
-        `
-    }
+      <label>Contraseña</label>
+      <input id="registerPassword" type="password">
+
+      <label>Confirmar contraseña</label>
+      <input id="registerPassword2" type="password">
+
+      <button class="primary-btn" id="createAccount">
+        Crear mi cuenta
+      </button>
+
+      <button class="secondary-btn" id="goLogin">
+        Ya tengo cuenta
+      </button>
+
+    </div>
   `);
 
+  document
+    .getElementById("closeRegister")
+    ?.addEventListener("click", closeModal);
+
+  document
+    .getElementById("goLogin")
+    ?.addEventListener("click", showLogin);
+
+  document
+    .getElementById("createAccount")
+    ?.addEventListener("click", registerUser);
+}
+
+function registerUser() {
+  const name =
+    document.getElementById("registerName").value.trim();
+
+  const cedula =
+    document.getElementById("registerCedula").value.trim();
+
+  const phone =
+    document.getElementById("registerPhone").value.trim();
+
+  const password =
+    document.getElementById("registerPassword").value;
+
+  const password2 =
+    document.getElementById("registerPassword2").value;
+
+  if (!name || !cedula || !phone || !password) {
+    toast("Completa todos los campos.");
+    return;
+  }
+
+  if (password !== password2) {
+    toast("Las contraseñas no coinciden.");
+    return;
+  }
+
+  const user = {
+    id: uid("user"),
+    name,
+    cedula,
+    phone,
+    password,
+    createdAt: Date.now()
+  };
+
+  setCurrentUser(user);
+
+  const stats = getJSON(STORAGE.stats, {});
+  stats.totalUsers = Number(stats.totalUsers || 0) + 1;
+  saveJSON(STORAGE.stats, stats);
+
+  toast("🎉 Cuenta creada correctamente");
+  closeModal();
+  renderProfile();
   updateBadges();
 }
 
+/* =========================
+   LOGIN
+========================= */
 
-/* =========================================================
-   ADMIN — CONFIGURACIÓN DEL PANEL
-   ========================================================= */
-
-function adminPanelSettings() {
-  const config = getConfig();
-
-  showModal(`
+function showLogin() {
+  openModal(`
     <div class="modal-header">
-      <button class="back-btn" onclick="adminPanel()">←</button>
-      <h2>⚙️ Configuración</h2>
-      <button class="close-btn" onclick="adminPanel()">×</button>
+      <button class="close-modal" id="closeLogin">×</button>
+      <h2>Iniciar sesión</h2>
     </div>
 
-    <form id="panelSettingsForm" class="form">
+    <div class="form-card">
 
-      <label class="switch-row">
-        <span>Panel compacto</span>
+      <label>Cédula o teléfono</label>
+      <input id="loginIdentifier">
 
-        <input
-          id="panelCompact"
-          type="checkbox"
-          ${config.panel.compact ? 'checked' : ''}>
-      </label>
+      <label>Contraseña</label>
+      <input id="loginPassword" type="password">
 
-      <label class="switch-row">
-        <span>Notificaciones</span>
-
-        <input
-          id="panelNotifications"
-          type="checkbox"
-          ${config.panel.notifications ? 'checked' : ''}>
-      </label>
-
-      <label class="switch-row">
-        <span>Animaciones</span>
-
-        <input
-          id="panelAnimations"
-          type="checkbox"
-          ${config.panel.animations ? 'checked' : ''}>
-      </label>
-
-      <label class="switch-row">
-        <span>Modo oscuro</span>
-
-        <input
-          id="panelDarkMode"
-          type="checkbox"
-          ${config.panel.darkMode ? 'checked' : ''}>
-      </label>
-
-      <button class="primary">
-        💾 Guardar configuración
+      <button class="primary-btn" id="doLogin">
+        Entrar
       </button>
 
-    </form>
+      <button class="secondary-btn" id="newAccount">
+        Crear cuenta
+      </button>
+
+    </div>
   `);
 
-  document.getElementById('panelSettingsForm')
-    .addEventListener('submit', function (event) {
-      event.preventDefault();
+  document
+    .getElementById("closeLogin")
+    ?.addEventListener("click", closeModal);
 
-      config.panel.compact =
-        document.getElementById('panelCompact').checked;
+  document
+    .getElementById("newAccount")
+    ?.addEventListener("click", showRegister);
 
-      config.panel.notifications =
-        document.getElementById('panelNotifications').checked;
+  document
+    .getElementById("doLogin")
+    ?.addEventListener("click", loginUser);
+}
 
-      config.panel.animations =
-        document.getElementById('panelAnimations').checked;
+function loginUser() {
+  /*
+    En este prototipo los usuarios se guardan localmente.
+    Para una aplicación real se necesita una base de datos
+    y autenticación en servidor.
+  */
 
-      config.panel.darkMode =
-        document.getElementById('panelDarkMode').checked;
+  const identifier =
+    document.getElementById("loginIdentifier").value.trim();
 
-      saveConfig(config);
+  const password =
+    document.getElementById("loginPassword").value;
 
-      applyPanelSettings();
+  const saved = currentUser();
 
-      adminPanel();
+  if (
+    saved &&
+    (
+      saved.cedula === identifier ||
+      saved.phone === identifier
+    ) &&
+    saved.password === password
+  ) {
+    toast("Bienvenido/a " + saved.name);
+    closeModal();
+    renderProfile();
+    return;
+  }
 
-      toast('✅ Configuración del panel guardada');
+  toast(
+    "En este prototipo solo se puede iniciar sesión con la cuenta registrada en este dispositivo."
+  );
+}
+
+/* =========================
+   CAMBIAR CONTRASEÑA
+========================= */
+
+function showChangePassword() {
+  openModal(`
+    <div class="modal-header">
+      <button class="close-modal" id="closePassword">×</button>
+      <h2>🔐 Cambiar contraseña</h2>
+    </div>
+
+    <div class="form-card">
+
+      <label>Contraseña actual</label>
+      <input id="oldPassword" type="password">
+
+      <label>Nueva contraseña</label>
+      <input id="newPassword" type="password">
+
+      <label>Confirmar nueva contraseña</label>
+      <input id="newPassword2" type="password">
+
+      <button class="primary-btn" id="savePassword">
+        Guardar contraseña
+      </button>
+
+    </div>
+  `);
+
+  document
+    .getElementById("closePassword")
+    ?.addEventListener("click", closeModal);
+
+  document
+    .getElementById("savePassword")
+    ?.addEventListener("click", changePassword);
+}
+
+function changePassword() {
+  const user = currentUser();
+
+  if (!user) return;
+
+  const oldPassword =
+    document.getElementById("oldPassword").value;
+
+  const newPassword =
+    document.getElementById("newPassword").value;
+
+  const newPassword2 =
+    document.getElementById("newPassword2").value;
+
+  if (oldPassword !== user.password) {
+    toast("La contraseña actual es incorrecta.");
+    return;
+  }
+
+  if (!newPassword || newPassword.length < 6) {
+    toast("La nueva contraseña debe tener al menos 6 caracteres.");
+    return;
+  }
+
+  if (newPassword !== newPassword2) {
+    toast("Las contraseñas nuevas no coinciden.");
+    return;
+  }
+
+  user.password = newPassword;
+  setCurrentUser(user);
+
+  toast("Contraseña cambiada correctamente");
+  closeModal();
+}
+
+/* =========================
+   ELIMINAR CUENTA
+========================= */
+
+function deleteAccount() {
+  const user = currentUser();
+
+  if (!user) return;
+
+  const confirmed = confirm(
+    "¿Seguro que quieres eliminar tu cuenta?"
+  );
+
+  if (!confirmed) return;
+
+  user.deletedAt = Date.now();
+
+  /*
+    Guardamos registro local de la eliminación para que
+    el administrador pueda visualizarla en este prototipo.
+  */
+
+  const deletedUsers =
+    getJSON("mf_deleted_users_v2", []);
+
+  deletedUsers.push(user);
+
+  saveJSON("mf_deleted_users_v2", deletedUsers);
+
+  setCurrentUser(null);
+
+  toast("Tu cuenta fue eliminada.");
+
+  renderProfile();
+}
+
+/* =========================
+   PUBLICAR PRODUCTO
+========================= */
+
+function showPublish() {
+  const user = currentUser();
+
+  if (!user) {
+    showLogin();
+    return;
+  }
+
+  openModal(`
+    <div class="modal-header">
+      <button class="close-modal" id="closePublish">×</button>
+      <h2>＋ Publicar producto</h2>
+    </div>
+
+    <div class="form-card">
+
+      <label>Nombre del producto</label>
+      <input id="productTitle" placeholder="Ej.: iPhone 16">
+
+      <label>Categoría</label>
+      <select id="productCategory">
+        <option>Celulares</option>
+        <option>Computadoras</option>
+        <option>Electrodomésticos</option>
+        <option>Vehículos</option>
+        <option>Videojuegos</option>
+        <option>Ropa</option>
+        <option>Hogar</option>
+        <option>Otros</option>
+      </select>
+
+      <label>Precio</label>
+      <input
+        id="productPrice"
+        type="number"
+        min="0"
+        placeholder="0"
+      >
+
+      <label>Descripción</label>
+      <textarea
+        id="productDescription"
+        rows="5"
+        placeholder="Describe el producto..."
+      ></textarea>
+
+      <label>Foto del producto</label>
+      <input
+        id="productImage"
+        type="file"
+        accept="image/*"
+        capture="environment"
+      >
+
+      <button
+        class="primary-btn"
+        id="publishProduct"
+      >
+        Publicar
+      </button>
+
+    </div>
+  `);
+
+  document
+    .getElementById("closePublish")
+    ?.addEventListener("click", closeModal);
+
+  document
+    .getElementById("publishProduct")
+    ?.addEventListener("click", createProduct);
+}
+
+function createProduct() {
+  const user = currentUser();
+
+  if (!user) return;
+
+  const title =
+    document.getElementById("productTitle").value.trim();
+
+  const category =
+    document.getElementById("productCategory").value;
+
+  const price =
+    Number(document.getElementById("productPrice").value);
+
+  const description =
+    document.getElementById("productDescription").value.trim();
+
+  const imageInput =
+    document.getElementById("productImage");
+
+  if (!title || !price || !description) {
+    toast("Completa los datos del producto.");
+    return;
+  }
+
+  const file = imageInput.files[0];
+
+  if (file) {
+    const reader = new FileReader();
+
+    reader.onload = event => {
+      saveProduct(
+        title,
+        category,
+        price,
+        description,
+        event.target.result
+      );
+    };
+
+    reader.readAsDataURL(file);
+  } else {
+    saveProduct(
+      title,
+      category,
+      price,
+      description,
+      "https://images.unsplash.com/photo-1560393464-5c69a73c5c18?auto=format&fit=crop&w=900&q=80"
+    );
+  }
+}
+
+function saveProduct(
+  title,
+  category,
+  price,
+  description,
+  image
+) {
+  const user = currentUser();
+
+  const products = getJSON(STORAGE.products, []);
+
+  products.unshift({
+    id: uid("product"),
+    title,
+    category,
+    price,
+    description,
+    image,
+    seller: user.name,
+    sellerId: user.id,
+    phone: user.phone,
+    views: 0,
+    likes: 0,
+    sold: false,
+    buyerConfirmed: false,
+    sellerConfirmed: false,
+    createdAt: Date.now()
+  });
+
+  saveJSON(STORAGE.products, products);
+
+  toast("🎉 Publicación creada");
+  closeModal();
+
+  currentCategory = "Todos";
+  searchTerm = "";
+
+  renderHome();
+}
+
+/* =========================
+   COMPRADOR — MARCAR COMPRADO
+========================= */
+
+function markPurchased(productId) {
+  const user = currentUser();
+
+  if (!user) {
+    showLogin();
+    return;
+  }
+
+  const products = getJSON(STORAGE.products, []);
+  const product = products.find(item => item.id === productId);
+
+  if (!product) return;
+
+  product.buyerConfirmed = true;
+
+  if (product.sellerConfirmed) {
+    product.sold = true;
+  }
+
+  saveJSON(STORAGE.products, products);
+
+  toast(
+    product.sold
+      ? "✓ Compra confirmada por ambas partes"
+      : "✓ Marcaste el producto como comprado"
+  );
+
+  closeModal();
+  renderHome();
+}
+
+/* =========================
+   FLASH DEL DÍA
+========================= */
+
+let flashIndex = 0;
+let flashTimer = null;
+
+function approvedAds() {
+  return getJSON(STORAGE.ads, [])
+    .filter(ad => ad.status === "approved");
+}
+
+function showFlashDay() {
+  const ads = approvedAds();
+
+  if (!ads.length) {
+    openModal(`
+      <div class="modal-header">
+        <button class="close-modal" id="closeFlash">×</button>
+        <h2>⚡ Publicación Flash del Día</h2>
+      </div>
+
+      <div class="empty-state">
+        <div>⚡</div>
+        <h3>Próximamente</h3>
+        <p>
+          Todavía no hay publicidad aprobada.
+        </p>
+
+        <button
+          class="primary-btn"
+          id="advertiseNow"
+        >
+          Publicar mi publicidad
+        </button>
+      </div>
+    `);
+
+    document
+      .getElementById("closeFlash")
+      ?.addEventListener("click", closeModal);
+
+    document
+      .getElementById("advertiseNow")
+      ?.addEventListener("click", showAdvertising);
+
+    return;
+  }
+
+  flashIndex = 0;
+
+  openModal(`
+    <div class="modal-header">
+      <button class="close-modal" id="closeFlash">×</button>
+      <h2>⚡ Flash del Día</h2>
+    </div>
+
+    <div id="flashContent"></div>
+
+    <button
+      class="secondary-btn"
+      id="nextFlash"
+    >
+      Siguiente anuncio →
+    </button>
+
+    <button
+      class="primary-btn"
+      id="advertiseFlash"
+    >
+      📣 Publicar mi publicidad
+    </button>
+  `);
+
+  document
+    .getElementById("closeFlash")
+    ?.addEventListener("click", () => {
+      clearInterval(flashTimer);
+      closeModal();
+    });
+
+  document
+    .getElementById("nextFlash")
+    ?.addEventListener("click", () => {
+      flashIndex =
+        (flashIndex + 1) % approvedAds().length;
+
+      renderFlashAd();
+    });
+
+  document
+    .getElementById("advertiseFlash")
+    ?.addEventListener("click", showAdvertising);
+
+  renderFlashAd();
+
+  clearInterval(flashTimer);
+
+  flashTimer = setInterval(() => {
+    const modal = document.getElementById("modal");
+
+    if (modal?.classList.contains("hidden")) {
+      clearInterval(flashTimer);
+      return;
+    }
+
+    const ads = approvedAds();
+
+    if (!ads.length) return;
+
+    flashIndex = (flashIndex + 1) % ads.length;
+
+    renderFlashAd();
+  }, 5000);
+}
+
+function renderFlashAd() {
+  const container =
+    document.getElementById("flashContent");
+
+  const ads = approvedAds();
+
+  if (!container || !ads.length) return;
+
+  const ad = ads[flashIndex % ads.length];
+
+  let media = "";
+
+  if (ad.mediaType === "video") {
+    media = `
+      <video
+        class="flash-media"
+        src="${escapeHTML(ad.media)}"
+        autoplay
+        muted
+        loop
+        playsinline
+        controls
+      ></video>
+    `;
+  } else {
+    media = `
+      <img
+        class="flash-media"
+        src="${escapeHTML(ad.media)}"
+        alt="${escapeHTML(ad.title)}"
+      >
+    `;
+  }
+
+  container.innerHTML = `
+    <article class="flash-ad-card">
+
+      ${media}
+
+      <div class="flash-ad-copy">
+        <span>PUBLICIDAD DESTACADA</span>
+
+        <h3>${escapeHTML(ad.title)}</h3>
+
+        <p>${escapeHTML(ad.description)}</p>
+
+        <small>
+          Publicidad ${escapeHTML(ad.planName || "")}
+        </small>
+      </div>
+
+    </article>
+  `;
+}
+
+/* =========================
+   PUBLICIDAD
+========================= */
+
+function showAdvertising() {
+  const user = currentUser();
+
+  if (!user) {
+    showLogin();
+    return;
+  }
+
+  const config = getConfig();
+
+  const methods = Object.entries(config.payments)
+    .filter(([, value]) => value.enabled);
+
+  openModal(`
+    <div class="modal-header">
+      <button class="close-modal" id="closeAdvertising">×</button>
+      <h2>📣 Publicar publicidad</h2>
+    </div>
+
+    <div class="form-card">
+
+      <label>Título de la publicidad</label>
+      <input
+        id="adTitle"
+        placeholder="Nombre de tu negocio o producto"
+      >
+
+      <label>Descripción</label>
+      <textarea
+        id="adDescription"
+        rows="4"
+        placeholder="Describe tu oferta..."
+      ></textarea>
+
+      <label>Foto o video</label>
+
+      <input
+        id="adMedia"
+        type="file"
+        accept="image/*,video/*"
+        capture="environment"
+      >
+
+      <label>Plan de publicidad</label>
+
+      <select id="adPlan">
+
+        <option value="cheap">
+          ${escapeHTML(config.plans.cheap.name)}
+          — ${money(config.plans.cheap.price)}
+        </option>
+
+        <option value="normal">
+          ${escapeHTML(config.plans.normal.name)}
+          — ${money(config.plans.normal.price)}
+        </option>
+
+        <option value="pro">
+          ${escapeHTML(config.plans.pro.name)}
+          — ${money(config.plans.pro.price)}
+        </option>
+
+      </select>
+
+      <label>Método de pago</label>
+
+      <select id="adPayment">
+
+        ${
+          methods.length
+            ? methods.map(([name, data]) => `
+              <option value="${escapeHTML(name)}">
+                ${escapeHTML(name)}
+              </option>
+            `).join("")
+            : `<option>No hay métodos disponibles</option>`
+        }
+
+      </select>
+
+      <div id="paymentInfo" class="payment-info"></div>
+
+      <label>Comprobante de pago</label>
+
+      <input
+        id="adProof"
+        type="file"
+        accept="image/*,.pdf"
+      >
+
+      <button
+        class="primary-btn"
+        id="submitAdvertising"
+      >
+        Enviar publicidad para revisión
+      </button>
+
+    </div>
+  `);
+
+  document
+    .getElementById("closeAdvertising")
+    ?.addEventListener("click", closeModal);
+
+  document
+    .getElementById("adPlan")
+    ?.addEventListener("change", updatePaymentInfo);
+
+  document
+    .getElementById("adPayment")
+    ?.addEventListener("change", updatePaymentInfo);
+
+  document
+    .getElementById("submitAdvertising")
+    ?.addEventListener("click", submitAdvertising);
+
+  updatePaymentInfo();
+}
+
+function updatePaymentInfo() {
+  const config = getConfig();
+
+  const plan =
+    document.getElementById("adPlan")?.value;
+
+  const method =
+    document.getElementById("adPayment")?.value;
+
+  const box =
+    document.getElementById("paymentInfo");
+
+  if (!box || !plan || !method) return;
+
+  const payment = config.payments[method];
+
+  if (!payment) return;
+
+  box.innerHTML = `
+    <strong>${escapeHTML(method)}</strong>
+
+    <p>
+      Cuenta / dato de pago:
+      <b>${escapeHTML(payment.account)}</b>
+    </p>
+
+    <p>
+      Total:
+      <strong>${money(payment[plan])}</strong>
+    </p>
+  `;
+}
+
+function submitAdvertising() {
+  const user = currentUser();
+
+  if (!user) {
+    showLogin();
+    return;
+  }
+
+  const title =
+    document.getElementById("adTitle").value.trim();
+
+  const description =
+    document.getElementById("adDescription").value.trim();
+
+  const plan =
+    document.getElementById("adPlan").value;
+
+  const payment =
+    document.getElementById("adPayment").value;
+
+  const mediaInput =
+    document.getElementById("adMedia");
+
+  const proofInput =
+    document.getElementById("adProof");
+
+  if (!title || !description) {
+    toast("Completa el título y la descripción.");
+    return;
+  }
+
+  if (!mediaInput.files[0]) {
+    toast("Selecciona una foto o video.");
+    return;
+  }
+
+  if (!proofInput.files[0]) {
+    toast("Debes adjuntar el comprobante de pago.");
+    return;
+  }
+
+  const mediaFile = mediaInput.files[0];
+  const proofFile = proofInput.files[0];
+
+  const mediaReader = new FileReader();
+
+  mediaReader.onload = event => {
+
+    const media =
+      event.target.result;
+
+    const proofReader = new FileReader();
+
+    proofReader.onload = proofEvent => {
+
+      const config = getConfig();
+
+      const ads = getJSON(STORAGE.ads, []);
+
+      ads.push({
+        id: uid("ad"),
+        userId: user.id,
+        userName: user.name,
+        title,
+        description,
+        media,
+        mediaType:
+          mediaFile.type.startsWith("video/")
+            ? "video"
+            : "image",
+        proof: proofEvent.target.result,
+        proofName: proofFile.name,
+        plan,
+        planName: config.plans[plan].name,
+        paymentMethod: payment,
+        amount:
+          config.payments[payment]?.[plan] ||
+          config.plans[plan].price,
+        status: "pending",
+        createdAt: Date.now()
+      });
+
+      saveJSON(STORAGE.ads, ads);
+
+      const stats =
+        getJSON(STORAGE.stats, {});
+
+      stats.totalAds =
+        Number(stats.totalAds || 0) + 1;
+
+      saveJSON(STORAGE.stats, stats);
+
+      toast(
+        "📣 Publicidad enviada. Esperando aprobación."
+      );
+
+      closeModal();
+      updateBadges();
+    };
+
+    proofReader.readAsDataURL(proofFile);
+  };
+
+  mediaReader.readAsDataURL(mediaFile);
+}
+
+/* =========================
+   ADMIN
+========================= */
+
+function showAdminLogin() {
+  openModal(`
+    <div class="modal-header">
+      <button class="close-modal" id="closeAdminLogin">×</button>
+      <h2>🔐 Administrador</h2>
+    </div>
+
+    <div class="form-card">
+
+      <p>
+        Introduce la contraseña del panel de administración.
+      </p>
+
+      <input
+        id="adminPassword"
+        type="password"
+        placeholder="Contraseña"
+      >
+
+      <button
+        class="primary-btn"
+        id="enterAdmin"
+      >
+        Entrar al panel
+      </button>
+
+    </div>
+  `);
+
+  document
+    .getElementById("closeAdminLogin")
+    ?.addEventListener("click", closeModal);
+
+  document
+    .getElementById("enterAdmin")
+    ?.addEventListener("click", () => {
+
+      const config = getConfig();
+
+      const password =
+        document.getElementById("adminPassword").value;
+
+      if (password !== config.adminPassword) {
+        toast("Contraseña incorrecta.");
+        return;
+      }
+
+      closeModal();
+      showAdminPanel();
     });
 }
+
+function showAdminPanel() {
+  const config = getConfig();
+
+  const ads = getJSON(STORAGE.ads, []);
+  const claims = getJSON(STORAGE.claims, []);
+  const sanctions = getJSON(STORAGE.sanctions, []);
+  const messages = getMessages();
+  const deletedUsers =
+    getJSON("mf_deleted_users_v2", []);
+
+  const products =
+    getJSON(STORAGE.products, []);
+
+  const pendingAds =
+    ads.filter(ad => ad.status === "pending");
+
+  openModal(`
+    <div class="admin-panel">
+
+      <div class="admin-header">
+
+        <div>
+          <small>MARKET FLASH</small>
+          <h2>⚙️ Panel de Administración</h2>
+        </div>
+
+        <button
+          class="close-modal"
+          id="closeAdmin"
+        >
+          ×
+        </button>
+
+      </div>
+
+      ${
+        pendingAds.length
+          ? `
+            <button
+              class="admin-alert"
+              id="pendingAlert"
+            >
+              🔴 ${pendingAds.length}
+              publicidad(es) pendiente(s)
+            </button>
+          `
+          : ""
+      }
+
+      <div class="admin-stats">
+
+        <div>
+          <strong>${products.length}</strong>
+          <small>Publicaciones</small>
+        </div>
+
+        <div>
+          <strong>${ads.length}</strong>
+          <small>Publicidad</small>
+        </div>
+
+        <div>
+          <strong>${claims.length}</strong>
+          <small>Reclamos</small>
+        </div>
+
+        <div>
+          <strong>${deletedUsers.length}</strong>
+          <small>Cuentas eliminadas</small>
+        </div>
+
+      </div>
+
+      <div class="admin-menu">
+
+        <button data-admin="ads">
+          📣 Publicidad
+        </button>
+
+        <button data-admin="payments">
+          💳 Pagos y precios
+        </button>
+
+        <button data-admin="claims">
+          ⚠️ Reclamos
+        </button>
+
+        <button data-admin="users">
+          👥 Usuarios
+        </button>
+
+        <button data-admin="messages">
+          💬 Chat administrativo
+        </button>
+
+        <button data-admin="sanctions">
+          🚫 Sanciones y multas
+        </button>
+
+        <button data-admin="password">
+          🔐 Cambiar contraseña
+        </button>
+
+        <button data-admin="settings">
+          ⚙️ Configuración del panel
+        </button>
+
+      </div>
+
+      <div id="adminSection"></div>
+
+    </div>
+  `);
+
+  document
+    .getElementById("closeAdmin")
+    ?.addEventListener("click", closeModal);
+
+  document
+    .getElementById("pendingAlert")
+    ?.addEventListener("click", () => {
+      renderAdminAds();
+    });
+
+  document
+    .querySelectorAll("[data-admin]")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+
+        const section =
+          button.dataset.admin;
+
+        if (section === "ads") {
+          renderAdminAds();
+        }
+
+        if (section === "payments") {
+          renderAdminPayments();
+        }
+
+        if (section === "claims") {
+          renderAdminClaims();
+        }
+
+        if (section === "users") {
+          renderAdminUsers();
+        }
+
+        if (section === "messages") {
+          renderAdminMessages();
+        }
+
+        if (section === "sanctions") {
+          renderAdminSanctions();
+        }
+
+        if (section === "password") {
+          renderAdminPassword();
+        }
+
+        if (section === "settings") {
+          renderAdminSettings();
+        }
+      });
+    });
+
+  renderAdminAds();
+}
+
+/* =========================
+   ADMIN — PUBLICIDAD
+========================= */
+
+function renderAdminAds() {
+  const box =
+    document.getElementById("adminSection");
+
+  if (!box) return;
+
+  const ads =
+    getJSON(STORAGE.ads, []);
+
+  box.innerHTML = `
+    <div class="admin-section">
+
+      <h3>📣 Solicitudes de publicidad</h3>
+
+      ${
+        ads.length
+          ? ads.slice().reverse().map(ad => `
+            <div class="admin-ad">
+
+              ${
+                ad.mediaType === "video"
+                  ? `
+                    <video
+                      src="${escapeHTML(ad.media)}"
+                      controls
+                    ></video>
+                  `
+                  : `
+                    <img
+                      src="${escapeHTML(ad.media)}"
+                      alt=""
+                    >
+                  `
+              }
+
+              <div>
+
+                <span class="status ${ad.status}">
+                  ${escapeHTML(ad.status)}
+                </span>
+
+                <h4>${escapeHTML(ad.title)}</h4>
+
+                <p>${escapeHTML(ad.description)}</p>
+
+                <small>
+                  Usuario:
+                  ${escapeHTML(ad.userName)}
+                </small>
+
+                <small>
+                  Plan:
+                  ${escapeHTML(ad.planName)}
+                </small>
+
+                <small>
+                  Pago:
+                  ${escapeHTML(ad.paymentMethod)}
+                </small>
+
+                <small>
+                  Total:
+                  ${money(ad.amount)}
+                </small>
+
+                <div class="admin-buttons">
+
+                  <button
+                    class="secondary-btn view-proof"
+                    data-id="${ad.id}"
+                  >
+                    Ver comprobante
+                  </button>
+
+                  ${
+                    ad.status === "pending"
+                      ? `
+                        <button
+                          class="primary-btn approve-ad"
+                          data-id="${ad.id}"
+                        >
+                          ✓ Aprobar
+                        </button>
+
+                        <button
+                          class="danger-btn reject-ad"
+                          data-id="${ad.id}"
+                        >
+                          ✕ Rechazar
+                        </button>
+                      `
+                      : ""
+                  }
+
+                </div>
+
+              </div>
+
+            </div>
+          `).join("")
+          : `
+            <div class="empty-state">
+              <div>📣</div>
+              <p>No hay solicitudes de publicidad.</p>
+            </div>
+          `
+      }
+
+    </div>
+  `;
+
+  document
+    .querySelectorAll(".approve-ad")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+        changeAdStatus(button.dataset.id, "approved");
+      });
+    });
+
+  document
+    .querySelectorAll(".reject-ad")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+        changeAdStatus(button.dataset.id, "rejected");
+      });
+    });
+
+  document
+    .querySelectorAll(".view-proof")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+        viewProof(button.dataset.id);
+      });
+    });
+}
+
+function changeAdStatus(id, status) {
+  const ads =
+    getJSON(STORAGE.ads, []);
+
+  const ad =
+    ads.find(item => item.id === id);
+
+  if (!ad) return;
+
+  ad.status = status;
+  ad.reviewedAt = Date.now();
+
+  saveJSON(STORAGE.ads, ads);
+
+  toast(
+    status === "approved"
+      ? "✓ Publicidad aprobada"
+      : "Publicidad rechazada"
+  );
+
+  renderAdminAds();
+  updateBadges();
+}
+
+function viewProof(id) {
+  const ads =
+    getJSON(STORAGE.ads, []);
+
+  const ad =
+    ads.find(item => item.id === id);
+
+  if (!ad) return;
+
+  openModal(`
+    <div class="modal-header">
+      <button class="close-modal" id="closeProof">×</button>
+      <h2>🧾 Comprobante</h2>
+    </div>
+
+    <div class="proof-view">
+
+      <h3>${escapeHTML(ad.title)}</h3>
+
+      <p>
+        ${escapeHTML(ad.paymentMethod)}
+      </p>
+
+      <p>
+        Total: <strong>${money(ad.amount)}</strong>
+      </p>
+
+      ${
+        String(ad.proof || "").startsWith("data:image")
+          ? `
+            <img
+              src="${escapeHTML(ad.proof)}"
+              alt="Comprobante"
+            >
+          `
+          : `
+            <p>
+              Comprobante:
+              ${escapeHTML(ad.proofName || "Archivo")}
+            </p>
+          `
+      }
+
+    </div>
+  `);
+
+  document
+    .getElementById("closeProof")
+    ?.addEventListener("click", closeModal);
+}
+
+/* =========================
+   ADMIN — PAGOS
+========================= */
+
+function renderAdminPayments() {
+  const config = getConfig();
+  const box =
+    document.getElementById("adminSection");
+
+  if (!box) return;
+
+  box.innerHTML = `
+    <div class="admin-section">
+
+      <h3>💳 Métodos de pago y precios</h3>
+
+      <p>
+        Puedes activar/desactivar métodos y cambiar
+        los precios de cada plan.
+      </p>
+
+      ${
+        Object.entries(config.payments).map(
+          ([name, payment]) => `
+            <div class="payment-admin-card">
+
+              <h4>${escapeHTML(name)}</h4>
+
+              <label>
+                <input
+                  type="checkbox"
+                  class="payment-enabled"
+                  data-method="${escapeHTML(name)}"
+                  ${payment.enabled ? "checked" : ""}
+                >
+                Método activo
+              </label>
+
+              <label>Cuenta / información de pago</label>
+
+              <input
+                class="payment-account"
+                data-method="${escapeHTML(name)}"
+                value="${escapeHTML(payment.account)}"
+              >
+
+              <div class="price-grid">
+
+                <label>
+                  Básico
+                  <input
+                    type="number"
+                    class="payment-price"
+                    data-method="${escapeHTML(name)}"
+                    data-plan="cheap"
+                    value="${payment.cheap}"
+                  >
+                </label>
+
+                <label>
+                  Destacado
+                  <input
+                    type="number"
+                    class="payment-price"
+                    data-method="${escapeHTML(name)}"
+                    data-plan="normal"
+                    value="${payment.normal}"
+                  >
+                </label>
+
+                <label>
+                  Premium
+                  <input
+                    type="number"
+                    class="payment-price"
+                    data-method="${escapeHTML(name)}"
+                    data-plan="pro"
+                    value="${payment.pro}"
+                  >
+                </label>
+
+              </div>
+
+            </div>
+          `
+        ).join("")
+      }
+
+      <button
+        class="primary-btn"
+        id="savePayments"
+      >
+        Guardar métodos y precios
+      </button>
+
+    </div>
+  `;
+
+  document
+    .getElementById("savePayments")
+    ?.addEventListener("click", savePayments);
+}
+
+function savePayments() {
+  const config = getConfig();
+
+  Object.entries(config.payments)
+    .forEach(([name, payment]) => {
+
+      const enabled =
+        document.querySelector(
+          `.payment-enabled[data-method="${CSS.escape(name)}"]`
+        );
+
+      const account =
+        document.querySelector(
+          `.payment-account[data-method="${CSS.escape(name)}"]`
+        );
+
+      payment.enabled = !!enabled?.checked;
+
+      if (account) {
+        payment.account = account.value.trim();
+      }
+
+      ["cheap", "normal", "pro"].forEach(plan => {
+
+        const input =
+          document.querySelector(
+            `.payment-price[data-method="${CSS.escape(name)}"][data-plan="${plan}"]`
+          );
+
+        if (input) {
+          payment[plan] = Number(input.value || 0);
+        }
+      });
+    });
+
+  saveJSON(STORAGE.config, config);
+
+  toast("✓ Configuración de pagos guardada");
+}
+
+/* =========================
+   ADMIN — RECLAMOS
+========================= */
+
+function renderAdminClaims() {
+  const box =
+    document.getElementById("adminSection");
+
+  if (!box) return;
+
+  const claims =
+    getJSON(STORAGE.claims, []);
+
+  box.innerHTML = `
+    <div class="admin-section">
+
+      <h3>⚠️ Reclamos</h3>
+
+      ${
+        claims.length
+          ? claims.slice().reverse().map(claim => `
+            <div class="claim-admin">
+
+              <span class="status ${claim.status}">
+                ${escapeHTML(claim.status)}
+              </span>
+
+              <h4>
+                ${escapeHTML(claim.reason)}
+              </h4>
+
+              <p>
+                <strong>Usuario:</strong>
+                ${escapeHTML(claim.userName)}
+              </p>
+
+              <p>
+                ${escapeHTML(claim.description)}
+              </p>
+
+              ${
+                claim.evidence
+                  ? `
+                    <p>
+                      <strong>Evidencia:</strong>
+                      ${escapeHTML(claim.evidence)}
+                    </p>
+                  `
+                  : ""
+              }
+
+              <small>
+                ${formatDate(claim.createdAt)}
+              </small>
+
+              ${
+                claim.status === "pending"
+                  ? `
+                    <div class="admin-buttons">
+
+                      <button
+                        class="primary-btn resolve-claim"
+                        data-id="${claim.id}"
+                      >
+                        ✓ Resolver
+                      </button>
+
+                      <button
+                        class="danger-btn sanction-claim"
+                        data-id="${claim.id}"
+                      >
+                        🚫 Sancionar
+                      </button>
+
+                    </div>
+                  `
+                  : ""
+              }
+
+            </div>
+          `).join("")
+          : `
+            <div class="empty-state">
+              <div>⚠️</div>
+              <p>No hay reclamos.</p>
+            </div>
+          `
+      }
+
+    </div>
+  `;
+
+  document
+    .querySelectorAll(".resolve-claim")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+        resolveClaim(button.dataset.id);
+      });
+    });
+
+  document
+    .querySelectorAll(".sanction-claim")
+    .forEach(button => {
+      button.addEventListener("click", () => {
+        sanctionFromClaim(button.dataset.id);
+      });
+    });
+}
+
+function resolveClaim(id) {
+  const claims =
+    getJSON(STORAGE.claims, []);
+
+  const claim =
+    claims.find(item => item.id === id);
+
+  if (!claim) return;
+
+  claim.status = "resolved";
+  claim.resolvedAt = Date.now();
+
+  saveJSON(STORAGE.claims, claims);
+
+  toast("✓ Reclamo resuelto");
+  renderAdminClaims();
+}
+
+function sanctionFromClaim(id) {
+  const claims =
+    getJSON(STORAGE.claims, []);
+
+  const claim =
+    claims.find(item => item.id === id);
+
+  if (!claim) return;
+
+  showSanctionForm(claim.userId, claim.userName, id);
+}
+
+/* =========================
+   ADMIN — USUARIOS
+========================= */
+
+function renderAdminUsers() {
+  const box =
+    document.getElementById("adminSection");
+
+  if (!box) return;
+
+  const deletedUsers =
+    getJSON("mf_deleted_users_v2", []);
+
+  const user =
+    currentUser();
+
+  box.innerHTML = `
+    <div class="admin-section">
+
+      <h3>👥 Usuarios</h3>
+
+      <div class="user-admin-card">
+
+        <h4>Usuario registrado en este dispositivo</h4>
+
+        ${
+          user
+            ? `
+              <p>
+                <strong>Nombre:</strong>
+                ${escapeHTML(user.name)}
+              </p>
+
+              <p>
+                <strong>Cédula:</strong>
+                ${escapeHTML(user.cedula)}
+              </p>
+
+              <p>
+                <strong>Teléfono:</strong>
+                ${escapeHTML(user.phone)}
+              </p>
+
+              <p>
+                <strong>Registro:</strong>
+                ${formatDate(user.createdAt)}
+              </p>
+            `
+            : `
+              <p>No hay usuario activo.</p>
+            `
+        }
+
+      </div>
+
+      <h4>Cuentas eliminadas</h4>
+
+      ${
+        deletedUsers.length
+          ? deletedUsers.map(user => `
+            <div class="deleted-user">
+              <strong>${escapeHTML(user.name)}</strong>
+              <small>${escapeHTML(user.phone)}</small>
+              <small>Eliminada: ${formatDate(user.deletedAt)}</small>
+            </div>
+          `).join("")
+          : `<p>No hay cuentas eliminadas.</p>`
+      }
+
+    </div>
+  `;
+}
+
+/* =========================
+   ADMIN — CHAT
+========================= */
+
+function renderAdminMessages() {
+  const box =
+    document.getElementById("adminSection");
+
+  if (!box) return;
+
+  const messages =
+    getMessages();
+
+  box.innerHTML = `
+    <div class="admin-section">
+
+      <h3>💬 Chat administrativo</h3>
+
+      <p>
+        Aquí aparecen los mensajes relacionados con
+        la administración y los reclamos.
+      </p>
+
+      ${
+        messages.length
+          ? messages.slice().reverse().map(message => `
+            <div class="admin-message">
+
+              <small>
+                ${formatDate(message.createdAt)}
+              </small>
+
+              <p>
+                ${escapeHTML(message.text)}
+              </p>
+
+              <small>
+                De:
+                ${escapeHTML(message.from)}
+              </small>
+
+              <small>
+                Para:
+                ${escapeHTML(message.to)}
+              </small>
+
+            </div>
+          `).join("")
+          : `
+            <div class="empty-state">
+              <div>💬</div>
+              <p>No hay mensajes.</p>
+            </div>
+          `
+      }
+
+    </div>
+  `;
+}
+
+/* =========================
+   ADMIN — SANCIONES
+========================= */
+
+function renderAdminSanctions() {
+  const box =
+    document.getElementById("adminSection");
+
+  if (!box) return;
+
+  const sanctions =
+    getJSON(STORAGE.sanctions, []);
+
+  box.innerHTML = `
+    <div class="admin-section">
+
+      <h3>🚫 Sanciones y multas</h3>
+
+      <button
+        class="primary-btn"
+        id="newSanction"
+      >
+        ＋ Crear sanción / multa
+      </button>
+
+      ${
+        sanctions.length
+          ? sanctions.slice().reverse().map(item => `
+            <div class="sanction-admin">
+
+              <span class="status">
+                ${escapeHTML(item.type)}
+              </span>
+
+              <h4>${escapeHTML(item.userName)}</h4>
+
+              <p>${escapeHTML(item.reason)}</p>
+
+              ${
+                item.amount
+                  ? `<strong>Multa: ${money(item.amount)}</strong>`
+                  : ""
+              }
+
+              <small>
+                ${formatDate(item.createdAt)}
+              </small>
+
+            </div>
+          `).join("")
+          : `
+            <div class="empty-state">
+              <p>No hay sanciones.</p>
+            </div>
+          `
+      }
+
+    </div>
+  `;
+
+  document
+    .getElementById("newSanction")
+    ?.addEventListener("click", () => {
+      showSanctionForm();
+    });
+}
+
+function showSanctionForm(
+  userId = "",
+  userName = "",
+  claimId = ""
+) {
+  openModal(`
+    <div class="modal-header">
+      <button class="close-modal" id="closeSanction">×</button>
+      <h2>🚫 Sancionar usuario</h2>
+    </div>
+
+    <div class="form-card">
+
+      <label>Usuario</label>
+      <input
+        id="sanctionUser"
+        value="${escapeHTML(userName)}"
+        placeholder="Nombre del usuario"
+      >
+
+      <label>ID del usuario</label>
+      <input
+        id="sanctionUserId"
+        value="${escapeHTML(userId)}"
+      >
+
+      <label>Tipo de sanción</label>
+
+      <select id="sanctionType">
+        <option>Advertencia</option>
+        <option>Bloqueo temporal</option>
+        <option>Bloqueo permanente</option>
+        <option>Multa</option>
+        <option>Eliminación de publicación</option>
+      </select>
+
+      <label>Motivo</label>
+
+      <textarea
+        id="sanctionReason"
+        rows="4"
+        placeholder="Motivo de la sanción..."
+      ></textarea>
+
+      <label>Monto de multa</label>
+
+      <input
+        id="sanctionAmount"
+        type="number"
+        min="0"
+        placeholder="0"
+      >
+
+      <label>Días de bloqueo</label>
+
+      <input
+        id="sanctionDays"
+        type="number"
+        min="0"
+        placeholder="0"
+      >
+
+      <button
+        class="danger-btn"
+        id="saveSanction"
+      >
+        Aplicar sanción
+      </button>
+
+    </div>
+  `);
+
+  document
+    .getElementById("closeSanction")
+    ?.addEventListener("click", closeModal);
+
+  document
+    .getElementById("saveSanction")
+    ?.addEventListener("click", () => {
+
+      const sanctions =
+        getJSON(STORAGE.sanctions, []);
+
+      const type =
+        document.getElementById("sanctionType").value;
+
+      const amount =
+        Number(
+          document.getElementById("sanctionAmount").value || 0
+        );
+
+      const days =
+        Number(
+          document.getElementById("sanctionDays").value || 0
+        );
+
+      sanctions.push({
+        id: uid("sanction"),
+        userId:
+          document.getElementById("sanctionUserId").value.trim(),
+        userName:
+          document.getElementById("sanctionUser").value.trim(),
+        type,
+        reason:
+          document.getElementById("sanctionReason").value.trim(),
+        amount,
+        days,
+        createdAt: Date.now(),
+        active: true
+      });
+
+      saveJSON(STORAGE.sanctions, sanctions);
+
+      if (claimId) {
+        const claims =
+          getJSON(STORAGE.claims, []);
+
+        const claim =
+          claims.find(item => item.id === claimId);
+
+        if (claim) {
+          claim.status = "sanctioned";
+          saveJSON(STORAGE.claims, claims);
+        }
+      }
+
+      toast("🚫 Sanción aplicada");
+      closeModal();
+      renderAdminSanctions();
+    });
+}
+
+/* =========================
+   ADMIN — CONTRASEÑA
+========================= */
+
+function renderAdminPassword() {
+  const box =
+    document.getElementById("adminSection");
+
+  if (!box) return;
+
+  box.innerHTML = `
+    <div class="admin-section">
+
+      <h3>🔐 Cambiar contraseña del administrador</h3>
+
+      <div class="form-card">
+
+        <label>Contraseña actual</label>
+        <input
+          id="adminOldPassword"
+          type="password"
+        >
+
+        <label>Nueva contraseña</label>
+        <input
+          id="adminNewPassword"
+          type="password"
+        >
+
+        <label>Confirmar nueva contraseña</label>
+        <input
+          id="adminNewPassword2"
+          type="password"
+        >
+
+        <button
+          class="primary-btn"
+          id="saveAdminPassword"
+        >
+          Guardar contraseña
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  document
+    .getElementById("saveAdminPassword")
+    ?.addEventListener("click", saveAdminPassword);
+}
+
+function saveAdminPassword() {
+  const config = getConfig();
+
+  const oldPassword =
+    document.getElementById("adminOldPassword").value;
+
+  const newPassword =
+    document.getElementById("adminNewPassword").value;
+
+  const newPassword2 =
+    document.getElementById("adminNewPassword2").value;
+
+  if (oldPassword !== config.adminPassword) {
+    toast("La contraseña actual es incorrecta.");
+    return;
+  }
+
+  if (newPassword.length < 6) {
+    toast("La nueva contraseña debe tener al menos 6 caracteres.");
+    return;
+  }
+
+  if (newPassword !== newPassword2) {
+    toast("Las contraseñas no coinciden.");
+    return;
+  }
+
+  config.adminPassword = newPassword;
+
+  saveJSON(STORAGE.config, config);
+
+  toast("✓ Contraseña del administrador cambiada");
+}
+
+/* =========================
+   ADMIN — CONFIGURACIÓN
+========================= */
+
+function renderAdminSettings() {
+  const config = getConfig();
+
+  const box =
+    document.getElementById("adminSection");
+
+  if (!box) return;
+
+  box.innerHTML = `
+    <div class="admin-section">
+
+      <h3>⚙️ Configuración del panel</h3>
+
+      <div class="settings-list">
+
+        <label>
+          <input
+            type="checkbox"
+            id="panelCompact"
+            ${config.panel.compact ? "checked" : ""}
+          >
+          Panel compacto
+        </label>
+
+        <label>
+          <input
+            type="checkbox"
+            id="panelRounded"
+            ${config.panel.rounded ? "checked" : ""}
+          >
+          Bordes redondeados
+        </label>
+
+        <label>
+          <input
+            type="checkbox"
+            id="panelAnimations"
+            ${config.panel.animations ? "checked" : ""}
+          >
+          Animaciones
+        </label>
+
+      </div>
+
+      <label>Nombre de la plataforma</label>
+
+      <input
+        id="siteName"
+        value="${escapeHTML(config.siteName)}"
+      >
+
+      <label>Frase principal</label>
+
+      <input
+        id="siteTagline"
+        value="${escapeHTML(config.tagline)}"
+      >
+
+      <h4>Precios generales de los planes</h4>
+
+      <div class="price-grid">
+
+        <label>
+          Básico
+          <input
+            id="cheapPrice"
+            type="number"
+            value="${config.plans.cheap.price}"
+          >
+        </label>
+
+        <label>
+          Destacado
+          <input
+            id="normalPrice"
+            type="number"
+            value="${config.plans.normal.price}"
+          >
+        </label>
+
+        <label>
+          Premium
+          <input
+            id="proPrice"
+            type="number"
+            value="${config.plans.pro.price}"
+          >
+        </label>
+
+      </div>
+
+      <button
+        class="primary-btn"
+        id="savePanelSettings"
+      >
+        Guardar configuración
+      </button>
+
+    </div>
+  `;
+
+  document
+    .getElementById("savePanelSettings")
+    ?.addEventListener("click", savePanelSettings);
+}
+
+function savePanelSettings() {
+  const config = getConfig();
+
+  config.panel.compact =
+    document.getElementById("panelCompact").checked;
+
+  config.panel.rounded =
+    document.getElementById("panelRounded").checked;
+
+  config.panel.animations =
+    document.getElementById("panelAnimations").checked;
+
+  config.siteName =
+    document.getElementById("siteName").value.trim();
+
+  config.tagline =
+    document.getElementById("siteTagline").value.trim();
+
+  config.plans.cheap.price =
+    Number(document.getElementById("cheapPrice").value || 0);
+
+  config.plans.normal.price =
+    Number(document.getElementById("normalPrice").value || 0);
+
+  config.plans.pro.price =
+    Number(document.getElementById("proPrice").value || 0);
+
+  saveJSON(STORAGE.config, config);
+
+  applyPanelSettings();
+
+  toast("✓ Configuración guardada");
+}
+
+/* =========================
+   BADGES / NOTIFICACIONES
+========================= */
+
+function updateBadges() {
+  const ads =
+    getJSON(STORAGE.ads, []);
+
+  const pending =
+    ads.filter(ad => ad.status === "pending").length;
+
+  const badge =
+    document.getElementById("notifyBadge");
+
+  if (badge) {
+    badge.textContent = pending;
+
+    badge.classList.toggle(
+      "hidden",
+      pending === 0
+    );
+  }
+
+  const chatBadge =
+    document.getElementById("chatBadge");
+
+  const user =
+    currentUser();
+
+  let unread = 0;
+
+  if (user) {
+    unread =
+      getMessages().filter(message =>
+        message.to === user.id &&
+        !message.read
+      ).length;
+  }
+
+  if (chatBadge) {
+    chatBadge.textContent = unread;
+
+    chatBadge.classList.toggle(
+      "hidden",
+      unread === 0
+    );
+  }
+}
+
+/* =========================
+   NOTIFICACIONES
+========================= */
+
+function showNotifications() {
+  const ads =
+    getJSON(STORAGE.ads, []);
+
+  const pending =
+    ads.filter(ad => ad.status === "pending");
+
+  const user =
+    currentUser();
+
+  const unread =
+    user
+      ? getMessages().filter(
+          message =>
+            message.to === user.id &&
+            !message.read
+        )
+      : [];
+
+  openModal(`
+    <div class="modal-header">
+      <button class="close-modal" id="closeNotifications">×</button>
+      <h2>🔔 Notificaciones</h2>
+    </div>
+
+    <div class="notification-list">
+
+      ${
+        pending.length
+          ? `
+            <div class="notification warning">
+              🔴 Hay ${pending.length}
+              publicidad(es) esperando revisión administrativa.
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        unread.length
+          ? unread.map(message => `
+            <div class="notification">
+              💬 ${escapeHTML(message.text)}
+            </div>
+          `).join("")
+          : ""
+      }
+
+      ${
+        !pending.length && !unread.length
+          ? `
+            <div class="empty-state">
+              <div>🔔</div>
+              <p>No tienes notificaciones nuevas.</p>
+            </div>
+          `
+          : ""
+      }
+
+    </div>
+  `);
+
+  document
+    .getElementById("closeNotifications")
+    ?.addEventListener("click", closeModal);
+}
+
+/* =========================
+   CONFIGURACIÓN VISUAL
+========================= */
 
 function applyPanelSettings() {
   const config = getConfig();
 
   document.body.classList.toggle(
-    'admin-compact',
+    "mf-compact",
     !!config.panel.compact
   );
 
   document.body.classList.toggle(
-    'dark-mode',
-    !!config.panel.darkMode
+    "mf-no-rounded",
+    !config.panel.rounded
   );
 
   document.body.classList.toggle(
-    'no-animations',
+    "mf-no-animations",
     !config.panel.animations
   );
 }
 
+/* =========================
+   EVENTOS PRINCIPALES
+========================= */
 
-/* =========================================================
-   CAMBIAR CONTRASEÑA DEL ADMINISTRADOR
-   ========================================================= */
+function setupEvents() {
 
-function changeAdminPassword() {
-  showModal(`
-    <div class="modal-header">
-      <button class="back-btn" onclick="adminPanel()">←</button>
-      <h2>🔐 Contraseña del administrador</h2>
-      <button class="close-btn" onclick="adminPanel()">×</button>
-    </div>
-
-    <form id="adminPasswordForm" class="form">
-
-      <div class="field">
-        <label>Contraseña actual</label>
-        <input id="currentAdminPassword" type="password" required>
-      </div>
-
-      <div class="field">
-        <label>Nueva contraseña</label>
-        <input id="newAdminPassword" type="password" minlength="6" required>
-      </div>
-
-      <button class="primary">
-        💾 Cambiar contraseña
-      </button>
-
-    </form>
-  `);
-
-  document.getElementById('adminPasswordForm')
-    .addEventListener('submit', function (event) {
-      event.preventDefault();
-
-      const config = getConfig();
-
-      const current =
-        document.getElementById('currentAdminPassword').value;
-
-      const next =
-        document.getElementById('newAdminPassword').value;
-
-      if (current !== config.adminPassword) {
-        toast('❌ Contraseña actual incorrecta');
-        return;
-      }
-
-      config.adminPassword = next;
-
-      saveConfig(config);
-
-      adminPanel();
-
-      toast('✅ Contraseña del administrador cambiada');
-    });
-}
-
-
-/* =========================================================
-   NOTIFICACIONES
-   ========================================================= */
-
-function updateBadges() {
-  const pendingAds =
-    ads.filter(ad => ad.status === 'pendiente').length;
-
-  const unreadMessages =
-    messages.filter(message => !message.read).length;
-
-  const notifyBadge =
-    document.getElementById('notifyBadge');
-
-  const chatBadge =
-    document.getElementById('chatBadge');
-
-  if (notifyBadge) {
-    notifyBadge.textContent = pendingAds;
-
-    notifyBadge.classList.toggle(
-      'hidden',
-      pendingAds === 0
-    );
-  }
-
-  if (chatBadge) {
-    chatBadge.textContent = unreadMessages;
-
-    chatBadge.classList.toggle(
-      'hidden',
-      unreadMessages === 0
-    );
-  }
-}
-
-function notifications() {
-  const pendingAds =
-    ads.filter(ad => ad.status === 'pendiente').length;
-
-  const unread =
-    messages.filter(message => !message.read).length;
-
-  showModal(`
-    <div class="modal-header">
-      <h2>🔔 Notificaciones</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    ${
-      pendingAds
-        ? `
-          <div class="notice warning">
-            📣 Tienes ${pendingAds}
-            solicitud${pendingAds === 1 ? '' : 'es'}
-            de publicidad pendiente${pendingAds === 1 ? '' : 's'}.
-          </div>
-        `
-        : ''
-    }
-
-    ${
-      unread
-        ? `
-          <div class="notice">
-            💬 Tienes ${unread}
-            mensaje${unread === 1 ? '' : 's'} nuevo${unread === 1 ? '' : 's'}.
-          </div>
-        `
-        : ''
-    }
-
-    ${
-      !pendingAds && !unread
-        ? `
-          <div class="empty-state">
-            🎉 No tienes notificaciones nuevas.
-          </div>
-        `
-        : ''
-    }
-  `);
-}
-
-
-/* =========================================================
-   NAVEGACIÓN
-   ========================================================= */
-
-function goHome() {
-  closeModal();
-
-  currentCategory = 'Todos';
-
-  renderCategories();
-  renderProducts();
-  renderFlashDay();
-
-  document.querySelectorAll('.nav-item')
+  document
+    .querySelectorAll(".nav-item")
     .forEach(button => {
-      button.classList.remove('active');
+      button.addEventListener("click", () => {
+        goPage(button.dataset.page);
+      });
     });
 
   document
-    .querySelector('.nav-item[data-page="home"]')
-    ?.classList.add('active');
-}
+    .getElementById("publishBtn")
+    ?.addEventListener("click", showPublish);
 
-function handleNavigation(page) {
-  if (page === 'home') {
-    goHome();
-    return;
-  }
+  document
+    .getElementById("notifyBtn")
+    ?.addEventListener("click", showNotifications);
 
-  if (page === 'chat') {
-    if (!user) {
-      loginRequired('Inicia sesión para usar el chat.');
-      return;
-    }
+  document
+    .getElementById("searchInput")
+    ?.addEventListener("input", event => {
 
-    openChatHome();
-    return;
-  }
+      searchTerm =
+        event.target.value;
 
-  if (page === 'activity') {
-    openActivity();
-    return;
-  }
-
-  if (page === 'profile') {
-    openProfile();
-    return;
-  }
-}
-
-function openChatHome() {
-  const chats = [];
-
-  messages.forEach(message => {
-    const other =
-      message.from === user.name
-        ? message.to
-        : message.from;
-
-    if (!chats.includes(other)) {
-      chats.push(other);
-    }
-  });
-
-  showModal(`
-    <div class="modal-header">
-      <h2>💬 Chat</h2>
-      <button class="close-btn" onclick="closeModal()">×</button>
-    </div>
-
-    ${
-      chats.length
-        ? chats.map(name => `
-          <button
-            class="menu-button"
-            onclick="openChat('${escapeHtml(name)}', 0)">
-            💬 ${escapeHtml(name)}
-          </button>
-        `).join('')
-        : `
-          <div class="empty-state">
-            💬 Todavía no tienes conversaciones.
-          </div>
-        `
-    }
-  `);
-}
-
-
-/* =========================================================
-   EVENTOS
-   ========================================================= */
-
-document.addEventListener('DOMContentLoaded', function () {
-
-  const searchInput =
-    document.getElementById('searchInput');
-
-  if (searchInput) {
-    searchInput.addEventListener(
-      'input',
-      renderProducts
-    );
-  }
-
-  document.querySelectorAll('.nav-item')
-    .forEach(button => {
-
-      button.addEventListener('click', function () {
-
-        const page =
-          button.dataset.page;
-
-        handleNavigation(page);
-
-      });
-
+      if (currentPage === "home") {
+        renderProducts();
+      }
     });
 
-  const publishButton =
-    document.getElementById('publishBtn');
+  document
+    .getElementById("modal")
+    ?.addEventListener("click", event => {
 
-  if (publishButton) {
-    publishButton.addEventListener(
-      'click',
-      openPublish
-    );
-  }
-
-  const flashButton =
-    document.getElementById('flashDayBtn');
-
-  if (flashButton) {
-    flashButton.addEventListener(
-      'click',
-      openAdvertising
-    );
-  }
-
-  const notificationButton =
-    document.getElementById('notifyBtn');
-
-  if (notificationButton) {
-    notificationButton.addEventListener(
-      'click',
-      notifications
-    );
-  }
-
-  const modal =
-    document.getElementById('modal');
-
-  if (modal) {
-    modal.addEventListener(
-      'click',
-      function (event) {
-
-        if (event.target === modal) {
-          closeModal();
-        }
-
+      if (event.target.id === "modal") {
+        closeModal();
       }
-    );
-  }
+    });
+}
 
-  renderCategories();
-  renderProducts();
-  renderFlashDay();
+/* =========================
+   INICIO DE LA APP
+========================= */
+
+function initMarketFlash() {
+
+  seedData();
+
   applyPanelSettings();
+
+  setupEvents();
+
+  renderHome();
+
   updateBadges();
 
-});
+  /*
+    Actualiza notificaciones periódicamente.
+  */
+  setInterval(updateBadges, 3000);
+}
 
+/* =========================
+   ARRANQUE
+========================= */
 
-/* =========================================================
-   FUNCIONES GLOBALES
-   ========================================================= */
-
-window.openPublish = openPublish;
-window.openAdvertising = openAdvertising;
-window.openProduct = openProduct;
-window.openProfile = openProfile;
-window.openActivity = openActivity;
-window.notifications = notifications;
-window.openAdmin = openAdmin;
-
-window.register = register;
-window.login = login;
-window.logout = logout;
-
-window.settings = settings;
-window.changePassword = changePassword;
-window.securityPage = securityPage;
-window.deleteAccount = deleteAccount;
-
-window.editProfile = editProfile;
-window.editProfilePhoto = editProfilePhoto;
-
-window.setCategory = setCategory;
-
-window.likeProduct = likeProduct;
-window.contactWhatsApp = contactWhatsApp;
-window.contactMessenger = contactMessenger;
-
-window.startChat = startChat;
-window.openChat = openChat;
-window.markBought = markBought;
-
-window.openClaim = openClaim;
-
-window.approveAd = approveAd;
-window.rejectAd = rejectAd;
-
-window.adminPanel = adminPanel;
-window.adminAdvertising = adminAdvertising;
-window.adminPayments = adminPayments;
-window.adminUsers = adminUsers;
-window.adminClaims = adminClaims;
-window.adminChat = adminChat;
-window.adminSanctions = adminSanctions;
-window.adminPanelSettings = adminPanelSettings;
-window.changeAdminPassword = changeAdminPassword;
-
-window.resolveClaim = resolveClaim;
-window.sanctionFromClaim = sanctionFromClaim;
-window.openSanctionForm = openSanctionForm;
-
-window.saveAdvertisingConfig = saveAdvertisingConfig;
-
-window.closeModal = closeModal;
-window.goHome = goHome;
-
-
-/* =========================================================
-   ATAJO PARA ADMINISTRADOR
-   ========================================================= */
-
-document.addEventListener('keydown', function (event) {
-
-  if (
-    event.ctrlKey &&
-    event.shiftKey &&
-    event.key.toLowerCase() === 'a'
-  ) {
-    openAdmin();
-  }
-
-});
-
-
-/* =========================================================
-   FIN DE SCRIPT
-   ========================================================= */
+if (
+  document.readyState === "loading"
+) {
+  document.addEventListener(
+    "DOMContentLoaded",
+    initMarketFlash
+  );
+} else {
+  initMarketFlash();
+}
