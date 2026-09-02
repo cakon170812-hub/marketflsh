@@ -1,92 +1,47 @@
 /* =========================================================
-   MARKET FLASH — SCRIPT.JS
-   Versión frontend completa
-   ========================================================= */
+   MARKET FLASH
+   script.js
+   Propiedad Julio Alcántara Gómez
+========================================================= */
 
 "use strict";
 
-/* =========================
+/* =========================================================
    CONFIGURACIÓN
-========================= */
+========================================================= */
+
+const APP_NAME = "Market Flash";
+const OWNER = "Propiedad Julio Alcántara Gómez";
 
 const STORAGE = {
+  products: "mf_products",
   user: "mf_user",
-  products: "mf_products_v2",
-  ads: "mf_ads_v2",
-  config: "mf_config_v2",
-  messages: "mf_messages_v2",
-  claims: "mf_claims_v2",
-  sanctions: "mf_sanctions_v2",
-  stats: "mf_stats_v2"
+  chats: "mf_chats",
+  notifications: "mf_notifications",
+  settings: "mf_settings",
+  ads: "mf_ads",
+  admin: "mf_admin",
+  complaints: "mf_complaints",
+  activities: "mf_activities"
 };
 
-const DEFAULT_CONFIG = {
-  adminPassword: "MarketFlash2026!",
-  siteName: "Market Flash",
-  tagline: "Encuentra lo que necesitas",
-  currency: "RD$",
-
-  plans: {
-    cheap: {
-      name: "Flash Básico",
-      price: 250
-    },
-    normal: {
-      name: "Flash Destacado",
-      price: 500
-    },
-    pro: {
-      name: "Flash Premium",
-      price: 1000
-    }
-  },
-
-  payments: {
-    "Banco Popular": {
-      enabled: true,
-      account: "Configurar cuenta",
-      cheap: 250,
-      normal: 500,
-      pro: 1000
-    },
-
-    "Banreservas": {
-      enabled: true,
-      account: "Configurar cuenta",
-      cheap: 250,
-      normal: 500,
-      pro: 1000
-    },
-
-    "Binance": {
-      enabled: true,
-      account: "Configurar cuenta",
-      cheap: 250,
-      normal: 500,
-      pro: 1000
-    },
-
-    "PayPal": {
-      enabled: true,
-      account: "Configurar cuenta",
-      cheap: 250,
-      normal: 500,
-      pro: 1000
-    }
-  },
-
-  panel: {
-    compact: false,
-    rounded: true,
-    animations: true
-  }
-};
-
-/* =========================
+/* =========================================================
    UTILIDADES
-========================= */
+========================================================= */
 
-function getJSON(key, fallback) {
+function $(id) {
+  return document.getElementById(id);
+}
+
+function qs(selector) {
+  return document.querySelector(selector);
+}
+
+function qsa(selector) {
+  return [...document.querySelectorAll(selector)];
+}
+
+function load(key, fallback) {
   try {
     const value = localStorage.getItem(key);
     return value ? JSON.parse(value) : fallback;
@@ -95,337 +50,1027 @@ function getJSON(key, fallback) {
   }
 }
 
-function saveJSON(key, value) {
+function save(key, value) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
-function getConfig() {
-  const stored = getJSON(STORAGE.config, null);
-
-  if (!stored) {
-    saveJSON(STORAGE.config, DEFAULT_CONFIG);
-    return structuredClone(DEFAULT_CONFIG);
-  }
-
-  return {
-    ...DEFAULT_CONFIG,
-    ...stored,
-    plans: {
-      ...DEFAULT_CONFIG.plans,
-      ...(stored.plans || {})
-    },
-    payments: {
-      ...DEFAULT_CONFIG.payments,
-      ...(stored.payments || {})
-    },
-    panel: {
-      ...DEFAULT_CONFIG.panel,
-      ...(stored.panel || {})
-    }
-  };
-}
-
-function currentUser() {
-  return getJSON(STORAGE.user, null);
-}
-
-function setCurrentUser(user) {
-  if (user) {
-    saveJSON(STORAGE.user, user);
-  } else {
-    localStorage.removeItem(STORAGE.user);
-  }
-}
-
 function uid(prefix = "mf") {
-  return prefix + "_" + Date.now() + "_" +
-    Math.random().toString(36).slice(2, 9);
+  return `${prefix}_${Date.now()}_${Math.random()
+    .toString(36)
+    .slice(2, 8)}`;
 }
 
-function escapeHTML(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+function escapeHTML(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-function money(value) {
-  const config = getConfig();
-  return config.currency + " " +
-    Number(value || 0).toLocaleString("es-DO");
+function formatMoney(value) {
+  return new Intl.NumberFormat("es-DO", {
+    style: "currency",
+    currency: "DOP",
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
 }
 
-function formatDate(date) {
-  return new Date(date).toLocaleString("es-DO", {
-    dateStyle: "short",
+function formatDate(date = Date.now()) {
+  return new Intl.DateTimeFormat("es-DO", {
+    dateStyle: "medium",
     timeStyle: "short"
-  });
+  }).format(new Date(date));
 }
 
-function toast(message, type = "") {
-  const el = document.getElementById("toast");
-
+function toast(message, type = "normal") {
+  const el = $("toast");
   if (!el) return;
 
   el.textContent = message;
-  el.className = "toast " + type;
+  el.className = `toast ${type}`;
 
-  clearTimeout(window.__mfToastTimer);
+  clearTimeout(window.mfToastTimer);
 
-  window.__mfToastTimer = setTimeout(() => {
-    el.className = "toast hidden";
-  }, 3000);
+  window.mfToastTimer = setTimeout(() => {
+    el.classList.add("hidden");
+  }, 3200);
 }
 
-function openModal(html) {
-  const modal = document.getElementById("modal");
-  const card = document.getElementById("modalCard");
-
-  card.innerHTML = html;
-  modal.classList.remove("hidden");
-
-  document.body.classList.add("modal-open");
-}
-
-function closeModal() {
-  const modal = document.getElementById("modal");
-
+function hideModal() {
+  const modal = $("modal");
   if (!modal) return;
 
   modal.classList.add("hidden");
-  document.body.classList.remove("modal-open");
+  modal.setAttribute("aria-hidden", "true");
+  $("modalCard").innerHTML = "";
 }
 
-function randomId() {
-  return Math.floor(Math.random() * 999999);
+function showModal(content) {
+  const modal = $("modal");
+  const card = $("modalCard");
+
+  if (!modal || !card) return;
+
+  card.innerHTML = content;
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden", "false");
 }
 
-/* =========================
+function pressAnimation(button) {
+  if (!button) return;
+
+  button.classList.remove("mf-press");
+  void button.offsetWidth;
+  button.classList.add("mf-press");
+
+  setTimeout(() => {
+    button.classList.remove("mf-press");
+  }, 300);
+}
+
+/* =========================================================
    DATOS INICIALES
-========================= */
+========================================================= */
 
-function seedData() {
-  let products = getJSON(STORAGE.products, null);
-
-  if (!products) {
-    products = [
-      {
-        id: uid("product"),
-        title: "iPhone 15 Pro",
-        category: "Celulares",
-        price: 52000,
-        description: "iPhone 15 Pro en excelentes condiciones.",
-        image:
-          "https://images.unsplash.com/photo-1696446701796-da61225697cc?auto=format&fit=crop&w=900&q=80",
-        seller: "Vendedor Market Flash",
-        sellerId: "demo_seller_1",
-        views: 0,
-        likes: 0,
-        sold: false,
-        buyerConfirmed: false,
-        sellerConfirmed: false,
-        createdAt: Date.now()
-      },
-
-      {
-        id: uid("product"),
-        title: "Samsung Galaxy S24",
-        category: "Celulares",
-        price: 41000,
-        description: "Samsung Galaxy S24. Excelente equipo.",
-        image:
-          "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?auto=format&fit=crop&w=900&q=80",
-        seller: "Tecnología Flash",
-        sellerId: "demo_seller_2",
-        views: 0,
-        likes: 0,
-        sold: false,
-        buyerConfirmed: false,
-        sellerConfirmed: false,
-        createdAt: Date.now()
-      },
-
-      {
-        id: uid("product"),
-        title: "Laptop",
-        category: "Computadoras",
-        price: 35000,
-        description: "Laptop para trabajo, estudios y entretenimiento.",
-        image:
-          "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=900&q=80",
-        seller: "Market Flash",
-        sellerId: "demo_seller_3",
-        views: 0,
-        likes: 0,
-        sold: false,
-        buyerConfirmed: false,
-        sellerConfirmed: false,
-        createdAt: Date.now()
-      },
-
-      {
-        id: uid("product"),
-        title: "PlayStation 5",
-        category: "Videojuegos",
-        price: 39000,
-        description: "PS5 en muy buen estado.",
-        image:
-          "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?auto=format&fit=crop&w=900&q=80",
-        seller: "Game Flash",
-        sellerId: "demo_seller_4",
-        views: 0,
-        likes: 0,
-        sold: false,
-        buyerConfirmed: false,
-        sellerConfirmed: false,
-        createdAt: Date.now()
-      }
-    ];
-
-    saveJSON(STORAGE.products, products);
+let products = load(STORAGE.products, [
+  {
+    id: "product_demo_1",
+    title: "iPhone 14 Pro",
+    description: "Excelente estado. Equipo disponible para entrega.",
+    price: 39000,
+    category: "Celulares",
+    seller: "Vendedor Market Flash",
+    sellerId: "demo_seller",
+    views: 18,
+    likes: 4,
+    rating: 4.8,
+    sold: false,
+    sellerSold: false,
+    buyerBought: false,
+    createdAt: Date.now() - 86400000
+  },
+  {
+    id: "product_demo_2",
+    title: "PlayStation 4",
+    description: "Consola funcionando correctamente.",
+    price: 18500,
+    category: "Videojuegos",
+    seller: "Vendedor Market Flash",
+    sellerId: "demo_seller_2",
+    views: 31,
+    likes: 7,
+    rating: 4.6,
+    sold: false,
+    sellerSold: false,
+    buyerBought: false,
+    createdAt: Date.now() - 172800000
   }
+]);
 
-  if (!localStorage.getItem(STORAGE.ads)) {
-    saveJSON(STORAGE.ads, []);
+let user = load(STORAGE.user, {
+  id: "user_local",
+  name: "Usuario",
+  phone: "",
+  cedula: "",
+  messenger: "",
+  password: "1234",
+  avatar: ""
+});
+
+let chats = load(STORAGE.chats, []);
+
+let notifications = load(STORAGE.notifications, []);
+
+let settings = load(STORAGE.settings, {
+  appColor: "#2563eb",
+  chatColor: "#2563eb",
+  chatBackground: "gradient",
+  chatCustomImage: "",
+  chatStyle: "modern"
+});
+
+let ads = load(STORAGE.ads, []);
+
+let complaints = load(STORAGE.complaints, []);
+
+let activities = load(STORAGE.activities, []);
+
+let admin = load(STORAGE.admin, {
+  password: "1234",
+  plans: {
+    basic: 250,
+    pro: 500,
+    premium: 900
+  },
+  paymentMethods: {
+    popular: {
+      enabled: true,
+      name: "Banco Popular",
+      account: ""
+    },
+    banreservas: {
+      enabled: true,
+      name: "Banreservas",
+      account: ""
+    },
+    binance: {
+      enabled: true,
+      name: "Binance",
+      account: ""
+    },
+    paypal: {
+      enabled: true,
+      name: "PayPal",
+      account: ""
+    }
   }
+});
 
-  if (!localStorage.getItem(STORAGE.messages)) {
-    saveJSON(STORAGE.messages, []);
-  }
+save(STORAGE.products, products);
+save(STORAGE.user, user);
+save(STORAGE.chats, chats);
+save(STORAGE.notifications, notifications);
+save(STORAGE.settings, settings);
+save(STORAGE.ads, ads);
+save(STORAGE.complaints, complaints);
+save(STORAGE.activities, activities);
+save(STORAGE.admin, admin);
 
-  if (!localStorage.getItem(STORAGE.claims)) {
-    saveJSON(STORAGE.claims, []);
-  }
-
-  if (!localStorage.getItem(STORAGE.sanctions)) {
-    saveJSON(STORAGE.sanctions, []);
-  }
-
-  if (!localStorage.getItem(STORAGE.stats)) {
-    saveJSON(STORAGE.stats, {
-      totalViews: 0,
-      totalLikes: 0,
-      totalAds: 0,
-      totalUsers: 0
-    });
-  }
-}
-
-/* =========================
+/* =========================================================
    NAVEGACIÓN
-========================= */
+========================================================= */
 
-let currentPage = "home";
-let currentCategory = "Todos";
-let searchTerm = "";
+function showPage(pageName) {
+  const pages = {
+    home: $("homePage"),
+    chat: $("chatPage"),
+    activity: $("activityPage"),
+    profile: $("profilePage")
+  };
 
-function setActiveNav(page) {
-  document.querySelectorAll(".nav-item").forEach(button => {
+  Object.values(pages).forEach(page => {
+    if (page) page.classList.add("hidden");
+  });
+
+  if (pages[pageName]) {
+    pages[pageName].classList.remove("hidden");
+  }
+
+  qsa(".nav-item").forEach(button => {
     button.classList.toggle(
       "active",
-      button.dataset.page === page
+      button.dataset.page === pageName
     );
   });
-}
 
-function goPage(page) {
-  currentPage = page;
-  setActiveNav(page);
-
-  if (page === "home") {
+  if (pageName === "home") {
     renderHome();
   }
 
-  if (page === "chat") {
-    renderChat();
+  if (pageName === "chat") {
+    renderChats();
   }
 
-  if (page === "activity") {
+  if (pageName === "activity") {
     renderActivity();
   }
 
-  if (page === "profile") {
+  if (pageName === "profile") {
     renderProfile();
   }
 }
 
-/* =========================
-   INICIO
-========================= */
+/* =========================================================
+   NAVEGACIÓN INFERIOR
+========================================================= */
 
-function renderHome() {
-  const main = document.getElementById("mainContent");
+qsa(".nav-item").forEach(button => {
+  button.addEventListener("click", () => {
+    pressAnimation(button);
+    showPage(button.dataset.page);
+  });
+});
 
-  if (!main) return;
+/* =========================================================
+   PERFIL
+========================================================= */
 
-  main.innerHTML = `
-    <section class="hero">
-      <div>
-        <small>MARKET FLASH</small>
-        <h1>Encuentra lo que necesitas</h1>
-        <p>Compra, vende y conecta con personas de tu zona.</p>
-      </div>
-    </section>
+function renderProfile() {
+  $("profileName").textContent = user.name || "Usuario";
 
-    <button id="flashDayBtn" class="flash-day" type="button">
-      <div class="flash-icon">⚡</div>
+  $("profilePhone").textContent =
+    user.phone || "Teléfono no registrado";
 
-      <div class="flash-copy">
-        <span>PUBLICIDAD</span>
-        <strong>Publicación Flash del Día</strong>
-        <small>Descubre anuncios destacados y oportunidades.</small>
-      </div>
+  $("profileCedula").textContent =
+    user.cedula
+      ? `Cédula: ${maskCedula(user.cedula)}`
+      : "Cédula: protegida";
 
-      <div class="arrow">›</div>
-    </button>
+  $("profileNameInfo").textContent =
+    user.name || "-";
 
-    <div class="section-title">
-      <h2>Publicaciones</h2>
-      <span id="productCount"></span>
-    </div>
+  $("profilePhoneInfo").textContent =
+    user.phone || "-";
 
-    <div id="categoryRow" class="chips"></div>
+  $("profileMessengerInfo").textContent =
+    user.messenger
+      ? "Conectado"
+      : "No conectado";
 
-    <section id="productsGrid" class="products-grid"></section>
-  `;
+  const avatar = $("profileAvatar");
 
-  document
-    .getElementById("flashDayBtn")
-    ?.addEventListener("click", showFlashDay);
+  if (avatar) {
+    if (user.avatar) {
+      avatar.innerHTML =
+        `<img src="${user.avatar}" alt="Foto de perfil">`;
+    } else {
+      avatar.textContent = "👤";
+    }
+  }
 
-  renderCategories();
-  renderProducts();
+  renderMyProducts();
 }
 
-/* =========================
-   CATEGORÍAS
-========================= */
+function maskCedula(value) {
+  if (!value) return "protegida";
+
+  const str = String(value);
+
+  if (str.length <= 4) {
+    return "••••";
+  }
+
+  return "••••••" + str.slice(-4);
+}
+
+$("editProfileBtn")?.addEventListener("click", () => {
+  pressAnimation($("editProfileBtn"));
+
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="modal-header">
+      <small>MI PERFIL</small>
+      <h2>Editar perfil</h2>
+      <p>Actualiza tus datos personales.</p>
+    </div>
+
+    <div class="form-card">
+
+      <label>Nombre</label>
+
+      <input
+        id="editNameInput"
+        type="text"
+        value="${escapeHTML(user.name)}"
+        placeholder="Tu nombre"
+      >
+
+      <label>Número de teléfono</label>
+
+      <input
+        id="editPhoneInput"
+        type="tel"
+        value="${escapeHTML(user.phone)}"
+        placeholder="809-000-0000"
+      >
+
+      <label>Cédula</label>
+
+      <input
+        type="text"
+        value="${escapeHTML(maskCedula(user.cedula))}"
+        disabled
+      >
+
+      <label>Foto de perfil</label>
+
+      <input
+        id="profileImageInput"
+        type="file"
+        accept="image/*"
+      >
+
+      <button
+        id="saveProfileBtn"
+        class="primary-btn"
+        type="button"
+      >
+        Guardar cambios
+      </button>
+
+    </div>
+  `);
+
+  $("saveProfileBtn")?.addEventListener("click", saveProfile);
+
+  $("profileImageInput")?.addEventListener("change", event => {
+    const file = event.target.files?.[0];
+
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      user.avatar = reader.result;
+    };
+
+    reader.readAsDataURL(file);
+  });
+});
+
+function saveProfile() {
+  const name = $("editNameInput")?.value.trim();
+  const phone = $("editPhoneInput")?.value.trim();
+
+  if (!name) {
+    toast("Escribe tu nombre.", "error");
+    return;
+  }
+
+  user.name = name;
+  user.phone = phone;
+
+  save(STORAGE.user, user);
+
+  hideModal();
+  renderProfile();
+
+  addActivity(
+    "Perfil actualizado",
+    "Tus datos fueron actualizados correctamente."
+  );
+
+  toast("Perfil actualizado correctamente.", "success");
+}
+
+/* =========================================================
+   CAMBIAR TELÉFONO
+========================================================= */
+
+$("savePhoneBtn")?.addEventListener("click", () => {
+  const phone = $("newPhoneInput")?.value.trim();
+
+  if (!phone) {
+    toast("Escribe un número de teléfono.", "error");
+    return;
+  }
+
+  user.phone = phone;
+
+  save(STORAGE.user, user);
+
+  renderProfile();
+
+  toast("Número de teléfono actualizado.", "success");
+});
+
+/* =========================================================
+   MESSENGER
+========================================================= */
+
+$("saveMessengerBtn")?.addEventListener("click", () => {
+  const link = $("messengerLinkInput")?.value.trim();
+
+  if (!link) {
+    toast("Escribe el enlace de Messenger.", "error");
+    return;
+  }
+
+  user.messenger = link;
+
+  save(STORAGE.user, user);
+
+  renderProfile();
+
+  toast("Messenger conectado.", "success");
+});
+
+$("messengerProfileBtn")?.addEventListener("click", () => {
+  $("profileSettings")?.classList.remove("hidden");
+
+  $("messengerLinkInput")?.focus();
+});
+
+/* =========================================================
+   CONFIGURACIÓN DEL PERFIL
+========================================================= */
+
+$("profileSettingsBtn")?.addEventListener("click", () => {
+  const settingsPanel = $("profileSettings");
+
+  if (!settingsPanel) return;
+
+  settingsPanel.classList.toggle("hidden");
+
+  if (!settingsPanel.classList.contains("hidden")) {
+    settingsPanel.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+});
+
+/* =========================================================
+   CAMBIAR COLOR DE LA APLICACIÓN
+========================================================= */
+
+$("appColorBtn")?.addEventListener("click", () => {
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="modal-header">
+      <small>PERSONALIZACIÓN</small>
+      <h2>Color de Market Flash</h2>
+      <p>Selecciona el color principal de la aplicación.</p>
+    </div>
+
+    <div class="color-picker-grid">
+
+      <button data-app-color="#2563eb">Azul</button>
+      <button data-app-color="#7c3aed">Morado</button>
+      <button data-app-color="#059669">Verde</button>
+      <button data-app-color="#db2777">Rosa</button>
+      <button data-app-color="#ea580c">Naranja</button>
+      <button data-app-color="#111827">Oscuro</button>
+
+    </div>
+  `);
+
+  qsa("[data-app-color]").forEach(button => {
+    button.addEventListener("click", () => {
+      settings.appColor = button.dataset.appColor;
+
+      save(STORAGE.settings, settings);
+
+      applySettings();
+
+      hideModal();
+
+      toast("Color actualizado.", "success");
+    });
+  });
+});
+
+/* =========================================================
+   ESTILO DEL CHAT
+========================================================= */
+
+$("chatStyleBtn")?.addEventListener("click", () => {
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="modal-header">
+      <small>CHAT</small>
+      <h2>Estilo del chat</h2>
+      <p>Elige cómo quieres ver tus conversaciones.</p>
+    </div>
+
+    <div class="settings-choice">
+
+      <button data-chat-style="modern">
+        ✨ Moderno
+      </button>
+
+      <button data-chat-style="classic">
+        💬 Clásico
+      </button>
+
+      <button data-chat-style="glass">
+        🔮 Cristal
+      </button>
+
+      <button data-chat-style="minimal">
+        ◻️ Minimalista
+      </button>
+
+    </div>
+  `);
+
+  qsa("[data-chat-style]").forEach(button => {
+    button.addEventListener("click", () => {
+      settings.chatStyle =
+        button.dataset.chatStyle;
+
+      save(STORAGE.settings, settings);
+
+      applySettings();
+
+      hideModal();
+
+      toast("Estilo del chat actualizado.", "success");
+    });
+  });
+});
+
+/* =========================================================
+   FONDO DEL CHAT
+========================================================= */
+
+$("chatBackgroundBtn")?.addEventListener("click", () => {
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="modal-header">
+      <small>CHAT</small>
+      <h2>Fondo del chat</h2>
+      <p>Personaliza el fondo de tus conversaciones.</p>
+    </div>
+
+    <div class="landscape-grid">
+
+      <button data-landscape="gradient">
+        🌌
+        <span>Atardecer digital</span>
+      </button>
+
+      <button data-landscape="beach">
+        🏝️
+        <span>Playa</span>
+      </button>
+
+      <button data-landscape="forest">
+        🌲
+        <span>Bosque</span>
+      </button>
+
+      <button data-landscape="mountain">
+        🏔️
+        <span>Montañas</span>
+      </button>
+
+      <button data-landscape="night">
+        🌙
+        <span>Noche</span>
+      </button>
+
+    </div>
+  `);
+
+  qsa("[data-landscape]").forEach(button => {
+    button.addEventListener("click", () => {
+      settings.chatBackground =
+        button.dataset.landscape;
+
+      save(STORAGE.settings, settings);
+
+      applySettings();
+
+      hideModal();
+
+      toast("Fondo del chat actualizado.", "success");
+    });
+  });
+});
+
+/* =========================================================
+   PAISAJES INTEGRADOS
+========================================================= */
+
+$("builtInLandscapeBtn")?.addEventListener("click", () => {
+  $("chatBackgroundBtn")?.click();
+});
+
+/* =========================================================
+   IMAGEN PERSONALIZADA DEL CHAT
+========================================================= */
+
+$("chatCustomImageBtn")?.addEventListener("click", () => {
+  $("chatCustomImageInput")?.click();
+});
+
+$("chatCustomImageInput")?.addEventListener("change", event => {
+  const file = event.target.files?.[0];
+
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    toast("Selecciona una imagen válida.", "error");
+    return;
+  }
+
+  const reader = new FileReader();
+
+  reader.onload = () => {
+    settings.chatCustomImage = reader.result;
+    settings.chatBackground = "custom";
+
+    save(STORAGE.settings, settings);
+
+    applySettings();
+
+    toast("Imagen personalizada guardada.", "success");
+  };
+
+  reader.readAsDataURL(file);
+});
+
+/* =========================================================
+   APLICAR CONFIGURACIÓN
+========================================================= */
+
+function applySettings() {
+  document.documentElement.style.setProperty(
+    "--mf-primary",
+    settings.appColor
+  );
+
+  document.documentElement.style.setProperty(
+    "--mf-chat-color",
+    settings.chatColor
+  );
+
+  document.body.dataset.chatStyle =
+    settings.chatStyle;
+
+  document.body.dataset.chatBackground =
+    settings.chatBackground;
+
+  if (settings.chatBackground === "custom" &&
+      settings.chatCustomImage) {
+
+    document.documentElement.style.setProperty(
+      "--mf-chat-image",
+      `url("${settings.chatCustomImage}")`
+    );
+
+  } else {
+    document.documentElement.style.removeProperty(
+      "--mf-chat-image"
+    );
+  }
+}
+
+/* =========================================================
+   CONTRASEÑA DEL USUARIO
+========================================================= */
+
+$("changePasswordBtn")?.addEventListener("click", () => {
+  const current =
+    $("currentPasswordInput")?.value;
+
+  const next =
+    $("newPasswordInput")?.value;
+
+  if (!current || !next) {
+    toast("Completa las dos contraseñas.", "error");
+    return;
+  }
+
+  if (current !== user.password) {
+    toast("La contraseña actual es incorrecta.", "error");
+    return;
+  }
+
+  if (next.length < 4) {
+    toast(
+      "La nueva contraseña debe tener al menos 4 caracteres.",
+      "error"
+    );
+    return;
+  }
+
+  user.password = next;
+
+  save(STORAGE.user, user);
+
+  $("currentPasswordInput").value = "";
+  $("newPasswordInput").value = "";
+
+  toast("Contraseña cambiada correctamente.", "success");
+});
+
+/* =========================================================
+   ELIMINAR CUENTA
+========================================================= */
+
+$("deleteAccountBtn")?.addEventListener("click", () => {
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="modal-header">
+      <small>CUENTA</small>
+      <h2>Eliminar cuenta</h2>
+
+      <p>
+        Esta acción eliminará tus datos locales de Market Flash.
+      </p>
+    </div>
+
+    <div class="form-card">
+
+      <p>
+        ¿Estás seguro de que deseas continuar?
+      </p>
+
+      <button
+        id="confirmDeleteAccount"
+        class="danger-outline"
+        type="button"
+      >
+        Sí, eliminar mi cuenta
+      </button>
+
+      <button
+        id="cancelDeleteAccount"
+        class="secondary-btn"
+        type="button"
+      >
+        Cancelar
+      </button>
+
+    </div>
+  `);
+
+  $("cancelDeleteAccount")?.addEventListener(
+    "click",
+    hideModal
+  );
+
+  $("confirmDeleteAccount")?.addEventListener(
+    "click",
+    deleteAccount
+  );
+});
+
+function deleteAccount() {
+  const deletedUser = {
+    ...user,
+    deletedAt: Date.now()
+  };
+
+  activities.push({
+    id: uid("activity"),
+    type: "account_deleted",
+    title: "Cuenta eliminada",
+    description: `Cuenta de ${user.name}`,
+    createdAt: Date.now()
+  });
+
+  save(STORAGE.activities, activities);
+
+  localStorage.removeItem(STORAGE.user);
+
+  user = {
+    id: uid("user"),
+    name: "Usuario",
+    phone: "",
+    cedula: "",
+    messenger: "",
+    password: "1234",
+    avatar: ""
+  };
+
+  save(STORAGE.user, user);
+
+  hideModal();
+
+  renderProfile();
+
+  toast("La cuenta fue eliminada.", "success");
+}
+
+/* =========================================================
+   PUBLICAR
+========================================================= */
+
+$("publishBtn")?.addEventListener("click", () => {
+  pressAnimation($("publishBtn"));
+  openPublishModal();
+});
+
+function openPublishModal() {
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="modal-header">
+      <small>MARKET FLASH</small>
+      <h2>Publicar producto</h2>
+      <p>Publica lo que quieras vender.</p>
+    </div>
+
+    <div class="form-card">
+
+      <label>Nombre del producto</label>
+
+      <input
+        id="productTitleInput"
+        type="text"
+        placeholder="Ej. iPhone 15 Pro"
+      >
+
+      <label>Descripción</label>
+
+      <textarea
+        id="productDescriptionInput"
+        rows="4"
+        placeholder="Describe tu producto..."
+      ></textarea>
+
+      <label>Precio</label>
+
+      <input
+        id="productPriceInput"
+        type="number"
+        min="0"
+        placeholder="Precio en RD$"
+      >
+
+      <label>Categoría</label>
+
+      <select id="productCategoryInput">
+
+        <option value="Celulares">Celulares</option>
+        <option value="Electrónica">Electrónica</option>
+        <option value="Videojuegos">Videojuegos</option>
+        <option value="Vehículos">Vehículos</option>
+        <option value="Hogar">Hogar</option>
+        <option value="Ropa">Ropa</option>
+        <option value="Otros">Otros</option>
+
+      </select>
+
+      <label>Foto</label>
+
+      <input
+        id="productImageInput"
+        type="file"
+        accept="image/*"
+      >
+
+      <button
+        id="saveProductBtn"
+        class="primary-btn"
+        type="button"
+      >
+        Publicar ahora
+      </button>
+
+    </div>
+  `);
+
+  $("saveProductBtn")?.addEventListener(
+    "click",
+    createProduct
+  );
+}
+
+function createProduct() {
+  const title =
+    $("productTitleInput")?.value.trim();
+
+  const description =
+    $("productDescriptionInput")?.value.trim();
+
+  const price =
+    Number($("productPriceInput")?.value);
+
+  const category =
+    $("productCategoryInput")?.value;
+
+  if (!title || !description || !price) {
+    toast(
+      "Completa nombre, descripción y precio.",
+      "error"
+    );
+    return;
+  }
+
+  const file =
+    $("productImageInput")?.files?.[0];
+
+  const create = image => {
+    const product = {
+      id: uid("product"),
+      title,
+      description,
+      price,
+      category,
+      image: image || "",
+      seller: user.name || "Usuario",
+      sellerId: user.id,
+      views: 0,
+      likes: 0,
+      rating: 5,
+      sold: false,
+      sellerSold: false,
+      buyerBought: false,
+      createdAt: Date.now()
+    };
+
+    products.unshift(product);
+
+    save(STORAGE.products, products);
+
+    addActivity(
+      "Publicación creada",
+      `${title} fue publicado correctamente.`
+    );
+
+    hideModal();
+
+    showPage("home");
+
+    toast(
+      "Tu publicación fue creada correctamente.",
+      "success"
+    );
+  };
+
+  if (file) {
+    const reader = new FileReader();
+
+    reader.onload = () => create(reader.result);
+
+    reader.readAsDataURL(file);
+  } else {
+    create("");
+  }
+}
+
+/* =========================================================
+   HOME
+========================================================= */
+
+let currentCategory = "Todos";
+let searchTerm = "";
+
+function renderHome() {
+  renderCategories();
+  renderProducts();
+  renderFlashStatus();
+  renderNotifications();
+}
 
 function renderCategories() {
-  const products = getJSON(STORAGE.products, []);
-  const categories = [
-    "Todos",
-    ...new Set(
-      products.map(product => product.category).filter(Boolean)
-    )
-  ];
-
-  const row = document.getElementById("categoryRow");
+  const row = $("categoryRow");
 
   if (!row) return;
+
+  const categories = [
+    "Todos",
+    "Celulares",
+    "Electrónica",
+    "Videojuegos",
+    "Vehículos",
+    "Hogar",
+    "Ropa",
+    "Otros"
+  ];
 
   row.innerHTML = categories.map(category => `
     <button
       class="chip ${currentCategory === category ? "active" : ""}"
       data-category="${escapeHTML(category)}"
+      type="button"
     >
       ${escapeHTML(category)}
     </button>
   `).join("");
 
-  row.querySelectorAll(".chip").forEach(button => {
+  qsa("[data-category]").forEach(button => {
     button.addEventListener("click", () => {
       currentCategory = button.dataset.category;
       renderCategories();
@@ -434,66 +1079,94 @@ function renderCategories() {
   });
 }
 
-/* =========================
-   PRODUCTOS
-========================= */
-
 function renderProducts() {
-  const grid = document.getElementById("productsGrid");
-  const count = document.getElementById("productCount");
+  const grid = $("productsGrid");
 
   if (!grid) return;
 
-  let products = getJSON(STORAGE.products, []);
-
-  products = products.filter(product => !product.sold);
+  let filtered = [...products];
 
   if (currentCategory !== "Todos") {
-    products = products.filter(
-      product => product.category === currentCategory
+    filtered = filtered.filter(
+      product =>
+        product.category === currentCategory
     );
   }
 
-  if (searchTerm.trim()) {
+  if (searchTerm) {
     const query = searchTerm.toLowerCase();
 
-    products = products.filter(product =>
-      `${product.title} ${product.description} ${product.category} ${product.seller}`
+    filtered = filtered.filter(product =>
+      `${product.title} ${product.description} ${product.category}`
         .toLowerCase()
         .includes(query)
     );
   }
 
-  if (count) {
-    count.textContent = products.length + " publicación" +
-      (products.length === 1 ? "" : "es");
-  }
+  $("productCount").textContent =
+    `${filtered.length} publicaciones`;
 
-  if (!products.length) {
+  if (!filtered.length) {
     grid.innerHTML = `
-      <div class="empty-state">
+      <div class="empty-card">
         <div>🔎</div>
         <h3>No encontramos publicaciones</h3>
-        <p>Prueba otra búsqueda o categoría.</p>
+        <p>Prueba con otra búsqueda o categoría.</p>
       </div>
     `;
     return;
   }
 
-  grid.innerHTML = products.map(product => `
-    <article class="product-card">
+  grid.innerHTML = filtered.map(productCard).join("");
 
-      <button
-        class="product-image-btn"
-        data-product="${product.id}"
-        type="button"
-      >
-        <img
-          src="${escapeHTML(product.image)}"
-          alt="${escapeHTML(product.title)}"
-          loading="lazy"
-        >
-      </button>
+  qsa("[data-product-id]").forEach(card => {
+    card.addEventListener("click", event => {
+      if (
+        event.target.closest("button") ||
+        event.target.closest("a")
+      ) {
+        return;
+      }
+
+      openProduct(product.id);
+    });
+  });
+
+  qsa("[data-like-product]").forEach(button => {
+    button.addEventListener("click", () => {
+      likeProduct(button.dataset.likeProduct);
+    });
+  });
+
+  qsa("[data-contact-product]").forEach(button => {
+    button.addEventListener("click", () => {
+      openProduct(button.dataset.contactProduct);
+    });
+  });
+}
+
+function productCard(product) {
+  return `
+    <article
+      class="product-card"
+      data-product-id="${product.id}"
+    >
+
+      <div class="product-image">
+
+        ${
+          product.image
+            ? `<img src="${product.image}" alt="${escapeHTML(product.title)}">`
+            : `<div class="product-placeholder">📦</div>`
+        }
+
+        ${
+          product.sold
+            ? `<span class="sold-label">VENDIDO</span>`
+            : ""
+        }
+
+      </div>
 
       <div class="product-body">
 
@@ -501,1587 +1174,986 @@ function renderProducts() {
           ${escapeHTML(product.category)}
         </div>
 
-        <h3>${escapeHTML(product.title)}</h3>
+        <h3>
+          ${escapeHTML(product.title)}
+        </h3>
+
+        <p>
+          ${escapeHTML(product.description)}
+        </p>
 
         <strong class="product-price">
-          ${money(product.price)}
+          ${formatMoney(product.price)}
+        </strong>
+
+        <div class="product-meta">
+          <span>👁 ${product.views || 0}</span>
+          <span>❤️ ${product.likes || 0}</span>
+          <span>⭐ ${product.rating || 5}</span>
+        </div>
+
+        <div class="product-seller">
+          Vendedor: ${escapeHTML(product.seller)}
+        </div>
+
+        <div class="product-actions">
+
+          <button
+            type="button"
+            data-like-product="${product.id}"
+          >
+            ❤️
+          </button>
+
+          <button
+            type="button"
+            data-contact-product="${product.id}"
+          >
+            💬 Contactar
+          </button>
+
+        </div>
+
+      </div>
+
+    </article>
+  `;
+}
+
+/* =========================================================
+   BÚSQUEDA
+========================================================= */
+
+$("searchInput")?.addEventListener(
+  "input",
+  event => {
+    searchTerm =
+      event.target.value.trim();
+
+    renderProducts();
+  }
+);
+
+/* =========================================================
+   LIKE
+========================================================= */
+
+function likeProduct(productId) {
+  const product =
+    products.find(item => item.id === productId);
+
+  if (!product) return;
+
+  product.likes =
+    Number(product.likes || 0) + 1;
+
+  save(STORAGE.products, products);
+
+  renderProducts();
+
+  toast("Te gusta esta publicación ❤️");
+}
+
+/* =========================================================
+   PRODUCTO
+========================================================= */
+
+function openProduct(productId) {
+  const product =
+    products.find(item => item.id === productId);
+
+  if (!product) return;
+
+  product.views =
+    Number(product.views || 0) + 1;
+
+  save(STORAGE.products, products);
+
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="product-viewer">
+
+      <div class="product-view-image">
+
+        ${
+          product.image
+            ? `<img src="${product.image}" alt="${escapeHTML(product.title)}">`
+            : `<div class="product-placeholder large">📦</div>`
+        }
+
+      </div>
+
+      <div class="product-view-content">
+
+        <small>
+          ${escapeHTML(product.category)}
+        </small>
+
+        <h2>
+          ${escapeHTML(product.title)}
+        </h2>
+
+        <strong class="product-price">
+          ${formatMoney(product.price)}
         </strong>
 
         <p>
           ${escapeHTML(product.description)}
         </p>
 
-        <div class="product-meta">
-          <span>👁 ${product.views || 0}</span>
-          <span>❤️ ${product.likes || 0}</span>
+        <div class="product-stats">
+          <span>👁 ${product.views}</span>
+          <span>❤️ ${product.likes}</span>
+          <span>⭐ ${product.rating}</span>
         </div>
 
-        <div class="seller-line">
-          <span>👤 ${escapeHTML(product.seller)}</span>
+        <div class="seller-box">
+
+          <strong>
+            ${escapeHTML(product.seller)}
+          </strong>
+
+          <span>
+            ⭐ ${product.rating || 5} / 5
+          </span>
+
         </div>
 
-        <button
-          class="primary-btn open-product"
-          data-product="${product.id}"
-          type="button"
-        >
-          Ver publicación
-        </button>
+        ${
+          product.sellerId === user.id
+            ? sellerSaleControls(product)
+            : `
+              <button
+                id="contactSellerBtn"
+                class="primary-btn"
+                type="button"
+              >
+                💬 Contactar vendedor
+              </button>
+            `
+        }
 
       </div>
 
-    </article>
-  `).join("");
+    </div>
+  `);
 
-  grid.querySelectorAll("[data-product]").forEach(button => {
+  $("contactSellerBtn")?.addEventListener(
+    "click",
+    () => openChatWithSeller(product)
+  );
+
+  qsa("[data-seller-sold]").forEach(button => {
     button.addEventListener("click", () => {
-      openProduct(button.dataset.product);
+      sellerMarkSold(button.dataset.sellerSold);
     });
   });
 }
 
-/* =========================
-   DETALLE PRODUCTO
-========================= */
+function sellerSaleControls(product) {
+  return `
+    <div class="sale-status-box">
 
-function openProduct(productId) {
-  const products = getJSON(STORAGE.products, []);
-  const product = products.find(item => item.id === productId);
+      ${
+        product.sellerSold
+          ? `
+            <div class="sale-process">
+              🟠 En proceso de venta
+            </div>
+          `
+          : `
+            <button
+              class="primary-btn"
+              data-seller-sold="${product.id}"
+              type="button"
+            >
+              Marcar como Vendido
+            </button>
+          `
+      }
+
+      ${
+        product.buyerBought
+          ? `
+            <div class="sale-confirmed">
+              🟢 Comprado confirmado
+            </div>
+          `
+          : `
+            <p>
+              La publicación solo se eliminará cuando
+              vendedor y comprador confirmen la operación.
+            </p>
+          `
+      }
+
+    </div>
+  `;
+}
+
+function sellerMarkSold(productId) {
+  const product =
+    products.find(item => item.id === productId);
 
   if (!product) return;
 
-  product.views = Number(product.views || 0) + 1;
+  product.sellerSold = true;
 
-  saveJSON(STORAGE.products, products);
+  save(STORAGE.products, products);
 
-  const stats = getJSON(STORAGE.stats, {});
-  stats.totalViews = Number(stats.totalViews || 0) + 1;
-  saveJSON(STORAGE.stats, stats);
+  addActivity(
+    "Venta marcada",
+    `${product.title} está en proceso de venta.`
+  );
 
-  openModal(`
-    <div class="modal-header">
-      <button class="close-modal" id="closeProduct">×</button>
-      <h2>${escapeHTML(product.title)}</h2>
-    </div>
+  hideModal();
 
-    <div class="product-detail">
+  renderProducts();
 
-      <img
-        class="detail-image"
-        src="${escapeHTML(product.image)}"
-        alt="${escapeHTML(product.title)}"
+  toast(
+    "Producto marcado como vendido. Queda en proceso de venta.",
+    "success"
+  );
+}
+
+/* =========================================================
+   CHAT
+========================================================= */
+
+function openChatWithSeller(product) {
+  const existing =
+    chats.find(chat =>
+      chat.productId === product.id &&
+      chat.sellerId === product.sellerId
+    );
+
+  if (!existing) {
+    const chat = {
+      id: uid("chat"),
+      productId: product.id,
+      productTitle: product.title,
+      sellerId: product.sellerId,
+      sellerName: product.seller,
+      buyerId: user.id,
+      buyerName: user.name,
+      messages: [],
+      sellerSold: false,
+      buyerBought: false,
+      createdAt: Date.now()
+    };
+
+    chats.unshift(chat);
+
+    save(STORAGE.chats, chats);
+  }
+
+  hideModal();
+
+  showPage("chat");
+
+  const chat =
+    chats.find(item =>
+      item.productId === product.id
+    );
+
+  if (chat) {
+    openChat(chat.id);
+  }
+}
+
+function renderChats() {
+  const list = $("conversationList");
+  const empty = $("chatEmpty");
+
+  if (!list) return;
+
+  if (!chats.length) {
+    list.innerHTML = "";
+    empty?.classList.remove("hidden");
+    return;
+  }
+
+  empty?.classList.add("hidden");
+
+  list.innerHTML = chats.map(chat => {
+
+    const last =
+      chat.messages?.[chat.messages.length - 1];
+
+    return `
+      <button
+        class="conversation-item"
+        data-open-chat="${chat.id}"
+        type="button"
       >
 
-      <div class="detail-category">
-        ${escapeHTML(product.category)}
+        <div class="conversation-avatar">
+          💬
+        </div>
+
+        <div class="conversation-copy">
+
+          <strong>
+            ${escapeHTML(chat.sellerName || chat.buyerName || "Usuario")}
+          </strong>
+
+          <span>
+            ${escapeHTML(
+              last?.text || "Nueva conversación"
+            )}
+          </span>
+
+        </div>
+
+        <div class="conversation-arrow">
+          ›
+        </div>
+
+      </button>
+    `;
+  }).join("");
+
+  qsa("[data-open-chat]").forEach(button => {
+    button.addEventListener("click", () => {
+      openChat(button.dataset.openChat);
+    });
+  });
+
+  updateBadges();
+}
+
+function openChat(chatId) {
+  const chat =
+    chats.find(item => item.id === chatId);
+
+  if (!chat) return;
+
+  const messages = chat.messages || [];
+
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="chat-window">
+
+      <div class="chat-window-header">
+
+        <div>
+          <small>CONVERSACIÓN</small>
+
+          <h2>
+            ${escapeHTML(chat.productTitle)}
+          </h2>
+        </div>
+
       </div>
 
-      <h1>${escapeHTML(product.title)}</h1>
+      <div
+        id="chatMessages"
+        class="chat-messages"
+      >
 
-      <div class="detail-price">
-        ${money(product.price)}
+        ${
+          messages.length
+            ? messages.map(messageBubble).join("")
+            : `
+              <div class="chat-empty-message">
+                <div>💬</div>
+                <p>
+                  Inicia la conversación.
+                </p>
+              </div>
+            `
+        }
+
       </div>
 
-      <p>${escapeHTML(product.description)}</p>
-
-      <div class="detail-info">
-        <span>👁 ${product.views || 0} vistas</span>
-        <span>❤️ ${product.likes || 0} me gusta</span>
-      </div>
-
-      <div class="seller-card">
-        <strong>Vendedor</strong>
-        <span>${escapeHTML(product.seller)}</span>
-        <small>⭐ Buena reputación</small>
-      </div>
-
-      <div class="action-stack">
+      <div class="chat-actions">
 
         <button
-          class="primary-btn"
-          id="chatSeller"
+          id="reportChatBtn"
+          type="button"
         >
-          💬 Chatear con vendedor
+          🚩 Reclamar
         </button>
 
         <button
-          class="secondary-btn"
-          id="whatsappSeller"
+          id="whatsappBtn"
+          type="button"
         >
           WhatsApp
         </button>
 
         <button
-          class="secondary-btn"
-          id="messengerSeller"
+          id="messengerChatBtn"
+          type="button"
         >
           Messenger
         </button>
 
-        <button
-          class="secondary-btn"
-          id="likeProduct"
+      </div>
+
+      ${
+        chat.sellerSold
+          ? `
+            <div class="sale-process-banner">
+              🟠 El vendedor marcó el artículo como Vendido.
+              Esperando confirmación del comprador.
+            </div>
+          `
+          : ""
+      }
+
+      <div class="chat-input-row">
+
+        <input
+          id="chatInput"
+          type="text"
+          placeholder="Escribe un mensaje..."
         >
-          ❤️ Me gusta
-        </button>
 
         <button
-          class="danger-outline"
-          id="claimProduct"
+          id="sendChatBtn"
+          type="button"
         >
-          ⚠️ Reclamar publicación
+          ➤
         </button>
 
       </div>
 
+      ${
+        chat.sellerId !== user.id
+          ? `
+            <button
+              id="buyerBoughtBtn"
+              class="primary-btn"
+              type="button"
+            >
+              🛒 Marcar como Comprado
+            </button>
+          `
+          : ""
+      }
+
     </div>
   `);
 
-  document
-    .getElementById("closeProduct")
-    ?.addEventListener("click", closeModal);
-
-  document
-    .getElementById("likeProduct")
-    ?.addEventListener("click", () => likeProduct(product.id));
-
-  document
-    .getElementById("chatSeller")
-    ?.addEventListener("click", () => openChatWithSeller(product));
-
-  document
-    .getElementById("whatsappSeller")
-    ?.addEventListener("click", () => {
-      const phone = product.phone || "";
-      const text = encodeURIComponent(
-        `Hola, vi tu publicación "${product.title}" en Market Flash.`
-      );
-
-      if (phone) {
-        window.open(`https://wa.me/${phone}?text=${text}`, "_blank");
-      } else {
-        toast("El vendedor todavía no agregó WhatsApp.");
-      }
-    });
-
-  document
-    .getElementById("messengerSeller")
-    ?.addEventListener("click", () => {
-      window.open("https://www.facebook.com/messages/", "_blank");
-    });
-
-  document
-    .getElementById("claimProduct")
-    ?.addEventListener("click", () => showClaimForm(product.id));
-}
-
-/* =========================
-   LIKE
-========================= */
-
-function likeProduct(productId) {
-  const products = getJSON(STORAGE.products, []);
-  const product = products.find(item => item.id === productId);
-
-  if (!product) return;
-
-  product.likes = Number(product.likes || 0) + 1;
-
-  saveJSON(STORAGE.products, products);
-
-  const stats = getJSON(STORAGE.stats, {});
-  stats.totalLikes = Number(stats.totalLikes || 0) + 1;
-  saveJSON(STORAGE.stats, stats);
-
-  toast("❤️ Me gusta agregado");
-  closeModal();
-  renderProducts();
-}
-
-/* =========================
-   CHAT
-========================= */
-
-function getMessages() {
-  return getJSON(STORAGE.messages, []);
-}
-
-function saveMessages(messages) {
-  saveJSON(STORAGE.messages, messages);
-}
-
-function openChatWithSeller(product) {
-  const user = currentUser();
-
-  if (!user) {
-    showLogin();
-    return;
-  }
-
-  openChat(product.sellerId, product.seller, product.id);
-}
-
-function openChat(sellerId, sellerName, productId = "") {
-  const user = currentUser();
-
-  if (!user) {
-    showLogin();
-    return;
-  }
-
-  const messages = getMessages();
-
-  const conversation = messages.filter(message =>
-    (
-      message.from === user.id &&
-      message.to === sellerId
-    ) ||
-    (
-      message.from === sellerId &&
-      message.to === user.id
-    )
+  $("sendChatBtn")?.addEventListener(
+    "click",
+    () => sendChatMessage(chat.id)
   );
 
-  openModal(`
-    <div class="modal-header">
-      <button class="close-modal" id="closeChat">×</button>
-      <h2>💬 ${escapeHTML(sellerName)}</h2>
-    </div>
-
-    <div class="chat-window" id="chatWindow">
-
-      ${
-        conversation.length
-          ? conversation.map(message => `
-            <div class="chat-message ${
-              message.from === user.id ? "mine" : "theirs"
-            }">
-              <div>${escapeHTML(message.text)}</div>
-              <small>${formatDate(message.createdAt)}</small>
-            </div>
-          `).join("")
-          : `
-            <div class="chat-empty">
-              <div>💬</div>
-              <p>Comienza la conversación.</p>
-            </div>
-          `
+  $("chatInput")?.addEventListener(
+    "keydown",
+    event => {
+      if (event.key === "Enter") {
+        sendChatMessage(chat.id);
       }
+    }
+  );
 
-    </div>
+  $("reportChatBtn")?.addEventListener(
+    "click",
+    () => openComplaint(chat)
+  );
 
-    <div class="chat-controls">
+  $("whatsappBtn")?.addEventListener(
+    "click",
+    () => openWhatsApp(chat)
+  );
 
-      <textarea
-        id="chatText"
-        placeholder="Escribe un mensaje..."
-        rows="2"
-      ></textarea>
+  $("messengerChatBtn")?.addEventListener(
+    "click",
+    () => openMessenger()
+  );
 
-      <div class="chat-buttons">
-
-        <button
-          class="primary-btn"
-          id="sendChat"
-        >
-          Enviar
-        </button>
-
-        <button
-          class="danger-outline"
-          id="claimChat"
-        >
-          ⚠️ Reclamar
-        </button>
-
-      </div>
-
-    </div>
-  `);
-
-  document
-    .getElementById("closeChat")
-    ?.addEventListener("click", closeModal);
-
-  document
-    .getElementById("sendChat")
-    ?.addEventListener("click", () => {
-      const input = document.getElementById("chatText");
-      const text = input.value.trim();
-
-      if (!text) {
-        toast("Escribe un mensaje.");
-        return;
-      }
-
-      const allMessages = getMessages();
-
-      allMessages.push({
-        id: uid("message"),
-        from: user.id,
-        to: sellerId,
-        productId,
-        text,
-        read: false,
-        createdAt: Date.now()
-      });
-
-      saveMessages(allMessages);
-
-      toast("Mensaje enviado");
-      openChat(sellerId, sellerName, productId);
-    });
-
-  document
-    .getElementById("claimChat")
-    ?.addEventListener("click", () => {
-      showClaimForm(productId, sellerId);
-    });
-
-  const windowChat = document.getElementById("chatWindow");
-
-  if (windowChat) {
-    windowChat.scrollTop = windowChat.scrollHeight;
-  }
+  $("buyerBoughtBtn")?.addEventListener(
+    "click",
+    () => buyerMarkBought(chat.id)
+  );
 }
 
-function renderChat() {
-  const main = document.getElementById("mainContent");
+function messageBubble(message) {
+  const mine =
+    message.senderId === user.id;
 
-  if (!main) return;
+  return `
+    <div class="message-row ${mine ? "mine" : "theirs"}">
 
-  const user = currentUser();
+      <div class="message-bubble">
 
-  if (!user) {
-    main.innerHTML = `
-      <section class="page-card">
-        <div class="big-icon">💬</div>
-        <h2>Tu Chat</h2>
-        <p>Inicia sesión para ver tus conversaciones.</p>
-        <button class="primary-btn" id="loginFromChat">
-          Iniciar sesión
-        </button>
-      </section>
-    `;
+        <p>
+          ${escapeHTML(message.text)}
+        </p>
 
-    document
-      .getElementById("loginFromChat")
-      ?.addEventListener("click", showLogin);
+        <small>
+          ${formatDate(message.createdAt)}
+        </small>
 
-    return;
-  }
-
-  const messages = getMessages();
-
-  const conversations = {};
-
-  messages.forEach(message => {
-    if (
-      message.from !== user.id &&
-      message.to !== user.id
-    ) return;
-
-    const other =
-      message.from === user.id
-        ? message.to
-        : message.from;
-
-    conversations[other] = message;
-  });
-
-  const list = Object.values(conversations);
-
-  main.innerHTML = `
-    <section class="page-card chat-page">
-
-      <div class="page-heading">
-        <div>
-          <small>MARKET FLASH</small>
-          <h2>💬 Mis conversaciones</h2>
-        </div>
       </div>
 
-      ${
-        list.length
-          ? list.map(message => `
-            <button
-              class="conversation"
-              data-user="${escapeHTML(
-                message.from === user.id
-                  ? message.to
-                  : message.from
-              )}"
-            >
-              <span class="avatar">●</span>
-              <span>
-                <strong>
-                  ${
-                    message.from === user.id
-                      ? "Conversación"
-                      : "Nuevo mensaje"
-                  }
-                </strong>
-                <small>${escapeHTML(message.text)}</small>
-              </span>
-            </button>
-          `).join("")
-          : `
-            <div class="empty-state">
-              <div>💬</div>
-              <h3>No tienes conversaciones</h3>
-              <p>Cuando contactes a un vendedor aparecerán aquí.</p>
-            </div>
-          `
-      }
-
-    </section>
+    </div>
   `;
 }
 
-/* =========================
-   RECLAMOS
-========================= */
+function sendChatMessage(chatId) {
+  const input = $("chatInput");
 
-function showClaimForm(productId = "", otherUser = "") {
-  openModal(`
+  if (!input) return;
+
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  const chat =
+    chats.find(item => item.id === chatId);
+
+  if (!chat) return;
+
+  chat.messages ||= [];
+
+  chat.messages.push({
+    id: uid("message"),
+    senderId: user.id,
+    senderName: user.name,
+    text,
+    createdAt: Date.now(),
+    read: false
+  });
+
+  save(STORAGE.chats, chats);
+
+  input.value = "";
+
+  openChat(chatId);
+
+  addNotification(
+    "Nuevo mensaje",
+    `Mensaje enviado en ${chat.productTitle}`,
+    "chat"
+  );
+}
+
+function openWhatsApp(chat) {
+  const text =
+    encodeURIComponent(
+      `Hola, te contacto por ${chat.productTitle} en Market Flash.`
+    );
+
+  window.open(
+    `https://wa.me/?text=${text}`,
+    "_blank"
+  );
+}
+
+function openMessenger() {
+  if (!user.messenger) {
+    toast(
+      "Primero conecta tu Messenger desde tu perfil.",
+      "error"
+    );
+    return;
+  }
+
+  window.open(
+    user.messenger,
+    "_blank"
+  );
+}
+
+/* =========================================================
+   COMPRADOR: MARCAR COMPRADO
+========================================================= */
+
+function buyerMarkBought(chatId) {
+  const chat =
+    chats.find(item => item.id === chatId);
+
+  if (!chat) return;
+
+  const product =
+    products.find(item =>
+      item.id === chat.productId
+    );
+
+  if (!product) return;
+
+  chat.buyerBought = true;
+
+  product.buyerBought = true;
+
+  save(STORAGE.chats, chats);
+  save(STORAGE.products, products);
+
+  if (
+    product.sellerSold &&
+    product.buyerBought
+  ) {
+    completeSale(chat, product);
+    return;
+  }
+
+  openChat(chatId);
+
+  toast(
+    "Marcaste el producto como comprado.",
+    "success"
+  );
+}
+
+function completeSale(chat, product) {
+  product.sold = true;
+
+  save(STORAGE.products, products);
+
+  chats =
+    chats.filter(item => item.id !== chat.id);
+
+  save(STORAGE.chats, chats);
+
+  addActivity(
+    "Venta completada",
+    `${product.title}: vendedor y comprador confirmaron.`
+  );
+
+  hideModal();
+
+  renderProducts();
+  renderChats();
+
+  toast(
+    "Venta completada. La publicación y el chat fueron eliminados.",
+    "success"
+  );
+}
+
+/* =========================================================
+   RECLAMACIONES
+========================================================= */
+
+function openComplaint(chat) {
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
     <div class="modal-header">
-      <button class="close-modal" id="closeClaim">×</button>
-      <h2>⚠️ Reclamar</h2>
+      <small>SOPORTE</small>
+      <h2>Presentar reclamación</h2>
+
+      <p>
+        Envía la información del problema al administrador.
+      </p>
     </div>
 
     <div class="form-card">
-
-      <p>
-        Explica el problema. El reclamo será enviado al área
-        especial de administración.
-      </p>
 
       <label>Motivo</label>
 
-      <select id="claimReason">
-        <option>Problema con la publicación</option>
-        <option>Posible estafa</option>
-        <option>Producto diferente al anunciado</option>
-        <option>Conducta inapropiada</option>
-        <option>Otro</option>
-      </select>
-
-      <label>Descripción</label>
-
       <textarea
-        id="claimText"
-        rows="5"
-        placeholder="Explica detalladamente lo ocurrido..."
+        id="complaintText"
+        rows="6"
+        placeholder="Explica qué ocurrió..."
       ></textarea>
 
-      <label>Información adicional / evidencia</label>
+      <label>Prueba o captura</label>
 
-      <textarea
-        id="claimEvidence"
-        rows="3"
-        placeholder="Escribe aquí cualquier información útil..."
-      ></textarea>
-
-      <button
-        class="primary-btn"
-        id="sendClaim"
-      >
-        Enviar reclamo al administrador
-      </button>
-
-    </div>
-  `);
-
-  document
-    .getElementById("closeClaim")
-    ?.addEventListener("click", closeModal);
-
-  document
-    .getElementById("sendClaim")
-    ?.addEventListener("click", () => {
-      const user = currentUser();
-
-      if (!user) {
-        showLogin();
-        return;
-      }
-
-      const description =
-        document.getElementById("claimText").value.trim();
-
-      if (!description) {
-        toast("Escribe el motivo del reclamo.");
-        return;
-      }
-
-      const claims = getJSON(STORAGE.claims, []);
-
-      claims.push({
-        id: uid("claim"),
-        userId: user.id,
-        userName: user.name,
-        productId,
-        otherUser,
-        reason:
-          document.getElementById("claimReason").value,
-        description,
-        evidence:
-          document.getElementById("claimEvidence").value.trim(),
-        status: "pending",
-        createdAt: Date.now()
-      });
-
-      saveJSON(STORAGE.claims, claims);
-
-      toast("⚠️ Reclamo enviado al administrador");
-      closeModal();
-      updateBadges();
-    });
-}
-
-/* =========================
-   ACTIVIDAD
-========================= */
-
-function renderActivity() {
-  const main = document.getElementById("mainContent");
-
-  if (!main) return;
-
-  const user = currentUser();
-
-  if (!user) {
-    main.innerHTML = `
-      <section class="page-card">
-        <div class="big-icon">▣</div>
-        <h2>Actividad</h2>
-        <p>Inicia sesión para ver tu actividad.</p>
-        <button class="primary-btn" id="loginActivity">
-          Iniciar sesión
-        </button>
-      </section>
-    `;
-
-    document
-      .getElementById("loginActivity")
-      ?.addEventListener("click", showLogin);
-
-    return;
-  }
-
-  const products = getJSON(STORAGE.products, []);
-
-  const mine = products.filter(
-    product => product.sellerId === user.id
-  );
-
-  main.innerHTML = `
-    <section class="page-card">
-
-      <div class="page-heading">
-        <div>
-          <small>MARKET FLASH</small>
-          <h2>▣ Mi actividad</h2>
-        </div>
-      </div>
-
-      <div class="stats-grid">
-        <div>
-          <strong>${mine.length}</strong>
-          <small>Publicaciones</small>
-        </div>
-
-        <div>
-          <strong>
-            ${mine.reduce(
-              (sum, product) =>
-                sum + Number(product.views || 0),
-              0
-            )}
-          </strong>
-          <small>Vistas</small>
-        </div>
-
-        <div>
-          <strong>
-            ${mine.reduce(
-              (sum, product) =>
-                sum + Number(product.likes || 0),
-              0
-            )}
-          </strong>
-          <small>Me gusta</small>
-        </div>
-      </div>
-
-      <h3>Mis publicaciones</h3>
-
-      ${
-        mine.length
-          ? mine.map(product => `
-            <div class="activity-item">
-
-              <img
-                src="${escapeHTML(product.image)}"
-                alt=""
-              >
-
-              <div>
-                <strong>${escapeHTML(product.title)}</strong>
-                <span>${money(product.price)}</span>
-
-                ${
-                  product.sold
-                    ? `<small class="sold-label">VENDIDO</small>`
-                    : `
-                      <button
-                        class="secondary-btn mark-sold"
-                        data-id="${product.id}"
-                      >
-                        Marcar como Vendido
-                      </button>
-                    `
-                }
-
-                ${
-                  product.sellerConfirmed
-                    ? `<small>✓ Tú confirmaste vendido</small>`
-                    : ""
-                }
-
-              </div>
-
-            </div>
-          `).join("")
-          : `
-            <div class="empty-state">
-              <div>📦</div>
-              <p>Todavía no tienes publicaciones.</p>
-            </div>
-          `
-      }
-
-    </section>
-  `;
-
-  document.querySelectorAll(".mark-sold").forEach(button => {
-    button.addEventListener("click", () => {
-      markSold(button.dataset.id);
-    });
-  });
-}
-
-function markSold(productId) {
-  const user = currentUser();
-
-  if (!user) {
-    showLogin();
-    return;
-  }
-
-  const products = getJSON(STORAGE.products, []);
-  const product = products.find(item => item.id === productId);
-
-  if (!product) return;
-
-  product.sellerConfirmed = true;
-
-  if (product.buyerConfirmed) {
-    product.sold = true;
-  }
-
-  saveJSON(STORAGE.products, products);
-
-  toast(
-    product.sold
-      ? "✓ Venta confirmada por ambas partes"
-      : "✓ Marcaste el producto como vendido"
-  );
-
-  renderActivity();
-}
-
-/* =========================
-   PERFIL
-========================= */
-
-function renderProfile() {
-  const main = document.getElementById("mainContent");
-
-  if (!main) return;
-
-  const user = currentUser();
-
-  if (!user) {
-    main.innerHTML = `
-      <section class="page-card profile-login">
-
-        <div class="avatar-large">●</div>
-
-        <h2>Mi perfil</h2>
-
-        <p>
-          Crea tu cuenta para publicar, vender y chatear.
-        </p>
-
-        <button class="primary-btn" id="registerBtn">
-          Crear cuenta
-        </button>
-
-        <button class="secondary-btn" id="loginBtn">
-          Ya tengo una cuenta
-        </button>
-
-        <button class="admin-link" id="adminLoginBtn">
-          Panel de administrador
-        </button>
-
-      </section>
-    `;
-
-    document
-      .getElementById("registerBtn")
-      ?.addEventListener("click", showRegister);
-
-    document
-      .getElementById("loginBtn")
-      ?.addEventListener("click", showLogin);
-
-    document
-      .getElementById("adminLoginBtn")
-      ?.addEventListener("click", showAdminLogin);
-
-    return;
-  }
-
-  main.innerHTML = `
-    <section class="page-card">
-
-      <div class="profile-header">
-        <div class="avatar-large">●</div>
-
-        <div>
-          <small>MI PERFIL</small>
-          <h2>${escapeHTML(user.name)}</h2>
-          <p>⭐ Reputación del vendedor: Excelente</p>
-        </div>
-      </div>
-
-      <div class="profile-info">
-        <div>
-          <small>Cédula</small>
-          <strong>${escapeHTML(user.cedula)}</strong>
-        </div>
-
-        <div>
-          <small>Teléfono</small>
-          <strong>${escapeHTML(user.phone)}</strong>
-        </div>
-      </div>
-
-      <div class="profile-actions">
-
-        <button class="secondary-btn" id="changePassword">
-          🔐 Cambiar contraseña
-        </button>
-
-        <button class="secondary-btn" id="adminPanel">
-          ⚙️ Panel de administración
-        </button>
-
-        <button class="secondary-btn" id="logoutBtn">
-          Cerrar sesión
-        </button>
-
-        <button class="danger-btn" id="deleteAccount">
-          Eliminar mi cuenta
-        </button>
-
-      </div>
-
-    </section>
-  `;
-
-  document
-    .getElementById("changePassword")
-    ?.addEventListener("click", showChangePassword);
-
-  document
-    .getElementById("adminPanel")
-    ?.addEventListener("click", showAdminLogin);
-
-  document
-    .getElementById("logoutBtn")
-    ?.addEventListener("click", () => {
-      setCurrentUser(null);
-      toast("Sesión cerrada");
-      renderProfile();
-      updateBadges();
-    });
-
-  document
-    .getElementById("deleteAccount")
-    ?.addEventListener("click", deleteAccount);
-}
-
-/* =========================
-   REGISTRO
-========================= */
-
-function showRegister() {
-  openModal(`
-    <div class="modal-header">
-      <button class="close-modal" id="closeRegister">×</button>
-      <h2>Crear cuenta</h2>
-    </div>
-
-    <div class="form-card">
-
-      <label>Nombre completo</label>
-      <input id="registerName" placeholder="Tu nombre">
-
-      <label>Número de cédula</label>
-      <input id="registerCedula" placeholder="000-0000000-0">
-
-      <label>Número de teléfono</label>
-      <input id="registerPhone" placeholder="8090000000">
-
-      <label>Contraseña</label>
-      <input id="registerPassword" type="password">
-
-      <label>Confirmar contraseña</label>
-      <input id="registerPassword2" type="password">
-
-      <button class="primary-btn" id="createAccount">
-        Crear mi cuenta
-      </button>
-
-      <button class="secondary-btn" id="goLogin">
-        Ya tengo cuenta
-      </button>
-
-    </div>
-  `);
-
-  document
-    .getElementById("closeRegister")
-    ?.addEventListener("click", closeModal);
-
-  document
-    .getElementById("goLogin")
-    ?.addEventListener("click", showLogin);
-
-  document
-    .getElementById("createAccount")
-    ?.addEventListener("click", registerUser);
-}
-
-function registerUser() {
-  const name =
-    document.getElementById("registerName").value.trim();
-
-  const cedula =
-    document.getElementById("registerCedula").value.trim();
-
-  const phone =
-    document.getElementById("registerPhone").value.trim();
-
-  const password =
-    document.getElementById("registerPassword").value;
-
-  const password2 =
-    document.getElementById("registerPassword2").value;
-
-  if (!name || !cedula || !phone || !password) {
-    toast("Completa todos los campos.");
-    return;
-  }
-
-  if (password !== password2) {
-    toast("Las contraseñas no coinciden.");
-    return;
-  }
-
-  const user = {
-    id: uid("user"),
-    name,
-    cedula,
-    phone,
-    password,
-    createdAt: Date.now()
-  };
-
-  setCurrentUser(user);
-
-  const stats = getJSON(STORAGE.stats, {});
-  stats.totalUsers = Number(stats.totalUsers || 0) + 1;
-  saveJSON(STORAGE.stats, stats);
-
-  toast("🎉 Cuenta creada correctamente");
-  closeModal();
-  renderProfile();
-  updateBadges();
-}
-
-/* =========================
-   LOGIN
-========================= */
-
-function showLogin() {
-  openModal(`
-    <div class="modal-header">
-      <button class="close-modal" id="closeLogin">×</button>
-      <h2>Iniciar sesión</h2>
-    </div>
-
-    <div class="form-card">
-
-      <label>Cédula o teléfono</label>
-      <input id="loginIdentifier">
-
-      <label>Contraseña</label>
-      <input id="loginPassword" type="password">
-
-      <button class="primary-btn" id="doLogin">
-        Entrar
-      </button>
-
-      <button class="secondary-btn" id="newAccount">
-        Crear cuenta
-      </button>
-
-    </div>
-  `);
-
-  document
-    .getElementById("closeLogin")
-    ?.addEventListener("click", closeModal);
-
-  document
-    .getElementById("newAccount")
-    ?.addEventListener("click", showRegister);
-
-  document
-    .getElementById("doLogin")
-    ?.addEventListener("click", loginUser);
-}
-
-function loginUser() {
-  /*
-    En este prototipo los usuarios se guardan localmente.
-    Para una aplicación real se necesita una base de datos
-    y autenticación en servidor.
-  */
-
-  const identifier =
-    document.getElementById("loginIdentifier").value.trim();
-
-  const password =
-    document.getElementById("loginPassword").value;
-
-  const saved = currentUser();
-
-  if (
-    saved &&
-    (
-      saved.cedula === identifier ||
-      saved.phone === identifier
-    ) &&
-    saved.password === password
-  ) {
-    toast("Bienvenido/a " + saved.name);
-    closeModal();
-    renderProfile();
-    return;
-  }
-
-  toast(
-    "En este prototipo solo se puede iniciar sesión con la cuenta registrada en este dispositivo."
-  );
-}
-
-/* =========================
-   CAMBIAR CONTRASEÑA
-========================= */
-
-function showChangePassword() {
-  openModal(`
-    <div class="modal-header">
-      <button class="close-modal" id="closePassword">×</button>
-      <h2>🔐 Cambiar contraseña</h2>
-    </div>
-
-    <div class="form-card">
-
-      <label>Contraseña actual</label>
-      <input id="oldPassword" type="password">
-
-      <label>Nueva contraseña</label>
-      <input id="newPassword" type="password">
-
-      <label>Confirmar nueva contraseña</label>
-      <input id="newPassword2" type="password">
-
-      <button class="primary-btn" id="savePassword">
-        Guardar contraseña
-      </button>
-
-    </div>
-  `);
-
-  document
-    .getElementById("closePassword")
-    ?.addEventListener("click", closeModal);
-
-  document
-    .getElementById("savePassword")
-    ?.addEventListener("click", changePassword);
-}
-
-function changePassword() {
-  const user = currentUser();
-
-  if (!user) return;
-
-  const oldPassword =
-    document.getElementById("oldPassword").value;
-
-  const newPassword =
-    document.getElementById("newPassword").value;
-
-  const newPassword2 =
-    document.getElementById("newPassword2").value;
-
-  if (oldPassword !== user.password) {
-    toast("La contraseña actual es incorrecta.");
-    return;
-  }
-
-  if (!newPassword || newPassword.length < 6) {
-    toast("La nueva contraseña debe tener al menos 6 caracteres.");
-    return;
-  }
-
-  if (newPassword !== newPassword2) {
-    toast("Las contraseñas nuevas no coinciden.");
-    return;
-  }
-
-  user.password = newPassword;
-  setCurrentUser(user);
-
-  toast("Contraseña cambiada correctamente");
-  closeModal();
-}
-
-/* =========================
-   ELIMINAR CUENTA
-========================= */
-
-function deleteAccount() {
-  const user = currentUser();
-
-  if (!user) return;
-
-  const confirmed = confirm(
-    "¿Seguro que quieres eliminar tu cuenta?"
-  );
-
-  if (!confirmed) return;
-
-  user.deletedAt = Date.now();
-
-  /*
-    Guardamos registro local de la eliminación para que
-    el administrador pueda visualizarla en este prototipo.
-  */
-
-  const deletedUsers =
-    getJSON("mf_deleted_users_v2", []);
-
-  deletedUsers.push(user);
-
-  saveJSON("mf_deleted_users_v2", deletedUsers);
-
-  setCurrentUser(null);
-
-  toast("Tu cuenta fue eliminada.");
-
-  renderProfile();
-}
-
-/* =========================
-   PUBLICAR PRODUCTO
-========================= */
-
-function showPublish() {
-  const user = currentUser();
-
-  if (!user) {
-    showLogin();
-    return;
-  }
-
-  openModal(`
-    <div class="modal-header">
-      <button class="close-modal" id="closePublish">×</button>
-      <h2>＋ Publicar producto</h2>
-    </div>
-
-    <div class="form-card">
-
-      <label>Nombre del producto</label>
-      <input id="productTitle" placeholder="Ej.: iPhone 16">
-
-      <label>Categoría</label>
-      <select id="productCategory">
-        <option>Celulares</option>
-        <option>Computadoras</option>
-        <option>Electrodomésticos</option>
-        <option>Vehículos</option>
-        <option>Videojuegos</option>
-        <option>Ropa</option>
-        <option>Hogar</option>
-        <option>Otros</option>
-      </select>
-
-      <label>Precio</label>
       <input
-        id="productPrice"
-        type="number"
-        min="0"
-        placeholder="0"
-      >
-
-      <label>Descripción</label>
-      <textarea
-        id="productDescription"
-        rows="5"
-        placeholder="Describe el producto..."
-      ></textarea>
-
-      <label>Foto del producto</label>
-      <input
-        id="productImage"
+        id="complaintFile"
         type="file"
         accept="image/*"
-        capture="environment"
       >
 
       <button
+        id="sendComplaintBtn"
         class="primary-btn"
-        id="publishProduct"
+        type="button"
       >
-        Publicar
+        🚩 Enviar reclamación
       </button>
 
     </div>
   `);
 
-  document
-    .getElementById("closePublish")
-    ?.addEventListener("click", closeModal);
-
-  document
-    .getElementById("publishProduct")
-    ?.addEventListener("click", createProduct);
+  $("sendComplaintBtn")?.addEventListener(
+    "click",
+    () => submitComplaint(chat)
+  );
 }
 
-function createProduct() {
-  const user = currentUser();
+function submitComplaint(chat) {
+  const text =
+    $("complaintText")?.value.trim();
 
-  if (!user) return;
-
-  const title =
-    document.getElementById("productTitle").value.trim();
-
-  const category =
-    document.getElementById("productCategory").value;
-
-  const price =
-    Number(document.getElementById("productPrice").value);
-
-  const description =
-    document.getElementById("productDescription").value.trim();
-
-  const imageInput =
-    document.getElementById("productImage");
-
-  if (!title || !price || !description) {
-    toast("Completa los datos del producto.");
+  if (!text) {
+    toast(
+      "Explica el motivo de la reclamación.",
+      "error"
+    );
     return;
   }
 
-  const file = imageInput.files[0];
+  const file =
+    $("complaintFile")?.files?.[0];
+
+  const createComplaint = evidence => {
+
+    complaints.unshift({
+      id: uid("complaint"),
+      chatId: chat.id,
+      productId: chat.productId,
+      accuser: {
+        id: user.id,
+        name: user.name
+      },
+      accused: {
+        id: chat.sellerId,
+        name: chat.sellerName
+      },
+      text,
+      evidence: evidence || "",
+      status: "pending",
+      createdAt: Date.now()
+    });
+
+    save(STORAGE.complaints, complaints);
+
+    addNotification(
+      "Reclamación enviada",
+      "Tu reclamación fue enviada a soporte.",
+      "support"
+    );
+
+    addActivity(
+      "Reclamación enviada",
+      `Reclamación sobre ${chat.productTitle}.`
+    );
+
+    hideModal();
+
+    toast(
+      "Reclamación enviada al administrador.",
+      "success"
+    );
+  };
 
   if (file) {
     const reader = new FileReader();
 
-    reader.onload = event => {
-      saveProduct(
-        title,
-        category,
-        price,
-        description,
-        event.target.result
-      );
+    reader.onload = () => {
+      createComplaint(reader.result);
     };
 
     reader.readAsDataURL(file);
   } else {
-    saveProduct(
-      title,
-      category,
-      price,
-      description,
-      "https://images.unsplash.com/photo-1560393464-5c69a73c5c18?auto=format&fit=crop&w=900&q=80"
-    );
+    createComplaint("");
   }
 }
 
-function saveProduct(
-  title,
-  category,
-  price,
-  description,
-  image
-) {
-  const user = currentUser();
-
-  const products = getJSON(STORAGE.products, []);
-
-  products.unshift({
-    id: uid("product"),
-    title,
-    category,
-    price,
-    description,
-    image,
-    seller: user.name,
-    sellerId: user.id,
-    phone: user.phone,
-    views: 0,
-    likes: 0,
-    sold: false,
-    buyerConfirmed: false,
-    sellerConfirmed: false,
-    createdAt: Date.now()
-  });
-
-  saveJSON(STORAGE.products, products);
-
-  toast("🎉 Publicación creada");
-  closeModal();
-
-  currentCategory = "Todos";
-  searchTerm = "";
-
-  renderHome();
-}
-
-/* =========================
-   COMPRADOR — MARCAR COMPRADO
-========================= */
-
-function markPurchased(productId) {
-  const user = currentUser();
-
-  if (!user) {
-    showLogin();
-    return;
-  }
-
-  const products = getJSON(STORAGE.products, []);
-  const product = products.find(item => item.id === productId);
-
-  if (!product) return;
-
-  product.buyerConfirmed = true;
-
-  if (product.sellerConfirmed) {
-    product.sold = true;
-  }
-
-  saveJSON(STORAGE.products, products);
-
-  toast(
-    product.sold
-      ? "✓ Compra confirmada por ambas partes"
-      : "✓ Marcaste el producto como comprado"
-  );
-
-  closeModal();
-  renderHome();
-}
-
-/* =========================
+/* =========================================================
    FLASH DEL DÍA
-========================= */
+========================================================= */
 
-let flashIndex = 0;
-let flashTimer = null;
-
-function approvedAds() {
-  return getJSON(STORAGE.ads, [])
-    .filter(ad => ad.status === "approved");
-}
-
-function showFlashDay() {
-  const ads = approvedAds();
-
-  if (!ads.length) {
-    openModal(`
-      <div class="modal-header">
-        <button class="close-modal" id="closeFlash">×</button>
-        <h2>⚡ Publicación Flash del Día</h2>
-      </div>
-
-      <div class="empty-state">
-        <div>⚡</div>
-        <h3>Próximamente</h3>
-        <p>
-          Todavía no hay publicidad aprobada.
-        </p>
-
-        <button
-          class="primary-btn"
-          id="advertiseNow"
-        >
-          Publicar mi publicidad
-        </button>
-      </div>
-    `);
-
-    document
-      .getElementById("closeFlash")
-      ?.addEventListener("click", closeModal);
-
-    document
-      .getElementById("advertiseNow")
-      ?.addEventListener("click", showAdvertising);
-
-    return;
+$("flashDayBtn")?.addEventListener(
+  "click",
+  () => {
+    pressAnimation($("flashDayBtn"));
+    openFlashDay();
   }
+);
 
-  flashIndex = 0;
+function openFlashDay() {
+  const approvedAds =
+    ads.filter(ad => ad.status === "approved");
 
-  openModal(`
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
     <div class="modal-header">
-      <button class="close-modal" id="closeFlash">×</button>
-      <h2>⚡ Flash del Día</h2>
+      <small>PUBLICIDAD</small>
+      <h2>Publicación Flash del Día</h2>
+      <p>
+        Anuncios destacados de Market Flash.
+      </p>
     </div>
 
-    <div id="flashContent"></div>
+    ${
+      approvedAds.length
+        ? `
+          <div class="flash-ad-list">
+            ${approvedAds.map(flashAdCard).join("")}
+          </div>
+        `
+        : `
+          <div class="empty-card">
+            <div>⚡</div>
+            <h3>Aún no hay publicidad publicada</h3>
+            <p>
+              Sé el primero en destacar tu negocio.
+            </p>
+          </div>
+        `
+    }
 
     <button
-      class="secondary-btn"
-      id="nextFlash"
-    >
-      Siguiente anuncio →
-    </button>
-
-    <button
+      id="createAdBtn"
       class="primary-btn"
-      id="advertiseFlash"
+      type="button"
     >
-      📣 Publicar mi publicidad
+      📢 Crear mi Publicidad Flash
     </button>
   `);
 
-  document
-    .getElementById("closeFlash")
-    ?.addEventListener("click", () => {
-      clearInterval(flashTimer);
-      closeModal();
+  $("createAdBtn")?.addEventListener(
+    "click",
+    openAdvertisingForm
+  );
+
+  qsa("[data-view-ad]").forEach(button => {
+    button.addEventListener("click", () => {
+      openAdViewer(button.dataset.viewAd);
     });
-
-  document
-    .getElementById("nextFlash")
-    ?.addEventListener("click", () => {
-      flashIndex =
-        (flashIndex + 1) % approvedAds().length;
-
-      renderFlashAd();
-    });
-
-  document
-    .getElementById("advertiseFlash")
-    ?.addEventListener("click", showAdvertising);
-
-  renderFlashAd();
-
-  clearInterval(flashTimer);
-
-  flashTimer = setInterval(() => {
-    const modal = document.getElementById("modal");
-
-    if (modal?.classList.contains("hidden")) {
-      clearInterval(flashTimer);
-      return;
-    }
-
-    const ads = approvedAds();
-
-    if (!ads.length) return;
-
-    flashIndex = (flashIndex + 1) % ads.length;
-
-    renderFlashAd();
-  }, 5000);
+  });
 }
 
-function renderFlashAd() {
-  const container =
-    document.getElementById("flashContent");
-
-  const ads = approvedAds();
-
-  if (!container || !ads.length) return;
-
-  const ad = ads[flashIndex % ads.length];
-
-  let media = "";
-
-  if (ad.mediaType === "video") {
-    media = `
-      <video
-        class="flash-media"
-        src="${escapeHTML(ad.media)}"
-        autoplay
-        muted
-        loop
-        playsinline
-        controls
-      ></video>
-    `;
-  } else {
-    media = `
-      <img
-        class="flash-media"
-        src="${escapeHTML(ad.media)}"
-        alt="${escapeHTML(ad.title)}"
-      >
-    `;
-  }
-
-  container.innerHTML = `
+function flashAdCard(ad) {
+  return `
     <article class="flash-ad-card">
 
-      ${media}
+      ${
+        ad.mediaType === "video"
+          ? `
+            <video
+              src="${ad.media}"
+              muted
+              autoplay
+              loop
+              playsinline
+            ></video>
+          `
+          : `
+            <img
+              src="${ad.media}"
+              alt="${escapeHTML(ad.title)}"
+            >
+          `
+      }
 
-      <div class="flash-ad-copy">
-        <span>PUBLICIDAD DESTACADA</span>
+      <div class="flash-ad-content">
 
-        <h3>${escapeHTML(ad.title)}</h3>
+        <span>
+          ⚡ Flash del Día
+        </span>
 
-        <p>${escapeHTML(ad.description)}</p>
+        <h3>
+          ${escapeHTML(ad.title)}
+        </h3>
 
-        <small>
-          Publicidad ${escapeHTML(ad.planName || "")}
-        </small>
+        <p>
+          ${escapeHTML(ad.description)}
+        </p>
+
+        <div class="ad-stats">
+          <span>❤️ ${ad.likes || 0}</span>
+          <span>👁 ${ad.views || 0}</span>
+        </div>
+
+        <button
+          class="primary-btn"
+          data-view-ad="${ad.id}"
+          type="button"
+        >
+          Ver publicidad
+        </button>
+
       </div>
 
     </article>
   `;
 }
 
-/* =========================
-   PUBLICIDAD
-========================= */
+/* =========================================================
+   CREAR PUBLICIDAD
+========================================================= */
 
-function showAdvertising() {
-  const user = currentUser();
+function openAdvertisingForm() {
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
 
-  if (!user) {
-    showLogin();
-    return;
-  }
-
-  const config = getConfig();
-
-  const methods = Object.entries(config.payments)
-    .filter(([, value]) => value.enabled);
-
-  openModal(`
     <div class="modal-header">
-      <button class="close-modal" id="closeAdvertising">×</button>
-      <h2>📣 Publicar publicidad</h2>
+      <small>PUBLICIDAD FLASH</small>
+
+      <h2>
+        Crear publicidad
+      </h2>
+
+      <p>
+        Envía tu anuncio para revisión.
+      </p>
     </div>
 
     <div class="form-card">
 
-      <label>Título de la publicidad</label>
+      <label>Foto o vídeo</label>
+
       <input
-        id="adTitle"
+        id="adMediaInput"
+        type="file"
+        accept="image/*,video/*"
+      >
+
+      <label>Nombre de la publicidad</label>
+
+      <input
+        id="adTitleInput"
+        type="text"
         placeholder="Nombre de tu negocio o producto"
       >
 
       <label>Descripción</label>
+
       <textarea
-        id="adDescription"
+        id="adDescriptionInput"
         rows="4"
-        placeholder="Describe tu oferta..."
+        placeholder="Describe tu publicidad..."
       ></textarea>
 
-      <label>Foto o video</label>
+      <label>Plan</label>
 
-      <input
-        id="adMedia"
-        type="file"
-        accept="image/*,video/*"
-        capture="environment"
-      >
+      <select id="adPlanInput">
 
-      <label>Plan de publicidad</label>
-
-      <select id="adPlan">
-
-        <option value="cheap">
-          ${escapeHTML(config.plans.cheap.name)}
-          — ${money(config.plans.cheap.price)}
-        </option>
-
-        <option value="normal">
-          ${escapeHTML(config.plans.normal.name)}
-          — ${money(config.plans.normal.price)}
+        <option value="basic">
+          Básico — ${formatMoney(admin.plans.basic)}
         </option>
 
         <option value="pro">
-          ${escapeHTML(config.plans.pro.name)}
-          — ${money(config.plans.pro.price)}
+          Profesional — ${formatMoney(admin.plans.pro)}
+        </option>
+
+        <option value="premium">
+          Premium — ${formatMoney(admin.plans.premium)}
         </option>
 
       </select>
 
       <label>Método de pago</label>
 
-      <select id="adPayment">
+      <select id="adPaymentInput">
 
-        ${
-          methods.length
-            ? methods.map(([name, data]) => `
-              <option value="${escapeHTML(name)}">
-                ${escapeHTML(name)}
-              </option>
-            `).join("")
-            : `<option>No hay métodos disponibles</option>`
-        }
+        ${paymentOptions()}
 
       </select>
-
-      <div id="paymentInfo" class="payment-info"></div>
 
       <label>Comprobante de pago</label>
 
       <input
-        id="adProof"
+        id="adProofInput"
         type="file"
-        accept="image/*,.pdf"
+        accept="image/*"
       >
 
       <button
+        id="submitAdBtn"
         class="primary-btn"
-        id="submitAdvertising"
+        type="button"
       >
         Enviar publicidad para revisión
       </button>
@@ -2089,1668 +2161,1719 @@ function showAdvertising() {
     </div>
   `);
 
-  document
-    .getElementById("closeAdvertising")
-    ?.addEventListener("click", closeModal);
-
-  document
-    .getElementById("adPlan")
-    ?.addEventListener("change", updatePaymentInfo);
-
-  document
-    .getElementById("adPayment")
-    ?.addEventListener("change", updatePaymentInfo);
-
-  document
-    .getElementById("submitAdvertising")
-    ?.addEventListener("click", submitAdvertising);
-
-  updatePaymentInfo();
+  $("submitAdBtn")?.addEventListener(
+    "click",
+    submitAdvertising
+  );
 }
 
-function updatePaymentInfo() {
-  const config = getConfig();
-
-  const plan =
-    document.getElementById("adPlan")?.value;
-
-  const method =
-    document.getElementById("adPayment")?.value;
-
-  const box =
-    document.getElementById("paymentInfo");
-
-  if (!box || !plan || !method) return;
-
-  const payment = config.payments[method];
-
-  if (!payment) return;
-
-  box.innerHTML = `
-    <strong>${escapeHTML(method)}</strong>
-
-    <p>
-      Cuenta / dato de pago:
-      <b>${escapeHTML(payment.account)}</b>
-    </p>
-
-    <p>
-      Total:
-      <strong>${money(payment[plan])}</strong>
-    </p>
-  `;
+function paymentOptions() {
+  return Object.entries(admin.paymentMethods)
+    .filter(([, method]) => method.enabled)
+    .map(([key, method]) => `
+      <option value="${key}">
+        ${escapeHTML(method.name)}
+      </option>
+    `)
+    .join("");
 }
 
 function submitAdvertising() {
-  const user = currentUser();
-
-  if (!user) {
-    showLogin();
-    return;
-  }
-
   const title =
-    document.getElementById("adTitle").value.trim();
+    $("adTitleInput")?.value.trim();
 
   const description =
-    document.getElementById("adDescription").value.trim();
+    $("adDescriptionInput")?.value.trim();
 
   const plan =
-    document.getElementById("adPlan").value;
+    $("adPlanInput")?.value;
 
   const payment =
-    document.getElementById("adPayment").value;
+    $("adPaymentInput")?.value;
 
-  const mediaInput =
-    document.getElementById("adMedia");
+  const mediaFile =
+    $("adMediaInput")?.files?.[0];
 
-  const proofInput =
-    document.getElementById("adProof");
+  const proofFile =
+    $("adProofInput")?.files?.[0];
 
-  if (!title || !description) {
-    toast("Completa el título y la descripción.");
+  if (
+    !title ||
+    !description ||
+    !mediaFile ||
+    !proofFile
+  ) {
+    toast(
+      "Completa todos los campos y agrega publicidad y comprobante.",
+      "error"
+    );
     return;
   }
 
-  if (!mediaInput.files[0]) {
-    toast("Selecciona una foto o video.");
-    return;
-  }
+  const readFile = file =>
+    new Promise(resolve => {
+      const reader = new FileReader();
 
-  if (!proofInput.files[0]) {
-    toast("Debes adjuntar el comprobante de pago.");
-    return;
-  }
+      reader.onload = () =>
+        resolve(reader.result);
 
-  const mediaFile = mediaInput.files[0];
-  const proofFile = proofInput.files[0];
+      reader.readAsDataURL(file);
+    });
 
-  const mediaReader = new FileReader();
+  Promise.all([
+    readFile(mediaFile),
+    readFile(proofFile)
+  ]).then(([media, proof]) => {
 
-  mediaReader.onload = event => {
-
-    const media =
-      event.target.result;
-
-    const proofReader = new FileReader();
-
-    proofReader.onload = proofEvent => {
-
-      const config = getConfig();
-
-      const ads = getJSON(STORAGE.ads, []);
-
-      ads.push({
-        id: uid("ad"),
-        userId: user.id,
-        userName: user.name,
-        title,
-        description,
-        media,
-        mediaType:
-          mediaFile.type.startsWith("video/")
-            ? "video"
-            : "image",
-        proof: proofEvent.target.result,
-        proofName: proofFile.name,
-        plan,
-        planName: config.plans[plan].name,
-        paymentMethod: payment,
-        amount:
-          config.payments[payment]?.[plan] ||
-          config.plans[plan].price,
-        status: "pending",
-        createdAt: Date.now()
-      });
-
-      saveJSON(STORAGE.ads, ads);
-
-      const stats =
-        getJSON(STORAGE.stats, {});
-
-      stats.totalAds =
-        Number(stats.totalAds || 0) + 1;
-
-      saveJSON(STORAGE.stats, stats);
-
-      toast(
-        "📣 Publicidad enviada. Esperando aprobación."
-      );
-
-      closeModal();
-      updateBadges();
+    const ad = {
+      id: uid("ad"),
+      userId: user.id,
+      userName: user.name,
+      title,
+      description,
+      plan,
+      payment,
+      price: admin.plans[plan],
+      media,
+      mediaType: mediaFile.type.startsWith("video/")
+        ? "video"
+        : "image",
+      proof,
+      status: "pending",
+      views: 0,
+      likes: 0,
+      createdAt: Date.now()
     };
 
-    proofReader.readAsDataURL(proofFile);
-  };
+    ads.unshift(ad);
 
-  mediaReader.readAsDataURL(mediaFile);
+    save(STORAGE.ads, ads);
+
+    addNotification(
+      "Publicidad enviada",
+      "Tu publicidad está en chequeo.",
+      "advertising"
+    );
+
+    addActivity(
+      "Publicidad enviada",
+      `${title} está en proceso de revisión.`
+    );
+
+    hideModal();
+
+    renderFlashStatus();
+
+    toast(
+      "Publicidad enviada. Está en chequeo.",
+      "success"
+    );
+  });
 }
 
-/* =========================
-   ADMIN
-========================= */
+/* =========================================================
+   ESTADO DE MI PUBLICIDAD
+========================================================= */
 
-function showAdminLogin() {
-  openModal(`
-    <div class="modal-header">
-      <button class="close-modal" id="closeAdminLogin">×</button>
-      <h2>🔐 Administrador</h2>
-    </div>
+function renderFlashStatus() {
+  const button =
+    $("myAdStatusBtn");
 
-    <div class="form-card">
+  if (!button) return;
 
-      <p>
-        Introduce la contraseña del panel de administración.
-      </p>
+  const myAds =
+    ads
+      .filter(ad => ad.userId === user.id)
+      .sort((a, b) => b.createdAt - a.createdAt);
 
-      <input
-        id="adminPassword"
-        type="password"
-        placeholder="Contraseña"
-      >
+  if (!myAds.length) {
+    button.classList.add("hidden");
+    return;
+  }
 
-      <button
-        class="primary-btn"
-        id="enterAdmin"
-      >
-        Entrar al panel
-      </button>
+  button.classList.remove("hidden");
 
-    </div>
-  `);
+  const latest = myAds[0];
 
-  document
-    .getElementById("closeAdminLogin")
-    ?.addEventListener("click", closeModal);
+  const icon = $("myAdStatusIcon");
+  const title = $("myAdStatusTitle");
+  const text = $("myAdStatusText");
 
-  document
-    .getElementById("enterAdmin")
-    ?.addEventListener("click", () => {
+  if (
+    latest.status === "pending"
+  ) {
+    icon.textContent = "⏳";
+    title.textContent = "Publicidad en chequeo";
+    text.textContent =
+      "Tu publicidad está en proceso de prueba y revisión.";
+  }
 
-      const config = getConfig();
+  if (
+    latest.status === "rejected"
+  ) {
+    icon.textContent = "✕";
+    title.textContent = "Publicidad rechazada";
+    text.textContent =
+      latest.rejectionReason ||
+      "El pago fue incorrecto o no fue confirmado.";
+  }
 
-      const password =
-        document.getElementById("adminPassword").value;
+  if (
+    latest.status === "approved"
+  ) {
+    icon.textContent = "✨";
+    title.textContent = "¡Publicidad publicada!";
+    text.textContent =
+      "Tu publicidad fue aprobada y aparece en Flash del Día.";
 
-      if (password !== config.adminPassword) {
-        toast("Contraseña incorrecta.");
-        return;
-      }
-
-      closeModal();
-      showAdminPanel();
-    });
+    button.classList.add("ad-approved");
+  } else {
+    button.classList.remove("ad-approved");
+  }
 }
 
-function showAdminPanel() {
-  const config = getConfig();
+$("myAdStatusBtn")?.addEventListener(
+  "click",
+  () => {
 
-  const ads = getJSON(STORAGE.ads, []);
-  const claims = getJSON(STORAGE.claims, []);
-  const sanctions = getJSON(STORAGE.sanctions, []);
-  const messages = getMessages();
-  const deletedUsers =
-    getJSON("mf_deleted_users_v2", []);
+    const myAds =
+      ads
+        .filter(ad => ad.userId === user.id)
+        .sort((a, b) => b.createdAt - a.createdAt);
 
-  const products =
-    getJSON(STORAGE.products, []);
+    if (!myAds.length) return;
 
-  const pendingAds =
-    ads.filter(ad => ad.status === "pending");
+    openAdStatus(myAds[0]);
+  }
+);
 
-  openModal(`
-    <div class="admin-panel">
+function openAdStatus(ad) {
+  let statusTitle = "";
+  let statusText = "";
 
-      <div class="admin-header">
+  if (ad.status === "pending") {
+    statusTitle = "⏳ En chequeo";
+    statusText =
+      "Estamos revisando tu publicidad y el comprobante de pago.";
+  }
 
-        <div>
-          <small>MARKET FLASH</small>
-          <h2>⚙️ Panel de Administración</h2>
-        </div>
+  if (ad.status === "rejected") {
+    statusTitle = "✕ Publicidad rechazada";
+    statusText =
+      ad.rejectionReason ||
+      "Su publicidad fue rechazada porque el pago fue incorrecto o no pudo ser confirmado.";
+  }
 
-        <button
-          class="close-modal"
-          id="closeAdmin"
-        >
-          ×
-        </button>
+  if (ad.status === "approved") {
+    statusTitle = "✨ ¡Publicidad publicada!";
+    statusText =
+      "Tu publicidad fue aprobada y está rotando en Flash del Día.";
+  }
 
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="ad-status-view">
+
+      <div class="ad-status-icon">
+        ${ad.status === "approved" ? "✨" : ad.status === "rejected" ? "✕" : "⏳"}
       </div>
 
+      <small>MI PUBLICIDAD</small>
+
+      <h2>
+        ${escapeHTML(ad.title)}
+      </h2>
+
+      <h3>
+        ${statusTitle}
+      </h3>
+
+      <p>
+        ${escapeHTML(statusText)}
+      </p>
+
       ${
-        pendingAds.length
+        ad.status === "approved"
           ? `
             <button
-              class="admin-alert"
-              id="pendingAlert"
+              id="openApprovedAdBtn"
+              class="primary-btn"
+              type="button"
             >
-              🔴 ${pendingAds.length}
-              publicidad(es) pendiente(s)
+              Ver publicidad
             </button>
           `
           : ""
       }
 
-      <div class="admin-stats">
+    </div>
+  `);
 
-        <div>
-          <strong>${products.length}</strong>
-          <small>Publicaciones</small>
+  $("openApprovedAdBtn")?.addEventListener(
+    "click",
+    () => openAdViewer(ad.id)
+  );
+}
+
+/* =========================================================
+   VISOR DE PUBLICIDAD
+========================================================= */
+
+function openAdViewer(adId) {
+  const ad =
+    ads.find(item => item.id === adId);
+
+  if (!ad) return;
+
+  if (ad.status !== "approved") {
+    toast(
+      "Esta publicidad todavía no está publicada.",
+      "error"
+    );
+    return;
+  }
+
+  ad.views =
+    Number(ad.views || 0) + 1;
+
+  save(STORAGE.ads, ads);
+
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="ad-fullscreen-viewer">
+
+      <div class="ad-media-large">
+
+        ${
+          ad.mediaType === "video"
+            ? `
+              <video
+                src="${ad.media}"
+                autoplay
+                muted
+                loop
+                controls
+                playsinline
+              ></video>
+            `
+            : `
+              <img
+                src="${ad.media}"
+                alt="${escapeHTML(ad.title)}"
+              >
+            `
+        }
+
+      </div>
+
+      <div class="ad-viewer-info">
+
+        <span>⚡ FLASH DEL DÍA</span>
+
+        <h2>
+          ${escapeHTML(ad.title)}
+        </h2>
+
+        <p>
+          ${escapeHTML(ad.description)}
+        </p>
+
+        <div class="ad-viewer-stats">
+
+          <button
+            id="adLikeBtn"
+            type="button"
+          >
+            ❤️ ${ad.likes || 0}
+          </button>
+
+          <span>
+            👁 ${ad.views || 0}
+          </span>
+
         </div>
 
-        <div>
-          <strong>${ads.length}</strong>
-          <small>Publicidad</small>
-        </div>
+        <div class="ad-navigation">
 
-        <div>
-          <strong>${claims.length}</strong>
-          <small>Reclamos</small>
-        </div>
+          <button
+            id="previousAdBtn"
+            type="button"
+          >
+            ‹
+          </button>
 
-        <div>
-          <strong>${deletedUsers.length}</strong>
-          <small>Cuentas eliminadas</small>
+          <span>
+            Flash del Día
+          </span>
+
+          <button
+            id="nextAdBtn"
+            type="button"
+          >
+            ›
+          </button>
+
         </div>
 
       </div>
 
-      <div class="admin-menu">
+    </div>
+  `);
 
-        <button data-admin="ads">
-          📣 Publicidad
+  $("adLikeBtn")?.addEventListener(
+    "click",
+    () => {
+      ad.likes =
+        Number(ad.likes || 0) + 1;
+
+      save(STORAGE.ads, ads);
+
+      openAdViewer(ad.id);
+    }
+  );
+
+  $("previousAdBtn")?.addEventListener(
+    "click",
+    () => navigateAd(ad.id, -1)
+  );
+
+  $("nextAdBtn")?.addEventListener(
+    "click",
+    () => navigateAd(ad.id, 1)
+  );
+}
+
+function navigateAd(currentId, direction) {
+  const approved =
+    ads.filter(ad => ad.status === "approved");
+
+  if (!approved.length) return;
+
+  const index =
+    approved.findIndex(ad => ad.id === currentId);
+
+  let nextIndex =
+    index + direction;
+
+  if (nextIndex < 0) {
+    nextIndex = approved.length - 1;
+  }
+
+  if (nextIndex >= approved.length) {
+    nextIndex = 0;
+  }
+
+  openAdViewer(approved[nextIndex].id);
+}
+
+/* =========================================================
+   NOTIFICACIONES
+========================================================= */
+
+function addNotification(
+  title,
+  text,
+  type = "general"
+) {
+  notifications.unshift({
+    id: uid("notification"),
+    title,
+    text,
+    type,
+    read: false,
+    createdAt: Date.now()
+  });
+
+  save(STORAGE.notifications, notifications);
+
+  updateBadges();
+}
+
+function renderNotifications() {
+  updateBadges();
+}
+
+function updateBadges() {
+  const unread =
+    notifications.filter(
+      notification => !notification.read
+    ).length;
+
+  const chatUnread =
+    chats.reduce((total, chat) => {
+      const unreadMessages =
+        (chat.messages || []).filter(
+          message =>
+            message.senderId !== user.id &&
+            !message.read
+        ).length;
+
+      return total + unreadMessages;
+    }, 0);
+
+  setBadge(
+    $("notifyBadge"),
+    unread
+  );
+
+  setBadge(
+    $("chatBadge"),
+    chatUnread
+  );
+
+  setBadge(
+    $("profileBadge"),
+    unread
+  );
+}
+
+function setBadge(element, count) {
+  if (!element) return;
+
+  if (count > 0) {
+    element.textContent =
+      count > 99 ? "99+" : count;
+
+    element.classList.remove("hidden");
+  } else {
+    element.classList.add("hidden");
+  }
+}
+
+$("notifyBtn")?.addEventListener(
+  "click",
+  () => {
+
+    pressAnimation($("notifyBtn"));
+
+    notifications.forEach(
+      notification =>
+        notification.read = true
+    );
+
+    save(
+      STORAGE.notifications,
+      notifications
+    );
+
+    showModal(`
+      <button class="modal-close" data-close-modal>×</button>
+
+      <div class="modal-header">
+        <small>MARKET FLASH</small>
+        <h2>Notificaciones</h2>
+      </div>
+
+      ${
+        notifications.length
+          ? `
+            <div class="notification-list">
+
+              ${notifications.map(notification => `
+                <article class="notification-item">
+
+                  <div>
+                    ${notification.type === "chat" ? "💬" :
+                      notification.type === "advertising" ? "📢" :
+                      notification.type === "support" ? "🚩" :
+                      "🔔"}
+                  </div>
+
+                  <div>
+                    <strong>
+                      ${escapeHTML(notification.title)}
+                    </strong>
+
+                    <p>
+                      ${escapeHTML(notification.text)}
+                    </p>
+
+                    <small>
+                      ${formatDate(notification.createdAt)}
+                    </small>
+                  </div>
+
+                </article>
+              `).join("")}
+
+            </div>
+          `
+          : `
+            <div class="empty-card">
+              <div>🔔</div>
+              <h3>No tienes notificaciones</h3>
+              <p>Aquí aparecerán tus avisos.</p>
+            </div>
+          `
+      }
+    `);
+
+    updateBadges();
+  }
+);
+
+/* =========================================================
+   ACTIVIDAD
+========================================================= */
+
+function addActivity(title, description) {
+  activities.unshift({
+    id: uid("activity"),
+    title,
+    description,
+    createdAt: Date.now()
+  });
+
+  activities =
+    activities.slice(0, 100);
+
+  save(STORAGE.activities, activities);
+}
+
+function renderActivity() {
+  const container =
+    $("activityContent");
+
+  if (!container) return;
+
+  if (!activities.length) {
+    container.innerHTML = `
+      <div class="empty-card">
+        <div>▣</div>
+        <h3>Sin actividad todavía</h3>
+        <p>
+          Aquí aparecerán tus publicaciones,
+          ventas y acciones.
+        </p>
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML =
+    activities.map(activity => `
+      <article class="activity-item">
+
+        <div class="activity-icon">
+          ✨
+        </div>
+
+        <div>
+
+          <strong>
+            ${escapeHTML(activity.title)}
+          </strong>
+
+          <p>
+            ${escapeHTML(activity.description)}
+          </p>
+
+          <small>
+            ${formatDate(activity.createdAt)}
+          </small>
+
+        </div>
+
+      </article>
+    `).join("");
+}
+
+/* =========================================================
+   MIS PUBLICACIONES
+========================================================= */
+
+function renderMyProducts() {
+  const container =
+    $("myProducts");
+
+  if (!container) return;
+
+  const mine =
+    products.filter(
+      product => product.sellerId === user.id
+    );
+
+  if (!mine.length) {
+    container.innerHTML = `
+      <div class="empty-card">
+        <div>📦</div>
+        <h3>No tienes publicaciones</h3>
+        <p>
+          Pulsa el botón + para publicar.
+        </p>
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML =
+    mine.map(productCard).join("");
+
+  qsa("[data-product-id]").forEach(card => {
+    card.addEventListener("click", () => {
+      openProduct(card.dataset.productId);
+    });
+  });
+}
+
+/* =========================================================
+   ADMIN
+========================================================= */
+
+function openAdminPanel() {
+  const password =
+    prompt("Contraseña del panel de administrador:");
+
+  if (password !== admin.password) {
+    toast(
+      "Contraseña de administrador incorrecta.",
+      "error"
+    );
+    return;
+  }
+
+  renderAdminPanel();
+}
+
+function renderAdminPanel() {
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="admin-panel">
+
+      <div class="admin-header">
+
+        <small>MARKET FLASH</small>
+
+        <h2>
+          Panel de Administrador
+        </h2>
+
+        <p>
+          Control de usuarios, publicidad,
+          pagos, reclamaciones y configuración.
+        </p>
+
+      </div>
+
+      <div class="admin-alert">
+        🚨
+        <strong>
+          ${pendingAdminItems()} asuntos pendientes
+        </strong>
+      </div>
+
+      <div class="admin-grid">
+
+        <button data-admin-section="ads">
+          📢 Publicidad
         </button>
 
-        <button data-admin="payments">
-          💳 Pagos y precios
+        <button data-admin-section="payments">
+          💳 Pagos
         </button>
 
-        <button data-admin="claims">
-          ⚠️ Reclamos
+        <button data-admin-section="complaints">
+          🚩 Reclamaciones
         </button>
 
-        <button data-admin="users">
+        <button data-admin-section="users">
           👥 Usuarios
         </button>
 
-        <button data-admin="messages">
-          💬 Chat administrativo
+        <button data-admin-section="messages">
+          💬 Mensajes
         </button>
 
-        <button data-admin="sanctions">
-          🚫 Sanciones y multas
-        </button>
-
-        <button data-admin="password">
-          🔐 Cambiar contraseña
-        </button>
-
-        <button data-admin="settings">
-          ⚙️ Configuración del panel
+        <button data-admin-section="settings">
+          ⚙️ Configuración
         </button>
 
       </div>
 
-      <div id="adminSection"></div>
+      <div id="adminContent"></div>
 
     </div>
   `);
 
-  document
-    .getElementById("closeAdmin")
-    ?.addEventListener("click", closeModal);
-
-  document
-    .getElementById("pendingAlert")
-    ?.addEventListener("click", () => {
-      renderAdminAds();
+  qsa("[data-admin-section]").forEach(button => {
+    button.addEventListener("click", () => {
+      renderAdminSection(
+        button.dataset.adminSection
+      );
     });
+  });
 
-  document
-    .querySelectorAll("[data-admin]")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-
-        const section =
-          button.dataset.admin;
-
-        if (section === "ads") {
-          renderAdminAds();
-        }
-
-        if (section === "payments") {
-          renderAdminPayments();
-        }
-
-        if (section === "claims") {
-          renderAdminClaims();
-        }
-
-        if (section === "users") {
-          renderAdminUsers();
-        }
-
-        if (section === "messages") {
-          renderAdminMessages();
-        }
-
-        if (section === "sanctions") {
-          renderAdminSanctions();
-        }
-
-        if (section === "password") {
-          renderAdminPassword();
-        }
-
-        if (section === "settings") {
-          renderAdminSettings();
-        }
-      });
-    });
-
-  renderAdminAds();
+  renderAdminSection("ads");
 }
 
-/* =========================
-   ADMIN — PUBLICIDAD
-========================= */
-
-function renderAdminAds() {
-  const box =
-    document.getElementById("adminSection");
-
-  if (!box) return;
-
-  const ads =
-    getJSON(STORAGE.ads, []);
-
-  box.innerHTML = `
-    <div class="admin-section">
-
-      <h3>📣 Solicitudes de publicidad</h3>
-
-      ${
-        ads.length
-          ? ads.slice().reverse().map(ad => `
-            <div class="admin-ad">
-
-              ${
-                ad.mediaType === "video"
-                  ? `
-                    <video
-                      src="${escapeHTML(ad.media)}"
-                      controls
-                    ></video>
-                  `
-                  : `
-                    <img
-                      src="${escapeHTML(ad.media)}"
-                      alt=""
-                    >
-                  `
-              }
-
-              <div>
-
-                <span class="status ${ad.status}">
-                  ${escapeHTML(ad.status)}
-                </span>
-
-                <h4>${escapeHTML(ad.title)}</h4>
-
-                <p>${escapeHTML(ad.description)}</p>
-
-                <small>
-                  Usuario:
-                  ${escapeHTML(ad.userName)}
-                </small>
-
-                <small>
-                  Plan:
-                  ${escapeHTML(ad.planName)}
-                </small>
-
-                <small>
-                  Pago:
-                  ${escapeHTML(ad.paymentMethod)}
-                </small>
-
-                <small>
-                  Total:
-                  ${money(ad.amount)}
-                </small>
-
-                <div class="admin-buttons">
-
-                  <button
-                    class="secondary-btn view-proof"
-                    data-id="${ad.id}"
-                  >
-                    Ver comprobante
-                  </button>
-
-                  ${
-                    ad.status === "pending"
-                      ? `
-                        <button
-                          class="primary-btn approve-ad"
-                          data-id="${ad.id}"
-                        >
-                          ✓ Aprobar
-                        </button>
-
-                        <button
-                          class="danger-btn reject-ad"
-                          data-id="${ad.id}"
-                        >
-                          ✕ Rechazar
-                        </button>
-                      `
-                      : ""
-                  }
-
-                </div>
-
-              </div>
-
-            </div>
-          `).join("")
-          : `
-            <div class="empty-state">
-              <div>📣</div>
-              <p>No hay solicitudes de publicidad.</p>
-            </div>
-          `
-      }
-
-    </div>
-  `;
-
-  document
-    .querySelectorAll(".approve-ad")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        changeAdStatus(button.dataset.id, "approved");
-      });
-    });
-
-  document
-    .querySelectorAll(".reject-ad")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        changeAdStatus(button.dataset.id, "rejected");
-      });
-    });
-
-  document
-    .querySelectorAll(".view-proof")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        viewProof(button.dataset.id);
-      });
-    });
-}
-
-function changeAdStatus(id, status) {
-  const ads =
-    getJSON(STORAGE.ads, []);
-
-  const ad =
-    ads.find(item => item.id === id);
-
-  if (!ad) return;
-
-  ad.status = status;
-  ad.reviewedAt = Date.now();
-
-  saveJSON(STORAGE.ads, ads);
-
-  toast(
-    status === "approved"
-      ? "✓ Publicidad aprobada"
-      : "Publicidad rechazada"
+function pendingAdminItems() {
+  return (
+    ads.filter(ad => ad.status === "pending").length +
+    complaints.filter(
+      complaint => complaint.status === "pending"
+    ).length
   );
-
-  renderAdminAds();
-  updateBadges();
 }
 
-function viewProof(id) {
-  const ads =
-    getJSON(STORAGE.ads, []);
+/* =========================================================
+   ADMIN SECCIONES
+========================================================= */
 
-  const ad =
-    ads.find(item => item.id === id);
+function renderAdminSection(section) {
+  const container =
+    $("adminContent");
 
-  if (!ad) return;
+  if (!container) return;
 
-  openModal(`
-    <div class="modal-header">
-      <button class="close-modal" id="closeProof">×</button>
-      <h2>🧾 Comprobante</h2>
-    </div>
-
-    <div class="proof-view">
-
-      <h3>${escapeHTML(ad.title)}</h3>
-
-      <p>
-        ${escapeHTML(ad.paymentMethod)}
-      </p>
-
-      <p>
-        Total: <strong>${money(ad.amount)}</strong>
-      </p>
-
-      ${
-        String(ad.proof || "").startsWith("data:image")
-          ? `
-            <img
-              src="${escapeHTML(ad.proof)}"
-              alt="Comprobante"
-            >
-          `
-          : `
-            <p>
-              Comprobante:
-              ${escapeHTML(ad.proofName || "Archivo")}
-            </p>
-          `
-      }
-
-    </div>
-  `);
-
-  document
-    .getElementById("closeProof")
-    ?.addEventListener("click", closeModal);
-}
-
-/* =========================
-   ADMIN — PAGOS
-========================= */
-
-function renderAdminPayments() {
-  const config = getConfig();
-  const box =
-    document.getElementById("adminSection");
-
-  if (!box) return;
-
-  box.innerHTML = `
-    <div class="admin-section">
-
-      <h3>💳 Métodos de pago y precios</h3>
-
-      <p>
-        Puedes activar/desactivar métodos y cambiar
-        los precios de cada plan.
-      </p>
-
-      ${
-        Object.entries(config.payments).map(
-          ([name, payment]) => `
-            <div class="payment-admin-card">
-
-              <h4>${escapeHTML(name)}</h4>
-
-              <label>
-                <input
-                  type="checkbox"
-                  class="payment-enabled"
-                  data-method="${escapeHTML(name)}"
-                  ${payment.enabled ? "checked" : ""}
-                >
-                Método activo
-              </label>
-
-              <label>Cuenta / información de pago</label>
-
-              <input
-                class="payment-account"
-                data-method="${escapeHTML(name)}"
-                value="${escapeHTML(payment.account)}"
-              >
-
-              <div class="price-grid">
-
-                <label>
-                  Básico
-                  <input
-                    type="number"
-                    class="payment-price"
-                    data-method="${escapeHTML(name)}"
-                    data-plan="cheap"
-                    value="${payment.cheap}"
-                  >
-                </label>
-
-                <label>
-                  Destacado
-                  <input
-                    type="number"
-                    class="payment-price"
-                    data-method="${escapeHTML(name)}"
-                    data-plan="normal"
-                    value="${payment.normal}"
-                  >
-                </label>
-
-                <label>
-                  Premium
-                  <input
-                    type="number"
-                    class="payment-price"
-                    data-method="${escapeHTML(name)}"
-                    data-plan="pro"
-                    value="${payment.pro}"
-                  >
-                </label>
-
-              </div>
-
-            </div>
-          `
-        ).join("")
-      }
-
-      <button
-        class="primary-btn"
-        id="savePayments"
-      >
-        Guardar métodos y precios
-      </button>
-
-    </div>
-  `;
-
-  document
-    .getElementById("savePayments")
-    ?.addEventListener("click", savePayments);
-}
-
-function savePayments() {
-  const config = getConfig();
-
-  Object.entries(config.payments)
-    .forEach(([name, payment]) => {
-
-      const enabled =
-        document.querySelector(
-          `.payment-enabled[data-method="${CSS.escape(name)}"]`
-        );
-
-      const account =
-        document.querySelector(
-          `.payment-account[data-method="${CSS.escape(name)}"]`
-        );
-
-      payment.enabled = !!enabled?.checked;
-
-      if (account) {
-        payment.account = account.value.trim();
-      }
-
-      ["cheap", "normal", "pro"].forEach(plan => {
-
-        const input =
-          document.querySelector(
-            `.payment-price[data-method="${CSS.escape(name)}"][data-plan="${plan}"]`
-          );
-
-        if (input) {
-          payment[plan] = Number(input.value || 0);
-        }
-      });
-    });
-
-  saveJSON(STORAGE.config, config);
-
-  toast("✓ Configuración de pagos guardada");
-}
-
-/* =========================
-   ADMIN — RECLAMOS
-========================= */
-
-function renderAdminClaims() {
-  const box =
-    document.getElementById("adminSection");
-
-  if (!box) return;
-
-  const claims =
-    getJSON(STORAGE.claims, []);
-
-  box.innerHTML = `
-    <div class="admin-section">
-
-      <h3>⚠️ Reclamos</h3>
-
-      ${
-        claims.length
-          ? claims.slice().reverse().map(claim => `
-            <div class="claim-admin">
-
-              <span class="status ${claim.status}">
-                ${escapeHTML(claim.status)}
-              </span>
-
-              <h4>
-                ${escapeHTML(claim.reason)}
-              </h4>
-
-              <p>
-                <strong>Usuario:</strong>
-                ${escapeHTML(claim.userName)}
-              </p>
-
-              <p>
-                ${escapeHTML(claim.description)}
-              </p>
-
-              ${
-                claim.evidence
-                  ? `
-                    <p>
-                      <strong>Evidencia:</strong>
-                      ${escapeHTML(claim.evidence)}
-                    </p>
-                  `
-                  : ""
-              }
-
-              <small>
-                ${formatDate(claim.createdAt)}
-              </small>
-
-              ${
-                claim.status === "pending"
-                  ? `
-                    <div class="admin-buttons">
-
-                      <button
-                        class="primary-btn resolve-claim"
-                        data-id="${claim.id}"
-                      >
-                        ✓ Resolver
-                      </button>
-
-                      <button
-                        class="danger-btn sanction-claim"
-                        data-id="${claim.id}"
-                      >
-                        🚫 Sancionar
-                      </button>
-
-                    </div>
-                  `
-                  : ""
-              }
-
-            </div>
-          `).join("")
-          : `
-            <div class="empty-state">
-              <div>⚠️</div>
-              <p>No hay reclamos.</p>
-            </div>
-          `
-      }
-
-    </div>
-  `;
-
-  document
-    .querySelectorAll(".resolve-claim")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        resolveClaim(button.dataset.id);
-      });
-    });
-
-  document
-    .querySelectorAll(".sanction-claim")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        sanctionFromClaim(button.dataset.id);
-      });
-    });
-}
-
-function resolveClaim(id) {
-  const claims =
-    getJSON(STORAGE.claims, []);
-
-  const claim =
-    claims.find(item => item.id === id);
-
-  if (!claim) return;
-
-  claim.status = "resolved";
-  claim.resolvedAt = Date.now();
-
-  saveJSON(STORAGE.claims, claims);
-
-  toast("✓ Reclamo resuelto");
-  renderAdminClaims();
-}
-
-function sanctionFromClaim(id) {
-  const claims =
-    getJSON(STORAGE.claims, []);
-
-  const claim =
-    claims.find(item => item.id === id);
-
-  if (!claim) return;
-
-  showSanctionForm(claim.userId, claim.userName, id);
-}
-
-/* =========================
-   ADMIN — USUARIOS
-========================= */
-
-function renderAdminUsers() {
-  const box =
-    document.getElementById("adminSection");
-
-  if (!box) return;
-
-  const deletedUsers =
-    getJSON("mf_deleted_users_v2", []);
-
-  const user =
-    currentUser();
-
-  box.innerHTML = `
-    <div class="admin-section">
-
-      <h3>👥 Usuarios</h3>
-
-      <div class="user-admin-card">
-
-        <h4>Usuario registrado en este dispositivo</h4>
-
-        ${
-          user
-            ? `
-              <p>
-                <strong>Nombre:</strong>
-                ${escapeHTML(user.name)}
-              </p>
-
-              <p>
-                <strong>Cédula:</strong>
-                ${escapeHTML(user.cedula)}
-              </p>
-
-              <p>
-                <strong>Teléfono:</strong>
-                ${escapeHTML(user.phone)}
-              </p>
-
-              <p>
-                <strong>Registro:</strong>
-                ${formatDate(user.createdAt)}
-              </p>
-            `
-            : `
-              <p>No hay usuario activo.</p>
-            `
-        }
-
-      </div>
-
-      <h4>Cuentas eliminadas</h4>
-
-      ${
-        deletedUsers.length
-          ? deletedUsers.map(user => `
-            <div class="deleted-user">
-              <strong>${escapeHTML(user.name)}</strong>
-              <small>${escapeHTML(user.phone)}</small>
-              <small>Eliminada: ${formatDate(user.deletedAt)}</small>
-            </div>
-          `).join("")
-          : `<p>No hay cuentas eliminadas.</p>`
-      }
-
-    </div>
-  `;
-}
-
-/* =========================
-   ADMIN — CHAT
-========================= */
-
-function renderAdminMessages() {
-  const box =
-    document.getElementById("adminSection");
-
-  if (!box) return;
-
-  const messages =
-    getMessages();
-
-  box.innerHTML = `
-    <div class="admin-section">
-
-      <h3>💬 Chat administrativo</h3>
-
-      <p>
-        Aquí aparecen los mensajes relacionados con
-        la administración y los reclamos.
-      </p>
-
-      ${
-        messages.length
-          ? messages.slice().reverse().map(message => `
-            <div class="admin-message">
-
-              <small>
-                ${formatDate(message.createdAt)}
-              </small>
-
-              <p>
-                ${escapeHTML(message.text)}
-              </p>
-
-              <small>
-                De:
-                ${escapeHTML(message.from)}
-              </small>
-
-              <small>
-                Para:
-                ${escapeHTML(message.to)}
-              </small>
-
-            </div>
-          `).join("")
-          : `
-            <div class="empty-state">
-              <div>💬</div>
-              <p>No hay mensajes.</p>
-            </div>
-          `
-      }
-
-    </div>
-  `;
-}
-
-/* =========================
-   ADMIN — SANCIONES
-========================= */
-
-function renderAdminSanctions() {
-  const box =
-    document.getElementById("adminSection");
-
-  if (!box) return;
-
-  const sanctions =
-    getJSON(STORAGE.sanctions, []);
-
-  box.innerHTML = `
-    <div class="admin-section">
-
-      <h3>🚫 Sanciones y multas</h3>
-
-      <button
-        class="primary-btn"
-        id="newSanction"
-      >
-        ＋ Crear sanción / multa
-      </button>
-
-      ${
-        sanctions.length
-          ? sanctions.slice().reverse().map(item => `
-            <div class="sanction-admin">
-
-              <span class="status">
-                ${escapeHTML(item.type)}
-              </span>
-
-              <h4>${escapeHTML(item.userName)}</h4>
-
-              <p>${escapeHTML(item.reason)}</p>
-
-              ${
-                item.amount
-                  ? `<strong>Multa: ${money(item.amount)}</strong>`
-                  : ""
-              }
-
-              <small>
-                ${formatDate(item.createdAt)}
-              </small>
-
-            </div>
-          `).join("")
-          : `
-            <div class="empty-state">
-              <p>No hay sanciones.</p>
-            </div>
-          `
-      }
-
-    </div>
-  `;
-
-  document
-    .getElementById("newSanction")
-    ?.addEventListener("click", () => {
-      showSanctionForm();
-    });
-}
-
-function showSanctionForm(
-  userId = "",
-  userName = "",
-  claimId = ""
-) {
-  openModal(`
-    <div class="modal-header">
-      <button class="close-modal" id="closeSanction">×</button>
-      <h2>🚫 Sancionar usuario</h2>
-    </div>
-
-    <div class="form-card">
-
-      <label>Usuario</label>
-      <input
-        id="sanctionUser"
-        value="${escapeHTML(userName)}"
-        placeholder="Nombre del usuario"
-      >
-
-      <label>ID del usuario</label>
-      <input
-        id="sanctionUserId"
-        value="${escapeHTML(userId)}"
-      >
-
-      <label>Tipo de sanción</label>
-
-      <select id="sanctionType">
-        <option>Advertencia</option>
-        <option>Bloqueo temporal</option>
-        <option>Bloqueo permanente</option>
-        <option>Multa</option>
-        <option>Eliminación de publicación</option>
-      </select>
-
-      <label>Motivo</label>
-
-      <textarea
-        id="sanctionReason"
-        rows="4"
-        placeholder="Motivo de la sanción..."
-      ></textarea>
-
-      <label>Monto de multa</label>
-
-      <input
-        id="sanctionAmount"
-        type="number"
-        min="0"
-        placeholder="0"
-      >
-
-      <label>Días de bloqueo</label>
-
-      <input
-        id="sanctionDays"
-        type="number"
-        min="0"
-        placeholder="0"
-      >
-
-      <button
-        class="danger-btn"
-        id="saveSanction"
-      >
-        Aplicar sanción
-      </button>
-
-    </div>
-  `);
-
-  document
-    .getElementById("closeSanction")
-    ?.addEventListener("click", closeModal);
-
-  document
-    .getElementById("saveSanction")
-    ?.addEventListener("click", () => {
-
-      const sanctions =
-        getJSON(STORAGE.sanctions, []);
-
-      const type =
-        document.getElementById("sanctionType").value;
-
-      const amount =
-        Number(
-          document.getElementById("sanctionAmount").value || 0
-        );
-
-      const days =
-        Number(
-          document.getElementById("sanctionDays").value || 0
-        );
-
-      sanctions.push({
-        id: uid("sanction"),
-        userId:
-          document.getElementById("sanctionUserId").value.trim(),
-        userName:
-          document.getElementById("sanctionUser").value.trim(),
-        type,
-        reason:
-          document.getElementById("sanctionReason").value.trim(),
-        amount,
-        days,
-        createdAt: Date.now(),
-        active: true
-      });
-
-      saveJSON(STORAGE.sanctions, sanctions);
-
-      if (claimId) {
-        const claims =
-          getJSON(STORAGE.claims, []);
-
-        const claim =
-          claims.find(item => item.id === claimId);
-
-        if (claim) {
-          claim.status = "sanctioned";
-          saveJSON(STORAGE.claims, claims);
-        }
-      }
-
-      toast("🚫 Sanción aplicada");
-      closeModal();
-      renderAdminSanctions();
-    });
-}
-
-/* =========================
-   ADMIN — CONTRASEÑA
-========================= */
-
-function renderAdminPassword() {
-  const box =
-    document.getElementById("adminSection");
-
-  if (!box) return;
-
-  box.innerHTML = `
-    <div class="admin-section">
-
-      <h3>🔐 Cambiar contraseña del administrador</h3>
-
-      <div class="form-card">
-
-        <label>Contraseña actual</label>
-        <input
-          id="adminOldPassword"
-          type="password"
-        >
-
-        <label>Nueva contraseña</label>
-        <input
-          id="adminNewPassword"
-          type="password"
-        >
-
-        <label>Confirmar nueva contraseña</label>
-        <input
-          id="adminNewPassword2"
-          type="password"
-        >
-
-        <button
-          class="primary-btn"
-          id="saveAdminPassword"
-        >
-          Guardar contraseña
-        </button>
-
-      </div>
-
-    </div>
-  `;
-
-  document
-    .getElementById("saveAdminPassword")
-    ?.addEventListener("click", saveAdminPassword);
-}
-
-function saveAdminPassword() {
-  const config = getConfig();
-
-  const oldPassword =
-    document.getElementById("adminOldPassword").value;
-
-  const newPassword =
-    document.getElementById("adminNewPassword").value;
-
-  const newPassword2 =
-    document.getElementById("adminNewPassword2").value;
-
-  if (oldPassword !== config.adminPassword) {
-    toast("La contraseña actual es incorrecta.");
-    return;
+  if (section === "ads") {
+    renderAdminAds(container);
   }
 
-  if (newPassword.length < 6) {
-    toast("La nueva contraseña debe tener al menos 6 caracteres.");
-    return;
+  if (section === "payments") {
+    renderAdminPayments(container);
   }
 
-  if (newPassword !== newPassword2) {
-    toast("Las contraseñas no coinciden.");
-    return;
+  if (section === "complaints") {
+    renderAdminComplaints(container);
   }
 
-  config.adminPassword = newPassword;
-
-  saveJSON(STORAGE.config, config);
-
-  toast("✓ Contraseña del administrador cambiada");
-}
-
-/* =========================
-   ADMIN — CONFIGURACIÓN
-========================= */
-
-function renderAdminSettings() {
-  const config = getConfig();
-
-  const box =
-    document.getElementById("adminSection");
-
-  if (!box) return;
-
-  box.innerHTML = `
-    <div class="admin-section">
-
-      <h3>⚙️ Configuración del panel</h3>
-
-      <div class="settings-list">
-
-        <label>
-          <input
-            type="checkbox"
-            id="panelCompact"
-            ${config.panel.compact ? "checked" : ""}
-          >
-          Panel compacto
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
-            id="panelRounded"
-            ${config.panel.rounded ? "checked" : ""}
-          >
-          Bordes redondeados
-        </label>
-
-        <label>
-          <input
-            type="checkbox"
-            id="panelAnimations"
-            ${config.panel.animations ? "checked" : ""}
-          >
-          Animaciones
-        </label>
-
-      </div>
-
-      <label>Nombre de la plataforma</label>
-
-      <input
-        id="siteName"
-        value="${escapeHTML(config.siteName)}"
-      >
-
-      <label>Frase principal</label>
-
-      <input
-        id="siteTagline"
-        value="${escapeHTML(config.tagline)}"
-      >
-
-      <h4>Precios generales de los planes</h4>
-
-      <div class="price-grid">
-
-        <label>
-          Básico
-          <input
-            id="cheapPrice"
-            type="number"
-            value="${config.plans.cheap.price}"
-          >
-        </label>
-
-        <label>
-          Destacado
-          <input
-            id="normalPrice"
-            type="number"
-            value="${config.plans.normal.price}"
-          >
-        </label>
-
-        <label>
-          Premium
-          <input
-            id="proPrice"
-            type="number"
-            value="${config.plans.pro.price}"
-          >
-        </label>
-
-      </div>
-
-      <button
-        class="primary-btn"
-        id="savePanelSettings"
-      >
-        Guardar configuración
-      </button>
-
-    </div>
-  `;
-
-  document
-    .getElementById("savePanelSettings")
-    ?.addEventListener("click", savePanelSettings);
-}
-
-function savePanelSettings() {
-  const config = getConfig();
-
-  config.panel.compact =
-    document.getElementById("panelCompact").checked;
-
-  config.panel.rounded =
-    document.getElementById("panelRounded").checked;
-
-  config.panel.animations =
-    document.getElementById("panelAnimations").checked;
-
-  config.siteName =
-    document.getElementById("siteName").value.trim();
-
-  config.tagline =
-    document.getElementById("siteTagline").value.trim();
-
-  config.plans.cheap.price =
-    Number(document.getElementById("cheapPrice").value || 0);
-
-  config.plans.normal.price =
-    Number(document.getElementById("normalPrice").value || 0);
-
-  config.plans.pro.price =
-    Number(document.getElementById("proPrice").value || 0);
-
-  saveJSON(STORAGE.config, config);
-
-  applyPanelSettings();
-
-  toast("✓ Configuración guardada");
-}
-
-/* =========================
-   BADGES / NOTIFICACIONES
-========================= */
-
-function updateBadges() {
-  const ads =
-    getJSON(STORAGE.ads, []);
-
-  const pending =
-    ads.filter(ad => ad.status === "pending").length;
-
-  const badge =
-    document.getElementById("notifyBadge");
-
-  if (badge) {
-    badge.textContent = pending;
-
-    badge.classList.toggle(
-      "hidden",
-      pending === 0
-    );
+  if (section === "users") {
+    renderAdminUsers(container);
   }
 
-  const chatBadge =
-    document.getElementById("chatBadge");
-
-  const user =
-    currentUser();
-
-  let unread = 0;
-
-  if (user) {
-    unread =
-      getMessages().filter(message =>
-        message.to === user.id &&
-        !message.read
-      ).length;
+  if (section === "messages") {
+    renderAdminMessages(container);
   }
 
-  if (chatBadge) {
-    chatBadge.textContent = unread;
-
-    chatBadge.classList.toggle(
-      "hidden",
-      unread === 0
-    );
+  if (section === "settings") {
+    renderAdminSettings(container);
   }
 }
 
-/* =========================
-   NOTIFICACIONES
-========================= */
+/* =========================================================
+   ADMIN PUBLICIDAD
+========================================================= */
 
-function showNotifications() {
-  const ads =
-    getJSON(STORAGE.ads, []);
-
+function renderAdminAds(container) {
   const pending =
     ads.filter(ad => ad.status === "pending");
 
-  const user =
-    currentUser();
+  container.innerHTML = `
+    <div class="admin-section">
 
-  const unread =
-    user
-      ? getMessages().filter(
-          message =>
-            message.to === user.id &&
-            !message.read
-        )
-      : [];
-
-  openModal(`
-    <div class="modal-header">
-      <button class="close-modal" id="closeNotifications">×</button>
-      <h2>🔔 Notificaciones</h2>
-    </div>
-
-    <div class="notification-list">
+      <h3>
+        🚨 Solicitudes de publicidad
+      </h3>
 
       ${
         pending.length
-          ? `
-            <div class="notification warning">
-              🔴 Hay ${pending.length}
-              publicidad(es) esperando revisión administrativa.
-            </div>
-          `
-          : ""
-      }
+          ? pending.map(ad => `
+            <article class="admin-card">
 
-      ${
-        unread.length
-          ? unread.map(message => `
-            <div class="notification">
-              💬 ${escapeHTML(message.text)}
-            </div>
+              <strong>
+                ${escapeHTML(ad.title)}
+              </strong>
+
+              <p>
+                Usuario:
+                ${escapeHTML(ad.userName)}
+              </p>
+
+              <p>
+                Plan:
+                ${escapeHTML(ad.plan)}
+              </p>
+
+              <p>
+                Método:
+                ${escapeHTML(
+                  admin.paymentMethods[ad.payment]?.name ||
+                  ad.payment
+                )}
+              </p>
+
+              <p>
+                Importe:
+                ${formatMoney(ad.price)}
+              </p>
+
+              <div class="admin-actions">
+
+                <button
+                  data-admin-view-proof="${ad.id}"
+                  type="button"
+                >
+                  Ver comprobante
+                </button>
+
+                <button
+                  data-admin-approve-ad="${ad.id}"
+                  type="button"
+                >
+                  ✓ Aprobar
+                </button>
+
+                <button
+                  data-admin-reject-ad="${ad.id}"
+                  type="button"
+                >
+                  ✕ Rechazar
+                </button>
+
+              </div>
+
+            </article>
           `).join("")
-          : ""
-      }
-
-      ${
-        !pending.length && !unread.length
-          ? `
-            <div class="empty-state">
-              <div>🔔</div>
-              <p>No tienes notificaciones nuevas.</p>
+          : `
+            <div class="empty-card">
+              No hay solicitudes pendientes.
             </div>
           `
-          : ""
       }
+
+    </div>
+  `;
+
+  qsa("[data-admin-view-proof]").forEach(button => {
+    button.addEventListener("click", () => {
+      viewPaymentProof(
+        button.dataset.adminViewProof
+      );
+    });
+  });
+
+  qsa("[data-admin-approve-ad]").forEach(button => {
+    button.addEventListener("click", () => {
+      approveAd(
+        button.dataset.adminApproveAd
+      );
+    });
+  });
+
+  qsa("[data-admin-reject-ad]").forEach(button => {
+    button.addEventListener("click", () => {
+      rejectAd(
+        button.dataset.adminRejectAd
+      );
+    });
+  });
+}
+
+function viewPaymentProof(adId) {
+  const ad =
+    ads.find(item => item.id === adId);
+
+  if (!ad) return;
+
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="payment-proof">
+
+      <small>COMPROBANTE</small>
+
+      <h2>
+        ${escapeHTML(ad.title)}
+      </h2>
+
+      ${
+        ad.proof
+          ? `
+            <img
+              src="${ad.proof}"
+              alt="Comprobante de pago"
+            >
+          `
+          : `
+            <div class="empty-card">
+              Sin comprobante.
+            </div>
+          `
+      }
+
+      <p>
+        Usuario:
+        ${escapeHTML(ad.userName)}
+      </p>
+
+      <p>
+        Importe:
+        ${formatMoney(ad.price)}
+      </p>
+
+    </div>
+  `);
+}
+
+function approveAd(adId) {
+  const ad =
+    ads.find(item => item.id === adId);
+
+  if (!ad) return;
+
+  ad.status = "approved";
+  ad.approvedAt = Date.now();
+
+  save(STORAGE.ads, ads);
+
+  addNotification(
+    "Publicidad aprobada",
+    `Tu publicidad "${ad.title}" fue publicada.`,
+    "advertising"
+  );
+
+  addActivity(
+    "Publicidad aprobada",
+    `${ad.title} está ahora en Flash del Día.`
+  );
+
+  renderAdminPanel();
+
+  toast(
+    "Publicidad aprobada y publicada.",
+    "success"
+  );
+}
+
+function rejectAd(adId) {
+  const ad =
+    ads.find(item => item.id === adId);
+
+  if (!ad) return;
+
+  const reason =
+    prompt(
+      "Escribe el motivo del rechazo:",
+      "Su publicidad fue rechazada porque el pago fue incorrecto o no pudo ser confirmado."
+    );
+
+  if (reason === null) return;
+
+  ad.status = "rejected";
+  ad.rejectionReason =
+    reason ||
+    "Su publicidad fue rechazada porque el pago fue incorrecto.";
+
+  save(STORAGE.ads, ads);
+
+  addNotification(
+    "Publicidad rechazada",
+    ad.rejectionReason,
+    "advertising"
+  );
+
+  renderAdminPanel();
+
+  toast(
+    "Publicidad rechazada.",
+    "success"
+  );
+}
+
+/* =========================================================
+   ADMIN PAGOS
+========================================================= */
+
+function renderAdminPayments(container) {
+  container.innerHTML = `
+    <div class="admin-section">
+
+      <h3>💳 Pagos</h3>
+
+      ${Object.entries(admin.paymentMethods).map(
+        ([key, method]) => `
+          <article class="admin-card">
+
+            <strong>
+              ${escapeHTML(method.name)}
+            </strong>
+
+            <p>
+              Cuenta:
+              ${escapeHTML(method.account || "No configurada")}
+            </p>
+
+            <p>
+              Estado:
+              ${method.enabled ? "Activo" : "Desactivado"}
+            </p>
+
+            <button
+              data-toggle-payment="${key}"
+              type="button"
+            >
+              ${method.enabled ? "Desactivar" : "Activar"}
+            </button>
+
+          </article>
+        `
+      ).join("")}
+
+      <h3>
+        💰 Precios de publicidad
+      </h3>
+
+      <div class="form-card">
+
+        <label>Básico</label>
+        <input
+          id="adminBasicPrice"
+          type="number"
+          value="${admin.plans.basic}"
+        >
+
+        <label>Profesional</label>
+        <input
+          id="adminProPrice"
+          type="number"
+          value="${admin.plans.pro}"
+        >
+
+        <label>Premium</label>
+        <input
+          id="adminPremiumPrice"
+          type="number"
+          value="${admin.plans.premium}"
+        >
+
+        <button
+          id="saveAdPricesBtn"
+          class="primary-btn"
+          type="button"
+        >
+          Guardar precios
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  qsa("[data-toggle-payment]").forEach(button => {
+    button.addEventListener("click", () => {
+
+      const key =
+        button.dataset.togglePayment;
+
+      admin.paymentMethods[key].enabled =
+        !admin.paymentMethods[key].enabled;
+
+      save(STORAGE.admin, admin);
+
+      renderAdminPayments(container);
+    });
+  });
+
+  $("saveAdPricesBtn")?.addEventListener(
+    "click",
+    () => {
+
+      admin.plans.basic =
+        Number($("adminBasicPrice").value);
+
+      admin.plans.pro =
+        Number($("adminProPrice").value);
+
+      admin.plans.premium =
+        Number($("adminPremiumPrice").value);
+
+      save(STORAGE.admin, admin);
+
+      toast(
+        "Precios actualizados.",
+        "success"
+      );
+    }
+  );
+}
+
+/* =========================================================
+   ADMIN RECLAMACIONES
+========================================================= */
+
+function renderAdminComplaints(container) {
+  container.innerHTML = `
+    <div class="admin-section">
+
+      <h3>🚩 Reclamaciones</h3>
+
+      ${
+        complaints.length
+          ? complaints.map(complaint => `
+            <article class="admin-card">
+
+              <strong>
+                ${escapeHTML(complaint.text)}
+              </strong>
+
+              <p>
+                Acusador:
+                ${escapeHTML(complaint.accuser.name)}
+              </p>
+
+              <p>
+                Acusado:
+                ${escapeHTML(complaint.accused.name)}
+              </p>
+
+              <p>
+                Estado:
+                ${escapeHTML(complaint.status)}
+              </p>
+
+              ${
+                complaint.evidence
+                  ? `
+                    <img
+                      class="admin-evidence"
+                      src="${complaint.evidence}"
+                      alt="Evidencia"
+                    >
+                  `
+                  : ""
+              }
+
+              <div class="admin-actions">
+
+                <button
+                  data-message-complainant="${complaint.id}"
+                  type="button"
+                >
+                  💬 Escribir
+                </button>
+
+                <button
+                  data-sanction-complaint="${complaint.id}"
+                  type="button"
+                >
+                  ⚖️ Sancionar
+                </button>
+
+              </div>
+
+            </article>
+          `).join("")
+          : `
+            <div class="empty-card">
+              No hay reclamaciones.
+            </div>
+          `
+      }
+
+    </div>
+  `;
+
+  qsa("[data-message-complainant]").forEach(button => {
+    button.addEventListener("click", () => {
+
+      const complaint =
+        complaints.find(
+          item =>
+            item.id === button.dataset.messageComplainant
+        );
+
+      if (!complaint) return;
+
+      const message =
+        prompt(
+          `Mensaje para ${complaint.accuser.name}:`
+        );
+
+      if (!message) return;
+
+      toast(
+        "Mensaje preparado para soporte.",
+        "success"
+      );
+    });
+  });
+
+  qsa("[data-sanction-complaint]").forEach(button => {
+    button.addEventListener("click", () => {
+
+      const complaint =
+        complaints.find(
+          item =>
+            item.id === button.dataset.sanctionComplaint
+        );
+
+      if (!complaint) return;
+
+      openSanctionModal(complaint);
+    });
+  });
+}
+
+/* =========================================================
+   SANCIONES / MULTAS
+========================================================= */
+
+function openSanctionModal(complaint) {
+  showModal(`
+    <button class="modal-close" data-close-modal>×</button>
+
+    <div class="modal-header">
+
+      <small>ADMINISTRACIÓN</small>
+
+      <h2>
+        Sancionar usuario
+      </h2>
+
+      <p>
+        Selecciona la medida correspondiente.
+      </p>
+
+    </div>
+
+    <div class="settings-choice">
+
+      <button
+        data-sanction="warning"
+      >
+        ⚠️ Advertencia
+      </button>
+
+      <button
+        data-sanction="temporary_block"
+      >
+        🚫 Bloqueo temporal
+      </button>
+
+      <button
+        data-sanction="fine"
+      >
+        💰 Multa
+      </button>
+
+      <button
+        data-sanction="permanent_block"
+      >
+        ⛔ Bloqueo permanente
+      </button>
 
     </div>
   `);
 
-  document
-    .getElementById("closeNotifications")
-    ?.addEventListener("click", closeModal);
-}
+  qsa("[data-sanction]").forEach(button => {
+    button.addEventListener("click", () => {
 
-/* =========================
-   CONFIGURACIÓN VISUAL
-========================= */
+      const type =
+        button.dataset.sanction;
 
-function applyPanelSettings() {
-  const config = getConfig();
-
-  document.body.classList.toggle(
-    "mf-compact",
-    !!config.panel.compact
-  );
-
-  document.body.classList.toggle(
-    "mf-no-rounded",
-    !config.panel.rounded
-  );
-
-  document.body.classList.toggle(
-    "mf-no-animations",
-    !config.panel.animations
-  );
-}
-
-/* =========================
-   EVENTOS PRINCIPALES
-========================= */
-
-function setupEvents() {
-
-  document
-    .querySelectorAll(".nav-item")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        goPage(button.dataset.page);
-      });
+      applySanction(
+        complaint,
+        type
+      );
     });
+  });
+}
 
-  document
-    .getElementById("publishBtn")
-    ?.addEventListener("click", showPublish);
+function applySanction(complaint, type) {
+  complaint.status = "resolved";
+  complaint.sanction = {
+    type,
+    createdAt: Date.now()
+  };
 
-  document
-    .getElementById("notifyBtn")
-    ?.addEventListener("click", showNotifications);
+  if (type === "fine") {
+    complaint.fineAmount =
+      Number(
+        prompt(
+          "Monto de la multa en RD$:",
+          "500"
+        )
+      ) || 0;
+  }
 
-  document
-    .getElementById("searchInput")
-    ?.addEventListener("input", event => {
+  save(
+    STORAGE.complaints,
+    complaints
+  );
 
-      searchTerm =
-        event.target.value;
+  hideModal();
 
-      if (currentPage === "home") {
-        renderProducts();
+  toast(
+    "Sanción aplicada.",
+    "success"
+  );
+}
+
+/* =========================================================
+   ADMIN USUARIOS
+========================================================= */
+
+function renderAdminUsers(container) {
+  const names = new Set(
+    products.map(product => product.seller)
+  );
+
+  if (user.name) {
+    names.add(user.name);
+  }
+
+  container.innerHTML = `
+    <div class="admin-section">
+
+      <h3>
+        👥 Usuarios registrados
+      </h3>
+
+      <div class="admin-card">
+        <strong>
+          ${names.size}
+        </strong>
+
+        <p>
+          Usuarios detectados en esta instalación.
+        </p>
+      </div>
+
+      ${
+        [...names].map(name => `
+          <article class="admin-card">
+
+            <strong>
+              ${escapeHTML(name)}
+            </strong>
+
+            <p>
+              Usuario Market Flash
+            </p>
+
+            <button type="button">
+              Ver perfil
+            </button>
+
+          </article>
+        `).join("")
       }
-    });
 
-  document
-    .getElementById("modal")
-    ?.addEventListener("click", event => {
+    </div>
+  `;
+}
 
-      if (event.target.id === "modal") {
-        closeModal();
+/* =========================================================
+   ADMIN MENSAJES
+========================================================= */
+
+function renderAdminMessages(container) {
+  const totalMessages =
+    chats.reduce(
+      (total, chat) =>
+        total + (chat.messages || []).length,
+      0
+    );
+
+  container.innerHTML = `
+    <div class="admin-section">
+
+      <h3>
+        💬 Mensajes
+      </h3>
+
+      <div class="admin-alert">
+        💬
+        ${totalMessages} mensajes registrados
+      </div>
+
+      ${
+        chats.map(chat => `
+          <article class="admin-card">
+
+            <strong>
+              ${escapeHTML(chat.productTitle)}
+            </strong>
+
+            <p>
+              ${escapeHTML(
+                chat.sellerName || "Usuario"
+              )}
+            </p>
+
+            <p>
+              ${(chat.messages || []).length}
+              mensajes
+            </p>
+
+          </article>
+        `).join("")
       }
-    });
+
+    </div>
+  `;
 }
 
-/* =========================
-   INICIO DE LA APP
-========================= */
+/* =========================================================
+   ADMIN CONFIGURACIÓN
+========================================================= */
 
-function initMarketFlash() {
+function renderAdminSettings(container) {
+  container.innerHTML = `
+    <div class="admin-section">
 
-  seedData();
+      <h3>
+        ⚙️ Configuración del panel
+      </h3>
 
-  applyPanelSettings();
+      <div class="form-card">
 
-  setupEvents();
+        <label>
+          Nueva contraseña del administrador
+        </label>
 
-  renderHome();
+        <input
+          id="adminNewPassword"
+          type="password"
+          placeholder="Nueva contraseña"
+        >
 
-  updateBadges();
+        <button
+          id="saveAdminPassword"
+          class="primary-btn"
+          type="button"
+        >
+          Cambiar contraseña
+        </button>
 
-  /*
-    Actualiza notificaciones periódicamente.
-  */
-  setInterval(updateBadges, 3000);
-}
+      </div>
 
-/* =========================
-   ARRANQUE
-========================= */
+      <div class="form-card">
 
-if (
-  document.readyState === "loading"
-) {
-  document.addEventListener(
-    "DOMContentLoaded",
-    initMarketFlash
+        <h3>
+          Datos de pago
+        </h3>
+
+        ${Object.entries(admin.paymentMethods)
+          .map(([key, method]) => `
+            <label>
+              ${escapeHTML(method.name)}
+            </label>
+
+            <input
+              data-payment-account="${key}"
+              type="text"
+              value="${escapeHTML(method.account || "")}"
+              placeholder="Cuenta / correo / referencia"
+            >
+          `).join("")}
+
+        <button
+          id="savePaymentAccounts"
+          class="primary-btn"
+          type="button"
+        >
+          Guardar datos de pago
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  $("saveAdminPassword")?.addEventListener(
+    "click",
+    () => {
+
+      const password =
+        $("adminNewPassword")?.value.trim();
+
+      if (!password || password.length < 4) {
+        toast(
+          "La contraseña debe tener al menos 4 caracteres.",
+          "error"
+        );
+        return;
+      }
+
+      admin.password = password;
+
+      save(STORAGE.admin, admin);
+
+      toast(
+        "Contraseña de administrador actualizada.",
+        "success"
+      );
+    }
   );
-} else {
-  initMarketFlash();
+
+  $("savePaymentAccounts")?.addEventListener(
+    "click",
+    () => {
+
+      qsa("[data-payment-account]")
+        .forEach(input => {
+
+          const key =
+            input.dataset.paymentAccount;
+
+          admin.paymentMethods[key].account =
+            input.value.trim();
+
+        });
+
+      save(STORAGE.admin, admin);
+
+      toast(
+        "Datos de pago guardados.",
+        "success"
+      );
+    }
+  );
 }
+
+/* =========================================================
+   ACCESO ADMINISTRADOR
+========================================================= */
+
+/*
+   Puedes abrir el panel escribiendo:
+
+   Ctrl + Shift + A
+
+   También puedes llamar:
+   openAdminPanel()
+*/
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.ctrlKey &&
+      event.shiftKey &&
+      event.key.toLowerCase() === "a"
+    ) {
+      openAdminPanel();
+    }
+
+  }
+);
+
+/* =========================================================
+   CERRAR MODALES
+========================================================= */
+
+document.addEventListener(
+  "click",
+  event => {
+
+    if (
+      event.target.matches("[data-close-modal]")
+    ) {
+      hideModal();
+    }
+
+  }
+);
+
+$("modal")?.addEventListener(
+  "click",
+  event => {
+
+    if (event.target === $("modal")) {
+      hideModal();
+    }
+
+  }
+);
+
+/* =========================================================
+   NOTIFICACIONES DEL NAVEGADOR
+========================================================= */
+
+function requestBrowserNotifications() {
+  if (
+    "Notification" in window &&
+    Notification.permission === "default"
+  ) {
+    Notification.requestPermission();
+  }
+}
+
+function browserNotification(title, body) {
+  if (
+    "Notification" in window &&
+    Notification.permission === "granted"
+  ) {
+    new Notification(title, {
+      body,
+      icon: ""
+    });
+  }
+}
+
+/* =========================================================
+   ESTADO DE PUBLICIDAD + NOTIFICACIÓN
+========================================================= */
+
+function notifyAdStatus(ad) {
+  if (ad.status === "approved") {
+    browserNotification(
+      "Market Flash",
+      `Tu publicidad "${ad.title}" fue aprobada.`
+    );
+  }
+
+  if (ad.status === "rejected") {
+    browserNotification(
+      "Market Flash",
+      `Tu publicidad "${ad.title}" fue rechazada.`
+    );
+  }
+}
+
+/* =========================================================
+   INICIO
+========================================================= */
+
+applySettings();
+
+renderHome();
+
+renderProfile();
+
+renderActivity();
+
+renderChats();
+
+updateBadges();
+
+requestBrowserNotifications();
+
+/* =========================================================
+   EXPONER FUNCIONES PARA PRUEBAS
+========================================================= */
+
+window.MarketFlash = {
+  openAdminPanel,
+  openFlashDay,
+  openAdvertisingForm,
+  renderHome,
+  renderChats,
+  renderProfile,
+  renderActivity,
+  showPage,
+  products,
+  ads,
+  chats,
+  notifications
+};
+
+console.log(
+  `%c${APP_NAME}`,
+  "font-size:20px;font-weight:bold;"
+);
+
+console.log(
+  OWNER
+);
+
+console.log(
+  "Market Flash iniciado correctamente."
+);
