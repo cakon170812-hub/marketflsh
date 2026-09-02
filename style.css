@@ -1,8 +1,7 @@
-/* ==========================================
-   MARKET FLASH
-   style.css
-   Diseño de registro
-   ========================================== */
+/* =========================================================
+   MARKET FLASH ⚡
+   STYLE.CSS — INTERFAZ DIGITAL
+   ========================================================= */
 
 * {
   margin: 0;
@@ -11,111 +10,277 @@
 }
 
 :root {
-  --fondo: #fff7ed;
-  --tarjeta: #ffffff;
-  --principal: #ff7a00;
-  --principal-oscuro: #e65f00;
-  --texto: #252525;
-  --texto-suave: #777777;
-  --borde: #e5e5e5;
+  --bg-main: #070b14;
+  --bg-secondary: #0c1220;
+  --card: rgba(15, 23, 42, 0.72);
+  --card-border: rgba(255, 255, 255, 0.09);
+
+  --orange: #ff7a00;
+  --orange-light: #ffb347;
+  --cyan: #00e5ff;
+
+  --text: #ffffff;
+  --text-soft: #9ca8bd;
+  --input-bg: rgba(255, 255, 255, 0.045);
+}
+
+/* =========================================================
+   BASE
+   ========================================================= */
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
 }
 
 body {
   min-height: 100vh;
-  font-family: Arial, Helvetica, sans-serif;
-  background: var(--fondo);
-  color: var(--texto);
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial,
+    sans-serif;
+
+  color: var(--text);
+
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(255, 122, 0, 0.14),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 85% 80%,
+      rgba(0, 229, 255, 0.10),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #050810,
+      #0a1020,
+      #050810
+    );
+
+  overflow-x: hidden;
 }
 
-/* Contenedor principal */
+/* =========================================================
+   FONDO DIGITAL
+   ========================================================= */
 
-.auth-container {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 30px 15px;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Efectos decorativos */
-
-.auth-container::before,
-.auth-container::after {
+body::before {
   content: "";
-  position: absolute;
-  border-radius: 50%;
+  position: fixed;
+  inset: 0;
+
+  background-image:
+    linear-gradient(
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.025) 1px,
+      transparent 1px
+    );
+
+  background-size: 45px 45px;
+
+  mask-image: linear-gradient(
+    to bottom,
+    black,
+    transparent 90%
+  );
+
   pointer-events: none;
 }
 
+/* =========================================================
+   CONTENEDOR
+   ========================================================= */
+
+.auth-container {
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 40px 20px;
+
+  position: relative;
+}
+
+/* =========================================================
+   DESTELLOS DEL FONDO
+   ========================================================= */
+
 .auth-container::before {
-  width: 320px;
-  height: 320px;
-  background: rgba(255, 122, 0, 0.08);
-  top: -140px;
-  left: -120px;
+  content: "";
+
+  position: absolute;
+
+  width: 420px;
+  height: 420px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 122, 0, 0.10);
+
+  filter: blur(100px);
+
+  top: -180px;
+  left: -160px;
+
+  pointer-events: none;
 }
 
 .auth-container::after {
+  content: "";
+
+  position: absolute;
+
   width: 380px;
   height: 380px;
-  background: rgba(255, 193, 7, 0.08);
+
+  border-radius: 50%;
+
+  background: rgba(0, 229, 255, 0.08);
+
+  filter: blur(110px);
+
   bottom: -180px;
-  right: -150px;
+  right: -130px;
+
+  pointer-events: none;
 }
 
-/* Tarjeta */
+/* =========================================================
+   TARJETA DIGITAL
+   ========================================================= */
 
 .auth-card {
   width: 100%;
-  max-width: 480px;
-  background: var(--tarjeta);
-  padding: 35px 30px;
-  border-radius: 24px;
-  box-shadow: 0 15px 45px rgba(0, 0, 0, 0.10);
+  max-width: 500px;
+
+  padding: 42px 38px;
+
   position: relative;
   z-index: 2;
+
+  background: var(--card);
+
+  border: 1px solid var(--card-border);
+
+  border-radius: 28px;
+
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  overflow: hidden;
 }
 
-/* Logo */
+/* Línea luminosa superior */
+
+.auth-card::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 12%;
+
+  width: 76%;
+  height: 1px;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--orange),
+    var(--cyan),
+    transparent
+  );
+
+  box-shadow:
+    0 0 15px rgba(255, 122, 0, 0.8);
+}
+
+/* =========================================================
+   LOGO MARKET FLASH
+   ========================================================= */
 
 .logo {
-  text-align: center;
-  font-size: 32px;
-  font-weight: 800;
-  margin-bottom: 12px;
-  letter-spacing: -1px;
+  display: flex;
+
+  justify-content: center;
+  align-items: center;
+
+  gap: 3px;
+
+  font-size: 34px;
+
+  font-weight: 900;
+
+  letter-spacing: -1.5px;
+
+  margin-bottom: 10px;
+
+  text-transform: uppercase;
 }
 
 .logo span {
-  display: inline-block;
+  position: relative;
 }
 
 .logo .flash {
-  color: var(--principal);
-  font-size: 38px;
-  margin: 0 3px;
-  transform: translateY(2px);
+  color: var(--orange);
+
+  font-size: 43px;
+
+  filter:
+    drop-shadow(0 0 6px rgba(255, 122, 0, 0.9))
+    drop-shadow(0 0 18px rgba(255, 122, 0, 0.55));
+
+  transform: rotate(-5deg);
 }
 
-/* Títulos */
+/* =========================================================
+   TITULO
+   ========================================================= */
 
 h1 {
   text-align: center;
-  font-size: 28px;
-  margin-top: 8px;
+
+  font-size: 29px;
+
+  font-weight: 800;
+
+  letter-spacing: -0.7px;
+
+  margin-top: 14px;
   margin-bottom: 7px;
 }
 
 .subtitle {
   text-align: center;
-  color: var(--texto-suave);
-  margin-bottom: 28px;
-  font-size: 15px;
+
+  color: var(--text-soft);
+
+  font-size: 14px;
+
+  margin-bottom: 30px;
 }
 
-/* Campos */
+/* =========================================================
+   CAMPOS
+   ========================================================= */
 
 .input-group {
   margin-bottom: 17px;
@@ -123,121 +288,276 @@ h1 {
 
 .input-group label {
   display: block;
-  margin-bottom: 7px;
-  font-size: 14px;
+
+  margin-bottom: 8px;
+
+  font-size: 13px;
+
   font-weight: 700;
+
+  color: #dce3ef;
+
+  letter-spacing: 0.2px;
 }
 
 .input-group label span {
-  color: var(--texto-suave);
-  font-weight: normal;
-  font-size: 12px;
+  color: #69758a;
+
+  font-size: 11px;
+
+  font-weight: 500;
 }
 
 .input-group input {
   width: 100%;
-  height: 48px;
-  padding: 0 14px;
-  border: 1px solid var(--borde);
-  border-radius: 12px;
+
+  height: 51px;
+
+  padding: 0 16px;
+
+  border-radius: 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.09);
+
   outline: none;
-  font-size: 15px;
-  background: #fff;
-  transition: 0.2s ease;
+
+  background: var(--input-bg);
+
+  color: white;
+
+  font-size: 14px;
+
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.input-group input::placeholder {
+  color: #596579;
+}
+
+.input-group input:hover {
+  background: rgba(255, 255, 255, 0.065);
 }
 
 .input-group input:focus {
-  border-color: var(--principal);
-  box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.12);
+  background: rgba(255, 255, 255, 0.075);
+
+  border-color: var(--orange);
+
+  box-shadow:
+    0 0 0 3px rgba(255, 122, 0, 0.09),
+    0 0 20px rgba(255, 122, 0, 0.08);
+
+  transform: translateY(-1px);
 }
 
-/* Términos */
+/* =========================================================
+   TERMINOS
+   ========================================================= */
 
 .terms {
   display: flex;
+
   align-items: flex-start;
-  gap: 9px;
-  margin: 8px 0 20px;
-  font-size: 13px;
-  color: var(--texto-suave);
-  line-height: 1.4;
+
+  gap: 10px;
+
+  margin:
+    8px 0 22px;
+
+  color: var(--text-soft);
+
+  font-size: 12px;
+
+  line-height: 1.5;
+
   cursor: pointer;
 }
 
 .terms input {
   width: 17px;
   height: 17px;
-  accent-color: var(--principal);
+
+  margin-top: 1px;
+
+  accent-color: var(--orange);
+
   flex-shrink: 0;
 }
 
-/* Botón principal */
+/* =========================================================
+   BOTON CREAR CUENTA
+   ========================================================= */
 
 #registerButton {
   width: 100%;
-  height: 50px;
+
+  height: 54px;
+
   border: none;
-  border-radius: 13px;
-  background: var(--principal);
-  color: white;
-  font-size: 16px;
-  font-weight: 700;
+
+  border-radius: 15px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ff6500,
+      #ff8a00
+    );
+
+  font-size: 15px;
+
+  font-weight: 800;
+
+  letter-spacing: 0.2px;
+
   cursor: pointer;
-  transition: 0.2s ease;
+
+  position: relative;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 8px 25px rgba(255, 122, 0, 0.25);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+#registerButton::before {
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: -100%;
+
+  width: 60%;
+  height: 100%;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.25),
+    transparent
+  );
+
+  transform: skewX(-20deg);
+
+  transition: left 0.6s ease;
 }
 
 #registerButton:hover {
-  background: var(--principal-oscuro);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 12px 35px rgba(255, 122, 0, 0.38);
+
+  filter: brightness(1.08);
+}
+
+#registerButton:hover::before {
+  left: 140%;
 }
 
 #registerButton:active {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
-/* Inicio de sesión */
+/* =========================================================
+   INICIAR SESION
+   ========================================================= */
 
 .login-link {
   text-align: center;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #eeeeee;
+
+  margin-top: 26px;
+
+  padding-top: 22px;
+
+  border-top:
+    1px solid rgba(255, 255, 255, 0.07);
 }
 
 .login-link p {
-  color: var(--texto-suave);
-  font-size: 14px;
-  margin-bottom: 7px;
+  color: var(--text-soft);
+
+  font-size: 13px;
+
+  margin-bottom: 9px;
 }
 
 #showLogin {
   border: none;
+
   background: transparent;
-  color: var(--principal-oscuro);
-  font-size: 14px;
-  font-weight: 700;
+
+  color: var(--cyan);
+
+  font-size: 13px;
+
+  font-weight: 800;
+
   cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    text-shadow 0.2s ease;
 }
 
 #showLogin:hover {
-  text-decoration: underline;
+  color: white;
+
+  text-shadow:
+    0 0 12px rgba(0, 229, 255, 0.8);
 }
 
-/* ==========================================
-   ADAPTACIÓN PARA MÓVILES
-   ========================================== */
+/* =========================================================
+   RESPONSIVE — TABLET
+   ========================================================= */
 
-@media (max-width: 600px) {
+@media (max-width: 700px) {
 
   .auth-container {
-    padding: 18px 12px;
-    align-items: flex-start;
+    padding: 25px 15px;
   }
 
   .auth-card {
-    margin-top: 15px;
-    padding: 28px 20px;
-    border-radius: 20px;
+    max-width: 520px;
+
+    padding: 35px 27px;
+
+    border-radius: 24px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE — TELEFONO
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+  .auth-container {
+    align-items: flex-start;
+
+    padding:
+      18px 12px 30px;
+  }
+
+  .auth-card {
+    margin-top: 8px;
+
+    padding:
+      30px 19px;
+
+    border-radius: 21px;
   }
 
   .logo {
@@ -245,7 +565,7 @@ h1 {
   }
 
   .logo .flash {
-    font-size: 34px;
+    font-size: 36px;
   }
 
   h1 {
@@ -253,22 +573,27 @@ h1 {
   }
 
   .subtitle {
-    margin-bottom: 24px;
+    margin-bottom: 25px;
   }
 
   .input-group input {
-    height: 47px;
+    height: 49px;
+  }
+
+  #registerButton {
+    height: 52px;
   }
 }
 
-/* ==========================================
-   PANTALLAS PEQUEÑAS
-   ========================================== */
+/* =========================================================
+   TELEFONOS MUY PEQUEÑOS
+   ========================================================= */
 
-@media (max-width: 380px) {
+@media (max-width: 360px) {
 
   .auth-card {
-    padding: 24px 16px;
+    padding:
+      25px 15px;
   }
 
   .logo {
@@ -276,10 +601,14 @@ h1 {
   }
 
   .logo .flash {
-    font-size: 30px;
+    font-size: 32px;
   }
 
   h1 {
     font-size: 23px;
+  }
+
+  .input-group {
+    margin-bottom: 14px;
   }
 }
