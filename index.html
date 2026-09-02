@@ -2,303 +2,330 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- Adaptación automática a iPhone, Android, tablet y PC -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Market Flash</title>
 
+    <!-- CSS principal -->
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <!-- =========================
+    <!-- =====================================================
          PANTALLA PRINCIPAL
-    ========================== -->
-    <section id="pantallaPrincipal" class="pantalla activa">
+         ===================================================== -->
+    <main id="app">
 
-        <div class="efecto-grid"></div>
-        <div class="particulas"></div>
+        <section id="welcome-screen" class="screen active">
 
-        <div class="logo-contenedor">
-
-            <div class="flash-detras">⚡</div>
-
-            <h1 class="logo-market">MARKET</h1>
-            <h1 class="logo-flash">FLASH</h1>
-
-            <p class="subtitulo">
-                TU MERCADO DIGITAL DEL FUTURO
-            </p>
-
-        </div>
-
-        <div class="botones-principales">
-
-            <button class="boton boton-inicio" onclick="abrirInicio()">
-                <span class="rayo-boton">⚡</span>
-                <span>INICIO</span>
-            </button>
-
-            <button class="boton boton-registro" onclick="abrirRegistro()">
-                <span class="rayo-boton">⚡</span>
-                <span>CREAR CUENTA</span>
-            </button>
-
-        </div>
-
-        <div class="propiedad">
-            Propiedad Julio Alcántara Gomeras
-        </div>
-
-    </section>
-
-
-    <!-- =========================
-         REGISTRO
-    ========================== -->
-    <section id="pantallaRegistro" class="pantalla">
-
-        <div class="ventana">
-
-            <div class="mini-logo">
-                ⚡ MARKET FLASH
+            <!-- Rayo de fondo -->
+            <div class="background-lightning" aria-hidden="true">
+                ⚡
             </div>
 
-            <h2>CREAR CUENTA</h2>
+            <!-- Nombre de la aplicación -->
+            <div class="brand">
+                <h1>MARKET <span>FLASH</span></h1>
+                <p>Tu mercado. Tu espacio.</p>
+            </div>
 
-            <p class="descripcion">
-                Regístrate para entrar a Market Flash
-            </p>
+            <!-- Botones principales -->
+            <div class="main-buttons">
 
-            <div class="formulario">
-
-                <input
-                    type="text"
-                    id="nombreCompleto"
-                    placeholder="Nombre completo"
-                    autocomplete="name"
-                >
-
-                <input
-                    type="text"
-                    id="apodo"
-                    placeholder="Apodo / nombre de usuario"
-                    autocomplete="username"
-                >
-
-                <input
-                    type="text"
-                    id="cedula"
-                    placeholder="Número de cédula"
-                    inputmode="numeric"
-                >
-
-                <input
-                    type="tel"
-                    id="telefono"
-                    placeholder="Número de teléfono"
-                    inputmode="tel"
-                >
-
-                <input
-                    type="email"
-                    id="correo"
-                    placeholder="Correo electrónico"
-                    autocomplete="email"
-                >
-
-                <input
-                    type="password"
-                    id="contrasena"
-                    placeholder="Contraseña"
-                    autocomplete="new-password"
-                >
-
-                <input
-                    type="password"
-                    id="confirmarContrasena"
-                    placeholder="Confirmar contraseña"
-                    autocomplete="new-password"
-                >
-
-                <input
-                    type="text"
-                    id="direccion"
-                    placeholder="Dirección"
-                    autocomplete="street-address"
-                >
-
-                <button class="boton boton-accion" onclick="crearCuenta()">
-                    ⚡ CREAR CUENTA
+                <button
+                    id="login-button"
+                    class="primary-button"
+                    type="button">
+                    INICIO
                 </button>
 
-                <button class="boton boton-secundario" onclick="volverPrincipal()">
-                    VOLVER
+                <button
+                    id="register-button"
+                    class="secondary-button"
+                    type="button">
+                    CREAR CUENTA
                 </button>
 
             </div>
 
-        </div>
-
-        <div class="propiedad">
-            Propiedad Julio Alcántara Gomeras
-        </div>
-
-    </section>
+        </section>
 
 
-    <!-- =========================
-         INICIO DE SESIÓN
-    ========================== -->
-    <section id="pantallaLogin" class="pantalla">
+        <!-- =====================================================
+             PANTALLA DE INICIO DE SESIÓN
+             ===================================================== -->
+        <section id="login-screen" class="screen">
 
-        <div class="ventana ventana-login">
+            <div class="form-container">
 
-            <div class="mini-logo">
-                ⚡ MARKET FLASH
-            </div>
-
-            <h2>INICIO</h2>
-
-            <p class="descripcion">
-                Entra a tu cuenta
-            </p>
-
-            <div class="formulario">
-
-                <input
-                    type="text"
-                    id="loginCedula"
-                    placeholder="Número de cédula"
-                    inputmode="numeric"
-                    autocomplete="username"
-                >
-
-                <input
-                    type="password"
-                    id="loginContrasena"
-                    placeholder="Contraseña"
-                    autocomplete="current-password"
-                >
-
-                <button class="boton boton-accion" onclick="iniciarSesion()">
-                    ⚡ ENTRAR
-                </button>
-
-                <button class="boton boton-secundario" onclick="volverPrincipal()">
-                    VOLVER
-                </button>
-
-            </div>
-
-        </div>
-
-        <div class="propiedad">
-            Propiedad Julio Alcántara Gomeras
-        </div>
-
-    </section>
-
-
-    <!-- =========================
-         PANEL PRINCIPAL
-    ========================== -->
-    <section id="panelPrincipal" class="pantalla panel">
-
-        <header class="barra-superior">
-
-            <div class="marca-panel">
-                <span>⚡</span>
-                MARKET FLASH
-            </div>
-
-            <button
-                class="boton-configuracion"
-                onclick="abrirConfiguracion()"
-                aria-label="Configuración"
-            >
-                ⚙️
-            </button>
-
-        </header>
-
-        <main class="contenido-panel">
-
-            <div class="tarjeta-bienvenida">
-
-                <div class="rayo-panel">
-                    ⚡
+                <div class="form-brand">
+                    <span class="mini-lightning">⚡</span>
+                    <h2>MARKET FLASH</h2>
                 </div>
 
-                <h1>MARKET FLASH</h1>
-
-                <p>
-                    Bienvenido a tu mercado digital.
+                <h3>Iniciar sesión</h3>
+                <p class="form-description">
+                    Accede a tu cuenta
                 </p>
 
-                <div class="estado-sistema">
-                    SISTEMA ACTIVO
-                </div>
+                <form id="login-form">
 
-            </div>
+                    <div class="input-group">
+                        <label for="login-cedula">
+                            Número de cédula
+                        </label>
 
-        </main>
-
-        <div class="propiedad">
-            Propiedad Julio Alcántara Gomeras
-        </div>
-
-    </section>
-
-
-    <!-- =========================
-         CONFIGURACIÓN
-    ========================== -->
-    <section id="pantallaConfiguracion" class="pantalla">
-
-        <div class="ventana configuracion">
-
-            <div class="mini-logo">
-                ⚡ MARKET FLASH
-            </div>
-
-            <h2>CONFIGURACIÓN</h2>
-
-            <div class="opciones-configuracion">
-
-                <div class="opcion">
-                    <span>👤</span>
-                    <div>
-                        <strong>CUENTA</strong>
-                        <small>Configuración de la cuenta</small>
+                        <input
+                            type="text"
+                            id="login-cedula"
+                            name="cedula"
+                            placeholder="Ingrese su cédula"
+                            autocomplete="username"
+                            required>
                     </div>
-                </div>
+
+                    <div class="input-group">
+                        <label for="login-password">
+                            Contraseña
+                        </label>
+
+                        <input
+                            type="password"
+                            id="login-password"
+                            name="password"
+                            placeholder="Ingrese su contraseña"
+                            autocomplete="current-password"
+                            required>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="primary-button form-button">
+                        ENTRAR
+                    </button>
+
+                </form>
 
                 <button
-                    class="boton boton-salir"
-                    onclick="cerrarSesion()"
-                >
-                    🚪 CERRAR SESIÓN
-                </button>
-
-                <button
-                    class="boton boton-secundario"
-                    onclick="volverPanel()"
-                >
-                    VOLVER
+                    id="back-from-login"
+                    class="back-button"
+                    type="button">
+                    ← Volver
                 </button>
 
             </div>
 
-        </div>
-
-        <div class="propiedad">
-            Propiedad Julio Alcántara Gomeras
-        </div>
-
-    </section>
+        </section>
 
 
+        <!-- =====================================================
+             PANTALLA DE CREAR CUENTA
+             ===================================================== -->
+        <section id="register-screen" class="screen">
+
+            <div class="form-container">
+
+                <div class="form-brand">
+                    <span class="mini-lightning">⚡</span>
+                    <h2>MARKET FLASH</h2>
+                </div>
+
+                <h3>Crear cuenta</h3>
+                <p class="form-description">
+                    Regístrate para entrar a Market Flash
+                </p>
+
+                <form id="register-form">
+
+                    <div class="input-group">
+                        <label for="register-name">
+                            Nombre completo
+                        </label>
+
+                        <input
+                            type="text"
+                            id="register-name"
+                            name="name"
+                            placeholder="Nombre completo"
+                            autocomplete="name"
+                            required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="register-cedula">
+                            Número de cédula
+                        </label>
+
+                        <input
+                            type="text"
+                            id="register-cedula"
+                            name="cedula"
+                            placeholder="Número de cédula"
+                            autocomplete="username"
+                            required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="register-phone">
+                            Número de teléfono
+                        </label>
+
+                        <input
+                            type="tel"
+                            id="register-phone"
+                            name="phone"
+                            placeholder="Número de teléfono"
+                            autocomplete="tel"
+                            required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="register-password">
+                            Contraseña
+                        </label>
+
+                        <input
+                            type="password"
+                            id="register-password"
+                            name="password"
+                            placeholder="Crear contraseña"
+                            autocomplete="new-password"
+                            required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="register-password-confirm">
+                            Confirmar contraseña
+                        </label>
+
+                        <input
+                            type="password"
+                            id="register-password-confirm"
+                            name="passwordConfirm"
+                            placeholder="Repita la contraseña"
+                            autocomplete="new-password"
+                            required>
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="primary-button form-button">
+                        REGISTRARSE
+                    </button>
+
+                </form>
+
+                <button
+                    id="back-from-register"
+                    class="back-button"
+                    type="button">
+                    ← Volver
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             PANEL PRINCIPAL DE MARKET FLASH
+             ===================================================== -->
+        <section id="dashboard-screen" class="screen">
+
+            <header class="dashboard-header">
+
+                <div class="dashboard-brand">
+                    <span>⚡</span>
+                    <strong>MARKET FLASH</strong>
+                </div>
+
+                <!-- Botón de configuración -->
+                <button
+                    id="settings-button"
+                    class="settings-button"
+                    type="button"
+                    aria-label="Abrir configuración">
+                    ☰
+                </button>
+
+            </header>
+
+            <div class="dashboard-content">
+
+                <div class="dashboard-welcome">
+                    <p>Bienvenido</p>
+                    <h2 id="user-name-display">
+                        Market Flash
+                    </h2>
+                </div>
+
+                <div class="dashboard-placeholder">
+                    <div class="dashboard-lightning">⚡</div>
+
+                    <h3>Panel principal</h3>
+
+                    <p>
+                        Aquí construiremos las funciones de
+                        Market Flash.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <!-- Menú de configuración -->
+            <aside
+                id="settings-panel"
+                class="settings-panel">
+
+                <div class="settings-header">
+
+                    <h3>Configuración</h3>
+
+                    <button
+                        id="close-settings"
+                        type="button"
+                        aria-label="Cerrar configuración">
+                        ×
+                    </button>
+
+                </div>
+
+                <div class="settings-options">
+
+                    <button type="button">
+                        ⚙️ Configuración de la app
+                    </button>
+
+                    <button
+                        id="logout-button"
+                        type="button">
+                        🚪 Cerrar sesión
+                    </button>
+
+                </div>
+
+            </aside>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+         ===================================================== -->
+
+    <!-- Datos generales -->
+    <script src="data.js"></script>
+
+    <!-- Datos/configuración de Market Flash -->
+    <script src="appData.js"></script>
+
+    <!-- Funcionamiento principal -->
     <script src="script.js"></script>
 
 </body>
