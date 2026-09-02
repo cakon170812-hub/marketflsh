@@ -1,7 +1,7 @@
 /* =========================================================
    MARKET FLASH
    script.js
-   Propiedad Julio Alcántara Gómez
+   Versión frontend/local
 ========================================================= */
 
 "use strict";
@@ -10,255 +10,273 @@
    CONFIGURACIÓN
 ========================================================= */
 
-const APP_NAME = "Market Flash";
-const OWNER = "Propiedad Julio Alcántara Gómez";
+const STORAGE_KEY = "marketFlashData_v1";
 
-const STORAGE = {
-  products: "mf_products",
-  user: "mf_user",
-  chats: "mf_chats",
-  notifications: "mf_notifications",
-  settings: "mf_settings",
-  ads: "mf_ads",
-  admin: "mf_admin",
-  complaints: "mf_complaints",
-  activities: "mf_activities"
+const DEFAULT_DATA = {
+  profile: {
+    name: "Usuario",
+    phone: "",
+    cedula: "",
+    messenger: "",
+    password: "1234",
+    avatar: ""
+  },
+
+  products: [],
+
+  conversations: [],
+
+  notifications: [],
+
+  activity: [],
+
+  settings: {
+    appColor: "#1677ff",
+    chatStyle: "bubble",
+    chatBackground: "default",
+    chatCustomImage: ""
+  },
+
+  advertising: {
+    status: "",
+    title: "",
+    text: "",
+    submittedAt: null
+  }
 };
+
 
 /* =========================================================
    UTILIDADES
 ========================================================= */
 
-function $(id) {
-  return document.getElementById(id);
+function cloneDefaultData() {
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
 }
 
-function qs(selector) {
-  return document.querySelector(selector);
-}
 
-function qsa(selector) {
-  return [...document.querySelectorAll(selector)];
-}
-
-function load(key, fallback) {
+function loadData() {
   try {
-    const value = localStorage.getItem(key);
-    return value ? JSON.parse(value) : fallback;
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if (!saved) {
+      const fresh = cloneDefaultData();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+      return fresh;
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return {
+      ...cloneDefaultData(),
+      ...parsed,
+      profile: {
+        ...DEFAULT_DATA.profile,
+        ...(parsed.profile || {})
+      },
+      settings: {
+        ...DEFAULT_DATA.settings,
+        ...(parsed.settings || {})
+      },
+      products: Array.isArray(parsed.products) ? parsed.products : [],
+      conversations: Array.isArray(parsed.conversations)
+        ? parsed.conversations
+        : [],
+      notifications: Array.isArray(parsed.notifications)
+        ? parsed.notifications
+        : [],
+      activity: Array.isArray(parsed.activity)
+        ? parsed.activity
+        : [],
+      advertising: {
+        ...DEFAULT_DATA.advertising,
+        ...(parsed.advertising || {})
+      }
+    };
+
   } catch (error) {
-    return fallback;
+    console.error("Error cargando datos:", error);
+
+    const fresh = cloneDefaultData();
+
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+    } catch (_) {}
+
+    return fresh;
   }
 }
 
-function save(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+
+let data = loadData();
+
+
+function saveData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    return true;
+  } catch (error) {
+    console.error("No se pudieron guardar los datos:", error);
+
+    showToast(
+      "No hay suficiente espacio del navegador. Algunas fotos o videos pueden ser demasiado grandes."
+    );
+
+    return false;
+  }
 }
 
-function uid(prefix = "mf") {
-  return `${prefix}_${Date.now()}_${Math.random()
-    .toString(36)
-    .slice(2, 8)}`;
+
+function generateId(prefix = "id") {
+  return (
+    prefix +
+    "_" +
+    Date.now() +
+    "_" +
+    Math.random().toString(36).substring(2, 9)
+  );
 }
 
-function escapeHTML(value = "") {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
+
 
 function formatMoney(value) {
+  const number = Number(value) || 0;
+
   return new Intl.NumberFormat("es-DO", {
     style: "currency",
     currency: "DOP",
     maximumFractionDigits: 0
-  }).format(Number(value) || 0);
+  }).format(number);
 }
 
-function formatDate(date = Date.now()) {
-  return new Intl.DateTimeFormat("es-DO", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(new Date(date));
+
+function formatDate(timestamp) {
+  if (!timestamp) return "";
+
+  try {
+    return new Date(timestamp).toLocaleString("es-DO", {
+      dateStyle: "short",
+      timeStyle: "short"
+    });
+  } catch (_) {
+    return "";
+  }
 }
 
-function toast(message, type = "normal") {
-  const el = $("toast");
-  if (!el) return;
 
-  el.textContent = message;
-  el.className = `toast ${type}`;
+function showToast(message) {
+  const toast = document.getElementById("toast");
 
-  clearTimeout(window.mfToastTimer);
+  if (!toast) return;
 
-  window.mfToastTimer = setTimeout(() => {
-    el.classList.add("hidden");
-  }, 3200);
+  toast.textContent = message;
+  toast.classList.remove("hidden");
+
+  clearTimeout(window.marketFlashToastTimer);
+
+  window.marketFlashToastTimer = setTimeout(() => {
+    toast.classList.add("hidden");
+  }, 3000);
 }
 
-function hideModal() {
-  const modal = $("modal");
-  if (!modal) return;
 
-  modal.classList.add("hidden");
-  modal.setAttribute("aria-hidden", "true");
-  $("modalCard").innerHTML = "";
-}
+/* =========================================================
+   REFERENCIAS HTML
+========================================================= */
 
-function showModal(content) {
+const $ = (id) => document.getElementById(id);
+
+
+/* =========================================================
+   MODAL
+========================================================= */
+
+function openModal(content, options = {}) {
   const modal = $("modal");
   const card = $("modalCard");
 
   if (!modal || !card) return;
 
   card.innerHTML = content;
+
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
-}
 
-function pressAnimation(button) {
-  if (!button) return;
-
-  button.classList.remove("mf-press");
-  void button.offsetWidth;
-  button.classList.add("mf-press");
-
-  setTimeout(() => {
-    button.classList.remove("mf-press");
-  }, 300);
-}
-
-/* =========================================================
-   DATOS INICIALES
-========================================================= */
-
-let products = load(STORAGE.products, [
-  {
-    id: "product_demo_1",
-    title: "iPhone 14 Pro",
-    description: "Excelente estado. Equipo disponible para entrega.",
-    price: 39000,
-    category: "Celulares",
-    seller: "Vendedor Market Flash",
-    sellerId: "demo_seller",
-    views: 18,
-    likes: 4,
-    rating: 4.8,
-    sold: false,
-    sellerSold: false,
-    buyerBought: false,
-    createdAt: Date.now() - 86400000
-  },
-  {
-    id: "product_demo_2",
-    title: "PlayStation 4",
-    description: "Consola funcionando correctamente.",
-    price: 18500,
-    category: "Videojuegos",
-    seller: "Vendedor Market Flash",
-    sellerId: "demo_seller_2",
-    views: 31,
-    likes: 7,
-    rating: 4.6,
-    sold: false,
-    sellerSold: false,
-    buyerBought: false,
-    createdAt: Date.now() - 172800000
+  if (options.onOpen) {
+    setTimeout(() => options.onOpen(), 0);
   }
-]);
+}
 
-let user = load(STORAGE.user, {
-  id: "user_local",
-  name: "Usuario",
-  phone: "",
-  cedula: "",
-  messenger: "",
-  password: "1234",
-  avatar: ""
-});
 
-let chats = load(STORAGE.chats, []);
+function closeModal() {
+  const modal = $("modal");
+  const card = $("modalCard");
 
-let notifications = load(STORAGE.notifications, []);
+  if (!modal || !card) return;
 
-let settings = load(STORAGE.settings, {
-  appColor: "#2563eb",
-  chatColor: "#2563eb",
-  chatBackground: "gradient",
-  chatCustomImage: "",
-  chatStyle: "modern"
-});
+  modal.classList.add("hidden");
+  modal.setAttribute("aria-hidden", "true");
+  card.innerHTML = "";
+}
 
-let ads = load(STORAGE.ads, []);
 
-let complaints = load(STORAGE.complaints, []);
+function bindModalClose() {
+  const modal = $("modal");
 
-let activities = load(STORAGE.activities, []);
+  if (!modal) return;
 
-let admin = load(STORAGE.admin, {
-  password: "1234",
-  plans: {
-    basic: 250,
-    pro: 500,
-    premium: 900
-  },
-  paymentMethods: {
-    popular: {
-      enabled: true,
-      name: "Banco Popular",
-      account: ""
-    },
-    banreservas: {
-      enabled: true,
-      name: "Banreservas",
-      account: ""
-    },
-    binance: {
-      enabled: true,
-      name: "Binance",
-      account: ""
-    },
-    paypal: {
-      enabled: true,
-      name: "PayPal",
-      account: ""
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) {
+      closeModal();
     }
+  });
+}
+
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeModal();
   }
 });
 
-save(STORAGE.products, products);
-save(STORAGE.user, user);
-save(STORAGE.chats, chats);
-save(STORAGE.notifications, notifications);
-save(STORAGE.settings, settings);
-save(STORAGE.ads, ads);
-save(STORAGE.complaints, complaints);
-save(STORAGE.activities, activities);
-save(STORAGE.admin, admin);
 
 /* =========================================================
    NAVEGACIÓN
 ========================================================= */
 
-function showPage(pageName) {
-  const pages = {
-    home: $("homePage"),
-    chat: $("chatPage"),
-    activity: $("activityPage"),
-    profile: $("profilePage")
-  };
+const pages = {
+  home: "homePage",
+  chat: "chatPage",
+  activity: "activityPage",
+  profile: "profilePage"
+};
 
-  Object.values(pages).forEach(page => {
-    if (page) page.classList.add("hidden");
+
+function showPage(pageName) {
+  Object.values(pages).forEach((id) => {
+    const section = $(id);
+
+    if (section) {
+      section.classList.add("hidden");
+    }
   });
 
-  if (pages[pageName]) {
-    pages[pageName].classList.remove("hidden");
+  const selected = $(pages[pageName]);
+
+  if (selected) {
+    selected.classList.remove("hidden");
   }
 
-  qsa(".nav-item").forEach(button => {
+  document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
     button.classList.toggle(
       "active",
       button.dataset.page === pageName
@@ -270,7 +288,7 @@ function showPage(pageName) {
   }
 
   if (pageName === "chat") {
-    renderChats();
+    renderChat();
   }
 
   if (pageName === "activity") {
@@ -280,117 +298,365 @@ function showPage(pageName) {
   if (pageName === "profile") {
     renderProfile();
   }
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
-/* =========================================================
-   NAVEGACIÓN INFERIOR
-========================================================= */
 
-qsa(".nav-item").forEach(button => {
-  button.addEventListener("click", () => {
-    pressAnimation(button);
-    showPage(button.dataset.page);
+function bindNavigation() {
+  document.querySelectorAll(".nav-item[data-page]").forEach((button) => {
+    button.addEventListener("click", () => {
+      showPage(button.dataset.page);
+    });
   });
-});
+}
+
 
 /* =========================================================
    PERFIL
 ========================================================= */
 
 function renderProfile() {
-  $("profileName").textContent = user.name || "Usuario";
+  const profile = data.profile;
 
-  $("profilePhone").textContent =
-    user.phone || "Teléfono no registrado";
-
-  $("profileCedula").textContent =
-    user.cedula
-      ? `Cédula: ${maskCedula(user.cedula)}`
-      : "Cédula: protegida";
-
-  $("profileNameInfo").textContent =
-    user.name || "-";
-
-  $("profilePhoneInfo").textContent =
-    user.phone || "-";
-
-  $("profileMessengerInfo").textContent =
-    user.messenger
-      ? "Conectado"
-      : "No conectado";
-
-  const avatar = $("profileAvatar");
-
-  if (avatar) {
-    if (user.avatar) {
-      avatar.innerHTML =
-        `<img src="${user.avatar}" alt="Foto de perfil">`;
-    } else {
-      avatar.textContent = "👤";
-    }
+  if ($("profileName")) {
+    $("profileName").textContent =
+      profile.name || "Usuario";
   }
 
+  if ($("profilePhone")) {
+    $("profilePhone").textContent =
+      profile.phone || "Teléfono no registrado";
+  }
+
+  if ($("profileCedula")) {
+    $("profileCedula").textContent =
+      profile.cedula
+        ? "Cédula: " + maskCedula(profile.cedula)
+        : "Cédula: protegida";
+  }
+
+  if ($("profileNameInfo")) {
+    $("profileNameInfo").textContent =
+      profile.name || "-";
+  }
+
+  if ($("profilePhoneInfo")) {
+    $("profilePhoneInfo").textContent =
+      profile.phone || "-";
+  }
+
+  if ($("profileMessengerInfo")) {
+    $("profileMessengerInfo").textContent =
+      profile.messenger
+        ? "Conectado"
+        : "No conectado";
+  }
+
+  renderAvatar();
   renderMyProducts();
+  updateProfileBadge();
 }
 
-function maskCedula(value) {
-  if (!value) return "protegida";
 
-  const str = String(value);
+function maskCedula(cedula) {
+  const value = String(cedula || "");
 
-  if (str.length <= 4) {
-    return "••••";
+  if (value.length <= 4) {
+    return "protegida";
   }
 
-  return "••••••" + str.slice(-4);
+  return "******" + value.slice(-4);
 }
 
-$("editProfileBtn")?.addEventListener("click", () => {
-  pressAnimation($("editProfileBtn"));
 
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
+function renderAvatar() {
+  const avatar = $("profileAvatarBtn");
 
+  if (!avatar) return;
+
+  if (data.profile.avatar) {
+    avatar.innerHTML = `
+      <img
+        src="${escapeHTML(data.profile.avatar)}"
+        alt="Foto de perfil"
+      >
+    `;
+  } else {
+    avatar.textContent = "👤";
+  }
+}
+
+
+function bindProfileButtons() {
+
+  const avatarButton = $("profileAvatarBtn");
+
+  if (avatarButton) {
+    avatarButton.addEventListener("click", () => {
+      const input = $("profileImageInput");
+
+      if (input) {
+        input.click();
+      }
+    });
+  }
+
+
+  const profileImageInput = $("profileImageInput");
+
+  if (profileImageInput) {
+    profileImageInput.addEventListener("change", async () => {
+
+      const file = profileImageInput.files[0];
+
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        showToast("Selecciona una imagen.");
+        return;
+      }
+
+      try {
+        const image = await fileToCompressedDataURL(
+          file,
+          700,
+          0.75
+        );
+
+        data.profile.avatar = image;
+
+        saveData();
+        renderProfile();
+
+        showToast("Foto de perfil actualizada.");
+      } catch (error) {
+        console.error(error);
+        showToast("No se pudo cargar la foto.");
+      }
+
+      profileImageInput.value = "";
+    });
+  }
+
+
+  const editProfileBtn = $("editProfileBtn");
+
+  if (editProfileBtn) {
+    editProfileBtn.addEventListener("click", openEditProfile);
+  }
+
+
+  const settingsButton = $("profileSettingsBtn");
+
+  if (settingsButton) {
+    settingsButton.addEventListener("click", () => {
+      const settings = $("profileSettings");
+
+      if (!settings) return;
+
+      settings.classList.toggle("hidden");
+
+      if (!settings.classList.contains("hidden")) {
+        setTimeout(() => {
+          settings.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }, 100);
+      }
+    });
+  }
+
+
+  const messengerButton = $("messengerProfileBtn");
+
+  if (messengerButton) {
+    messengerButton.addEventListener("click", openMessengerModal);
+  }
+
+
+  const savePhoneButton = $("savePhoneBtn");
+
+  if (savePhoneButton) {
+    savePhoneButton.addEventListener("click", savePhone);
+  }
+
+
+  const saveMessengerButton = $("saveMessengerBtn");
+
+  if (saveMessengerButton) {
+    saveMessengerButton.addEventListener(
+      "click",
+      saveMessenger
+    );
+  }
+
+
+  const changePasswordButton = $("changePasswordBtn");
+
+  if (changePasswordButton) {
+    changePasswordButton.addEventListener(
+      "click",
+      changePassword
+    );
+  }
+
+
+  const deleteAccountButton = $("deleteAccountBtn");
+
+  if (deleteAccountButton) {
+    deleteAccountButton.addEventListener(
+      "click",
+      deleteAccount
+    );
+  }
+
+
+  const appColorButton = $("appColorBtn");
+
+  if (appColorButton) {
+    appColorButton.addEventListener(
+      "click",
+      openColorSettings
+    );
+  }
+
+
+  const chatStyleButton = $("chatStyleBtn");
+
+  if (chatStyleButton) {
+    chatStyleButton.addEventListener(
+      "click",
+      openChatStyleSettings
+    );
+  }
+
+
+  const chatBackgroundButton = $("chatBackgroundBtn");
+
+  if (chatBackgroundButton) {
+    chatBackgroundButton.addEventListener(
+      "click",
+      openChatBackgroundSettings
+    );
+  }
+
+
+  const customImageButton = $("chatCustomImageBtn");
+
+  if (customImageButton) {
+    customImageButton.addEventListener(
+      "click",
+      () => {
+        const input = $("chatCustomImageInput");
+
+        if (input) {
+          input.click();
+        }
+      }
+    );
+  }
+
+
+  const customImageInput = $("chatCustomImageInput");
+
+  if (customImageInput) {
+    customImageInput.addEventListener(
+      "change",
+      async () => {
+
+        const file = customImageInput.files[0];
+
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+          showToast("Selecciona una imagen.");
+          return;
+        }
+
+        try {
+          const image =
+            await fileToCompressedDataURL(
+              file,
+              1200,
+              0.78
+            );
+
+          data.settings.chatCustomImage = image;
+          data.settings.chatBackground = "custom";
+
+          saveData();
+          applyChatBackground();
+
+          showToast(
+            "Fondo personalizado guardado."
+          );
+
+        } catch (error) {
+          console.error(error);
+          showToast(
+            "No se pudo cargar la imagen."
+          );
+        }
+
+        customImageInput.value = "";
+      }
+    );
+  }
+
+
+  const landscapeButton = $("builtInLandscapeBtn");
+
+  if (landscapeButton) {
+    landscapeButton.addEventListener(
+      "click",
+      () => {
+        data.settings.chatBackground = "landscape";
+
+        saveData();
+        applyChatBackground();
+
+        showToast(
+          "Paisaje de Market Flash seleccionado."
+        );
+      }
+    );
+  }
+}
+
+
+function openEditProfile() {
+
+  openModal(`
     <div class="modal-header">
-      <small>MI PERFIL</small>
-      <h2>Editar perfil</h2>
-      <p>Actualiza tus datos personales.</p>
+      <div>
+        <small>MI PERFIL</small>
+        <h2>Editar perfil</h2>
+      </div>
+
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
     </div>
 
     <div class="form-card">
 
-      <label>Nombre</label>
+      <label for="editNameInput">
+        Nombre
+      </label>
 
       <input
         id="editNameInput"
         type="text"
-        value="${escapeHTML(user.name)}"
+        maxlength="60"
+        value="${escapeHTML(data.profile.name)}"
         placeholder="Tu nombre"
-      >
-
-      <label>Número de teléfono</label>
-
-      <input
-        id="editPhoneInput"
-        type="tel"
-        value="${escapeHTML(user.phone)}"
-        placeholder="809-000-0000"
-      >
-
-      <label>Cédula</label>
-
-      <input
-        type="text"
-        value="${escapeHTML(maskCedula(user.cedula))}"
-        disabled
-      >
-
-      <label>Foto de perfil</label>
-
-      <input
-        id="profileImageInput"
-        type="file"
-        accept="image/*"
       >
 
       <button
@@ -404,814 +670,510 @@ $("editProfileBtn")?.addEventListener("click", () => {
     </div>
   `);
 
-  $("saveProfileBtn")?.addEventListener("click", saveProfile);
+  bindModalButtons();
 
-  $("profileImageInput")?.addEventListener("change", event => {
-    const file = event.target.files?.[0];
+  const button = $("saveProfileBtn");
 
-    if (!file) return;
+  if (button) {
+    button.addEventListener("click", () => {
 
-    const reader = new FileReader();
+      const input = $("editNameInput");
 
-    reader.onload = () => {
-      user.avatar = reader.result;
-    };
+      const name = input
+        ? input.value.trim()
+        : "";
 
-    reader.readAsDataURL(file);
-  });
-});
+      if (name.length < 2) {
+        showToast(
+          "Escribe un nombre válido."
+        );
+        return;
+      }
 
-function saveProfile() {
-  const name = $("editNameInput")?.value.trim();
-  const phone = $("editPhoneInput")?.value.trim();
+      data.profile.name = name;
 
-  if (!name) {
-    toast("Escribe tu nombre.", "error");
+      saveData();
+      renderProfile();
+
+      addActivity(
+        "profile",
+        "Actualizaste tu nombre de perfil."
+      );
+
+      closeModal();
+
+      showToast(
+        "Perfil actualizado."
+      );
+    });
+  }
+}
+
+
+function savePhone() {
+
+  const input = $("newPhoneInput");
+
+  if (!input) return;
+
+  const phone = input.value.trim();
+
+  if (phone.length < 7) {
+    showToast(
+      "Escribe un número de teléfono válido."
+    );
     return;
   }
 
-  user.name = name;
-  user.phone = phone;
+  data.profile.phone = phone;
 
-  save(STORAGE.user, user);
-
-  hideModal();
-  renderProfile();
+  saveData();
 
   addActivity(
-    "Perfil actualizado",
-    "Tus datos fueron actualizados correctamente."
+    "profile",
+    "Actualizaste tu número de teléfono."
   );
-
-  toast("Perfil actualizado correctamente.", "success");
-}
-
-/* =========================================================
-   CAMBIAR TELÉFONO
-========================================================= */
-
-$("savePhoneBtn")?.addEventListener("click", () => {
-  const phone = $("newPhoneInput")?.value.trim();
-
-  if (!phone) {
-    toast("Escribe un número de teléfono.", "error");
-    return;
-  }
-
-  user.phone = phone;
-
-  save(STORAGE.user, user);
 
   renderProfile();
 
-  toast("Número de teléfono actualizado.", "success");
-});
+  input.value = "";
 
-/* =========================================================
-   MESSENGER
-========================================================= */
-
-$("saveMessengerBtn")?.addEventListener("click", () => {
-  const link = $("messengerLinkInput")?.value.trim();
-
-  if (!link) {
-    toast("Escribe el enlace de Messenger.", "error");
-    return;
-  }
-
-  user.messenger = link;
-
-  save(STORAGE.user, user);
-
-  renderProfile();
-
-  toast("Messenger conectado.", "success");
-});
-
-$("messengerProfileBtn")?.addEventListener("click", () => {
-  $("profileSettings")?.classList.remove("hidden");
-
-  $("messengerLinkInput")?.focus();
-});
-
-/* =========================================================
-   CONFIGURACIÓN DEL PERFIL
-========================================================= */
-
-$("profileSettingsBtn")?.addEventListener("click", () => {
-  const settingsPanel = $("profileSettings");
-
-  if (!settingsPanel) return;
-
-  settingsPanel.classList.toggle("hidden");
-
-  if (!settingsPanel.classList.contains("hidden")) {
-    settingsPanel.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
-  }
-});
-
-/* =========================================================
-   CAMBIAR COLOR DE LA APLICACIÓN
-========================================================= */
-
-$("appColorBtn")?.addEventListener("click", () => {
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
-    <div class="modal-header">
-      <small>PERSONALIZACIÓN</small>
-      <h2>Color de Market Flash</h2>
-      <p>Selecciona el color principal de la aplicación.</p>
-    </div>
-
-    <div class="color-picker-grid">
-
-      <button data-app-color="#2563eb">Azul</button>
-      <button data-app-color="#7c3aed">Morado</button>
-      <button data-app-color="#059669">Verde</button>
-      <button data-app-color="#db2777">Rosa</button>
-      <button data-app-color="#ea580c">Naranja</button>
-      <button data-app-color="#111827">Oscuro</button>
-
-    </div>
-  `);
-
-  qsa("[data-app-color]").forEach(button => {
-    button.addEventListener("click", () => {
-      settings.appColor = button.dataset.appColor;
-
-      save(STORAGE.settings, settings);
-
-      applySettings();
-
-      hideModal();
-
-      toast("Color actualizado.", "success");
-    });
-  });
-});
-
-/* =========================================================
-   ESTILO DEL CHAT
-========================================================= */
-
-$("chatStyleBtn")?.addEventListener("click", () => {
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
-    <div class="modal-header">
-      <small>CHAT</small>
-      <h2>Estilo del chat</h2>
-      <p>Elige cómo quieres ver tus conversaciones.</p>
-    </div>
-
-    <div class="settings-choice">
-
-      <button data-chat-style="modern">
-        ✨ Moderno
-      </button>
-
-      <button data-chat-style="classic">
-        💬 Clásico
-      </button>
-
-      <button data-chat-style="glass">
-        🔮 Cristal
-      </button>
-
-      <button data-chat-style="minimal">
-        ◻️ Minimalista
-      </button>
-
-    </div>
-  `);
-
-  qsa("[data-chat-style]").forEach(button => {
-    button.addEventListener("click", () => {
-      settings.chatStyle =
-        button.dataset.chatStyle;
-
-      save(STORAGE.settings, settings);
-
-      applySettings();
-
-      hideModal();
-
-      toast("Estilo del chat actualizado.", "success");
-    });
-  });
-});
-
-/* =========================================================
-   FONDO DEL CHAT
-========================================================= */
-
-$("chatBackgroundBtn")?.addEventListener("click", () => {
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
-    <div class="modal-header">
-      <small>CHAT</small>
-      <h2>Fondo del chat</h2>
-      <p>Personaliza el fondo de tus conversaciones.</p>
-    </div>
-
-    <div class="landscape-grid">
-
-      <button data-landscape="gradient">
-        🌌
-        <span>Atardecer digital</span>
-      </button>
-
-      <button data-landscape="beach">
-        🏝️
-        <span>Playa</span>
-      </button>
-
-      <button data-landscape="forest">
-        🌲
-        <span>Bosque</span>
-      </button>
-
-      <button data-landscape="mountain">
-        🏔️
-        <span>Montañas</span>
-      </button>
-
-      <button data-landscape="night">
-        🌙
-        <span>Noche</span>
-      </button>
-
-    </div>
-  `);
-
-  qsa("[data-landscape]").forEach(button => {
-    button.addEventListener("click", () => {
-      settings.chatBackground =
-        button.dataset.landscape;
-
-      save(STORAGE.settings, settings);
-
-      applySettings();
-
-      hideModal();
-
-      toast("Fondo del chat actualizado.", "success");
-    });
-  });
-});
-
-/* =========================================================
-   PAISAJES INTEGRADOS
-========================================================= */
-
-$("builtInLandscapeBtn")?.addEventListener("click", () => {
-  $("chatBackgroundBtn")?.click();
-});
-
-/* =========================================================
-   IMAGEN PERSONALIZADA DEL CHAT
-========================================================= */
-
-$("chatCustomImageBtn")?.addEventListener("click", () => {
-  $("chatCustomImageInput")?.click();
-});
-
-$("chatCustomImageInput")?.addEventListener("change", event => {
-  const file = event.target.files?.[0];
-
-  if (!file) return;
-
-  if (!file.type.startsWith("image/")) {
-    toast("Selecciona una imagen válida.", "error");
-    return;
-  }
-
-  const reader = new FileReader();
-
-  reader.onload = () => {
-    settings.chatCustomImage = reader.result;
-    settings.chatBackground = "custom";
-
-    save(STORAGE.settings, settings);
-
-    applySettings();
-
-    toast("Imagen personalizada guardada.", "success");
-  };
-
-  reader.readAsDataURL(file);
-});
-
-/* =========================================================
-   APLICAR CONFIGURACIÓN
-========================================================= */
-
-function applySettings() {
-  document.documentElement.style.setProperty(
-    "--mf-primary",
-    settings.appColor
+  showToast(
+    "Número guardado correctamente."
   );
-
-  document.documentElement.style.setProperty(
-    "--mf-chat-color",
-    settings.chatColor
-  );
-
-  document.body.dataset.chatStyle =
-    settings.chatStyle;
-
-  document.body.dataset.chatBackground =
-    settings.chatBackground;
-
-  if (settings.chatBackground === "custom" &&
-      settings.chatCustomImage) {
-
-    document.documentElement.style.setProperty(
-      "--mf-chat-image",
-      `url("${settings.chatCustomImage}")`
-    );
-
-  } else {
-    document.documentElement.style.removeProperty(
-      "--mf-chat-image"
-    );
-  }
 }
 
-/* =========================================================
-   CONTRASEÑA DEL USUARIO
-========================================================= */
 
-$("changePasswordBtn")?.addEventListener("click", () => {
-  const current =
-    $("currentPasswordInput")?.value;
+function openMessengerModal() {
 
-  const next =
-    $("newPasswordInput")?.value;
-
-  if (!current || !next) {
-    toast("Completa las dos contraseñas.", "error");
-    return;
-  }
-
-  if (current !== user.password) {
-    toast("La contraseña actual es incorrecta.", "error");
-    return;
-  }
-
-  if (next.length < 4) {
-    toast(
-      "La nueva contraseña debe tener al menos 4 caracteres.",
-      "error"
-    );
-    return;
-  }
-
-  user.password = next;
-
-  save(STORAGE.user, user);
-
-  $("currentPasswordInput").value = "";
-  $("newPasswordInput").value = "";
-
-  toast("Contraseña cambiada correctamente.", "success");
-});
-
-/* =========================================================
-   ELIMINAR CUENTA
-========================================================= */
-
-$("deleteAccountBtn")?.addEventListener("click", () => {
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
+  openModal(`
     <div class="modal-header">
-      <small>CUENTA</small>
-      <h2>Eliminar cuenta</h2>
+      <div>
+        <small>CONTACTO</small>
+        <h2>Messenger</h2>
+      </div>
 
-      <p>
-        Esta acción eliminará tus datos locales de Market Flash.
-      </p>
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
     </div>
 
     <div class="form-card">
 
       <p>
-        ¿Estás seguro de que deseas continuar?
+        Introduce el enlace de tu perfil de Messenger.
       </p>
 
-      <button
-        id="confirmDeleteAccount"
-        class="danger-outline"
-        type="button"
-      >
-        Sí, eliminar mi cuenta
-      </button>
-
-      <button
-        id="cancelDeleteAccount"
-        class="secondary-btn"
-        type="button"
-      >
-        Cancelar
-      </button>
-
-    </div>
-  `);
-
-  $("cancelDeleteAccount")?.addEventListener(
-    "click",
-    hideModal
-  );
-
-  $("confirmDeleteAccount")?.addEventListener(
-    "click",
-    deleteAccount
-  );
-});
-
-function deleteAccount() {
-  const deletedUser = {
-    ...user,
-    deletedAt: Date.now()
-  };
-
-  activities.push({
-    id: uid("activity"),
-    type: "account_deleted",
-    title: "Cuenta eliminada",
-    description: `Cuenta de ${user.name}`,
-    createdAt: Date.now()
-  });
-
-  save(STORAGE.activities, activities);
-
-  localStorage.removeItem(STORAGE.user);
-
-  user = {
-    id: uid("user"),
-    name: "Usuario",
-    phone: "",
-    cedula: "",
-    messenger: "",
-    password: "1234",
-    avatar: ""
-  };
-
-  save(STORAGE.user, user);
-
-  hideModal();
-
-  renderProfile();
-
-  toast("La cuenta fue eliminada.", "success");
-}
-
-/* =========================================================
-   PUBLICAR
-========================================================= */
-
-$("publishBtn")?.addEventListener("click", () => {
-  pressAnimation($("publishBtn"));
-  openPublishModal();
-});
-
-function openPublishModal() {
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
-    <div class="modal-header">
-      <small>MARKET FLASH</small>
-      <h2>Publicar producto</h2>
-      <p>Publica lo que quieras vender.</p>
-    </div>
-
-    <div class="form-card">
-
-      <label>Nombre del producto</label>
-
       <input
-        id="productTitleInput"
-        type="text"
-        placeholder="Ej. iPhone 15 Pro"
-      >
-
-      <label>Descripción</label>
-
-      <textarea
-        id="productDescriptionInput"
-        rows="4"
-        placeholder="Describe tu producto..."
-      ></textarea>
-
-      <label>Precio</label>
-
-      <input
-        id="productPriceInput"
-        type="number"
-        min="0"
-        placeholder="Precio en RD$"
-      >
-
-      <label>Categoría</label>
-
-      <select id="productCategoryInput">
-
-        <option value="Celulares">Celulares</option>
-        <option value="Electrónica">Electrónica</option>
-        <option value="Videojuegos">Videojuegos</option>
-        <option value="Vehículos">Vehículos</option>
-        <option value="Hogar">Hogar</option>
-        <option value="Ropa">Ropa</option>
-        <option value="Otros">Otros</option>
-
-      </select>
-
-      <label>Foto</label>
-
-      <input
-        id="productImageInput"
-        type="file"
-        accept="image/*"
+        id="messengerModalInput"
+        type="url"
+        placeholder="https://m.me/..."
+        value="${escapeHTML(data.profile.messenger)}"
       >
 
       <button
-        id="saveProductBtn"
+        id="saveMessengerModalBtn"
         class="primary-btn"
         type="button"
       >
-        Publicar ahora
+        Guardar
       </button>
 
     </div>
   `);
 
-  $("saveProductBtn")?.addEventListener(
-    "click",
-    createProduct
-  );
+  bindModalButtons();
+
+  const button = $("saveMessengerModalBtn");
+
+  if (button) {
+    button.addEventListener(
+      "click",
+      () => {
+
+        const input = $("messengerModalInput");
+
+        const value = input
+          ? input.value.trim()
+          : "";
+
+        if (
+          value &&
+          !/^https?:\/\/.+/i.test(value)
+        ) {
+          showToast(
+            "Escribe un enlace válido."
+          );
+          return;
+        }
+
+        data.profile.messenger = value;
+
+        saveData();
+        renderProfile();
+
+        addActivity(
+          "messenger",
+          value
+            ? "Conectaste tu perfil de Messenger."
+            : "Desconectaste Messenger."
+        );
+
+        closeModal();
+
+        showToast(
+          value
+            ? "Messenger conectado."
+            : "Messenger desconectado."
+        );
+      }
+    );
+  }
 }
 
-function createProduct() {
-  const title =
-    $("productTitleInput")?.value.trim();
 
-  const description =
-    $("productDescriptionInput")?.value.trim();
+function saveMessenger() {
 
-  const price =
-    Number($("productPriceInput")?.value);
+  const input = $("messengerLinkInput");
 
-  const category =
-    $("productCategoryInput")?.value;
+  if (!input) return;
 
-  if (!title || !description || !price) {
-    toast(
-      "Completa nombre, descripción y precio.",
-      "error"
+  const value = input.value.trim();
+
+  if (
+    value &&
+    !/^https?:\/\/.+/i.test(value)
+  ) {
+    showToast(
+      "Escribe un enlace válido."
     );
     return;
   }
 
-  const file =
-    $("productImageInput")?.files?.[0];
+  data.profile.messenger = value;
 
-  const create = image => {
-    const product = {
-      id: uid("product"),
-      title,
-      description,
-      price,
-      category,
-      image: image || "",
-      seller: user.name || "Usuario",
-      sellerId: user.id,
-      views: 0,
-      likes: 0,
-      rating: 5,
-      sold: false,
-      sellerSold: false,
-      buyerBought: false,
-      createdAt: Date.now()
-    };
+  saveData();
 
-    products.unshift(product);
+  addActivity(
+    "messenger",
+    value
+      ? "Conectaste tu perfil de Messenger."
+      : "Desconectaste Messenger."
+  );
 
-    save(STORAGE.products, products);
+  renderProfile();
 
-    addActivity(
-      "Publicación creada",
-      `${title} fue publicado correctamente.`
-    );
-
-    hideModal();
-
-    showPage("home");
-
-    toast(
-      "Tu publicación fue creada correctamente.",
-      "success"
-    );
-  };
-
-  if (file) {
-    const reader = new FileReader();
-
-    reader.onload = () => create(reader.result);
-
-    reader.readAsDataURL(file);
-  } else {
-    create("");
-  }
+  showToast(
+    value
+      ? "Messenger conectado."
+      : "Messenger desconectado."
+  );
 }
+
+
+function changePassword() {
+
+  const current = $("currentPasswordInput");
+  const next = $("newPasswordInput");
+
+  if (!current || !next) return;
+
+  if (
+    current.value !== data.profile.password
+  ) {
+    showToast(
+      "La contraseña actual no es correcta."
+    );
+    return;
+  }
+
+  if (next.value.length < 4) {
+    showToast(
+      "La nueva contraseña debe tener al menos 4 caracteres."
+    );
+    return;
+  }
+
+  data.profile.password = next.value;
+
+  saveData();
+
+  current.value = "";
+  next.value = "";
+
+  addActivity(
+    "security",
+    "Cambiaste la contraseña de tu cuenta."
+  );
+
+  showToast(
+    "Contraseña cambiada correctamente."
+  );
+}
+
+
+function deleteAccount() {
+
+  const confirmed = window.confirm(
+    "¿Seguro que quieres eliminar todos los datos locales de Market Flash en este dispositivo?"
+  );
+
+  if (!confirmed) return;
+
+  localStorage.removeItem(STORAGE_KEY);
+
+  data = cloneDefaultData();
+
+  saveData();
+
+  renderAll();
+
+  showPage("home");
+
+  showToast(
+    "Los datos locales de la cuenta fueron eliminados."
+  );
+}
+
 
 /* =========================================================
-   HOME
+   PRODUCTOS
 ========================================================= */
 
-let currentCategory = "Todos";
-let searchTerm = "";
-
 function renderHome() {
+
   renderCategories();
   renderProducts();
-  renderFlashStatus();
-  renderNotifications();
+  renderProductCount();
+  renderAdvertisingStatus();
+  updateNotificationBadge();
 }
 
+
+function renderProductCount() {
+
+  const count = $("productCount");
+
+  if (!count) return;
+
+  count.textContent =
+    `${data.products.length} ${
+      data.products.length === 1
+        ? "publicación"
+        : "publicaciones"
+    }`;
+}
+
+
+function getCategories() {
+
+  const categories = new Set();
+
+  data.products.forEach((product) => {
+    if (product.category) {
+      categories.add(product.category);
+    }
+  });
+
+  const defaultCategories = [
+    "Todos",
+    "Celulares",
+    "Electrónica",
+    "Vehículos",
+    "Hogar",
+    "Ropa",
+    "Servicios",
+    "Otros"
+  ];
+
+  defaultCategories.forEach((category) => {
+    categories.add(category);
+  });
+
+  return Array.from(categories);
+}
+
+
+let selectedCategory = "Todos";
+
+
 function renderCategories() {
+
   const row = $("categoryRow");
 
   if (!row) return;
 
-  const categories = [
-    "Todos",
-    "Celulares",
-    "Electrónica",
-    "Videojuegos",
-    "Vehículos",
-    "Hogar",
-    "Ropa",
-    "Otros"
-  ];
+  row.innerHTML = getCategories()
+    .map((category) => `
+      <button
+        class="chip ${
+          selectedCategory === category
+            ? "active"
+            : ""
+        }"
+        type="button"
+        data-category="${escapeHTML(category)}"
+      >
+        ${escapeHTML(category)}
+      </button>
+    `)
+    .join("");
 
-  row.innerHTML = categories.map(category => `
-    <button
-      class="chip ${currentCategory === category ? "active" : ""}"
-      data-category="${escapeHTML(category)}"
-      type="button"
-    >
-      ${escapeHTML(category)}
-    </button>
-  `).join("");
+  row.querySelectorAll(
+    "[data-category]"
+  ).forEach((button) => {
 
-  qsa("[data-category]").forEach(button => {
-    button.addEventListener("click", () => {
-      currentCategory = button.dataset.category;
-      renderCategories();
-      renderProducts();
-    });
+    button.addEventListener(
+      "click",
+      () => {
+
+        selectedCategory =
+          button.dataset.category;
+
+        renderCategories();
+        renderProducts();
+      }
+    );
   });
 }
 
+
+function getFilteredProducts() {
+
+  const input = $("searchInput");
+
+  const search = input
+    ? input.value.trim().toLowerCase()
+    : "";
+
+  return data.products.filter((product) => {
+
+    const categoryMatches =
+      selectedCategory === "Todos" ||
+      product.category === selectedCategory;
+
+    if (!categoryMatches) {
+      return false;
+    }
+
+    if (!search) {
+      return true;
+    }
+
+    const text = [
+      product.title,
+      product.description,
+      product.category,
+      product.location,
+      product.sellerName
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    return text.includes(search);
+  });
+}
+
+
 function renderProducts() {
+
   const grid = $("productsGrid");
 
   if (!grid) return;
 
-  let filtered = [...products];
+  const products = getFilteredProducts();
 
-  if (currentCategory !== "Todos") {
-    filtered = filtered.filter(
-      product =>
-        product.category === currentCategory
-    );
-  }
+  if (!products.length) {
 
-  if (searchTerm) {
-    const query = searchTerm.toLowerCase();
-
-    filtered = filtered.filter(product =>
-      `${product.title} ${product.description} ${product.category}`
-        .toLowerCase()
-        .includes(query)
-    );
-  }
-
-  $("productCount").textContent =
-    `${filtered.length} publicaciones`;
-
-  if (!filtered.length) {
     grid.innerHTML = `
-      <div class="empty-card">
-        <div>🔎</div>
-        <h3>No encontramos publicaciones</h3>
-        <p>Prueba con otra búsqueda o categoría.</p>
+      <div class="empty-state">
+        <div>📦</div>
+
+        <h3>
+          No hay publicaciones
+        </h3>
+
+        <p>
+          ${
+            data.products.length
+              ? "Prueba otra búsqueda o categoría."
+              : "Sé el primero en publicar algo."
+          }
+        </p>
       </div>
     `;
+
     return;
   }
 
-  grid.innerHTML = filtered.map(productCard).join("");
+  grid.innerHTML = products
+    .map(productCardHTML)
+    .join("");
 
-  qsa("[data-product-id]").forEach(card => {
-    card.addEventListener("click", event => {
-      if (
-        event.target.closest("button") ||
-        event.target.closest("a")
-      ) {
-        return;
-      }
-
-      openProduct(product.id);
-    });
-  });
-
-  qsa("[data-like-product]").forEach(button => {
-    button.addEventListener("click", () => {
-      likeProduct(button.dataset.likeProduct);
-    });
-  });
-
-  qsa("[data-contact-product]").forEach(button => {
-    button.addEventListener("click", () => {
-      openProduct(button.dataset.contactProduct);
-    });
-  });
+  bindProductCards();
 }
 
-function productCard(product) {
+
+function productCardHTML(product) {
+
+  const image =
+    Array.isArray(product.images) &&
+    product.images.length
+      ? product.images[0]
+      : "";
+
+  const imageHTML = image
+    ? `
+      <img
+        src="${escapeHTML(image)}"
+        alt="${escapeHTML(product.title)}"
+        loading="lazy"
+      >
+    `
+    : `
+      <div class="product-placeholder">
+        📦
+      </div>
+    `;
+
   return `
     <article
       class="product-card"
-      data-product-id="${product.id}"
+      data-product-id="${escapeHTML(product.id)}"
     >
 
       <div class="product-image">
+        ${imageHTML}
 
         ${
-          product.image
-            ? `<img src="${product.image}" alt="${escapeHTML(product.title)}">`
-            : `<div class="product-placeholder">📦</div>`
-        }
-
-        ${
-          product.sold
-            ? `<span class="sold-label">VENDIDO</span>`
+          product.featured
+            ? `<span class="product-featured">FLASH</span>`
             : ""
         }
-
       </div>
 
       <div class="product-body">
 
-        <div class="product-category">
-          ${escapeHTML(product.category)}
-        </div>
+        <small class="product-category">
+          ${escapeHTML(product.category || "Otros")}
+        </small>
 
         <h3>
           ${escapeHTML(product.title)}
         </h3>
 
-        <p>
-          ${escapeHTML(product.description)}
-        </p>
-
         <strong class="product-price">
           ${formatMoney(product.price)}
         </strong>
 
-        <div class="product-meta">
-          <span>👁 ${product.views || 0}</span>
-          <span>❤️ ${product.likes || 0}</span>
-          <span>⭐ ${product.rating || 5}</span>
-        </div>
+        <p class="product-location">
+          📍 ${escapeHTML(product.location || "República Dominicana")}
+        </p>
 
         <div class="product-seller">
-          Vendedor: ${escapeHTML(product.seller)}
-        </div>
-
-        <div class="product-actions">
-
-          <button
-            type="button"
-            data-like-product="${product.id}"
-          >
-            ❤️
-          </button>
-
-          <button
-            type="button"
-            data-contact-product="${product.id}"
-          >
-            💬 Contactar
-          </button>
-
+          ${escapeHTML(product.sellerName || "Usuario")}
         </div>
 
       </div>
@@ -1220,1532 +1182,1666 @@ function productCard(product) {
   `;
 }
 
-/* =========================================================
-   BÚSQUEDA
-========================================================= */
 
-$("searchInput")?.addEventListener(
-  "input",
-  event => {
-    searchTerm =
-      event.target.value.trim();
+function bindProductCards() {
 
-    renderProducts();
-  }
-);
+  document
+    .querySelectorAll(".product-card[data-product-id]")
+    .forEach((card) => {
 
-/* =========================================================
-   LIKE
-========================================================= */
+      card.addEventListener(
+        "click",
+        () => {
 
-function likeProduct(productId) {
-  const product =
-    products.find(item => item.id === productId);
+          const product =
+            data.products.find(
+              (item) =>
+                item.id ===
+                card.dataset.productId
+            );
 
-  if (!product) return;
-
-  product.likes =
-    Number(product.likes || 0) + 1;
-
-  save(STORAGE.products, products);
-
-  renderProducts();
-
-  toast("Te gusta esta publicación ❤️");
+          if (product) {
+            openProductDetails(product);
+          }
+        }
+      );
+    });
 }
 
+
 /* =========================================================
-   PRODUCTO
+   PUBLICAR PRODUCTO
 ========================================================= */
 
-function openProduct(productId) {
-  const product =
-    products.find(item => item.id === productId);
+function openPublishModal() {
 
-  if (!product) return;
+  openModal(`
+    <div class="modal-header">
 
-  product.views =
-    Number(product.views || 0) + 1;
+      <div>
+        <small>MARKET FLASH</small>
+        <h2>Publicar producto</h2>
+      </div>
 
-  save(STORAGE.products, products);
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
 
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
+    </div>
 
-    <div class="product-viewer">
+    <form id="publishForm">
 
-      <div class="product-view-image">
+      <div class="form-card">
 
-        ${
-          product.image
-            ? `<img src="${product.image}" alt="${escapeHTML(product.title)}">`
-            : `<div class="product-placeholder large">📦</div>`
-        }
+        <label for="productTitleInput">
+          Título
+        </label>
+
+        <input
+          id="productTitleInput"
+          type="text"
+          maxlength="80"
+          placeholder="Ej. iPhone 14 Pro"
+          required
+        >
+
+        <label for="productPriceInput">
+          Precio
+        </label>
+
+        <input
+          id="productPriceInput"
+          type="number"
+          min="0"
+          step="1"
+          placeholder="Ej. 35000"
+          required
+        >
+
+        <label for="productCategoryInput">
+          Categoría
+        </label>
+
+        <select id="productCategoryInput">
+          <option>Celulares</option>
+          <option>Electrónica</option>
+          <option>Vehículos</option>
+          <option>Hogar</option>
+          <option>Ropa</option>
+          <option>Servicios</option>
+          <option>Otros</option>
+        </select>
+
+        <label for="productLocationInput">
+          Ubicación
+        </label>
+
+        <input
+          id="productLocationInput"
+          type="text"
+          maxlength="80"
+          placeholder="Ej. Santo Domingo"
+        >
+
+        <label for="productDescriptionInput">
+          Descripción
+        </label>
+
+        <textarea
+          id="productDescriptionInput"
+          rows="4"
+          maxlength="800"
+          placeholder="Describe el producto..."
+        ></textarea>
 
       </div>
 
-      <div class="product-view-content">
 
+      <div class="form-card">
+
+        <h3>📷 Fotos</h3>
+
+        <p>
+          Puedes usar la cámara o seleccionar fotos de tu galería.
+        </p>
+
+        <div class="profile-actions">
+
+          <button
+            id="takeProductPhotoBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            📷 Cámara
+          </button>
+
+          <button
+            id="chooseProductPhotosBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            🖼️ Galería
+          </button>
+
+        </div>
+
+        <div
+          id="productImagePreview"
+          class="upload-preview"
+        ></div>
+
+      </div>
+
+
+      <div class="form-card">
+
+        <h3>🎥 Video</h3>
+
+        <p>
+          Opcional. Para evitar problemas de almacenamiento,
+          utiliza videos pequeños.
+        </p>
+
+        <div class="profile-actions">
+
+          <button
+            id="takeProductVideoBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            🎥 Grabar
+          </button>
+
+          <button
+            id="chooseProductVideoBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            🎞️ Galería
+          </button>
+
+        </div>
+
+        <div
+          id="productVideoPreview"
+          class="upload-preview"
+        ></div>
+
+      </div>
+
+
+      <button
+        class="primary-btn"
+        type="submit"
+      >
+        🚀 Publicar ahora
+      </button>
+
+    </form>
+  `);
+
+  bindModalButtons();
+
+  const form = $("publishForm");
+
+  const cameraButton =
+    $("takeProductPhotoBtn");
+
+  const galleryButton =
+    $("chooseProductPhotosBtn");
+
+  const videoCameraButton =
+    $("takeProductVideoBtn");
+
+  const videoGalleryButton =
+    $("chooseProductVideoBtn");
+
+  const cameraInput =
+    $("productCameraInput");
+
+  const galleryInput =
+    $("productGalleryInput");
+
+  const videoCameraInput =
+    $("productVideoCameraInput");
+
+  const videoGalleryInput =
+    $("productVideoGalleryInput");
+
+
+  window.marketFlashPublishImages = [];
+  window.marketFlashPublishVideo = null;
+
+
+  if (cameraButton && cameraInput) {
+    cameraButton.addEventListener(
+      "click",
+      () => cameraInput.click()
+    );
+
+    cameraInput.onchange =
+      async () => {
+
+        const file = cameraInput.files[0];
+
+        if (!file) return;
+
+        await addPublishImage(file);
+
+        cameraInput.value = "";
+      };
+  }
+
+
+  if (galleryButton && galleryInput) {
+    galleryButton.addEventListener(
+      "click",
+      () => galleryInput.click()
+    );
+
+    galleryInput.onchange =
+      async () => {
+
+        const files =
+          Array.from(galleryInput.files || []);
+
+        for (const file of files) {
+          await addPublishImage(file);
+        }
+
+        galleryInput.value = "";
+      };
+  }
+
+
+  if (
+    videoCameraButton &&
+    videoCameraInput
+  ) {
+
+    videoCameraButton.addEventListener(
+      "click",
+      () => videoCameraInput.click()
+    );
+
+    videoCameraInput.onchange =
+      async () => {
+
+        const file =
+          videoCameraInput.files[0];
+
+        if (!file) return;
+
+        await addPublishVideo(file);
+
+        videoCameraInput.value = "";
+      };
+  }
+
+
+  if (
+    videoGalleryButton &&
+    videoGalleryInput
+  ) {
+
+    videoGalleryButton.addEventListener(
+      "click",
+      () => videoGalleryInput.click()
+    );
+
+    videoGalleryInput.onchange =
+      async () => {
+
+        const file =
+          videoGalleryInput.files[0];
+
+        if (!file) return;
+
+        await addPublishVideo(file);
+
+        videoGalleryInput.value = "";
+      };
+  }
+
+
+  if (form) {
+    form.addEventListener(
+      "submit",
+      async (event) => {
+
+        event.preventDefault();
+
+        await createProduct();
+      }
+    );
+  }
+}
+
+
+async function addPublishImage(file) {
+
+  if (!file.type.startsWith("image/")) {
+    showToast("El archivo no es una imagen.");
+    return;
+  }
+
+  if (
+    window.marketFlashPublishImages.length >= 8
+  ) {
+    showToast(
+      "Puedes agregar hasta 8 fotos."
+    );
+    return;
+  }
+
+  try {
+
+    showToast("Procesando foto...");
+
+    const image =
+      await fileToCompressedDataURL(
+        file,
+        1200,
+        0.78
+      );
+
+    window.marketFlashPublishImages.push(
+      image
+    );
+
+    renderPublishImagePreview();
+
+  } catch (error) {
+
+    console.error(error);
+
+    showToast(
+      "No se pudo procesar la foto."
+    );
+  }
+}
+
+
+function renderPublishImagePreview() {
+
+  const preview =
+    $("productImagePreview");
+
+  if (!preview) return;
+
+  preview.innerHTML =
+    window.marketFlashPublishImages
+      .map(
+        (image, index) => `
+          <div class="upload-item">
+
+            <img
+              src="${escapeHTML(image)}"
+              alt="Foto ${index + 1}"
+            >
+
+            <button
+              type="button"
+              class="danger-outline"
+              data-remove-image="${index}"
+            >
+              Eliminar
+            </button>
+
+          </div>
+        `
+      )
+      .join("");
+
+  preview
+    .querySelectorAll(
+      "[data-remove-image]"
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const index =
+            Number(
+              button.dataset.removeImage
+            );
+
+          window.marketFlashPublishImages
+            .splice(index, 1);
+
+          renderPublishImagePreview();
+        }
+      );
+    });
+}
+
+
+async function addPublishVideo(file) {
+
+  if (!file.type.startsWith("video/")) {
+    showToast("El archivo no es un video.");
+    return;
+  }
+
+  const maxVideoSize =
+    3 * 1024 * 1024;
+
+  if (file.size > maxVideoSize) {
+
+    showToast(
+      "El video debe pesar menos de 3 MB."
+    );
+
+    return;
+  }
+
+  try {
+
+    showToast("Procesando video...");
+
+    window.marketFlashPublishVideo =
+      await fileToDataURL(file);
+
+    renderPublishVideoPreview();
+
+  } catch (error) {
+
+    console.error(error);
+
+    showToast(
+      "No se pudo procesar el video."
+    );
+  }
+}
+
+
+function renderPublishVideoPreview() {
+
+  const preview =
+    $("productVideoPreview");
+
+  if (!preview) return;
+
+  if (!window.marketFlashPublishVideo) {
+    preview.innerHTML = "";
+    return;
+  }
+
+  preview.innerHTML = `
+    <div class="upload-item">
+
+      <video
+        src="${escapeHTML(window.marketFlashPublishVideo)}"
+        controls
+        playsinline
+      ></video>
+
+      <button
+        id="removeProductVideoBtn"
+        type="button"
+        class="danger-outline"
+      >
+        Eliminar video
+      </button>
+
+    </div>
+  `;
+
+  const remove =
+    $("removeProductVideoBtn");
+
+  if (remove) {
+    remove.addEventListener(
+      "click",
+      () => {
+
+        window.marketFlashPublishVideo =
+          null;
+
+        renderPublishVideoPreview();
+      }
+    );
+  }
+}
+
+
+async function createProduct() {
+
+  const title =
+    $("productTitleInput")?.value.trim() || "";
+
+  const price =
+    Number(
+      $("productPriceInput")?.value || 0
+    );
+
+  const category =
+    $("productCategoryInput")?.value ||
+    "Otros";
+
+  const location =
+    $("productLocationInput")?.value.trim() ||
+    "República Dominicana";
+
+  const description =
+    $("productDescriptionInput")?.value.trim() ||
+    "";
+
+
+  if (title.length < 2) {
+    showToast(
+      "Escribe el nombre del producto."
+    );
+    return;
+  }
+
+
+  if (price <= 0) {
+    showToast(
+      "Escribe un precio válido."
+    );
+    return;
+  }
+
+
+  if (
+    !window.marketFlashPublishImages.length
+  ) {
+    const continueWithoutPhoto =
+      window.confirm(
+        "No agregaste una foto. ¿Quieres publicar sin foto?"
+      );
+
+    if (!continueWithoutPhoto) {
+      return;
+    }
+  }
+
+
+  const product = {
+    id: generateId("product"),
+
+    title,
+
+    price,
+
+    category,
+
+    location,
+
+    description,
+
+    sellerName:
+      data.profile.name || "Usuario",
+
+    sellerPhone:
+      data.profile.phone || "",
+
+    sellerMessenger:
+      data.profile.messenger || "",
+
+    sellerAvatar:
+      data.profile.avatar || "",
+
+    images:
+      [...window.marketFlashPublishImages],
+
+    videos:
+      window.marketFlashPublishVideo
+        ? [window.marketFlashPublishVideo]
+        : [],
+
+    featured: false,
+
+    createdAt: Date.now()
+  };
+
+
+  data.products.unshift(product);
+
+  const saved = saveData();
+
+  if (!saved) {
+
+    data.products =
+      data.products.filter(
+        (item) =>
+          item.id !== product.id
+      );
+
+    return;
+  }
+
+
+  addActivity(
+    "product",
+    `Publicaste "${title}".`
+  );
+
+
+  addNotification(
+    "Nueva publicación",
+    `Tu publicación "${title}" fue creada.`
+  );
+
+
+  window.marketFlashPublishImages = [];
+  window.marketFlashPublishVideo = null;
+
+
+  closeModal();
+
+  renderHome();
+  renderProfile();
+
+  showPage("home");
+
+  showToast(
+    "¡Publicación creada correctamente!"
+  );
+}
+
+
+/* =========================================================
+   DETALLES DE PRODUCTO
+========================================================= */
+
+function openProductDetails(product) {
+
+  const isMine =
+    product.sellerName ===
+      data.profile.name &&
+    (
+      product.sellerPhone ===
+      data.profile.phone
+    );
+
+
+  const images =
+    Array.isArray(product.images)
+      ? product.images
+      : [];
+
+
+  const videos =
+    Array.isArray(product.videos)
+      ? product.videos
+      : [];
+
+
+  let mediaHTML = "";
+
+
+  if (images.length) {
+
+    mediaHTML += `
+      <div class="product-detail-gallery">
+
+        ${images
+          .map(
+            (image) => `
+              <img
+                src="${escapeHTML(image)}"
+                alt="${escapeHTML(product.title)}"
+              >
+            `
+          )
+          .join("")}
+
+      </div>
+    `;
+  } else {
+
+    mediaHTML += `
+      <div class="product-detail-no-image">
+        📦
+      </div>
+    `;
+  }
+
+
+  if (videos.length) {
+
+    mediaHTML += `
+      <div class="product-detail-videos">
+
+        ${videos
+          .map(
+            (video) => `
+              <video
+                src="${escapeHTML(video)}"
+                controls
+                playsinline
+              ></video>
+            `
+          )
+          .join("")}
+
+      </div>
+    `;
+  }
+
+
+  openModal(`
+    <div class="modal-header">
+
+      <div>
         <small>
-          ${escapeHTML(product.category)}
+          ${escapeHTML(product.category || "OTROS")}
         </small>
 
         <h2>
           ${escapeHTML(product.title)}
         </h2>
-
-        <strong class="product-price">
-          ${formatMoney(product.price)}
-        </strong>
-
-        <p>
-          ${escapeHTML(product.description)}
-        </p>
-
-        <div class="product-stats">
-          <span>👁 ${product.views}</span>
-          <span>❤️ ${product.likes}</span>
-          <span>⭐ ${product.rating}</span>
-        </div>
-
-        <div class="seller-box">
-
-          <strong>
-            ${escapeHTML(product.seller)}
-          </strong>
-
-          <span>
-            ⭐ ${product.rating || 5} / 5
-          </span>
-
-        </div>
-
-        ${
-          product.sellerId === user.id
-            ? sellerSaleControls(product)
-            : `
-              <button
-                id="contactSellerBtn"
-                class="primary-btn"
-                type="button"
-              >
-                💬 Contactar vendedor
-              </button>
-            `
-        }
-
       </div>
+
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
+
+    </div>
+
+
+    ${mediaHTML}
+
+
+    <div class="page-card">
+
+      <strong class="product-price">
+        ${formatMoney(product.price)}
+      </strong>
+
+      <p>
+        ${escapeHTML(
+          product.description ||
+          "Sin descripción."
+        )}
+      </p>
+
+      <p>
+        📍 ${escapeHTML(
+          product.location ||
+          "República Dominicana"
+        )}
+      </p>
+
+      <p>
+        👤 ${escapeHTML(
+          product.sellerName ||
+          "Usuario"
+        )}
+      </p>
+
+      <small>
+        Publicado:
+        ${formatDate(product.createdAt)}
+      </small>
+
+    </div>
+
+
+    <div class="profile-actions">
+
+      ${
+        isMine
+          ? `
+            <button
+              id="deleteProductDetailBtn"
+              class="danger-outline"
+              type="button"
+            >
+              🗑️ Eliminar publicación
+            </button>
+          `
+          : `
+            <button
+              id="contactSellerBtn"
+              class="primary-btn"
+              type="button"
+            >
+              💬 Contactar vendedor
+            </button>
+
+            ${
+              product.sellerMessenger
+                ? `
+                  <button
+                    id="openSellerMessengerBtn"
+                    class="secondary-btn"
+                    type="button"
+                  >
+                    Messenger
+                  </button>
+                `
+                : ""
+            }
+          `
+      }
 
     </div>
   `);
 
-  $("contactSellerBtn")?.addEventListener(
-    "click",
-    () => openChatWithSeller(product)
-  );
 
-  qsa("[data-seller-sold]").forEach(button => {
-    button.addEventListener("click", () => {
-      sellerMarkSold(button.dataset.sellerSold);
-    });
-  });
-}
+  bindModalButtons();
 
-function sellerSaleControls(product) {
-  return `
-    <div class="sale-status-box">
 
-      ${
-        product.sellerSold
-          ? `
-            <div class="sale-process">
-              🟠 En proceso de venta
-            </div>
-          `
-          : `
-            <button
-              class="primary-btn"
-              data-seller-sold="${product.id}"
-              type="button"
-            >
-              Marcar como Vendido
-            </button>
-          `
+  const deleteButton =
+    $("deleteProductDetailBtn");
+
+  if (deleteButton) {
+
+    deleteButton.addEventListener(
+      "click",
+      () => {
+
+        const confirmed =
+          window.confirm(
+            "¿Quieres eliminar esta publicación?"
+          );
+
+        if (!confirmed) return;
+
+        data.products =
+          data.products.filter(
+            (item) =>
+              item.id !== product.id
+          );
+
+        saveData();
+
+        addActivity(
+          "product",
+          `Eliminaste "${product.title}".`
+        );
+
+        closeModal();
+
+        renderAll();
+
+        showToast(
+          "Publicación eliminada."
+        );
       }
+    );
+  }
 
-      ${
-        product.buyerBought
-          ? `
-            <div class="sale-confirmed">
-              🟢 Comprado confirmado
-            </div>
-          `
-          : `
-            <p>
-              La publicación solo se eliminará cuando
-              vendedor y comprador confirmen la operación.
-            </p>
-          `
+
+  const contactButton =
+    $("contactSellerBtn");
+
+  if (contactButton) {
+
+    contactButton.addEventListener(
+      "click",
+      () => {
+
+        openChatWithSeller(product);
+
       }
+    );
+  }
 
-    </div>
-  `;
+
+  const messengerButton =
+    $("openSellerMessengerBtn");
+
+  if (messengerButton) {
+
+    messengerButton.addEventListener(
+      "click",
+      () => {
+
+        if (product.sellerMessenger) {
+
+          window.open(
+            product.sellerMessenger,
+            "_blank",
+            "noopener,noreferrer"
+          );
+
+        }
+      }
+    );
+  }
 }
 
-function sellerMarkSold(productId) {
-  const product =
-    products.find(item => item.id === productId);
 
-  if (!product) return;
+/* =========================================================
+   MIS PRODUCTOS
+========================================================= */
 
-  product.sellerSold = true;
+function getMyProducts() {
 
-  save(STORAGE.products, products);
+  return data.products.filter(
+    (product) => {
 
-  addActivity(
-    "Venta marcada",
-    `${product.title} está en proceso de venta.`
-  );
+      const sameName =
+        product.sellerName ===
+        data.profile.name;
 
-  hideModal();
+      const samePhone =
+        product.sellerPhone &&
+        data.profile.phone &&
+        product.sellerPhone ===
+        data.profile.phone;
 
-  renderProducts();
-
-  toast(
-    "Producto marcado como vendido. Queda en proceso de venta.",
-    "success"
+      return sameName || samePhone;
+    }
   );
 }
+
+
+function renderMyProducts() {
+
+  const grid = $("myProducts");
+  const count = $("myProductCount");
+
+  if (!grid) return;
+
+  const products = getMyProducts();
+
+  if (count) {
+    count.textContent =
+      String(products.length);
+  }
+
+  if (!products.length) {
+
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div>📦</div>
+        <h3>No tienes publicaciones</h3>
+        <p>
+          Pulsa "Publicar" para comenzar.
+        </p>
+      </div>
+    `;
+
+    return;
+  }
+
+  grid.innerHTML =
+    products
+      .map(productCardHTML)
+      .join("");
+
+  bindProductCards();
+}
+
 
 /* =========================================================
    CHAT
 ========================================================= */
 
-function openChatWithSeller(product) {
-  const existing =
-    chats.find(chat =>
-      chat.productId === product.id &&
-      chat.sellerId === product.sellerId
-    );
+function renderChat() {
 
-  if (!existing) {
-    const chat = {
-      id: uid("chat"),
-      productId: product.id,
-      productTitle: product.title,
-      sellerId: product.sellerId,
-      sellerName: product.seller,
-      buyerId: user.id,
-      buyerName: user.name,
-      messages: [],
-      sellerSold: false,
-      buyerBought: false,
-      createdAt: Date.now()
-    };
+  const list =
+    $("conversationList");
 
-    chats.unshift(chat);
+  const empty =
+    $("chatEmpty");
 
-    save(STORAGE.chats, chats);
-  }
+  const contacts =
+    $("contactsList");
 
-  hideModal();
-
-  showPage("chat");
-
-  const chat =
-    chats.find(item =>
-      item.productId === product.id
-    );
-
-  if (chat) {
-    openChat(chat.id);
-  }
-}
-
-function renderChats() {
-  const list = $("conversationList");
-  const empty = $("chatEmpty");
 
   if (!list) return;
 
-  if (!chats.length) {
+
+  if (!data.conversations.length) {
+
     list.innerHTML = "";
-    empty?.classList.remove("hidden");
-    return;
+
+    if (empty) {
+      empty.classList.remove("hidden");
+    }
+
+  } else {
+
+    if (empty) {
+      empty.classList.add("hidden");
+    }
+
+    list.innerHTML =
+      data.conversations
+        .slice()
+        .sort(
+          (a, b) =>
+            (b.updatedAt || 0) -
+            (a.updatedAt || 0)
+        )
+        .map(conversationHTML)
+        .join("");
+
+    bindConversationButtons();
   }
 
-  empty?.classList.add("hidden");
 
-  list.innerHTML = chats.map(chat => {
+  if (contacts) {
+    renderContacts(contacts);
+  }
 
-    const last =
-      chat.messages?.[chat.messages.length - 1];
-
-    return `
-      <button
-        class="conversation-item"
-        data-open-chat="${chat.id}"
-        type="button"
-      >
-
-        <div class="conversation-avatar">
-          💬
-        </div>
-
-        <div class="conversation-copy">
-
-          <strong>
-            ${escapeHTML(chat.sellerName || chat.buyerName || "Usuario")}
-          </strong>
-
-          <span>
-            ${escapeHTML(
-              last?.text || "Nueva conversación"
-            )}
-          </span>
-
-        </div>
-
-        <div class="conversation-arrow">
-          ›
-        </div>
-
-      </button>
-    `;
-  }).join("");
-
-  qsa("[data-open-chat]").forEach(button => {
-    button.addEventListener("click", () => {
-      openChat(button.dataset.openChat);
-    });
-  });
-
-  updateBadges();
+  updateChatBadge();
 }
 
-function openChat(chatId) {
-  const chat =
-    chats.find(item => item.id === chatId);
 
-  if (!chat) return;
+function conversationHTML(conversation) {
 
-  const messages = chat.messages || [];
+  const messages =
+    Array.isArray(conversation.messages)
+      ? conversation.messages
+      : [];
 
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
+  const last =
+    messages.length
+      ? messages[messages.length - 1]
+      : null;
 
-    <div class="chat-window">
-
-      <div class="chat-window-header">
-
-        <div>
-          <small>CONVERSACIÓN</small>
-
-          <h2>
-            ${escapeHTML(chat.productTitle)}
-          </h2>
-        </div>
-
-      </div>
-
-      <div
-        id="chatMessages"
-        class="chat-messages"
-      >
-
-        ${
-          messages.length
-            ? messages.map(messageBubble).join("")
-            : `
-              <div class="chat-empty-message">
-                <div>💬</div>
-                <p>
-                  Inicia la conversación.
-                </p>
-              </div>
-            `
-        }
-
-      </div>
-
-      <div class="chat-actions">
-
-        <button
-          id="reportChatBtn"
-          type="button"
-        >
-          🚩 Reclamar
-        </button>
-
-        <button
-          id="whatsappBtn"
-          type="button"
-        >
-          WhatsApp
-        </button>
-
-        <button
-          id="messengerChatBtn"
-          type="button"
-        >
-          Messenger
-        </button>
-
-      </div>
-
-      ${
-        chat.sellerSold
-          ? `
-            <div class="sale-process-banner">
-              🟠 El vendedor marcó el artículo como Vendido.
-              Esperando confirmación del comprador.
-            </div>
-          `
-          : ""
-      }
-
-      <div class="chat-input-row">
-
-        <input
-          id="chatInput"
-          type="text"
-          placeholder="Escribe un mensaje..."
-        >
-
-        <button
-          id="sendChatBtn"
-          type="button"
-        >
-          ➤
-        </button>
-
-      </div>
-
-      ${
-        chat.sellerId !== user.id
-          ? `
-            <button
-              id="buyerBoughtBtn"
-              class="primary-btn"
-              type="button"
-            >
-              🛒 Marcar como Comprado
-            </button>
-          `
-          : ""
-      }
-
-    </div>
-  `);
-
-  $("sendChatBtn")?.addEventListener(
-    "click",
-    () => sendChatMessage(chat.id)
-  );
-
-  $("chatInput")?.addEventListener(
-    "keydown",
-    event => {
-      if (event.key === "Enter") {
-        sendChatMessage(chat.id);
-      }
-    }
-  );
-
-  $("reportChatBtn")?.addEventListener(
-    "click",
-    () => openComplaint(chat)
-  );
-
-  $("whatsappBtn")?.addEventListener(
-    "click",
-    () => openWhatsApp(chat)
-  );
-
-  $("messengerChatBtn")?.addEventListener(
-    "click",
-    () => openMessenger()
-  );
-
-  $("buyerBoughtBtn")?.addEventListener(
-    "click",
-    () => buyerMarkBought(chat.id)
-  );
-}
-
-function messageBubble(message) {
-  const mine =
-    message.senderId === user.id;
 
   return `
-    <div class="message-row ${mine ? "mine" : "theirs"}">
-
-      <div class="message-bubble">
-
-        <p>
-          ${escapeHTML(message.text)}
-        </p>
-
-        <small>
-          ${formatDate(message.createdAt)}
-        </small>
-
-      </div>
-
-    </div>
-  `;
-}
-
-function sendChatMessage(chatId) {
-  const input = $("chatInput");
-
-  if (!input) return;
-
-  const text = input.value.trim();
-
-  if (!text) return;
-
-  const chat =
-    chats.find(item => item.id === chatId);
-
-  if (!chat) return;
-
-  chat.messages ||= [];
-
-  chat.messages.push({
-    id: uid("message"),
-    senderId: user.id,
-    senderName: user.name,
-    text,
-    createdAt: Date.now(),
-    read: false
-  });
-
-  save(STORAGE.chats, chats);
-
-  input.value = "";
-
-  openChat(chatId);
-
-  addNotification(
-    "Nuevo mensaje",
-    `Mensaje enviado en ${chat.productTitle}`,
-    "chat"
-  );
-}
-
-function openWhatsApp(chat) {
-  const text =
-    encodeURIComponent(
-      `Hola, te contacto por ${chat.productTitle} en Market Flash.`
-    );
-
-  window.open(
-    `https://wa.me/?text=${text}`,
-    "_blank"
-  );
-}
-
-function openMessenger() {
-  if (!user.messenger) {
-    toast(
-      "Primero conecta tu Messenger desde tu perfil.",
-      "error"
-    );
-    return;
-  }
-
-  window.open(
-    user.messenger,
-    "_blank"
-  );
-}
-
-/* =========================================================
-   COMPRADOR: MARCAR COMPRADO
-========================================================= */
-
-function buyerMarkBought(chatId) {
-  const chat =
-    chats.find(item => item.id === chatId);
-
-  if (!chat) return;
-
-  const product =
-    products.find(item =>
-      item.id === chat.productId
-    );
-
-  if (!product) return;
-
-  chat.buyerBought = true;
-
-  product.buyerBought = true;
-
-  save(STORAGE.chats, chats);
-  save(STORAGE.products, products);
-
-  if (
-    product.sellerSold &&
-    product.buyerBought
-  ) {
-    completeSale(chat, product);
-    return;
-  }
-
-  openChat(chatId);
-
-  toast(
-    "Marcaste el producto como comprado.",
-    "success"
-  );
-}
-
-function completeSale(chat, product) {
-  product.sold = true;
-
-  save(STORAGE.products, products);
-
-  chats =
-    chats.filter(item => item.id !== chat.id);
-
-  save(STORAGE.chats, chats);
-
-  addActivity(
-    "Venta completada",
-    `${product.title}: vendedor y comprador confirmaron.`
-  );
-
-  hideModal();
-
-  renderProducts();
-  renderChats();
-
-  toast(
-    "Venta completada. La publicación y el chat fueron eliminados.",
-    "success"
-  );
-}
-
-/* =========================================================
-   RECLAMACIONES
-========================================================= */
-
-function openComplaint(chat) {
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
-    <div class="modal-header">
-      <small>SOPORTE</small>
-      <h2>Presentar reclamación</h2>
-
-      <p>
-        Envía la información del problema al administrador.
-      </p>
-    </div>
-
-    <div class="form-card">
-
-      <label>Motivo</label>
-
-      <textarea
-        id="complaintText"
-        rows="6"
-        placeholder="Explica qué ocurrió..."
-      ></textarea>
-
-      <label>Prueba o captura</label>
-
-      <input
-        id="complaintFile"
-        type="file"
-        accept="image/*"
-      >
-
-      <button
-        id="sendComplaintBtn"
-        class="primary-btn"
-        type="button"
-      >
-        🚩 Enviar reclamación
-      </button>
-
-    </div>
-  `);
-
-  $("sendComplaintBtn")?.addEventListener(
-    "click",
-    () => submitComplaint(chat)
-  );
-}
-
-function submitComplaint(chat) {
-  const text =
-    $("complaintText")?.value.trim();
-
-  if (!text) {
-    toast(
-      "Explica el motivo de la reclamación.",
-      "error"
-    );
-    return;
-  }
-
-  const file =
-    $("complaintFile")?.files?.[0];
-
-  const createComplaint = evidence => {
-
-    complaints.unshift({
-      id: uid("complaint"),
-      chatId: chat.id,
-      productId: chat.productId,
-      accuser: {
-        id: user.id,
-        name: user.name
-      },
-      accused: {
-        id: chat.sellerId,
-        name: chat.sellerName
-      },
-      text,
-      evidence: evidence || "",
-      status: "pending",
-      createdAt: Date.now()
-    });
-
-    save(STORAGE.complaints, complaints);
-
-    addNotification(
-      "Reclamación enviada",
-      "Tu reclamación fue enviada a soporte.",
-      "support"
-    );
-
-    addActivity(
-      "Reclamación enviada",
-      `Reclamación sobre ${chat.productTitle}.`
-    );
-
-    hideModal();
-
-    toast(
-      "Reclamación enviada al administrador.",
-      "success"
-    );
-  };
-
-  if (file) {
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      createComplaint(reader.result);
-    };
-
-    reader.readAsDataURL(file);
-  } else {
-    createComplaint("");
-  }
-}
-
-/* =========================================================
-   FLASH DEL DÍA
-========================================================= */
-
-$("flashDayBtn")?.addEventListener(
-  "click",
-  () => {
-    pressAnimation($("flashDayBtn"));
-    openFlashDay();
-  }
-);
-
-function openFlashDay() {
-  const approvedAds =
-    ads.filter(ad => ad.status === "approved");
-
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
-    <div class="modal-header">
-      <small>PUBLICIDAD</small>
-      <h2>Publicación Flash del Día</h2>
-      <p>
-        Anuncios destacados de Market Flash.
-      </p>
-    </div>
-
-    ${
-      approvedAds.length
-        ? `
-          <div class="flash-ad-list">
-            ${approvedAds.map(flashAdCard).join("")}
-          </div>
-        `
-        : `
-          <div class="empty-card">
-            <div>⚡</div>
-            <h3>Aún no hay publicidad publicada</h3>
-            <p>
-              Sé el primero en destacar tu negocio.
-            </p>
-          </div>
-        `
-    }
-
     <button
-      id="createAdBtn"
-      class="primary-btn"
+      class="conversation-item"
       type="button"
+      data-conversation-id="${escapeHTML(conversation.id)}"
     >
-      📢 Crear mi Publicidad Flash
-    </button>
-  `);
 
-  $("createAdBtn")?.addEventListener(
-    "click",
-    openAdvertisingForm
-  );
+      <div class="conversation-avatar">
+        💬
+      </div>
 
-  qsa("[data-view-ad]").forEach(button => {
-    button.addEventListener("click", () => {
-      openAdViewer(button.dataset.viewAd);
-    });
-  });
-}
+      <div class="conversation-copy">
 
-function flashAdCard(ad) {
-  return `
-    <article class="flash-ad-card">
-
-      ${
-        ad.mediaType === "video"
-          ? `
-            <video
-              src="${ad.media}"
-              muted
-              autoplay
-              loop
-              playsinline
-            ></video>
-          `
-          : `
-            <img
-              src="${ad.media}"
-              alt="${escapeHTML(ad.title)}"
-            >
-          `
-      }
-
-      <div class="flash-ad-content">
-
-        <span>
-          ⚡ Flash del Día
-        </span>
-
-        <h3>
-          ${escapeHTML(ad.title)}
-        </h3>
+        <strong>
+          ${escapeHTML(
+            conversation.name ||
+            "Usuario"
+          )}
+        </strong>
 
         <p>
-          ${escapeHTML(ad.description)}
+          ${escapeHTML(
+            last
+              ? last.text
+              : "Nueva conversación"
+          )}
         </p>
-
-        <div class="ad-stats">
-          <span>❤️ ${ad.likes || 0}</span>
-          <span>👁 ${ad.views || 0}</span>
-        </div>
-
-        <button
-          class="primary-btn"
-          data-view-ad="${ad.id}"
-          type="button"
-        >
-          Ver publicidad
-        </button>
 
       </div>
 
-    </article>
+      <small>
+        ${
+          conversation.updatedAt
+            ? formatDate(
+                conversation.updatedAt
+              )
+            : ""
+        }
+      </small>
+
+    </button>
   `;
 }
 
-/* =========================================================
-   CREAR PUBLICIDAD
-========================================================= */
 
-function openAdvertisingForm() {
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
+function bindConversationButtons() {
 
-    <div class="modal-header">
-      <small>PUBLICIDAD FLASH</small>
+  document
+    .querySelectorAll(
+      "[data-conversation-id]"
+    )
+    .forEach((button) => {
 
-      <h2>
-        Crear publicidad
-      </h2>
+      button.addEventListener(
+        "click",
+        () => {
 
-      <p>
-        Envía tu anuncio para revisión.
-      </p>
-    </div>
+          const conversation =
+            data.conversations.find(
+              (item) =>
+                item.id ===
+                button.dataset.conversationId
+            );
 
-    <div class="form-card">
-
-      <label>Foto o vídeo</label>
-
-      <input
-        id="adMediaInput"
-        type="file"
-        accept="image/*,video/*"
-      >
-
-      <label>Nombre de la publicidad</label>
-
-      <input
-        id="adTitleInput"
-        type="text"
-        placeholder="Nombre de tu negocio o producto"
-      >
-
-      <label>Descripción</label>
-
-      <textarea
-        id="adDescriptionInput"
-        rows="4"
-        placeholder="Describe tu publicidad..."
-      ></textarea>
-
-      <label>Plan</label>
-
-      <select id="adPlanInput">
-
-        <option value="basic">
-          Básico — ${formatMoney(admin.plans.basic)}
-        </option>
-
-        <option value="pro">
-          Profesional — ${formatMoney(admin.plans.pro)}
-        </option>
-
-        <option value="premium">
-          Premium — ${formatMoney(admin.plans.premium)}
-        </option>
-
-      </select>
-
-      <label>Método de pago</label>
-
-      <select id="adPaymentInput">
-
-        ${paymentOptions()}
-
-      </select>
-
-      <label>Comprobante de pago</label>
-
-      <input
-        id="adProofInput"
-        type="file"
-        accept="image/*"
-      >
-
-      <button
-        id="submitAdBtn"
-        class="primary-btn"
-        type="button"
-      >
-        Enviar publicidad para revisión
-      </button>
-
-    </div>
-  `);
-
-  $("submitAdBtn")?.addEventListener(
-    "click",
-    submitAdvertising
-  );
-}
-
-function paymentOptions() {
-  return Object.entries(admin.paymentMethods)
-    .filter(([, method]) => method.enabled)
-    .map(([key, method]) => `
-      <option value="${key}">
-        ${escapeHTML(method.name)}
-      </option>
-    `)
-    .join("");
-}
-
-function submitAdvertising() {
-  const title =
-    $("adTitleInput")?.value.trim();
-
-  const description =
-    $("adDescriptionInput")?.value.trim();
-
-  const plan =
-    $("adPlanInput")?.value;
-
-  const payment =
-    $("adPaymentInput")?.value;
-
-  const mediaFile =
-    $("adMediaInput")?.files?.[0];
-
-  const proofFile =
-    $("adProofInput")?.files?.[0];
-
-  if (
-    !title ||
-    !description ||
-    !mediaFile ||
-    !proofFile
-  ) {
-    toast(
-      "Completa todos los campos y agrega publicidad y comprobante.",
-      "error"
-    );
-    return;
-  }
-
-  const readFile = file =>
-    new Promise(resolve => {
-      const reader = new FileReader();
-
-      reader.onload = () =>
-        resolve(reader.result);
-
-      reader.readAsDataURL(file);
+          if (conversation) {
+            openConversation(conversation);
+          }
+        }
+      );
     });
-
-  Promise.all([
-    readFile(mediaFile),
-    readFile(proofFile)
-  ]).then(([media, proof]) => {
-
-    const ad = {
-      id: uid("ad"),
-      userId: user.id,
-      userName: user.name,
-      title,
-      description,
-      plan,
-      payment,
-      price: admin.plans[plan],
-      media,
-      mediaType: mediaFile.type.startsWith("video/")
-        ? "video"
-        : "image",
-      proof,
-      status: "pending",
-      views: 0,
-      likes: 0,
-      createdAt: Date.now()
-    };
-
-    ads.unshift(ad);
-
-    save(STORAGE.ads, ads);
-
-    addNotification(
-      "Publicidad enviada",
-      "Tu publicidad está en chequeo.",
-      "advertising"
-    );
-
-    addActivity(
-      "Publicidad enviada",
-      `${title} está en proceso de revisión.`
-    );
-
-    hideModal();
-
-    renderFlashStatus();
-
-    toast(
-      "Publicidad enviada. Está en chequeo.",
-      "success"
-    );
-  });
 }
 
-/* =========================================================
-   ESTADO DE MI PUBLICIDAD
-========================================================= */
 
-function renderFlashStatus() {
-  const button =
-    $("myAdStatusBtn");
+function renderContacts(container) {
 
-  if (!button) return;
+  const contacts = getContacts();
 
-  const myAds =
-    ads
-      .filter(ad => ad.userId === user.id)
-      .sort((a, b) => b.createdAt - a.createdAt);
+  if (!contacts.length) {
 
-  if (!myAds.length) {
-    button.classList.add("hidden");
+    container.innerHTML = `
+      <div class="empty-state">
+        <div>👥</div>
+        <h3>No tienes contactos</h3>
+        <p>
+          Tus contactos aparecerán aquí
+          cuando inicies conversaciones.
+        </p>
+      </div>
+    `;
+
     return;
   }
 
-  button.classList.remove("hidden");
 
-  const latest = myAds[0];
+  container.innerHTML =
+    contacts
+      .map(
+        (contact) => `
+          <button
+            class="conversation-item"
+            type="button"
+            data-contact-id="${escapeHTML(contact.id)}"
+          >
 
-  const icon = $("myAdStatusIcon");
-  const title = $("myAdStatusTitle");
-  const text = $("myAdStatusText");
+            <div class="conversation-avatar">
+              👤
+            </div>
 
-  if (
-    latest.status === "pending"
-  ) {
-    icon.textContent = "⏳";
-    title.textContent = "Publicidad en chequeo";
-    text.textContent =
-      "Tu publicidad está en proceso de prueba y revisión.";
-  }
+            <div class="conversation-copy">
 
-  if (
-    latest.status === "rejected"
-  ) {
-    icon.textContent = "✕";
-    title.textContent = "Publicidad rechazada";
-    text.textContent =
-      latest.rejectionReason ||
-      "El pago fue incorrecto o no fue confirmado.";
-  }
+              <strong>
+                ${escapeHTML(contact.name)}
+              </strong>
 
-  if (
-    latest.status === "approved"
-  ) {
-    icon.textContent = "✨";
-    title.textContent = "¡Publicidad publicada!";
-    text.textContent =
-      "Tu publicidad fue aprobada y aparece en Flash del Día.";
+              <p>
+                ${escapeHTML(
+                  contact.phone ||
+                  "Contacto de Market Flash"
+                )}
+              </p>
 
-    button.classList.add("ad-approved");
-  } else {
-    button.classList.remove("ad-approved");
-  }
+            </div>
+
+          </button>
+        `
+      )
+      .join("");
+
+
+  container
+    .querySelectorAll(
+      "[data-contact-id]"
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const contact =
+            contacts.find(
+              (item) =>
+                item.id ===
+                button.dataset.contactId
+            );
+
+          if (contact) {
+            startConversationWithContact(
+              contact
+            );
+          }
+        }
+      );
+    });
 }
 
-$("myAdStatusBtn")?.addEventListener(
-  "click",
-  () => {
 
-    const myAds =
-      ads
-        .filter(ad => ad.userId === user.id)
-        .sort((a, b) => b.createdAt - a.createdAt);
+function getContacts() {
 
-    if (!myAds.length) return;
+  const map = new Map();
 
-    openAdStatus(myAds[0]);
-  }
-);
+  data.conversations.forEach(
+    (conversation) => {
 
-function openAdStatus(ad) {
-  let statusTitle = "";
-  let statusText = "";
-
-  if (ad.status === "pending") {
-    statusTitle = "⏳ En chequeo";
-    statusText =
-      "Estamos revisando tu publicidad y el comprobante de pago.";
-  }
-
-  if (ad.status === "rejected") {
-    statusTitle = "✕ Publicidad rechazada";
-    statusText =
-      ad.rejectionReason ||
-      "Su publicidad fue rechazada porque el pago fue incorrecto o no pudo ser confirmado.";
-  }
-
-  if (ad.status === "approved") {
-    statusTitle = "✨ ¡Publicidad publicada!";
-    statusText =
-      "Tu publicidad fue aprobada y está rotando en Flash del Día.";
-  }
-
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
-    <div class="ad-status-view">
-
-      <div class="ad-status-icon">
-        ${ad.status === "approved" ? "✨" : ad.status === "rejected" ? "✕" : "⏳"}
-      </div>
-
-      <small>MI PUBLICIDAD</small>
-
-      <h2>
-        ${escapeHTML(ad.title)}
-      </h2>
-
-      <h3>
-        ${statusTitle}
-      </h3>
-
-      <p>
-        ${escapeHTML(statusText)}
-      </p>
-
-      ${
-        ad.status === "approved"
-          ? `
-            <button
-              id="openApprovedAdBtn"
-              class="primary-btn"
-              type="button"
-            >
-              Ver publicidad
-            </button>
-          `
-          : ""
+      if (!conversation.name) {
+        return;
       }
 
-    </div>
-  `);
+      map.set(
+        conversation.contactId ||
+          conversation.id,
+        {
+          id:
+            conversation.contactId ||
+            conversation.id,
 
-  $("openApprovedAdBtn")?.addEventListener(
-    "click",
-    () => openAdViewer(ad.id)
+          name:
+            conversation.name,
+
+          phone:
+            conversation.phone || "",
+
+          messenger:
+            conversation.messenger || ""
+        }
+      );
+    }
   );
+
+  return Array.from(map.values());
 }
 
-/* =========================================================
-   VISOR DE PUBLICIDAD
-========================================================= */
 
-function openAdViewer(adId) {
-  const ad =
-    ads.find(item => item.id === adId);
+function bindChatButtons() {
 
-  if (!ad) return;
+  const contactsButton =
+    $("chatContactsBtn");
 
-  if (ad.status !== "approved") {
-    toast(
-      "Esta publicidad todavía no está publicada.",
-      "error"
+  if (contactsButton) {
+
+    contactsButton.addEventListener(
+      "click",
+      () => {
+
+        const list =
+          $("contactsList");
+
+        if (!list) return;
+
+        list.classList.toggle("hidden");
+
+        if (!list.classList.contains("hidden")) {
+          renderContacts(list);
+        }
+      }
     );
-    return;
+  }
+}
+
+
+function openChatWithSeller(product) {
+
+  closeModal();
+
+  const conversation =
+    findOrCreateConversation(
+      product.id,
+      product.sellerName,
+      product.sellerPhone,
+      product.sellerMessenger
+    );
+
+  showPage("chat");
+
+  setTimeout(() => {
+    openConversation(conversation);
+  }, 100);
+}
+
+
+function findOrCreateConversation(
+  contactId,
+  name,
+  phone,
+  messenger
+) {
+
+  let conversation =
+    data.conversations.find(
+      (item) =>
+        item.contactId === contactId
+    );
+
+
+  if (!conversation) {
+
+    conversation = {
+      id: generateId("conversation"),
+
+      contactId,
+
+      name:
+        name || "Usuario",
+
+      phone:
+        phone || "",
+
+      messenger:
+        messenger || "",
+
+      messages: [],
+
+      updatedAt: Date.now()
+    };
+
+    data.conversations.push(
+      conversation
+    );
+
+    saveData();
   }
 
-  ad.views =
-    Number(ad.views || 0) + 1;
+  return conversation;
+}
 
-  save(STORAGE.ads, ads);
 
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
+function startConversationWithContact(
+  contact
+) {
 
-    <div class="ad-fullscreen-viewer">
+  const conversation =
+    findOrCreateConversation(
+      contact.id,
+      contact.name,
+      contact.phone,
+      contact.messenger
+    );
 
-      <div class="ad-media-large">
+  openConversation(conversation);
+}
 
-        ${
-          ad.mediaType === "video"
-            ? `
-              <video
-                src="${ad.media}"
-                autoplay
-                muted
-                loop
-                controls
-                playsinline
-              ></video>
-            `
-            : `
-              <img
-                src="${ad.media}"
-                alt="${escapeHTML(ad.title)}"
-              >
-            `
-        }
 
-      </div>
+function openConversation(conversation) {
 
-      <div class="ad-viewer-info">
+  openModal(`
+    <div class="modal-header">
 
-        <span>⚡ FLASH DEL DÍA</span>
+      <div>
+        <small>CHAT</small>
 
         <h2>
-          ${escapeHTML(ad.title)}
+          ${escapeHTML(
+            conversation.name ||
+            "Usuario"
+          )}
         </h2>
-
-        <p>
-          ${escapeHTML(ad.description)}
-        </p>
-
-        <div class="ad-viewer-stats">
-
-          <button
-            id="adLikeBtn"
-            type="button"
-          >
-            ❤️ ${ad.likes || 0}
-          </button>
-
-          <span>
-            👁 ${ad.views || 0}
-          </span>
-
-        </div>
-
-        <div class="ad-navigation">
-
-          <button
-            id="previousAdBtn"
-            type="button"
-          >
-            ‹
-          </button>
-
-          <span>
-            Flash del Día
-          </span>
-
-          <button
-            id="nextAdBtn"
-            type="button"
-          >
-            ›
-          </button>
-
-        </div>
-
       </div>
+
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
 
     </div>
-  `);
 
-  $("adLikeBtn")?.addEventListener(
-    "click",
-    () => {
-      ad.likes =
-        Number(ad.likes || 0) + 1;
 
-      save(STORAGE.ads, ads);
-
-      openAdViewer(ad.id);
-    }
-  );
-
-  $("previousAdBtn")?.addEventListener(
-    "click",
-    () => navigateAd(ad.id, -1)
-  );
-
-  $("nextAdBtn")?.addEventListener(
-    "click",
-    () => navigateAd(ad.id, 1)
-  );
-}
-
-function navigateAd(currentId, direction) {
-  const approved =
-    ads.filter(ad => ad.status === "approved");
-
-  if (!approved.length) return;
-
-  const index =
-    approved.findIndex(ad => ad.id === currentId);
-
-  let nextIndex =
-    index + direction;
-
-  if (nextIndex < 0) {
-    nextIndex = approved.length - 1;
-  }
-
-  if (nextIndex >= approved.length) {
-    nextIndex = 0;
-  }
-
-  openAdViewer(approved[nextIndex].id);
-}
-
-/* =========================================================
-   NOTIFICACIONES
-========================================================= */
-
-function addNotification(
-  title,
-  text,
-  type = "general"
-) {
-  notifications.unshift({
-    id: uid("notification"),
-    title,
-    text,
-    type,
-    read: false,
-    createdAt: Date.now()
-  });
-
-  save(STORAGE.notifications, notifications);
-
-  updateBadges();
-}
-
-function renderNotifications() {
-  updateBadges();
-}
-
-function updateBadges() {
-  const unread =
-    notifications.filter(
-      notification => !notification.read
-    ).length;
-
-  const chatUnread =
-    chats.reduce((total, chat) => {
-      const unreadMessages =
-        (chat.messages || []).filter(
-          message =>
-            message.senderId !== user.id &&
-            !message.read
-        ).length;
-
-      return total + unreadMessages;
-    }, 0);
-
-  setBadge(
-    $("notifyBadge"),
-    unread
-  );
-
-  setBadge(
-    $("chatBadge"),
-    chatUnread
-  );
-
-  setBadge(
-    $("profileBadge"),
-    unread
-  );
-}
-
-function setBadge(element, count) {
-  if (!element) return;
-
-  if (count > 0) {
-    element.textContent =
-      count > 99 ? "99+" : count;
-
-    element.classList.remove("hidden");
-  } else {
-    element.classList.add("hidden");
-  }
-}
-
-$("notifyBtn")?.addEventListener(
-  "click",
-  () => {
-
-    pressAnimation($("notifyBtn"));
-
-    notifications.forEach(
-      notification =>
-        notification.read = true
-    );
-
-    save(
-      STORAGE.notifications,
-      notifications
-    );
-
-    showModal(`
-      <button class="modal-close" data-close-modal>×</button>
-
-      <div class="modal-header">
-        <small>MARKET FLASH</small>
-        <h2>Notificaciones</h2>
-      </div>
+    <div
+      id="messageList"
+      class="message-list"
+    >
 
       ${
-        notifications.length
-          ? `
-            <div class="notification-list">
-
-              ${notifications.map(notification => `
-                <article class="notification-item">
-
-                  <div>
-                    ${notification.type === "chat" ? "💬" :
-                      notification.type === "advertising" ? "📢" :
-                      notification.type === "support" ? "🚩" :
-                      "🔔"}
-                  </div>
-
-                  <div>
-                    <strong>
-                      ${escapeHTML(notification.title)}
-                    </strong>
-
-                    <p>
-                      ${escapeHTML(notification.text)}
-                    </p>
-
-                    <small>
-                      ${formatDate(notification.createdAt)}
-                    </small>
-                  </div>
-
-                </article>
-              `).join("")}
-
-            </div>
-          `
+        conversation.messages.length
+          ? conversation.messages
+              .map(messageHTML)
+              .join("")
           : `
-            <div class="empty-card">
-              <div>🔔</div>
-              <h3>No tienes notificaciones</h3>
-              <p>Aquí aparecerán tus avisos.</p>
+            <div class="empty-state">
+              <div>💬</div>
+              <p>
+                Comienza la conversación.
+              </p>
             </div>
           `
       }
-    `);
 
-    updateBadges();
+    </div>
+
+
+    <form
+      id="messageForm"
+      class="message-form"
+    >
+
+      <input
+        id="messageInput"
+        type="text"
+        maxlength="500"
+        placeholder="Escribe un mensaje..."
+        autocomplete="off"
+        required
+      >
+
+      <button
+        class="primary-btn"
+        type="submit"
+      >
+        Enviar
+      </button>
+
+    </form>
+
+
+    ${
+      conversation.messenger
+        ? `
+          <button
+            id="conversationMessengerBtn"
+            class="secondary-btn"
+            type="button"
+          >
+            💬 Abrir Messenger
+          </button>
+        `
+        : ""
+    }
+  `);
+
+
+  bindModalButtons();
+
+
+  const form =
+    $("messageForm");
+
+  if (form) {
+
+    form.addEventListener(
+      "submit",
+      (event) => {
+
+        event.preventDefault();
+
+        const input =
+          $("messageInput");
+
+        if (!input) return;
+
+        const text =
+          input.value.trim();
+
+        if (!text) return;
+
+        conversation.messages.push({
+          id: generateId("message"),
+
+          sender: "me",
+
+          text,
+
+          createdAt: Date.now()
+        });
+
+        conversation.updatedAt =
+          Date.now();
+
+        saveData();
+
+        input.value = "";
+
+        refreshConversationModal(
+          conversation
+        );
+
+        renderChat();
+
+        addActivity(
+          "chat",
+          `Enviaste un mensaje a ${conversation.name}.`
+        );
+      }
+    );
   }
-);
+
+
+  const messenger =
+    $("conversationMessengerBtn");
+
+  if (messenger) {
+
+    messenger.addEventListener(
+      "click",
+      () => {
+
+        if (conversation.messenger) {
+
+          window.open(
+            conversation.messenger,
+            "_blank",
+            "noopener,noreferrer"
+          );
+
+        }
+      }
+    );
+  }
+}
+
+
+function refreshConversationModal(
+  conversation
+) {
+
+  const messageList =
+    $("messageList");
+
+  if (!messageList) return;
+
+  messageList.innerHTML =
+    conversation.messages.length
+      ? conversation.messages
+          .map(messageHTML)
+          .join("")
+      : `
+        <div class="empty-state">
+          <div>💬</div>
+          <p>
+            Comienza la conversación.
+          </p>
+        </div>
+      `;
+
+  messageList.scrollTop =
+    messageList.scrollHeight;
+}
+
+
+function messageHTML(message) {
+
+  return `
+    <div
+      class="message ${
+        message.sender === "me"
+          ? "message-me"
+          : "message-other"
+      }"
+    >
+
+      <div class="message-bubble">
+        ${escapeHTML(message.text)}
+      </div>
+
+      <small>
+        ${formatDate(message.createdAt)}
+      </small>
+
+    </div>
+  `;
+}
+
+
+function updateChatBadge() {
+
+  const badge =
+    $("chatBadge");
+
+  if (!badge) return;
+
+  const unread =
+    data.conversations.reduce(
+      (total, conversation) =>
+        total +
+        Number(
+          conversation.unread || 0
+        ),
+      0
+    );
+
+  if (unread > 0) {
+
+    badge.textContent =
+      unread > 99
+        ? "99+"
+        : String(unread);
+
+    badge.classList.remove("hidden");
+
+  } else {
+
+    badge.classList.add("hidden");
+  }
+}
+
 
 /* =========================================================
    ACTIVIDAD
 ========================================================= */
 
-function addActivity(title, description) {
-  activities.unshift({
-    id: uid("activity"),
-    title,
-    description,
+function addActivity(type, text) {
+
+  data.activity.unshift({
+    id: generateId("activity"),
+
+    type,
+
+    text,
+
     createdAt: Date.now()
   });
 
-  activities =
-    activities.slice(0, 100);
+  data.activity =
+    data.activity.slice(0, 100);
 
-  save(STORAGE.activities, activities);
+  saveData();
 }
 
+
 function renderActivity() {
+
   const container =
     $("activityContent");
 
   if (!container) return;
 
-  if (!activities.length) {
+  if (!data.activity.length) {
+
     container.innerHTML = `
-      <div class="empty-card">
-        <div>▣</div>
-        <h3>Sin actividad todavía</h3>
+      <div class="empty-state">
+        <div>📋</div>
+
+        <h3>
+          No hay actividad todavía
+        </h3>
+
         <p>
           Aquí aparecerán tus publicaciones,
-          ventas y acciones.
+          mensajes y cambios de cuenta.
         </p>
       </div>
     `;
@@ -2753,1127 +2849,1371 @@ function renderActivity() {
     return;
   }
 
-  container.innerHTML =
-    activities.map(activity => `
-      <article class="activity-item">
-
-        <div class="activity-icon">
-          ✨
-        </div>
-
-        <div>
-
-          <strong>
-            ${escapeHTML(activity.title)}
-          </strong>
-
-          <p>
-            ${escapeHTML(activity.description)}
-          </p>
-
-          <small>
-            ${formatDate(activity.createdAt)}
-          </small>
-
-        </div>
-
-      </article>
-    `).join("");
-}
-
-/* =========================================================
-   MIS PUBLICACIONES
-========================================================= */
-
-function renderMyProducts() {
-  const container =
-    $("myProducts");
-
-  if (!container) return;
-
-  const mine =
-    products.filter(
-      product => product.sellerId === user.id
-    );
-
-  if (!mine.length) {
-    container.innerHTML = `
-      <div class="empty-card">
-        <div>📦</div>
-        <h3>No tienes publicaciones</h3>
-        <p>
-          Pulsa el botón + para publicar.
-        </p>
-      </div>
-    `;
-
-    return;
-  }
 
   container.innerHTML =
-    mine.map(productCard).join("");
+    data.activity
+      .map(
+        (item) => `
+          <div class="activity-item">
 
-  qsa("[data-product-id]").forEach(card => {
-    card.addEventListener("click", () => {
-      openProduct(card.dataset.productId);
-    });
-  });
-}
+            <div class="activity-icon">
+              ${activityIcon(item.type)}
+            </div>
 
-/* =========================================================
-   ADMIN
-========================================================= */
-
-function openAdminPanel() {
-  const password =
-    prompt("Contraseña del panel de administrador:");
-
-  if (password !== admin.password) {
-    toast(
-      "Contraseña de administrador incorrecta.",
-      "error"
-    );
-    return;
-  }
-
-  renderAdminPanel();
-}
-
-function renderAdminPanel() {
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
-    <div class="admin-panel">
-
-      <div class="admin-header">
-
-        <small>MARKET FLASH</small>
-
-        <h2>
-          Panel de Administrador
-        </h2>
-
-        <p>
-          Control de usuarios, publicidad,
-          pagos, reclamaciones y configuración.
-        </p>
-
-      </div>
-
-      <div class="admin-alert">
-        🚨
-        <strong>
-          ${pendingAdminItems()} asuntos pendientes
-        </strong>
-      </div>
-
-      <div class="admin-grid">
-
-        <button data-admin-section="ads">
-          📢 Publicidad
-        </button>
-
-        <button data-admin-section="payments">
-          💳 Pagos
-        </button>
-
-        <button data-admin-section="complaints">
-          🚩 Reclamaciones
-        </button>
-
-        <button data-admin-section="users">
-          👥 Usuarios
-        </button>
-
-        <button data-admin-section="messages">
-          💬 Mensajes
-        </button>
-
-        <button data-admin-section="settings">
-          ⚙️ Configuración
-        </button>
-
-      </div>
-
-      <div id="adminContent"></div>
-
-    </div>
-  `);
-
-  qsa("[data-admin-section]").forEach(button => {
-    button.addEventListener("click", () => {
-      renderAdminSection(
-        button.dataset.adminSection
-      );
-    });
-  });
-
-  renderAdminSection("ads");
-}
-
-function pendingAdminItems() {
-  return (
-    ads.filter(ad => ad.status === "pending").length +
-    complaints.filter(
-      complaint => complaint.status === "pending"
-    ).length
-  );
-}
-
-/* =========================================================
-   ADMIN SECCIONES
-========================================================= */
-
-function renderAdminSection(section) {
-  const container =
-    $("adminContent");
-
-  if (!container) return;
-
-  if (section === "ads") {
-    renderAdminAds(container);
-  }
-
-  if (section === "payments") {
-    renderAdminPayments(container);
-  }
-
-  if (section === "complaints") {
-    renderAdminComplaints(container);
-  }
-
-  if (section === "users") {
-    renderAdminUsers(container);
-  }
-
-  if (section === "messages") {
-    renderAdminMessages(container);
-  }
-
-  if (section === "settings") {
-    renderAdminSettings(container);
-  }
-}
-
-/* =========================================================
-   ADMIN PUBLICIDAD
-========================================================= */
-
-function renderAdminAds(container) {
-  const pending =
-    ads.filter(ad => ad.status === "pending");
-
-  container.innerHTML = `
-    <div class="admin-section">
-
-      <h3>
-        🚨 Solicitudes de publicidad
-      </h3>
-
-      ${
-        pending.length
-          ? pending.map(ad => `
-            <article class="admin-card">
+            <div>
 
               <strong>
-                ${escapeHTML(ad.title)}
+                ${escapeHTML(item.text)}
               </strong>
 
-              <p>
-                Usuario:
-                ${escapeHTML(ad.userName)}
-              </p>
+              <small>
+                ${formatDate(item.createdAt)}
+              </small>
 
-              <p>
-                Plan:
-                ${escapeHTML(ad.plan)}
-              </p>
-
-              <p>
-                Método:
-                ${escapeHTML(
-                  admin.paymentMethods[ad.payment]?.name ||
-                  ad.payment
-                )}
-              </p>
-
-              <p>
-                Importe:
-                ${formatMoney(ad.price)}
-              </p>
-
-              <div class="admin-actions">
-
-                <button
-                  data-admin-view-proof="${ad.id}"
-                  type="button"
-                >
-                  Ver comprobante
-                </button>
-
-                <button
-                  data-admin-approve-ad="${ad.id}"
-                  type="button"
-                >
-                  ✓ Aprobar
-                </button>
-
-                <button
-                  data-admin-reject-ad="${ad.id}"
-                  type="button"
-                >
-                  ✕ Rechazar
-                </button>
-
-              </div>
-
-            </article>
-          `).join("")
-          : `
-            <div class="empty-card">
-              No hay solicitudes pendientes.
             </div>
-          `
-      }
 
-    </div>
-  `;
-
-  qsa("[data-admin-view-proof]").forEach(button => {
-    button.addEventListener("click", () => {
-      viewPaymentProof(
-        button.dataset.adminViewProof
-      );
-    });
-  });
-
-  qsa("[data-admin-approve-ad]").forEach(button => {
-    button.addEventListener("click", () => {
-      approveAd(
-        button.dataset.adminApproveAd
-      );
-    });
-  });
-
-  qsa("[data-admin-reject-ad]").forEach(button => {
-    button.addEventListener("click", () => {
-      rejectAd(
-        button.dataset.adminRejectAd
-      );
-    });
-  });
-}
-
-function viewPaymentProof(adId) {
-  const ad =
-    ads.find(item => item.id === adId);
-
-  if (!ad) return;
-
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
-    <div class="payment-proof">
-
-      <small>COMPROBANTE</small>
-
-      <h2>
-        ${escapeHTML(ad.title)}
-      </h2>
-
-      ${
-        ad.proof
-          ? `
-            <img
-              src="${ad.proof}"
-              alt="Comprobante de pago"
-            >
-          `
-          : `
-            <div class="empty-card">
-              Sin comprobante.
-            </div>
-          `
-      }
-
-      <p>
-        Usuario:
-        ${escapeHTML(ad.userName)}
-      </p>
-
-      <p>
-        Importe:
-        ${formatMoney(ad.price)}
-      </p>
-
-    </div>
-  `);
-}
-
-function approveAd(adId) {
-  const ad =
-    ads.find(item => item.id === adId);
-
-  if (!ad) return;
-
-  ad.status = "approved";
-  ad.approvedAt = Date.now();
-
-  save(STORAGE.ads, ads);
-
-  addNotification(
-    "Publicidad aprobada",
-    `Tu publicidad "${ad.title}" fue publicada.`,
-    "advertising"
-  );
-
-  addActivity(
-    "Publicidad aprobada",
-    `${ad.title} está ahora en Flash del Día.`
-  );
-
-  renderAdminPanel();
-
-  toast(
-    "Publicidad aprobada y publicada.",
-    "success"
-  );
-}
-
-function rejectAd(adId) {
-  const ad =
-    ads.find(item => item.id === adId);
-
-  if (!ad) return;
-
-  const reason =
-    prompt(
-      "Escribe el motivo del rechazo:",
-      "Su publicidad fue rechazada porque el pago fue incorrecto o no pudo ser confirmado."
-    );
-
-  if (reason === null) return;
-
-  ad.status = "rejected";
-  ad.rejectionReason =
-    reason ||
-    "Su publicidad fue rechazada porque el pago fue incorrecto.";
-
-  save(STORAGE.ads, ads);
-
-  addNotification(
-    "Publicidad rechazada",
-    ad.rejectionReason,
-    "advertising"
-  );
-
-  renderAdminPanel();
-
-  toast(
-    "Publicidad rechazada.",
-    "success"
-  );
-}
-
-/* =========================================================
-   ADMIN PAGOS
-========================================================= */
-
-function renderAdminPayments(container) {
-  container.innerHTML = `
-    <div class="admin-section">
-
-      <h3>💳 Pagos</h3>
-
-      ${Object.entries(admin.paymentMethods).map(
-        ([key, method]) => `
-          <article class="admin-card">
-
-            <strong>
-              ${escapeHTML(method.name)}
-            </strong>
-
-            <p>
-              Cuenta:
-              ${escapeHTML(method.account || "No configurada")}
-            </p>
-
-            <p>
-              Estado:
-              ${method.enabled ? "Activo" : "Desactivado"}
-            </p>
-
-            <button
-              data-toggle-payment="${key}"
-              type="button"
-            >
-              ${method.enabled ? "Desactivar" : "Activar"}
-            </button>
-
-          </article>
+          </div>
         `
-      ).join("")}
-
-      <h3>
-        💰 Precios de publicidad
-      </h3>
-
-      <div class="form-card">
-
-        <label>Básico</label>
-        <input
-          id="adminBasicPrice"
-          type="number"
-          value="${admin.plans.basic}"
-        >
-
-        <label>Profesional</label>
-        <input
-          id="adminProPrice"
-          type="number"
-          value="${admin.plans.pro}"
-        >
-
-        <label>Premium</label>
-        <input
-          id="adminPremiumPrice"
-          type="number"
-          value="${admin.plans.premium}"
-        >
-
-        <button
-          id="saveAdPricesBtn"
-          class="primary-btn"
-          type="button"
-        >
-          Guardar precios
-        </button>
-
-      </div>
-
-    </div>
-  `;
-
-  qsa("[data-toggle-payment]").forEach(button => {
-    button.addEventListener("click", () => {
-
-      const key =
-        button.dataset.togglePayment;
-
-      admin.paymentMethods[key].enabled =
-        !admin.paymentMethods[key].enabled;
-
-      save(STORAGE.admin, admin);
-
-      renderAdminPayments(container);
-    });
-  });
-
-  $("saveAdPricesBtn")?.addEventListener(
-    "click",
-    () => {
-
-      admin.plans.basic =
-        Number($("adminBasicPrice").value);
-
-      admin.plans.pro =
-        Number($("adminProPrice").value);
-
-      admin.plans.premium =
-        Number($("adminPremiumPrice").value);
-
-      save(STORAGE.admin, admin);
-
-      toast(
-        "Precios actualizados.",
-        "success"
-      );
-    }
-  );
+      )
+      .join("");
 }
 
-/* =========================================================
-   ADMIN RECLAMACIONES
-========================================================= */
 
-function renderAdminComplaints(container) {
-  container.innerHTML = `
-    <div class="admin-section">
+function activityIcon(type) {
 
-      <h3>🚩 Reclamaciones</h3>
-
-      ${
-        complaints.length
-          ? complaints.map(complaint => `
-            <article class="admin-card">
-
-              <strong>
-                ${escapeHTML(complaint.text)}
-              </strong>
-
-              <p>
-                Acusador:
-                ${escapeHTML(complaint.accuser.name)}
-              </p>
-
-              <p>
-                Acusado:
-                ${escapeHTML(complaint.accused.name)}
-              </p>
-
-              <p>
-                Estado:
-                ${escapeHTML(complaint.status)}
-              </p>
-
-              ${
-                complaint.evidence
-                  ? `
-                    <img
-                      class="admin-evidence"
-                      src="${complaint.evidence}"
-                      alt="Evidencia"
-                    >
-                  `
-                  : ""
-              }
-
-              <div class="admin-actions">
-
-                <button
-                  data-message-complainant="${complaint.id}"
-                  type="button"
-                >
-                  💬 Escribir
-                </button>
-
-                <button
-                  data-sanction-complaint="${complaint.id}"
-                  type="button"
-                >
-                  ⚖️ Sancionar
-                </button>
-
-              </div>
-
-            </article>
-          `).join("")
-          : `
-            <div class="empty-card">
-              No hay reclamaciones.
-            </div>
-          `
-      }
-
-    </div>
-  `;
-
-  qsa("[data-message-complainant]").forEach(button => {
-    button.addEventListener("click", () => {
-
-      const complaint =
-        complaints.find(
-          item =>
-            item.id === button.dataset.messageComplainant
-        );
-
-      if (!complaint) return;
-
-      const message =
-        prompt(
-          `Mensaje para ${complaint.accuser.name}:`
-        );
-
-      if (!message) return;
-
-      toast(
-        "Mensaje preparado para soporte.",
-        "success"
-      );
-    });
-  });
-
-  qsa("[data-sanction-complaint]").forEach(button => {
-    button.addEventListener("click", () => {
-
-      const complaint =
-        complaints.find(
-          item =>
-            item.id === button.dataset.sanctionComplaint
-        );
-
-      if (!complaint) return;
-
-      openSanctionModal(complaint);
-    });
-  });
-}
-
-/* =========================================================
-   SANCIONES / MULTAS
-========================================================= */
-
-function openSanctionModal(complaint) {
-  showModal(`
-    <button class="modal-close" data-close-modal>×</button>
-
-    <div class="modal-header">
-
-      <small>ADMINISTRACIÓN</small>
-
-      <h2>
-        Sancionar usuario
-      </h2>
-
-      <p>
-        Selecciona la medida correspondiente.
-      </p>
-
-    </div>
-
-    <div class="settings-choice">
-
-      <button
-        data-sanction="warning"
-      >
-        ⚠️ Advertencia
-      </button>
-
-      <button
-        data-sanction="temporary_block"
-      >
-        🚫 Bloqueo temporal
-      </button>
-
-      <button
-        data-sanction="fine"
-      >
-        💰 Multa
-      </button>
-
-      <button
-        data-sanction="permanent_block"
-      >
-        ⛔ Bloqueo permanente
-      </button>
-
-    </div>
-  `);
-
-  qsa("[data-sanction]").forEach(button => {
-    button.addEventListener("click", () => {
-
-      const type =
-        button.dataset.sanction;
-
-      applySanction(
-        complaint,
-        type
-      );
-    });
-  });
-}
-
-function applySanction(complaint, type) {
-  complaint.status = "resolved";
-  complaint.sanction = {
-    type,
-    createdAt: Date.now()
+  const icons = {
+    product: "📦",
+    chat: "💬",
+    profile: "👤",
+    security: "🔐",
+    messenger: "🟢",
+    advertising: "📣",
+    system: "⚙️"
   };
 
-  if (type === "fine") {
-    complaint.fineAmount =
-      Number(
-        prompt(
-          "Monto de la multa en RD$:",
-          "500"
-        )
-      ) || 0;
-  }
-
-  save(
-    STORAGE.complaints,
-    complaints
-  );
-
-  hideModal();
-
-  toast(
-    "Sanción aplicada.",
-    "success"
-  );
+  return icons[type] || "📋";
 }
 
+
 /* =========================================================
-   ADMIN USUARIOS
+   NOTIFICACIONES
 ========================================================= */
 
-function renderAdminUsers(container) {
-  const names = new Set(
-    products.map(product => product.seller)
-  );
+function addNotification(title, text) {
 
-  if (user.name) {
-    names.add(user.name);
-  }
+  data.notifications.unshift({
+    id: generateId("notification"),
 
-  container.innerHTML = `
-    <div class="admin-section">
+    title,
 
-      <h3>
-        👥 Usuarios registrados
-      </h3>
+    text,
 
-      <div class="admin-card">
-        <strong>
-          ${names.size}
-        </strong>
+    read: false,
 
-        <p>
-          Usuarios detectados en esta instalación.
-        </p>
-      </div>
+    createdAt: Date.now()
+  });
 
-      ${
-        [...names].map(name => `
-          <article class="admin-card">
+  data.notifications =
+    data.notifications.slice(0, 50);
 
-            <strong>
-              ${escapeHTML(name)}
-            </strong>
+  saveData();
 
-            <p>
-              Usuario Market Flash
-            </p>
-
-            <button type="button">
-              Ver perfil
-            </button>
-
-          </article>
-        `).join("")
-      }
-
-    </div>
-  `;
+  updateNotificationBadge();
 }
 
-/* =========================================================
-   ADMIN MENSAJES
-========================================================= */
 
-function renderAdminMessages(container) {
-  const totalMessages =
-    chats.reduce(
-      (total, chat) =>
-        total + (chat.messages || []).length,
-      0
+function updateNotificationBadge() {
+
+  const badge =
+    $("notifyBadge");
+
+  if (!badge) return;
+
+  const unread =
+    data.notifications.filter(
+      (item) => !item.read
+    ).length;
+
+
+  if (unread > 0) {
+
+    badge.textContent =
+      unread > 99
+        ? "99+"
+        : String(unread);
+
+    badge.classList.remove(
+      "hidden"
     );
 
-  container.innerHTML = `
-    <div class="admin-section">
+  } else {
 
-      <h3>
-        💬 Mensajes
-      </h3>
+    badge.classList.add("hidden");
+  }
+}
 
-      <div class="admin-alert">
-        💬
-        ${totalMessages} mensajes registrados
+
+function updateProfileBadge() {
+
+  const badge =
+    $("profileBadge");
+
+  if (!badge) return;
+
+  badge.classList.add("hidden");
+}
+
+
+function openNotifications() {
+
+  data.notifications.forEach(
+    (notification) => {
+      notification.read = true;
+    }
+  );
+
+  saveData();
+
+  updateNotificationBadge();
+
+
+  const notifications =
+    data.notifications;
+
+
+  openModal(`
+    <div class="modal-header">
+
+      <div>
+        <small>MARKET FLASH</small>
+        <h2>Notificaciones</h2>
       </div>
 
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
+
+    </div>
+
+
+    <div class="notification-list">
+
       ${
-        chats.map(chat => `
-          <article class="admin-card">
+        notifications.length
+          ? notifications
+              .map(
+                (item) => `
+                  <div class="notification-item">
 
-            <strong>
-              ${escapeHTML(chat.productTitle)}
-            </strong>
+                    <strong>
+                      ${escapeHTML(item.title)}
+                    </strong>
 
-            <p>
-              ${escapeHTML(
-                chat.sellerName || "Usuario"
-              )}
-            </p>
+                    <p>
+                      ${escapeHTML(item.text)}
+                    </p>
 
-            <p>
-              ${(chat.messages || []).length}
-              mensajes
-            </p>
+                    <small>
+                      ${formatDate(item.createdAt)}
+                    </small>
 
-          </article>
-        `).join("")
+                  </div>
+                `
+              )
+              .join("")
+          : `
+            <div class="empty-state">
+              <div>🔔</div>
+              <h3>
+                No tienes notificaciones
+              </h3>
+            </div>
+          `
       }
 
     </div>
-  `;
+  `);
+
+
+  bindModalButtons();
 }
 
+
 /* =========================================================
-   ADMIN CONFIGURACIÓN
+   FLASH DEL DÍA / PUBLICIDAD
 ========================================================= */
 
-function renderAdminSettings(container) {
-  container.innerHTML = `
-    <div class="admin-section">
+function bindAdvertisingButtons() {
 
-      <h3>
-        ⚙️ Configuración del panel
-      </h3>
+  const flashButton =
+    $("flashDayBtn");
+
+  if (flashButton) {
+
+    flashButton.addEventListener(
+      "click",
+      openFlashDay
+    );
+  }
+
+
+  const statusButton =
+    $("myAdStatusBtn");
+
+  if (statusButton) {
+
+    statusButton.addEventListener(
+      "click",
+      openAdvertisingStatus
+    );
+  }
+}
+
+
+function openFlashDay() {
+
+  openModal(`
+    <div class="modal-header">
+
+      <div>
+        <small>PUBLICIDAD</small>
+
+        <h2>
+          Publicación Flash del Día
+        </h2>
+      </div>
+
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
+
+    </div>
+
+
+    <div class="page-card">
+
+      <p>
+        Envía tu propuesta para aparecer
+        como publicidad destacada en
+        Market Flash.
+      </p>
 
       <div class="form-card">
 
-        <label>
-          Nueva contraseña del administrador
+        <label for="adTitleInput">
+          Título de la publicidad
         </label>
 
         <input
-          id="adminNewPassword"
-          type="password"
-          placeholder="Nueva contraseña"
+          id="adTitleInput"
+          type="text"
+          maxlength="100"
+          placeholder="Ej. Oferta especial"
         >
 
+        <label for="adTextInput">
+          Descripción
+        </label>
+
+        <textarea
+          id="adTextInput"
+          rows="5"
+          maxlength="800"
+          placeholder="Describe tu promoción..."
+        ></textarea>
+
         <button
-          id="saveAdminPassword"
+          id="submitAdBtn"
           class="primary-btn"
           type="button"
         >
-          Cambiar contraseña
-        </button>
-
-      </div>
-
-      <div class="form-card">
-
-        <h3>
-          Datos de pago
-        </h3>
-
-        ${Object.entries(admin.paymentMethods)
-          .map(([key, method]) => `
-            <label>
-              ${escapeHTML(method.name)}
-            </label>
-
-            <input
-              data-payment-account="${key}"
-              type="text"
-              value="${escapeHTML(method.account || "")}"
-              placeholder="Cuenta / correo / referencia"
-            >
-          `).join("")}
-
-        <button
-          id="savePaymentAccounts"
-          class="primary-btn"
-          type="button"
-        >
-          Guardar datos de pago
+          📣 Enviar publicidad
         </button>
 
       </div>
 
     </div>
-  `;
+  `);
 
-  $("saveAdminPassword")?.addEventListener(
-    "click",
-    () => {
 
-      const password =
-        $("adminNewPassword")?.value.trim();
+  bindModalButtons();
 
-      if (!password || password.length < 4) {
-        toast(
-          "La contraseña debe tener al menos 4 caracteres.",
-          "error"
-        );
-        return;
+
+  const submit =
+    $("submitAdBtn");
+
+  if (submit) {
+
+    submit.addEventListener(
+      "click",
+      submitAdvertising
+    );
+  }
+}
+
+
+function submitAdvertising() {
+
+  const title =
+    $("adTitleInput")?.value.trim() || "";
+
+  const text =
+    $("adTextInput")?.value.trim() || "";
+
+
+  if (title.length < 3) {
+
+    showToast(
+      "Escribe un título para la publicidad."
+    );
+
+    return;
+  }
+
+
+  if (text.length < 5) {
+
+    showToast(
+      "Escribe una descripción."
+    );
+
+    return;
+  }
+
+
+  data.advertising = {
+    status: "pending",
+
+    title,
+
+    text,
+
+    submittedAt: Date.now()
+  };
+
+
+  saveData();
+
+  addActivity(
+    "advertising",
+    "Enviaste una publicidad para revisión."
+  );
+
+
+  addNotification(
+    "Publicidad enviada",
+    "Tu publicidad está pendiente de revisión."
+  );
+
+
+  closeModal();
+
+  renderAdvertisingStatus();
+
+  showToast(
+    "Publicidad enviada para revisión."
+  );
+}
+
+
+function renderAdvertisingStatus() {
+
+  const button =
+    $("myAdStatusBtn");
+
+  if (!button) return;
+
+  const ad =
+    data.advertising;
+
+
+  if (!ad.status) {
+
+    button.classList.add("hidden");
+
+    return;
+  }
+
+
+  button.classList.remove("hidden");
+
+
+  const title =
+    $("myAdStatusTitle");
+
+  const text =
+    $("myAdStatusText");
+
+  const icon =
+    $("myAdStatusIcon");
+
+
+  if (
+    ad.status === "pending"
+  ) {
+
+    if (title) {
+      title.textContent =
+        "Publicidad en revisión";
+    }
+
+    if (text) {
+      text.textContent =
+        "Tu publicidad fue enviada y está pendiente.";
+    }
+
+    if (icon) {
+      icon.textContent = "⏳";
+    }
+
+  } else if (
+    ad.status === "approved"
+  ) {
+
+    if (title) {
+      title.textContent =
+        "Publicidad aprobada";
+    }
+
+    if (text) {
+      text.textContent =
+        "Tu publicidad fue aprobada.";
+    }
+
+    if (icon) {
+      icon.textContent = "✅";
+    }
+
+  } else if (
+    ad.status === "rejected"
+  ) {
+
+    if (title) {
+      title.textContent =
+        "Publicidad rechazada";
+    }
+
+    if (text) {
+      text.textContent =
+        "Revisa los detalles de tu publicidad.";
+    }
+
+    if (icon) {
+      icon.textContent = "❌";
+    }
+  }
+}
+
+
+function openAdvertisingStatus() {
+
+  const ad =
+    data.advertising;
+
+
+  openModal(`
+    <div class="modal-header">
+
+      <div>
+        <small>MI PUBLICIDAD</small>
+        <h2>
+          Estado de publicidad
+        </h2>
+      </div>
+
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
+
+    </div>
+
+
+    <div class="page-card">
+
+      <h3>
+        ${escapeHTML(
+          ad.title || "Sin título"
+        )}
+      </h3>
+
+      <p>
+        ${escapeHTML(
+          ad.text || ""
+        )}
+      </p>
+
+      <p>
+        <strong>Estado:</strong>
+        ${advertisingStatusText(
+          ad.status
+        )}
+      </p>
+
+      ${
+        ad.submittedAt
+          ? `
+            <small>
+              Enviada:
+              ${formatDate(
+                ad.submittedAt
+              )}
+            </small>
+          `
+          : ""
       }
 
-      admin.password = password;
+    </div>
+  `);
 
-      save(STORAGE.admin, admin);
 
-      toast(
-        "Contraseña de administrador actualizada.",
-        "success"
-      );
-    }
+  bindModalButtons();
+}
+
+
+function advertisingStatusText(status) {
+
+  const states = {
+    pending: "⏳ Pendiente",
+    approved: "✅ Aprobada",
+    rejected: "❌ Rechazada"
+  };
+
+  return states[status] || "Sin estado";
+}
+
+
+/* =========================================================
+   CONFIGURACIÓN DE COLOR
+========================================================= */
+
+function openColorSettings() {
+
+  openModal(`
+    <div class="modal-header">
+
+      <div>
+        <small>CONFIGURACIÓN</small>
+        <h2>Color de Market Flash</h2>
+      </div>
+
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
+
+    </div>
+
+
+    <div class="form-card">
+
+      <label for="appColorInput">
+        Selecciona un color
+      </label>
+
+      <input
+        id="appColorInput"
+        type="color"
+        value="${escapeHTML(
+          data.settings.appColor
+        )}"
+      >
+
+      <button
+        id="saveAppColorBtn"
+        class="primary-btn"
+        type="button"
+      >
+        Guardar color
+      </button>
+
+    </div>
+  `);
+
+
+  bindModalButtons();
+
+
+  const button =
+    $("saveAppColorBtn");
+
+  if (button) {
+
+    button.addEventListener(
+      "click",
+      () => {
+
+        const input =
+          $("appColorInput");
+
+        if (!input) return;
+
+        data.settings.appColor =
+          input.value;
+
+        saveData();
+
+        applyTheme();
+
+        closeModal();
+
+        showToast(
+          "Color de la aplicación actualizado."
+        );
+      }
+    );
+  }
+}
+
+
+function applyTheme() {
+
+  const color =
+    data.settings.appColor ||
+    "#1677ff";
+
+
+  document.documentElement.style.setProperty(
+    "--mf-primary",
+    color
   );
 
-  $("savePaymentAccounts")?.addEventListener(
-    "click",
+
+  document.documentElement.style.setProperty(
+    "--mf-primary-dark",
+    darkenColor(color, 20)
+  );
+
+
+  document.documentElement.style.setProperty(
+    "--mf-primary-light",
+    lightenColor(color, 85)
+  );
+}
+
+
+function darkenColor(hex, amount) {
+
+  const rgb = hexToRGB(hex);
+
+  if (!rgb) return hex;
+
+  const factor =
+    1 - amount / 100;
+
+  return rgbToHex(
+    Math.round(rgb.r * factor),
+    Math.round(rgb.g * factor),
+    Math.round(rgb.b * factor)
+  );
+}
+
+
+function lightenColor(hex, amount) {
+
+  const rgb = hexToRGB(hex);
+
+  if (!rgb) return hex;
+
+  return rgbToHex(
+    Math.round(
+      rgb.r +
+      (255 - rgb.r) *
+      (amount / 100)
+    ),
+
+    Math.round(
+      rgb.g +
+      (255 - rgb.g) *
+      (amount / 100)
+    ),
+
+    Math.round(
+      rgb.b +
+      (255 - rgb.b) *
+      (amount / 100)
+    )
+  );
+}
+
+
+function hexToRGB(hex) {
+
+  const value =
+    String(hex || "")
+      .replace("#", "");
+
+  if (value.length !== 6) {
+    return null;
+  }
+
+  const number =
+    parseInt(value, 16);
+
+  if (Number.isNaN(number)) {
+    return null;
+  }
+
+  return {
+    r: (number >> 16) & 255,
+    g: (number >> 8) & 255,
+    b: number & 255
+  };
+}
+
+
+function rgbToHex(r, g, b) {
+
+  return (
+    "#" +
+    [r, g, b]
+      .map(
+        (value) =>
+          value
+            .toString(16)
+            .padStart(2, "0")
+      )
+      .join("")
+  );
+}
+
+
+/* =========================================================
+   ESTILO DEL CHAT
+========================================================= */
+
+function openChatStyleSettings() {
+
+  openModal(`
+    <div class="modal-header">
+
+      <div>
+        <small>CHAT</small>
+        <h2>Estilo del chat</h2>
+      </div>
+
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
+
+    </div>
+
+
+    <div class="form-card">
+
+      <button
+        class="secondary-btn"
+        type="button"
+        data-chat-style="bubble"
+      >
+        💬 Burbujas
+      </button>
+
+      <button
+        class="secondary-btn"
+        type="button"
+        data-chat-style="minimal"
+      >
+        ▫️ Minimalista
+      </button>
+
+      <button
+        class="secondary-btn"
+        type="button"
+        data-chat-style="rounded"
+      >
+        🔵 Redondeado
+      </button>
+
+    </div>
+  `);
+
+
+  bindModalButtons();
+
+
+  document
+    .querySelectorAll(
+      "[data-chat-style]"
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          data.settings.chatStyle =
+            button.dataset.chatStyle;
+
+          saveData();
+
+          applyChatStyle();
+
+          closeModal();
+
+          showToast(
+            "Estilo del chat actualizado."
+          );
+        }
+      );
+    });
+}
+
+
+function applyChatStyle() {
+
+  document.body.dataset.chatStyle =
+    data.settings.chatStyle ||
+    "bubble";
+}
+
+
+/* =========================================================
+   FONDO DEL CHAT
+========================================================= */
+
+function openChatBackgroundSettings() {
+
+  openModal(`
+    <div class="modal-header">
+
+      <div>
+        <small>CHAT</small>
+        <h2>Fondo del chat</h2>
+      </div>
+
+      <button
+        class="modal-close"
+        type="button"
+        data-close-modal
+      >×</button>
+
+    </div>
+
+
+    <div class="form-card">
+
+      <button
+        class="secondary-btn"
+        type="button"
+        data-chat-bg="default"
+      >
+        ◻️ Fondo normal
+      </button>
+
+      <button
+        class="secondary-btn"
+        type="button"
+        data-chat-bg="landscape"
+      >
+        🌴 Paisaje
+      </button>
+
+      ${
+        data.settings.chatCustomImage
+          ? `
+            <button
+              class="secondary-btn"
+              type="button"
+              data-chat-bg="custom"
+            >
+              🖼️ Mi imagen
+            </button>
+          `
+          : ""
+      }
+
+    </div>
+  `);
+
+
+  bindModalButtons();
+
+
+  document
+    .querySelectorAll(
+      "[data-chat-bg]"
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          const value =
+            button.dataset.chatBg;
+
+          if (
+            value === "custom" &&
+            !data.settings.chatCustomImage
+          ) {
+            showToast(
+              "Primero sube una imagen."
+            );
+            return;
+          }
+
+          data.settings.chatBackground =
+            value;
+
+          saveData();
+
+          applyChatBackground();
+
+          closeModal();
+
+          showToast(
+            "Fondo del chat actualizado."
+          );
+        }
+      );
+    });
+}
+
+
+function applyChatBackground() {
+
+  const root =
+    document.documentElement;
+
+  root.style.removeProperty(
+    "--mf-chat-background"
+  );
+
+
+  if (
+    data.settings.chatBackground ===
+    "custom"
+  ) {
+
+    if (data.settings.chatCustomImage) {
+
+      root.style.setProperty(
+        "--mf-chat-background",
+        `url("${data.settings.chatCustomImage}")`
+      );
+    }
+
+    return;
+  }
+
+
+  if (
+    data.settings.chatBackground ===
+    "landscape"
+  ) {
+
+    root.style.setProperty(
+      "--mf-chat-background",
+      "linear-gradient(160deg, #87ceeb 0%, #dff6ff 45%, #80c783 46%, #4e9f4a 100%)"
+    );
+
+    return;
+  }
+
+
+  root.style.setProperty(
+    "--mf-chat-background",
+    "linear-gradient(135deg, #f4f7fb, #ffffff)"
+  );
+}
+
+
+/* =========================================================
+   BOTONES DEL MODAL
+========================================================= */
+
+function bindModalButtons() {
+
+  document
+    .querySelectorAll(
+      "[data-close-modal]"
+    )
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        closeModal
+      );
+    });
+}
+
+
+/* =========================================================
+   ARCHIVOS
+========================================================= */
+
+function fileToDataURL(file) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const reader =
+        new FileReader();
+
+      reader.onload = () =>
+        resolve(reader.result);
+
+      reader.onerror = reject;
+
+      reader.readAsDataURL(file);
+    }
+  );
+}
+
+
+function fileToCompressedDataURL(
+  file,
+  maxSize = 1200,
+  quality = 0.78
+) {
+
+  return new Promise(
+    (resolve, reject) => {
+
+      const reader =
+        new FileReader();
+
+      reader.onload = () => {
+
+        const image =
+          new Image();
+
+        image.onload = () => {
+
+          let width =
+            image.naturalWidth;
+
+          let height =
+            image.naturalHeight;
+
+
+          if (
+            width > maxSize ||
+            height > maxSize
+          ) {
+
+            const ratio =
+              Math.min(
+                maxSize / width,
+                maxSize / height
+              );
+
+            width =
+              Math.round(
+                width * ratio
+              );
+
+            height =
+              Math.round(
+                height * ratio
+              );
+          }
+
+
+          const canvas =
+            document.createElement(
+              "canvas"
+            );
+
+          canvas.width = width;
+          canvas.height = height;
+
+
+          const context =
+            canvas.getContext(
+              "2d"
+            );
+
+          if (!context) {
+            reject(
+              new Error(
+                "Canvas no disponible."
+              )
+            );
+            return;
+          }
+
+
+          context.drawImage(
+            image,
+            0,
+            0,
+            width,
+            height
+          );
+
+
+          resolve(
+            canvas.toDataURL(
+              "image/jpeg",
+              quality
+            )
+          );
+        };
+
+
+        image.onerror = () =>
+          reject(
+            new Error(
+              "No se pudo leer la imagen."
+            )
+          );
+
+
+        image.src =
+          reader.result;
+      };
+
+
+      reader.onerror = reject;
+
+      reader.readAsDataURL(file);
+    }
+  );
+}
+
+
+/* =========================================================
+   BUSCADOR
+========================================================= */
+
+function bindSearch() {
+
+  const input =
+    $("searchInput");
+
+  if (!input) return;
+
+  input.addEventListener(
+    "input",
     () => {
 
-      qsa("[data-payment-account]")
-        .forEach(input => {
-
-          const key =
-            input.dataset.paymentAccount;
-
-          admin.paymentMethods[key].account =
-            input.value.trim();
-
-        });
-
-      save(STORAGE.admin, admin);
-
-      toast(
-        "Datos de pago guardados.",
-        "success"
-      );
+      if (
+        !document
+          .getElementById("homePage")
+          ?.classList.contains("hidden")
+      ) {
+        renderProducts();
+      }
     }
   );
 }
 
-/* =========================================================
-   ACCESO ADMINISTRADOR
-========================================================= */
-
-/*
-   Puedes abrir el panel escribiendo:
-
-   Ctrl + Shift + A
-
-   También puedes llamar:
-   openAdminPanel()
-*/
-
-document.addEventListener(
-  "keydown",
-  event => {
-
-    if (
-      event.ctrlKey &&
-      event.shiftKey &&
-      event.key.toLowerCase() === "a"
-    ) {
-      openAdminPanel();
-    }
-
-  }
-);
 
 /* =========================================================
-   CERRAR MODALES
+   BOTÓN DE PUBLICAR
 ========================================================= */
 
-document.addEventListener(
-  "click",
-  event => {
+function bindPublishButton() {
 
-    if (
-      event.target.matches("[data-close-modal]")
-    ) {
-      hideModal();
-    }
+  const button =
+    $("publishBtn");
 
-  }
-);
+  if (!button) return;
 
-$("modal")?.addEventListener(
-  "click",
-  event => {
-
-    if (event.target === $("modal")) {
-      hideModal();
-    }
-
-  }
-);
-
-/* =========================================================
-   NOTIFICACIONES DEL NAVEGADOR
-========================================================= */
-
-function requestBrowserNotifications() {
-  if (
-    "Notification" in window &&
-    Notification.permission === "default"
-  ) {
-    Notification.requestPermission();
-  }
+  button.addEventListener(
+    "click",
+    openPublishModal
+  );
 }
 
-function browserNotification(title, body) {
-  if (
-    "Notification" in window &&
-    Notification.permission === "granted"
-  ) {
-    new Notification(title, {
-      body,
-      icon: ""
-    });
-  }
-}
 
 /* =========================================================
-   ESTADO DE PUBLICIDAD + NOTIFICACIÓN
+   NOTIFICACIONES
 ========================================================= */
 
-function notifyAdStatus(ad) {
-  if (ad.status === "approved") {
-    browserNotification(
-      "Market Flash",
-      `Tu publicidad "${ad.title}" fue aprobada.`
-    );
-  }
+function bindNotificationButton() {
 
-  if (ad.status === "rejected") {
-    browserNotification(
-      "Market Flash",
-      `Tu publicidad "${ad.title}" fue rechazada.`
+  const button =
+    $("notifyBtn");
+
+  if (!button) return;
+
+  button.addEventListener(
+    "click",
+    openNotifications
+  );
+}
+
+
+/* =========================================================
+   FIRMA DEL PROPIETARIO
+========================================================= */
+
+function setupOwnerSignature() {
+
+  const signature =
+    $("ownerSignature");
+
+  if (!signature) return;
+
+
+  if (
+    "IntersectionObserver" in window
+  ) {
+
+    const observer =
+      new IntersectionObserver(
+        (entries) => {
+
+          entries.forEach(
+            (entry) => {
+
+              if (entry.isIntersecting) {
+
+                signature.classList.add(
+                  "visible"
+                );
+
+              }
+            }
+          );
+        },
+        {
+          threshold: 0.25
+        }
+      );
+
+
+    observer.observe(signature);
+
+  } else {
+
+    signature.classList.add(
+      "visible"
     );
   }
 }
 
-/* =========================================================
-   INICIO
-========================================================= */
-
-applySettings();
-
-renderHome();
-
-renderProfile();
-
-renderActivity();
-
-renderChats();
-
-updateBadges();
-
-requestBrowserNotifications();
 
 /* =========================================================
-   EXPONER FUNCIONES PARA PRUEBAS
+   BOTONES DE ARCHIVOS DE COMPROBANTE
+   Preparados para futuras funciones de pago/publicidad.
 ========================================================= */
 
-window.MarketFlash = {
-  openAdminPanel,
-  openFlashDay,
-  openAdvertisingForm,
-  renderHome,
-  renderChats,
-  renderProfile,
-  renderActivity,
-  showPage,
-  products,
-  ads,
-  chats,
-  notifications
-};
+function bindPaymentProofInputs() {
 
-console.log(
-  `%c${APP_NAME}`,
-  "font-size:20px;font-weight:bold;"
-);
+  [
+    "paymentProofCameraInput",
+    "paymentProofGalleryInput"
+  ].forEach((id) => {
 
-console.log(
-  OWNER
-);
+    const input = $(id);
 
-console.log(
-  "Market Flash iniciado correctamente."
-);
+    if (!input) return;
+
+    input.addEventListener(
+      "change",
+      () => {
+
+        if (input.files.length) {
+
+          showToast(
+            "Comprobante seleccionado."
+          );
+        }
+      }
+    );
+  });
+}
+
+
+/* =========================================================
+   RENDER GENERAL
+========================================================= */
+
+function renderAll() {
+
+  renderHome();
+
+  renderProfile();
+
+  renderChat();
+
+  renderActivity();
+
+  updateNotificationBadge();
+
+  updateChatBadge();
+
+  applyTheme();
+
+  applyChatStyle();
+
+  applyChatBackground();
+}
+
+
+/* =========================================================
+   INICIALIZACIÓN
+========================================================= */
+
+function initMarketFlash() {
+
+  console.log(
+    "Market Flash iniciado correctamente."
+  );
+
+
+  bindNavigation();
+
+  bindSearch();
+
+  bindPublishButton();
+
+  bindNotificationButton();
+
+  bindProfileButtons();
+
+  bindChatButtons();
+
+  bindAdvertisingButtons();
+
+  bindPaymentProofInputs();
+
+  bindModalClose();
+
+  setupOwnerSignature();
+
+
+  applyTheme();
+
+  applyChatStyle();
+
+  applyChatBackground();
+
+
+  renderAll();
+
+
+  showPage("home");
+}
+
+
+/* =========================================================
+   INICIAR CUANDO EL DOM ESTÉ LISTO
+========================================================= */
+
+if (
+  document.readyState ===
+  "loading"
+) {
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initMarketFlash
+  );
+
+} else {
+
+  initMarketFlash();
+}
