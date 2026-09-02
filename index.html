@@ -1,325 +1,411 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Market Flash</title>
+  <title>Market Flash</title>
 
-    <!-- Conexión con CSS -->
-    <link rel="stylesheet" href="style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at center, #14233d 0%, #070b13 45%, #020409 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Fondo digital */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(0, 200, 255, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 200, 255, 0.04) 1px, transparent 1px);
+      background-size: 35px 35px;
+      pointer-events: none;
+    }
+
+    .pantalla {
+      width: 100%;
+      max-width: 500px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Logo */
+    .logo {
+      text-align: center;
+      margin-bottom: 55px;
+    }
+
+    .rayo {
+      font-size: 90px;
+      display: inline-block;
+      color: #00d9ff;
+      filter:
+        drop-shadow(0 0 5px #00d9ff)
+        drop-shadow(0 0 20px #00d9ff)
+        drop-shadow(0 0 45px #008cff);
+
+      animation: energia 1.5s infinite alternate;
+    }
+
+    .logo h1 {
+      margin-top: 8px;
+      font-size: 42px;
+      letter-spacing: 4px;
+      font-weight: 900;
+      color: white;
+      text-shadow:
+        0 0 8px #00d9ff,
+        0 0 20px #008cff;
+    }
+
+    .logo p {
+      margin-top: 8px;
+      color: #7eeeff;
+      font-size: 13px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+    }
+
+    /* Botones */
+    .botones {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .boton {
+      width: 100%;
+      height: 65px;
+      border: 1px solid rgba(0, 217, 255, 0.7);
+      border-radius: 18px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(0, 217, 255, 0.14),
+          rgba(0, 80, 150, 0.08)
+        );
+
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      letter-spacing: 2px;
+
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+
+      box-shadow:
+        0 0 10px rgba(0, 217, 255, 0.3),
+        inset 0 0 15px rgba(0, 217, 255, 0.05);
+
+      transition: 0.3s ease;
+    }
+
+    .boton::before {
+      content: "⚡";
+      position: absolute;
+      left: 22px;
+      font-size: 25px;
+
+      filter:
+        drop-shadow(0 0 5px #00d9ff)
+        drop-shadow(0 0 15px #00d9ff);
+
+      animation: energia 1.5s infinite alternate;
+    }
+
+    .boton:hover {
+      transform: scale(1.03);
+      border-color: #00eaff;
+
+      box-shadow:
+        0 0 15px #00d9ff,
+        0 0 35px rgba(0, 217, 255, 0.4),
+        inset 0 0 20px rgba(0, 217, 255, 0.1);
+    }
+
+    .boton:active {
+      transform: scale(0.98);
+    }
+
+    /* Animación de encendido/apagado */
+    @keyframes energia {
+      0% {
+        opacity: 0.35;
+        filter:
+          drop-shadow(0 0 2px #00d9ff)
+          drop-shadow(0 0 5px #008cff);
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.45;
+        filter:
+          drop-shadow(0 0 8px #00d9ff)
+          drop-shadow(0 0 30px #008cff)
+          drop-shadow(0 0 50px #00d9ff);
+      }
+    }
+
+    /* Texto de propiedad */
+    .propiedad {
+      position: fixed;
+      bottom: 15px;
+      right: 18px;
+
+      font-size: 10px;
+      letter-spacing: 1px;
+
+      color: rgba(255, 255, 255, 0.45);
+
+      text-shadow: 0 0 5px rgba(0, 217, 255, 0.3);
+    }
+
+    /* Pantallas internas */
+    .oculto {
+      display: none;
+    }
+
+    .panel {
+      width: 100%;
+      text-align: center;
+    }
+
+    .panel h2 {
+      font-size: 30px;
+      margin-bottom: 25px;
+      text-shadow: 0 0 15px #00d9ff;
+    }
+
+    .entrada {
+      width: 100%;
+      height: 55px;
+      margin-bottom: 15px;
+
+      border-radius: 14px;
+      border: 1px solid rgba(0, 217, 255, 0.5);
+
+      background: rgba(0, 0, 0, 0.35);
+      color: white;
+
+      padding: 0 18px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    .entrada:focus {
+      border-color: #00eaff;
+      box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+    }
+
+    .volver {
+      margin-top: 15px;
+      background: transparent;
+      border: none;
+      color: #7eeeff;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
 
-    <!-- =========================
-         PANTALLA PRINCIPAL
-    ========================== -->
+  <main class="pantalla">
 
-    <section id="pantallaPrincipal" class="pantalla activa">
+    <!-- INICIO -->
+    <section id="inicio">
 
-        <div class="logo-container">
-            <div class="rayo">⚡</div>
+      <div class="logo">
+        <div class="rayo">⚡</div>
 
-            <h1>MARKET FLASH</h1>
+        <h1>MARKET FLASH</h1>
 
-            <p>EL MERCADO DIGITAL</p>
-        </div>
+        <p>Tu mercado digital</p>
+      </div>
 
-        <div class="menu-principal">
+      <div class="botones">
 
-            <button class="boton-principal"
-                    onclick="abrirRegistro()">
-                <span>⚡</span>
-                REGISTRARME
-            </button>
+        <button class="boton" onclick="mostrarCrearCuenta()">
+          CREAR CUENTA
+        </button>
 
-            <button class="boton-principal"
-                    onclick="abrirLogin()">
-                <span>⚡</span>
-                INICIAR SESIÓN
-            </button>
+        <button class="boton" onclick="entrar()">
+          INICIO
+        </button>
 
-        </div>
+      </div>
 
     </section>
 
 
-    <!-- =========================
-         REGISTRO
-    ========================== -->
+    <!-- CREAR CUENTA -->
+    <section id="crearCuenta" class="panel oculto">
 
-    <section id="pantallaRegistro" class="pantalla">
+      <div class="rayo">⚡</div>
 
-        <div class="ventana">
+      <h2>CREAR CUENTA</h2>
 
-            <div class="rayo-pequeno">⚡</div>
+      <input
+        class="entrada"
+        type="text"
+        id="nombre"
+        placeholder="Nombre completo"
+      >
 
-            <h2>CREAR CUENTA</h2>
+      <input
+        class="entrada"
+        type="text"
+        id="cedula"
+        placeholder="Número de cédula"
+      >
 
-            <p class="subtitulo">
-                Crea tu cuenta de Market Flash
-            </p>
+      <input
+        class="entrada"
+        type="tel"
+        id="telefono"
+        placeholder="Número de teléfono"
+      >
 
-            <input
-                type="text"
-                id="nombre"
-                placeholder="Nombre completo"
-            >
+      <input
+        class="entrada"
+        type="password"
+        id="clave"
+        placeholder="Crear contraseña"
+      >
 
-            <input
-                type="text"
-                id="apodo"
-                placeholder="Apodo / nombre de usuario"
-            >
+      <button class="boton" onclick="crearCuenta()">
+        ⚡ CREAR CUENTA
+      </button>
 
-            <input
-                type="tel"
-                id="telefono"
-                placeholder="Número de teléfono"
-            >
-
-            <input
-                type="text"
-                id="cedula"
-                placeholder="Número de cédula"
-            >
-
-            <input
-                type="password"
-                id="passwordRegistro"
-                placeholder="Contraseña"
-            >
-
-            <input
-                type="password"
-                id="confirmarPassword"
-                placeholder="Confirmar contraseña"
-            >
-
-            <label class="terminos">
-                <input type="checkbox" id="aceptarTerminos">
-                Acepto los términos y condiciones
-            </label>
-
-            <button class="boton-accion"
-                    onclick="registrarUsuario()">
-                ⚡ CREAR CUENTA
-            </button>
-
-            <button class="boton-volver"
-                    onclick="volverPrincipal()">
-                ← VOLVER
-            </button>
-
-        </div>
+      <button class="volver" onclick="volverInicio()">
+        ← Volver al inicio
+      </button>
 
     </section>
 
 
-    <!-- =========================
-         INICIAR SESIÓN
-    ========================== -->
+    <!-- LOGIN -->
+    <section id="login" class="panel oculto">
 
-    <section id="pantallaLogin" class="pantalla">
+      <div class="rayo">⚡</div>
 
-        <div class="ventana">
+      <h2>INICIAR SESIÓN</h2>
 
-            <div class="rayo-pequeno">⚡</div>
+      <input
+        class="entrada"
+        type="tel"
+        id="loginTelefono"
+        placeholder="Número de teléfono"
+      >
 
-            <h2>INICIAR SESIÓN</h2>
+      <input
+        class="entrada"
+        type="password"
+        id="loginClave"
+        placeholder="Contraseña"
+      >
 
-            <p class="subtitulo">
-                Entra a tu cuenta de Market Flash
-            </p>
+      <button class="boton" onclick="iniciarSesion()">
+        ⚡ ENTRAR
+      </button>
 
-            <input
-                type="text"
-                id="loginCedula"
-                placeholder="Número de cédula"
-            >
-
-            <input
-                type="password"
-                id="loginPassword"
-                placeholder="Contraseña"
-            >
-
-            <button class="boton-accion"
-                    onclick="iniciarSesion()">
-                ⚡ ENTRAR
-            </button>
-
-            <button class="boton-volver"
-                    onclick="volverPrincipal()">
-                ← VOLVER
-            </button>
-
-        </div>
+      <button class="volver" onclick="volverInicio()">
+        ← Volver al inicio
+      </button>
 
     </section>
 
+  </main>
 
-    <!-- =========================
-         INICIO DE MARKET FLASH
-    ========================== -->
-
-    <section id="pantallaInicio" class="pantalla">
-
-        <header class="barra-superior">
-
-            <div class="marca">
-                ⚡ MARKET FLASH
-            </div>
-
-            <button onclick="cerrarSesion()"
-                    class="cerrar-sesion">
-                Salir
-            </button>
-
-        </header>
+  <!-- Propiedad -->
+  <div class="propiedad">
+    Propiedad Julio Alcántara Gomeras
+  </div>
 
 
-        <div class="contenido-inicio">
+  <script>
 
-            <h2 id="saludoUsuario">
-                ¡Bienvenido a Market Flash!
-            </h2>
+    function ocultarTodo() {
+      document.getElementById("inicio").classList.add("oculto");
+      document.getElementById("crearCuenta").classList.add("oculto");
+      document.getElementById("login").classList.add("oculto");
+    }
 
-            <p class="texto-inicio">
-                Aquí aparecerán todas las publicaciones.
-            </p>
+    function mostrarCrearCuenta() {
+      ocultarTodo();
+      document.getElementById("crearCuenta").classList.remove("oculto");
+    }
 
+    function entrar() {
+      ocultarTodo();
+      document.getElementById("login").classList.remove("oculto");
+    }
 
-            <!-- Búsqueda -->
+    function volverInicio() {
+      ocultarTodo();
+      document.getElementById("inicio").classList.remove("oculto");
+    }
 
-            <div class="buscador">
+    function crearCuenta() {
 
-                <input
-                    type="text"
-                    id="buscar"
-                    placeholder="¿Qué estás buscando?"
-                    oninput="buscarPublicaciones()"
-                >
+      const nombre = document.getElementById("nombre").value;
+      const cedula = document.getElementById("cedula").value;
+      const telefono = document.getElementById("telefono").value;
+      const clave = document.getElementById("clave").value;
 
-                <button>
-                    🔎
-                </button>
+      if (!nombre || !cedula || !telefono || !clave) {
+        alert("Completa todos los campos.");
+        return;
+      }
 
-            </div>
+      alert("Cuenta creada correctamente.");
 
+      volverInicio();
+    }
 
-            <!-- Publicaciones -->
+    function iniciarSesion() {
 
-            <div id="listaPublicaciones"
-                 class="publicaciones">
+      const telefono =
+        document.getElementById("loginTelefono").value;
 
-                <div class="sin-publicaciones">
+      const clave =
+        document.getElementById("loginClave").value;
 
-                    <div class="icono-publicacion">
-                        ⚡
-                    </div>
+      if (!telefono || !clave) {
+        alert("Introduce tu teléfono y contraseña.");
+        return;
+      }
 
-                    <h3>Market Flash</h3>
+      alert("Inicio de sesión correcto.");
+    }
 
-                    <p>
-                        Las publicaciones de los vendedores
-                        aparecerán aquí.
-                    </p>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- Navegación -->
-
-        <nav class="navegacion">
-
-            <button onclick="irInicio()">
-                🏠
-                <span>Inicio</span>
-            </button>
-
-            <button onclick="mostrarMensaje('Próximamente: Publicar')">
-                ➕
-                <span>Publicar</span>
-            </button>
-
-            <button onclick="mostrarMensaje('Próximamente: Notificaciones')">
-                🔔
-                <span>Alertas</span>
-            </button>
-
-            <button onclick="mostrarPerfil()">
-                👤
-                <span>Perfil</span>
-            </button>
-
-        </nav>
-
-    </section>
-
-
-    <!-- =========================
-         PERFIL
-    ========================== -->
-
-    <section id="pantallaPerfil" class="pantalla">
-
-        <div class="ventana perfil">
-
-            <div class="rayo-pequeno">⚡</div>
-
-            <h2>MI PERFIL</h2>
-
-            <div class="foto-perfil">
-                👤
-            </div>
-
-            <h3 id="perfilNombre">
-                Usuario
-            </h3>
-
-            <p id="perfilApodo">
-                @usuario
-            </p>
-
-            <div class="datos-perfil">
-
-                <p>
-                    📱 <strong>Teléfono:</strong>
-                    <span id="perfilTelefono"></span>
-                </p>
-
-                <p>
-                    🪪 <strong>Cédula:</strong>
-                    <span id="perfilCedula"></span>
-                </p>
-
-            </div>
-
-            <button class="boton-volver"
-                    onclick="irInicio()">
-                ← VOLVER A INICIO
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <!-- Propiedad -->
-
-    <div class="propiedad">
-        Propiedad Julio Alcántara Gomeras
-    </div>
-
-
-    <!-- Conexión con JavaScript -->
-    <script src="script.js"></script>
+  </script>
 
 </body>
 </html>
