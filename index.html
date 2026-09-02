@@ -2,37 +2,20 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-  >
-
-  <meta name="theme-color" content="#1677ff">
-
-  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Market Flash">
-
-  <meta
-    name="description"
-    content="Market Flash - Compra, vende, publica y conecta."
-  >
-
   <title>Market Flash</title>
 
   <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
 </head>
 
 <body>
 
 <div id="app">
 
-  <!-- =====================================================
-       BARRA SUPERIOR
-  ====================================================== -->
+  <!-- BARRA SUPERIOR -->
   <header class="topbar">
 
     <div class="brand">
@@ -40,301 +23,43 @@
     </div>
 
     <div class="search-wrap">
-      <span class="search-icon">⌕</span>
+      <span>⌕</span>
 
       <input
         id="searchInput"
         type="search"
         placeholder="Buscar en Market Flash..."
-        autocomplete="off"
-        aria-label="Buscar"
       >
     </div>
 
     <button
+      class="round-btn"
       id="notifyBtn"
-      class="round-btn mf-press"
-      type="button"
       aria-label="Notificaciones"
     >
       🔔
-
-      <b
-        id="notifyBadge"
-        class="badge hidden"
-      >0</b>
+      <b id="notifyBadge" class="badge hidden">0</b>
     </button>
 
   </header>
 
 
-  <!-- =====================================================
-       CONTENIDO PRINCIPAL
-  ====================================================== -->
-  <main
-    id="mainContent"
-    class="main-content"
-  >
+  <!-- CONTENIDO PRINCIPAL -->
+  <main id="mainContent" class="main-content">
 
-    <!-- ===================================================
-         INICIO
-    ==================================================== -->
-    <section
-      id="homePage"
-      class="page-section"
-    >
+    <!-- PRESENTACIÓN -->
+    <section class="hero">
 
-      <!-- PRESENTACIÓN -->
-      <section class="hero">
+      <div>
 
-        <div class="hero-content">
+        <small>MARKET FLASH</small>
 
-          <small>MARKET FLASH</small>
-
-          <h1>
-            Encuentra lo que necesitas
-          </h1>
-
-          <p>
-            Compra, vende y conecta con personas de tu zona.
-          </p>
-
-        </div>
-
-      </section>
-
-
-      <!-- =================================================
-           FLASH DEL DÍA
-      ================================================== -->
-      <button
-        id="flashDayBtn"
-        class="flash-day mf-press"
-        type="button"
-      >
-
-        <div class="flash-icon">
-          ⚡
-        </div>
-
-        <div class="flash-copy">
-
-          <span>
-            PUBLICIDAD
-          </span>
-
-          <strong>
-            Publicación Flash del Día
-          </strong>
-
-          <small>
-            Publicidad destacada y oportunidades especiales.
-          </small>
-
-        </div>
-
-        <div class="arrow">
-          ›
-        </div>
-
-      </button>
-
-
-      <!-- =================================================
-           ESTADO DE MI PUBLICIDAD
-      ================================================== -->
-      <button
-        id="myAdStatusBtn"
-        class="flash-day ad-status-button hidden mf-press"
-        type="button"
-      >
-
-        <div
-          id="myAdStatusIcon"
-          class="flash-icon"
-        >
-          ✨
-        </div>
-
-        <div class="flash-copy">
-
-          <span>
-            MI PUBLICIDAD
-          </span>
-
-          <strong id="myAdStatusTitle">
-            Estado de mi publicidad
-          </strong>
-
-          <small id="myAdStatusText">
-            Consulta aquí el estado de tu publicidad.
-          </small>
-
-        </div>
-
-        <div class="arrow">
-          ›
-        </div>
-
-      </button>
-
-
-      <!-- =================================================
-           PUBLICACIONES
-      ================================================== -->
-      <div class="section-title">
-
-        <div>
-
-          <small class="section-kicker">
-            MARKETPLACE
-          </small>
-
-          <h2>
-            Publicaciones
-          </h2>
-
-        </div>
-
-        <span id="productCount"></span>
-
-      </div>
-
-
-      <!-- CATEGORÍAS -->
-      <div
-        id="categoryRow"
-        class="chips"
-      ></div>
-
-
-      <!-- PRODUCTOS -->
-      <section
-        id="productsGrid"
-        class="products-grid"
-      ></section>
-
-
-      <!-- FIRMA -->
-      <div
-        id="ownerSignature"
-        class="owner-signature"
-      >
-        Propiedad Julio Alcántara Gomeras
-      </div>
-
-    </section>
-
-
-    <!-- ===================================================
-         CHAT
-    ==================================================== -->
-    <section
-      id="chatPage"
-      class="page-section hidden"
-    >
-
-      <div class="page-heading">
-
-        <div>
-
-          <small>
-            MARKET FLASH
-          </small>
-
-          <h2>
-            Chat
-          </h2>
-
-          <p>
-            Contacta directamente con compradores y vendedores.
-          </p>
-
-        </div>
-
-        <button
-          id="chatContactsBtn"
-          class="secondary-btn compact-btn mf-press"
-          type="button"
-        >
-          👥 Contactos
-        </button>
-
-      </div>
-
-
-      <!-- =================================================
-           SOLICITUDES DE CONTACTO
-      ================================================== -->
-      <div
-        id="contactRequestsSection"
-        class="page-card hidden"
-      >
-
-        <div class="card-title-row">
-
-          <div>
-            <small>
-              CONTACTOS
-            </small>
-
-            <h3>
-              Solicitudes de contacto
-            </h3>
-          </div>
-
-          <span
-            id="contactRequestCount"
-            class="nav-badge hidden"
-          >
-            0
-          </span>
-
-        </div>
-
-        <div
-          id="contactRequestsList"
-          class="conversation"
-        ></div>
-
-      </div>
-
-
-      <!-- =================================================
-           LISTA DE CONVERSACIONES
-      ================================================== -->
-      <div
-        id="conversationList"
-        class="conversation"
-      ></div>
-
-
-      <!-- =================================================
-           CONTACTOS
-      ================================================== -->
-      <div
-        id="contactsList"
-        class="conversation hidden"
-      ></div>
-
-
-      <!-- SIN CONVERSACIONES -->
-      <div
-        id="chatEmpty"
-        class="chat-empty hidden"
-      >
-
-        <div>
-          💬
-        </div>
-
-        <h3>
-          No tienes conversaciones
-        </h3>
+        <h1>
+          Encuentra lo que necesitas
+        </h1>
 
         <p>
-          Cuando contactes a un comprador o vendedor,
-          tus conversaciones aparecerán aquí.
+          Compra, vende y conecta con personas de tu zona.
         </p>
 
       </div>
@@ -342,813 +67,69 @@
     </section>
 
 
-    <!-- ===================================================
-         ACTIVIDAD
-    ==================================================== -->
-    <section
-      id="activityPage"
-      class="page-section hidden"
+    <!-- FLASH DEL DÍA -->
+    <button
+      id="flashDayBtn"
+      class="flash-day"
+      type="button"
     >
 
-      <div class="page-heading">
+      <div class="flash-icon">
+        ⚡
+      </div>
 
-        <div>
+      <div class="flash-copy">
 
-          <small>
-            MARKET FLASH
-          </small>
+        <span>
+          PUBLICIDAD
+        </span>
 
-          <h2>
-            Actividad
-          </h2>
+        <strong>
+          Publicación Flash del Día
+        </strong>
 
-          <p>
-            Consulta el rendimiento de tus publicaciones
-            y la actividad de tu cuenta.
-          </p>
-
-        </div>
+        <small>
+          Descubre anuncios destacados y oportunidades.
+        </small>
 
       </div>
 
-
-      <!-- =================================================
-           ESTADÍSTICAS
-      ================================================== -->
-      <div
-        id="activityStats"
-        class="activity-stats"
-      >
-
-        <div class="stat-card">
-
-          <span class="stat-icon">
-            👥
-          </span>
-
-          <small>
-            Contactos
-          </small>
-
-          <strong id="activityContactsCount">
-            0
-          </strong>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <span class="stat-icon">
-            👁️
-          </span>
-
-          <small>
-            Vistas
-          </small>
-
-          <strong id="activityViewsCount">
-            0
-          </strong>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <span class="stat-icon">
-            👍
-          </span>
-
-          <small>
-            Me gusta
-          </small>
-
-          <strong id="activityLikesCount">
-            0
-          </strong>
-
-        </div>
-
-
-        <div class="stat-card">
-
-          <span class="stat-icon">
-            👎
-          </span>
-
-          <small>
-            No me gusta
-          </small>
-
-          <strong id="activityDislikesCount">
-            0
-          </strong>
-
-        </div>
-
+      <div class="arrow">
+        ›
       </div>
 
-
-      <!-- =================================================
-           ESTADÍSTICAS DE PUBLICACIONES
-      ================================================== -->
-      <div class="page-card">
-
-        <div class="card-title-row">
-
-          <h3>
-            📊 Mis publicaciones
-          </h3>
-
-          <span id="activityProductCount">
-            0
-          </span>
-
-        </div>
-
-        <div
-          id="activityPublications"
-          class="activity-list"
-        ></div>
-
-      </div>
+    </button>
 
 
-      <!-- =================================================
-           ACTIVIDAD RECIENTE
-      ================================================== -->
-      <div class="page-card">
+    <!-- TÍTULO DE PUBLICACIONES -->
+    <div class="section-title">
 
-        <h3>
-          🕘 Actividad reciente
-        </h3>
+      <h2>
+        Publicaciones
+      </h2>
 
-        <div
-          id="activityContent"
-          class="activity-list"
-        ></div>
+      <span id="productCount"></span>
 
-      </div>
-
-    </section>
+    </div>
 
 
-    <!-- ===================================================
-         PERFIL
-    ==================================================== -->
+    <!-- CATEGORÍAS -->
+    <div
+      id="categoryRow"
+      class="chips"
+    ></div>
+
+
+    <!-- PRODUCTOS -->
     <section
-      id="profilePage"
-      class="page-section hidden"
-    >
-
-      <!-- =================================================
-           CABECERA DEL PERFIL
-      ================================================== -->
-      <div class="profile-header">
-
-        <button
-          id="profileAvatarBtn"
-          class="avatar-large mf-press"
-          type="button"
-          aria-label="Cambiar foto de perfil"
-        >
-          👤
-        </button>
-
-        <div class="profile-info">
-
-          <small>
-            MI PERFIL
-          </small>
-
-          <h2 id="profileName">
-            Usuario
-          </h2>
-
-          <p id="profilePhone">
-            Teléfono no registrado
-          </p>
-
-          <p id="profileCedula">
-            Cédula: protegida
-          </p>
-
-        </div>
-
-      </div>
-
-
-      <!-- =================================================
-           RESUMEN DEL PERFIL
-      ================================================== -->
-      <div class="profile-summary">
-
-        <div>
-          <strong id="profilePublicationsCount">
-            0
-          </strong>
-
-          <small>
-            Publicaciones
-          </small>
-        </div>
-
-
-        <div>
-          <strong id="profileContactsCount">
-            0
-          </strong>
-
-          <small>
-            Contactos
-          </small>
-        </div>
-
-
-        <div>
-          <strong id="profileViewsCount">
-            0
-          </strong>
-
-          <small>
-            Vistas
-          </small>
-        </div>
-
-      </div>
-
-
-      <!-- =================================================
-           MENÚ PRINCIPAL DEL PERFIL
-      ================================================== -->
-      <div class="profile-menu">
-
-        <button
-          id="editProfileBtn"
-          class="profile-menu-item mf-press"
-          type="button"
-        >
-
-          <span class="profile-menu-icon">
-            ✏️
-          </span>
-
-          <span>
-            <strong>
-              Editar perfil
-            </strong>
-
-            <small>
-              Foto, nombre y datos de contacto
-            </small>
-          </span>
-
-          <b>
-            ›
-          </b>
-
-        </button>
-
-
-        <button
-          id="myContactsBtn"
-          class="profile-menu-item mf-press"
-          type="button"
-        >
-
-          <span class="profile-menu-icon">
-            👥
-          </span>
-
-          <span>
-            <strong>
-              Mis contactos
-            </strong>
-
-            <small>
-              Personas agregadas y solicitudes
-            </small>
-          </span>
-
-          <b>
-            ›
-          </b>
-
-        </button>
-
-
-        <button
-          id="myActivityBtn"
-          class="profile-menu-item mf-press"
-          type="button"
-        >
-
-          <span class="profile-menu-icon">
-            📊
-          </span>
-
-          <span>
-            <strong>
-              Mi actividad
-            </strong>
-
-            <small>
-              Vistas, me gusta y publicaciones
-            </small>
-          </span>
-
-          <b>
-            ›
-          </b>
-
-        </button>
-
-
-        <button
-          id="profileSettingsBtn"
-          class="profile-menu-item mf-press"
-          type="button"
-        >
-
-          <span class="profile-menu-icon">
-            ⚙️
-          </span>
-
-          <span>
-            <strong>
-              Configuración
-            </strong>
-
-            <small>
-              Cuenta, seguridad y preferencias
-            </small>
-          </span>
-
-          <b>
-            ›
-          </b>
-
-        </button>
-
-
-        <!-- =================================================
-             PANEL DE ADMINISTRADOR
-             El JavaScript decidirá si debe mostrarse.
-        ================================================== -->
-        <button
-          id="adminPanelBtn"
-          class="profile-menu-item admin-panel-button hidden mf-press"
-          type="button"
-        >
-
-          <span class="profile-menu-icon admin-icon">
-            🛡️
-          </span>
-
-          <span>
-
-            <strong>
-              Panel de Administrador
-            </strong>
-
-            <small>
-              Administración y control de Market Flash
-            </small>
-
-          </span>
-
-          <b>
-            ›
-          </b>
-
-        </button>
-
-      </div>
-
-
-      <!-- =================================================
-           INFORMACIÓN DE LA CUENTA
-      ================================================== -->
-      <div class="page-card">
-
-        <h3>
-          Información de la cuenta
-        </h3>
-
-        <div class="settings-list">
-
-          <div class="settings-row">
-
-            <span>
-              👤 Nombre
-            </span>
-
-            <strong id="profileNameInfo">
-              -
-            </strong>
-
-          </div>
-
-
-          <div class="settings-row">
-
-            <span>
-              📱 Número de teléfono
-            </span>
-
-            <strong id="profilePhoneInfo">
-              -
-            </strong>
-
-          </div>
-
-
-          <div class="settings-row">
-
-            <span>
-              🪪 Número de cédula
-            </span>
-
-            <strong>
-              Protegida
-            </strong>
-
-          </div>
-
-
-          <div class="settings-row">
-
-            <span>
-              💬 Messenger
-            </span>
-
-            <strong id="profileMessengerInfo">
-              No conectado
-            </strong>
-
-          </div>
-
-
-          <div class="settings-row">
-
-            <span>
-              🟢 WhatsApp
-            </span>
-
-            <strong id="profileWhatsappInfo">
-              No configurado
-            </strong>
-
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- =================================================
-           MIS PUBLICACIONES
-      ================================================== -->
-      <div class="page-card">
-
-        <div class="card-title-row">
-
-          <h3>
-            Mis publicaciones
-          </h3>
-
-          <span id="myProductCount">
-            0
-          </span>
-
-        </div>
-
-        <div
-          id="myProducts"
-          class="products-grid"
-        ></div>
-
-      </div>
-
-
-      <!-- =================================================
-           EDITAR PERFIL
-      ================================================== -->
-      <div
-        id="profileEditSection"
-        class="page-card hidden"
-      >
-
-        <h3>
-          ✏️ Editar perfil
-        </h3>
-
-        <div class="profile-edit-photo">
-
-          <button
-            id="editProfilePhotoBtn"
-            class="avatar-large mf-press"
-            type="button"
-          >
-            👤
-          </button>
-
-          <p>
-            Cambia tu foto de perfil
-          </p>
-
-        </div>
-
-
-        <div class="form-card">
-
-          <label for="editProfileNameInput">
-            Nombre
-          </label>
-
-          <input
-            id="editProfileNameInput"
-            type="text"
-            placeholder="Tu nombre"
-            autocomplete="name"
-          >
-
-
-          <label for="editProfilePhoneInput">
-            Número de teléfono
-          </label>
-
-          <input
-            id="editProfilePhoneInput"
-            type="tel"
-            placeholder="809-000-0000"
-            autocomplete="tel"
-          >
-
-
-          <label for="editProfileWhatsappInput">
-            Número de WhatsApp
-          </label>
-
-          <input
-            id="editProfileWhatsappInput"
-            type="tel"
-            placeholder="809-000-0000"
-            autocomplete="tel"
-          >
-
-
-          <button
-            id="saveProfileBtn"
-            class="primary-btn mf-press"
-            type="button"
-          >
-            Guardar cambios
-          </button>
-
-        </div>
-
-      </div>
-
-
-      <!-- =================================================
-           CONFIGURACIÓN
-      ================================================== -->
-      <div
-        id="profileSettings"
-        class="page-card hidden"
-      >
-
-        <h3>
-          ⚙️ Configuración
-        </h3>
-
-        <p>
-          Personaliza tu experiencia en Market Flash.
-        </p>
-
-
-        <!-- APARIENCIA -->
-        <div class="settings-list">
-
-          <button
-            id="appColorBtn"
-            class="secondary-btn mf-press"
-            type="button"
-          >
-            🎨 Cambiar color de la aplicación
-          </button>
-
-
-          <button
-            id="chatStyleBtn"
-            class="secondary-btn mf-press"
-            type="button"
-          >
-            💬 Personalizar estilo del chat
-          </button>
-
-
-          <button
-            id="chatBackgroundBtn"
-            class="secondary-btn mf-press"
-            type="button"
-          >
-            🏞️ Cambiar fondo del chat
-          </button>
-
-
-          <button
-            id="chatCustomImageBtn"
-            class="secondary-btn mf-press"
-            type="button"
-          >
-            📷 Subir imagen personalizada para el chat
-          </button>
-
-
-          <input
-            id="chatCustomImageInput"
-            type="file"
-            accept="image/*"
-            hidden
-          >
-
-
-          <button
-            id="builtInLandscapeBtn"
-            class="secondary-btn mf-press"
-            type="button"
-          >
-            🌴 Elegir paisaje de Market Flash
-          </button>
-
-        </div>
-
-
-        <!-- =================================================
-             TELÉFONO
-        ================================================== -->
-        <div class="form-card">
-
-          <h3>
-            📱 Cambiar número de teléfono
-          </h3>
-
-          <label for="newPhoneInput">
-            Nuevo número de teléfono
-          </label>
-
-          <input
-            id="newPhoneInput"
-            type="tel"
-            placeholder="809-000-0000"
-            autocomplete="tel"
-          >
-
-          <button
-            id="savePhoneBtn"
-            class="primary-btn mf-press"
-            type="button"
-          >
-            Guardar número
-          </button>
-
-        </div>
-
-
-        <!-- =================================================
-             WHATSAPP
-        ================================================== -->
-        <div class="form-card">
-
-          <h3>
-            🟢 WhatsApp
-          </h3>
-
-          <p>
-            Este número aparecerá como opción de contacto
-            cuando alguien vea tus publicaciones.
-          </p>
-
-          <label for="whatsappNumberInput">
-            Número de WhatsApp
-          </label>
-
-          <input
-            id="whatsappNumberInput"
-            type="tel"
-            placeholder="809-000-0000"
-            autocomplete="tel"
-          >
-
-          <button
-            id="saveWhatsappBtn"
-            class="primary-btn mf-press"
-            type="button"
-          >
-            Guardar WhatsApp
-          </button>
-
-        </div>
-
-
-        <!-- =================================================
-             MESSENGER
-        ================================================== -->
-        <div class="form-card">
-
-          <h3>
-            💬 Conectar con Messenger
-          </h3>
-
-          <p>
-            Agrega el enlace de tu perfil de Messenger
-            para que puedan contactarte.
-          </p>
-
-          <label for="messengerLinkInput">
-            Enlace de Messenger
-          </label>
-
-          <input
-            id="messengerLinkInput"
-            type="url"
-            placeholder="https://m.me/..."
-            autocomplete="url"
-          >
-
-          <button
-            id="saveMessengerBtn"
-            class="primary-btn mf-press"
-            type="button"
-          >
-            Guardar enlace de Messenger
-          </button>
-
-        </div>
-
-
-        <!-- =================================================
-             CONTRASEÑA
-        ================================================== -->
-        <div class="form-card">
-
-          <h3>
-            🔐 Cambiar contraseña
-          </h3>
-
-          <input
-            id="currentPasswordInput"
-            type="password"
-            placeholder="Contraseña actual"
-            autocomplete="current-password"
-          >
-
-          <input
-            id="newPasswordInput"
-            type="password"
-            placeholder="Nueva contraseña"
-            autocomplete="new-password"
-          >
-
-          <button
-            id="changePasswordBtn"
-            class="primary-btn mf-press"
-            type="button"
-          >
-            Cambiar contraseña
-          </button>
-
-        </div>
-
-
-        <!-- =================================================
-             ELIMINAR CUENTA
-        ================================================== -->
-        <div class="account-danger">
-
-          <button
-            id="deleteAccountBtn"
-            class="danger-outline small-danger mf-press"
-            type="button"
-          >
-            Eliminar cuenta
-          </button>
-
-        </div>
-
-      </div>
-
-    </section>
+      id="productsGrid"
+      class="products-grid"
+    ></section>
 
   </main>
 
 
-  <!-- =====================================================
-       NAVEGACIÓN INFERIOR
-  ====================================================== -->
+  <!-- BARRA INFERIOR -->
   <nav
     class="bottom-nav"
     aria-label="Navegación principal"
@@ -1156,9 +137,8 @@
 
     <!-- CHAT -->
     <button
-      class="nav-item mf-press"
+      class="nav-item"
       data-page="chat"
-      type="button"
     >
 
       <span>
@@ -1181,9 +161,8 @@
 
     <!-- INICIO -->
     <button
-      class="nav-item active mf-press"
+      class="nav-item active"
       data-page="home"
-      type="button"
     >
 
       <span>
@@ -1197,30 +176,20 @@
     </button>
 
 
-    <!-- PUBLICAR -->
+    <!-- BOTÓN PUBLICAR -->
     <button
       id="publishBtn"
-      class="publish-plus mf-press"
-      type="button"
-      aria-label="Publicar producto"
+      class="publish-plus"
+      aria-label="Publicar"
     >
-
-      <span class="publish-plus-icon">
-        ＋
-      </span>
-
-      <span class="publish-plus-label">
-        Publicar
-      </span>
-
+      ＋
     </button>
 
 
     <!-- ACTIVIDAD -->
     <button
-      class="nav-item mf-press"
+      class="nav-item"
       data-page="activity"
-      type="button"
     >
 
       <span>
@@ -1236,9 +205,8 @@
 
     <!-- PERFIL -->
     <button
-      class="nav-item mf-press"
+      class="nav-item"
       data-page="profile"
-      type="button"
     >
 
       <span>
@@ -1249,13 +217,6 @@
         Mi perfil
       </small>
 
-      <b
-        id="profileBadge"
-        class="nav-badge hidden"
-      >
-        0
-      </b>
-
     </button>
 
   </nav>
@@ -1263,165 +224,29 @@
 </div>
 
 
-<!-- =======================================================
-     MODAL PRINCIPAL
-======================================================== -->
+<!-- VENTANA MODAL -->
 <div
   id="modal"
   class="modal hidden"
-  aria-hidden="true"
 >
 
   <div
     id="modalCard"
     class="modal-card"
-    role="dialog"
-    aria-modal="true"
   ></div>
 
 </div>
 
 
-<!-- =======================================================
-     TOAST
-======================================================== -->
+<!-- MENSAJE TEMPORAL -->
 <div
   id="toast"
   class="toast hidden"
-  role="status"
-  aria-live="polite"
 ></div>
 
 
-<!-- =======================================================
-     ARCHIVOS
-======================================================== -->
-
-<!-- FOTO DEL PRODUCTO: CÁMARA -->
-<input
-  id="productCameraInput"
-  type="file"
-  accept="image/*"
-  capture="environment"
-  hidden
->
-
-<!-- FOTO DEL PRODUCTO: GALERÍA -->
-<input
-  id="productGalleryInput"
-  type="file"
-  accept="image/*"
-  multiple
-  hidden
->
-
-<!-- VIDEO DEL PRODUCTO: CÁMARA -->
-<input
-  id="productVideoCameraInput"
-  type="file"
-  accept="video/*"
-  capture="environment"
-  hidden
->
-
-<!-- VIDEO DEL PRODUCTO: GALERÍA -->
-<input
-  id="productVideoGalleryInput"
-  type="file"
-  accept="video/*"
-  hidden
->
-
-<!-- COMPROBANTE DE PAGO: CÁMARA -->
-<input
-  id="paymentProofCameraInput"
-  type="file"
-  accept="image/*"
-  capture="environment"
-  hidden
->
-
-<!-- COMPROBANTE DE PAGO: GALERÍA -->
-<input
-  id="paymentProofGalleryInput"
-  type="file"
-  accept="image/*"
-  hidden
->
-
-<!-- FOTO DE PERFIL -->
-<input
-  id="profileImageInput"
-  type="file"
-  accept="image/*"
-  capture="user"
-  hidden
->
-
-
-<!-- =======================================================
-     FLASH DEL DÍA
-     ARCHIVOS
-======================================================== -->
-
-<input
-  id="flashPhotoCameraInput"
-  type="file"
-  accept="image/*"
-  capture="environment"
-  hidden
->
-
-<input
-  id="flashPhotoGalleryInput"
-  type="file"
-  accept="image/*"
-  multiple
-  hidden
->
-
-<input
-  id="flashVideoCameraInput"
-  type="file"
-  accept="video/*"
-  capture="environment"
-  hidden
->
-
-<input
-  id="flashVideoGalleryInput"
-  type="file"
-  accept="video/*"
-  hidden
->
-
-
-<!-- =======================================================
-     SERVICE WORKER
-======================================================== -->
+<!-- JAVASCRIPT -->
 <script src="script.js"></script>
-
-<script>
-  if ("serviceWorker" in navigator) {
-
-    window.addEventListener("load", function () {
-
-      navigator.serviceWorker
-        .register("./service-worker.js")
-        .catch(function () {
-
-          /*
-            Si todavía no existe service-worker.js,
-            Market Flash continúa funcionando como
-            página web normal.
-          */
-
-        });
-
-    });
-
-  }
-</script>
 
 </body>
 </html>
