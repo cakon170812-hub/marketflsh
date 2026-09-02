@@ -1,48 +1,37 @@
 /* =========================================
-   MICHAEL FLASH
-   SISTEMA BASE
+   MARKET FLASH
+   SISTEMA PRINCIPAL
 ========================================= */
 
-
-const CLAVE_USUARIO = "michaelFlashUsuario";
-
-const CLAVE_SESION = "michaelFlashSesion";
+const CLAVE_USUARIO = "marketFlashUsuario";
+const CLAVE_SESION = "marketFlashSesion";
 
 
 /* =========================================
-   MOSTRAR PANTALLA
+   CAMBIAR DE PANTALLA
 ========================================= */
 
-function mostrarPantalla(id) {
+function mostrarPantalla(idPantalla) {
 
     const pantallas = document.querySelectorAll(".pantalla");
 
     pantallas.forEach(function(pantalla) {
-
         pantalla.classList.remove("activa");
-
     });
 
-
-    const pantalla = document.getElementById(id);
+    const pantalla = document.getElementById(idPantalla);
 
     if (pantalla) {
-
         pantalla.classList.add("activa");
-
     }
-
-
-    window.scrollTo(0, 0);
 }
 
 
 /* =========================================
-   VOLVER A PRINCIPAL
+   VOLVER AL INICIO
 ========================================= */
 
 function volverPrincipal() {
-
     mostrarPantalla("pantallaPrincipal");
 }
 
@@ -53,23 +42,33 @@ function volverPrincipal() {
 
 function abrirRegistro() {
 
-    limpiarRegistro();
-
     mostrarPantalla("pantallaRegistro");
+
+    const campoNombre = document.getElementById("nombreCompleto");
+
+    if (campoNombre) {
+        setTimeout(function() {
+            campoNombre.focus();
+        }, 200);
+    }
 }
 
 
 /* =========================================
-   ABRIR INICIO
+   ABRIR LOGIN
 ========================================= */
 
 function abrirInicio() {
 
-    document.getElementById("loginCedula").value = "";
-
-    document.getElementById("loginPassword").value = "";
-
     mostrarPantalla("pantallaLogin");
+
+    const campoCedula = document.getElementById("loginCedula");
+
+    if (campoCedula) {
+        setTimeout(function() {
+            campoCedula.focus();
+        }, 200);
+    }
 }
 
 
@@ -79,32 +78,44 @@ function abrirInicio() {
 
 function crearCuenta() {
 
-    const nombre =
-        document.getElementById("nombre").value.trim();
+    const nombre = document
+        .getElementById("nombreCompleto")
+        .value
+        .trim();
 
-    const apodo =
-        document.getElementById("apodo").value.trim();
+    const apodo = document
+        .getElementById("apodo")
+        .value
+        .trim();
 
-    const cedula =
-        document.getElementById("cedula").value.trim();
+    const cedula = document
+        .getElementById("cedula")
+        .value
+        .trim();
 
-    const telefono =
-        document.getElementById("telefono").value.trim();
+    const telefono = document
+        .getElementById("telefono")
+        .value
+        .trim();
 
-    const correo =
-        document.getElementById("correo").value.trim();
+    const correo = document
+        .getElementById("correo")
+        .value
+        .trim();
 
-    const password =
-        document.getElementById("password").value;
+    const contrasena = document
+        .getElementById("contrasena")
+        .value;
 
-    const confirmarPassword =
-        document.getElementById("confirmarPassword").value;
+    const confirmar = document
+        .getElementById("confirmarContrasena")
+        .value;
 
-    const direccion =
-        document.getElementById("direccion").value.trim();
+    const direccion = document
+        .getElementById("direccion")
+        .value
+        .trim();
 
-
-    /* COMPROBAR CAMPOS */
 
     if (
         !nombre ||
@@ -112,57 +123,51 @@ function crearCuenta() {
         !cedula ||
         !telefono ||
         !correo ||
-        !password ||
-        !confirmarPassword ||
+        !contrasena ||
+        !confirmar ||
         !direccion
     ) {
 
-        alert("Completa todos los campos.");
+        alert("⚠️ Completa todos los campos.");
 
         return;
     }
 
 
-    /* COMPROBAR CONTRASEÑA */
+    if (contrasena !== confirmar) {
 
-    if (password !== confirmarPassword) {
-
-        alert("Las contraseñas no coinciden.");
+        alert("⚠️ Las contraseñas no coinciden.");
 
         return;
     }
 
 
-    if (password.length < 4) {
+    if (contrasena.length < 4) {
 
-        alert("La contraseña debe tener al menos 4 caracteres.");
+        alert("⚠️ La contraseña debe tener al menos 4 caracteres.");
 
         return;
     }
 
 
-    /* COMPROBAR CUENTA EXISTENTE */
-
-    const usuarioAnterior =
+    const usuarioExistente =
         JSON.parse(
             localStorage.getItem(CLAVE_USUARIO)
         );
 
 
     if (
-        usuarioAnterior &&
-        usuarioAnterior.cedula === cedula
+        usuarioExistente &&
+        usuarioExistente.cedula === cedula
     ) {
 
-        alert("Ya existe una cuenta con esa cédula.");
+        alert("⚠️ Ya existe una cuenta con esa cédula.");
 
         return;
     }
 
 
-    /* CREAR USUARIO */
-
-    const usuario = {
+    const nuevoUsuario = {
 
         nombre: nombre,
 
@@ -174,37 +179,30 @@ function crearCuenta() {
 
         correo: correo,
 
-        password: password,
+        contrasena: contrasena,
 
         direccion: direccion
-
     };
 
 
     localStorage.setItem(
-
         CLAVE_USUARIO,
-
-        JSON.stringify(usuario)
-
+        JSON.stringify(nuevoUsuario)
     );
 
-
-    /* ACTIVAR SESIÓN */
 
     localStorage.setItem(
-
         CLAVE_SESION,
-
         "activa"
-
     );
 
 
-    alert("¡Cuenta creada correctamente!");
+    alert(
+        "⚡ ¡Cuenta creada correctamente!\n\nBienvenido a Market Flash."
+    );
 
 
-    /* IR DIRECTAMENTE AL PANEL */
+    limpiarRegistro();
 
     entrarAlPanel();
 }
@@ -216,11 +214,22 @@ function crearCuenta() {
 
 function iniciarSesion() {
 
-    const cedula =
-        document.getElementById("loginCedula").value.trim();
+    const cedula = document
+        .getElementById("loginCedula")
+        .value
+        .trim();
 
-    const password =
-        document.getElementById("loginPassword").value;
+    const contrasena = document
+        .getElementById("loginContrasena")
+        .value;
+
+
+    if (!cedula || !contrasena) {
+
+        alert("⚠️ Escribe tu cédula y contraseña.");
+
+        return;
+    }
 
 
     const usuario =
@@ -232,7 +241,7 @@ function iniciarSesion() {
     if (!usuario) {
 
         alert(
-            "No existe una cuenta. Primero debes crear una cuenta."
+            "⚠️ No existe una cuenta todavía.\n\nPrimero debes crear una cuenta."
         );
 
         return;
@@ -240,28 +249,23 @@ function iniciarSesion() {
 
 
     if (
-        usuario.cedula !== cedula ||
-        usuario.password !== password
+        usuario.cedula === cedula &&
+        usuario.contrasena === contrasena
     ) {
 
-        alert(
-            "La cédula o contraseña es incorrecta."
+        localStorage.setItem(
+            CLAVE_SESION,
+            "activa"
         );
 
-        return;
+        entrarAlPanel();
+
+    } else {
+
+        alert(
+            "❌ Cédula o contraseña incorrecta."
+        );
     }
-
-
-    localStorage.setItem(
-
-        CLAVE_SESION,
-
-        "activa"
-
-    );
-
-
-    entrarAlPanel();
 }
 
 
@@ -303,9 +307,23 @@ function cerrarSesion() {
 
     localStorage.removeItem(CLAVE_SESION);
 
-    alert("Sesión cerrada correctamente.");
+    const loginCedula =
+        document.getElementById("loginCedula");
 
-    volverPrincipal();
+    const loginContrasena =
+        document.getElementById("loginContrasena");
+
+
+    if (loginCedula) {
+        loginCedula.value = "";
+    }
+
+    if (loginContrasena) {
+        loginContrasena.value = "";
+    }
+
+
+    mostrarPantalla("pantallaPrincipal");
 }
 
 
@@ -317,20 +335,13 @@ function limpiarRegistro() {
 
     const campos = [
 
-        "nombre",
-
+        "nombreCompleto",
         "apodo",
-
         "cedula",
-
         "telefono",
-
         "correo",
-
-        "password",
-
-        "confirmarPassword",
-
+        "contrasena",
+        "confirmarContrasena",
         "direccion"
 
     ];
@@ -342,9 +353,7 @@ function limpiarRegistro() {
             document.getElementById(id);
 
         if (campo) {
-
             campo.value = "";
-
         }
 
     });
@@ -352,7 +361,7 @@ function limpiarRegistro() {
 
 
 /* =========================================
-   COMPROBAR SESIÓN AL ABRIR
+   RECUPERAR SESIÓN
 ========================================= */
 
 document.addEventListener(
@@ -360,19 +369,22 @@ document.addEventListener(
     function() {
 
         const sesion =
-            localStorage.getItem(
-                CLAVE_SESION
-            );
+            localStorage.getItem(CLAVE_SESION);
+
+        const usuario =
+            localStorage.getItem(CLAVE_USUARIO);
 
 
-        if (sesion === "activa") {
+        if (
+            sesion === "activa" &&
+            usuario
+        ) {
 
-            entrarAlPanel();
+            mostrarPantalla("panelPrincipal");
 
         } else {
 
-            volverPrincipal();
-
+            mostrarPantalla("pantallaPrincipal");
         }
 
     }
