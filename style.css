@@ -1,696 +1,803 @@
-/* =========================================================
-   MARKET FLASH
-   DISEÑO DIGITAL • ELEGANTE • RESPONSIVE
-   iPhone • Android • Tablet • Laptop • PC
-   ========================================================= */
-
-:root {
-    --bg-main: #05070c;
-    --bg-secondary: #0b0f18;
-    --panel: rgba(13, 18, 30, 0.92);
-
-    --text-main: #ffffff;
-    --text-soft: #aeb8c9;
-
-    --accent: #00d9ff;
-    --accent-soft: rgba(0, 217, 255, 0.18);
-
-    --border: rgba(255, 255, 255, 0.10);
-
-    --shadow: 0 15px 45px rgba(0, 0, 0, 0.45);
-
-    --radius: 18px;
-}
-
-
-/* =========================================================
-   CONFIGURACIÓN GENERAL
-   ========================================================= */
-
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+:root {
+    --bg: #05070b;
+    --bg-soft: #0b0f16;
+    --panel: #0d121b;
+    --panel-light: #131a25;
+    --text: #f4f7fb;
+    --muted: #8e9aaa;
+    --line: rgba(255, 255, 255, 0.09);
+    --flash: #dffcff;
+    --flash-soft: rgba(110, 239, 255, 0.12);
+    --danger: #ff4d62;
+    --success: #62f5b0;
+    --radius: 20px;
+}
+
 html,
 body {
     width: 100%;
     min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 body {
-    font-family: Arial, Helvetica, sans-serif;
-    background:
-        radial-gradient(
-            circle at 50% 20%,
-            rgba(0, 217, 255, 0.08),
-            transparent 35%
-        ),
-        var(--bg-main);
-
-    color: var(--text-main);
-
     overflow-x: hidden;
 }
 
-
-/* =========================================================
-   APP PRINCIPAL
-   ========================================================= */
-
-#app {
-    width: 100%;
-    min-height: 100vh;
-}
-
-
-/* =========================================================
+/* =====================================================
    PANTALLAS
-   ========================================================= */
+===================================================== */
 
 .screen {
     display: none;
-
-    width: 100%;
     min-height: 100vh;
-
-    position: relative;
-
-    padding: 30px;
-
-    animation: screenAppear 0.35s ease;
+    width: 100%;
 }
 
 .screen.active {
     display: flex;
-    flex-direction: column;
 }
 
-@keyframes screenAppear {
-
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-}
-
-
-/* =========================================================
-   PANTALLA DE BIENVENIDA
-   ========================================================= */
+/* =====================================================
+   BIENVENIDA
+===================================================== */
 
 #welcome-screen {
+    position: relative;
     align-items: center;
     justify-content: center;
-
-    text-align: center;
-
     overflow: hidden;
+    background:
+        radial-gradient(circle at center, #101722 0%, #05070b 58%, #020306 100%);
 }
 
-
-/* =========================================================
-   RAYO DE FONDO
-   ========================================================= */
-
-.background-lightning {
+.welcome-background {
     position: absolute;
-
-    left: 50%;
-    top: 50%;
-
-    transform: translate(-50%, -53%);
-
-    font-size: clamp(180px, 30vw, 430px);
-
-    line-height: 1;
-
-    opacity: 0.08;
-
-    filter:
-        drop-shadow(0 0 25px rgba(0, 217, 255, 0.5));
-
+    inset: 0;
+    overflow: hidden;
     pointer-events: none;
-
-    animation: lightningPulse 3.5s ease-in-out infinite;
 }
 
-@keyframes lightningPulse {
-
-    0%,
-    100% {
-        opacity: 0.06;
-        transform: translate(-50%, -53%) scale(1);
-    }
-
-    50% {
-        opacity: 0.11;
-        transform: translate(-50%, -53%) scale(1.04);
-    }
-
+.lightning-background {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: min(65vw, 620px);
+    opacity: 0.035;
+    filter: blur(1px);
+    animation: lightningPulse 3s ease-in-out infinite;
 }
 
-
-/* =========================================================
-   MARCA
-   ========================================================= */
-
-.brand {
+.welcome-content {
     position: relative;
     z-index: 2;
+    width: min(92%, 520px);
+    text-align: center;
+}
 
+.brand-area {
     margin-bottom: 45px;
 }
 
-.brand h1 {
-    font-size: clamp(38px, 7vw, 82px);
+.brand-lightning {
+    font-size: 75px;
+    line-height: 1;
+    opacity: 0.9;
+    animation: softFlash 2.8s ease-in-out infinite;
+}
 
+.brand-area h1 {
+    margin-top: 10px;
+    font-size: clamp(36px, 9vw, 70px);
+    letter-spacing: 4px;
     font-weight: 800;
-
-    letter-spacing: 3px;
-
-    text-transform: uppercase;
-
-    text-shadow:
-        0 0 10px rgba(255, 255, 255, 0.25),
-        0 0 30px rgba(0, 217, 255, 0.20);
-
-    animation: brandGlow 3s ease-in-out infinite;
 }
 
-.brand h1 span {
-    color: var(--accent);
-
-    text-shadow:
-        0 0 8px var(--accent),
-        0 0 25px rgba(0, 217, 255, 0.55);
-}
-
-.brand p {
+.brand-area p {
     margin-top: 12px;
-
-    color: var(--text-soft);
-
-    font-size: clamp(14px, 2vw, 20px);
-
+    color: var(--muted);
+    font-size: 15px;
     letter-spacing: 1px;
 }
 
-@keyframes brandGlow {
-
-    0%,
-    100% {
-        opacity: 0.92;
-    }
-
-    50% {
-        opacity: 1;
-    }
-
+.welcome-buttons {
+    display: grid;
+    gap: 14px;
 }
 
-
-/* =========================================================
-   BOTONES PRINCIPALES
-   ========================================================= */
-
-.main-buttons {
-    position: relative;
-    z-index: 2;
-
-    width: min(420px, 100%);
-
-    display: flex;
-    flex-direction: column;
-
-    gap: 16px;
-}
-
-button {
-    font-family: inherit;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.primary-button,
-.secondary-button {
+.main-button {
     width: 100%;
-
-    min-height: 58px;
-
+    min-height: 54px;
+    border: 1px solid rgba(220, 250, 255, 0.25);
     border-radius: 15px;
-
-    font-size: 16px;
-
-    font-weight: 800;
-
-    letter-spacing: 1.5px;
-
-    transition:
-        transform 0.2s ease,
-        box-shadow 0.2s ease,
-        background 0.2s ease;
+    background: linear-gradient(
+        135deg,
+        rgba(220, 250, 255, 0.13),
+        rgba(255, 255, 255, 0.04)
+    );
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.25s ease;
 }
 
-.primary-button {
-    color: #031018;
-
-    background: var(--accent);
-
-    border: 1px solid var(--accent);
-
-    box-shadow:
-        0 0 18px rgba(0, 217, 255, 0.22);
-}
-
-.secondary-button {
-    color: var(--text-main);
-
-    background: rgba(255, 255, 255, 0.04);
-
-    border: 1px solid rgba(0, 217, 255, 0.35);
-}
-
-.primary-button:hover,
-.secondary-button:hover {
+.main-button:hover {
     transform: translateY(-2px);
+    border-color: rgba(220, 250, 255, 0.55);
+    background: rgba(220, 250, 255, 0.15);
 }
 
-.primary-button:active,
-.secondary-button:active {
+.main-button:active {
     transform: scale(0.98);
 }
 
+.secondary-button {
+    background: rgba(255, 255, 255, 0.025);
+}
 
-/* =========================================================
+.ownership {
+    margin-top: 40px;
+    color: #596474;
+    font-size: 11px;
+    letter-spacing: 0.8px;
+}
+
+/* =====================================================
    FORMULARIOS
-   ========================================================= */
+===================================================== */
+
+#login-screen,
+#register-screen {
+    align-items: center;
+    justify-content: center;
+    padding: 25px 15px;
+    background:
+        radial-gradient(circle at top, #101721 0%, #05070b 55%);
+}
 
 .form-container {
-    width: min(480px, 100%);
-
-    margin: auto;
-
-    padding: 35px;
-
-    background: var(--panel);
-
-    border: 1px solid var(--border);
-
-    border-radius: 24px;
-
-    box-shadow: var(--shadow);
-
-    backdrop-filter: blur(15px);
+    width: min(94%, 450px);
+    padding: 30px;
+    border: 1px solid var(--line);
+    border-radius: 25px;
+    background: rgba(13, 18, 27, 0.92);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.45);
 }
 
-.form-brand {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 8px;
-
-    margin-bottom: 28px;
-}
-
-.form-brand h2 {
-    font-size: 22px;
-
-    letter-spacing: 2px;
-}
-
-.mini-lightning {
-    color: var(--accent);
-
-    font-size: 25px;
-
-    text-shadow: 0 0 12px var(--accent);
-}
-
-.form-container h3 {
+.form-logo {
     text-align: center;
-
-    font-size: 27px;
-
+    font-size: 48px;
     margin-bottom: 8px;
 }
 
-.form-description {
+.form-container h2 {
     text-align: center;
-
-    color: var(--text-soft);
-
-    margin-bottom: 28px;
+    font-size: 25px;
+    letter-spacing: 2px;
 }
 
-.input-group {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 8px;
-
-    margin-bottom: 18px;
-}
-
-.input-group label {
-    color: var(--text-soft);
-
+.form-subtitle {
+    text-align: center;
+    color: var(--muted);
+    margin: 10px 0 28px;
     font-size: 14px;
 }
 
-.input-group input {
+form label {
+    display: block;
+    margin: 16px 0 8px;
+    color: #c7d0dc;
+    font-size: 13px;
+}
+
+form input,
+form textarea {
     width: 100%;
-
-    min-height: 52px;
-
-    padding: 0 15px;
-
-    color: white;
-
-    background: rgba(255, 255, 255, 0.045);
-
-    border: 1px solid rgba(255, 255, 255, 0.12);
-
-    border-radius: 12px;
-
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: #080c12;
+    color: var(--text);
+    padding: 14px;
+    font-size: 15px;
     outline: none;
-
-    font-size: 16px;
-
-    transition:
-        border 0.2s ease,
-        box-shadow 0.2s ease;
+    transition: 0.2s ease;
 }
 
-.input-group input:focus {
-    border-color: var(--accent);
-
-    box-shadow:
-        0 0 0 3px rgba(0, 217, 255, 0.10);
+form input:focus,
+form textarea:focus {
+    border-color: rgba(220, 250, 255, 0.45);
+    background: #0b1017;
 }
 
-.form-button {
-    margin-top: 8px;
+form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-container .main-button {
+    margin-top: 25px;
 }
 
 .back-button {
+    display: block;
     width: 100%;
-
-    margin-top: 18px;
-
+    margin-top: 15px;
     padding: 12px;
-
-    color: var(--text-soft);
-
+    border: 0;
     background: transparent;
-
-    border: none;
-
-    font-size: 15px;
+    color: var(--muted);
+    cursor: pointer;
 }
 
-
-/* =========================================================
+/* =====================================================
    DASHBOARD
-   ========================================================= */
+===================================================== */
 
 #dashboard-screen {
-    padding: 0;
+    position: relative;
+    display: none;
+    flex-direction: column;
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top center, #101722 0%, #05070b 45%);
+}
+
+#dashboard-screen.active {
+    display: flex;
 }
 
 .dashboard-header {
-    width: 100%;
-
-    min-height: 72px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    padding: 0 clamp(18px, 4vw, 55px);
-
-    background: rgba(5, 7, 12, 0.90);
-
-    border-bottom: 1px solid var(--border);
-
     position: sticky;
-
     top: 0;
-
-    z-index: 10;
-
-    backdrop-filter: blur(15px);
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 64px;
+    padding: 10px clamp(15px, 4vw, 45px);
+    border-bottom: 1px solid var(--line);
+    background: rgba(5, 7, 11, 0.88);
+    backdrop-filter: blur(18px);
 }
 
 .dashboard-brand {
-    display: flex;
-
-    align-items: center;
-
-    gap: 9px;
-
-    font-size: clamp(16px, 2vw, 22px);
-
+    font-size: clamp(16px, 3vw, 23px);
+    font-weight: 800;
     letter-spacing: 1.5px;
 }
 
 .dashboard-brand span {
-    color: var(--accent);
-
-    text-shadow: 0 0 12px var(--accent);
+    margin-right: 6px;
 }
 
 .settings-button {
-    width: 46px;
-
-    height: 46px;
-
+    width: 42px;
+    height: 42px;
+    border: 1px solid var(--line);
     border-radius: 13px;
-
-    color: white;
-
-    background: rgba(255, 255, 255, 0.05);
-
-    border: 1px solid var(--border);
-
-    font-size: 23px;
-
-    transition: 0.2s ease;
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--text);
+    font-size: 22px;
+    cursor: pointer;
 }
 
-.settings-button:hover {
-    border-color: var(--accent);
+/* =====================================================
+   HOME
+===================================================== */
 
-    box-shadow:
-        0 0 15px rgba(0, 217, 255, 0.15);
-}
-
-
-/* =========================================================
-   CONTENIDO DEL DASHBOARD
-   ========================================================= */
-
-.dashboard-content {
-    width: min(1200px, 100%);
-
+.market-home {
+    width: min(100%, 1150px);
     margin: 0 auto;
-
-    padding: clamp(25px, 5vw, 60px);
+    padding: 20px clamp(14px, 3vw, 30px) 105px;
 }
 
-.dashboard-welcome {
-    margin-bottom: 30px;
+/* =====================================================
+   FLASH DEL DÍA
+===================================================== */
+
+.flash-day-section {
+    position: relative;
+    overflow: hidden;
+    padding: 20px;
+    border: 1px solid rgba(220, 250, 255, 0.14);
+    border-radius: 24px;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(220, 250, 255, 0.08),
+            rgba(255, 255, 255, 0.025)
+        );
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.25);
 }
 
-.dashboard-welcome p {
-    color: var(--text-soft);
+.flash-day-section::before {
+    content: "";
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    top: -120px;
+    right: -80px;
+    border-radius: 50%;
+    background: rgba(150, 240, 255, 0.08);
+    filter: blur(30px);
+}
 
+.flash-day-header {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.flash-icon {
+    display: grid;
+    place-items: center;
+    width: 53px;
+    height: 53px;
+    border-radius: 17px;
+    background: rgba(220, 250, 255, 0.08);
+    border: 1px solid rgba(220, 250, 255, 0.16);
+    font-size: 28px;
+    animation: softFlash 2.5s ease-in-out infinite;
+}
+
+.flash-day-header h2 {
+    font-size: clamp(21px, 5vw, 32px);
+    letter-spacing: 1.5px;
+}
+
+.flash-day-header p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.flash-promotions-list {
+    margin-top: 20px;
+}
+
+.empty-flash {
+    padding: 30px 15px;
+    text-align: center;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    border-radius: 18px;
+    background: rgba(0, 0, 0, 0.12);
+}
+
+.empty-flash-icon {
+    font-size: 38px;
+    opacity: 0.65;
+    margin-bottom: 10px;
+}
+
+.empty-flash h3 {
     font-size: 15px;
+}
 
+.empty-flash p {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.flash-promote-button {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    margin-top: 16px;
+    min-height: 50px;
+    border: 1px solid rgba(220, 250, 255, 0.25);
+    border-radius: 14px;
+    background: rgba(220, 250, 255, 0.08);
+    color: var(--text);
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+}
+
+/* =====================================================
+   PUBLICACIONES
+===================================================== */
+
+.publications-section {
+    margin-top: 25px;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.section-title h2 {
+    font-size: 19px;
+    letter-spacing: 1px;
+}
+
+.section-title span {
+    padding: 5px 9px;
+    border-radius: 8px;
+    background: rgba(98, 245, 176, 0.08);
+    color: var(--success);
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.empty-publications {
+    padding: 50px 15px;
+    text-align: center;
+    border: 1px dashed var(--line);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.015);
+}
+
+.empty-publications-icon {
+    font-size: 45px;
+    opacity: 0.55;
+}
+
+.empty-publications h3 {
+    margin-top: 12px;
+    font-size: 16px;
+}
+
+.empty-publications p {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* =====================================================
+   NAVEGACIÓN INFERIOR
+===================================================== */
+
+.bottom-navigation {
+    position: fixed;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+    z-index: 50;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    width: min(94%, 480px);
+    min-height: 70px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: rgba(9, 12, 18, 0.92);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 55px;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.nav-button span {
+    font-size: 20px;
+}
+
+.nav-button small {
+    font-size: 9px;
+    letter-spacing: 0.7px;
+}
+
+.nav-button.active {
+    color: var(--text);
+}
+
+.create-button {
+    justify-self: center;
+    width: 55px;
+    height: 55px;
+    border: 1px solid rgba(220, 250, 255, 0.3);
+    border-radius: 18px;
+    background: rgba(220, 250, 255, 0.1);
+    color: var(--text);
+    font-size: 32px;
+    line-height: 1;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+
+.create-button:hover {
+    transform: translateY(-3px);
+}
+
+/* =====================================================
+   MODALES
+===================================================== */
+
+.modal-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(7px);
+}
+
+.modal-panel.open {
+    display: flex;
+}
+
+.modal-content {
+    position: relative;
+    width: min(100%, 620px);
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: 28px 20px 30px;
+    border: 1px solid var(--line);
+    border-radius: 28px 28px 15px 15px;
+    background: #0b1018;
+    box-shadow: 0 -20px 80px rgba(0, 0, 0, 0.55);
+}
+
+.modal-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.modal-icon {
+    text-align: center;
+    font-size: 45px;
     margin-bottom: 5px;
 }
 
-.dashboard-welcome h2 {
-    font-size: clamp(25px, 4vw, 38px);
-}
-
-
-/* =========================================================
-   BOTONES DE MARKET FLASH
-   ========================================================= */
-
-.market-buttons {
-    width: 100%;
-
-    display: grid;
-
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-
-    gap: 16px;
-
-    margin-bottom: 30px;
-}
-
-.market-button {
-    min-height: 145px;
-
-    padding: 20px 15px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 13px;
-
-    color: white;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255, 255, 255, 0.07),
-            rgba(255, 255, 255, 0.025)
-        );
-
-    border: 1px solid rgba(0, 217, 255, 0.14);
-
-    border-radius: var(--radius);
-
-    box-shadow:
-        0 8px 25px rgba(0, 0, 0, 0.22);
-
-    transition:
-        transform 0.22s ease,
-        border-color 0.22s ease,
-        box-shadow 0.22s ease,
-        background 0.22s ease;
-}
-
-.market-button:hover {
-    transform: translateY(-4px);
-
-    border-color: rgba(0, 217, 255, 0.55);
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(0, 217, 255, 0.10),
-            rgba(255, 255, 255, 0.035)
-        );
-
-    box-shadow:
-        0 12px 35px rgba(0, 0, 0, 0.30),
-        0 0 20px rgba(0, 217, 255, 0.08);
-}
-
-.market-button:active {
-    transform: scale(0.97);
-}
-
-.market-button-icon {
-    font-size: clamp(30px, 4vw, 43px);
-
-    line-height: 1;
-}
-
-.market-button-text {
-    font-size: clamp(12px, 1.5vw, 15px);
-
-    font-weight: 800;
-
-    letter-spacing: 1px;
-
+.modal-content h2 {
     text-align: center;
+    font-size: 23px;
+    letter-spacing: 1.5px;
 }
 
-
-/* =========================================================
-   PANEL INFORMATIVO
-   ========================================================= */
-
-.dashboard-placeholder {
-    width: 100%;
-
-    padding: 35px 25px;
-
+.modal-content > p {
     text-align: center;
-
-    background: rgba(255, 255, 255, 0.025);
-
-    border: 1px solid var(--border);
-
-    border-radius: 20px;
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 13px;
 }
 
-.dashboard-lightning {
-    color: var(--accent);
-
-    font-size: 38px;
-
+.form-section-title {
+    margin-top: 24px;
     margin-bottom: 12px;
-
-    text-shadow:
-        0 0 15px var(--accent);
+    color: #aeb8c5;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
 }
 
-.dashboard-placeholder h3 {
-    font-size: 22px;
+/* =====================================================
+   BOTONES DE MEDIA
+===================================================== */
 
-    margin-bottom: 8px;
+.media-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
 }
 
-.dashboard-placeholder p {
-    color: var(--text-soft);
-
-    line-height: 1.6;
+.media-button,
+.proof-button {
+    min-height: 50px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.035);
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
 }
 
+.media-button:hover,
+.proof-button:hover {
+    background: rgba(220, 250, 255, 0.08);
+}
 
-/* =========================================================
-   PANEL DE CONFIGURACIÓN
-   ========================================================= */
+.media-preview,
+.proof-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.media-preview img,
+.media-preview video,
+.proof-preview img {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: 13px;
+    border: 1px solid var(--line);
+}
+
+/* =====================================================
+   PAGO
+===================================================== */
+
+.payment-proof-box {
+    margin-top: 20px;
+    padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 17px;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.payment-proof-box .form-section-title {
+    margin-top: 0;
+}
+
+.payment-proof-box p {
+    margin-bottom: 13px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.proof-button {
+    width: 100%;
+}
+
+.promotion-notice {
+    margin-top: 18px;
+    padding: 14px;
+    border-left: 3px solid rgba(220, 250, 255, 0.35);
+    border-radius: 10px;
+    background: rgba(220, 250, 255, 0.04);
+}
+
+.promotion-notice strong {
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.promotion-notice p {
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.promotion-submit {
+    margin-top: 20px;
+}
+
+/* =====================================================
+   PERFIL
+===================================================== */
+
+.profile-avatar {
+    display: grid;
+    place-items: center;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 15px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 38px;
+}
+
+.profile-user-card {
+    margin-top: 22px;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: rgba(255, 255, 255, 0.025);
+}
+
+.profile-name,
+.profile-data {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.profile-data:last-child {
+    border-bottom: 0;
+}
+
+.profile-name span,
+.profile-data span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.profile-name strong,
+.profile-data strong {
+    text-align: right;
+    font-size: 13px;
+    word-break: break-word;
+}
+
+.profile-options {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.profile-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 50px;
+    padding: 0 15px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+}
+
+.profile-delete-button {
+    min-height: 43px;
+    margin-top: 7px;
+    border: 1px solid rgba(255, 77, 98, 0.25);
+    border-radius: 12px;
+    background: rgba(255, 77, 98, 0.06);
+    color: var(--danger);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* =====================================================
+   CONFIGURACIÓN
+===================================================== */
 
 .settings-panel {
     position: fixed;
-
     top: 0;
     right: 0;
-
-    width: min(360px, 88vw);
-
+    z-index: 120;
+    width: min(88%, 380px);
     height: 100vh;
-
-    padding: 25px;
-
-    background:
-        rgba(8, 12, 20, 0.97);
-
-    border-left: 1px solid var(--border);
-
-    box-shadow:
-        -15px 0 45px rgba(0, 0, 0, 0.40);
-
-    z-index: 50;
-
-    transform: translateX(105%);
-
+    padding: 20px;
+    border-left: 1px solid var(--line);
+    background: #080c12;
+    transform: translateX(100%);
     transition: transform 0.3s ease;
+    box-shadow: -20px 0 70px rgba(0, 0, 0, 0.45);
 }
 
 .settings-panel.open {
@@ -699,184 +806,145 @@ button {
 
 .settings-header {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
-
-    padding-bottom: 20px;
-
-    border-bottom: 1px solid var(--border);
-
-    margin-bottom: 20px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--line);
 }
 
-.settings-header h3 {
-    font-size: 21px;
+.settings-header h2 {
+    font-size: 19px;
 }
 
 .settings-header button {
-    width: 40px;
-
-    height: 40px;
-
-    color: white;
-
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
     background: transparent;
-
-    border: 1px solid var(--border);
-
-    border-radius: 10px;
-
-    font-size: 27px;
+    color: var(--text);
+    font-size: 22px;
+    cursor: pointer;
 }
 
-.settings-options {
+.settings-body {
+    display: grid;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.settings-option {
     display: flex;
-
-    flex-direction: column;
-
+    align-items: center;
     gap: 12px;
-}
-
-.settings-options button {
-    width: 100%;
-
-    padding: 16px;
-
+    min-height: 52px;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--text);
     text-align: left;
-
-    color: white;
-
-    background: rgba(255, 255, 255, 0.045);
-
-    border: 1px solid var(--border);
-
-    border-radius: 12px;
-
-    font-size: 15px;
+    cursor: pointer;
 }
 
-.settings-options button:hover {
-    border-color: rgba(0, 217, 255, 0.45);
+.logout-option {
+    margin-top: 15px;
 }
 
+/* =====================================================
+   ANIMACIONES
+===================================================== */
 
-/* =========================================================
+@keyframes lightningPulse {
+    0%,
+    100% {
+        opacity: 0.025;
+        transform: translate(-50%, -50%) scale(0.98);
+    }
+
+    50% {
+        opacity: 0.055;
+        transform: translate(-50%, -50%) scale(1.02);
+    }
+}
+
+@keyframes softFlash {
+    0%,
+    100% {
+        opacity: 0.7;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+/* =====================================================
    TABLET
-   ========================================================= */
+===================================================== */
 
-@media (max-width: 900px) {
+@media (min-width: 600px) {
 
-    .market-buttons {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+    .modal-panel {
+        align-items: center;
+        padding: 25px;
     }
 
+    .modal-content {
+        border-radius: 25px;
+    }
+
+    .flash-day-section {
+        padding: 28px;
+    }
 }
 
+/* =====================================================
+   LAPTOP / PC
+===================================================== */
 
-/* =========================================================
-   TELÉFONOS
-   ========================================================= */
+@media (min-width: 1000px) {
 
-@media (max-width: 600px) {
-
-    .screen {
-        padding: 18px;
+    .market-home {
+        padding-top: 30px;
     }
 
-    .brand {
-        margin-bottom: 35px;
+    .flash-day-section {
+        padding: 32px;
     }
 
-    .brand h1 {
+    .flash-promote-button {
+        width: 260px;
+    }
+
+    .bottom-navigation {
+        bottom: 20px;
+    }
+}
+
+/* =====================================================
+   TELÉFONOS PEQUEÑOS
+===================================================== */
+
+@media (max-width: 380px) {
+
+    .form-container {
+        padding: 23px 18px;
+    }
+
+    .brand-area h1 {
         letter-spacing: 2px;
     }
 
-    .form-container {
-        padding: 25px 20px;
-
-        border-radius: 20px;
+    .dashboard-brand {
+        font-size: 14px;
     }
 
-    .dashboard-header {
+    .flash-day-section {
+        padding: 16px;
+    }
+
+    .bottom-navigation {
         min-height: 64px;
     }
-
-    .dashboard-content {
-        padding: 25px 16px 40px;
-    }
-
-    .market-buttons {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-
-        gap: 12px;
-    }
-
-    .market-button {
-        min-height: 125px;
-
-        padding: 16px 10px;
-    }
-
-}
-
-
-/* =========================================================
-   TELÉFONOS PEQUEÑOS
-   ========================================================= */
-
-@media (max-width: 360px) {
-
-    .brand h1 {
-        font-size: 34px;
-    }
-
-    .market-buttons {
-        gap: 9px;
-    }
-
-    .market-button {
-        min-height: 112px;
-
-        border-radius: 15px;
-    }
-
-    .market-button-icon {
-        font-size: 28px;
-    }
-
-    .market-button-text {
-        font-size: 11px;
-    }
-
-}
-
-
-/* =========================================================
-   COMPUTADORAS GRANDES
-   ========================================================= */
-
-@media (min-width: 1200px) {
-
-    .market-buttons {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-    }
-
-}
-
-
-/* =========================================================
-   ACCESIBILIDAD
-   ========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
-    }
-
 }
