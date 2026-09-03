@@ -1,254 +1,243 @@
-from pathlib import Path
-
-script = r'''/* =========================================================
+/* =========================================================
    MARKET FLASH
    SCRIPT PRINCIPAL
+   Supabase Auth + Base de datos
    ========================================================= */
 
-document.addEventListener("DOMContentLoaded", function () {
-
-    /* =========================================================
-       REFERENCIAS DOM
-       ========================================================= */
-
-    const welcomeScreen = document.getElementById("welcome-screen");
-    const loginScreen = document.getElementById("login-screen");
-    const registerScreen = document.getElementById("register-screen");
-    const dashboardScreen = document.getElementById("dashboard-screen");
-
-    const loginButton = document.getElementById("login-button");
-    const registerButton = document.getElementById("register-button");
-    const backFromLogin = document.getElementById("back-from-login");
-    const backFromRegister = document.getElementById("back-from-register");
-
-    const loginForm = document.getElementById("login-form");
-    const registerForm = document.getElementById("register-form");
-
-    const settingsButton = document.getElementById("settings-button");
-    const settingsPanel = document.getElementById("settings-panel");
-    const closeSettings = document.getElementById("close-settings");
-    const appSettingsButton = document.getElementById("app-settings-button");
-    const settingsProfileButton = document.getElementById("settings-profile-button");
-    const logoutButton = document.getElementById("logout-button");
-
-    const homeNavButton = document.getElementById("home-nav-button");
-    const createPublicationButton = document.getElementById("create-publication-button");
-    const profileNavButton = document.getElementById("profile-nav-button");
-
-    const publicationPanel = document.getElementById("publication-panel");
-    const closePublicationPanel = document.getElementById("close-publication-panel");
-    const publicationForm = document.getElementById("publication-form");
-
-    const promotionPanel = document.getElementById("promotion-panel");
-    const closePromotionPanel = document.getElementById("close-promotion-panel");
-    const promotionForm = document.getElementById("promotion-form");
-    const promoteButton = document.getElementById("promote-button");
-
-    const membershipPanel = document.getElementById("membership-panel");
-    const closeMembershipPanel = document.getElementById("close-membership-panel");
-
-    const paymentMethodPanel = document.getElementById("payment-method-panel");
-    const closePaymentMethodPanel = document.getElementById("close-payment-method-panel");
-
-    const paymentProofPanel = document.getElementById("payment-proof-panel");
-    const closePaymentProofPanel = document.getElementById("close-payment-proof-panel");
-
-    const profilePanel = document.getElementById("profile-panel");
-    const closeProfilePanel = document.getElementById("close-profile-panel");
-    const profileSettingsButton = document.getElementById("profile-settings-button");
-    const editProfileButton = document.getElementById("edit-profile-button");
-    const administrationButton = document.getElementById("administration-button");
-    const logoutProfileButton = document.getElementById("logout-profile-button");
-    const deleteAccountButton = document.getElementById("delete-account-button");
-
-    const administrationPanel = document.getElementById("administration-panel");
-    const closeAdministrationPanel = document.getElementById("close-administration-panel");
-    const saveMembershipSettings = document.getElementById("save-membership-settings");
-    const adminPaymentMethodsList = document.getElementById("admin-payment-methods-list");
-    const addPaymentMethodButton = document.getElementById("add-payment-method-button");
-    const savePaymentMethodsButton = document.getElementById("save-payment-methods-button");
-
-    const adminPaymentProofsList = document.getElementById("admin-payment-proofs-list");
-    const pendingProofCount = document.getElementById("pending-proof-count");
-
-    const adminProofDetailPanel = document.getElementById("admin-proof-detail-panel");
-    const closeAdminProofDetail = document.getElementById("close-admin-proof-detail");
-    const approveProofButton = document.getElementById("approve-proof-button");
-    const rejectProofButton = document.getElementById("reject-proof-button");
-    const viewProofFullscreenButton = document.getElementById("view-proof-fullscreen-button");
-
-    const proofFullscreenViewer = document.getElementById("proof-fullscreen-viewer");
-    const closeProofFullscreen = document.getElementById("close-proof-fullscreen");
-
-    /* =========================================================
-       ESTADO
-       ========================================================= */
-
-    let currentUser = getSavedUser();
-    let selectedMembershipId = null;
-    let selectedPaymentMethodId = null;
-    let selectedPaymentAmount = 0;
-    let currentProofId = null;
-    let currentProofImage = "";
-    let publicationMedia = [];
-    let promotionMedia = [];
-    let proofImage = "";
+document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================================================
        CONFIGURACIÓN
        ========================================================= */
 
-    const FALLBACK_MEMBERSHIPS = {
-        basica: {
-            id: "basica",
-            name: "Membresía Básica",
-            description: "Promoción destacada para comenzar.",
-            price: null,
-            features: [
-                "⚡ Promoción destacada",
-                "📱 Publicación en FLASH DEL DÍA",
-                "📸 Fotos y videos"
-            ]
-        },
-        premium: {
-            id: "premium",
-            name: "Membresía Premium",
-            description: "Más prioridad y visibilidad.",
-            price: null,
-            features: [
-                "⚡ Mayor prioridad",
-                "🔥 Mayor visibilidad",
-                "📸 Fotos y videos"
-            ]
-        },
-        vip: {
-            id: "vip",
-            name: "Membresía VIP",
-            description: "Máxima prioridad y visibilidad.",
-            price: null,
-            features: [
-                "👑 Máxima prioridad",
-                "⚡ Máxima visibilidad",
-                "🔥 Destacado VIP",
-                "📸 Fotos y videos"
-            ]
-        }
-    };
+    const SUPABASE_URL = "https://osxuhmgnpgbxfopqdhqr.supabase.co";
 
-    const FALLBACK_PAYMENT_METHODS = [
-        {
-            id: "banreservas",
-            name: "BanReservas",
-            prices: {
-                basica: null,
-                premium: null,
-                vip: null
-            }
-        },
-        {
-            id: "bhd",
-            name: "BHD",
-            prices: {
-                basica: null,
-                premium: null,
-                vip: null
-            }
-        },
-        {
-            id: "popular",
-            name: "Banco Popular",
-            prices: {
-                basica: null,
-                premium: null,
-                vip: null
-            }
-        }
-    ];
+    const SUPABASE_KEY =
+        "sb_publishable_6qLmRFGHrwGq_CKqsIH7jA_Oz8TTlQZ";
 
-    const MEMBERSHIP_STORAGE_KEY = "marketFlashMembershipSettings";
-    const PAYMENT_METHODS_STORAGE_KEY = "marketFlashPaymentMethods";
-    const PAYMENT_PROOFS_STORAGE_KEY = "marketFlashPaymentProofs";
-    const PUBLICATIONS_STORAGE_KEY = "marketFlashPublications";
-    const PROMOTIONS_STORAGE_KEY = "marketFlashPromotions";
-    const USER_STORAGE_KEY = "marketFlashUser";
-    const LOGIN_STORAGE_KEY = "marketFlashLoggedIn";
-    const PENDING_PROMOTION_KEY = "marketFlashPendingPromotion";
+    /*
+       Si supabaseClient.js ya creó window.supabaseClient,
+       usamos esa conexión.
 
-    const appData = window.MARKET_FLASH_DATA || {};
+       Si no existe, creamos una aquí.
+    */
+    let db = window.supabaseClient;
+
+    if (!db && window.supabase && typeof window.supabase.createClient === "function") {
+        db = window.supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+    }
+
+    if (!db) {
+        console.error("No se pudo conectar con Supabase.");
+        alert("No se pudo conectar con Supabase. Revisa supabaseClient.js.");
+        return;
+    }
+
+    /* =========================================================
+       CONSTANTES
+       ========================================================= */
+
+    const TABLE_USERS = "users";
+    const TABLE_PUBLICATIONS = "publications";
+    const TABLE_PROMOTIONS = "promotions";
+    const TABLE_MEMBERSHIPS = "memberships";
+    const TABLE_PAYMENT_METHODS = "payment_methods";
+    const TABLE_PAYMENT_PROOFS = "payment_proofs";
+
+    /*
+       Este bucket deberá crearse en Supabase Storage.
+    */
+    const STORAGE_BUCKET = "market-flash-images";
+
+    let currentUser = null;
+    let currentProfile = null;
+
+    let selectedMembership = null;
+    let selectedPaymentMethod = null;
+    let pendingPromotion = null;
+    let selectedProof = null;
+
+    let publicationImageData = null;
+    let promotionImageData = null;
+    let paymentProofImageData = null;
+
+    /* =========================================================
+       ELEMENTOS
+       ========================================================= */
+
+    const welcomeScreen = document.getElementById("welcome-screen");
+    const loginScreen = document.getElementById("login-screen");
+    const registerScreen = document.getElementById("register-screen");
+    const appScreen = document.getElementById("app-screen");
+
+    const startButton = document.getElementById("start-button");
+
+    const loginBackButton = document.getElementById("login-back-button");
+    const registerBackButton = document.getElementById("register-back-button");
+
+    const goRegisterButton = document.getElementById("go-register-button");
+    const goLoginButton = document.getElementById("go-login-button");
+
+    const loginForm = document.getElementById("login-form");
+    const registerForm = document.getElementById("register-form");
+
+    const loginError = document.getElementById("login-error");
+    const registerError = document.getElementById("register-error");
+
+    const menuButton = document.getElementById("menu-button");
+    const closeSideMenu = document.getElementById("close-side-menu");
+    const sideMenu = document.getElementById("side-menu");
+
+    const homeScreen = document.getElementById("home-screen");
+    const publicationsScreen = document.getElementById("publications-screen");
+    const profileScreen = document.getElementById("profile-screen");
+
+    const menuHomeButton = document.getElementById("menu-home-button");
+    const menuPublicationsButton = document.getElementById("menu-publications-button");
+    const menuProfileButton = document.getElementById("menu-profile-button");
+    const menuAdministrationButton = document.getElementById("menu-administration-button");
+    const menuSettingsButton = document.getElementById("menu-settings-button");
+    const menuLogoutButton = document.getElementById("menu-logout-button");
+
+    const headerProfileButton = document.getElementById("header-profile-button");
+    const notificationsButton = document.getElementById("notifications-button");
+
+    const viewAllPublications = document.getElementById("view-all-publications");
+    const publishButton = document.getElementById("publish-button");
+
+    const publishPanel = document.getElementById("publish-panel");
+    const closePublishPanel = document.getElementById("close-publish-panel");
+    const publishForm = document.getElementById("publish-form");
+
+    const publicationTitle = document.getElementById("publication-title");
+    const publicationDescription = document.getElementById("publication-description");
+    const publicationPrice = document.getElementById("publication-price");
+    const publicationContact = document.getElementById("publication-contact");
+    const publicationImage = document.getElementById("publication-image");
+    const publicationImagePreview = document.getElementById("publication-image-preview");
+
+    const promotionPanel = document.getElementById("promotion-panel");
+    const closePromotionPanel = document.getElementById("close-promotion-panel");
+    const promotionForm = document.getElementById("promotion-form");
+
+    const promotionTitle = document.getElementById("promotion-title");
+    const promotionDescription = document.getElementById("promotion-description");
+    const promotionPrice = document.getElementById("promotion-price");
+    const promotionContact = document.getElementById("promotion-contact");
+
+    const promotionImageCamera = document.getElementById("promotion-image-camera");
+    const promotionImageGallery = document.getElementById("promotion-image-gallery");
+    const promotionImagePreview = document.getElementById("promotion-image-preview");
+
+    const membershipPanel = document.getElementById("membership-panel");
+    const closeMembershipPanel = document.getElementById("close-membership-panel");
+
+    const membershipContainer = document.getElementById("membership-container");
+
+    const paymentMethodPanel = document.getElementById("payment-method-panel");
+    const closePaymentMethodPanel = document.getElementById("close-payment-method-panel");
+
+    const selectedMembershipInfo = document.getElementById("selected-membership-info");
+    const paymentMethodSelect = document.getElementById("payment-method-select");
+    const paymentAmount = document.getElementById("payment-amount");
+    const continuePaymentButton = document.getElementById("continue-payment-button");
+
+    const paymentProofPanel = document.getElementById("payment-proof-panel");
+    const closePaymentProofPanel = document.getElementById("close-payment-proof-panel");
+
+    const paymentSummary = document.getElementById("payment-summary");
+    const paymentProofCamera = document.getElementById("payment-proof-camera");
+    const paymentProofGallery = document.getElementById("payment-proof-gallery");
+    const paymentProofPreview = document.getElementById("payment-proof-preview");
+    const sendPaymentProofButton = document.getElementById("send-payment-proof-button");
+
+    const administrationPanel = document.getElementById("administration-panel");
+    const closeAdministrationPanel = document.getElementById("close-administration-panel");
+
+    const saveMembershipsButton = document.getElementById("save-memberships-button");
+    const addPaymentMethodButton = document.getElementById("add-payment-method-button");
+
+    const adminPaymentMethodsContainer =
+        document.getElementById("admin-payment-methods-container");
+
+    const adminPaymentProofsContainer =
+        document.getElementById("admin-payment-proofs-container");
+
+    const paymentProofDetailPanel =
+        document.getElementById("payment-proof-detail-panel");
+
+    const closePaymentProofDetailPanel =
+        document.getElementById("close-payment-proof-detail-panel");
+
+    const paymentProofDetail =
+        document.getElementById("payment-proof-detail");
+
+    const paymentProofAdminActions =
+        document.getElementById("payment-proof-admin-actions");
+
+    const approvePaymentProofButton =
+        document.getElementById("approve-payment-proof-button");
+
+    const rejectPaymentProofButton =
+        document.getElementById("reject-payment-proof-button");
+
+    const fullscreenPaymentProofButton =
+        document.getElementById("fullscreen-payment-proof-button");
+
+    const profilePanel = document.getElementById("profile-panel");
+    const closeProfilePanel = document.getElementById("close-profile-panel");
+    const profileForm = document.getElementById("profile-form");
+
+    const profileEditName = document.getElementById("profile-edit-name");
+    const profileEditCedula = document.getElementById("profile-edit-cedula");
+    const profileEditPhone = document.getElementById("profile-edit-phone");
+
+    const settingsPanel = document.getElementById("settings-panel");
+    const closeSettingsPanel = document.getElementById("close-settings-panel");
+    const settingsProfileButton = document.getElementById("settings-profile-button");
+    const settingsLogoutButton = document.getElementById("settings-logout-button");
+
+    const profileEditButton = document.getElementById("profile-edit-button");
+    const administrationButton = document.getElementById("administration-button");
+    const settingsButton = document.getElementById("settings-button");
+    const logoutButton = document.getElementById("logout-button");
+
+    const headerProfileName = document.getElementById("header-profile-name");
+    const homeUserName = document.getElementById("home-user-name");
+    const homeUserPhone = document.getElementById("home-user-phone");
+
+    const profileAvatar = document.getElementById("profile-avatar");
+    const profileName = document.getElementById("profile-name");
+    const profilePhone = document.getElementById("profile-phone");
+
+    const publicationsContainer =
+        document.getElementById("publications-container");
+
+    const allPublicationsContainer =
+        document.getElementById("all-publications-container");
+
+    const flashContainer =
+        document.getElementById("flash-container");
+
 
     /* =========================================================
        UTILIDADES
        ========================================================= */
 
-    function clone(value) {
-        return JSON.parse(JSON.stringify(value));
-    }
-
-    function escapeHtml(value) {
-        return String(value ?? "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    function money(value) {
-        const number = Number(value);
-        if (!Number.isFinite(number)) {
-            return "RD$ 0.00";
-        }
-
-        return "RD$ " + number.toLocaleString("es-DO", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-    }
-
-    function numericValue(value) {
-        if (value === "" || value === null || value === undefined) {
-            return null;
-        }
-
-        const number = Number(value);
-        return Number.isFinite(number) ? number : null;
-    }
-
-    function readJSON(key, fallback) {
-        try {
-            const value = localStorage.getItem(key);
-            if (!value) {
-                return clone(fallback);
-            }
-
-            return JSON.parse(value);
-        } catch (error) {
-            console.error("No se pudo leer", key, error);
-            return clone(fallback);
-        }
-    }
-
-    function writeJSON(key, value) {
-        localStorage.setItem(key, JSON.stringify(value));
-    }
-
-    function closeAllPanels() {
-        document.querySelectorAll(".modal-panel").forEach(function (panel) {
-            panel.classList.remove("active");
-        });
-
-        if (settingsPanel) {
-            settingsPanel.classList.remove("active");
-        }
-
-        if (proofFullscreenViewer) {
-            proofFullscreenViewer.classList.remove("active");
-        }
-    }
-
     function showScreen(screen) {
-        document.querySelectorAll(".screen").forEach(function (item) {
-            item.classList.remove("active");
+
+        [
+            welcomeScreen,
+            loginScreen,
+            registerScreen,
+            appScreen
+        ].forEach(element => {
+            if (element) {
+                element.classList.remove("active");
+            }
         });
 
         if (screen) {
@@ -256,2136 +245,3725 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+
+    function showPage(page) {
+
+        [
+            homeScreen,
+            publicationsScreen,
+            profileScreen
+        ].forEach(element => {
+            if (element) {
+                element.classList.remove("active");
+            }
+        });
+
+        if (page) {
+            page.classList.add("active");
+        }
+
+        closeMenu();
+    }
+
+
     function openPanel(panel) {
+
         if (!panel) return;
-        closeAllPanels();
+
         panel.classList.add("active");
     }
 
-    function formatDate(value) {
-        if (!value) return "—";
 
-        const date = new Date(value);
+    function closePanel(panel) {
 
-        if (Number.isNaN(date.getTime())) {
-            return String(value);
+        if (!panel) return;
+
+        panel.classList.remove("active");
+    }
+
+
+    function closeMenu() {
+
+        if (sideMenu) {
+            sideMenu.classList.remove("active");
+        }
+    }
+
+
+    function escapeHTML(value) {
+
+        if (value === null || value === undefined) {
+            return "";
         }
 
-        return date.toLocaleString("es-DO", {
-            dateStyle: "short",
-            timeStyle: "short"
-        });
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
+
+
+    function formatPrice(value) {
+
+        const number = Number(value || 0);
+
+        return new Intl.NumberFormat("es-DO", {
+            style: "currency",
+            currency: "DOP",
+            maximumFractionDigits: 0
+        }).format(number);
+    }
+
+
+    function getInitials(name) {
+
+        if (!name) {
+            return "MF";
+        }
+
+        const parts = String(name)
+            .trim()
+            .split(/\s+/)
+            .slice(0, 2);
+
+        return parts
+            .map(part => part.charAt(0).toUpperCase())
+            .join("");
+    }
+
+
+    function showError(element, message) {
+
+        if (!element) return;
+
+        element.textContent = message || "";
+    }
+
+
+    function clearErrors() {
+
+        showError(loginError, "");
+        showError(registerError, "");
+    }
+
+
+    function setButtonLoading(button, loading, originalText = "Continuar") {
+
+        if (!button) return;
+
+        if (loading) {
+
+            button.dataset.originalText =
+                button.textContent;
+
+            button.disabled = true;
+            button.textContent = "Procesando...";
+
+        } else {
+
+            button.disabled = false;
+
+            button.textContent =
+                button.dataset.originalText || originalText;
+        }
+    }
+
 
     /* =========================================================
-       USUARIO / SESIÓN
-       ========================================================= */
-
-    function getSavedUser() {
-        try {
-            const saved = localStorage.getItem(USER_STORAGE_KEY);
-            return saved ? JSON.parse(saved) : null;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    function updateUserInformation(user) {
-        currentUser = user;
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-        localStorage.setItem(LOGIN_STORAGE_KEY, "true");
-        updateProfile();
-    }
-
-    function logout() {
-        localStorage.removeItem(USER_STORAGE_KEY);
-        localStorage.removeItem(LOGIN_STORAGE_KEY);
-        currentUser = null;
-        closeAllPanels();
-        showScreen(welcomeScreen);
-    }
-
-    function updateProfile() {
-        if (!currentUser) return;
-
-        const name = document.getElementById("profile-user-name");
-        const cedula = document.getElementById("profile-user-cedula");
-        const phone = document.getElementById("profile-user-phone");
-
-        if (name) name.textContent = currentUser.name || "Usuario";
-        if (cedula) cedula.textContent = currentUser.cedula || "—";
-        if (phone) phone.textContent = currentUser.phone || "—";
-    }
-
-    /* =========================================================
-       MEMBRESÍAS
-       ========================================================= */
-
-    function getMemberships() {
-        const source = appData.memberships || FALLBACK_MEMBERSHIPS;
-        const saved = readJSON(MEMBERSHIP_STORAGE_KEY, source);
-
-        const result = {};
-
-        Object.keys(FALLBACK_MEMBERSHIPS).forEach(function (id) {
-            const base = clone(FALLBACK_MEMBERSHIPS[id]);
-            const configured = saved && saved[id] ? saved[id] : {};
-            const sourceConfigured = source && source[id] ? source[id] : {};
-
-            result[id] = {
-                ...base,
-                ...sourceConfigured,
-                ...configured,
-                id: id,
-                features: Array.isArray(
-                    configured.features ??
-                    sourceConfigured.features ??
-                    base.features
-                )
-                    ? clone(
-                        configured.features ??
-                        sourceConfigured.features ??
-                        base.features
-                    )
-                    : clone(base.features)
-            };
-        });
-
-        return result;
-    }
-
-    function saveMemberships(memberships) {
-        writeJSON(MEMBERSHIP_STORAGE_KEY, memberships);
-
-        if (window.MARKET_FLASH_DATA) {
-            window.MARKET_FLASH_DATA.memberships = clone(memberships);
-        }
-    }
-
-    function getMembership(id) {
-        const memberships = getMemberships();
-        return memberships[id] || null;
-    }
-
-    function updateMembershipDisplay() {
-        const memberships = getMemberships();
-
-        Object.keys(memberships).forEach(function (id) {
-            const membership = memberships[id];
-
-            const priceElement = document.getElementById(
-                "membership-price-" + id
-            );
-
-            const descriptionElement = document.getElementById(
-                "membership-description-" + id
-            );
-
-            const featuresElement = document.getElementById(
-                "membership-features-" + id
-            );
-
-            if (priceElement) {
-                priceElement.textContent =
-                    membership.price === null ||
-                    membership.price === undefined
-                        ? "RD$ 0.00"
-                        : money(membership.price);
-            }
-
-            if (descriptionElement) {
-                descriptionElement.textContent =
-                    membership.description || "";
-            }
-
-            if (featuresElement) {
-                featuresElement.innerHTML = "";
-
-                (membership.features || []).forEach(function (feature) {
-                    const li = document.createElement("li");
-                    li.textContent = feature;
-                    featuresElement.appendChild(li);
-                });
-            }
-        });
-    }
-
-    function loadMembershipAdminForm() {
-        const memberships = getMemberships();
-
-        Object.keys(memberships).forEach(function (id) {
-            const membership = memberships[id];
-
-            const nameInput = document.getElementById(
-                "admin-" + id + "-name"
-            );
-
-            const descriptionInput = document.getElementById(
-                "admin-" + id + "-description"
-            );
-
-            const priceInput = document.getElementById(
-                "admin-" + id + "-price"
-            );
-
-            const featuresInput = document.getElementById(
-                "admin-" + id + "-features"
-            );
-
-            if (nameInput) {
-                nameInput.value = membership.name || "";
-            }
-
-            if (descriptionInput) {
-                descriptionInput.value = membership.description || "";
-            }
-
-            if (priceInput) {
-                priceInput.value =
-                    membership.price === null ||
-                    membership.price === undefined
-                        ? ""
-                        : membership.price;
-            }
-
-            if (featuresInput) {
-                featuresInput.value = (membership.features || []).join("\n");
-            }
-        });
-    }
-
-    function saveMembershipAdminForm() {
-        const memberships = getMemberships();
-
-        Object.keys(memberships).forEach(function (id) {
-            const membership = memberships[id];
-
-            const nameInput = document.getElementById(
-                "admin-" + id + "-name"
-            );
-
-            const descriptionInput = document.getElementById(
-                "admin-" + id + "-description"
-            );
-
-            const priceInput = document.getElementById(
-                "admin-" + id + "-price"
-            );
-
-            const featuresInput = document.getElementById(
-                "admin-" + id + "-features"
-            );
-
-            if (nameInput) {
-                membership.name =
-                    nameInput.value.trim() || membership.name;
-            }
-
-            if (descriptionInput) {
-                membership.description =
-                    descriptionInput.value.trim() ||
-                    membership.description;
-            }
-
-            if (priceInput) {
-                membership.price = numericValue(priceInput.value);
-            }
-
-            if (featuresInput) {
-                membership.features = featuresInput.value
-                    .split("\n")
-                    .map(function (item) {
-                        return item.trim();
-                    })
-                    .filter(Boolean);
-            }
-        });
-
-        saveMemberships(memberships);
-        updateMembershipDisplay();
-        updatePaymentSelectionSummary();
-
-        alert("Membresías guardadas correctamente.");
-    }
-
-    /* =========================================================
-       MÉTODOS DE PAGO
-       ========================================================= */
-
-    function normalizePaymentMethods(methods) {
-        if (!Array.isArray(methods)) {
-            methods = [];
-        }
-
-        return methods.map(function (method, index) {
-            const prices = method && method.prices
-                ? method.prices
-                : {};
-
-            return {
-                id:
-                    method.id ||
-                    ("payment_" + Date.now() + "_" + index),
-                name:
-                    method.name ||
-                    "Método de pago",
-                prices: {
-                    basica:
-                        prices.basica !== undefined
-                            ? prices.basica
-                            : null,
-                    premium:
-                        prices.premium !== undefined
-                            ? prices.premium
-                            : null,
-                    vip:
-                        prices.vip !== undefined
-                            ? prices.vip
-                            : null
-                }
-            };
-        });
-    }
-
-    function getPaymentMethods() {
-        const source =
-            Array.isArray(appData.paymentMethods)
-                ? appData.paymentMethods
-                : FALLBACK_PAYMENT_METHODS;
-
-        return normalizePaymentMethods(
-            readJSON(PAYMENT_METHODS_STORAGE_KEY, source)
-        );
-    }
-
-    function savePaymentMethods(methods) {
-        const normalized = normalizePaymentMethods(methods);
-
-        writeJSON(PAYMENT_METHODS_STORAGE_KEY, normalized);
-
-        if (window.MARKET_FLASH_DATA) {
-            window.MARKET_FLASH_DATA.paymentMethods =
-                clone(normalized);
-        }
-    }
-
-    function getPaymentPrice(method, membershipId) {
-        if (!method || !method.prices) {
-            return null;
-        }
-
-        const value = method.prices[membershipId];
-
-        if (value === null || value === undefined || value === "") {
-            return null;
-        }
-
-        return numericValue(value);
-    }
-
-    function renderPaymentMethods() {
-        const list = document.getElementById("payment-methods-list");
-
-        if (!list) return;
-
-        const methods = getPaymentMethods();
-
-        if (!methods.length) {
-            list.innerHTML = `
-                <div class="empty-payment-methods">
-                    <div>💳</div>
-                    <h3>No hay métodos configurados</h3>
-                    <p>El administrador todavía no ha configurado los métodos de pago.</p>
-                </div>
-            `;
-            return;
-        }
-
-        list.innerHTML = "";
-
-        methods.forEach(function (method) {
-            const price = getPaymentPrice(
-                method,
-                selectedMembershipId
-            );
-
-            const button = document.createElement("button");
-            button.type = "button";
-            button.className = "payment-method-card";
-            button.dataset.paymentMethod = method.id;
-
-            button.innerHTML = `
-                <strong>${escapeHtml(method.name)}</strong>
-                <span>${price === null ? "Precio no configurado" : money(price)}</span>
-            `;
-
-            button.addEventListener("click", function () {
-                selectPaymentMethod(method.id);
-            });
-
-            list.appendChild(button);
-        });
-
-        updatePaymentSelectionSummary();
-    }
-
-    function renderAdminPaymentMethods() {
-        if (!adminPaymentMethodsList) return;
-
-        const methods = getPaymentMethods();
-
-        adminPaymentMethodsList.innerHTML = "";
-
-        if (!methods.length) {
-            adminPaymentMethodsList.innerHTML = `
-                <div class="empty-admin-proofs">
-                    <div>💳</div>
-                    <h3>No hay métodos de pago</h3>
-                    <p>Agrega un método para comenzar.</p>
-                </div>
-            `;
-            return;
-        }
-
-        methods.forEach(function (method) {
-            const card = document.createElement("div");
-            card.className = "admin-payment-method-card";
-            card.dataset.paymentId = method.id;
-
-            card.innerHTML = `
-                <div class="admin-card-heading">
-                    <strong>${escapeHtml(method.name)}</strong>
-                    <button
-                        type="button"
-                        class="delete-payment-method-button"
-                        data-delete-payment="${escapeHtml(method.id)}"
-                    >
-                        🗑️ ELIMINAR
-                    </button>
-                </div>
-
-                <label>Nombre del método</label>
-                <input
-                    type="text"
-                    class="admin-payment-name"
-                    value="${escapeHtml(method.name)}"
-                >
-
-                <label>Precio BÁSICA</label>
-                <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    class="admin-payment-price"
-                    data-membership-price="basica"
-                    value="${method.prices.basica ?? ""}"
-                    placeholder="0.00"
-                >
-
-                <label>Precio PREMIUM</label>
-                <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    class="admin-payment-price"
-                    data-membership-price="premium"
-                    value="${method.prices.premium ?? ""}"
-                    placeholder="0.00"
-                >
-
-                <label>Precio VIP</label>
-                <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    class="admin-payment-price"
-                    data-membership-price="vip"
-                    value="${method.prices.vip ?? ""}"
-                    placeholder="0.00"
-                >
-            `;
-
-            adminPaymentMethodsList.appendChild(card);
-        });
-
-        adminPaymentMethodsList
-            .querySelectorAll(".delete-payment-method-button")
-            .forEach(function (button) {
-                button.addEventListener("click", function () {
-                    const id = button.dataset.deletePayment;
-
-                    if (!confirm("¿Eliminar este método de pago?")) {
-                        return;
-                    }
-
-                    const methods = getPaymentMethods().filter(
-                        function (method) {
-                            return method.id !== id;
-                        }
-                    );
-
-                    savePaymentMethods(methods);
-                    renderAdminPaymentMethods();
-                    renderPaymentMethods();
-                });
-            });
-    }
-
-    function addPaymentMethod() {
-        const methods = getPaymentMethods();
-
-        methods.push({
-            id:
-                "payment_" +
-                Date.now() +
-                "_" +
-                Math.random().toString(36).slice(2, 8),
-            name: "Nuevo método",
-            prices: {
-                basica: null,
-                premium: null,
-                vip: null
-            }
-        });
-
-        savePaymentMethods(methods);
-        renderAdminPaymentMethods();
-        renderPaymentMethods();
-    }
-
-    function saveAdminPaymentMethods() {
-        if (!adminPaymentMethodsList) return;
-
-        const currentMethods = getPaymentMethods();
-
-        const updatedMethods = [];
-
-        adminPaymentMethodsList
-            .querySelectorAll(".admin-payment-method-card")
-            .forEach(function (card, index) {
-                const original = currentMethods[index];
-
-                if (!original) return;
-
-                const nameInput =
-                    card.querySelector(".admin-payment-name");
-
-                const priceInputs =
-                    card.querySelectorAll(".admin-payment-price");
-
-                const method = clone(original);
-
-                method.name =
-                    nameInput && nameInput.value.trim()
-                        ? nameInput.value.trim()
-                        : method.name;
-
-                priceInputs.forEach(function (input) {
-                    const membershipId =
-                        input.dataset.membershipPrice;
-
-                    method.prices[membershipId] =
-                        numericValue(input.value);
-                });
-
-                updatedMethods.push(method);
-            });
-
-        savePaymentMethods(updatedMethods);
-        renderAdminPaymentMethods();
-        renderPaymentMethods();
-        updatePaymentSelectionSummary();
-
-        alert("Métodos de pago guardados correctamente.");
-    }
-
-    /* =========================================================
-       SELECCIÓN DE MEMBRESÍA / PAGO
-       ========================================================= */
-
-    function selectMembership(membershipId) {
-        const membership = getMembership(membershipId);
-
-        if (!membership) return;
-
-        selectedMembershipId = membershipId;
-        selectedPaymentMethodId = null;
-        selectedPaymentAmount = 0;
-
-        const nameElement =
-            document.getElementById("selected-membership-name");
-
-        const priceElement =
-            document.getElementById("selected-membership-price");
-
-        if (nameElement) {
-            nameElement.textContent = membership.name;
-        }
-
-        if (priceElement) {
-            priceElement.textContent =
-                membership.price === null
-                    ? "RD$ 0.00"
-                    : money(membership.price);
-        }
-
-        renderPaymentMethods();
-
-        openPanel(paymentMethodPanel);
-    }
-
-    function selectPaymentMethod(paymentMethodId) {
-        const method = getPaymentMethods().find(
-            function (item) {
-                return item.id === paymentMethodId;
-            }
-        );
-
-        if (!method || !selectedMembershipId) {
-            return;
-        }
-
-        const price = getPaymentPrice(
-            method,
-            selectedMembershipId
-        );
-
-        if (price === null) {
-            alert(
-                "Este método de pago todavía no tiene un precio configurado para la membresía seleccionada."
-            );
-            return;
-        }
-
-        selectedPaymentMethodId = paymentMethodId;
-        selectedPaymentAmount = price;
-
-        updatePaymentSelectionSummary();
-
-        document
-            .querySelectorAll(".payment-method-card")
-            .forEach(function (card) {
-                card.classList.toggle(
-                    "selected",
-                    card.dataset.paymentMethod === paymentMethodId
-                );
-            });
-    }
-
-    function updatePaymentSelectionSummary() {
-        const method = getPaymentMethods().find(
-            function (item) {
-                return item.id === selectedPaymentMethodId;
-            }
-        );
-
-        const methodElement =
-            document.getElementById("selected-payment-method");
-
-        const priceElement =
-            document.getElementById("selected-payment-price");
-
-        const continueButton =
-            document.getElementById("continue-to-proof-button");
-
-        if (methodElement) {
-            methodElement.textContent =
-                method ? method.name : "—";
-        }
-
-        if (priceElement) {
-            priceElement.textContent =
-                selectedPaymentAmount
-                    ? money(selectedPaymentAmount)
-                    : "RD$ 0.00";
-        }
-
-        if (continueButton) {
-            continueButton.disabled =
-                !selectedMembershipId ||
-                !selectedPaymentMethodId ||
-                !selectedPaymentAmount;
-        }
-    }
-
-    function openProofPanel() {
-        const membership = getMembership(selectedMembershipId);
-        const method = getPaymentMethods().find(
-            function (item) {
-                return item.id === selectedPaymentMethodId;
-            }
-        );
-
-        if (!membership || !method || !selectedPaymentAmount) {
-            alert("Selecciona una membresía y un método de pago.");
-            return;
-        }
-
-        const membershipName =
-            document.getElementById("proof-membership-name");
-
-        const paymentMethod =
-            document.getElementById("proof-payment-method");
-
-        const amount =
-            document.getElementById("proof-payment-amount");
-
-        if (membershipName) {
-            membershipName.textContent = membership.name;
-        }
-
-        if (paymentMethod) {
-            paymentMethod.textContent = method.name;
-        }
-
-        if (amount) {
-            amount.textContent = money(selectedPaymentAmount);
-        }
-
-        proofImage = "";
-        renderProofPreview();
-        openPanel(paymentProofPanel);
-    }
-
-    /* =========================================================
-       ARCHIVOS / PREVISUALIZACIONES
+       ARCHIVOS / IMÁGENES
        ========================================================= */
 
     function readFileAsDataURL(file) {
-        return new Promise(function (resolve, reject) {
+
+        return new Promise((resolve, reject) => {
+
+            if (!file) {
+                resolve(null);
+                return;
+            }
+
             const reader = new FileReader();
 
-            reader.onload = function () {
+            reader.onload = () => {
                 resolve(reader.result);
             };
 
-            reader.onerror = reject;
+            reader.onerror = () => {
+                reject(reader.error);
+            };
+
             reader.readAsDataURL(file);
         });
     }
 
-    function renderMediaPreview(container, files) {
-        if (!container) return;
 
-        container.innerHTML = "";
+    async function uploadImage(file, folder) {
 
-        if (!files.length) {
-            return;
+        if (!file) {
+            return null;
         }
-
-        files.forEach(function (item) {
-            const wrapper = document.createElement("div");
-            wrapper.className = "media-preview-item";
-
-            if (item.type && item.type.startsWith("video/")) {
-                wrapper.innerHTML = `
-                    <video
-                        src="${item.data}"
-                        controls
-                        playsinline
-                    ></video>
-                `;
-            } else {
-                wrapper.innerHTML = `
-                    <img
-                        src="${item.data}"
-                        alt="Vista previa"
-                    >
-                `;
-            }
-
-            container.appendChild(wrapper);
-        });
-    }
-
-    async function addPublicationFiles(fileList) {
-        const files = Array.from(fileList || []);
-
-        for (const file of files) {
-            try {
-                const data = await readFileAsDataURL(file);
-
-                publicationMedia.push({
-                    name: file.name,
-                    type: file.type,
-                    data: data
-                });
-            } catch (error) {
-                console.error("No se pudo leer el archivo.", error);
-            }
-        }
-
-        renderMediaPreview(
-            document.getElementById("publication-media-preview"),
-            publicationMedia
-        );
-    }
-
-    async function addPromotionFiles(fileList) {
-        const files = Array.from(fileList || []);
-
-        for (const file of files) {
-            try {
-                const data = await readFileAsDataURL(file);
-
-                promotionMedia.push({
-                    name: file.name,
-                    type: file.type,
-                    data: data
-                });
-            } catch (error) {
-                console.error("No se pudo leer el archivo.", error);
-            }
-        }
-
-        renderMediaPreview(
-            document.getElementById("promotion-media-preview"),
-            promotionMedia
-        );
-    }
-
-    function renderProofPreview() {
-        const preview =
-            document.getElementById("payment-proof-preview");
-
-        const sendButton =
-            document.getElementById("send-payment-proof-button");
-
-        if (!preview) return;
-
-        if (!proofImage) {
-            preview.innerHTML = `
-                <div class="proof-empty-state">
-                    <div>🧾</div>
-                    <p>Todavía no has seleccionado un comprobante.</p>
-                </div>
-            `;
-
-            if (sendButton) {
-                sendButton.disabled = true;
-            }
-
-            return;
-        }
-
-        preview.innerHTML = `
-            <img
-                src="${proofImage}"
-                alt="Vista previa del comprobante"
-            >
-        `;
-
-        if (sendButton) {
-            sendButton.disabled = false;
-        }
-    }
-
-    async function handleProofFile(file) {
-        if (!file) return;
 
         try {
-            proofImage = await readFileAsDataURL(file);
-            renderProofPreview();
+
+            const extension =
+                file.name.includes(".")
+                    ? file.name.split(".").pop().toLowerCase()
+                    : "jpg";
+
+            const fileName =
+                `${crypto.randomUUID()}.${extension}`;
+
+            const filePath =
+                `${folder}/${fileName}`;
+
+            const { error: uploadError } =
+                await db.storage
+                    .from(STORAGE_BUCKET)
+                    .upload(filePath, file, {
+                        cacheControl: "3600",
+                        upsert: false,
+                        contentType: file.type || "image/jpeg"
+                    });
+
+            if (uploadError) {
+                console.error("Error subiendo imagen:", uploadError);
+
+                /*
+                   Si todavía no existe el bucket,
+                   devolvemos null en lugar de romper la publicación.
+                */
+
+                return null;
+            }
+
+            const { data } =
+                db.storage
+                    .from(STORAGE_BUCKET)
+                    .getPublicUrl(filePath);
+
+            return data?.publicUrl || null;
+
         } catch (error) {
-            console.error(error);
-            alert("No se pudo cargar el comprobante.");
+
+            console.error("Error de Storage:", error);
+
+            return null;
         }
     }
+
+
+    function showImagePreview(container, source) {
+
+        if (!container) return;
+
+        if (!source) {
+
+            container.innerHTML = "";
+            return;
+        }
+
+        container.innerHTML = `
+            <img
+                src="${escapeHTML(source)}"
+                alt="Vista previa"
+                style="
+                    width:100%;
+                    max-height:280px;
+                    object-fit:cover;
+                    border-radius:16px;
+                    display:block;
+                "
+            >
+        `;
+    }
+
+
+    /* =========================================================
+       PERFIL / USUARIO
+       ========================================================= */
+
+    async function loadCurrentUser() {
+
+        const {
+            data,
+            error
+        } = await db.auth.getSession();
+
+        if (error) {
+
+            console.error(error);
+            return null;
+        }
+
+        currentUser =
+            data?.session?.user || null;
+
+        if (!currentUser) {
+
+            currentProfile = null;
+            return null;
+        }
+
+        await loadCurrentProfile();
+
+        return currentUser;
+    }
+
+
+    async function loadCurrentProfile() {
+
+        if (!currentUser) {
+            return null;
+        }
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_USERS)
+            .select("*")
+            .eq("auth_id", currentUser.id)
+            .maybeSingle();
+
+        if (error) {
+
+            console.error(
+                "Error cargando perfil:",
+                error
+            );
+
+            return null;
+        }
+
+        currentProfile = data || null;
+
+        updateUserInterface();
+
+        return currentProfile;
+    }
+
+
+    function updateUserInterface() {
+
+        if (!currentProfile) {
+            return;
+        }
+
+        const name =
+            currentProfile.nombre || "Usuario";
+
+        const phone =
+            currentProfile.telefono || "—";
+
+        const initials =
+            getInitials(name);
+
+        if (headerProfileName) {
+            headerProfileName.textContent = name;
+        }
+
+        if (homeUserName) {
+            homeUserName.textContent = name;
+        }
+
+        if (homeUserPhone) {
+            homeUserPhone.textContent = phone;
+        }
+
+        if (profileName) {
+            profileName.textContent = name;
+        }
+
+        if (profilePhone) {
+            profilePhone.textContent = phone;
+        }
+
+        if (profileAvatar) {
+            profileAvatar.textContent = initials;
+        }
+
+        if (profileEditName) {
+            profileEditName.value = name;
+        }
+
+        if (profileEditCedula) {
+            profileEditCedula.value =
+                currentProfile.cedula || "";
+        }
+
+        if (profileEditPhone) {
+            profileEditPhone.value = phone === "—"
+                ? ""
+                : phone;
+        }
+    }
+
+
+    /* =========================================================
+       REGISTRO
+       ========================================================= */
+
+    async function registerUser(event) {
+
+        event.preventDefault();
+
+        clearErrors();
+
+        const name =
+            document.getElementById("register-name")?.value.trim();
+
+        const cedula =
+            document.getElementById("register-cedula")?.value.trim();
+
+        const phone =
+            document.getElementById("register-phone")?.value.trim();
+
+        const password =
+            document.getElementById("register-password")?.value;
+
+        const passwordConfirm =
+            document.getElementById("register-password-confirm")?.value;
+
+
+        if (!name || !cedula || !phone || !password) {
+
+            showError(
+                registerError,
+                "Completa todos los campos."
+            );
+
+            return;
+        }
+
+
+        if (password.length < 6) {
+
+            showError(
+                registerError,
+                "La contraseña debe tener al menos 6 caracteres."
+            );
+
+            return;
+        }
+
+
+        if (password !== passwordConfirm) {
+
+            showError(
+                registerError,
+                "Las contraseñas no coinciden."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            /*
+               Como tu login utiliza CÉDULA, creamos
+               internamente un email técnico.
+
+               El usuario no necesita escribir el email.
+            */
+
+            const internalEmail =
+                `${cedula.replace(/\s+/g, "")}@marketflash.app`;
+
+
+            /*
+               Primero verificamos si la cédula ya existe
+               en nuestra tabla de perfiles.
+            */
+
+            const {
+                data: existingUser,
+                error: existingError
+            } = await db
+                .from(TABLE_USERS)
+                .select("id")
+                .eq("cedula", cedula)
+                .maybeSingle();
+
+
+            if (existingError) {
+
+                console.error(existingError);
+
+                showError(
+                    registerError,
+                    "No se pudo verificar la cédula."
+                );
+
+                return;
+            }
+
+
+            if (existingUser) {
+
+                showError(
+                    registerError,
+                    "Esta cédula ya está registrada."
+                );
+
+                return;
+            }
+
+
+            const {
+                data,
+                error
+            } = await db.auth.signUp({
+                email: internalEmail,
+                password: password,
+                options: {
+                    data: {
+                        nombre: name,
+                        cedula: cedula,
+                        telefono: phone
+                    }
+                }
+            });
+
+
+            if (error) {
+
+                console.error(
+                    "Error de Supabase Auth:",
+                    error
+                );
+
+                showError(
+                    registerError,
+                    error.message || "No se pudo crear la cuenta."
+                );
+
+                return;
+            }
+
+
+            if (!data?.user) {
+
+                showError(
+                    registerError,
+                    "Supabase no devolvió el usuario."
+                );
+
+                return;
+            }
+
+
+            /*
+               Guardamos el perfil en nuestra tabla.
+            */
+
+            const {
+                error: profileError
+            } = await db
+                .from(TABLE_USERS)
+                .insert({
+                    auth_id: data.user.id,
+                    nombre: name,
+                    cedula: cedula,
+                    telefono: phone,
+                    rol: "usuario"
+                });
+
+
+            if (profileError) {
+
+                console.error(
+                    "Error creando perfil:",
+                    profileError
+                );
+
+                /*
+                   Si la cuenta Auth se creó pero el perfil falló,
+                   avisamos para no ocultar el problema.
+                */
+
+                showError(
+                    registerError,
+                    "La cuenta se creó, pero no se pudo guardar el perfil: " +
+                    profileError.message
+                );
+
+                return;
+            }
+
+
+            /*
+               Si Supabase exige confirmación de correo,
+               probablemente no habrá sesión inmediatamente.
+            */
+
+            if (!data.session) {
+
+                showError(
+                    registerError,
+                    "Cuenta creada. Si Supabase solicita confirmación, debes desactivarla para este sistema de acceso por cédula."
+                );
+
+                return;
+            }
+
+
+            currentUser = data.user;
+
+            await loadCurrentProfile();
+
+            showScreen(appScreen);
+            showPage(homeScreen);
+
+            await refreshApplication();
+
+        } catch (error) {
+
+            console.error(error);
+
+            showError(
+                registerError,
+                "Ocurrió un error al crear la cuenta."
+            );
+        }
+    }
+
+
+    /* =========================================================
+       LOGIN
+       ========================================================= */
+
+    async function loginUser(event) {
+
+        event.preventDefault();
+
+        clearErrors();
+
+        const cedula =
+            document.getElementById("login-cedula")?.value.trim();
+
+        const password =
+            document.getElementById("login-password")?.value;
+
+
+        if (!cedula || !password) {
+
+            showError(
+                loginError,
+                "Ingresa tu cédula y contraseña."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            const internalEmail =
+                `${cedula.replace(/\s+/g, "")}@marketflash.app`;
+
+
+            const {
+                data,
+                error
+            } = await db.auth.signInWithPassword({
+                email: internalEmail,
+                password: password
+            });
+
+
+            if (error) {
+
+                console.error(
+                    "Error de login:",
+                    error
+                );
+
+                showError(
+                    loginError,
+                    "Cédula o contraseña incorrecta."
+                );
+
+                return;
+            }
+
+
+            currentUser =
+                data?.user || null;
+
+
+            if (!currentUser) {
+
+                showError(
+                    loginError,
+                    "No se pudo obtener la sesión."
+                );
+
+                return;
+            }
+
+
+            await loadCurrentProfile();
+
+
+            if (!currentProfile) {
+
+                showError(
+                    loginError,
+                    "La cuenta existe, pero no tiene perfil."
+                );
+
+                return;
+            }
+
+
+            showScreen(appScreen);
+            showPage(homeScreen);
+
+            await refreshApplication();
+
+        } catch (error) {
+
+            console.error(error);
+
+            showError(
+                loginError,
+                "No se pudo iniciar sesión."
+            );
+        }
+    }
+
+
+    /* =========================================================
+       CERRAR SESIÓN
+       ========================================================= */
+
+    async function logout() {
+
+        try {
+
+            await db.auth.signOut();
+
+        } catch (error) {
+
+            console.error(error);
+        }
+
+        currentUser = null;
+        currentProfile = null;
+        selectedMembership = null;
+        selectedPaymentMethod = null;
+        pendingPromotion = null;
+        selectedProof = null;
+
+        closeAllPanels();
+        closeMenu();
+
+        if (loginForm) {
+            loginForm.reset();
+        }
+
+        if (registerForm) {
+            registerForm.reset();
+        }
+
+        clearErrors();
+
+        showScreen(welcomeScreen);
+    }
+
+
+    /* =========================================================
+       NAVEGACIÓN
+       ========================================================= */
+
+    function openApplication() {
+
+        showScreen(appScreen);
+        showPage(homeScreen);
+    }
+
+
+    function closeAllPanels() {
+
+        [
+            publishPanel,
+            promotionPanel,
+            membershipPanel,
+            paymentMethodPanel,
+            paymentProofPanel,
+            administrationPanel,
+            paymentProofDetailPanel,
+            profilePanel,
+            settingsPanel
+        ].forEach(closePanel);
+    }
+
 
     /* =========================================================
        PUBLICACIONES
        ========================================================= */
 
-    function getPublications() {
-        return readJSON(PUBLICATIONS_STORAGE_KEY, []);
-    }
+    async function createPublication(event) {
 
-    function savePublications(items) {
-        writeJSON(PUBLICATIONS_STORAGE_KEY, items);
-    }
-
-    function renderPublications() {
-        const list = document.getElementById("publications-list");
-
-        if (!list) return;
-
-        const publications = getPublications();
-
-        if (!publications.length) {
-            list.innerHTML = `
-                <div class="empty-publications">
-                    <div class="empty-publications-icon">＋</div>
-                    <h3>No hay publicaciones todavía</h3>
-                    <p>Crea una publicación gratis.</p>
-                </div>
-            `;
-            return;
-        }
-
-        list.innerHTML = "";
-
-        publications
-            .slice()
-            .reverse()
-            .forEach(function (publication) {
-                const article =
-                    document.createElement("article");
-
-                article.className = "publication-card";
-
-                let mediaHtml = "";
-
-                if (
-                    Array.isArray(publication.media) &&
-                    publication.media.length
-                ) {
-                    const first = publication.media[0];
-
-                    if (
-                        first.type &&
-                        first.type.startsWith("video/")
-                    ) {
-                        mediaHtml = `
-                            <video
-                                src="${first.data}"
-                                controls
-                                playsinline
-                            ></video>
-                        `;
-                    } else {
-                        mediaHtml = `
-                            <img
-                                src="${first.data}"
-                                alt="${escapeHtml(publication.title)}"
-                            >
-                        `;
-                    }
-                }
-
-                article.innerHTML = `
-                    ${mediaHtml}
-
-                    <div class="publication-card-body">
-                        <span class="publication-badge">GRATIS</span>
-                        <h3>${escapeHtml(publication.title)}</h3>
-                        <p>${escapeHtml(publication.description)}</p>
-
-                        ${
-                            publication.price !== null &&
-                            publication.price !== undefined &&
-                            publication.price !== ""
-                                ? `<strong>${money(publication.price)}</strong>`
-                                : ""
-                        }
-
-                        ${
-                            publication.contact
-                                ? `<div>📞 ${escapeHtml(publication.contact)}</div>`
-                                : ""
-                        }
-                    </div>
-                `;
-
-                list.appendChild(article);
-            });
-    }
-
-    function createPublication(event) {
         event.preventDefault();
 
-        if (!currentUser) {
+        if (!currentUser || !currentProfile) {
+
             alert("Debes iniciar sesión para publicar.");
             return;
         }
 
+
         const title =
-            document.getElementById("publication-title").value.trim();
+            publicationTitle?.value.trim();
 
         const description =
-            document.getElementById("publication-description").value.trim();
+            publicationDescription?.value.trim();
 
         const price =
-            numericValue(
-                document.getElementById("publication-price").value
-            );
+            Number(publicationPrice?.value || 0);
 
         const contact =
-            document.getElementById("publication-contact").value.trim();
+            publicationContact?.value.trim();
 
-        const publication = {
-            id:
-                "pub_" +
-                Date.now() +
-                "_" +
-                Math.random().toString(36).slice(2, 8),
-            userId: currentUser.id || currentUser.cedula,
-            userName: currentUser.name,
-            title: title,
-            description: description,
-            price: price,
-            contact: contact,
-            media: clone(publicationMedia),
-            createdAt: new Date().toISOString()
-        };
 
-        const publications = getPublications();
-        publications.push(publication);
-        savePublications(publications);
+        if (!title || !description) {
 
-        if (typeof window.addMarketFlashPublication === "function") {
-            window.addMarketFlashPublication(publication);
-        }
-
-        publicationForm.reset();
-        publicationMedia = [];
-        renderMediaPreview(
-            document.getElementById("publication-media-preview"),
-            publicationMedia
-        );
-
-        closeAllPanels();
-        renderPublications();
-
-        alert("Publicación creada correctamente.");
-    }
-
-    /* =========================================================
-       PROMOCIONES
-       ========================================================= */
-
-    function getPromotions() {
-        return readJSON(PROMOTIONS_STORAGE_KEY, []);
-    }
-
-    function savePromotions(items) {
-        writeJSON(PROMOTIONS_STORAGE_KEY, items);
-    }
-
-    function renderFlashPromotions() {
-        const list =
-            document.getElementById("flash-promotions-list");
-
-        if (!list) return;
-
-        const promotions = getPromotions().filter(
-            function (promotion) {
-                return (
-                    promotion.status === "APROBADO" ||
-                    promotion.status === "ACTIVA"
-                );
-            }
-        );
-
-        if (!promotions.length) {
-            list.innerHTML = `
-                <div class="empty-flash">
-                    <div class="empty-flash-icon">⚡</div>
-                    <h3>Todavía no hay promociones</h3>
-                    <p>Sé el primero en promocionar tu producto.</p>
-                </div>
-            `;
+            alert("Completa el título y la descripción.");
             return;
         }
 
-        list.innerHTML = "";
 
-        promotions
-            .slice()
-            .reverse()
-            .forEach(function (promotion) {
-                const card =
-                    document.createElement("article");
+        try {
 
-                card.className = "flash-promotion-card";
+            setButtonLoading(
+                publishForm?.querySelector("button[type='submit']"),
+                true
+            );
 
-                let mediaHtml = "";
 
-                if (
-                    Array.isArray(promotion.media) &&
-                    promotion.media.length
-                ) {
-                    const first = promotion.media[0];
+            let imageUrl = null;
 
-                    if (
-                        first.type &&
-                        first.type.startsWith("video/")
-                    ) {
-                        mediaHtml = `
-                            <video
-                                src="${first.data}"
-                                controls
-                                playsinline
-                            ></video>
-                        `;
-                    } else {
-                        mediaHtml = `
-                            <img
-                                src="${first.data}"
-                                alt="${escapeHtml(promotion.title)}"
-                            >
-                        `;
-                    }
-                }
+            const file =
+                publicationImage?.files?.[0] || null;
 
-                card.innerHTML = `
-                    ${mediaHtml}
 
-                    <div class="flash-promotion-body">
-                        <span class="flash-promotion-badge">
-                            ⚡ FLASH DEL DÍA
-                        </span>
+            if (file) {
 
-                        <h3>${escapeHtml(promotion.title)}</h3>
-                        <p>${escapeHtml(promotion.description)}</p>
+                imageUrl =
+                    await uploadImage(
+                        file,
+                        `publications/${currentUser.id}`
+                    );
+            }
 
-                        ${
-                            promotion.price !== null &&
-                            promotion.price !== undefined &&
-                            promotion.price !== ""
-                                ? `<strong>${money(promotion.price)}</strong>`
-                                : ""
-                        }
 
-                        ${
-                            promotion.contact
-                                ? `<div>📞 ${escapeHtml(promotion.contact)}</div>`
-                                : ""
-                        }
-                    </div>
+            const {
+                data,
+                error
+            } = await db
+                .from(TABLE_PUBLICATIONS)
+                .insert({
+                    user_id: currentProfile.id,
+                    titulo: title,
+                    descripcion: description,
+                    precio: price,
+                    contacto: contact || currentProfile.telefono,
+                    imagen_url: imageUrl
+                })
+                .select()
+                .single();
+
+
+            if (error) {
+
+                console.error(error);
+
+                alert(
+                    "No se pudo publicar: " +
+                    error.message
+                );
+
+                return;
+            }
+
+
+            publishForm.reset();
+
+            publicationImageData = null;
+
+            showImagePreview(
+                publicationImagePreview,
+                null
+            );
+
+            closePanel(publishPanel);
+
+            await loadPublications();
+
+            alert("¡Producto publicado correctamente!");
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Ocurrió un error al publicar."
+            );
+
+        } finally {
+
+            setButtonLoading(
+                publishForm?.querySelector("button[type='submit']"),
+                false,
+                "Publicar"
+            );
+        }
+    }
+
+
+    async function loadPublications() {
+
+        if (!publicationsContainer &&
+            !allPublicationsContainer) {
+            return;
+        }
+
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_PUBLICATIONS)
+            .select(`
+                *,
+                users (
+                    nombre,
+                    telefono
+                )
+            `)
+            .order("created_at", {
+                ascending: false
+            });
+
+
+        if (error) {
+
+            console.error(
+                "Error cargando publicaciones:",
+                error
+            );
+
+            renderEmptyPublications(
+                publicationsContainer
+            );
+
+            renderEmptyPublications(
+                allPublicationsContainer
+            );
+
+            return;
+        }
+
+
+        renderPublications(
+            publicationsContainer,
+            data || []
+        );
+
+        renderPublications(
+            allPublicationsContainer,
+            data || []
+        );
+    }
+
+
+    function renderEmptyPublications(container) {
+
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="empty-publications">
+                <p>No hay publicaciones todavía.</p>
+            </div>
+        `;
+    }
+
+
+    function renderPublications(container, publications) {
+
+        if (!container) return;
+
+
+        if (!publications || publications.length === 0) {
+
+            renderEmptyPublications(container);
+            return;
+        }
+
+
+        container.innerHTML =
+            publications.map(publication => {
+
+                const image =
+                    publication.imagen_url
+                    ? `
+                        <img
+                            src="${escapeHTML(publication.imagen_url)}"
+                            alt="${escapeHTML(publication.titulo)}"
+                            class="publication-image"
+                        >
+                    `
+                    : `
+                        <div class="publication-image-placeholder">
+                            📦
+                        </div>
+                    `;
+
+
+                const owner =
+                    publication.users?.nombre ||
+                    "Usuario";
+
+
+                const contact =
+                    publication.contacto ||
+                    publication.users?.telefono ||
+                    "";
+
+
+                return `
+                    <article class="publication-card">
+
+                        <div class="publication-card-image">
+                            ${image}
+                        </div>
+
+                        <div class="publication-card-content">
+
+                            <h3>
+                                ${escapeHTML(publication.titulo)}
+                            </h3>
+
+                            <p>
+                                ${escapeHTML(publication.descripcion)}
+                            </p>
+
+                            <strong class="publication-price">
+                                ${formatPrice(publication.precio)}
+                            </strong>
+
+                            <div class="publication-owner">
+                                <span>
+                                    👤 ${escapeHTML(owner)}
+                                </span>
+
+                                ${
+                                    contact
+                                    ? `
+                                        <span>
+                                            📞 ${escapeHTML(contact)}
+                                        </span>
+                                    `
+                                    : ""
+                                }
+                            </div>
+
+                        </div>
+
+                    </article>
                 `;
 
-                list.appendChild(card);
-            });
+            }).join("");
     }
 
-    function createPendingPromotion(event) {
-        event.preventDefault();
+
+    /* =========================================================
+       FLASH DEL DÍA
+       ========================================================= */
+
+    function openPromotionPanel() {
 
         if (!currentUser) {
-            alert("Debes iniciar sesión para promocionar.");
+
+            alert("Debes iniciar sesión.");
             return;
         }
-
-        const promotion = {
-            id:
-                "promotion_" +
-                Date.now() +
-                "_" +
-                Math.random().toString(36).slice(2, 8),
-
-            userId: currentUser.id || currentUser.cedula,
-            userName: currentUser.name,
-
-            title:
-                document
-                    .getElementById("promotion-title")
-                    .value
-                    .trim(),
-
-            description:
-                document
-                    .getElementById("promotion-description")
-                    .value
-                    .trim(),
-
-            price:
-                numericValue(
-                    document
-                        .getElementById("promotion-price")
-                        .value
-                ),
-
-            contact:
-                document
-                    .getElementById("promotion-contact")
-                    .value
-                    .trim(),
-
-            media: clone(promotionMedia),
-
-            status: "PENDIENTE_MEMBRESIA",
-            createdAt: new Date().toISOString()
-        };
-
-        localStorage.setItem(
-            PENDING_PROMOTION_KEY,
-            JSON.stringify(promotion)
-        );
-
-        promotionForm.reset();
-        promotionMedia = [];
-
-        renderMediaPreview(
-            document.getElementById("promotion-media-preview"),
-            promotionMedia
-        );
-
-        closeAllPanels();
-        openPanel(membershipPanel);
-    }
-
-    function completePromotionAfterPayment(proof) {
-        const pending =
-            readJSON(PENDING_PROMOTION_KEY, null);
-
-        if (!pending) {
-            return;
-        }
-
-        pending.membershipId = selectedMembershipId;
-        pending.membershipName =
-            getMembership(selectedMembershipId)?.name || "";
-
-        pending.paymentMethodId = selectedPaymentMethodId;
-
-        const method = getPaymentMethods().find(
-            function (item) {
-                return item.id === selectedPaymentMethodId;
-            }
-        );
-
-        pending.paymentMethodName =
-            method ? method.name : "";
-
-        pending.amount = selectedPaymentAmount;
-        pending.proofId = proof.id;
-        pending.status = "PENDIENTE";
-        pending.updatedAt = new Date().toISOString();
-
-        const promotions = getPromotions();
-        promotions.push(pending);
-        savePromotions(promotions);
-
-        if (
-            typeof window.addMarketFlashPromotion ===
-            "function"
-        ) {
-            window.addMarketFlashPromotion(pending);
-        }
-
-        localStorage.removeItem(PENDING_PROMOTION_KEY);
-
-        renderFlashPromotions();
-    }
-
-    /* =========================================================
-       COMPROBANTES
-       ========================================================= */
-
-    function getPaymentProofs() {
-        return readJSON(PAYMENT_PROOFS_STORAGE_KEY, []);
-    }
-
-    function savePaymentProofs(items) {
-        writeJSON(PAYMENT_PROOFS_STORAGE_KEY, items);
-    }
-
-    async function sendPaymentProof() {
-        if (
-            !currentUser ||
-            !selectedMembershipId ||
-            !selectedPaymentMethodId ||
-            !selectedPaymentAmount ||
-            !proofImage
-        ) {
-            alert("Completa todos los datos y selecciona el comprobante.");
-            return;
-        }
-
-        const membership =
-            getMembership(selectedMembershipId);
-
-        const method = getPaymentMethods().find(
-            function (item) {
-                return item.id === selectedPaymentMethodId;
-            }
-        );
-
-        const proof = {
-            id:
-                "proof_" +
-                Date.now() +
-                "_" +
-                Math.random().toString(36).slice(2, 8),
-
-            userId:
-                currentUser.id ||
-                currentUser.cedula,
-
-            userName:
-                currentUser.name || "Usuario",
-
-            userCedula:
-                currentUser.cedula || "",
-
-            userPhone:
-                currentUser.phone || "",
-
-            membershipId:
-                selectedMembershipId,
-
-            membershipName:
-                membership ? membership.name : "",
-
-            paymentMethodId:
-                selectedPaymentMethodId,
-
-            paymentMethodName:
-                method ? method.name : "",
-
-            amount:
-                selectedPaymentAmount,
-
-            image:
-                proofImage,
-
-            status:
-                "PENDIENTE",
-
-            createdAt:
-                new Date().toISOString()
-        };
-
-        const proofs = getPaymentProofs();
-        proofs.push(proof);
-        savePaymentProofs(proofs);
-
-        if (
-            typeof window.addMarketFlashPaymentProof ===
-            "function"
-        ) {
-            window.addMarketFlashPaymentProof(proof);
-        }
-
-        /*
-           Supabase queda preparado para recibir el comprobante
-           cuando la política/almacenamiento del proyecto esté
-           configurada. No se usa la Secret Key desde el navegador.
-        */
-        if (
-            window.supabaseClient &&
-            typeof window.supabaseClient.from === "function"
-        ) {
-            try {
-                /*
-                   La imagen en Base64 se mantiene localmente por ahora.
-                   Solo intentamos guardar los datos que coinciden
-                   con la tabla actual.
-                */
-                await window.supabaseClient
-                    .from("payment_proofs")
-                    .insert({
-                        user_id: proof.userId,
-                        membership_id: proof.membershipId,
-                        payment_method_id: proof.paymentMethodId,
-                        amount: proof.amount,
-                        status: proof.status
-                    });
-            } catch (error) {
-                console.warn(
-                    "El comprobante quedó guardado localmente. Supabase no pudo recibirlo todavía:",
-                    error
-                );
-            }
-        }
-
-        completePromotionAfterPayment(proof);
-
-        proofImage = "";
-        selectedMembershipId = null;
-        selectedPaymentMethodId = null;
-        selectedPaymentAmount = 0;
-
-        closeAllPanels();
-        renderAdminPaymentProofs();
-
-        alert(
-            "Comprobante enviado. Tu pago quedó PENDIENTE de revisión."
-        );
-    }
-
-    function renderAdminPaymentProofs() {
-        if (!adminPaymentProofsList) return;
-
-        const proofs = getPaymentProofs();
-
-        const pending = proofs.filter(
-            function (proof) {
-                return proof.status === "PENDIENTE";
-            }
-        ).length;
-
-        if (pendingProofCount) {
-            pendingProofCount.textContent =
-                pending + " PENDIENTES";
-        }
-
-        if (!proofs.length) {
-            adminPaymentProofsList.innerHTML = `
-                <div class="empty-admin-proofs">
-                    <div>🧾</div>
-                    <h3>No hay comprobantes</h3>
-                    <p>Los comprobantes enviados aparecerán aquí.</p>
-                </div>
-            `;
-            return;
-        }
-
-        adminPaymentProofsList.innerHTML = "";
-
-        proofs
-            .slice()
-            .reverse()
-            .forEach(function (proof) {
-                const card =
-                    document.createElement("button");
-
-                card.type = "button";
-                card.className = "admin-proof-card";
-                card.dataset.proofId = proof.id;
-
-                card.innerHTML = `
-                    <div>
-                        <strong>${escapeHtml(
-                            proof.userName || "Usuario"
-                        )}</strong>
-
-                        <span>
-                            ${escapeHtml(
-                                proof.membershipName || "—"
-                            )}
-                        </span>
-                    </div>
-
-                    <div>
-                        <strong>${money(proof.amount)}</strong>
-
-                        <span>
-                            ${escapeHtml(
-                                proof.paymentMethodName || "—"
-                            )}
-                        </span>
-                    </div>
-
-                    <div>
-                        <span>
-                            ${formatDate(proof.createdAt)}
-                        </span>
-
-                        <strong class="proof-status proof-status-${String(
-                            proof.status || ""
-                        ).toLowerCase()}">
-                            ${escapeHtml(
-                                proof.status || "PENDIENTE"
-                            )}
-                        </strong>
-                    </div>
-                `;
-
-                card.addEventListener("click", function () {
-                    openProofDetail(proof.id);
-                });
-
-                adminPaymentProofsList.appendChild(card);
-            });
-    }
-
-    function openProofDetail(proofId) {
-        const proof = getPaymentProofs().find(
-            function (item) {
-                return item.id === proofId;
-            }
-        );
-
-        if (!proof) return;
-
-        currentProofId = proofId;
-        currentProofImage = proof.image || "";
-
-        const fields = {
-            "admin-proof-user":
-                proof.userName || "—",
-
-            "admin-proof-membership":
-                proof.membershipName || "—",
-
-            "admin-proof-method":
-                proof.paymentMethodName || "—",
-
-            "admin-proof-amount":
-                money(proof.amount),
-
-            "admin-proof-date":
-                formatDate(proof.createdAt),
-
-            "admin-proof-status":
-                proof.status || "PENDIENTE"
-        };
-
-        Object.keys(fields).forEach(function (id) {
-            const element = document.getElementById(id);
-
-            if (element) {
-                element.textContent = fields[id];
-            }
-        });
-
-        const image =
-            document.getElementById("admin-proof-image");
-
-        if (image) {
-            image.src = proof.image || "";
-        }
-
-        if (approveProofButton) {
-            approveProofButton.disabled =
-                proof.status === "APROBADO";
-        }
-
-        if (rejectProofButton) {
-            rejectProofButton.disabled =
-                proof.status === "RECHAZADO";
-        }
-
-        openPanel(adminProofDetailPanel);
-    }
-
-    function updateProofStatus(status) {
-        if (!currentProofId) return;
-
-        const proofs = getPaymentProofs();
-
-        const index = proofs.findIndex(
-            function (proof) {
-                return proof.id === currentProofId;
-            }
-        );
-
-        if (index === -1) return;
-
-        proofs[index].status = status;
-        proofs[index].reviewedAt =
-            new Date().toISOString();
-
-        savePaymentProofs(proofs);
-
-        /*
-           También actualizamos la promoción relacionada
-           cuando existe.
-        */
-        const promotions = getPromotions();
-
-        const promotionIndex =
-            promotions.findIndex(function (promotion) {
-                return promotion.proofId === currentProofId;
-            });
-
-        if (promotionIndex !== -1) {
-            promotions[promotionIndex].status =
-                status === "APROBADO"
-                    ? "APROBADO"
-                    : "RECHAZADO";
-
-            promotions[promotionIndex].updatedAt =
-                new Date().toISOString();
-
-            savePromotions(promotions);
-        }
-
-        renderAdminPaymentProofs();
-        renderFlashPromotions();
-        openProofDetail(currentProofId);
-
-        alert(
-            status === "APROBADO"
-                ? "Comprobante aprobado."
-                : "Comprobante rechazado."
-        );
-    }
-
-    /* =========================================================
-       REGISTRO / LOGIN
-       ========================================================= */
-
-    registerForm?.addEventListener("submit", function (event) {
-        event.preventDefault();
-
-        const name =
-            document.getElementById("register-name").value.trim();
-
-        const cedula =
-            document.getElementById("register-cedula").value.trim();
-
-        const phone =
-            document.getElementById("register-phone").value.trim();
-
-        const password =
-            document.getElementById("register-password").value;
-
-        const passwordConfirm =
-            document.getElementById(
-                "register-password-confirm"
-            ).value;
-
-        if (password.length < 6) {
-            alert("La contraseña debe tener al menos 6 caracteres.");
-            return;
-        }
-
-        if (password !== passwordConfirm) {
-            alert("Las contraseñas no coinciden.");
-            return;
-        }
-
-        const user = {
-            id:
-                "user_" +
-                Date.now() +
-                "_" +
-                Math.random().toString(36).slice(2, 8),
-
-            name,
-            cedula,
-            phone,
-            password,
-
-            createdAt:
-                new Date().toISOString()
-        };
-
-        updateUserInformation(user);
-
-        if (typeof window.addMarketFlashUser === "function") {
-            window.addMarketFlashUser(user);
-        }
-
-        registerForm.reset();
-
-        closeAllPanels();
-        showScreen(dashboardScreen);
-        updateProfile();
-
-        alert("Cuenta creada correctamente.");
-    });
-
-    loginForm?.addEventListener("submit", function (event) {
-        event.preventDefault();
-
-        const cedula =
-            document.getElementById("login-cedula").value.trim();
-
-        const password =
-            document.getElementById("login-password").value;
-
-        const user = getSavedUser();
-
-        if (
-            !user ||
-            user.cedula !== cedula ||
-            user.password !== password
-        ) {
-            alert("Cédula o contraseña incorrecta.");
-            return;
-        }
-
-        updateUserInformation(user);
-
-        loginForm.reset();
-
-        closeAllPanels();
-        showScreen(dashboardScreen);
-        updateProfile();
-        renderPublications();
-        renderFlashPromotions();
-    });
-
-    /* =========================================================
-       NAVEGACIÓN INICIAL
-       ========================================================= */
-
-    loginButton?.addEventListener("click", function () {
-        showScreen(loginScreen);
-    });
-
-    registerButton?.addEventListener("click", function () {
-        showScreen(registerScreen);
-    });
-
-    backFromLogin?.addEventListener("click", function () {
-        showScreen(welcomeScreen);
-    });
-
-    backFromRegister?.addEventListener("click", function () {
-        showScreen(welcomeScreen);
-    });
-
-    homeNavButton?.addEventListener("click", function () {
-        closeAllPanels();
-        showScreen(dashboardScreen);
-
-        if (homeNavButton) {
-            homeNavButton.classList.add("active");
-        }
-
-        if (profileNavButton) {
-            profileNavButton.classList.remove("active");
-        }
-    });
-
-    createPublicationButton?.addEventListener("click", function () {
-        if (!currentUser) {
-            alert("Primero debes iniciar sesión.");
-            showScreen(loginScreen);
-            return;
-        }
-
-        publicationMedia = [];
-        publicationForm?.reset();
-
-        renderMediaPreview(
-            document.getElementById("publication-media-preview"),
-            publicationMedia
-        );
-
-        openPanel(publicationPanel);
-    });
-
-    profileNavButton?.addEventListener("click", function () {
-        if (!currentUser) {
-            showScreen(loginScreen);
-            return;
-        }
-
-        updateProfile();
-        openPanel(profilePanel);
-
-        if (profileNavButton) {
-            profileNavButton.classList.add("active");
-        }
-
-        if (homeNavButton) {
-            homeNavButton.classList.remove("active");
-        }
-    });
-
-    /* =========================================================
-       PUBLICACIÓN
-       ========================================================= */
-
-    closePublicationPanel?.addEventListener(
-        "click",
-        closeAllPanels
-    );
-
-    publicationForm?.addEventListener(
-        "submit",
-        createPublication
-    );
-
-    document
-        .getElementById("publication-camera-button")
-        ?.addEventListener("click", function () {
-            document
-                .getElementById("publication-camera-input")
-                ?.click();
-        });
-
-    document
-        .getElementById("publication-gallery-button")
-        ?.addEventListener("click", function () {
-            document
-                .getElementById("publication-gallery-input")
-                ?.click();
-        });
-
-    document
-        .getElementById("publication-camera-input")
-        ?.addEventListener("change", function (event) {
-            addPublicationFiles(event.target.files);
-            event.target.value = "";
-        });
-
-    document
-        .getElementById("publication-gallery-input")
-        ?.addEventListener("change", function (event) {
-            addPublicationFiles(event.target.files);
-            event.target.value = "";
-        });
-
-    /* =========================================================
-       PROMOCIÓN
-       ========================================================= */
-
-    promoteButton?.addEventListener("click", function () {
-        if (!currentUser) {
-            alert("Primero debes iniciar sesión.");
-            showScreen(loginScreen);
-            return;
-        }
-
-        promotionMedia = [];
-        promotionForm?.reset();
-
-        renderMediaPreview(
-            document.getElementById("promotion-media-preview"),
-            promotionMedia
-        );
 
         openPanel(promotionPanel);
-    });
+    }
 
-    closePromotionPanel?.addEventListener(
-        "click",
-        closeAllPanels
-    );
 
-    promotionForm?.addEventListener(
-        "submit",
-        createPendingPromotion
-    );
+    async function createPendingPromotion(event) {
 
-    document
-        .getElementById("promotion-camera-button")
-        ?.addEventListener("click", function () {
-            document
-                .getElementById("promotion-camera-photo-input")
-                ?.click();
-        });
+        event.preventDefault();
 
-    document
-        .getElementById("promotion-gallery-button")
-        ?.addEventListener("click", function () {
-            document
-                .getElementById("promotion-gallery-input")
-                ?.click();
-        });
+        if (!currentUser || !currentProfile) {
 
-    document
-        .getElementById("promotion-camera-photo-input")
-        ?.addEventListener("change", function (event) {
-            addPromotionFiles(event.target.files);
-            event.target.value = "";
-        });
+            alert("Debes iniciar sesión.");
+            return;
+        }
 
-    document
-        .getElementById("promotion-camera-video-input")
-        ?.addEventListener("change", function (event) {
-            addPromotionFiles(event.target.files);
-            event.target.value = "";
-        });
 
-    document
-        .getElementById("promotion-gallery-input")
-        ?.addEventListener("change", function (event) {
-            addPromotionFiles(event.target.files);
-            event.target.value = "";
-        });
+        const title =
+            promotionTitle?.value.trim();
+
+        const description =
+            promotionDescription?.value.trim();
+
+        const price =
+            Number(promotionPrice?.value || 0);
+
+        const contact =
+            promotionContact?.value.trim();
+
+
+        if (!title || !description) {
+
+            alert(
+                "Completa el título y la descripción."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            setButtonLoading(
+                promotionForm?.querySelector("button[type='submit']"),
+                true
+            );
+
+
+            let imageUrl = null;
+
+            const file =
+                promotionImageCamera?.files?.[0] ||
+                promotionImageGallery?.files?.[0] ||
+                null;
+
+
+            if (file) {
+
+                imageUrl =
+                    await uploadImage(
+                        file,
+                        `promotions/${currentUser.id}`
+                    );
+            }
+
+
+            const {
+                data,
+                error
+            } = await db
+                .from(TABLE_PROMOTIONS)
+                .insert({
+                    user_id: currentProfile.id,
+                    titulo: title,
+                    descripcion: description,
+                    precio: price,
+                    contacto: contact || currentProfile.telefono,
+                    imagen_url: imageUrl,
+                    estado: "pendiente"
+                })
+                .select()
+                .single();
+
+
+            if (error) {
+
+                console.error(error);
+
+                alert(
+                    "No se pudo crear la promoción: " +
+                    error.message
+                );
+
+                return;
+            }
+
+
+            pendingPromotion = data;
+
+            promotionForm.reset();
+
+            showImagePreview(
+                promotionImagePreview,
+                null
+            );
+
+            closePanel(promotionPanel);
+
+            await loadMemberships();
+
+            openPanel(membershipPanel);
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Ocurrió un error creando la promoción."
+            );
+
+        } finally {
+
+            setButtonLoading(
+                promotionForm?.querySelector("button[type='submit']"),
+                false,
+                "Continuar con el pago"
+            );
+        }
+    }
+
+
+    async function loadPromotions() {
+
+        if (!flashContainer) return;
+
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_PROMOTIONS)
+            .select(`
+                *,
+                users (
+                    nombre,
+                    telefono
+                )
+            `)
+            .eq("estado", "aprobada")
+            .order("created_at", {
+                ascending: false
+            });
+
+
+        if (error) {
+
+            console.error(error);
+
+            flashContainer.innerHTML = `
+                <div class="empty-flash">
+                    <p>No hay promociones todavía.</p>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        renderPromotions(data || []);
+    }
+
+
+    function renderPromotions(promotions) {
+
+        if (!flashContainer) return;
+
+
+        if (!promotions.length) {
+
+            flashContainer.innerHTML = `
+                <div class="empty-flash">
+                    <p>No hay Flash del Día todavía.</p>
+                </div>
+            `;
+
+            return;
+        }
+
+
+        flashContainer.innerHTML =
+            promotions.map(promotion => {
+
+                const image =
+                    promotion.imagen_url
+                    ? `
+                        <img
+                            src="${escapeHTML(promotion.imagen_url)}"
+                            alt="${escapeHTML(promotion.titulo)}"
+                            class="flash-image"
+                        >
+                    `
+                    : `
+                        <div class="flash-image-placeholder">
+                            ⚡
+                        </div>
+                    `;
+
+
+                return `
+                    <article class="flash-card">
+
+                        <div class="flash-card-image">
+                            ${image}
+                        </div>
+
+                        <div class="flash-card-content">
+
+                            <span class="flash-badge">
+                                ⚡ FLASH
+                            </span>
+
+                            <h3>
+                                ${escapeHTML(promotion.titulo)}
+                            </h3>
+
+                            <p>
+                                ${escapeHTML(promotion.descripcion)}
+                            </p>
+
+                            <strong>
+                                ${formatPrice(promotion.precio)}
+                            </strong>
+
+                        </div>
+
+                    </article>
+                `;
+
+            }).join("");
+    }
+
 
     /* =========================================================
        MEMBRESÍAS
        ========================================================= */
 
-    document
-        .querySelectorAll(".membership-card")
-        .forEach(function (card) {
-            card.addEventListener("click", function () {
-                selectMembership(
-                    card.dataset.membership
-                );
+    async function loadMemberships() {
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_MEMBERSHIPS)
+            .select("*")
+            .eq("activa", true)
+            .order("id", {
+                ascending: true
             });
-        });
 
-    closeMembershipPanel?.addEventListener(
-        "click",
-        closeAllPanels
-    );
 
-    /* =========================================================
-       PAGO
-       ========================================================= */
+        if (error) {
 
-    closePaymentMethodPanel?.addEventListener(
-        "click",
-        closeAllPanels
-    );
+            console.error(
+                "Error cargando membresías:",
+                error
+            );
 
-    document
-        .getElementById("continue-to-proof-button")
-        ?.addEventListener("click", openProofPanel);
-
-    closePaymentProofPanel?.addEventListener(
-        "click",
-        closeAllPanels
-    );
-
-    document
-        .getElementById("proof-camera-button")
-        ?.addEventListener("click", function () {
-            document
-                .getElementById("proof-camera-input")
-                ?.click();
-        });
-
-    document
-        .getElementById("proof-gallery-button")
-        ?.addEventListener("click", function () {
-            document
-                .getElementById("proof-gallery-input")
-                ?.click();
-        });
-
-    document
-        .getElementById("proof-camera-input")
-        ?.addEventListener("change", function (event) {
-            handleProofFile(event.target.files?.[0]);
-            event.target.value = "";
-        });
-
-    document
-        .getElementById("proof-gallery-input")
-        ?.addEventListener("change", function (event) {
-            handleProofFile(event.target.files?.[0]);
-            event.target.value = "";
-        });
-
-    document
-        .getElementById("send-payment-proof-button")
-        ?.addEventListener("click", sendPaymentProof);
-
-    /* =========================================================
-       PERFIL
-       ========================================================= */
-
-    closeProfilePanel?.addEventListener(
-        "click",
-        closeAllPanels
-    );
-
-    profileSettingsButton?.addEventListener(
-        "click",
-        function () {
-            closeAllPanels();
-
-            if (settingsPanel) {
-                settingsPanel.classList.add("active");
-            }
+            return;
         }
-    );
 
-    editProfileButton?.addEventListener(
-        "click",
-        function () {
-            if (!currentUser) return;
 
-            const newName =
-                prompt(
-                    "Nombre completo:",
-                    currentUser.name || ""
+        updateMembershipDisplay(
+            data || []
+        );
+    }
+
+
+    function updateMembershipDisplay(memberships) {
+
+        const list = [
+            "basica",
+            "premium",
+            "vip"
+        ];
+
+
+        list.forEach(code => {
+
+            const membership =
+                memberships.find(
+                    item => item.codigo === code
                 );
 
-            if (newName === null) return;
 
-            const newPhone =
-                prompt(
-                    "Número de teléfono:",
-                    currentUser.phone || ""
-                );
-
-            if (newPhone === null) return;
-
-            currentUser.name =
-                newName.trim() || currentUser.name;
-
-            currentUser.phone =
-                newPhone.trim() || currentUser.phone;
-
-            updateUserInformation(currentUser);
-
-            alert("Perfil actualizado.");
-        }
-    );
-
-    administrationButton?.addEventListener(
-        "click",
-        function () {
-            closeAllPanels();
-
-            loadMembershipAdminForm();
-            renderAdminPaymentMethods();
-            renderAdminPaymentProofs();
-
-            openPanel(administrationPanel);
-        }
-    );
-
-    logoutProfileButton?.addEventListener(
-        "click",
-        logout
-    );
-
-    deleteAccountButton?.addEventListener(
-        "click",
-        function () {
-            if (
-                !confirm(
-                    "¿Seguro que deseas eliminar la cuenta guardada en este dispositivo?"
-                )
-            ) {
+            if (!membership) {
                 return;
             }
 
-            localStorage.removeItem(USER_STORAGE_KEY);
-            localStorage.removeItem(LOGIN_STORAGE_KEY);
 
-            currentUser = null;
+            const nameElement =
+                document.getElementById(
+                    `membership-description-${code}`
+                );
 
-            closeAllPanels();
-            showScreen(welcomeScreen);
+
+            const priceElement =
+                document.getElementById(
+                    `membership-price-${code}`
+                );
+
+
+            const featuresElement =
+                document.getElementById(
+                    `membership-features-${code}`
+                );
+
+
+            if (nameElement) {
+
+                nameElement.textContent =
+                    membership.descripcion ||
+                    membership.nombre;
+            }
+
+
+            if (priceElement) {
+
+                priceElement.textContent =
+                    formatPrice(membership.precio);
+            }
+
+
+            if (featuresElement) {
+
+                const features =
+                    Array.isArray(membership.caracteristicas)
+                    ? membership.caracteristicas
+                    : [];
+
+
+                featuresElement.innerHTML =
+                    features.map(feature => `
+                        <li>
+                            ${escapeHTML(feature)}
+                        </li>
+                    `).join("");
+            }
+
+        });
+    }
+
+
+    async function selectMembership(code) {
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_MEMBERSHIPS)
+            .select("*")
+            .eq("codigo", code)
+            .maybeSingle();
+
+
+        if (error || !data) {
+
+            alert(
+                "No se pudo seleccionar la membresía."
+            );
+
+            return;
         }
-    );
+
+
+        selectedMembership = data;
+
+
+        if (selectedMembershipInfo) {
+
+            selectedMembershipInfo.innerHTML = `
+                <strong>
+                    ${escapeHTML(data.nombre)}
+                </strong>
+
+                <span>
+                    ${formatPrice(data.precio)}
+                </span>
+
+                ${
+                    data.descripcion
+                    ? `
+                        <p>
+                            ${escapeHTML(data.descripcion)}
+                        </p>
+                    `
+                    : ""
+                }
+            `;
+        }
+
+
+        if (paymentAmount) {
+
+            paymentAmount.textContent =
+                `Monto: ${formatPrice(data.precio)}`;
+        }
+
+
+        await loadPaymentMethods();
+
+        closePanel(membershipPanel);
+
+        openPanel(paymentMethodPanel);
+    }
+
+
+    /* =========================================================
+       MÉTODOS DE PAGO
+       ========================================================= */
+
+    async function loadPaymentMethods() {
+
+        if (!paymentMethodSelect) return;
+
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_PAYMENT_METHODS)
+            .select("*")
+            .eq("activo", true)
+            .order("id", {
+                ascending: true
+            });
+
+
+        if (error) {
+
+            console.error(
+                "Error cargando métodos de pago:",
+                error
+            );
+
+            paymentMethodSelect.innerHTML = `
+                <option value="">
+                    Error cargando métodos
+                </option>
+            `;
+
+            return;
+        }
+
+
+        paymentMethodSelect.innerHTML = `
+            <option value="">
+                Seleccionar método
+            </option>
+
+            ${
+                (data || []).map(method => `
+                    <option value="${method.id}">
+                        ${escapeHTML(method.nombre)}
+                    </option>
+                `).join("")
+            }
+        `;
+
+
+        selectedPaymentMethod = null;
+
+
+        if (paymentAmount) {
+
+            paymentAmount.textContent =
+                selectedMembership
+                ? `Monto: ${formatPrice(selectedMembership.precio)}`
+                : "Selecciona un método de pago";
+        }
+    }
+
+
+    function handlePaymentMethodChange() {
+
+        const id =
+            Number(paymentMethodSelect?.value || 0);
+
+
+        if (!id) {
+
+            selectedPaymentMethod = null;
+
+            if (paymentAmount) {
+
+                paymentAmount.textContent =
+                    selectedMembership
+                    ? `Monto: ${formatPrice(selectedMembership.precio)}`
+                    : "Selecciona un método de pago";
+            }
+
+            return;
+        }
+
+
+        loadSelectedPaymentMethod(id);
+    }
+
+
+    async function loadSelectedPaymentMethod(id) {
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_PAYMENT_METHODS)
+            .select("*")
+            .eq("id", id)
+            .maybeSingle();
+
+
+        if (error || !data) {
+
+            selectedPaymentMethod = null;
+            return;
+        }
+
+
+        selectedPaymentMethod = data;
+
+
+        if (paymentAmount) {
+
+            paymentAmount.innerHTML = `
+                <strong>
+                    ${formatPrice(selectedMembership?.precio || 0)}
+                </strong>
+
+                <br>
+
+                <small>
+                    ${escapeHTML(data.nombre)}
+                </small>
+
+                ${
+                    data.descripcion
+                    ? `
+                        <br>
+                        <small>
+                            ${escapeHTML(data.descripcion)}
+                        </small>
+                    `
+                    : ""
+                }
+
+                ${
+                    data.datos_pago
+                    ? `
+                        <br><br>
+                        <small>
+                            ${escapeHTML(data.datos_pago)}
+                        </small>
+                    `
+                    : ""
+                }
+            `;
+        }
+    }
+
+
+    function continueToPaymentProof() {
+
+        if (!selectedMembership) {
+
+            alert(
+                "Primero selecciona una membresía."
+            );
+
+            return;
+        }
+
+
+        if (!selectedPaymentMethod) {
+
+            alert(
+                "Selecciona un método de pago."
+            );
+
+            return;
+        }
+
+
+        if (paymentSummary) {
+
+            paymentSummary.innerHTML = `
+                <div>
+                    <strong>
+                        Membresía
+                    </strong>
+
+                    <span>
+                        ${escapeHTML(selectedMembership.nombre)}
+                    </span>
+                </div>
+
+                <div>
+                    <strong>
+                        Método de pago
+                    </strong>
+
+                    <span>
+                        ${escapeHTML(selectedPaymentMethod.nombre)}
+                    </span>
+                </div>
+
+                <div>
+                    <strong>
+                        Total
+                    </strong>
+
+                    <span>
+                        ${formatPrice(selectedMembership.precio)}
+                    </span>
+                </div>
+
+                ${
+                    selectedPaymentMethod.datos_pago
+                    ? `
+                        <div>
+                            <strong>
+                                Datos para pagar
+                            </strong>
+
+                            <span>
+                                ${escapeHTML(
+                                    selectedPaymentMethod.datos_pago
+                                )}
+                            </span>
+                        </div>
+                    `
+                    : ""
+                }
+            `;
+        }
+
+
+        closePanel(paymentMethodPanel);
+
+        openPanel(paymentProofPanel);
+    }
+
+
+    /* =========================================================
+       COMPROBANTE DE PAGO
+       ========================================================= */
+
+    async function sendPaymentProof() {
+
+        if (!currentProfile) {
+
+            alert(
+                "Debes iniciar sesión."
+            );
+
+            return;
+        }
+
+
+        if (!selectedMembership) {
+
+            alert(
+                "No hay una membresía seleccionada."
+            );
+
+            return;
+        }
+
+
+        if (!selectedPaymentMethod) {
+
+            alert(
+                "No hay método de pago seleccionado."
+            );
+
+            return;
+        }
+
+
+        const file =
+            paymentProofCamera?.files?.[0] ||
+            paymentProofGallery?.files?.[0] ||
+            null;
+
+
+        if (!file) {
+
+            alert(
+                "Debes subir una foto del comprobante."
+            );
+
+            return;
+        }
+
+
+        try {
+
+            setButtonLoading(
+                sendPaymentProofButton,
+                true
+            );
+
+
+            let imageUrl = null;
+
+
+            if (file) {
+
+                imageUrl =
+                    await uploadImage(
+                        file,
+                        `payment-proofs/${currentUser.id}`
+                    );
+            }
+
+
+            const {
+                data,
+                error
+            } = await db
+                .from(TABLE_PAYMENT_PROOFS)
+                .insert({
+                    user_id: currentProfile.id,
+                    membership_id: selectedMembership.id,
+                    payment_method_id: selectedPaymentMethod.id,
+                    promotion_id: pendingPromotion?.id || null,
+                    monto: Number(selectedMembership.precio || 0),
+                    imagen_url: imageUrl,
+                    estado: "pendiente"
+                })
+                .select()
+                .single();
+
+
+            if (error) {
+
+                console.error(error);
+
+                alert(
+                    "No se pudo enviar el comprobante: " +
+                    error.message
+                );
+
+                return;
+            }
+
+
+            /*
+               Si había una promoción pendiente,
+               queda esperando aprobación.
+            */
+
+            if (pendingPromotion?.id) {
+
+                await db
+                    .from(TABLE_PROMOTIONS)
+                    .update({
+                        estado: "pendiente"
+                    })
+                    .eq("id", pendingPromotion.id);
+            }
+
+
+            paymentProofCamera.value = "";
+            paymentProofGallery.value = "";
+
+            paymentProofImageData = null;
+
+            showImagePreview(
+                paymentProofPreview,
+                null
+            );
+
+
+            alert(
+                "Comprobante enviado correctamente. Queda pendiente de revisión."
+            );
+
+
+            selectedMembership = null;
+            selectedPaymentMethod = null;
+            pendingPromotion = null;
+
+
+            closePanel(paymentProofPanel);
+
+            await loadPromotions();
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Ocurrió un error enviando el comprobante."
+            );
+
+        } finally {
+
+            setButtonLoading(
+                sendPaymentProofButton,
+                false,
+                "Enviar comprobante"
+            );
+        }
+    }
+
 
     /* =========================================================
        ADMINISTRACIÓN
        ========================================================= */
 
-    closeAdministrationPanel?.addEventListener(
-        "click",
-        closeAllPanels
-    );
+    async function openAdministration() {
 
-    saveMembershipSettings?.addEventListener(
-        "click",
-        saveMembershipAdminForm
-    );
+        if (!currentProfile) {
 
-    addPaymentMethodButton?.addEventListener(
-        "click",
-        addPaymentMethod
-    );
+            alert(
+                "Debes iniciar sesión."
+            );
 
-    savePaymentMethodsButton?.addEventListener(
-        "click",
-        saveAdminPaymentMethods
-    );
-
-    closeAdminProofDetail?.addEventListener(
-        "click",
-        closeAllPanels
-    );
-
-    approveProofButton?.addEventListener(
-        "click",
-        function () {
-            updateProofStatus("APROBADO");
+            return;
         }
-    );
 
-    rejectProofButton?.addEventListener(
-        "click",
-        function () {
-            updateProofStatus("RECHAZADO");
+
+        /*
+           De momento verificamos el rol guardado
+           en users.
+        */
+
+        if (
+            currentProfile.rol !== "admin" &&
+            currentProfile.rol !== "administrador"
+        ) {
+
+            alert(
+                "No tienes permisos de administrador."
+            );
+
+            return;
         }
-    );
 
-    viewProofFullscreenButton?.addEventListener(
-        "click",
-        function () {
-            if (!currentProofImage) return;
 
-            const image =
+        await loadAdminMemberships();
+        await loadAdminPaymentMethods();
+        await loadAdminPaymentProofs();
+
+        openPanel(administrationPanel);
+    }
+
+
+    async function loadAdminMemberships() {
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_MEMBERSHIPS)
+            .select("*")
+            .order("id", {
+                ascending: true
+            });
+
+
+        if (error) {
+
+            console.error(error);
+            return;
+        }
+
+
+        (data || []).forEach(membership => {
+
+            const code =
+                membership.codigo;
+
+
+            const name =
                 document.getElementById(
-                    "proof-fullscreen-image"
+                    `admin-membership-${code}-name`
                 );
 
-            if (image) {
-                image.src = currentProofImage;
+            const price =
+                document.getElementById(
+                    `admin-membership-${code}-price`
+                );
+
+            const description =
+                document.getElementById(
+                    `admin-membership-${code}-description`
+                );
+
+            const features =
+                document.getElementById(
+                    `admin-membership-${code}-features`
+                );
+
+
+            if (name) {
+                name.value =
+                    membership.nombre || "";
             }
 
-            proofFullscreenViewer?.classList.add("active");
-        }
-    );
+            if (price) {
+                price.value =
+                    membership.precio ?? 0;
+            }
 
-    closeProofFullscreen?.addEventListener(
-        "click",
-        function () {
-            proofFullscreenViewer?.classList.remove("active");
+            if (description) {
+                description.value =
+                    membership.descripcion || "";
+            }
+
+            if (features) {
+
+                features.value =
+                    Array.isArray(membership.caracteristicas)
+                    ? membership.caracteristicas.join("\n")
+                    : "";
+            }
+
+        });
+    }
+
+
+    async function saveMemberships() {
+
+        if (!currentProfile) return;
+
+
+        if (
+            currentProfile.rol !== "admin" &&
+            currentProfile.rol !== "administrador"
+        ) {
+
+            alert("No tienes permisos.");
+            return;
         }
-    );
+
+
+        const codes = [
+            "basica",
+            "premium",
+            "vip"
+        ];
+
+
+        try {
+
+            setButtonLoading(
+                saveMembershipsButton,
+                true
+            );
+
+
+            for (const code of codes) {
+
+                const name =
+                    document.getElementById(
+                        `admin-membership-${code}-name`
+                    )?.value.trim();
+
+
+                const price =
+                    Number(
+                        document.getElementById(
+                            `admin-membership-${code}-price`
+                        )?.value || 0
+                    );
+
+
+                const description =
+                    document.getElementById(
+                        `admin-membership-${code}-description`
+                    )?.value.trim();
+
+
+                const featuresText =
+                    document.getElementById(
+                        `admin-membership-${code}-features`
+                    )?.value || "";
+
+
+                const features =
+                    featuresText
+                        .split("\n")
+                        .map(item => item.trim())
+                        .filter(Boolean);
+
+
+                const {
+                    error
+                } = await db
+                    .from(TABLE_MEMBERSHIPS)
+                    .update({
+                        nombre: name,
+                        precio: price,
+                        descripcion: description,
+                        caracteristicas: features
+                    })
+                    .eq("codigo", code);
+
+
+                if (error) {
+
+                    console.error(error);
+
+                    alert(
+                        `No se pudo guardar ${code}: ${error.message}`
+                    );
+
+                    return;
+                }
+            }
+
+
+            await loadMemberships();
+
+            alert(
+                "Membresías guardadas correctamente."
+            );
+
+        } finally {
+
+            setButtonLoading(
+                saveMembershipsButton,
+                false,
+                "Guardar membresías"
+            );
+        }
+    }
+
+
+    /* =========================================================
+       ADMIN - MÉTODOS DE PAGO
+       ========================================================= */
+
+    async function loadAdminPaymentMethods() {
+
+        if (!adminPaymentMethodsContainer) {
+            return;
+        }
+
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_PAYMENT_METHODS)
+            .select("*")
+            .order("id", {
+                ascending: true
+            });
+
+
+        if (error) {
+
+            console.error(error);
+            return;
+        }
+
+
+        if (!data?.length) {
+
+            adminPaymentMethodsContainer.innerHTML = `
+                <p>No hay métodos de pago.</p>
+            `;
+
+            return;
+        }
+
+
+        adminPaymentMethodsContainer.innerHTML =
+            data.map(method => `
+
+                <div
+                    class="admin-payment-method-item"
+                    data-id="${method.id}"
+                    style="
+                        padding:16px;
+                        margin-bottom:12px;
+                        border:1px solid rgba(255,255,255,.1);
+                        border-radius:14px;
+                    "
+                >
+
+                    <input
+                        type="text"
+                        class="admin-payment-name"
+                        value="${escapeHTML(method.nombre)}"
+                        placeholder="Nombre"
+                    >
+
+                    <textarea
+                        class="admin-payment-description"
+                        placeholder="Descripción"
+                    >${escapeHTML(method.descripcion || "")}</textarea>
+
+                    <textarea
+                        class="admin-payment-data"
+                        placeholder="Datos para pagar"
+                    >${escapeHTML(method.datos_pago || "")}</textarea>
+
+                    <label>
+                        <input
+                            type="checkbox"
+                            class="admin-payment-active"
+                            ${method.activo ? "checked" : ""}
+                        >
+                        Activo
+                    </label>
+
+                    <button
+                        type="button"
+                        class="secondary-button save-payment-method"
+                    >
+                        Guardar
+                    </button>
+
+                    <button
+                        type="button"
+                        class="danger-button delete-payment-method"
+                    >
+                        Eliminar
+                    </button>
+
+                </div>
+
+            `).join("");
+    }
+
+
+    async function addPaymentMethod() {
+
+        if (!currentProfile) return;
+
+
+        if (
+            currentProfile.rol !== "admin" &&
+            currentProfile.rol !== "administrador"
+        ) {
+
+            alert("No tienes permisos.");
+            return;
+        }
+
+
+        const name =
+            prompt("Nombre del método de pago:");
+
+        if (!name) return;
+
+
+        const description =
+            prompt("Descripción del método:") || "";
+
+
+        const paymentData =
+            prompt("Datos para realizar el pago:") || "";
+
+
+        const {
+            error
+        } = await db
+            .from(TABLE_PAYMENT_METHODS)
+            .insert({
+                nombre: name,
+                descripcion: description,
+                datos_pago: paymentData,
+                activo: true
+            });
+
+
+        if (error) {
+
+            alert(
+                "No se pudo agregar: " +
+                error.message
+            );
+
+            return;
+        }
+
+
+        await loadAdminPaymentMethods();
+
+        await loadPaymentMethods();
+
+        alert(
+            "Método de pago agregado."
+        );
+    }
+
+
+    async function savePaymentMethod(item) {
+
+        const id =
+            Number(item.dataset.id);
+
+
+        const name =
+            item.querySelector(".admin-payment-name")?.value.trim();
+
+
+        const description =
+            item.querySelector(".admin-payment-description")?.value.trim();
+
+
+        const paymentData =
+            item.querySelector(".admin-payment-data")?.value.trim();
+
+
+        const active =
+            item.querySelector(".admin-payment-active")?.checked;
+
+
+        const {
+            error
+        } = await db
+            .from(TABLE_PAYMENT_METHODS)
+            .update({
+                nombre: name,
+                descripcion: description,
+                datos_pago: paymentData,
+                activo: active
+            })
+            .eq("id", id);
+
+
+        if (error) {
+
+            alert(
+                "No se pudo guardar: " +
+                error.message
+            );
+
+            return;
+        }
+
+
+        await loadAdminPaymentMethods();
+        await loadPaymentMethods();
+
+        alert(
+            "Método guardado."
+        );
+    }
+
+
+    async function deletePaymentMethod(item) {
+
+        const id =
+            Number(item.dataset.id);
+
+
+        if (
+            !confirm(
+                "¿Eliminar este método de pago?"
+            )
+        ) {
+            return;
+        }
+
+
+        const {
+            error
+        } = await db
+            .from(TABLE_PAYMENT_METHODS)
+            .delete()
+            .eq("id", id);
+
+
+        if (error) {
+
+            alert(
+                "No se pudo eliminar: " +
+                error.message
+            );
+
+            return;
+        }
+
+
+        await loadAdminPaymentMethods();
+        await loadPaymentMethods();
+    }
+
+
+    /* =========================================================
+       ADMIN - COMPROBANTES
+       ========================================================= */
+
+    async function loadAdminPaymentProofs() {
+
+        if (!adminPaymentProofsContainer) {
+            return;
+        }
+
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_PAYMENT_PROOFS)
+            .select(`
+                *,
+                users (
+                    nombre,
+                    cedula,
+                    telefono
+                ),
+                memberships (
+                    nombre
+                ),
+                payment_methods (
+                    nombre
+                )
+            `)
+            .order("created_at", {
+                ascending: false
+            });
+
+
+        if (error) {
+
+            console.error(error);
+
+            adminPaymentProofsContainer.innerHTML = `
+                <p>
+                    No se pudieron cargar los comprobantes.
+                </p>
+            `;
+
+            return;
+        }
+
+
+        if (!data?.length) {
+
+            adminPaymentProofsContainer.innerHTML = `
+                <p>
+                    No hay comprobantes.
+                </p>
+            `;
+
+            return;
+        }
+
+
+        adminPaymentProofsContainer.innerHTML =
+            data.map(proof => {
+
+                const status =
+                    proof.estado || "pendiente";
+
+
+                return `
+                    <button
+                        type="button"
+                        class="admin-proof-item"
+                        data-proof-id="${proof.id}"
+                        style="
+                            width:100%;
+                            text-align:left;
+                            padding:16px;
+                            margin-bottom:10px;
+                            border:1px solid rgba(255,255,255,.1);
+                            border-radius:14px;
+                            background:transparent;
+                            color:inherit;
+                        "
+                    >
+
+                        <strong>
+                            ${escapeHTML(
+                                proof.users?.nombre ||
+                                "Usuario"
+                            )}
+                        </strong>
+
+                        <span>
+                            ${
+                                escapeHTML(
+                                    proof.memberships?.nombre ||
+                                    "Membresía"
+                                )
+                            }
+                        </span>
+
+                        <span>
+                            ${
+                                escapeHTML(
+                                    proof.payment_methods?.nombre ||
+                                    "Método de pago"
+                                )
+                            }
+                        </span>
+
+                        <span>
+                            ${formatPrice(proof.monto)}
+                        </span>
+
+                        <span>
+                            Estado:
+                            ${escapeHTML(status)}
+                        </span>
+
+                    </button>
+                `;
+
+            }).join("");
+    }
+
+
+    async function openPaymentProofDetail(id) {
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_PAYMENT_PROOFS)
+            .select(`
+                *,
+                users (
+                    nombre,
+                    cedula,
+                    telefono
+                ),
+                memberships (
+                    nombre
+                ),
+                payment_methods (
+                    nombre
+                )
+            `)
+            .eq("id", id)
+            .maybeSingle();
+
+
+        if (error || !data) {
+
+            alert(
+                "No se pudo cargar el comprobante."
+            );
+
+            return;
+        }
+
+
+        selectedProof = data;
+
+
+        if (paymentProofDetail) {
+
+            paymentProofDetail.innerHTML = `
+
+                <div class="proof-detail-content">
+
+                    <h3>
+                        ${escapeHTML(
+                            data.users?.nombre ||
+                            "Usuario"
+                        )}
+                    </h3>
+
+                    <p>
+                        <strong>Cédula:</strong>
+                        ${escapeHTML(
+                            data.users?.cedula || ""
+                        )}
+                    </p>
+
+                    <p>
+                        <strong>Teléfono:</strong>
+                        ${escapeHTML(
+                            data.users?.telefono || ""
+                        )}
+                    </p>
+
+                    <p>
+                        <strong>Membresía:</strong>
+                        ${escapeHTML(
+                            data.memberships?.nombre ||
+                            ""
+                        )}
+                    </p>
+
+                    <p>
+                        <strong>Método:</strong>
+                        ${escapeHTML(
+                            data.payment_methods?.nombre ||
+                            ""
+                        )}
+                    </p>
+
+                    <p>
+                        <strong>Monto:</strong>
+                        ${formatPrice(data.monto)}
+                    </p>
+
+                    <p>
+                        <strong>Estado:</strong>
+                        ${escapeHTML(data.estado)}
+                    </p>
+
+                    ${
+                        data.imagen_url
+                        ? `
+                            <img
+                                src="${escapeHTML(data.imagen_url)}"
+                                alt="Comprobante"
+                                style="
+                                    width:100%;
+                                    max-height:500px;
+                                    object-fit:contain;
+                                    border-radius:16px;
+                                    margin-top:15px;
+                                "
+                            >
+                        `
+                        : `
+                            <p>
+                                No hay imagen del comprobante.
+                            </p>
+                        `
+                    }
+
+                </div>
+            `;
+        }
+
+
+        if (paymentProofAdminActions) {
+
+            const pending =
+                data.estado === "pendiente";
+
+            paymentProofAdminActions.style.display =
+                pending ? "flex" : "none";
+        }
+
+
+        openPanel(paymentProofDetailPanel);
+    }
+
+
+    async function updatePaymentProofStatus(status) {
+
+        if (!selectedProof) {
+            return;
+        }
+
+
+        const {
+            error
+        } = await db
+            .from(TABLE_PAYMENT_PROOFS)
+            .update({
+                estado: status
+            })
+            .eq("id", selectedProof.id);
+
+
+        if (error) {
+
+            alert(
+                "No se pudo actualizar el comprobante: " +
+                error.message
+            );
+
+            return;
+        }
+
+
+        /*
+           Si se aprueba un comprobante asociado
+           a una promoción, aprobamos la promoción.
+        */
+
+        if (
+            status === "aprobado" &&
+            selectedProof.promotion_id
+        ) {
+
+            await db
+                .from(TABLE_PROMOTIONS)
+                .update({
+                    estado: "aprobada"
+                })
+                .eq(
+                    "id",
+                    selectedProof.promotion_id
+                );
+        }
+
+
+        /*
+           Si se rechaza, la promoción también queda rechazada.
+        */
+
+        if (
+            status === "rechazado" &&
+            selectedProof.promotion_id
+        ) {
+
+            await db
+                .from(TABLE_PROMOTIONS)
+                .update({
+                    estado: "rechazada"
+                })
+                .eq(
+                    "id",
+                    selectedProof.promotion_id
+                );
+        }
+
+
+        alert(
+            status === "aprobado"
+                ? "Comprobante aprobado."
+                : "Comprobante rechazado."
+        );
+
+
+        closePanel(paymentProofDetailPanel);
+
+        await loadAdminPaymentProofs();
+        await loadPromotions();
+    }
+
+
+    function openProofFullscreen() {
+
+        if (!selectedProof?.imagen_url) {
+
+            alert(
+                "Este comprobante no tiene imagen."
+            );
+
+            return;
+        }
+
+
+        window.open(
+            selectedProof.imagen_url,
+            "_blank"
+        );
+    }
+
+
+    /* =========================================================
+       PERFIL
+       ========================================================= */
+
+    function openProfilePanel() {
+
+        updateUserInterface();
+
+        openPanel(profilePanel);
+    }
+
+
+    async function saveProfile(event) {
+
+        event.preventDefault();
+
+
+        if (!currentProfile) {
+            return;
+        }
+
+
+        const name =
+            profileEditName?.value.trim();
+
+        const phone =
+            profileEditPhone?.value.trim();
+
+
+        if (!name || !phone) {
+
+            alert(
+                "Completa nombre y teléfono."
+            );
+
+            return;
+        }
+
+
+        const {
+            data,
+            error
+        } = await db
+            .from(TABLE_USERS)
+            .update({
+                nombre: name,
+                telefono: phone
+            })
+            .eq("id", currentProfile.id)
+            .select()
+            .single();
+
+
+        if (error) {
+
+            alert(
+                "No se pudo actualizar el perfil: " +
+                error.message
+            );
+
+            return;
+        }
+
+
+        currentProfile = data;
+
+        updateUserInterface();
+
+        closePanel(profilePanel);
+
+        alert(
+            "Perfil actualizado correctamente."
+        );
+    }
+
 
     /* =========================================================
        CONFIGURACIÓN
        ========================================================= */
 
-    settingsButton?.addEventListener(
-        "click",
-        function () {
-            if (!settingsPanel) return;
+    function openSettings() {
 
-            settingsPanel.classList.toggle("active");
-        }
-    );
+        openPanel(settingsPanel);
+    }
 
-    closeSettings?.addEventListener(
-        "click",
-        function () {
-            settingsPanel?.classList.remove("active");
-        }
-    );
 
-    appSettingsButton?.addEventListener(
-        "click",
-        function () {
-            alert(
-                "La configuración general de Market Flash se administra desde los archivos de configuración de la aplicación."
+    /* =========================================================
+       IMÁGENES - PREVISUALIZACIÓN
+       ========================================================= */
+
+    async function handlePublicationImage() {
+
+        const file =
+            publicationImage?.files?.[0];
+
+        if (!file) {
+
+            publicationImageData = null;
+
+            showImagePreview(
+                publicationImagePreview,
+                null
             );
+
+            return;
         }
-    );
 
-    settingsProfileButton?.addEventListener(
-        "click",
-        function () {
-            settingsPanel?.classList.remove("active");
 
-            if (currentUser) {
-                updateProfile();
-                openPanel(profilePanel);
-            } else {
+        publicationImageData =
+            await readFileAsDataURL(file);
+
+
+        showImagePreview(
+            publicationImagePreview,
+            publicationImageData
+        );
+    }
+
+
+    async function handlePromotionImage(input) {
+
+        const file =
+            input?.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+
+        promotionImageData =
+            await readFileAsDataURL(file);
+
+
+        showImagePreview(
+            promotionImagePreview,
+            promotionImageData
+        );
+
+
+        /*
+           Evitamos tener dos imágenes diferentes.
+        */
+
+        if (
+            input === promotionImageCamera &&
+            promotionImageGallery
+        ) {
+            promotionImageGallery.value = "";
+        }
+
+
+        if (
+            input === promotionImageGallery &&
+            promotionImageCamera
+        ) {
+            promotionImageCamera.value = "";
+        }
+    }
+
+
+    async function handlePaymentProofImage(input) {
+
+        const file =
+            input?.files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+
+        paymentProofImageData =
+            await readFileAsDataURL(file);
+
+
+        showImagePreview(
+            paymentProofPreview,
+            paymentProofImageData
+        );
+
+
+        if (
+            input === paymentProofCamera &&
+            paymentProofGallery
+        ) {
+            paymentProofGallery.value = "";
+        }
+
+
+        if (
+            input === paymentProofGallery &&
+            paymentProofCamera
+        ) {
+            paymentProofCamera.value = "";
+        }
+    }
+
+
+    /* =========================================================
+       ACTUALIZAR TODA LA APP
+       ========================================================= */
+
+    async function refreshApplication() {
+
+        await loadCurrentUser();
+
+        await Promise.all([
+            loadPublications(),
+            loadPromotions(),
+            loadMemberships()
+        ]);
+    }
+
+
+    /* =========================================================
+       EVENTOS - BIENVENIDA / LOGIN / REGISTRO
+       ========================================================= */
+
+    if (startButton) {
+
+        startButton.addEventListener(
+            "click",
+            () => {
+
                 showScreen(loginScreen);
+            }
+        );
+    }
+
+
+    if (loginBackButton) {
+
+        loginBackButton.addEventListener(
+            "click",
+            () => {
+
+                showScreen(welcomeScreen);
+            }
+        );
+    }
+
+
+    if (registerBackButton) {
+
+        registerBackButton.addEventListener(
+            "click",
+            () => {
+
+                showScreen(welcomeScreen);
+            }
+        );
+    }
+
+
+    if (goRegisterButton) {
+
+        goRegisterButton.addEventListener(
+            "click",
+            () => {
+
+                clearErrors();
+                showScreen(registerScreen);
+            }
+        );
+    }
+
+
+    if (goLoginButton) {
+
+        goLoginButton.addEventListener(
+            "click",
+            () => {
+
+                clearErrors();
+                showScreen(loginScreen);
+            }
+        );
+    }
+
+
+    if (loginForm) {
+
+        loginForm.addEventListener(
+            "submit",
+            loginUser
+        );
+    }
+
+
+    if (registerForm) {
+
+        registerForm.addEventListener(
+            "submit",
+            registerUser
+        );
+    }
+
+
+    /* =========================================================
+       MENÚ
+       ========================================================= */
+
+    if (menuButton) {
+
+        menuButton.addEventListener(
+            "click",
+            () => {
+
+                sideMenu?.classList.add("active");
+            }
+        );
+    }
+
+
+    if (closeSideMenu) {
+
+        closeSideMenu.addEventListener(
+            "click",
+            closeMenu
+        );
+    }
+
+
+    if (menuHomeButton) {
+
+        menuHomeButton.addEventListener(
+            "click",
+            () => {
+
+                showPage(homeScreen);
+            }
+        );
+    }
+
+
+    if (menuPublicationsButton) {
+
+        menuPublicationsButton.addEventListener(
+            "click",
+            async () => {
+
+                showPage(publicationsScreen);
+
+                await loadPublications();
+            }
+        );
+    }
+
+
+    if (menuProfileButton) {
+
+        menuProfileButton.addEventListener(
+            "click",
+            () => {
+
+                showPage(profileScreen);
+            }
+        );
+    }
+
+
+    if (menuAdministrationButton) {
+
+        menuAdministrationButton.addEventListener(
+            "click",
+            openAdministration
+        );
+    }
+
+
+    if (menuSettingsButton) {
+
+        menuSettingsButton.addEventListener(
+            "click",
+            () => {
+
+                closeMenu();
+                openSettings();
+            }
+        );
+    }
+
+
+    if (menuLogoutButton) {
+
+        menuLogoutButton.addEventListener(
+            "click",
+            logout
+        );
+    }
+
+
+    /* =========================================================
+       HEADER
+       ========================================================= */
+
+    if (headerProfileButton) {
+
+        headerProfileButton.addEventListener(
+            "click",
+            () => {
+
+                showPage(profileScreen);
+            }
+        );
+    }
+
+
+    if (notificationsButton) {
+
+        notificationsButton.addEventListener(
+            "click",
+            () => {
+
+                alert(
+                    "No tienes nuevas notificaciones."
+                );
+            }
+        );
+    }
+
+
+    if (viewAllPublications) {
+
+        viewAllPublications.addEventListener(
+            "click",
+            async () => {
+
+                showPage(publicationsScreen);
+
+                await loadPublications();
+            }
+        );
+    }
+
+
+    /* =========================================================
+       PUBLICAR
+       ========================================================= */
+
+    if (publishButton) {
+
+        publishButton.addEventListener(
+            "click",
+            () => {
+
+                openPanel(publishPanel);
+            }
+        );
+    }
+
+
+    if (closePublishPanel) {
+
+        closePublishPanel.addEventListener(
+            "click",
+            () => {
+
+                closePanel(publishPanel);
+            }
+        );
+    }
+
+
+    if (publishForm) {
+
+        publishForm.addEventListener(
+            "submit",
+            createPublication
+        );
+    }
+
+
+    if (publicationImage) {
+
+        publicationImage.addEventListener(
+            "change",
+            handlePublicationImage
+        );
+    }
+
+
+    /* =========================================================
+       FLASH
+       ========================================================= */
+
+    if (closePromotionPanel) {
+
+        closePromotionPanel.addEventListener(
+            "click",
+            () => {
+
+                closePanel(promotionPanel);
+            }
+        );
+    }
+
+
+    if (promotionForm) {
+
+        promotionForm.addEventListener(
+            "submit",
+            createPendingPromotion
+        );
+    }
+
+
+    if (promotionImageCamera) {
+
+        promotionImageCamera.addEventListener(
+            "change",
+            () => handlePromotionImage(
+                promotionImageCamera
+            )
+        );
+    }
+
+
+    if (promotionImageGallery) {
+
+        promotionImageGallery.addEventListener(
+            "change",
+            () => handlePromotionImage(
+                promotionImageGallery
+            )
+        );
+    }
+
+
+    /* =========================================================
+       MEMBRESÍAS
+       ========================================================= */
+
+    if (closeMembershipPanel) {
+
+        closeMembershipPanel.addEventListener(
+            "click",
+            () => {
+
+                closePanel(membershipPanel);
+            }
+        );
+    }
+
+
+    if (membershipContainer) {
+
+        membershipContainer.addEventListener(
+            "click",
+            event => {
+
+                const button =
+                    event.target.closest(
+                        ".membership-select-button"
+                    );
+
+
+                if (!button) {
+                    return;
+                }
+
+
+                const code =
+                    button.dataset.membership;
+
+
+                if (code) {
+
+                    selectMembership(code);
+                }
+            }
+        );
+    }
+
+
+    /* =========================================================
+       MÉTODOS DE PAGO
+       ========================================================= */
+
+    if (closePaymentMethodPanel) {
+
+        closePaymentMethodPanel.addEventListener(
+            "click",
+            () => {
+
+                closePanel(paymentMethodPanel);
+            }
+        );
+    }
+
+
+    if (paymentMethodSelect) {
+
+        paymentMethodSelect.addEventListener(
+            "change",
+            handlePaymentMethodChange
+        );
+    }
+
+
+    if (continuePaymentButton) {
+
+        continuePaymentButton.addEventListener(
+            "click",
+            continueToPaymentProof
+        );
+    }
+
+
+    /* =========================================================
+       COMPROBANTE
+       ========================================================= */
+
+    if (closePaymentProofPanel) {
+
+        closePaymentProofPanel.addEventListener(
+            "click",
+            () => {
+
+                closePanel(paymentProofPanel);
+            }
+        );
+    }
+
+
+    if (paymentProofCamera) {
+
+        paymentProofCamera.addEventListener(
+            "change",
+            () => handlePaymentProofImage(
+                paymentProofCamera
+            )
+        );
+    }
+
+
+    if (paymentProofGallery) {
+
+        paymentProofGallery.addEventListener(
+            "change",
+            () => handlePaymentProofImage(
+                paymentProofGallery
+            )
+        );
+    }
+
+
+    if (sendPaymentProofButton) {
+
+        sendPaymentProofButton.addEventListener(
+            "click",
+            sendPaymentProof
+        );
+    }
+
+
+    /* =========================================================
+       ADMINISTRACIÓN
+       ========================================================= */
+
+    if (closeAdministrationPanel) {
+
+        closeAdministrationPanel.addEventListener(
+            "click",
+            () => {
+
+                closePanel(administrationPanel);
+            }
+        );
+    }
+
+
+    if (administrationButton) {
+
+        administrationButton.addEventListener(
+            "click",
+            openAdministration
+        );
+    }
+
+
+    if (saveMembershipsButton) {
+
+        saveMembershipsButton.addEventListener(
+            "click",
+            saveMemberships
+        );
+    }
+
+
+    if (addPaymentMethodButton) {
+
+        addPaymentMethodButton.addEventListener(
+            "click",
+            addPaymentMethod
+        );
+    }
+
+
+    if (adminPaymentMethodsContainer) {
+
+        adminPaymentMethodsContainer.addEventListener(
+            "click",
+            event => {
+
+                const saveButton =
+                    event.target.closest(
+                        ".save-payment-method"
+                    );
+
+
+                const deleteButton =
+                    event.target.closest(
+                        ".delete-payment-method"
+                    );
+
+
+                const item =
+                    event.target.closest(
+                        ".admin-payment-method-item"
+                    );
+
+
+                if (!item) {
+                    return;
+                }
+
+
+                if (saveButton) {
+
+                    savePaymentMethod(item);
+                }
+
+
+                if (deleteButton) {
+
+                    deletePaymentMethod(item);
+                }
+            }
+        );
+    }
+
+
+    if (adminPaymentProofsContainer) {
+
+        adminPaymentProofsContainer.addEventListener(
+            "click",
+            event => {
+
+                const item =
+                    event.target.closest(
+                        ".admin-proof-item"
+                    );
+
+
+                if (!item) {
+                    return;
+                }
+
+
+                const id =
+                    Number(
+                        item.dataset.proofId
+                    );
+
+
+                if (id) {
+
+                    openPaymentProofDetail(id);
+                }
+            }
+        );
+    }
+
+
+    /* =========================================================
+       DETALLE DE COMPROBANTE
+       ========================================================= */
+
+    if (closePaymentProofDetailPanel) {
+
+        closePaymentProofDetailPanel.addEventListener(
+            "click",
+            () => {
+
+                closePanel(
+                    paymentProofDetailPanel
+                );
+            }
+        );
+    }
+
+
+    if (approvePaymentProofButton) {
+
+        approvePaymentProofButton.addEventListener(
+            "click",
+            () => {
+
+                updatePaymentProofStatus(
+                    "aprobado"
+                );
+            }
+        );
+    }
+
+
+    if (rejectPaymentProofButton) {
+
+        rejectPaymentProofButton.addEventListener(
+            "click",
+            () => {
+
+                updatePaymentProofStatus(
+                    "rechazado"
+                );
+            }
+        );
+    }
+
+
+    if (fullscreenPaymentProofButton) {
+
+        fullscreenPaymentProofButton.addEventListener(
+            "click",
+            openProofFullscreen
+        );
+    }
+
+
+    /* =========================================================
+       PERFIL
+       ========================================================= */
+
+    if (profileEditButton) {
+
+        profileEditButton.addEventListener(
+            "click",
+            openProfilePanel
+        );
+    }
+
+
+    if (closeProfilePanel) {
+
+        closeProfilePanel.addEventListener(
+            "click",
+            () => {
+
+                closePanel(profilePanel);
+            }
+        );
+    }
+
+
+    if (profileForm) {
+
+        profileForm.addEventListener(
+            "submit",
+            saveProfile
+        );
+    }
+
+
+    if (logoutButton) {
+
+        logoutButton.addEventListener(
+            "click",
+            logout
+        );
+    }
+
+
+    /* =========================================================
+       CONFIGURACIÓN
+       ========================================================= */
+
+    if (settingsButton) {
+
+        settingsButton.addEventListener(
+            "click",
+            openSettings
+        );
+    }
+
+
+    if (closeSettingsPanel) {
+
+        closeSettingsPanel.addEventListener(
+            "click",
+            () => {
+
+                closePanel(settingsPanel);
+            }
+        );
+    }
+
+
+    if (settingsProfileButton) {
+
+        settingsProfileButton.addEventListener(
+            "click",
+            () => {
+
+                closePanel(settingsPanel);
+                openProfilePanel();
+            }
+        );
+    }
+
+
+    if (settingsLogoutButton) {
+
+        settingsLogoutButton.addEventListener(
+            "click",
+            logout
+        );
+    }
+
+
+    /* =========================================================
+       SUPABASE AUTH STATE
+       ========================================================= */
+
+    db.auth.onAuthStateChange(
+        async (event, session) => {
+
+            console.log(
+                "Supabase Auth:",
+                event
+            );
+
+
+            if (session?.user) {
+
+                currentUser =
+                    session.user;
+
+
+                /*
+                   Esperamos un poco para evitar conflictos
+                   con la actualización de la sesión.
+                */
+
+                setTimeout(
+                    async () => {
+
+                        await loadCurrentProfile();
+
+                        if (currentProfile) {
+
+                            showScreen(appScreen);
+
+                            showPage(homeScreen);
+
+                            await refreshApplication();
+                        }
+
+                    },
+                    0
+                );
+
+            } else {
+
+                currentUser = null;
+                currentProfile = null;
             }
         }
     );
 
-    logoutButton?.addEventListener(
-        "click",
-        logout
-    );
 
     /* =========================================================
        INICIALIZACIÓN
        ========================================================= */
 
-    updateMembershipDisplay();
-    renderPaymentMethods();
-    renderPublications();
-    renderFlashPromotions();
-    renderAdminPaymentMethods();
-    renderAdminPaymentProofs();
-    updateProfile();
+    async function initialize() {
 
-    if (currentUser &&
-        localStorage.getItem(LOGIN_STORAGE_KEY) === "true") {
+        clearErrors();
 
-        showScreen(dashboardScreen);
+        closeAllPanels();
 
-    } else {
+        closeMenu();
 
-        showScreen(welcomeScreen);
+
+        const {
+            data
+        } = await db.auth.getSession();
+
+
+        if (data?.session?.user) {
+
+            currentUser =
+                data.session.user;
+
+
+            await loadCurrentProfile();
+
+
+            if (currentProfile) {
+
+                showScreen(appScreen);
+
+                showPage(homeScreen);
+
+                await refreshApplication();
+
+            } else {
+
+                showScreen(loginScreen);
+            }
+
+        } else {
+
+            showScreen(welcomeScreen);
+        }
     }
 
-});
-'''
 
-path = Path("/mnt/data/script.js")
-path.write_text(script, encoding="utf-8")
-print(f"Archivo creado: {path}")
-print(f"Líneas: {len(script.splitlines())}")
+    initialize();
+
+});
