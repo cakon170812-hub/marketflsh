@@ -19,6 +19,10 @@
     --radius: 20px;
 }
 
+/* =====================================================
+   BASE
+===================================================== */
+
 html,
 body {
     width: 100%;
@@ -30,6 +34,12 @@ body {
 
 body {
     overflow-x: hidden;
+}
+
+button,
+input,
+textarea {
+    font-family: inherit;
 }
 
 /* =====================================================
@@ -612,8 +622,7 @@ form textarea {
     gap: 10px;
 }
 
-.media-button,
-.proof-button {
+.media-button {
     min-height: 50px;
     border: 1px solid var(--line);
     border-radius: 13px;
@@ -622,57 +631,105 @@ form textarea {
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
+    transition: 0.2s ease;
 }
 
-.media-button:hover,
-.proof-button:hover {
+.media-button:hover {
     background: rgba(220, 250, 255, 0.08);
+    border-color: rgba(220, 250, 255, 0.22);
 }
 
-.media-preview,
-.proof-preview {
+.media-button:active {
+    transform: scale(0.98);
+}
+
+/* =====================================================
+   TEXTO DE AYUDA PARA MEDIA
+===================================================== */
+
+.media-help-text {
+    margin-top: 9px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+    text-align: center;
+}
+
+/* =====================================================
+   PREVISUALIZACIÓN DE MEDIA
+===================================================== */
+
+.media-preview {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
     gap: 10px;
     margin-top: 12px;
 }
 
 .media-preview img,
-.media-preview video,
-.proof-preview img {
+.media-preview video {
+    display: block;
     width: 100%;
-    max-height: 180px;
+    height: 150px;
     object-fit: cover;
     border-radius: 13px;
     border: 1px solid var(--line);
+    background: #05070b;
+}
+
+.promotion-media-item {
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+    border-radius: 14px;
+    background: #070a0f;
+    border: 1px solid var(--line);
+}
+
+.promotion-media-item img,
+.promotion-media-item video {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border: 0;
+    border-radius: 0;
+}
+
+.media-number {
+    position: absolute;
+    top: 7px;
+    left: 7px;
+    z-index: 2;
+    min-width: 25px;
+    height: 25px;
+    padding: 0 7px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.72);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    backdrop-filter: blur(6px);
+}
+
+.media-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 12px;
+    padding: 7px 10px;
+    border: 1px solid rgba(220, 250, 255, 0.12);
+    border-radius: 9px;
+    background: rgba(220, 250, 255, 0.05);
+    color: #cfeaf0;
+    font-size: 10px;
+    font-weight: 700;
 }
 
 /* =====================================================
-   PAGO
+   PROMOCIÓN
 ===================================================== */
-
-.payment-proof-box {
-    margin-top: 20px;
-    padding: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 17px;
-    background: rgba(255, 255, 255, 0.025);
-}
-
-.payment-proof-box .form-section-title {
-    margin-top: 0;
-}
-
-.payment-proof-box p {
-    margin-bottom: 13px;
-    color: var(--muted);
-    font-size: 12px;
-    line-height: 1.5;
-}
-
-.proof-button {
-    width: 100%;
-}
 
 .promotion-notice {
     margin-top: 18px;
@@ -696,6 +753,204 @@ form textarea {
 
 .promotion-submit {
     margin-top: 20px;
+}
+
+/* =====================================================
+   MEMBRESÍAS
+===================================================== */
+
+.membership-modal {
+    width: min(100%, 760px);
+}
+
+.membership-title-area {
+    margin-bottom: 24px;
+    padding: 5px 20px 0;
+    text-align: center;
+}
+
+.membership-title-area .modal-icon {
+    margin-bottom: 8px;
+}
+
+.membership-title-area h2 {
+    font-size: clamp(22px, 5vw, 29px);
+}
+
+.membership-title-area p {
+    max-width: 540px;
+    margin: 9px auto 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+/* Contenedor de las 3 tarjetas */
+
+.membership-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+/* Tarjeta individual */
+
+.membership-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 270px;
+    padding: 18px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    background:
+        linear-gradient(
+            155deg,
+            rgba(255, 255, 255, 0.055),
+            rgba(255, 255, 255, 0.018)
+        );
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    transition:
+        transform 0.25s ease,
+        border-color 0.25s ease,
+        background 0.25s ease,
+        box-shadow 0.25s ease;
+}
+
+.membership-card::before {
+    content: "";
+    position: absolute;
+    width: 130px;
+    height: 130px;
+    top: -65px;
+    right: -55px;
+    border-radius: 50%;
+    background: rgba(220, 250, 255, 0.06);
+    filter: blur(8px);
+    pointer-events: none;
+}
+
+.membership-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(220, 250, 255, 0.35);
+    background:
+        linear-gradient(
+            155deg,
+            rgba(220, 250, 255, 0.09),
+            rgba(255, 255, 255, 0.025)
+        );
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.3);
+}
+
+.membership-card:active {
+    transform: translateY(-1px) scale(0.99);
+}
+
+.membership-card-header {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.membership-card-header h3 {
+    font-size: 17px;
+    letter-spacing: 0.8px;
+}
+
+.membership-badge {
+    padding: 5px 7px;
+    border-radius: 7px;
+    background: rgba(255, 255, 255, 0.07);
+    color: #b9c5d1;
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.membership-price {
+    position: relative;
+    z-index: 2;
+    margin-top: 22px;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+}
+
+.membership-price small {
+    display: block;
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 400;
+}
+
+.membership-description {
+    position: relative;
+    z-index: 2;
+    margin-top: 15px;
+    color: #aab5c2;
+    font-size: 11px;
+    line-height: 1.55;
+}
+
+.membership-select-text {
+    position: relative;
+    z-index: 2;
+    margin-top: auto;
+    padding-top: 18px;
+    color: #dffcff;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+/* VIP */
+
+.membership-vip {
+    border-color: rgba(220, 250, 255, 0.28);
+    background:
+        linear-gradient(
+            155deg,
+            rgba(220, 250, 255, 0.1),
+            rgba(255, 255, 255, 0.025)
+        );
+    box-shadow: 0 15px 45px rgba(110, 239, 255, 0.05);
+}
+
+.membership-vip .membership-badge {
+    background: rgba(220, 250, 255, 0.12);
+    color: #dffcff;
+}
+
+.membership-vip .membership-price {
+    text-shadow: 0 0 20px rgba(220, 250, 255, 0.18);
+}
+
+.membership-vip:hover {
+    border-color: rgba(220, 250, 255, 0.55);
+    box-shadow: 0 20px 55px rgba(110, 239, 255, 0.09);
+}
+
+/* Aviso debajo de las membresías */
+
+.membership-notice {
+    margin-top: 18px;
+    padding: 13px 14px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 13px;
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--muted);
+    text-align: center;
+    font-size: 11px;
+    line-height: 1.5;
 }
 
 /* =====================================================
@@ -897,6 +1152,10 @@ form textarea {
     .flash-day-section {
         padding: 28px;
     }
+
+    .membership-modal {
+        padding: 32px 25px 30px;
+    }
 }
 
 /* =====================================================
@@ -919,6 +1178,23 @@ form textarea {
 
     .bottom-navigation {
         bottom: 20px;
+    }
+
+    .membership-options {
+        gap: 16px;
+    }
+
+    .membership-card {
+        min-height: 290px;
+        padding: 21px 18px;
+    }
+
+    .membership-card-header h3 {
+        font-size: 19px;
+    }
+
+    .membership-price {
+        font-size: 27px;
     }
 }
 
@@ -946,5 +1222,61 @@ form textarea {
 
     .bottom-navigation {
         min-height: 64px;
+    }
+
+    .membership-options {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .membership-card {
+        min-height: 185px;
+    }
+
+    .membership-price {
+        margin-top: 15px;
+        font-size: 22px;
+    }
+
+    .membership-description {
+        margin-top: 10px;
+    }
+
+    .membership-select-text {
+        padding-top: 12px;
+    }
+
+    .media-preview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .media-preview img,
+    .media-preview video,
+    .promotion-media-item img,
+    .promotion-media-item video {
+        height: 125px;
+    }
+}
+
+/* =====================================================
+   PANTALLAS MUY PEQUEÑAS
+===================================================== */
+
+@media (max-width: 330px) {
+
+    .membership-card {
+        padding: 15px 13px;
+    }
+
+    .membership-card-header h3 {
+        font-size: 15px;
+    }
+
+    .membership-price {
+        font-size: 20px;
+    }
+
+    .media-actions {
+        grid-template-columns: 1fr;
     }
 }
