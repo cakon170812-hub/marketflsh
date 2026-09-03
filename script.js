@@ -11459,4 +11459,998 @@ function createAdminUserSearch() {
 
 initializeAdminManagement();
 
-createAdminUserSearch();
+createAdminUserSearch();/* =========================================================
+   MARKET FLASH
+   SCRIPT PRINCIPAL
+   PARTE 9
+   ADMINISTRADORES ADICIONALES + CREDENCIALES
+   ========================================================= */
+
+
+/* =========================================================
+   REFERENCIAS
+   ========================================================= */
+
+const createAdminButton =
+    $("create-admin-button");
+
+const adminList =
+    $("admin-list");
+
+const adminUsernameInput =
+    $("admin-username");
+
+const adminPasswordInput =
+    $("admin-password");
+
+const saveAdminCredentialsButton =
+    $("save-admin-credentials-button");
+
+const createAdminPanel =
+    $("create-admin-panel");
+
+const createAdminForm =
+    $("create-admin-form");
+
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+
+let adminAccountsCache = [];
+
+
+/* =========================================================
+   INICIALIZAR ADMINISTRADORES
+   ========================================================= */
+
+function initializeAdminAccounts() {
+
+    if (createAdminButton) {
+
+        createAdminButton.addEventListener(
+            "click",
+            function () {
+
+                if (!isCurrentUserAdmin()) {
+                    showToast(
+                        "No tienes permisos de administrador.",
+                        "error"
+                    );
+                    return;
+                }
+
+                openCreateAdminPanel();
+            }
+        );
+    }
+
+
+    if (saveAdminCredentialsButton) {
+
+        saveAdminCredentialsButton.addEventListener(
+            "click",
+            saveMainAdminCredentials
+        );
+    }
+
+
+    if (createAdminForm) {
+
+        createAdminForm.addEventListener(
+            "submit",
+            handleCreateAdminSubmit
+        );
+    }
+
+
+    loadAdminAccounts();
+}
+
+
+/* =========================================================
+   ABRIR CREACIÓN DE ADMIN
+   ========================================================= */
+
+function openCreateAdminPanel() {
+
+    if (!createAdminPanel) {
+        return;
+    }
+
+    if (createAdminForm) {
+        createAdminForm.reset();
+    }
+
+    openPanel(
+        "create-admin-panel"
+    );
+}
+
+
+/* =========================================================
+   CARGAR ADMINISTRADORES
+   ========================================================= */
+
+async function loadAdminAccounts() {
+
+    if (!isCurrentUserAdmin()) {
+        return;
+    }
+
+    if (!adminList) {
+        return;
+    }
+
+    adminList.innerHTML = `
+        <div class="admin-loading">
+            Cargando administradores...
+        </div>
+    `;
+
+    try {
+
+        const { data, error } =
+            await supabaseClient
+                .from("profiles")
+                .select(`
+                    id,
+                    name,
+                    cedula,
+                    phone,
+                    role,
+                    is_admin,
+                    status,
+                    created_at,
+                    last_seen_at
+                `)
+                .or(
+                    "role.eq.admin,is_admin.eq.true"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: true
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        adminAccountsCache =
+            data || [];
+
+        renderAdminAccounts(
+            adminAccountsCache
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error cargando administradores:",
+            error
+        );
+
+        adminList.innerHTML = `
+            <div class="admin-empty">
+                No se pudieron cargar los administradores.
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================================
+   RENDER ADMINISTRADORES
+   ========================================================= */
+
+function renderAdminAccounts(
+    admins
+) {
+
+    if (!adminList) {
+        return;
+    }
+
+    if (
+        !admins ||
+        admins.length === 0
+    ) {
+
+        adminList.innerHTML = `
+            <div class="admin-empty">
+                No hay administradores registrados.
+            </div>
+        `;
+
+        return;
+    }
+
+    adminList.innerHTML =
+        admins.map(function (admin) {
+
+            const isMainAdmin =
+                admin.id === currentUser?.id;
+
+            const status =
+                admin.status ||
+                "active";
+
+            return `
+                <article
+                    class="admin-account-card"
+                >
+
+                    <div class="admin-account-header">
+
+                        <div class="admin-user-avatar">
+                            ${escapeHTML(
+                                getInitials(
+                                    admin.name ||
+                                    "Admin"
+                                )
+                            )}
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                ${escapeHTML(
+                                    admin.name ||
+                                    "Administrador"
+                                )}
+                            </strong>
+
+                            <small>
+                                ${
+                                    isMainAdmin
+                                    ? "Administrador principal"
+                                    : "Administrador adicional"
+                                }
+                            </small>
+
+                        </div>
+
+                        <span
+                            class="admin-badge"
+                        >
+                            ADMIN
+                        </span>
+
+                    </div>
+
+
+                    <div class="admin-account-details">
+
+                        <p>
+                            <strong>
+                                Cédula:
+                            </strong>
+
+                            ${escapeHTML(
+                                admin.cedula ||
+                                "No disponible"
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Teléfono:
+                            </strong>
+
+                            ${escapeHTML(
+                                admin.phone ||
+                                "No disponible"
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Estado:
+                            </strong>
+
+                            ${escapeHTML(
+                                status
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Registrado:
+                            </strong>
+
+                            ${formatDateTime(
+                                admin.created_at
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Última conexión:
+                            </strong>
+
+                            ${
+                                admin.last_seen_at
+                                ? formatDateTime(
+                                    admin.last_seen_at
+                                )
+                                : "Nunca"
+                            }
+                        </p>
+
+                    </div>
+
+
+                    ${
+                        !isMainAdmin
+                        ? `
+                            <div class="admin-account-actions">
+
+                                <button
+                                    type="button"
+                                    class="admin-action-button danger"
+                                    data-admin-action="remove"
+                                    data-admin-id="${escapeHTML(
+                                        String(admin.id)
+                                    )}"
+                                >
+                                    🗑 Quitar administrador
+                                </button>
+
+                            </div>
+                        `
+                        : `
+                            <div class="admin-account-main-label">
+                                🔐 Cuenta principal
+                            </div>
+                        `
+                    }
+
+                </article>
+            `;
+
+        }).join("");
+
+    bindAdminAccountActions();
+}
+
+
+/* =========================================================
+   ACCIONES ADMIN
+   ========================================================= */
+
+function bindAdminAccountActions() {
+
+    if (!adminList) {
+        return;
+    }
+
+    const buttons =
+        adminList.querySelectorAll(
+            "[data-admin-action]"
+        );
+
+    buttons.forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                const adminId =
+                    button.dataset.adminId;
+
+                const action =
+                    button.dataset.adminAction;
+
+                if (
+                    action === "remove"
+                ) {
+
+                    await removeAdditionalAdmin(
+                        adminId
+                    );
+                }
+
+            }
+        );
+
+    });
+}
+
+
+/* =========================================================
+   QUITAR ADMINISTRADOR ADICIONAL
+   ========================================================= */
+
+async function removeAdditionalAdmin(
+    adminId
+) {
+
+    if (!isCurrentUserAdmin()) {
+
+        showToast(
+            "No tienes permisos de administrador.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        String(adminId) ===
+        String(currentUser?.id)
+    ) {
+
+        showToast(
+            "No puedes eliminar tu propia cuenta administrativa.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        !window.confirm(
+            "¿Quieres quitar los permisos de administrador a este usuario?"
+        )
+    ) {
+        return;
+    }
+
+    try {
+
+        showLoading(
+            "Quitando permisos..."
+        );
+
+        const { error } =
+            await supabaseClient
+                .from("profiles")
+                .update({
+                    role:
+                        "user",
+
+                    is_admin:
+                        false
+                })
+                .eq(
+                    "id",
+                    adminId
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        await loadAdminAccounts();
+
+        await loadAdminUsers();
+
+        showToast(
+            "Administrador eliminado correctamente.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error quitando administrador:",
+            error
+        );
+
+        showToast(
+            "No se pudieron quitar los permisos.",
+            "error"
+        );
+
+    } finally {
+
+        hideLoading();
+    }
+}
+
+
+/* =========================================================
+   CREAR ADMINISTRADOR
+   ========================================================= */
+
+async function handleCreateAdminSubmit(
+    event
+) {
+
+    event.preventDefault();
+
+    if (!isCurrentUserAdmin()) {
+
+        showToast(
+            "No tienes permisos de administrador.",
+            "error"
+        );
+
+        return;
+    }
+
+    const nameInput =
+        document.getElementById(
+            "create-admin-name"
+        );
+
+    const cedulaInput =
+        document.getElementById(
+            "create-admin-cedula"
+        );
+
+    const phoneInput =
+        document.getElementById(
+            "create-admin-phone"
+        );
+
+    const passwordInput =
+        document.getElementById(
+            "create-admin-password"
+        );
+
+    const name =
+        nameInput
+            ? nameInput.value.trim()
+            : "";
+
+    const cedula =
+        cedulaInput
+            ? cedulaInput.value.trim()
+            : "";
+
+    const phone =
+        phoneInput
+            ? phoneInput.value.trim()
+            : "";
+
+    const password =
+        passwordInput
+            ? passwordInput.value
+            : "";
+
+    if (!name) {
+
+        showToast(
+            "Escribe el nombre del administrador.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!cedula) {
+
+        showToast(
+            "Escribe la cédula del administrador.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!password || password.length < 8) {
+
+        showToast(
+            "La contraseña debe tener al menos 8 caracteres.",
+            "error"
+        );
+
+        return;
+    }
+
+    const normalizedCedula =
+        cedula.replace(
+            /\D/g,
+            ""
+        );
+
+    const email =
+        `${normalizedCedula}@marketflash.app`;
+
+    try {
+
+        showLoading(
+            "Creando administrador..."
+        );
+
+        /*
+         * Importante:
+         * crear un usuario mediante signUp desde el
+         * navegador puede cambiar la sesión actual
+         * dependiendo de la configuración de Supabase.
+         *
+         * Por eso aquí primero intentamos crear el
+         * usuario con la API de autenticación.
+         */
+
+        const {
+            data,
+            error
+        } =
+            await supabaseClient.auth.signUp({
+                email:
+                    email,
+
+                password:
+                    password,
+
+                options: {
+                    data: {
+                        name:
+                            name,
+
+                        cedula:
+                            cedula,
+
+                        phone:
+                            phone,
+
+                        role:
+                            "admin",
+
+                        is_admin:
+                            true
+                    }
+                }
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        if (!data?.user) {
+            throw new Error(
+                "Supabase no devolvió el usuario creado."
+            );
+        }
+
+        /*
+         * Intentamos crear/actualizar el perfil.
+         */
+
+        const { error:
+            profileError } =
+            await supabaseClient
+                .from("profiles")
+                .upsert({
+                    id:
+                        data.user.id,
+
+                    name:
+                        name,
+
+                    cedula:
+                        cedula,
+
+                    phone:
+                        phone,
+
+                    role:
+                        "admin",
+
+                    is_admin:
+                        true,
+
+                    status:
+                        "active"
+                });
+
+        if (profileError) {
+            console.warn(
+                "El usuario fue creado, pero el perfil necesita revisión:",
+                profileError
+            );
+        }
+
+        if (createAdminForm) {
+            createAdminForm.reset();
+        }
+
+        closePanel(
+            "create-admin-panel"
+        );
+
+        await loadAdminAccounts();
+
+        showToast(
+            "Administrador creado correctamente.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error creando administrador:",
+            error
+        );
+
+        let message =
+            "No se pudo crear el administrador.";
+
+        if (
+            error?.message
+        ) {
+            message =
+                error.message;
+        }
+
+        showToast(
+            message,
+            "error"
+        );
+
+    } finally {
+
+        hideLoading();
+    }
+}
+
+
+/* =========================================================
+   CAMBIAR CREDENCIALES DEL ADMIN PRINCIPAL
+   ========================================================= */
+
+async function saveMainAdminCredentials() {
+
+    if (!isCurrentUserAdmin()) {
+
+        showToast(
+            "No tienes permisos de administrador.",
+            "error"
+        );
+
+        return;
+    }
+
+    const username =
+        adminUsernameInput
+            ? adminUsernameInput.value.trim()
+            : "";
+
+    const password =
+        adminPasswordInput
+            ? adminPasswordInput.value
+            : "";
+
+    if (!username) {
+
+        showToast(
+            "Escribe el nuevo usuario administrativo.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        password &&
+        password.length < 8
+    ) {
+
+        showToast(
+            "La nueva contraseña debe tener al menos 8 caracteres.",
+            "error"
+        );
+
+        return;
+    }
+
+    try {
+
+        showLoading(
+            "Guardando credenciales..."
+        );
+
+        /*
+         * El nombre de usuario administrativo se guarda
+         * en la configuración protegida.
+         *
+         * La contraseña NO se guarda en localStorage
+         * ni en una tabla pública.
+         */
+
+        const { error:
+            configError } =
+            await supabaseClient
+                .from("admin_settings")
+                .upsert({
+                    id:
+                        "main",
+
+                    username:
+                        username,
+
+                    updated_by:
+                        currentUser.id,
+
+                    updated_at:
+                        new Date().toISOString()
+                });
+
+        if (configError) {
+            throw configError;
+        }
+
+        /*
+         * Si se escribió una contraseña nueva,
+         * se cambia mediante Supabase Auth.
+         */
+
+        if (password) {
+
+            const { error:
+                passwordError } =
+                await supabaseClient.auth
+                    .updateUser({
+                        password:
+                            password
+                    });
+
+            if (passwordError) {
+                throw passwordError;
+            }
+        }
+
+        /*
+         * Guardamos solamente el nombre de usuario
+         * localmente como ayuda visual.
+         *
+         * NUNCA guardamos la contraseña.
+         */
+
+        localStorage.setItem(
+            "mf_admin_username",
+            username
+        );
+
+        if (adminPasswordInput) {
+            adminPasswordInput.value = "";
+        }
+
+        showToast(
+            "Credenciales actualizadas correctamente.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error actualizando credenciales:",
+            error
+        );
+
+        showToast(
+            "No se pudieron actualizar las credenciales.",
+            "error"
+        );
+
+    } finally {
+
+        hideLoading();
+    }
+}
+
+
+/* =========================================================
+   CARGAR USUARIO ADMINISTRATIVO
+   ========================================================= */
+
+async function loadMainAdminSettings() {
+
+    if (
+        !isCurrentUserAdmin()
+    ) {
+        return;
+    }
+
+    if (!adminUsernameInput) {
+        return;
+    }
+
+    try {
+
+        const { data, error } =
+            await supabaseClient
+                .from("admin_settings")
+                .select(
+                    "username"
+                )
+                .eq(
+                    "id",
+                    "main"
+                )
+                .maybeSingle();
+
+        if (error) {
+            console.warn(
+                "No se pudieron cargar las credenciales administrativas:",
+                error
+            );
+
+            return;
+        }
+
+        if (data?.username) {
+
+            adminUsernameInput.value =
+                data.username;
+
+            localStorage.setItem(
+                "mf_admin_username",
+                data.username
+            );
+
+            return;
+        }
+
+        const localUsername =
+            localStorage.getItem(
+                "mf_admin_username"
+            );
+
+        if (localUsername) {
+            adminUsernameInput.value =
+                localUsername;
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Error cargando configuración admin:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   REFRESCAR PANEL ADMIN
+   ========================================================= */
+
+async function refreshAdministrationPanel() {
+
+    if (!isCurrentUserAdmin()) {
+        return;
+    }
+
+    await Promise.all([
+        loadAdminAccounts(),
+        loadAdminUsers(),
+        loadAdminPublications(),
+        loadAdminPaymentProofs(),
+        updateAdminStatistics(),
+        loadMainAdminSettings()
+    ]);
+}
+
+
+/* =========================================================
+   CERRAR CREACIÓN DE ADMIN
+   ========================================================= */
+
+const closeCreateAdminPanel =
+    $("close-create-admin-panel");
+
+if (closeCreateAdminPanel) {
+
+    closeCreateAdminPanel.addEventListener(
+        "click",
+        function () {
+
+            closePanel(
+                "create-admin-panel"
+            );
+
+        }
+    );
+}
+
+
+/* =========================================================
+   INICIAR
+   ========================================================= */
+
+initializeAdminAccounts();
