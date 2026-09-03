@@ -32,6 +32,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =====================================================
+    // PANELES PRINCIPALES
+    // =====================================================
+
+    const profilePanel =
+        document.getElementById("profile-panel");
+
+    const settingsPanel =
+        document.getElementById("settings-panel");
+
+    const administrationPanel =
+        document.getElementById("administration-panel");
+
+
+    function closeAllPanels() {
+
+        const panels =
+            document.querySelectorAll(".modal-panel");
+
+        panels.forEach((panel) => {
+            panel.classList.remove("open");
+        });
+
+        if (settingsPanel) {
+            settingsPanel.classList.remove("open");
+        }
+
+    }
+
+
+    // =====================================================
     // USUARIO Y SESIÓN
     // =====================================================
 
@@ -48,7 +78,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (error) {
 
-            console.error("Error leyendo usuario:", error);
+            console.error(
+                "Error leyendo usuario:",
+                error
+            );
 
             return null;
         }
@@ -79,33 +112,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         if (dashboardUserName) {
+
             dashboardUserName.textContent =
                 user.name || "Usuario";
+
         }
 
 
         if (userNameDisplay) {
+
             userNameDisplay.textContent =
                 user.name || "Usuario";
+
         }
 
 
         if (profileName) {
+
             profileName.textContent =
                 user.name || "Usuario";
+
         }
 
 
         if (profileCedula) {
+
             profileCedula.textContent =
                 user.cedula || "—";
+
         }
 
 
         if (profilePhone) {
+
             profilePhone.textContent =
                 user.phone || "—";
+
         }
+
     }
 
 
@@ -118,29 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
         closeAllPanels();
 
         showScreen(welcomeScreen);
-    }
-
-
-    // =====================================================
-    // CERRAR TODOS LOS PANELES
-    // =====================================================
-
-    function closeAllPanels() {
-
-        const panels =
-            document.querySelectorAll(".modal-panel");
-
-        panels.forEach((panel) => {
-            panel.classList.remove("open");
-        });
-
-
-        const settingsPanel =
-            document.getElementById("settings-panel");
-
-        if (settingsPanel) {
-            settingsPanel.classList.remove("open");
-        }
     }
 
 
@@ -296,10 +317,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 const user = {
+
                     name,
+
                     cedula,
+
                     phone,
+
                     password
+
                 };
 
 
@@ -313,6 +339,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     "marketFlashLoggedIn",
                     "true"
                 );
+
+
+                if (
+                    typeof window.addMarketFlashUser ===
+                    "function"
+                ) {
+
+                    window.addMarketFlashUser(user);
+
+                }
 
 
                 registerForm.reset();
@@ -411,7 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // CONFIGURACIÓN DE MEMBRESÍAS
     // =====================================================
 
-    const DEFAULT_MEMBERSHIPS = {
+    const FALLBACK_MEMBERSHIPS = {
 
         basica: {
 
@@ -421,6 +457,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             description:
                 "Una promoción sencilla para comenzar a destacar tu publicación.",
+
+            price: null,
 
             features: [
                 "Publicación promocionada",
@@ -439,6 +477,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             description:
                 "Más visibilidad y prioridad para que tu publicación llegue a más personas.",
+
+            price: null,
 
             features: [
                 "Mayor prioridad",
@@ -459,6 +499,8 @@ document.addEventListener("DOMContentLoaded", () => {
             description:
                 "La máxima opción de promoción para conseguir la mayor exposición.",
 
+            price: null,
+
             features: [
                 "Máxima prioridad",
                 "Máxima visibilidad",
@@ -472,38 +514,47 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
 
-    const DEFAULT_PAYMENT_METHODS = [
+    const FALLBACK_PAYMENT_METHODS = [
 
         {
             id: "banreservas",
+
             name: "BanReservas",
+
             prices: {
                 basica: null,
                 premium: null,
                 vip: null
             }
+
         },
 
 
         {
             id: "bhd",
+
             name: "BHD",
+
             prices: {
                 basica: null,
                 premium: null,
                 vip: null
             }
+
         },
 
 
         {
             id: "popular",
+
             name: "Banco Popular",
+
             prices: {
                 basica: null,
                 premium: null,
                 vip: null
             }
+
         }
 
     ];
@@ -518,7 +569,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
+    // =====================================================
+    // MEMBRESÍAS DESDE DATA.JS + LOCALSTORAGE
+    // =====================================================
+
+    function getBaseMemberships() {
+
+        if (
+            window.MARKET_FLASH_DATA &&
+            window.MARKET_FLASH_DATA.memberships
+        ) {
+
+            return cloneObject(
+                window.MARKET_FLASH_DATA.memberships
+            );
+
+        }
+
+        return cloneObject(
+            FALLBACK_MEMBERSHIPS
+        );
+
+    }
+
+
     function getMembershipSettings() {
+
+        const base =
+            getBaseMemberships();
+
 
         const saved =
             localStorage.getItem(
@@ -528,17 +607,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!saved) {
 
-            const defaults =
-                cloneObject(
-                    DEFAULT_MEMBERSHIPS
-                );
-
             localStorage.setItem(
                 "marketFlashMembershipSettings",
-                JSON.stringify(defaults)
+                JSON.stringify(base)
             );
 
-            return defaults;
+            return base;
         }
 
 
@@ -548,10 +622,59 @@ document.addEventListener("DOMContentLoaded", () => {
                 JSON.parse(saved);
 
 
-            return {
-                ...cloneObject(DEFAULT_MEMBERSHIPS),
-                ...parsed
-            };
+            if (
+                !parsed ||
+                typeof parsed !== "object"
+            ) {
+
+                return base;
+
+            }
+
+
+            ["basica", "premium", "vip"].forEach(
+                (id) => {
+
+                    if (!base[id]) {
+                        return;
+                    }
+
+
+                    if (
+                        !parsed[id] ||
+                        typeof parsed[id] !== "object"
+                    ) {
+
+                        parsed[id] =
+                            cloneObject(base[id]);
+
+                        return;
+
+                    }
+
+
+                    parsed[id] = {
+
+                        ...base[id],
+
+                        ...parsed[id],
+
+                        features:
+                            Array.isArray(
+                                parsed[id].features
+                            )
+                                ? parsed[id].features
+                                : cloneObject(
+                                    base[id].features || []
+                                )
+
+                    };
+
+                }
+            );
+
+
+            return parsed;
 
         } catch (error) {
 
@@ -560,10 +683,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
-            return cloneObject(
-                DEFAULT_MEMBERSHIPS
-            );
+
+            return base;
         }
+
     }
 
 
@@ -574,10 +697,97 @@ document.addEventListener("DOMContentLoaded", () => {
             JSON.stringify(settings)
         );
 
+
+        if (
+            window.MARKET_FLASH_DATA
+        ) {
+
+            window.MARKET_FLASH_DATA.memberships =
+                cloneObject(settings);
+
+        }
+
+    }
+
+
+    // =====================================================
+    // MÉTODOS DE PAGO DESDE DATA.JS + LOCALSTORAGE
+    // =====================================================
+
+    function getBasePaymentMethods() {
+
+        if (
+            window.MARKET_FLASH_DATA &&
+            Array.isArray(
+                window.MARKET_FLASH_DATA.paymentMethods
+            )
+        ) {
+
+            return cloneObject(
+                window.MARKET_FLASH_DATA.paymentMethods
+            );
+
+        }
+
+        return cloneObject(
+            FALLBACK_PAYMENT_METHODS
+        );
+
+    }
+
+
+    function normalizePaymentMethods(methods) {
+
+        if (!Array.isArray(methods)) {
+            return [];
+        }
+
+
+        return methods.map(
+            (method, index) => {
+
+                return {
+
+                    id:
+                        method.id ||
+                        "metodo-" +
+                        Date.now() +
+                        "-" +
+                        index,
+
+                    name:
+                        method.name ||
+                        "Método de pago",
+
+                    prices: {
+
+                        basica:
+                            method.prices?.basica ??
+                            null,
+
+                        premium:
+                            method.prices?.premium ??
+                            null,
+
+                        vip:
+                            method.prices?.vip ??
+                            null
+
+                    }
+
+                };
+
+            }
+        );
+
     }
 
 
     function getPaymentMethods() {
+
+        const base =
+            getBasePaymentMethods();
+
 
         const saved =
             localStorage.getItem(
@@ -588,16 +798,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!saved) {
 
             const defaults =
-                cloneObject(
-                    DEFAULT_PAYMENT_METHODS
-                );
+                normalizePaymentMethods(base);
+
 
             localStorage.setItem(
                 "marketFlashPaymentMethods",
                 JSON.stringify(defaults)
             );
 
+
             return defaults;
+
         }
 
 
@@ -609,14 +820,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (!Array.isArray(parsed)) {
 
-                return cloneObject(
-                    DEFAULT_PAYMENT_METHODS
-                );
+                return normalizePaymentMethods(base);
 
             }
 
 
-            return parsed;
+            return normalizePaymentMethods(parsed);
 
         } catch (error) {
 
@@ -625,19 +834,34 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
-            return cloneObject(
-                DEFAULT_PAYMENT_METHODS
-            );
+
+            return normalizePaymentMethods(base);
+
         }
+
     }
 
 
     function savePaymentMethods(methods) {
 
+        const normalized =
+            normalizePaymentMethods(methods);
+
+
         localStorage.setItem(
             "marketFlashPaymentMethods",
-            JSON.stringify(methods)
+            JSON.stringify(normalized)
         );
+
+
+        if (
+            window.MARKET_FLASH_DATA
+        ) {
+
+            window.MARKET_FLASH_DATA.paymentMethods =
+                cloneObject(normalized);
+
+        }
 
     }
 
@@ -656,6 +880,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ) {
 
             return "POR DEFINIR";
+
         }
 
 
@@ -669,6 +894,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             )
         );
+
     }
 
 
@@ -687,6 +913,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const plan =
                     settings[id];
+
 
                 if (!plan) return;
 
@@ -742,10 +969,14 @@ document.addEventListener("DOMContentLoaded", () => {
                             const li =
                                 document.createElement("li");
 
+
                             li.textContent =
                                 feature;
 
-                            featuresElement.appendChild(li);
+
+                            featuresElement.appendChild(
+                                li
+                            );
 
                         }
                     );
@@ -758,9 +989,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    renderMembershipCards();
-
-
     // =====================================================
     // FLASH DEL DÍA
     // =====================================================
@@ -768,10 +996,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const promoteButton =
         document.getElementById("promote-button");
 
-
     const promotionPanel =
         document.getElementById("promotion-panel");
-
 
     const closePromotionPanel =
         document.getElementById(
@@ -890,8 +1116,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
+
             return null;
         }
+
     }
 
 
@@ -949,17 +1177,19 @@ document.addEventListener("DOMContentLoaded", () => {
             "click",
             () => {
 
-                const choice = confirm(
-                    "Pulsa ACEPTAR para tomar una FOTO.\n\n" +
-                    "Pulsa CANCELAR para grabar un VIDEO."
-                );
+                const choice =
+                    confirm(
+                        "Pulsa ACEPTAR para tomar una FOTO.\n\n" +
+                        "Pulsa CANCELAR para grabar un VIDEO."
+                    );
 
 
                 if (choice) {
 
                     if (promotionCameraPhotoInput) {
 
-                        promotionCameraPhotoInput.value = "";
+                        promotionCameraPhotoInput.value =
+                            "";
 
                         promotionCameraPhotoInput.click();
 
@@ -969,7 +1199,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     if (promotionCameraVideoInput) {
 
-                        promotionCameraVideoInput.value = "";
+                        promotionCameraVideoInput.value =
+                            "";
 
                         promotionCameraVideoInput.click();
 
@@ -995,7 +1226,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (promotionGalleryInput) {
 
-                    promotionGalleryInput.value = "";
+                    promotionGalleryInput.value =
+                        "";
 
                     promotionGalleryInput.click();
 
@@ -1029,6 +1261,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         renderPromotionPreview();
+
     }
 
 
@@ -1043,7 +1276,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        promotionMediaPreview.innerHTML = "";
+        promotionMediaPreview.innerHTML =
+            "";
 
 
         if (!promotionFiles.length) {
@@ -1091,7 +1325,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         document.createElement("img");
 
 
-                    image.src = url;
+                    image.src =
+                        url;
+
 
                     image.alt =
                         "Material de promoción";
@@ -1110,11 +1346,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         document.createElement("video");
 
 
-                    video.src = url;
+                    video.src =
+                        url;
 
-                    video.controls = true;
 
-                    video.playsInline = true;
+                    video.controls =
+                        true;
+
+
+                    video.playsInline =
+                        true;
 
 
                     mediaItem.appendChild(
@@ -1284,9 +1525,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 pendingPromotion = {
 
-                    id: Date.now(),
+                    id:
+                        Date.now(),
 
-                    user: getSavedUser(),
+                    user:
+                        getSavedUser(),
 
                     title,
 
@@ -1401,7 +1644,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!paymentMethodsList) return;
 
 
-        paymentMethodsList.innerHTML = "";
+        paymentMethodsList.innerHTML =
+            "";
 
 
         const methods =
@@ -1424,7 +1668,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     document.createElement("button");
 
 
-                button.type = "button";
+                button.type =
+                    "button";
+
 
                 button.className =
                     "payment-method-option";
@@ -1463,9 +1709,11 @@ document.addEventListener("DOMContentLoaded", () => {
                             )
                             .forEach(
                                 (item) => {
+
                                     item.classList.remove(
                                         "selected"
                                     );
+
                                 }
                             );
 
@@ -1490,6 +1738,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         }
 
+
+                        if (selectedMembershipPrice) {
+
+                            selectedMembershipPrice.textContent =
+                                formatPrice(price);
+
+                        }
+
                     }
                 );
 
@@ -1505,7 +1761,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =====================================================
-    // ESCAPAR TEXTO HTML
+    // ESCAPAR HTML
     // =====================================================
 
     function escapeHtml(value) {
@@ -1514,7 +1770,9 @@ document.addEventListener("DOMContentLoaded", () => {
             value === null ||
             value === undefined
         ) {
+
             return "";
+
         }
 
 
@@ -1524,6 +1782,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .replaceAll(">", "&gt;")
             .replaceAll('"', "&quot;")
             .replaceAll("'", "&#039;");
+
     }
 
 
@@ -1678,6 +1937,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         const data = {
+
             id:
                 pendingPromotion.id,
 
@@ -1700,7 +1960,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 pendingPromotion.mediaCount,
 
             membership:
-                pendingPromotion.membership || null,
+                pendingPromotion.membership ||
+                null,
+
+            payment:
+                pendingPromotion.payment ||
+                null,
 
             status:
                 pendingPromotion.status,
@@ -1709,7 +1974,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 pendingPromotion.createdAt,
 
             updatedAt:
-                pendingPromotion.updatedAt || null
+                pendingPromotion.updatedAt ||
+                null
+
         };
 
 
@@ -1747,6 +2014,99 @@ document.addEventListener("DOMContentLoaded", () => {
 
             }
         );
+
+    }
+
+
+    // =====================================================
+    // PANEL DE COMPROBANTE
+    // =====================================================
+
+    const paymentProofPanel =
+        document.getElementById(
+            "payment-proof-panel"
+        );
+
+
+    const closePaymentProofPanel =
+        document.getElementById(
+            "close-payment-proof-panel"
+        );
+
+
+    if (closePaymentProofPanel) {
+
+        closePaymentProofPanel.addEventListener(
+            "click",
+            () => {
+
+                if (paymentProofPanel) {
+
+                    paymentProofPanel.classList.remove(
+                        "open"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // INFORMACIÓN DEL COMPROBANTE
+    // =====================================================
+
+    function updateProofInformation() {
+
+        if (!pendingPromotion) return;
+
+
+        const membershipName =
+            document.getElementById(
+                "proof-membership-name"
+            );
+
+
+        const paymentMethod =
+            document.getElementById(
+                "proof-payment-method"
+            );
+
+
+        const paymentAmount =
+            document.getElementById(
+                "proof-payment-amount"
+            );
+
+
+        if (membershipName) {
+
+            membershipName.textContent =
+                pendingPromotion.membership?.name ||
+                "—";
+
+        }
+
+
+        if (paymentMethod) {
+
+            paymentMethod.textContent =
+                pendingPromotion.payment?.methodName ||
+                "—";
+
+        }
+
+
+        if (paymentAmount) {
+
+            paymentAmount.textContent =
+                formatPrice(
+                    pendingPromotion.payment?.amount
+                );
+
+        }
 
     }
 
@@ -1872,12 +2232,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
 
 
-                const paymentProofPanel =
-                    document.getElementById(
-                        "payment-proof-panel"
-                    );
-
-
                 if (paymentProofPanel) {
 
                     paymentProofPanel.classList.add(
@@ -1888,99 +2242,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             }
         );
-
-    }
-
-
-    // =====================================================
-    // PANEL DE COMPROBANTE
-    // =====================================================
-
-    const paymentProofPanel =
-        document.getElementById(
-            "payment-proof-panel"
-        );
-
-
-    const closePaymentProofPanel =
-        document.getElementById(
-            "close-payment-proof-panel"
-        );
-
-
-    if (closePaymentProofPanel) {
-
-        closePaymentProofPanel.addEventListener(
-            "click",
-            () => {
-
-                if (paymentProofPanel) {
-
-                    paymentProofPanel.classList.remove(
-                        "open"
-                    );
-
-                }
-
-            }
-        );
-
-    }
-
-
-    // =====================================================
-    // INFORMACIÓN DEL COMPROBANTE
-    // =====================================================
-
-    function updateProofInformation() {
-
-        if (!pendingPromotion) return;
-
-
-        const membershipName =
-            document.getElementById(
-                "proof-membership-name"
-            );
-
-
-        const paymentMethod =
-            document.getElementById(
-                "proof-payment-method"
-            );
-
-
-        const paymentAmount =
-            document.getElementById(
-                "proof-payment-amount"
-            );
-
-
-        if (membershipName) {
-
-            membershipName.textContent =
-                pendingPromotion.membership?.name ||
-                "—";
-
-        }
-
-
-        if (paymentMethod) {
-
-            paymentMethod.textContent =
-                pendingPromotion.payment?.methodName ||
-                "—";
-
-        }
-
-
-        if (paymentAmount) {
-
-            paymentAmount.textContent =
-                formatPrice(
-                    pendingPromotion.payment?.amount
-                );
-
-        }
 
     }
 
@@ -2032,7 +2293,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (proofCameraInput) {
 
-                    proofCameraInput.value = "";
+                    proofCameraInput.value =
+                        "";
 
                     proofCameraInput.click();
 
@@ -2052,7 +2314,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (proofGalleryInput) {
 
-                    proofGalleryInput.value = "";
+                    proofGalleryInput.value =
+                        "";
 
                     proofGalleryInput.click();
 
@@ -2071,7 +2334,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        paymentProofPreview.innerHTML = "";
+        paymentProofPreview.innerHTML =
+            "";
 
 
         if (!file) {
@@ -2087,7 +2351,9 @@ document.addEventListener("DOMContentLoaded", () => {
             document.createElement("img");
 
 
-        image.src = url;
+        image.src =
+            url;
+
 
         image.alt =
             "Comprobante de pago";
@@ -2184,12 +2450,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                 reader.onload = () => {
-                    resolve(reader.result);
+
+                    resolve(
+                        reader.result
+                    );
+
                 };
 
 
                 reader.onerror = () => {
-                    reject(reader.error);
+
+                    reject(
+                        reader.error
+                    );
+
                 };
 
 
@@ -2288,10 +2562,26 @@ document.addEventListener("DOMContentLoaded", () => {
                         getPaymentProofs();
 
 
-                    proofs.unshift(proof);
+                    proofs.unshift(
+                        proof
+                    );
 
 
-                    savePaymentProofs(proofs);
+                    savePaymentProofs(
+                        proofs
+                    );
+
+
+                    if (
+                        typeof window.addMarketFlashPaymentProof ===
+                        "function"
+                    ) {
+
+                        window.addMarketFlashPaymentProof(
+                            proof
+                        );
+
+                    }
 
 
                     pendingPromotion.status =
@@ -2305,9 +2595,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     savePendingPromotion();
 
 
-                    paymentProofFile = null;
+                    paymentProofFile =
+                        null;
 
-                    paymentProofDataUrl = null;
+
+                    paymentProofDataUrl =
+                        null;
 
 
                     if (paymentProofPreview) {
@@ -2368,7 +2661,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         if (!saved) {
+
             return [];
+
         }
 
 
@@ -2389,8 +2684,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
+
             return [];
+
         }
+
     }
 
 
@@ -2400,6 +2698,16 @@ document.addEventListener("DOMContentLoaded", () => {
             "marketFlashPaymentProofs",
             JSON.stringify(proofs)
         );
+
+
+        if (
+            window.MARKET_FLASH_DATA
+        ) {
+
+            window.MARKET_FLASH_DATA.paymentProofs =
+                cloneObject(proofs);
+
+        }
 
     }
 
@@ -2411,12 +2719,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const administrationButton =
         document.getElementById(
             "administration-button"
-        );
-
-
-    const administrationPanel =
-        document.getElementById(
-            "administration-panel"
         );
 
 
@@ -2596,8 +2898,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     getMembershipSettings();
 
 
+                let valid =
+                    true;
+
+
                 ["basica", "premium", "vip"].forEach(
                     (id) => {
+
+                        if (!valid) return;
+
 
                         const nameInput =
                             document.getElementById(
@@ -2623,7 +2932,8 @@ document.addEventListener("DOMContentLoaded", () => {
                             );
 
 
-                        let price = null;
+                        let price =
+                            null;
 
 
                         if (
@@ -2648,7 +2958,13 @@ document.addEventListener("DOMContentLoaded", () => {
                                     `El precio de ${id} no es válido.`
                                 );
 
+
+                                valid =
+                                    false;
+
+
                                 return;
+
                             }
 
 
@@ -2691,12 +3007,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
+                if (!valid) {
+                    return;
+                }
+
+
                 saveMembershipSettings(
                     settings
                 );
 
 
                 renderMembershipCards();
+
+
+                renderPaymentMethods();
 
 
                 alert(
@@ -2724,7 +3048,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!container) return;
 
 
-        container.innerHTML = "";
+        container.innerHTML =
+            "";
 
 
         const methods =
@@ -2737,6 +3062,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 "<p>No hay métodos de pago configurados.</p>";
 
             return;
+
         }
 
 
@@ -2861,6 +3187,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                             renderAdminPaymentMethods();
 
+                            renderPaymentMethods();
+
                         }
                     );
 
@@ -2908,11 +3236,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     prices: {
 
-                        basica: null,
+                        basica:
+                            null,
 
-                        premium: null,
+                        premium:
+                            null,
 
-                        vip: null
+                        vip:
+                            null
 
                     }
 
@@ -2957,17 +3288,29 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (!container) return;
 
 
+                const existingMethods =
+                    getPaymentMethods();
+
+
                 const rows =
                     container.querySelectorAll(
                         ".admin-payment-method"
                     );
 
 
-                const methods = [];
+                const methods =
+                    [];
+
+
+                let valid =
+                    true;
 
 
                 rows.forEach(
                     (row, index) => {
+
+                        if (!valid) return;
+
 
                         const nameInput =
                             row.querySelector(
@@ -2983,17 +3326,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
                         const prices = {
 
-                            basica: null,
+                            basica:
+                                null,
 
-                            premium: null,
+                            premium:
+                                null,
 
-                            vip: null
+                            vip:
+                                null
 
                         };
 
 
                         priceInputs.forEach(
                             (input) => {
+
+                                if (!valid) return;
+
 
                                 const membership =
                                     input.dataset.membership;
@@ -3010,17 +3359,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
                                     if (
-                                        !Number.isNaN(
+                                        Number.isNaN(
                                             value
-                                        ) &&
-                                        value >= 0
+                                        ) ||
+                                        value < 0
                                     ) {
 
-                                        prices[
-                                            membership
-                                        ] = value;
+                                        alert(
+                                            "Uno de los precios de los métodos de pago no es válido."
+                                        );
+
+
+                                        valid =
+                                            false;
+
+
+                                        return;
 
                                     }
+
+
+                                    prices[
+                                        membership
+                                    ] =
+                                        value;
 
                                 }
 
@@ -3028,10 +3390,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         );
 
 
+                        if (!valid) return;
+
+
                         methods.push({
 
                             id:
-                                getPaymentMethods()[
+                                existingMethods[
                                     index
                                 ]?.id ||
                                 "metodo-" +
@@ -3053,17 +3418,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
+                if (!valid) {
+                    return;
+                }
+
+
                 savePaymentMethods(
                     methods
                 );
 
 
+                renderPaymentMethods();
+
+
                 alert(
                     "Métodos de pago y precios guardados correctamente."
                 );
-
-
-                renderPaymentMethods();
 
             }
         );
@@ -3086,7 +3456,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!container) return;
 
 
-        container.innerHTML = "";
+        container.innerHTML =
+            "";
 
 
         const proofs =
@@ -3096,7 +3467,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const pendingCount =
             proofs.filter(
                 (proof) =>
-                    proof.status === "PENDIENTE"
+                    proof.status ===
+                    "PENDIENTE"
             ).length;
 
 
@@ -3120,6 +3492,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 "<p>No hay comprobantes enviados.</p>";
 
             return;
+
         }
 
 
@@ -3234,12 +3607,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function formatProofDate(date) {
 
-        if (!date) return "—";
+        if (!date) {
+            return "—";
+        }
 
 
         try {
 
-            return new Date(date).toLocaleString(
+            return new Date(
+                date
+            ).toLocaleString(
                 "es-DO",
                 {
                     dateStyle: "short",
@@ -3292,7 +3669,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    let selectedAdminProofId = null;
+    let selectedAdminProofId =
+        null;
 
 
     function openAdminProofDetail(proofId) {
@@ -3368,7 +3746,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (userElement) {
 
             userElement.textContent =
-                proof.user?.name || "Usuario";
+                proof.user?.name ||
+                "Usuario";
 
         }
 
@@ -3376,7 +3755,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (membershipElement) {
 
             membershipElement.textContent =
-                proof.membership?.name || "—";
+                proof.membership?.name ||
+                "—";
 
         }
 
@@ -3384,7 +3764,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (methodElement) {
 
             methodElement.textContent =
-                proof.payment?.methodName || "—";
+                proof.payment?.methodName ||
+                "—";
 
         }
 
@@ -3392,7 +3773,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (amountElement) {
 
             amountElement.textContent =
-                formatPrice(proof.amount);
+                formatPrice(
+                    proof.amount
+                );
 
         }
 
@@ -3454,7 +3837,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (approveButton) {
 
             approveButton.disabled =
-                proof.status !== "PENDIENTE";
+                proof.status !==
+                "PENDIENTE";
 
         }
 
@@ -3462,7 +3846,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (rejectButton) {
 
             rejectButton.disabled =
-                proof.status !== "PENDIENTE";
+                proof.status !==
+                "PENDIENTE";
 
         }
 
@@ -3479,7 +3864,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =====================================================
-    // VER COMPROBANTE EN PANTALLA COMPLETA
+    // PANTALLA COMPLETA DEL COMPROBANTE
     // =====================================================
 
     const fullscreenViewer =
@@ -3708,7 +4093,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 pending.status =
                     "PROMOCIÓN APROBADA";
 
-            } else if (status === "RECHAZADO") {
+            } else if (
+                status === "RECHAZADO"
+            ) {
 
                 pending.status =
                     "COMPROBANTE RECHAZADO";
@@ -3841,7 +4228,8 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-    let publicationFiles = [];
+    let publicationFiles =
+        [];
 
 
     if (publicationCameraButton) {
@@ -3852,7 +4240,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (publicationCameraInput) {
 
-                    publicationCameraInput.value = "";
+                    publicationCameraInput.value =
+                        "";
 
                     publicationCameraInput.click();
 
@@ -3872,7 +4261,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 if (publicationGalleryInput) {
 
-                    publicationGalleryInput.value = "";
+                    publicationGalleryInput.value =
+                        "";
 
                     publicationGalleryInput.click();
 
@@ -3901,6 +4291,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         renderPublicationPreview();
+
     }
 
 
@@ -3911,7 +4302,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        publicationMediaPreview.innerHTML = "";
+        publicationMediaPreview.innerHTML =
+            "";
 
 
         publicationFiles.forEach(
@@ -3929,7 +4321,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         document.createElement("img");
 
 
-                    image.src = url;
+                    image.src =
+                        url;
+
 
                     image.alt =
                         "Imagen de publicación";
@@ -3948,11 +4342,16 @@ document.addEventListener("DOMContentLoaded", () => {
                         document.createElement("video");
 
 
-                    video.src = url;
+                    video.src =
+                        url;
 
-                    video.controls = true;
 
-                    video.playsInline = true;
+                    video.controls =
+                        true;
+
+
+                    video.playsInline =
+                        true;
 
 
                     publicationMediaPreview.appendChild(
@@ -4061,7 +4460,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const publication = {
 
-                    id: Date.now(),
+                    id:
+                        Date.now(),
 
                     user:
                         getSavedUser(),
@@ -4083,6 +4483,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
 
 
+                if (
+                    window.MARKET_FLASH_DATA
+                ) {
+
+                    window.MARKET_FLASH_DATA.products.push(
+                        publication
+                    );
+
+                }
+
+
                 console.log(
                     "PUBLICACIÓN GRATIS:",
                     publication
@@ -4096,7 +4507,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 publicationForm.reset();
 
-                publicationFiles = [];
+                publicationFiles =
+                    [];
 
 
                 if (publicationMediaPreview) {
@@ -4128,12 +4540,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const profileNavButton =
         document.getElementById(
             "profile-nav-button"
-        );
-
-
-    const profilePanel =
-        document.getElementById(
-            "profile-panel"
         );
 
 
@@ -4193,12 +4599,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const settingsButton =
         document.getElementById(
             "settings-button"
-        );
-
-
-    const settingsPanel =
-        document.getElementById(
-            "settings-panel"
         );
 
 
@@ -4399,7 +4799,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 closeAllPanels();
 
-                showScreen(welcomeScreen);
+                showScreen(
+                    welcomeScreen
+                );
 
 
                 alert(
@@ -4508,7 +4910,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     // =====================================================
-    // ACTUALIZAR ADMINISTRACIÓN AL ABRIR
+    // ACTUALIZACIÓN INICIAL
     // =====================================================
 
     renderMembershipCards();
@@ -4537,11 +4939,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         updateUserInformation();
 
-        showScreen(dashboardScreen);
+        showScreen(
+            dashboardScreen
+        );
 
     } else {
 
-        showScreen(welcomeScreen);
+        showScreen(
+            welcomeScreen
+        );
 
     }
 
