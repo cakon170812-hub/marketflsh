@@ -4631,3 +4631,6832 @@ function resetPublicationCreator() {
    ========================================================= */
 
 bindPublicationEvents();
+/* =========================================================
+   MARKET FLASH
+   SCRIPT PRINCIPAL
+   PARTE 4
+   LISTADO + BÚSQUEDA + CATEGORÍAS + DETALLE + MÉTRICAS
+   ========================================================= */
+
+
+/* =========================================================
+   REFERENCIAS DEL DASHBOARD
+   ========================================================= */
+
+const marketSearch = $("market-search");
+const categoriesList = $("categories-list");
+
+const flashDelDia = $("flash-del-dia");
+const flashPromotionsList = $("flash-promotions-list");
+
+const normalPublications = $("normal-publications");
+const publicationsList = $("publications-list");
+
+
+/* =========================================================
+   REFERENCIAS DEL DETALLE
+   ========================================================= */
+
+const publicationDetailPanel =
+    $("publication-detail-panel");
+
+const closePublicationDetail =
+    $("close-publication-detail");
+
+const publicationDetailMedia =
+    $("publication-detail-media");
+
+const publicationDetailInfo =
+    $("publication-detail-info");
+
+const detailViewCount =
+    $("detail-view-count");
+
+const detailLikeCount =
+    $("detail-like-count");
+
+const detailSaveCount =
+    $("detail-save-count");
+
+const publicationLikeButton =
+    $("publication-like-button");
+
+const publicationSaveButton =
+    $("publication-save-button");
+
+const publicationChatButton =
+    $("publication-chat-button");
+
+const publicationWhatsappButton =
+    $("publication-whatsapp-button");
+
+
+/* =========================================================
+   EVENTOS DEL DASHBOARD
+   ========================================================= */
+
+function bindDashboardEvents() {
+
+    if (marketSearch) {
+
+        marketSearch.addEventListener(
+            "input",
+            function () {
+
+                currentSearch =
+                    String(
+                        marketSearch.value || ""
+                    )
+                    .trim()
+                    .toLowerCase();
+
+                loadPublications();
+            }
+        );
+    }
+
+    if (categoriesList) {
+
+        categoriesList.addEventListener(
+            "click",
+            function (event) {
+
+                const button =
+                    event.target.closest(
+                        "[data-category]"
+                    );
+
+                if (!button) {
+                    return;
+                }
+
+                currentCategory =
+                    button.dataset.category ||
+                    "todos";
+
+                document
+                    .querySelectorAll(
+                        "[data-category]"
+                    )
+                    .forEach(
+                        function (item) {
+                            item.classList.toggle(
+                                "active",
+                                item === button
+                            );
+                        }
+                    );
+
+                loadPublications();
+            }
+        );
+    }
+
+    if (closePublicationDetail) {
+
+        closePublicationDetail.addEventListener(
+            "click",
+            function () {
+                closePanel(
+                    "publication-detail-panel"
+                );
+
+                currentPublication = null;
+            }
+        );
+    }
+
+    if (publicationLikeButton) {
+
+        publicationLikeButton.addEventListener(
+            "click",
+            handlePublicationLike
+        );
+    }
+
+    if (publicationSaveButton) {
+
+        publicationSaveButton.addEventListener(
+            "click",
+            handlePublicationSave
+        );
+    }
+
+    if (publicationChatButton) {
+
+        publicationChatButton.addEventListener(
+            "click",
+            handlePublicationChat
+        );
+    }
+
+    if (publicationWhatsappButton) {
+
+        publicationWhatsappButton.addEventListener(
+            "click",
+            handlePublicationWhatsApp
+        );
+    }
+}
+
+
+/* =========================================================
+   CATEGORÍAS
+   ========================================================= */
+
+async function loadCategories() {
+
+    /*
+       Las categorías principales ya vienen preparadas
+       en index.html.
+
+       Aquí dejamos preparada la conexión para que,
+       posteriormente, también puedan administrarse
+       desde Supabase.
+    */
+
+    if (!categoriesList) {
+        return;
+    }
+
+    const existingButtons =
+        categoriesList.querySelectorAll(
+            "[data-category]"
+        );
+
+    if (!existingButtons.length) {
+        return;
+    }
+
+    existingButtons.forEach(
+        function (button) {
+
+            button.classList.toggle(
+                "active",
+                button.dataset.category ===
+                currentCategory
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   CARGAR PUBLICACIONES
+   ========================================================= */
+
+async function loadPublications() {
+
+    if (!supabaseClient) {
+        return;
+    }
+
+    if (!publicationsList) {
+        return;
+    }
+
+    try {
+
+        let queryBuilder =
+            supabaseClient
+                .from("publications")
+                .select(`
+                    *,
+                    profiles:seller_id (
+                        id,
+                        full_name,
+                        phone,
+                        avatar_url
+                    ),
+                    publication_media (
+                        id,
+                        media_type,
+                        storage_path,
+                        public_url,
+                        sort_order
+                    )
+                `)
+                .eq(
+                    "status",
+                    "published"
+                )
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                );
+
+
+        /*
+           Filtrar por categoría.
+        */
+
+        if (
+            currentCategory &&
+            currentCategory !== "todos"
+        ) {
+
+            queryBuilder =
+                queryBuilder.eq(
+                    "category",
+                    currentCategory
+                );
+        }
+
+
+        /*
+           Obtenemos las publicaciones.
+        */
+
+        const {
+            data,
+            error
+        } = await queryBuilder;
+
+        if (error) {
+
+            console.error(
+                "Error cargando publicaciones:",
+                error
+            );
+
+            renderEmptyPublications(
+                "No se pudieron cargar las publicaciones."
+            );
+
+            return;
+        }
+
+        let publications =
+            Array.isArray(data)
+                ? data
+                : [];
+
+
+        /*
+           Filtro de búsqueda local.
+        */
+
+        if (currentSearch) {
+
+            publications =
+                publications.filter(
+                    function (publication) {
+
+                        const text = [
+                            publication.title,
+                            publication.category,
+                            publication.description,
+                            publication.location
+                        ]
+                        .join(" ")
+                        .toLowerCase();
+
+                        return text.includes(
+                            currentSearch
+                        );
+                    }
+                );
+        }
+
+
+        /*
+           Renderizamos.
+        */
+
+        renderPublications(
+            publications
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error inesperado cargando publicaciones:",
+            error
+        );
+
+        renderEmptyPublications(
+            "No se pudieron cargar los productos."
+        );
+    }
+}
+
+
+/* =========================================================
+   RENDERIZAR PUBLICACIONES
+   ========================================================= */
+
+function renderPublications(
+    publications
+) {
+
+    if (!publicationsList) {
+        return;
+    }
+
+    publicationsList.innerHTML = "";
+
+    if (!publications.length) {
+
+        renderEmptyPublications(
+            currentSearch
+                ? "No encontramos productos con esa búsqueda."
+                : "Todavía no hay publicaciones."
+        );
+
+        return;
+    }
+
+    publications.forEach(
+        function (publication) {
+
+            const card =
+                createPublicationCard(
+                    publication
+                );
+
+            publicationsList.appendChild(
+                card
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   TARJETA DE PUBLICACIÓN
+   ========================================================= */
+
+function createPublicationCard(
+    publication
+) {
+
+    const article =
+        document.createElement("article");
+
+    article.className =
+        "publication-card";
+
+    article.dataset.publicationId =
+        publication.id;
+
+
+    /*
+       Ordenamos los archivos.
+    */
+
+    const media =
+        Array.isArray(
+            publication.publication_media
+        )
+            ? [...publication.publication_media]
+                .sort(
+                    function (a, b) {
+                        return (
+                            Number(
+                                a.sort_order || 0
+                            ) -
+                            Number(
+                                b.sort_order || 0
+                            )
+                        );
+                    }
+                )
+            : [];
+
+
+    const firstImage =
+        media.find(
+            function (item) {
+                return item.media_type === "image";
+            }
+        );
+
+    const firstVideo =
+        media.find(
+            function (item) {
+                return item.media_type === "video";
+            }
+        );
+
+
+    let mediaHTML = "";
+
+
+    if (firstImage?.public_url) {
+
+        mediaHTML = `
+            <img
+                class="publication-card-image"
+                src="${escapeHTML(
+                    firstImage.public_url
+                )}"
+                alt="${escapeHTML(
+                    publication.title || "Producto"
+                )}"
+                loading="lazy"
+            >
+        `;
+
+    } else if (firstVideo?.public_url) {
+
+        mediaHTML = `
+            <video
+                class="publication-card-image"
+                muted
+                playsinline
+                preload="metadata"
+                src="${escapeHTML(
+                    firstVideo.public_url
+                )}">
+            </video>
+        `;
+
+    } else {
+
+        mediaHTML = `
+            <img
+                class="publication-card-image"
+                src="${defaultProductImage()}"
+                alt="Producto Market Flash"
+                loading="lazy"
+            >
+        `;
+    }
+
+
+    const sellerName =
+        publication.profiles?.full_name ||
+        "Vendedor Market Flash";
+
+
+    article.innerHTML = `
+
+        <div class="publication-card-media">
+            ${mediaHTML}
+
+            ${
+                media.length > 1
+                    ? `
+                        <span class="media-count-badge">
+                            📷 ${media.length}
+                        </span>
+                    `
+                    : ""
+            }
+        </div>
+
+        <div class="publication-card-body">
+
+            <span class="publication-category">
+                ${escapeHTML(
+                    publication.category || "General"
+                )}
+            </span>
+
+            <h3>
+                ${escapeHTML(
+                    publication.title || "Producto"
+                )}
+            </h3>
+
+            <strong class="publication-price">
+                ${formatMoney(
+                    publication.price || 0
+                )}
+            </strong>
+
+            <p class="publication-location">
+                📍 ${escapeHTML(
+                    publication.location || "Sin ubicación"
+                )}
+            </p>
+
+            <div class="publication-card-metrics">
+
+                <span>
+                    👁️
+                    ${Number(
+                        publication.views_count || 0
+                    )}
+                </span>
+
+                <span>
+                    ❤️
+                    ${Number(
+                        publication.likes_count || 0
+                    )}
+                </span>
+
+                <span>
+                    🔖
+                    ${Number(
+                        publication.saves_count || 0
+                    )}
+                </span>
+
+            </div>
+
+            <div class="publication-seller">
+                ${escapeHTML(
+                    sellerName
+                )}
+            </div>
+
+        </div>
+    `;
+
+
+    article.addEventListener(
+        "click",
+        function () {
+            openPublicationDetail(
+                publication.id
+            );
+        }
+    );
+
+
+    return article;
+}
+
+
+/* =========================================================
+   PUBLICACIONES VACÍAS
+   ========================================================= */
+
+function renderEmptyPublications(
+    message
+) {
+
+    if (!publicationsList) {
+        return;
+    }
+
+    publicationsList.innerHTML = `
+
+        <div class="empty-state">
+
+            <div class="empty-state-icon">
+                🔎
+            </div>
+
+            <h3>
+                Market Flash
+            </h3>
+
+            <p>
+                ${escapeHTML(message)}
+            </p>
+
+        </div>
+    `;
+}
+
+
+/* =========================================================
+   ABRIR DETALLE
+   ========================================================= */
+
+async function openPublicationDetail(
+    publicationId
+) {
+
+    if (!publicationId) {
+        return;
+    }
+
+    showLoading(
+        "Cargando publicación..."
+    );
+
+    try {
+
+        const {
+            data: publication,
+            error
+        } = await supabaseClient
+            .from("publications")
+            .select(`
+                *,
+                profiles:seller_id (
+                    id,
+                    full_name,
+                    phone,
+                    avatar_url
+                ),
+                publication_media (
+                    id,
+                    media_type,
+                    storage_path,
+                    public_url,
+                    sort_order
+                )
+            `)
+            .eq(
+                "id",
+                publicationId
+            )
+            .maybeSingle();
+
+        if (error) {
+
+            console.error(
+                "Error cargando detalle:",
+                error
+            );
+
+            hideLoading();
+
+            showToast(
+                "No se pudo abrir la publicación.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (!publication) {
+
+            hideLoading();
+
+            showToast(
+                "La publicación ya no está disponible.",
+                "error"
+            );
+
+            return;
+        }
+
+        currentPublication =
+            publication;
+
+
+        /*
+           Registrar visita.
+        */
+
+        await registerPublicationView(
+            publication
+        );
+
+
+        renderPublicationDetail(
+            publication
+        );
+
+        closePanel(
+            "publication-panel"
+        );
+
+        closePanel(
+            "publication-preview-panel"
+        );
+
+        openPanel(
+            "publication-detail-panel"
+        );
+
+        hideLoading();
+
+    } catch (error) {
+
+        console.error(
+            "Error inesperado abriendo publicación:",
+            error
+        );
+
+        hideLoading();
+
+        showToast(
+            "No se pudo abrir la publicación.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   RENDERIZAR DETALLE
+   ========================================================= */
+
+function renderPublicationDetail(
+    publication
+) {
+
+    renderPublicationDetailMedia(
+        publication
+    );
+
+    renderPublicationDetailInfo(
+        publication
+    );
+
+    if (detailViewCount) {
+        detailViewCount.textContent =
+            Number(
+                publication.views_count || 0
+            );
+    }
+
+    if (detailLikeCount) {
+        detailLikeCount.textContent =
+            Number(
+                publication.likes_count || 0
+            );
+    }
+
+    if (detailSaveCount) {
+        detailSaveCount.textContent =
+            Number(
+                publication.saves_count || 0
+            );
+    }
+
+
+    /*
+       WhatsApp solo aparece si el vendedor
+       activó el botón en esa publicación.
+    */
+
+    if (publicationWhatsappButton) {
+
+        publicationWhatsappButton.hidden =
+            !publication.whatsapp_enabled;
+    }
+
+
+    updateLikeSaveButtonState();
+}
+
+
+/* =========================================================
+   MEDIA DEL DETALLE
+   ========================================================= */
+
+function renderPublicationDetailMedia(
+    publication
+) {
+
+    if (!publicationDetailMedia) {
+        return;
+    }
+
+    const media =
+        Array.isArray(
+            publication.publication_media
+        )
+            ? [...publication.publication_media]
+                .sort(
+                    function (a, b) {
+                        return (
+                            Number(
+                                a.sort_order || 0
+                            ) -
+                            Number(
+                                b.sort_order || 0
+                            )
+                        );
+                    }
+                )
+            : [];
+
+    publicationDetailMedia.innerHTML = "";
+
+
+    if (!media.length) {
+
+        publicationDetailMedia.innerHTML = `
+            <img
+                src="${defaultProductImage()}"
+                alt="Producto Market Flash"
+            >
+        `;
+
+        return;
+    }
+
+
+    media.forEach(
+        function (item) {
+
+            if (!item.public_url) {
+                return;
+            }
+
+            if (item.media_type === "video") {
+
+                const video =
+                    document.createElement("video");
+
+                video.src =
+                    item.public_url;
+
+                video.controls = true;
+                video.playsInline = true;
+
+                video.className =
+                    "detail-media-video";
+
+                publicationDetailMedia
+                    .appendChild(video);
+
+                return;
+            }
+
+
+            const image =
+                document.createElement("img");
+
+            image.src =
+                item.public_url;
+
+            image.alt =
+                publication.title ||
+                "Producto";
+
+            image.loading =
+                "lazy";
+
+            image.className =
+                "detail-media-image";
+
+            publicationDetailMedia
+                .appendChild(image);
+        }
+    );
+}
+
+
+/* =========================================================
+   INFORMACIÓN DEL DETALLE
+   ========================================================= */
+
+function renderPublicationDetailInfo(
+    publication
+) {
+
+    if (!publicationDetailInfo) {
+        return;
+    }
+
+    const seller =
+        publication.profiles || {};
+
+    const whatsapp =
+        normalizePhone(
+            seller.phone || ""
+        );
+
+
+    publicationDetailInfo.innerHTML = `
+
+        <div class="detail-category">
+            ${escapeHTML(
+                publication.category || "General"
+            )}
+        </div>
+
+        <h1>
+            ${escapeHTML(
+                publication.title || "Producto"
+            )}
+        </h1>
+
+        <div class="detail-price">
+            ${formatMoney(
+                publication.price || 0
+            )}
+        </div>
+
+        <div class="detail-quantity">
+            📦 Cantidad:
+            <strong>
+                ${Number(
+                    publication.quantity || 0
+                )}
+            </strong>
+        </div>
+
+        <div class="detail-description">
+            <h3>
+                Descripción
+            </h3>
+
+            <p>
+                ${escapeHTML(
+                    publication.description || ""
+                )}
+            </p>
+        </div>
+
+        <div class="detail-location">
+            📍 ${escapeHTML(
+                publication.location || "Sin ubicación"
+            )}
+        </div>
+
+        <div class="detail-seller">
+
+            <div class="detail-seller-photo">
+
+                <img
+                    src="${
+                        seller.avatar_url ||
+                        defaultProductImage()
+                    }"
+                    alt="Vendedor"
+                >
+
+            </div>
+
+            <div>
+
+                <span>
+                    Publicado por
+                </span>
+
+                <strong>
+                    ${escapeHTML(
+                        seller.full_name ||
+                        "Vendedor"
+                    )}
+                </strong>
+
+            </div>
+
+        </div>
+
+        ${
+            publication.whatsapp_enabled &&
+            whatsapp
+                ? `
+                    <div class="detail-whatsapp-status">
+                        🟢 El vendedor permite contacto por WhatsApp.
+                    </div>
+                `
+                : ""
+        }
+
+    `;
+}
+
+
+/* =========================================================
+   REGISTRAR VISITA
+   ========================================================= */
+
+async function registerPublicationView(
+    publication
+) {
+
+    if (!supabaseClient || !publication) {
+        return;
+    }
+
+    /*
+       No contamos nuestra propia visita si somos
+       el propietario de la publicación.
+    */
+
+    if (
+        currentUser &&
+        publication.seller_id === currentUser.id
+    ) {
+        return;
+    }
+
+    try {
+
+        /*
+           Primero intentamos guardar una visita individual.
+           La tabla publication_views permitirá evitar
+           duplicados posteriormente mediante una restricción
+           única por usuario/publicación.
+        */
+
+        if (currentUser) {
+
+            const {
+                error: viewError
+            } = await supabaseClient
+                .from("publication_views")
+                .insert({
+                    publication_id:
+                        publication.id,
+                    user_id:
+                        currentUser.id
+                });
+
+            /*
+               Si ya existía la visita, no debemos mostrar
+               un error al usuario.
+            */
+
+            if (
+                viewError &&
+                viewError.code !== "23505"
+            ) {
+
+                console.warn(
+                    "No se pudo registrar la visita:",
+                    viewError
+                );
+            }
+        }
+
+
+        /*
+           Actualizamos el contador.
+        */
+
+        const newCount =
+            Number(
+                publication.views_count || 0
+            ) + 1;
+
+        const {
+            error: updateError
+        } = await supabaseClient
+            .from("publications")
+            .update({
+                views_count:
+                    newCount
+            })
+            .eq(
+                "id",
+                publication.id
+            );
+
+        if (!updateError) {
+
+            publication.views_count =
+                newCount;
+
+            if (detailViewCount) {
+                detailViewCount.textContent =
+                    newCount;
+            }
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Error registrando visita:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   LIKE
+   ========================================================= */
+
+async function handlePublicationLike() {
+
+    if (!currentUser) {
+
+        showToast(
+            "Inicia sesión para dar Me gusta.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!currentPublication) {
+        return;
+    }
+
+    try {
+
+        const {
+            data: existingLike,
+            error: checkError
+        } = await supabaseClient
+            .from("publication_likes")
+            .select("id")
+            .eq(
+                "publication_id",
+                currentPublication.id
+            )
+            .eq(
+                "user_id",
+                currentUser.id
+            )
+            .maybeSingle();
+
+        if (
+            checkError &&
+            checkError.code !== "PGRST116"
+        ) {
+            throw checkError;
+        }
+
+
+        if (existingLike) {
+
+            await supabaseClient
+                .from("publication_likes")
+                .delete()
+                .eq(
+                    "id",
+                    existingLike.id
+                );
+
+            currentPublication.likes_count =
+                Math.max(
+                    0,
+                    Number(
+                        currentPublication.likes_count || 0
+                    ) - 1
+                );
+
+        } else {
+
+            const {
+                error
+            } = await supabaseClient
+                .from("publication_likes")
+                .insert({
+                    publication_id:
+                        currentPublication.id,
+                    user_id:
+                        currentUser.id
+                });
+
+            if (error) {
+                throw error;
+            }
+
+            currentPublication.likes_count =
+                Number(
+                    currentPublication.likes_count || 0
+                ) + 1;
+        }
+
+
+        await supabaseClient
+            .from("publications")
+            .update({
+                likes_count:
+                    currentPublication.likes_count
+            })
+            .eq(
+                "id",
+                currentPublication.id
+            );
+
+
+        if (detailLikeCount) {
+            detailLikeCount.textContent =
+                currentPublication.likes_count;
+        }
+
+        updateLikeSaveButtonState();
+
+    } catch (error) {
+
+        console.error(
+            "Error con Me gusta:",
+            error
+        );
+
+        showToast(
+            "No se pudo actualizar el Me gusta.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   GUARDAR PUBLICACIÓN
+   ========================================================= */
+
+async function handlePublicationSave() {
+
+    if (!currentUser) {
+
+        showToast(
+            "Inicia sesión para guardar publicaciones.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!currentPublication) {
+        return;
+    }
+
+    try {
+
+        const {
+            data: existingSave,
+            error: checkError
+        } = await supabaseClient
+            .from("publication_saves")
+            .select("id")
+            .eq(
+                "publication_id",
+                currentPublication.id
+            )
+            .eq(
+                "user_id",
+                currentUser.id
+            )
+            .maybeSingle();
+
+        if (
+            checkError &&
+            checkError.code !== "PGRST116"
+        ) {
+            throw checkError;
+        }
+
+
+        if (existingSave) {
+
+            await supabaseClient
+                .from("publication_saves")
+                .delete()
+                .eq(
+                    "id",
+                    existingSave.id
+                );
+
+            currentPublication.saves_count =
+                Math.max(
+                    0,
+                    Number(
+                        currentPublication.saves_count || 0
+                    ) - 1
+                );
+
+        } else {
+
+            const {
+                error
+            } = await supabaseClient
+                .from("publication_saves")
+                .insert({
+                    publication_id:
+                        currentPublication.id,
+                    user_id:
+                        currentUser.id
+                });
+
+            if (error) {
+                throw error;
+            }
+
+            currentPublication.saves_count =
+                Number(
+                    currentPublication.saves_count || 0
+                ) + 1;
+        }
+
+
+        await supabaseClient
+            .from("publications")
+            .update({
+                saves_count:
+                    currentPublication.saves_count
+            })
+            .eq(
+                "id",
+                currentPublication.id
+            );
+
+
+        if (detailSaveCount) {
+            detailSaveCount.textContent =
+                currentPublication.saves_count;
+        }
+
+        updateLikeSaveButtonState();
+
+    } catch (error) {
+
+        console.error(
+            "Error guardando publicación:",
+            error
+        );
+
+        showToast(
+            "No se pudo actualizar Guardados.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   ESTADO DE LIKE / GUARDADO
+   ========================================================= */
+
+async function updateLikeSaveButtonState() {
+
+    if (
+        !currentUser ||
+        !currentPublication
+    ) {
+        return;
+    }
+
+    try {
+
+        const [
+            likeResult,
+            saveResult
+        ] = await Promise.all([
+
+            supabaseClient
+                .from("publication_likes")
+                .select("id")
+                .eq(
+                    "publication_id",
+                    currentPublication.id
+                )
+                .eq(
+                    "user_id",
+                    currentUser.id
+                )
+                .maybeSingle(),
+
+            supabaseClient
+                .from("publication_saves")
+                .select("id")
+                .eq(
+                    "publication_id",
+                    currentPublication.id
+                )
+                .eq(
+                    "user_id",
+                    currentUser.id
+                )
+                .maybeSingle()
+        ]);
+
+
+        if (publicationLikeButton) {
+
+            publicationLikeButton.classList.toggle(
+                "active",
+                Boolean(
+                    likeResult.data
+                )
+            );
+        }
+
+        if (publicationSaveButton) {
+
+            publicationSaveButton.classList.toggle(
+                "active",
+                Boolean(
+                    saveResult.data
+                )
+            );
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "No se pudo consultar el estado de interacción:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   WHATSAPP
+   ========================================================= */
+
+function handlePublicationWhatsApp() {
+
+    if (!currentPublication) {
+        return;
+    }
+
+    if (
+        !currentPublication.whatsapp_enabled
+    ) {
+
+        showToast(
+            "El vendedor no activó WhatsApp para esta publicación.",
+            "info"
+        );
+
+        return;
+    }
+
+    const sellerPhone =
+        normalizePhone(
+            currentPublication
+                .profiles
+                ?.phone || ""
+        );
+
+    if (!sellerPhone) {
+
+        showToast(
+            "El vendedor no tiene un número de WhatsApp disponible.",
+            "error"
+        );
+
+        return;
+    }
+
+    const message =
+        `Hola, vi tu publicación "${currentPublication.title}" en Market Flash y estoy interesado/a.`;
+
+    openWhatsApp(
+        sellerPhone,
+        message
+    );
+}
+
+
+/* =========================================================
+   CHAT
+   ========================================================= */
+
+async function handlePublicationChat() {
+
+    if (!currentUser) {
+
+        showToast(
+            "Inicia sesión para contactar al vendedor.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!currentPublication) {
+        return;
+    }
+
+    if (
+        currentPublication.seller_id ===
+        currentUser.id
+    ) {
+
+        showToast(
+            "Esta es tu propia publicación.",
+            "info"
+        );
+
+        return;
+    }
+
+
+    if (
+        typeof openChatWithUser ===
+        "function"
+    ) {
+
+        await openChatWithUser(
+            currentPublication.seller_id,
+            currentPublication
+        );
+
+        return;
+    }
+
+
+    showToast(
+        "El chat se conectará en la siguiente parte.",
+        "info"
+    );
+}
+
+
+/* =========================================================
+   FLASH DEL DÍA
+   ========================================================= */
+
+async function loadFlashPromotions() {
+
+    if (!supabaseClient) {
+        return;
+    }
+
+    if (!flashPromotionsList) {
+        return;
+    }
+
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("flash_promotions")
+            .select(`
+                *,
+                publications (
+                    id,
+                    title,
+                    price,
+                    category,
+                    location,
+                    publication_media (
+                        id,
+                        media_type,
+                        public_url,
+                        sort_order
+                    )
+                )
+            `)
+            .eq(
+                "status",
+                "active"
+            )
+            .lte(
+                "starts_at",
+                new Date().toISOString()
+            )
+            .gte(
+                "ends_at",
+                new Date().toISOString()
+            )
+            .order(
+                "created_at",
+                {
+                    ascending: false
+                }
+            );
+
+        if (error) {
+
+            console.error(
+                "Error cargando Flash del Día:",
+                error
+            );
+
+            renderEmptyFlash();
+
+            return;
+        }
+
+        renderFlashPromotions(
+            data || []
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error inesperado cargando Flash:",
+            error
+        );
+
+        renderEmptyFlash();
+    }
+}
+
+
+/* =========================================================
+   RENDER FLASH
+   ========================================================= */
+
+function renderFlashPromotions(
+    promotions
+) {
+
+    if (!flashPromotionsList) {
+        return;
+    }
+
+    flashPromotionsList.innerHTML = "";
+
+    if (!promotions.length) {
+
+        renderEmptyFlash();
+
+        return;
+    }
+
+    promotions.forEach(
+        function (promotion) {
+
+            const card =
+                document.createElement("article");
+
+            card.className =
+                "flash-promotion-card";
+
+            const publication =
+                promotion.publications || {};
+
+            const media =
+                Array.isArray(
+                    publication.publication_media
+                )
+                    ? [...publication.publication_media]
+                        .sort(
+                            function (a, b) {
+                                return (
+                                    Number(
+                                        a.sort_order || 0
+                                    ) -
+                                    Number(
+                                        b.sort_order || 0
+                                    )
+                                );
+                            }
+                        )
+                    : [];
+
+            const image =
+                media.find(
+                    function (item) {
+                        return (
+                            item.media_type ===
+                            "image"
+                        );
+                    }
+                );
+
+
+            card.innerHTML = `
+
+                <div class="flash-card-image">
+
+                    <img
+                        src="${
+                            image?.public_url ||
+                            defaultProductImage()
+                        }"
+                        alt="${escapeHTML(
+                            publication.title ||
+                            promotion.title ||
+                            "Flash del Día"
+                        )}"
+                        loading="lazy"
+                    >
+
+                    <span class="flash-badge">
+                        ⚡ FLASH
+                    </span>
+
+                </div>
+
+                <div class="flash-card-content">
+
+                    <h3>
+                        ${escapeHTML(
+                            publication.title ||
+                            promotion.title ||
+                            "Promoción"
+                        )}
+                    </h3>
+
+                    <strong>
+                        ${formatMoney(
+                            publication.price ||
+                            0
+                        )}
+                    </strong>
+
+                    <p>
+                        ${escapeHTML(
+                            promotion.description ||
+                            ""
+                        )}
+                    </p>
+
+                </div>
+            `;
+
+
+            if (publication.id) {
+
+                card.addEventListener(
+                    "click",
+                    function () {
+                        openPublicationDetail(
+                            publication.id
+                        );
+                    }
+                );
+            }
+
+            flashPromotionsList
+                .appendChild(card);
+        }
+    );
+}
+
+
+/* =========================================================
+   FLASH VACÍO
+   ========================================================= */
+
+function renderEmptyFlash() {
+
+    if (!flashPromotionsList) {
+        return;
+    }
+
+    flashPromotionsList.innerHTML = `
+
+        <div class="empty-state flash-empty">
+
+            <div class="empty-state-icon">
+                ⚡
+            </div>
+
+            <h3>
+                Flash del Día
+            </h3>
+
+            <p>
+                Aquí aparecerán las publicaciones promocionadas.
+            </p>
+
+        </div>
+    `;
+}
+
+
+/* =========================================================
+   MÉTRICAS DEL DASHBOARD
+   ========================================================= */
+
+async function updateDashboardMetrics() {
+
+    /*
+       Las estadísticas completas del usuario se calcularán
+       directamente desde Supabase cuando estén creadas
+       todas las tablas de métricas.
+    */
+
+    if (
+        !supabaseClient ||
+        !currentUser ||
+        !currentProfile
+    ) {
+        return;
+    }
+
+    try {
+
+        const {
+            count: publicationsCount,
+            error: publicationsError
+        } = await supabaseClient
+            .from("publications")
+            .select(
+                "id",
+                {
+                    count: "exact",
+                    head: true
+                }
+            )
+            .eq(
+                "seller_id",
+                currentUser.id
+            )
+            .neq(
+                "status",
+                "deleted"
+            );
+
+        if (!publicationsError) {
+
+            currentProfile.publications_count =
+                publicationsCount || 0;
+        }
+
+
+        const {
+            data: publicationIds
+        } = await supabaseClient
+            .from("publications")
+            .select("id")
+            .eq(
+                "seller_id",
+                currentUser.id
+            );
+
+
+        const ids =
+            (publicationIds || [])
+                .map(
+                    function (item) {
+                        return item.id;
+                    }
+                );
+
+
+        if (ids.length) {
+
+            const [
+                likesResult,
+                savesResult
+            ] = await Promise.all([
+
+                supabaseClient
+                    .from("publication_likes")
+                    .select(
+                        "id",
+                        {
+                            count: "exact",
+                            head: true
+                        }
+                    )
+                    .in(
+                        "publication_id",
+                        ids
+                    ),
+
+                supabaseClient
+                    .from("publication_saves")
+                    .select(
+                        "id",
+                        {
+                            count: "exact",
+                            head: true
+                        }
+                    )
+                    .in(
+                        "publication_id",
+                        ids
+                    )
+            ]);
+
+
+            currentProfile.likes_received =
+                likesResult.count || 0;
+
+            currentProfile.saves_received =
+                savesResult.count || 0;
+        }
+
+        renderProfile();
+
+    } catch (error) {
+
+        console.warn(
+            "No se pudieron actualizar las métricas:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   INICIALIZAR DASHBOARD
+   ========================================================= */
+
+bindDashboardEvents();
+
+
+/*
+   Añadimos también los eventos de publicación
+   nuevamente de forma segura por si esta parte se
+   carga después de la Parte 3.
+*/
+
+if (
+    typeof loadPublications ===
+    "function"
+) {
+    console.log(
+        "Módulo de publicaciones cargado."
+    );
+}/* =========================================================
+   MARKET FLASH
+   SCRIPT PRINCIPAL
+   PARTE 5
+   CHAT INTERNO + CONVERSACIONES + MENSAJES
+   ========================================================= */
+
+
+/* =========================================================
+   REFERENCIAS DEL CHAT
+   ========================================================= */
+
+const chatPanel = $("chat-panel");
+const closeChatPanel = $("close-chat-panel");
+
+const chatMessages = $("chat-messages");
+const chatInput = $("chat-input");
+const chatSendButton = $("chat-send-button");
+const chatWhatsappButton = $("chat-whatsapp-button");
+
+
+/* =========================================================
+   ESTADO DEL CHAT
+   ========================================================= */
+
+let chatSubscription = null;
+let chatMessagesSubscription = null;
+
+
+/* =========================================================
+   EVENTOS DEL CHAT
+   ========================================================= */
+
+function bindChatEvents() {
+
+    if (closeChatPanel) {
+
+        closeChatPanel.addEventListener(
+            "click",
+            closeCurrentChat
+        );
+    }
+
+    if (chatSendButton) {
+
+        chatSendButton.addEventListener(
+            "click",
+            sendChatMessage
+        );
+    }
+
+    if (chatInput) {
+
+        chatInput.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Enter" &&
+                    !event.shiftKey
+                ) {
+
+                    event.preventDefault();
+
+                    sendChatMessage();
+                }
+            }
+        );
+    }
+
+    if (chatWhatsappButton) {
+
+        chatWhatsappButton.addEventListener(
+            "click",
+            continueChatOnWhatsApp
+        );
+    }
+}
+
+
+/* =========================================================
+   ABRIR CHAT CON UN USUARIO
+   ========================================================= */
+
+async function openChatWithUser(
+    sellerId,
+    publication = null
+) {
+
+    if (!currentUser) {
+
+        showToast(
+            "Debes iniciar sesión para utilizar el chat.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!sellerId) {
+
+        showToast(
+            "No se encontró el vendedor.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        sellerId ===
+        currentUser.id
+    ) {
+
+        showToast(
+            "No puedes abrir un chat contigo mismo.",
+            "info"
+        );
+
+        return;
+    }
+
+    showLoading(
+        "Abriendo chat..."
+    );
+
+    try {
+
+        /*
+           Buscamos una conversación existente entre
+           el usuario actual y el vendedor.
+        */
+
+        let conversation =
+            await findExistingConversation(
+                sellerId
+            );
+
+
+        /*
+           Si no existe, creamos una nueva.
+        */
+
+        if (!conversation) {
+
+            conversation =
+                await createConversation(
+                    sellerId,
+                    publication
+                );
+        }
+
+        if (!conversation) {
+
+            hideLoading();
+
+            showToast(
+                "No se pudo crear la conversación.",
+                "error"
+            );
+
+            return;
+        }
+
+        currentConversation =
+            conversation;
+
+
+        /*
+           Cerramos el detalle de la publicación.
+        */
+
+        closePanel(
+            "publication-detail-panel"
+        );
+
+
+        /*
+           Cargamos mensajes.
+        */
+
+        await loadChatMessages(
+            conversation.id
+        );
+
+
+        /*
+           Abrimos el panel.
+        */
+
+        openPanel(
+            "chat-panel"
+        );
+
+
+        /*
+           Activamos actualización en tiempo real.
+        */
+
+        subscribeToChat(
+            conversation.id
+        );
+
+
+        /*
+           Marcamos mensajes como leídos.
+        */
+
+        await markConversationAsRead(
+            conversation.id
+        );
+
+
+        /*
+           Preparamos botón de WhatsApp.
+        */
+
+        await prepareChatWhatsAppButton(
+            sellerId,
+            publication
+        );
+
+        hideLoading();
+
+    } catch (error) {
+
+        console.error(
+            "Error abriendo chat:",
+            error
+        );
+
+        hideLoading();
+
+        showToast(
+            "No se pudo abrir el chat.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   BUSCAR CONVERSACIÓN EXISTENTE
+   ========================================================= */
+
+async function findExistingConversation(
+    otherUserId
+) {
+
+    if (
+        !supabaseClient ||
+        !currentUser
+    ) {
+        return null;
+    }
+
+    try {
+
+        /*
+           Obtenemos conversaciones donde participa
+           el usuario actual.
+        */
+
+        const {
+            data: myParticipations,
+            error
+        } = await supabaseClient
+            .from("conversation_participants")
+            .select(
+                "conversation_id"
+            )
+            .eq(
+                "user_id",
+                currentUser.id
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        const conversationIds =
+            (myParticipations || [])
+                .map(
+                    function (item) {
+                        return item.conversation_id;
+                    }
+                );
+
+        if (!conversationIds.length) {
+            return null;
+        }
+
+
+        /*
+           Buscamos conversaciones donde también
+           participe el otro usuario.
+        */
+
+        const {
+            data: otherParticipations,
+            error: otherError
+        } = await supabaseClient
+            .from("conversation_participants")
+            .select(
+                "conversation_id"
+            )
+            .eq(
+                "user_id",
+                otherUserId
+            )
+            .in(
+                "conversation_id",
+                conversationIds
+            );
+
+        if (otherError) {
+            throw otherError;
+        }
+
+        if (!otherParticipations?.length) {
+            return null;
+        }
+
+        const conversationId =
+            otherParticipations[0]
+                .conversation_id;
+
+
+        const {
+            data: conversation,
+            error: conversationError
+        } = await supabaseClient
+            .from("conversations")
+            .select("*")
+            .eq(
+                "id",
+                conversationId
+            )
+            .maybeSingle();
+
+        if (conversationError) {
+            throw conversationError;
+        }
+
+        return conversation || null;
+
+    } catch (error) {
+
+        console.error(
+            "Error buscando conversación:",
+            error
+        );
+
+        return null;
+    }
+}
+
+
+/* =========================================================
+   CREAR CONVERSACIÓN
+   ========================================================= */
+
+async function createConversation(
+    otherUserId,
+    publication = null
+) {
+
+    if (
+        !supabaseClient ||
+        !currentUser
+    ) {
+        return null;
+    }
+
+    try {
+
+        const {
+            data: conversation,
+            error
+        } = await supabaseClient
+            .from("conversations")
+            .insert({
+                created_by:
+                    currentUser.id,
+                publication_id:
+                    publication?.id || null,
+                last_message_at:
+                    new Date().toISOString()
+            })
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        if (!conversation) {
+            return null;
+        }
+
+
+        /*
+           Añadimos los dos participantes.
+        */
+
+        const {
+            error: participantsError
+        } = await supabaseClient
+            .from("conversation_participants")
+            .insert([
+                {
+                    conversation_id:
+                        conversation.id,
+                    user_id:
+                        currentUser.id
+                },
+                {
+                    conversation_id:
+                        conversation.id,
+                    user_id:
+                        otherUserId
+                }
+            ]);
+
+        if (participantsError) {
+            throw participantsError;
+        }
+
+        return conversation;
+
+    } catch (error) {
+
+        console.error(
+            "Error creando conversación:",
+            error
+        );
+
+        return null;
+    }
+}
+
+
+/* =========================================================
+   CARGAR MENSAJES
+   ========================================================= */
+
+async function loadChatMessages(
+    conversationId
+) {
+
+    if (
+        !supabaseClient ||
+        !conversationId ||
+        !chatMessages
+    ) {
+        return;
+    }
+
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("messages")
+            .select(`
+                id,
+                conversation_id,
+                sender_id,
+                message,
+                created_at,
+                profiles:sender_id (
+                    id,
+                    full_name,
+                    avatar_url
+                )
+            `)
+            .eq(
+                "conversation_id",
+                conversationId
+            )
+            .order(
+                "created_at",
+                {
+                    ascending: true
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        renderChatMessages(
+            data || []
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error cargando mensajes:",
+            error
+        );
+
+        if (chatMessages) {
+
+            chatMessages.innerHTML = `
+
+                <div class="empty-state">
+
+                    <div class="empty-state-icon">
+                        💬
+                    </div>
+
+                    <p>
+                        No se pudieron cargar los mensajes.
+                    </p>
+
+                </div>
+            `;
+        }
+    }
+}
+
+
+/* =========================================================
+   RENDERIZAR MENSAJES
+   ========================================================= */
+
+function renderChatMessages(
+    messages
+) {
+
+    if (!chatMessages) {
+        return;
+    }
+
+    chatMessages.innerHTML = "";
+
+    if (!messages.length) {
+
+        chatMessages.innerHTML = `
+
+            <div class="chat-empty">
+
+                <div>
+                    👋
+                </div>
+
+                <strong>
+                    Inicia la conversación
+                </strong>
+
+                <p>
+                    Escribe un mensaje al vendedor.
+                </p>
+
+            </div>
+        `;
+
+        return;
+    }
+
+
+    messages.forEach(
+        function (item) {
+
+            const isMine =
+                item.sender_id ===
+                currentUser?.id;
+
+            const messageElement =
+                document.createElement("div");
+
+            messageElement.className =
+                isMine
+                    ? "chat-message mine"
+                    : "chat-message";
+
+            const senderName =
+                item.profiles?.full_name ||
+                "Usuario";
+
+
+            messageElement.innerHTML = `
+
+                <div class="chat-message-bubble">
+
+                    ${
+                        !isMine
+                            ? `
+                                <span class="chat-sender">
+                                    ${escapeHTML(
+                                        senderName
+                                    )}
+                                </span>
+                              `
+                            : ""
+                    }
+
+                    <div class="chat-message-text">
+                        ${escapeHTML(
+                            item.message || ""
+                        )}
+                    </div>
+
+                    <time>
+                        ${formatDateTime(
+                            item.created_at
+                        )}
+                    </time>
+
+                </div>
+            `;
+
+            chatMessages.appendChild(
+                messageElement
+            );
+        }
+    );
+
+
+    /*
+       Bajamos automáticamente al mensaje más reciente.
+    */
+
+    chatMessages.scrollTop =
+        chatMessages.scrollHeight;
+}
+
+
+/* =========================================================
+   ENVIAR MENSAJE
+   ========================================================= */
+
+async function sendChatMessage() {
+
+    if (
+        !supabaseClient ||
+        !currentUser ||
+        !currentConversation
+    ) {
+
+        showToast(
+            "No hay una conversación abierta.",
+            "error"
+        );
+
+        return;
+    }
+
+    const message =
+        String(
+            chatInput?.value || ""
+        ).trim();
+
+    if (!message) {
+        return;
+    }
+
+    if (message.length > 2000) {
+
+        showToast(
+            "El mensaje no puede superar 2000 caracteres.",
+            "error"
+        );
+
+        return;
+    }
+
+    try {
+
+        if (chatSendButton) {
+            chatSendButton.disabled = true;
+        }
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("messages")
+            .insert({
+                conversation_id:
+                    currentConversation.id,
+                sender_id:
+                    currentUser.id,
+                message:
+                    message
+            })
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+
+        /*
+           Actualizamos la conversación.
+        */
+
+        await supabaseClient
+            .from("conversations")
+            .update({
+                last_message_at:
+                    new Date().toISOString(),
+                last_message:
+                    message
+            })
+            .eq(
+                "id",
+                currentConversation.id
+            );
+
+
+        if (chatInput) {
+            chatInput.value = "";
+        }
+
+
+        /*
+           Si Realtime está activo, el mensaje aparecerá
+           automáticamente. También lo agregamos localmente
+           para que la interfaz responda inmediatamente.
+        */
+
+        if (data) {
+
+            appendChatMessage(
+                data
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error enviando mensaje:",
+            error
+        );
+
+        showToast(
+            "No se pudo enviar el mensaje.",
+            "error"
+        );
+
+    } finally {
+
+        if (chatSendButton) {
+            chatSendButton.disabled = false;
+        }
+    }
+}
+
+
+/* =========================================================
+   AÑADIR MENSAJE A LA VISTA
+   ========================================================= */
+
+function appendChatMessage(
+    item
+) {
+
+    if (!chatMessages || !item) {
+        return;
+    }
+
+    /*
+       Evitamos duplicados si Realtime también
+       entrega el mismo mensaje.
+    */
+
+    const existing =
+        chatMessages.querySelector(
+            `[data-message-id="${item.id}"]`
+        );
+
+    if (existing) {
+        return;
+    }
+
+
+    const isMine =
+        item.sender_id ===
+        currentUser?.id;
+
+    const element =
+        document.createElement("div");
+
+    element.className =
+        isMine
+            ? "chat-message mine"
+            : "chat-message";
+
+    element.dataset.messageId =
+        item.id;
+
+
+    element.innerHTML = `
+
+        <div class="chat-message-bubble">
+
+            ${
+                !isMine
+                    ? `
+                        <span class="chat-sender">
+                            ${escapeHTML(
+                                item.profiles?.full_name ||
+                                "Usuario"
+                            )}
+                        </span>
+                      `
+                    : ""
+            }
+
+            <div class="chat-message-text">
+                ${escapeHTML(
+                    item.message || ""
+                )}
+            </div>
+
+            <time>
+                ${formatDateTime(
+                    item.created_at
+                )}
+            </time>
+
+        </div>
+    `;
+
+    chatMessages.appendChild(
+        element
+    );
+
+    chatMessages.scrollTop =
+        chatMessages.scrollHeight;
+}
+
+
+/* =========================================================
+   REALTIME DEL CHAT
+   ========================================================= */
+
+function subscribeToChat(
+    conversationId
+) {
+
+    if (
+        !supabaseClient ||
+        !conversationId
+    ) {
+        return;
+    }
+
+
+    /*
+       Eliminamos una suscripción anterior.
+    */
+
+    unsubscribeFromChat();
+
+
+    chatMessagesSubscription =
+        supabaseClient
+            .channel(
+                `market-flash-chat-${conversationId}`
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "messages",
+                    filter:
+                        `conversation_id=eq.${conversationId}`
+                },
+                async function (payload) {
+
+                    const message =
+                        payload.new;
+
+                    /*
+                       Intentamos obtener el perfil
+                       del remitente.
+                    */
+
+                    try {
+
+                        const {
+                            data: sender
+                        } = await supabaseClient
+                            .from("profiles")
+                            .select(
+                                "id, full_name, avatar_url"
+                            )
+                            .eq(
+                                "id",
+                                message.sender_id
+                            )
+                            .maybeSingle();
+
+                        message.profiles =
+                            sender || null;
+
+                    } catch (error) {
+
+                        console.warn(
+                            "No se pudo cargar el remitente:",
+                            error
+                        );
+                    }
+
+                    appendChatMessage(
+                        message
+                    );
+
+                    if (
+                        message.sender_id !==
+                        currentUser?.id
+                    ) {
+
+                        await markConversationAsRead(
+                            conversationId
+                        );
+                    }
+                }
+            )
+            .subscribe(
+                function (status) {
+
+                    console.log(
+                        "Estado Realtime del chat:",
+                        status
+                    );
+                }
+            );
+}
+
+
+/* =========================================================
+   CERRAR REALTIME
+   ========================================================= */
+
+function unsubscribeFromChat() {
+
+    if (
+        supabaseClient &&
+        chatMessagesSubscription
+    ) {
+
+        supabaseClient.removeChannel(
+            chatMessagesSubscription
+        );
+
+        chatMessagesSubscription =
+            null;
+    }
+
+    if (
+        supabaseClient &&
+        chatSubscription
+    ) {
+
+        supabaseClient.removeChannel(
+            chatSubscription
+        );
+
+        chatSubscription = null;
+    }
+}
+
+
+/* =========================================================
+   MARCAR CONVERSACIÓN COMO LEÍDA
+   ========================================================= */
+
+async function markConversationAsRead(
+    conversationId
+) {
+
+    if (
+        !supabaseClient ||
+        !currentUser ||
+        !conversationId
+    ) {
+        return;
+    }
+
+    try {
+
+        /*
+           La tabla conversation_participants tendrá
+           last_read_at para cada participante.
+        */
+
+        await supabaseClient
+            .from("conversation_participants")
+            .update({
+                last_read_at:
+                    new Date().toISOString()
+            })
+            .eq(
+                "conversation_id",
+                conversationId
+            )
+            .eq(
+                "user_id",
+                currentUser.id
+            );
+
+    } catch (error) {
+
+        console.warn(
+            "No se pudo marcar como leído:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   PREPARAR WHATSAPP DEL CHAT
+   ========================================================= */
+
+async function prepareChatWhatsAppButton(
+    sellerId,
+    publication = null
+) {
+
+    if (!chatWhatsappButton) {
+        return;
+    }
+
+    chatWhatsappButton.hidden = true;
+
+    if (!sellerId) {
+        return;
+    }
+
+    try {
+
+        const {
+            data: seller,
+            error
+        } = await supabaseClient
+            .from("profiles")
+            .select(
+                "id, full_name, phone"
+            )
+            .eq(
+                "id",
+                sellerId
+            )
+            .maybeSingle();
+
+        if (error) {
+            throw error;
+        }
+
+        const phone =
+            normalizePhone(
+                seller?.phone || ""
+            );
+
+        if (!phone) {
+            return;
+        }
+
+        /*
+           Guardamos temporalmente los datos para
+           continueChatOnWhatsApp().
+        */
+
+        chatWhatsappButton.dataset.phone =
+            phone;
+
+        chatWhatsappButton.dataset.publicationTitle =
+            publication?.title || "";
+
+        chatWhatsappButton.hidden = false;
+
+    } catch (error) {
+
+        console.warn(
+            "No se pudo preparar WhatsApp:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   CONTINUAR POR WHATSAPP
+   ========================================================= */
+
+function continueChatOnWhatsApp() {
+
+    if (!chatWhatsappButton) {
+        return;
+    }
+
+    const phone =
+        chatWhatsappButton.dataset.phone || "";
+
+    if (!phone) {
+
+        showToast(
+            "WhatsApp no está disponible para este vendedor.",
+            "error"
+        );
+
+        return;
+    }
+
+    const publicationTitle =
+        chatWhatsappButton.dataset
+            .publicationTitle || "";
+
+    let message =
+        "Hola, te contacto desde Market Flash.";
+
+    if (publicationTitle) {
+
+        message +=
+            ` Estoy interesado/a en tu publicación "${publicationTitle}".`;
+    }
+
+    openWhatsApp(
+        phone,
+        message
+    );
+}
+
+
+/* =========================================================
+   CERRAR CHAT
+   ========================================================= */
+
+function closeCurrentChat() {
+
+    unsubscribeFromChat();
+
+    currentConversation =
+        null;
+
+    closePanel(
+        "chat-panel"
+    );
+}
+
+
+/* =========================================================
+   CARGAR MIS CONVERSACIONES
+   ========================================================= */
+
+async function loadMyConversations() {
+
+    if (
+        !supabaseClient ||
+        !currentUser
+    ) {
+        return [];
+    }
+
+    try {
+
+        const {
+            data: participations,
+            error
+        } = await supabaseClient
+            .from("conversation_participants")
+            .select(`
+                conversation_id,
+                last_read_at,
+                conversations (
+                    id,
+                    created_by,
+                    publication_id,
+                    last_message,
+                    last_message_at,
+                    created_at
+                )
+            `)
+            .eq(
+                "user_id",
+                currentUser.id
+            )
+            .order(
+                "last_read_at",
+                {
+                    ascending: false,
+                    nullsFirst: true
+                }
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        return participations || [];
+
+    } catch (error) {
+
+        console.error(
+            "Error cargando conversaciones:",
+            error
+        );
+
+        return [];
+    }
+}
+
+
+/* =========================================================
+   NOTIFICACIÓN LOCAL DE MENSAJES
+   ========================================================= */
+
+function showNewMessageNotification(
+    senderName
+) {
+
+    showToast(
+        `💬 Nuevo mensaje de ${senderName || "un usuario"}.`,
+        "info"
+    );
+}
+
+
+/* =========================================================
+   INICIALIZAR CHAT
+   ========================================================= */
+
+bindChatEvents();
+
+
+console.log(
+    "Módulo de chat Market Flash cargado."
+);/* =========================================================
+   MARKET FLASH
+   SCRIPT PRINCIPAL
+   PARTE 6
+   FLASH DEL DÍA + TARIFAS + PAGOS + COMPROBANTES
+   ========================================================= */
+
+let pendingPromotionRequest = null;
+let selectedPromotionTariff = null;
+let selectedPaymentMethod = null;
+
+
+/* =========================================================
+   REFERENCIAS
+   ========================================================= */
+
+const promotionPanel = $("promotion-panel");
+const closePromotionPanelButton = $("close-promotion-panel");
+const promotionForm = $("promotion-form");
+const promotionTitle = $("promotion-title");
+const promotionDescription = $("promotion-description");
+const promotionPrice = $("promotion-price");
+
+const paymentMethodPanel = $("payment-method-panel");
+const closePaymentMethodPanelButton = $("close-payment-method-panel");
+const paymentMethodsList = $("payment-methods-list");
+
+const paymentProofPanel = $("payment-proof-panel");
+const closePaymentProofPanelButton = $("close-payment-proof-panel");
+const paymentProofFile = $("payment-proof-file");
+const paymentProofPreview = $("payment-proof-preview");
+const sendPaymentProofButton = $("send-payment-proof-button");
+
+
+/* =========================================================
+   INICIALIZACIÓN
+   ========================================================= */
+
+function initializeFlashPromotionSystem() {
+    if (closePromotionPanelButton) {
+        closePromotionPanelButton.addEventListener("click", function () {
+            closePanel("promotion-panel");
+            pendingPromotionRequest = null;
+            selectedPromotionTariff = null;
+        });
+    }
+
+    if (closePaymentMethodPanelButton) {
+        closePaymentMethodPanelButton.addEventListener("click", function () {
+            closePanel("payment-method-panel");
+        });
+    }
+
+    if (closePaymentProofPanelButton) {
+        closePaymentProofPanelButton.addEventListener("click", function () {
+            closePanel("payment-proof-panel");
+        });
+    }
+
+    const promoteButton = $("promote-button");
+
+    if (promoteButton) {
+        promoteButton.addEventListener("click", function () {
+            openPromotionPanel();
+        });
+    }
+
+    if (promotionForm) {
+        promotionForm.addEventListener(
+            "submit",
+            handlePromotionFormSubmit
+        );
+    }
+
+    if (paymentProofFile) {
+        paymentProofFile.addEventListener(
+            "change",
+            handlePaymentProofPreview
+        );
+    }
+
+    if (sendPaymentProofButton) {
+        sendPaymentProofButton.addEventListener(
+            "click",
+            sendPaymentProof
+        );
+    }
+}
+
+
+/* =========================================================
+   CARGAR CONFIGURACIÓN
+   ========================================================= */
+
+async function getFlashTariffs() {
+    const fallback = DEFAULT_CONFIG.flashPrices || [];
+
+    if (!supabaseClient) {
+        return fallback;
+    }
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("flash_tariffs")
+            .select("*")
+            .eq("active", true)
+            .order("sort_order", { ascending: true });
+
+        if (error || !data || data.length === 0) {
+            return fallback;
+        }
+
+        return data.map(function (item) {
+            return {
+                id: item.id,
+                name: item.name,
+                price: Number(item.price || 0)
+            };
+        });
+    } catch (error) {
+        console.warn("No se pudieron cargar las tarifas:", error);
+        return fallback;
+    }
+}
+
+
+async function getPaymentMethods() {
+    const fallback = DEFAULT_CONFIG.paymentMethods || [];
+
+    if (!supabaseClient) {
+        return fallback;
+    }
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("payment_methods")
+            .select("*")
+            .eq("active", true)
+            .order("sort_order", { ascending: true });
+
+        if (error || !data || data.length === 0) {
+            return fallback;
+        }
+
+        return data.map(function (item) {
+            return {
+                id: item.id,
+                name: item.name,
+                details: item.details || ""
+            };
+        });
+    } catch (error) {
+        console.warn(
+            "No se pudieron cargar los métodos de pago:",
+            error
+        );
+
+        return fallback;
+    }
+}
+
+
+/* =========================================================
+   ABRIR FLASH DEL DÍA
+   ========================================================= */
+
+async function openPromotionPanel() {
+    if (!currentUser) {
+        showToast(
+            "Debes iniciar sesión para promocionar una publicación.",
+            "error"
+        );
+        return;
+    }
+
+    openPanel("promotion-panel");
+
+    await preparePromotionForm();
+}
+
+
+/* =========================================================
+   PREPARAR FORMULARIO
+   ========================================================= */
+
+async function preparePromotionForm() {
+    if (!promotionForm) {
+        return;
+    }
+
+    let publicationSelector =
+        document.getElementById("promotion-publication");
+
+    if (!publicationSelector) {
+        const wrapper = document.createElement("div");
+
+        wrapper.className = "form-group";
+
+        wrapper.innerHTML = `
+            <label for="promotion-publication">
+                Publicación que quieres promocionar
+            </label>
+
+            <select
+                id="promotion-publication"
+                required
+            >
+                <option value="">
+                    Selecciona una publicación
+                </option>
+            </select>
+        `;
+
+        const firstField =
+            promotionTitle?.closest(".form-group") ||
+            promotionTitle?.parentElement;
+
+        if (firstField) {
+            firstField.parentNode.insertBefore(
+                wrapper,
+                firstField
+            );
+        } else {
+            promotionForm.prepend(wrapper);
+        }
+
+        publicationSelector =
+            document.getElementById("promotion-publication");
+    }
+
+    await loadMyPublicationsForPromotion(
+        publicationSelector
+    );
+
+    await renderPromotionTariffs();
+}
+
+
+/* =========================================================
+   PUBLICACIONES DEL USUARIO
+   ========================================================= */
+
+async function loadMyPublicationsForPromotion(selectElement) {
+    if (!selectElement || !currentUser) {
+        return;
+    }
+
+    selectElement.innerHTML = `
+        <option value="">
+            Cargando tus publicaciones...
+        </option>
+    `;
+
+    try {
+        const { data, error } = await supabaseClient
+            .from("publications")
+            .select("id, title, price, status")
+            .eq("seller_id", currentUser.id)
+            .neq("status", "deleted")
+            .order("created_at", {
+                ascending: false
+            });
+
+        if (error) {
+            console.error(
+                "Error cargando publicaciones:",
+                error
+            );
+
+            selectElement.innerHTML = `
+                <option value="">
+                    No se pudieron cargar
+                </option>
+            `;
+
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            selectElement.innerHTML = `
+                <option value="">
+                    Primero debes publicar un producto
+                </option>
+            `;
+
+            return;
+        }
+
+        selectElement.innerHTML = `
+            <option value="">
+                Selecciona una publicación
+            </option>
+        `;
+
+        data.forEach(function (publication) {
+            const option =
+                document.createElement("option");
+
+            option.value = publication.id;
+
+            option.textContent =
+                publication.title +
+                " — " +
+                formatMoney(publication.price);
+
+            selectElement.appendChild(option);
+        });
+
+    } catch (error) {
+        console.error(
+            "Error inesperado cargando publicaciones:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   MOSTRAR TARIFAS
+   ========================================================= */
+
+async function renderPromotionTariffs() {
+    const tariffs = await getFlashTariffs();
+
+    let tariffContainer =
+        document.getElementById(
+            "promotion-tariffs"
+        );
+
+    if (!tariffContainer) {
+        tariffContainer =
+            document.createElement("div");
+
+        tariffContainer.id =
+            "promotion-tariffs";
+
+        tariffContainer.className =
+            "promotion-tariffs";
+
+        const priceField =
+            promotionPrice?.closest(".form-group") ||
+            promotionPrice?.parentElement;
+
+        if (priceField) {
+            priceField.parentNode.insertBefore(
+                tariffContainer,
+                priceField
+            );
+        } else {
+            promotionForm.prepend(
+                tariffContainer
+            );
+        }
+    }
+
+    tariffContainer.innerHTML = `
+        <label class="section-label">
+            Elige tu tarifa
+        </label>
+
+        <div class="tariff-grid">
+            ${tariffs.map(function (tariff) {
+                return `
+                    <button
+                        type="button"
+                        class="tariff-card"
+                        data-tariff-id="${escapeHTML(
+                            String(tariff.id)
+                        )}"
+                    >
+                        <strong>
+                            ${escapeHTML(tariff.name)}
+                        </strong>
+
+                        <span>
+                            ${formatMoney(tariff.price)}
+                        </span>
+                    </button>
+                `;
+            }).join("")}
+        </div>
+    `;
+
+    const tariffButtons =
+        tariffContainer.querySelectorAll(
+            ".tariff-card"
+        );
+
+    tariffButtons.forEach(function (button) {
+        button.addEventListener(
+            "click",
+            function () {
+                const tariffId =
+                    button.dataset.tariffId;
+
+                selectedPromotionTariff =
+                    tariffs.find(function (tariff) {
+                        return String(tariff.id) ===
+                            String(tariffId);
+                    });
+
+                tariffButtons.forEach(function (item) {
+                    item.classList.remove("active");
+                });
+
+                button.classList.add("active");
+
+                if (promotionPrice) {
+                    promotionPrice.value =
+                        selectedPromotionTariff
+                            ? selectedPromotionTariff.price
+                            : "";
+                }
+            }
+        );
+    });
+}
+
+
+/* =========================================================
+   ENVIAR SOLICITUD DE PROMOCIÓN
+   ========================================================= */
+
+async function handlePromotionFormSubmit(event) {
+    event.preventDefault();
+
+    if (!currentUser) {
+        showToast(
+            "Debes iniciar sesión.",
+            "error"
+        );
+        return;
+    }
+
+    const publicationSelector =
+        document.getElementById(
+            "promotion-publication"
+        );
+
+    const publicationId =
+        publicationSelector
+            ? publicationSelector.value
+            : "";
+
+    const title =
+        promotionTitle
+            ? promotionTitle.value.trim()
+            : "";
+
+    const description =
+        promotionDescription
+            ? promotionDescription.value.trim()
+            : "";
+
+    if (!publicationId) {
+        showToast(
+            "Selecciona una publicación.",
+            "error"
+        );
+        return;
+    }
+
+    if (!selectedPromotionTariff) {
+        showToast(
+            "Selecciona una tarifa.",
+            "error"
+        );
+        return;
+    }
+
+    pendingPromotionRequest = {
+        publication_id: publicationId,
+        title: title,
+        description: description,
+        tariff_id: selectedPromotionTariff.id,
+        tariff_name: selectedPromotionTariff.name,
+        amount: selectedPromotionTariff.price
+    };
+
+    await openPaymentMethodSelection();
+}
+
+
+/* =========================================================
+   MÉTODOS DE PAGO
+   ========================================================= */
+
+async function openPaymentMethodSelection() {
+    closePanel("promotion-panel");
+
+    selectedPaymentMethod = null;
+
+    const methods =
+        await getPaymentMethods();
+
+    if (!paymentMethodsList) {
+        return;
+    }
+
+    paymentMethodsList.innerHTML = "";
+
+    methods.forEach(function (method) {
+        const button =
+            document.createElement("button");
+
+        button.type = "button";
+        button.className =
+            "payment-method-card";
+
+        button.dataset.paymentId =
+            method.id;
+
+        button.innerHTML = `
+            <span class="payment-method-icon">
+                💳
+            </span>
+
+            <span class="payment-method-content">
+                <strong>
+                    ${escapeHTML(method.name)}
+                </strong>
+
+                <small>
+                    ${escapeHTML(
+                        method.details ||
+                        "Información de pago"
+                    )}
+                </small>
+            </span>
+
+            <span class="payment-method-arrow">
+                ›
+            </span>
+        `;
+
+        button.addEventListener(
+            "click",
+            function () {
+                selectedPaymentMethod =
+                    method;
+
+                openPaymentProofPanel();
+            }
+        );
+
+        paymentMethodsList.appendChild(
+            button
+        );
+    });
+
+    openPanel("payment-method-panel");
+}
+
+
+/* =========================================================
+   COMPROBANTE
+   ========================================================= */
+
+function openPaymentProofPanel() {
+    closePanel("payment-method-panel");
+
+    if (paymentProofFile) {
+        paymentProofFile.value = "";
+    }
+
+    selectedPaymentProof = null;
+
+    if (paymentProofPreview) {
+        paymentProofPreview.innerHTML = `
+            <div class="proof-empty">
+                <span>📷</span>
+                <p>
+                    Selecciona una foto del comprobante
+                </p>
+            </div>
+        `;
+    }
+
+    openPanel("payment-proof-panel");
+}
+
+
+/* =========================================================
+   VISTA PREVIA DEL COMPROBANTE
+   ========================================================= */
+
+function handlePaymentProofPreview(event) {
+    const file =
+        event.target.files &&
+        event.target.files[0];
+
+    if (!file) {
+        selectedPaymentProof = null;
+        return;
+    }
+
+    const maxSize =
+        15 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+        showToast(
+            "El comprobante no puede superar 15 MB.",
+            "error"
+        );
+
+        event.target.value = "";
+        selectedPaymentProof = null;
+        return;
+    }
+
+    selectedPaymentProof = file;
+
+    if (!paymentProofPreview) {
+        return;
+    }
+
+    if (file.type.startsWith("image/")) {
+        const reader =
+            new FileReader();
+
+        reader.onload = function (readerEvent) {
+            paymentProofPreview.innerHTML = `
+                <img
+                    src="${readerEvent.target.result}"
+                    alt="Comprobante de pago"
+                    class="payment-proof-image"
+                >
+            `;
+        };
+
+        reader.readAsDataURL(file);
+
+    } else {
+        paymentProofPreview.innerHTML = `
+            <div class="proof-file">
+                📄
+                <strong>
+                    ${escapeHTML(file.name)}
+                </strong>
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================================
+   SUBIR COMPROBANTE
+   ========================================================= */
+
+async function uploadPaymentProof(file) {
+    if (!file || !currentUser) {
+        throw new Error(
+            "No existe un comprobante válido."
+        );
+    }
+
+    const extension =
+        file.name.includes(".")
+            ? file.name
+                .split(".")
+                .pop()
+                .toLowerCase()
+            : "jpg";
+
+    const fileName =
+        `${currentUser.id}/` +
+        `${Date.now()}_` +
+        `${crypto.randomUUID()}.` +
+        extension;
+
+    const { error } =
+        await supabaseClient.storage
+            .from("payment-proofs")
+            .upload(
+                fileName,
+                file,
+                {
+                    cacheControl: "3600",
+                    upsert: false
+                }
+            );
+
+    if (error) {
+        throw error;
+    }
+
+    return fileName;
+}
+
+
+/* =========================================================
+   CREAR SOLICITUD DE PAGO
+   ========================================================= */
+
+async function createFlashPaymentRequest(
+    proofPath
+) {
+    if (
+        !pendingPromotionRequest ||
+        !selectedPaymentMethod ||
+        !currentUser
+    ) {
+        throw new Error(
+            "Faltan datos de la solicitud."
+        );
+    }
+
+    const requestData = {
+        user_id: currentUser.id,
+
+        publication_id:
+            pendingPromotionRequest
+                .publication_id,
+
+        tariff_id:
+            pendingPromotionRequest
+                .tariff_id,
+
+        tariff_name:
+            pendingPromotionRequest
+                .tariff_name,
+
+        amount:
+            pendingPromotionRequest
+                .amount,
+
+        payment_method_id:
+            selectedPaymentMethod.id,
+
+        payment_method_name:
+            selectedPaymentMethod.name,
+
+        promotion_title:
+            pendingPromotionRequest
+                .title,
+
+        promotion_description:
+            pendingPromotionRequest
+                .description,
+
+        proof_path: proofPath,
+
+        status: "pending"
+    };
+
+    const { data, error } =
+        await supabaseClient
+            .from("flash_payment_requests")
+            .insert(requestData)
+            .select()
+            .single();
+
+    if (error) {
+        throw error;
+    }
+
+    return data;
+}
+
+
+/* =========================================================
+   NOTIFICAR A LOS ADMINISTRADORES
+   ========================================================= */
+
+async function notifyAdminsOfPayment(
+    paymentRequest
+) {
+    try {
+        const { data: admins } =
+            await supabaseClient
+                .from("profiles")
+                .select("id")
+                .or(
+                    "role.eq.admin,is_admin.eq.true"
+                );
+
+        if (!admins || admins.length === 0) {
+            console.warn(
+                "No se encontraron administradores."
+            );
+            return;
+        }
+
+        const notifications =
+            admins.map(function (admin) {
+                return {
+                    user_id: admin.id,
+
+                    type:
+                        "flash_payment_pending",
+
+                    title:
+                        "Nuevo comprobante de Flash del Día",
+
+                    message:
+                        `${currentProfile?.name || "Un usuario"} ` +
+                        `envió un comprobante por ` +
+                        `${formatMoney(
+                            paymentRequest.amount
+                        )}.`,
+
+                    related_id:
+                        paymentRequest.id,
+
+                    is_read: false
+                };
+            });
+
+        const { error } =
+            await supabaseClient
+                .from("notifications")
+                .insert(notifications);
+
+        if (error) {
+            console.warn(
+                "No se pudo crear la notificación:",
+                error
+            );
+        }
+
+    } catch (error) {
+        console.warn(
+            "Error notificando al administrador:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   ENVIAR COMPROBANTE
+   ========================================================= */
+
+async function sendPaymentProof() {
+    if (!currentUser) {
+        showToast(
+            "Debes iniciar sesión.",
+            "error"
+        );
+        return;
+    }
+
+    if (!pendingPromotionRequest) {
+        showToast(
+            "La solicitud de promoción no está completa.",
+            "error"
+        );
+        return;
+    }
+
+    if (!selectedPaymentMethod) {
+        showToast(
+            "Selecciona un método de pago.",
+            "error"
+        );
+        return;
+    }
+
+    if (!selectedPaymentProof) {
+        showToast(
+            "Debes subir el comprobante.",
+            "error"
+        );
+        return;
+    }
+
+    try {
+        showLoading(
+            "Enviando comprobante..."
+        );
+
+        const proofPath =
+            await uploadPaymentProof(
+                selectedPaymentProof
+            );
+
+        const paymentRequest =
+            await createFlashPaymentRequest(
+                proofPath
+            );
+
+        await notifyAdminsOfPayment(
+            paymentRequest
+        );
+
+        closePanel(
+            "payment-proof-panel"
+        );
+
+        pendingPromotionRequest = null;
+        selectedPromotionTariff = null;
+        selectedPaymentMethod = null;
+        selectedPaymentProof = null;
+
+        if (promotionForm) {
+            promotionForm.reset();
+        }
+
+        showToast(
+            "Comprobante enviado. El administrador revisará tu solicitud.",
+            "success"
+        );
+
+    } catch (error) {
+        console.error(
+            "Error enviando comprobante:",
+            error
+        );
+
+        showToast(
+            "No se pudo enviar el comprobante. Revisa la configuración de Supabase.",
+            "error"
+        );
+
+    } finally {
+        hideLoading();
+    }
+}
+
+
+/* =========================================================
+   ACTUALIZAR PRECIO DE PROMOCIÓN
+   ========================================================= */
+
+function updatePromotionPriceDisplay() {
+    if (
+        promotionPrice &&
+        selectedPromotionTariff
+    ) {
+        promotionPrice.value =
+            selectedPromotionTariff.price;
+    }
+}
+
+
+/* =========================================================
+   INICIAR SISTEMA
+   ========================================================= */
+
+initializeFlashPromotionSystem();/* =========================================================
+   MARKET FLASH
+   SCRIPT PRINCIPAL
+   PARTE 7
+   ADMINISTRACIÓN DE FLASH DEL DÍA
+   ========================================================= */
+
+let currentAdminPaymentRequest = null;
+
+
+/* =========================================================
+   REFERENCIAS ADMINISTRACIÓN FLASH
+   ========================================================= */
+
+const adminPaymentProofsList =
+    $("admin-payment-proofs-list");
+
+const pendingProofCount =
+    $("pending-proof-count");
+
+const adminProofDetailPanel =
+    $("admin-proof-detail-panel");
+
+const closeAdminProofDetail =
+    $("close-admin-proof-detail");
+
+const adminProofDetail =
+    $("admin-proof-detail");
+
+const rejectProofButton =
+    $("reject-proof-button");
+
+const acceptProofButton =
+    $("accept-proof-button");
+
+const viewProofButton =
+    $("view-proof-button");
+
+const proofFullscreenViewer =
+    $("proof-fullscreen-viewer");
+
+const proofFullscreenImage =
+    $("proof-fullscreen-image");
+
+const closeProofFullscreen =
+    $("close-proof-fullscreen");
+
+
+/* =========================================================
+   INICIALIZAR ADMINISTRACIÓN DE PAGOS
+   ========================================================= */
+
+function initializeAdminFlashSystem() {
+
+    if (closeAdminProofDetail) {
+        closeAdminProofDetail.addEventListener(
+            "click",
+            function () {
+                closePanel(
+                    "admin-proof-detail-panel"
+                );
+
+                currentAdminPaymentRequest = null;
+            }
+        );
+    }
+
+    if (rejectProofButton) {
+        rejectProofButton.addEventListener(
+            "click",
+            function () {
+                processFlashPaymentDecision(
+                    "rejected"
+                );
+            }
+        );
+    }
+
+    if (acceptProofButton) {
+        acceptProofButton.addEventListener(
+            "click",
+            function () {
+                processFlashPaymentDecision(
+                    "approved"
+                );
+            }
+        );
+    }
+
+    if (viewProofButton) {
+        viewProofButton.addEventListener(
+            "click",
+            openCurrentProofFullscreen
+        );
+    }
+
+    if (closeProofFullscreen) {
+        closeProofFullscreen.addEventListener(
+            "click",
+            function () {
+                closeProofFullscreenViewer();
+            }
+        );
+    }
+
+    if (proofFullscreenViewer) {
+        proofFullscreenViewer.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target ===
+                    proofFullscreenViewer
+                ) {
+                    closeProofFullscreenViewer();
+                }
+
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   COMPROBAR ADMIN
+   ========================================================= */
+
+function isCurrentUserAdmin() {
+
+    if (!currentProfile) {
+        return false;
+    }
+
+    return (
+        currentProfile.role === "admin" ||
+        currentProfile.is_admin === true
+    );
+}
+
+
+/* =========================================================
+   CARGAR COMPROBANTES
+   ========================================================= */
+
+async function loadAdminPaymentProofs() {
+
+    if (!isCurrentUserAdmin()) {
+        return;
+    }
+
+    if (!adminPaymentProofsList) {
+        return;
+    }
+
+    adminPaymentProofsList.innerHTML = `
+        <div class="admin-loading">
+            Cargando solicitudes...
+        </div>
+    `;
+
+    try {
+
+        const { data, error } =
+            await supabaseClient
+                .from("flash_payment_requests")
+                .select(`
+                    *,
+                    profiles:user_id (
+                        id,
+                        name,
+                        phone,
+                        cedula
+                    ),
+                    publications:publication_id (
+                        id,
+                        title,
+                        price
+                    )
+                `)
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        renderAdminPaymentProofs(
+            data || []
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error cargando comprobantes:",
+            error
+        );
+
+        adminPaymentProofsList.innerHTML = `
+            <div class="admin-empty">
+                No se pudieron cargar
+                las solicitudes.
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================================
+   RENDERIZAR COMPROBANTES
+   ========================================================= */
+
+function renderAdminPaymentProofs(
+    requests
+) {
+
+    if (!adminPaymentProofsList) {
+        return;
+    }
+
+    const pending =
+        requests.filter(function (request) {
+            return request.status === "pending";
+        });
+
+    if (pendingProofCount) {
+        pendingProofCount.textContent =
+            String(pending.length);
+    }
+
+    if (requests.length === 0) {
+
+        adminPaymentProofsList.innerHTML = `
+            <div class="admin-empty">
+                No hay solicitudes de Flash del Día.
+            </div>
+        `;
+
+        return;
+    }
+
+    adminPaymentProofsList.innerHTML =
+        requests.map(function (request) {
+
+            const profile =
+                request.profiles || {};
+
+            const publication =
+                request.publications || {};
+
+            let statusText =
+                "Pendiente";
+
+            if (request.status === "approved") {
+                statusText = "Aceptado";
+            }
+
+            if (request.status === "rejected") {
+                statusText = "Rechazado";
+            }
+
+            return `
+                <article
+                    class="admin-payment-card"
+                    data-payment-id="${escapeHTML(
+                        String(request.id)
+                    )}"
+                >
+
+                    <div class="admin-payment-header">
+
+                        <div>
+                            <strong>
+                                ${escapeHTML(
+                                    profile.name ||
+                                    "Usuario"
+                                )}
+                            </strong>
+
+                            <small>
+                                ${formatDateTime(
+                                    request.created_at
+                                )}
+                            </small>
+                        </div>
+
+                        <span
+                            class="payment-status payment-status-${escapeHTML(
+                                request.status || "pending"
+                            )}"
+                        >
+                            ${statusText}
+                        </span>
+
+                    </div>
+
+                    <div class="admin-payment-info">
+
+                        <p>
+                            <strong>
+                                Publicación:
+                            </strong>
+
+                            ${escapeHTML(
+                                publication.title ||
+                                request.promotion_title ||
+                                "Sin título"
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Tarifa:
+                            </strong>
+
+                            ${escapeHTML(
+                                request.tariff_name ||
+                                "Flash"
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Monto:
+                            </strong>
+
+                            ${formatMoney(
+                                request.amount
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Pago:
+                            </strong>
+
+                            ${escapeHTML(
+                                request.payment_method_name ||
+                                "No indicado"
+                            )}
+                        </p>
+
+                    </div>
+
+                    <div class="admin-payment-actions">
+
+                        <button
+                            type="button"
+                            class="admin-action-button"
+                            data-proof-action="view"
+                            data-payment-id="${escapeHTML(
+                                String(request.id)
+                            )}"
+                        >
+                            👁 Ver comprobante
+                        </button>
+
+                        ${
+                            request.status === "pending"
+                            ? `
+                                <button
+                                    type="button"
+                                    class="admin-action-button danger"
+                                    data-proof-action="reject"
+                                    data-payment-id="${escapeHTML(
+                                        String(request.id)
+                                    )}"
+                                >
+                                    ❌ Rechazar
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="admin-action-button success"
+                                    data-proof-action="accept"
+                                    data-payment-id="${escapeHTML(
+                                        String(request.id)
+                                    )}"
+                                >
+                                    ✅ Aceptar
+                                </button>
+                            `
+                            : ""
+                        }
+
+                    </div>
+
+                </article>
+            `;
+
+        }).join("");
+
+    bindAdminPaymentCardActions();
+}
+
+
+/* =========================================================
+   ACCIONES DE TARJETAS
+   ========================================================= */
+
+function bindAdminPaymentCardActions() {
+
+    const buttons =
+        adminPaymentProofsList.querySelectorAll(
+            "[data-proof-action]"
+        );
+
+    buttons.forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                const paymentId =
+                    button.dataset.paymentId;
+
+                const action =
+                    button.dataset.proofAction;
+
+                const request =
+                    await getFlashPaymentRequest(
+                        paymentId
+                    );
+
+                if (!request) {
+                    showToast(
+                        "No se encontró la solicitud.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                if (action === "view") {
+
+                    currentAdminPaymentRequest =
+                        request;
+
+                    openAdminProofDetail(
+                        request
+                    );
+
+                    return;
+                }
+
+                if (action === "reject") {
+
+                    currentAdminPaymentRequest =
+                        request;
+
+                    await processFlashPaymentDecision(
+                        "rejected"
+                    );
+
+                    return;
+                }
+
+                if (action === "accept") {
+
+                    currentAdminPaymentRequest =
+                        request;
+
+                    await processFlashPaymentDecision(
+                        "approved"
+                    );
+                }
+
+            }
+        );
+    });
+}
+
+
+/* =========================================================
+   OBTENER SOLICITUD
+   ========================================================= */
+
+async function getFlashPaymentRequest(
+    paymentId
+) {
+
+    try {
+
+        const { data, error } =
+            await supabaseClient
+                .from("flash_payment_requests")
+                .select(`
+                    *,
+                    profiles:user_id (
+                        id,
+                        name,
+                        phone,
+                        cedula
+                    ),
+                    publications:publication_id (
+                        id,
+                        title,
+                        price
+                    )
+                `)
+                .eq(
+                    "id",
+                    paymentId
+                )
+                .single();
+
+        if (error) {
+            throw error;
+        }
+
+        return data;
+
+    } catch (error) {
+
+        console.error(
+            "Error obteniendo solicitud:",
+            error
+        );
+
+        return null;
+    }
+}
+
+
+/* =========================================================
+   DETALLE DEL COMPROBANTE
+   ========================================================= */
+
+function openAdminProofDetail(
+    request
+) {
+
+    if (!adminProofDetail) {
+        return;
+    }
+
+    const profile =
+        request.profiles || {};
+
+    const publication =
+        request.publications || {};
+
+    adminProofDetail.innerHTML = `
+
+        <div class="proof-detail-block">
+
+            <h3>
+                Solicitud de Flash del Día
+            </h3>
+
+            <p>
+                <strong>Usuario:</strong>
+                ${escapeHTML(
+                    profile.name ||
+                    "Sin nombre"
+                )}
+            </p>
+
+            <p>
+                <strong>Cédula:</strong>
+                ${escapeHTML(
+                    profile.cedula ||
+                    "No disponible"
+                )}
+            </p>
+
+            <p>
+                <strong>WhatsApp:</strong>
+                ${escapeHTML(
+                    profile.phone ||
+                    "No disponible"
+                )}
+            </p>
+
+            <p>
+                <strong>Publicación:</strong>
+                ${escapeHTML(
+                    publication.title ||
+                    request.promotion_title ||
+                    "Sin título"
+                )}
+            </p>
+
+            <p>
+                <strong>Tarifa:</strong>
+                ${escapeHTML(
+                    request.tariff_name ||
+                    "Flash"
+                )}
+            </p>
+
+            <p>
+                <strong>Monto:</strong>
+                ${formatMoney(
+                    request.amount
+                )}
+            </p>
+
+            <p>
+                <strong>Método de pago:</strong>
+                ${escapeHTML(
+                    request.payment_method_name ||
+                    "No disponible"
+                )}
+            </p>
+
+            <p>
+                <strong>Fecha:</strong>
+                ${formatDateTime(
+                    request.created_at
+                )}
+            </p>
+
+        </div>
+
+        <div class="proof-detail-description">
+
+            <strong>
+                Descripción:
+            </strong>
+
+            <p>
+                ${escapeHTML(
+                    request.promotion_description ||
+                    "Sin descripción."
+                )}
+            </p>
+
+        </div>
+
+    `;
+
+    openPanel(
+        "admin-proof-detail-panel"
+    );
+}
+
+
+/* =========================================================
+   DESCARGAR / MOSTRAR COMPROBANTE
+   ========================================================= */
+
+async function getPaymentProofUrl(
+    proofPath
+) {
+
+    if (!proofPath) {
+        return null;
+    }
+
+    try {
+
+        const { data, error } =
+            await supabaseClient.storage
+                .from("payment-proofs")
+                .createSignedUrl(
+                    proofPath,
+                    300
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        return data?.signedUrl || null;
+
+    } catch (error) {
+
+        console.error(
+            "Error generando URL del comprobante:",
+            error
+        );
+
+        return null;
+    }
+}
+
+
+/* =========================================================
+   ABRIR COMPROBANTE EN PANTALLA COMPLETA
+   ========================================================= */
+
+async function openCurrentProofFullscreen() {
+
+    if (!currentAdminPaymentRequest) {
+        return;
+    }
+
+    const proofPath =
+        currentAdminPaymentRequest.proof_path;
+
+    if (!proofPath) {
+
+        showToast(
+            "Esta solicitud no tiene comprobante.",
+            "error"
+        );
+
+        return;
+    }
+
+    try {
+
+        showLoading(
+            "Abriendo comprobante..."
+        );
+
+        const signedUrl =
+            await getPaymentProofUrl(
+                proofPath
+            );
+
+        if (!signedUrl) {
+            throw new Error(
+                "No se pudo obtener el comprobante."
+            );
+        }
+
+        const isImage =
+            /\.(jpg|jpeg|png|webp|gif)$/i
+                .test(proofPath);
+
+        if (
+            isImage &&
+            proofFullscreenImage
+        ) {
+
+            proofFullscreenImage.src =
+                signedUrl;
+
+            proofFullscreenImage.style.display =
+                "block";
+
+        } else {
+
+            if (proofFullscreenImage) {
+                proofFullscreenImage.style.display =
+                    "none";
+            }
+
+            window.open(
+                signedUrl,
+                "_blank",
+                "noopener,noreferrer"
+            );
+
+            hideLoading();
+
+            return;
+        }
+
+        if (proofFullscreenViewer) {
+            proofFullscreenViewer.classList.add(
+                "active"
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error mostrando comprobante:",
+            error
+        );
+
+        showToast(
+            "No se pudo abrir el comprobante.",
+            "error"
+        );
+
+    } finally {
+
+        hideLoading();
+    }
+}
+
+
+/* =========================================================
+   CERRAR VISOR
+   ========================================================= */
+
+function closeProofFullscreenViewer() {
+
+    if (proofFullscreenViewer) {
+        proofFullscreenViewer.classList.remove(
+            "active"
+        );
+    }
+
+    if (proofFullscreenImage) {
+        proofFullscreenImage.src = "";
+    }
+}
+
+
+/* =========================================================
+   ACEPTAR / RECHAZAR
+   ========================================================= */
+
+async function processFlashPaymentDecision(
+    decision
+) {
+
+    if (!isCurrentUserAdmin()) {
+
+        showToast(
+            "No tienes permisos de administrador.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!currentAdminPaymentRequest) {
+
+        showToast(
+            "No hay una solicitud seleccionada.",
+            "error"
+        );
+
+        return;
+    }
+
+    const request =
+        currentAdminPaymentRequest;
+
+    if (request.status !== "pending") {
+
+        showToast(
+            "Esta solicitud ya fue procesada.",
+            "error"
+        );
+
+        return;
+    }
+
+    const accepted =
+        decision === "approved";
+
+    const confirmationMessage =
+        accepted
+            ? "¿Aceptar este comprobante y activar el Flash del Día?"
+            : "¿Rechazar este comprobante?";
+
+    if (
+        !window.confirm(
+            confirmationMessage
+        )
+    ) {
+        return;
+    }
+
+    try {
+
+        showLoading(
+            accepted
+                ? "Aceptando solicitud..."
+                : "Rechazando solicitud..."
+        );
+
+        const { error:
+            paymentUpdateError } =
+            await supabaseClient
+                .from("flash_payment_requests")
+                .update({
+                    status: decision,
+                    reviewed_by:
+                        currentUser.id,
+                    reviewed_at:
+                        new Date().toISOString()
+                })
+                .eq(
+                    "id",
+                    request.id
+                )
+                .eq(
+                    "status",
+                    "pending"
+                );
+
+        if (paymentUpdateError) {
+            throw paymentUpdateError;
+        }
+
+        if (accepted) {
+
+            await activateFlashPromotion(
+                request
+            );
+
+        } else {
+
+            await notifyPaymentResult(
+                request,
+                "rejected"
+            );
+        }
+
+        closePanel(
+            "admin-proof-detail-panel"
+        );
+
+        currentAdminPaymentRequest = null;
+
+        await loadAdminPaymentProofs();
+
+        showToast(
+            accepted
+                ? "Flash del Día aceptado y activado."
+                : "Comprobante rechazado.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error procesando solicitud:",
+            error
+        );
+
+        showToast(
+            "No se pudo procesar la solicitud.",
+            "error"
+        );
+
+    } finally {
+
+        hideLoading();
+    }
+}
+
+
+/* =========================================================
+   ACTIVAR FLASH
+   ========================================================= */
+
+async function activateFlashPromotion(
+    request
+) {
+
+    const startedAt =
+        new Date();
+
+    const endsAt =
+        new Date(
+            startedAt.getTime() +
+            24 * 60 * 60 * 1000
+        );
+
+    const promotionData = {
+
+        publication_id:
+            request.publication_id,
+
+        payment_request_id:
+            request.id,
+
+        tariff_id:
+            request.tariff_id,
+
+        tariff_name:
+            request.tariff_name,
+
+        amount:
+            request.amount,
+
+        title:
+            request.promotion_title,
+
+        description:
+            request.promotion_description,
+
+        starts_at:
+            startedAt.toISOString(),
+
+        ends_at:
+            endsAt.toISOString(),
+
+        status:
+            "active"
+    };
+
+    const { error } =
+        await supabaseClient
+            .from("flash_promotions")
+            .insert(
+                promotionData
+            );
+
+    if (error) {
+        throw error;
+    }
+
+    await supabaseClient
+        .from("publications")
+        .update({
+            is_flash: true
+        })
+        .eq(
+            "id",
+            request.publication_id
+        );
+
+    await notifyPaymentResult(
+        request,
+        "approved"
+    );
+}
+
+
+/* =========================================================
+   NOTIFICAR RESULTADO AL USUARIO
+   ========================================================= */
+
+async function notifyPaymentResult(
+    request,
+    result
+) {
+
+    if (!request.user_id) {
+        return;
+    }
+
+    const approved =
+        result === "approved";
+
+    const notification = {
+
+        user_id:
+            request.user_id,
+
+        type:
+            approved
+                ? "flash_payment_approved"
+                : "flash_payment_rejected",
+
+        title:
+            approved
+                ? "Flash del Día aprobado"
+                : "Flash del Día rechazado",
+
+        message:
+            approved
+                ? "Tu comprobante fue aprobado. Tu publicación ya está promocionada en Flash del Día."
+                : "Tu comprobante de Flash del Día fue rechazado. Puedes revisar los datos de pago y enviar una nueva solicitud.",
+
+        related_id:
+            request.id,
+
+        is_read:
+            false
+    };
+
+    try {
+
+        const { error } =
+            await supabaseClient
+                .from("notifications")
+                .insert(
+                    notification
+                );
+
+        if (error) {
+            console.warn(
+                "No se pudo enviar la notificación:",
+                error
+            );
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "Error notificando resultado:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   ACTUALIZAR FLASH DEL DÍA
+   ========================================================= */
+
+async function refreshFlashSection() {
+
+    if (
+        typeof loadFlashPromotions ===
+        "function"
+    ) {
+        await loadFlashPromotions();
+    }
+
+}
+
+
+/* =========================================================
+   INICIAR ADMINISTRACIÓN
+   ========================================================= */
+
+initializeAdminFlashSystem();/* =========================================================
+   MARKET FLASH
+   SCRIPT PRINCIPAL
+   PARTE 8
+   ADMINISTRACIÓN DE USUARIOS Y PUBLICACIONES
+   ========================================================= */
+
+
+/* =========================================================
+   REFERENCIAS
+   ========================================================= */
+
+const adminUsersButton =
+    $("admin-users-button");
+
+const adminUsersList =
+    $("admin-users-list");
+
+const adminPublicationsList =
+    $("admin-publications-list");
+
+const adminTotalUsers =
+    $("admin-total-users");
+
+const adminActiveUsers =
+    $("admin-active-users");
+
+const adminTotalPublications =
+    $("admin-total-publications");
+
+
+/* =========================================================
+   ESTADO DEL ADMIN
+   ========================================================= */
+
+let adminUsersCache = [];
+let adminPublicationsCache = [];
+
+
+/* =========================================================
+   INICIALIZAR ADMIN USERS
+   ========================================================= */
+
+function initializeAdminManagement() {
+
+    if (adminUsersButton) {
+
+        adminUsersButton.addEventListener(
+            "click",
+            async function () {
+
+                if (!isCurrentUserAdmin()) {
+
+                    showToast(
+                        "No tienes permisos de administrador.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                await loadAdminUsers();
+                await loadAdminPublications();
+                await updateAdminStatistics();
+
+            }
+        );
+    }
+
+}
+
+
+/* =========================================================
+   CARGAR USUARIOS
+   ========================================================= */
+
+async function loadAdminUsers() {
+
+    if (!isCurrentUserAdmin()) {
+        return;
+    }
+
+    if (!adminUsersList) {
+        return;
+    }
+
+    adminUsersList.innerHTML = `
+        <div class="admin-loading">
+            Cargando usuarios...
+        </div>
+    `;
+
+    try {
+
+        const { data, error } =
+            await supabaseClient
+                .from("profiles")
+                .select(`
+                    id,
+                    name,
+                    cedula,
+                    phone,
+                    role,
+                    is_admin,
+                    status,
+                    created_at,
+                    last_seen_at
+                `)
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        adminUsersCache =
+            data || [];
+
+        renderAdminUsers(
+            adminUsersCache
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error cargando usuarios:",
+            error
+        );
+
+        adminUsersList.innerHTML = `
+            <div class="admin-empty">
+                No se pudieron cargar los usuarios.
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================================
+   RENDER USUARIOS
+   ========================================================= */
+
+function renderAdminUsers(
+    users
+) {
+
+    if (!adminUsersList) {
+        return;
+    }
+
+    if (!users || users.length === 0) {
+
+        adminUsersList.innerHTML = `
+            <div class="admin-empty">
+                No hay usuarios registrados.
+            </div>
+        `;
+
+        return;
+    }
+
+    adminUsersList.innerHTML =
+        users.map(function (user) {
+
+            const status =
+                user.status ||
+                "active";
+
+            let statusText =
+                "Activo";
+
+            if (status === "blocked") {
+                statusText =
+                    "Bloqueado";
+            }
+
+            if (status === "suspended") {
+                statusText =
+                    "Suspendido";
+            }
+
+            if (status === "deleted") {
+                statusText =
+                    "Eliminado";
+            }
+
+            if (status === "pending") {
+                statusText =
+                    "Pendiente";
+            }
+
+            const isAdmin =
+                user.role === "admin" ||
+                user.is_admin === true;
+
+            return `
+                <article
+                    class="admin-user-card"
+                    data-user-id="${escapeHTML(
+                        String(user.id)
+                    )}"
+                >
+
+                    <div class="admin-user-header">
+
+                        <div class="admin-user-avatar">
+                            ${escapeHTML(
+                                getInitials(
+                                    user.name ||
+                                    "Usuario"
+                                )
+                            )}
+                        </div>
+
+                        <div class="admin-user-main">
+
+                            <strong>
+                                ${escapeHTML(
+                                    user.name ||
+                                    "Sin nombre"
+                                )}
+                            </strong>
+
+                            ${
+                                isAdmin
+                                ? `
+                                    <span class="admin-badge">
+                                        ADMIN
+                                    </span>
+                                `
+                                : ""
+                            }
+
+                            <small>
+                                ${escapeHTML(
+                                    user.phone ||
+                                    "Sin teléfono"
+                                )}
+                            </small>
+
+                        </div>
+
+                        <span
+                            class="user-status user-status-${escapeHTML(
+                                status
+                            )}"
+                        >
+                            ${statusText}
+                        </span>
+
+                    </div>
+
+
+                    <div class="admin-user-details">
+
+                        <p>
+                            <strong>
+                                Cédula:
+                            </strong>
+
+                            ${escapeHTML(
+                                user.cedula ||
+                                "No disponible"
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Registrado:
+                            </strong>
+
+                            ${formatDateTime(
+                                user.created_at
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Última conexión:
+                            </strong>
+
+                            ${
+                                user.last_seen_at
+                                ? formatDateTime(
+                                    user.last_seen_at
+                                )
+                                : "Nunca"
+                            }
+                        </p>
+
+                    </div>
+
+
+                    <div class="admin-user-actions">
+
+                        ${
+                            status === "blocked"
+                            ? `
+                                <button
+                                    type="button"
+                                    class="admin-action-button success"
+                                    data-user-action="unblock"
+                                    data-user-id="${escapeHTML(
+                                        String(user.id)
+                                    )}"
+                                >
+                                    🔓 Desbloquear
+                                </button>
+                            `
+                            : `
+                                <button
+                                    type="button"
+                                    class="admin-action-button warning"
+                                    data-user-action="block"
+                                    data-user-id="${escapeHTML(
+                                        String(user.id)
+                                    )}"
+                                >
+                                    🔒 Bloquear
+                                </button>
+                            `
+                        }
+
+
+                        ${
+                            status === "suspended"
+                            ? `
+                                <button
+                                    type="button"
+                                    class="admin-action-button success"
+                                    data-user-action="activate"
+                                    data-user-id="${escapeHTML(
+                                        String(user.id)
+                                    )}"
+                                >
+                                    ▶️ Reactivar
+                                </button>
+                            `
+                            : `
+                                ${
+                                    status !== "deleted"
+                                    ? `
+                                        <button
+                                            type="button"
+                                            class="admin-action-button warning"
+                                            data-user-action="suspend"
+                                            data-user-id="${escapeHTML(
+                                                String(user.id)
+                                            )}"
+                                        >
+                                            ⏸ Suspender
+                                        </button>
+                                    `
+                                    : ""
+                                }
+                            `
+                        }
+
+
+                        ${
+                            status !== "deleted"
+                            ? `
+                                <button
+                                    type="button"
+                                    class="admin-action-button danger"
+                                    data-user-action="delete"
+                                    data-user-id="${escapeHTML(
+                                        String(user.id)
+                                    )}"
+                                >
+                                    🗑 Eliminar
+                                </button>
+                            `
+                            : `
+                                <button
+                                    type="button"
+                                    class="admin-action-button success"
+                                    data-user-action="activate"
+                                    data-user-id="${escapeHTML(
+                                        String(user.id)
+                                    )}"
+                                >
+                                    ♻️ Reactivar
+                                </button>
+                            `
+                        }
+
+                    </div>
+
+                </article>
+            `;
+
+        }).join("");
+
+    bindAdminUserActions();
+}
+
+
+/* =========================================================
+   INICIALES
+   ========================================================= */
+
+function getInitials(
+    name
+) {
+
+    if (!name) {
+        return "MF";
+    }
+
+    const parts =
+        String(name)
+            .trim()
+            .split(/\s+/)
+            .filter(Boolean);
+
+    if (parts.length === 1) {
+        return parts[0]
+            .substring(0, 2)
+            .toUpperCase();
+    }
+
+    return (
+        parts[0][0] +
+        parts[parts.length - 1][0]
+    ).toUpperCase();
+}
+
+
+/* =========================================================
+   ACCIONES DE USUARIO
+   ========================================================= */
+
+function bindAdminUserActions() {
+
+    if (!adminUsersList) {
+        return;
+    }
+
+    const buttons =
+        adminUsersList.querySelectorAll(
+            "[data-user-action]"
+        );
+
+    buttons.forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                const userId =
+                    button.dataset.userId;
+
+                const action =
+                    button.dataset.userAction;
+
+                await processAdminUserAction(
+                    userId,
+                    action
+                );
+
+            }
+        );
+
+    });
+}
+
+
+/* =========================================================
+   PROCESAR USUARIO
+   ========================================================= */
+
+async function processAdminUserAction(
+    userId,
+    action
+) {
+
+    if (!isCurrentUserAdmin()) {
+
+        showToast(
+            "No tienes permisos de administrador.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (
+        String(userId) ===
+        String(currentUser?.id)
+    ) {
+
+        showToast(
+            "No puedes modificar tu propia cuenta desde aquí.",
+            "error"
+        );
+
+        return;
+    }
+
+    const user =
+        adminUsersCache.find(function (item) {
+            return String(item.id) ===
+                String(userId);
+        });
+
+    if (!user) {
+        return;
+    }
+
+    let newStatus =
+        user.status || "active";
+
+    let confirmation =
+        "";
+
+    switch (action) {
+
+        case "block":
+
+            newStatus =
+                "blocked";
+
+            confirmation =
+                "¿Quieres bloquear este usuario?";
+
+            break;
+
+        case "unblock":
+
+            newStatus =
+                "active";
+
+            confirmation =
+                "¿Quieres desbloquear este usuario?";
+
+            break;
+
+        case "suspend":
+
+            newStatus =
+                "suspended";
+
+            confirmation =
+                "¿Quieres suspender este usuario?";
+
+            break;
+
+        case "activate":
+
+            newStatus =
+                "active";
+
+            confirmation =
+                "¿Quieres reactivar este usuario?";
+
+            break;
+
+        case "delete":
+
+            newStatus =
+                "deleted";
+
+            confirmation =
+                "¿Quieres eliminar esta cuenta?";
+
+            break;
+
+        default:
+            return;
+    }
+
+    if (!window.confirm(confirmation)) {
+        return;
+    }
+
+    try {
+
+        showLoading(
+            "Actualizando usuario..."
+        );
+
+        const { error } =
+            await supabaseClient
+                .from("profiles")
+                .update({
+                    status:
+                        newStatus
+                })
+                .eq(
+                    "id",
+                    userId
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        await createAdminActionNotification(
+            userId,
+            action
+        );
+
+        await loadAdminUsers();
+        await updateAdminStatistics();
+
+        showToast(
+            "Usuario actualizado correctamente.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error actualizando usuario:",
+            error
+        );
+
+        showToast(
+            "No se pudo actualizar el usuario.",
+            "error"
+        );
+
+    } finally {
+
+        hideLoading();
+    }
+}
+
+
+/* =========================================================
+   NOTIFICACIÓN DE ACCIÓN ADMIN
+   ========================================================= */
+
+async function createAdminActionNotification(
+    userId,
+    action
+) {
+
+    let title =
+        "Actualización de cuenta";
+
+    let message =
+        "Tu cuenta ha sido actualizada.";
+
+    if (action === "block") {
+
+        title =
+            "Cuenta bloqueada";
+
+        message =
+            "Tu cuenta de Market Flash ha sido bloqueada por un administrador.";
+
+    }
+
+    if (action === "unblock") {
+
+        title =
+            "Cuenta desbloqueada";
+
+        message =
+            "Tu cuenta de Market Flash ha sido desbloqueada.";
+
+    }
+
+    if (action === "suspend") {
+
+        title =
+            "Cuenta suspendida";
+
+        message =
+            "Tu cuenta de Market Flash ha sido suspendida.";
+
+    }
+
+    if (action === "activate") {
+
+        title =
+            "Cuenta reactivada";
+
+        message =
+            "Tu cuenta de Market Flash ha sido reactivada.";
+
+    }
+
+    if (action === "delete") {
+
+        title =
+            "Cuenta eliminada";
+
+        message =
+            "Tu cuenta de Market Flash ha sido marcada como eliminada.";
+
+    }
+
+    try {
+
+        await supabaseClient
+            .from("notifications")
+            .insert({
+                user_id:
+                    userId,
+
+                type:
+                    "admin_account_action",
+
+                title:
+                    title,
+
+                message:
+                    message,
+
+                is_read:
+                    false
+            });
+
+    } catch (error) {
+
+        console.warn(
+            "No se pudo crear la notificación:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   CARGAR PUBLICACIONES ADMIN
+   ========================================================= */
+
+async function loadAdminPublications() {
+
+    if (!isCurrentUserAdmin()) {
+        return;
+    }
+
+    if (!adminPublicationsList) {
+        return;
+    }
+
+    adminPublicationsList.innerHTML = `
+        <div class="admin-loading">
+            Cargando publicaciones...
+        </div>
+    `;
+
+    try {
+
+        const { data, error } =
+            await supabaseClient
+                .from("publications")
+                .select(`
+                    id,
+                    title,
+                    category,
+                    price,
+                    quantity,
+                    location,
+                    status,
+                    is_flash,
+                    views_count,
+                    likes_count,
+                    saves_count,
+                    created_at,
+                    seller_id,
+                    profiles:seller_id (
+                        name,
+                        phone
+                    )
+                `)
+                .order(
+                    "created_at",
+                    {
+                        ascending: false
+                    }
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        adminPublicationsCache =
+            data || [];
+
+        renderAdminPublications(
+            adminPublicationsCache
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error cargando publicaciones:",
+            error
+        );
+
+        adminPublicationsList.innerHTML = `
+            <div class="admin-empty">
+                No se pudieron cargar las publicaciones.
+            </div>
+        `;
+    }
+}
+
+
+/* =========================================================
+   RENDER PUBLICACIONES
+   ========================================================= */
+
+function renderAdminPublications(
+    publications
+) {
+
+    if (!adminPublicationsList) {
+        return;
+    }
+
+    if (
+        !publications ||
+        publications.length === 0
+    ) {
+
+        adminPublicationsList.innerHTML = `
+            <div class="admin-empty">
+                No hay publicaciones.
+            </div>
+        `;
+
+        return;
+    }
+
+    adminPublicationsList.innerHTML =
+        publications.map(function (
+            publication
+        ) {
+
+            const seller =
+                publication.profiles ||
+                {};
+
+            const status =
+                publication.status ||
+                "published";
+
+            let statusText =
+                "Publicada";
+
+            if (status === "review") {
+                statusText =
+                    "En revisión";
+            }
+
+            if (status === "pending") {
+                statusText =
+                    "Pendiente";
+            }
+
+            if (status === "deleted") {
+                statusText =
+                    "Eliminada";
+            }
+
+            if (status === "draft") {
+                statusText =
+                    "Borrador";
+            }
+
+            return `
+                <article
+                    class="admin-publication-card"
+                    data-publication-id="${escapeHTML(
+                        String(publication.id)
+                    )}"
+                >
+
+                    <div class="admin-publication-header">
+
+                        <div>
+
+                            <strong>
+                                ${escapeHTML(
+                                    publication.title ||
+                                    "Sin título"
+                                )}
+                            </strong>
+
+                            <small>
+                                ${escapeHTML(
+                                    seller.name ||
+                                    "Vendedor"
+                                )}
+                            </small>
+
+                        </div>
+
+                        <span
+                            class="publication-status publication-status-${escapeHTML(
+                                status
+                            )}"
+                        >
+                            ${statusText}
+                        </span>
+
+                    </div>
+
+
+                    <div class="admin-publication-info">
+
+                        <p>
+                            <strong>
+                                Precio:
+                            </strong>
+
+                            ${formatMoney(
+                                publication.price
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Categoría:
+                            </strong>
+
+                            ${escapeHTML(
+                                publication.category ||
+                                "Sin categoría"
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Ubicación:
+                            </strong>
+
+                            ${escapeHTML(
+                                publication.location ||
+                                "No indicada"
+                            )}
+                        </p>
+
+                        <p>
+                            <strong>
+                                Publicada:
+                            </strong>
+
+                            ${formatDateTime(
+                                publication.created_at
+                            )}
+                        </p>
+
+                    </div>
+
+
+                    <div class="admin-publication-metrics">
+
+                        <span>
+                            👁
+                            ${Number(
+                                publication.views_count || 0
+                            )}
+                        </span>
+
+                        <span>
+                            ❤️
+                            ${Number(
+                                publication.likes_count || 0
+                            )}
+                        </span>
+
+                        <span>
+                            🔖
+                            ${Number(
+                                publication.saves_count || 0
+                            )}
+                        </span>
+
+                        ${
+                            publication.is_flash
+                            ? `
+                                <span class="flash-mini-badge">
+                                    ⚡ FLASH
+                                </span>
+                            `
+                            : ""
+                        }
+
+                    </div>
+
+
+                    <div class="admin-publication-actions">
+
+                        ${
+                            status === "published"
+                            ? `
+                                <button
+                                    type="button"
+                                    class="admin-action-button warning"
+                                    data-publication-action="review"
+                                    data-publication-id="${escapeHTML(
+                                        String(publication.id)
+                                    )}"
+                                >
+                                    🔎 En revisión
+                                </button>
+                            `
+                            : ""
+                        }
+
+
+                        ${
+                            status === "review" ||
+                            status === "pending"
+                            ? `
+                                <button
+                                    type="button"
+                                    class="admin-action-button success"
+                                    data-publication-action="publish"
+                                    data-publication-id="${escapeHTML(
+                                        String(publication.id)
+                                    )}"
+                                >
+                                    ✅ Publicar
+                                </button>
+                            `
+                            : ""
+                        }
+
+
+                        ${
+                            status === "deleted"
+                            ? `
+                                <button
+                                    type="button"
+                                    class="admin-action-button success"
+                                    data-publication-action="restore"
+                                    data-publication-id="${escapeHTML(
+                                        String(publication.id)
+                                    )}"
+                                >
+                                    ♻️ Restaurar
+                                </button>
+                            `
+                            : `
+                                <button
+                                    type="button"
+                                    class="admin-action-button danger"
+                                    data-publication-action="delete"
+                                    data-publication-id="${escapeHTML(
+                                        String(publication.id)
+                                    )}"
+                                >
+                                    🗑 Eliminar
+                                </button>
+                            `
+                        }
+
+                    </div>
+
+                </article>
+            `;
+
+        }).join("");
+
+    bindAdminPublicationActions();
+}
+
+
+/* =========================================================
+   ACCIONES PUBLICACIONES
+   ========================================================= */
+
+function bindAdminPublicationActions() {
+
+    if (!adminPublicationsList) {
+        return;
+    }
+
+    const buttons =
+        adminPublicationsList.querySelectorAll(
+            "[data-publication-action]"
+        );
+
+    buttons.forEach(function (button) {
+
+        button.addEventListener(
+            "click",
+            async function () {
+
+                const publicationId =
+                    button.dataset.publicationId;
+
+                const action =
+                    button.dataset.publicationAction;
+
+                await processAdminPublicationAction(
+                    publicationId,
+                    action
+                );
+
+            }
+        );
+
+    });
+}
+
+
+/* =========================================================
+   PROCESAR PUBLICACIÓN
+   ========================================================= */
+
+async function processAdminPublicationAction(
+    publicationId,
+    action
+) {
+
+    if (!isCurrentUserAdmin()) {
+
+        showToast(
+            "No tienes permisos de administrador.",
+            "error"
+        );
+
+        return;
+    }
+
+    const publication =
+        adminPublicationsCache.find(
+            function (item) {
+                return String(item.id) ===
+                    String(publicationId);
+            }
+        );
+
+    if (!publication) {
+        return;
+    }
+
+    let newStatus =
+        publication.status;
+
+    let confirmation =
+        "";
+
+    if (action === "review") {
+
+        newStatus =
+            "review";
+
+        confirmation =
+            "¿Poner esta publicación en revisión?";
+
+    } else if (action === "publish") {
+
+        newStatus =
+            "published";
+
+        confirmation =
+            "¿Publicar nuevamente esta publicación?";
+
+    } else if (action === "delete") {
+
+        newStatus =
+            "deleted";
+
+        confirmation =
+            "¿Eliminar esta publicación?";
+
+    } else if (action === "restore") {
+
+        newStatus =
+            "published";
+
+        confirmation =
+            "¿Restaurar esta publicación?";
+
+    } else {
+
+        return;
+    }
+
+    if (!window.confirm(confirmation)) {
+        return;
+    }
+
+    try {
+
+        showLoading(
+            "Actualizando publicación..."
+        );
+
+        const updateData = {
+            status:
+                newStatus
+        };
+
+        /*
+         * Cuando una publicación se elimina,
+         * también dejamos de mostrarla como Flash.
+         */
+
+        if (
+            action === "delete"
+        ) {
+            updateData.is_flash =
+                false;
+        }
+
+        const { error } =
+            await supabaseClient
+                .from("publications")
+                .update(
+                    updateData
+                )
+                .eq(
+                    "id",
+                    publicationId
+                );
+
+        if (error) {
+            throw error;
+        }
+
+        /*
+         * Si la publicación fue eliminada,
+         * desactivamos cualquier Flash activo.
+         */
+
+        if (
+            action === "delete"
+        ) {
+
+            await supabaseClient
+                .from("flash_promotions")
+                .update({
+                    status:
+                        "cancelled"
+                })
+                .eq(
+                    "publication_id",
+                    publicationId
+                )
+                .eq(
+                    "status",
+                    "active"
+                );
+        }
+
+        await createPublicationAdminNotification(
+            publication,
+            action
+        );
+
+        await loadAdminPublications();
+        await updateAdminStatistics();
+
+        if (
+            typeof loadPublications ===
+            "function"
+        ) {
+            await loadPublications();
+        }
+
+        showToast(
+            "Publicación actualizada correctamente.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error actualizando publicación:",
+            error
+        );
+
+        showToast(
+            "No se pudo actualizar la publicación.",
+            "error"
+        );
+
+    } finally {
+
+        hideLoading();
+    }
+}
+
+
+/* =========================================================
+   NOTIFICAR AL VENDEDOR
+   ========================================================= */
+
+async function createPublicationAdminNotification(
+    publication,
+    action
+) {
+
+    if (!publication.seller_id) {
+        return;
+    }
+
+    let title =
+        "Actualización de publicación";
+
+    let message =
+        "Tu publicación ha sido actualizada.";
+
+    if (action === "review") {
+
+        title =
+            "Publicación en revisión";
+
+        message =
+            `Tu publicación "${publication.title}" ` +
+            `ha sido puesta en revisión por un administrador.`;
+    }
+
+    if (action === "publish") {
+
+        title =
+            "Publicación aprobada";
+
+        message =
+            `Tu publicación "${publication.title}" ` +
+            `ha sido publicada nuevamente.`;
+    }
+
+    if (action === "delete") {
+
+        title =
+            "Publicación eliminada";
+
+        message =
+            `Tu publicación "${publication.title}" ` +
+            `ha sido eliminada por un administrador.`;
+    }
+
+    if (action === "restore") {
+
+        title =
+            "Publicación restaurada";
+
+        message =
+            `Tu publicación "${publication.title}" ` +
+            `ha sido restaurada.`;
+    }
+
+    try {
+
+        await supabaseClient
+            .from("notifications")
+            .insert({
+                user_id:
+                    publication.seller_id,
+
+                type:
+                    "admin_publication_action",
+
+                title:
+                    title,
+
+                message:
+                    message,
+
+                related_id:
+                    publication.id,
+
+                is_read:
+                    false
+            });
+
+    } catch (error) {
+
+        console.warn(
+            "No se pudo crear notificación:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   ESTADÍSTICAS ADMIN
+   ========================================================= */
+
+async function updateAdminStatistics() {
+
+    if (!isCurrentUserAdmin()) {
+        return;
+    }
+
+    try {
+
+        const { count:
+            totalUsers } =
+            await supabaseClient
+                .from("profiles")
+                .select(
+                    "id",
+                    {
+                        count: "exact",
+                        head: true
+                    }
+                )
+                .neq(
+                    "status",
+                    "deleted"
+                );
+
+        const { count:
+            activeUsers } =
+            await supabaseClient
+                .from("profiles")
+                .select(
+                    "id",
+                    {
+                        count: "exact",
+                        head: true
+                    }
+                )
+                .eq(
+                    "status",
+                    "active"
+                );
+
+        const { count:
+            totalPublications } =
+            await supabaseClient
+                .from("publications")
+                .select(
+                    "id",
+                    {
+                        count: "exact",
+                        head: true
+                    }
+                )
+                .neq(
+                    "status",
+                    "deleted"
+                );
+
+        const { count:
+            totalFlashes } =
+            await supabaseClient
+                .from("flash_promotions")
+                .select(
+                    "id",
+                    {
+                        count: "exact",
+                        head: true
+                    }
+                )
+                .eq(
+                    "status",
+                    "active"
+                );
+
+        if (adminTotalUsers) {
+            adminTotalUsers.textContent =
+                String(
+                    totalUsers || 0
+                );
+        }
+
+        if (adminActiveUsers) {
+            adminActiveUsers.textContent =
+                String(
+                    activeUsers || 0
+                );
+        }
+
+        if (adminTotalPublications) {
+            adminTotalPublications.textContent =
+                String(
+                    totalPublications || 0
+                );
+        }
+
+        const adminTotalFlashes =
+            $("admin-total-flashes");
+
+        if (adminTotalFlashes) {
+            adminTotalFlashes.textContent =
+                String(
+                    totalFlashes || 0
+                );
+        }
+
+    } catch (error) {
+
+        console.warn(
+            "No se pudieron actualizar las estadísticas:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   BÚSQUEDA DE USUARIOS ADMIN
+   ========================================================= */
+
+function searchAdminUsers(
+    searchText
+) {
+
+    const search =
+        String(
+            searchText || ""
+        )
+        .trim()
+        .toLowerCase();
+
+    if (!search) {
+
+        renderAdminUsers(
+            adminUsersCache
+        );
+
+        return;
+    }
+
+    const filtered =
+        adminUsersCache.filter(
+            function (user) {
+
+                return (
+                    String(
+                        user.name || ""
+                    )
+                    .toLowerCase()
+                    .includes(search)
+                    ||
+
+                    String(
+                        user.cedula || ""
+                    )
+                    .toLowerCase()
+                    .includes(search)
+                    ||
+
+                    String(
+                        user.phone || ""
+                    )
+                    .toLowerCase()
+                    .includes(search)
+                );
+
+            }
+        );
+
+    renderAdminUsers(
+        filtered
+    );
+}
+
+
+/* =========================================================
+   CREAR BUSCADOR ADMIN AUTOMÁTICAMENTE
+   ========================================================= */
+
+function createAdminUserSearch() {
+
+    if (!adminUsersList) {
+        return;
+    }
+
+    let searchInput =
+        document.getElementById(
+            "admin-user-search"
+        );
+
+    if (searchInput) {
+        return;
+    }
+
+    searchInput =
+        document.createElement("input");
+
+    searchInput.type =
+        "search";
+
+    searchInput.id =
+        "admin-user-search";
+
+    searchInput.className =
+        "admin-search-input";
+
+    searchInput.placeholder =
+        "Buscar por nombre, cédula o teléfono...";
+
+    adminUsersList.parentElement.insertBefore(
+        searchInput,
+        adminUsersList
+    );
+
+    searchInput.addEventListener(
+        "input",
+        function () {
+            searchAdminUsers(
+                searchInput.value
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   INICIAR ADMINISTRACIÓN
+   ========================================================= */
+
+initializeAdminManagement();
+
+createAdminUserSearch();
