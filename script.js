@@ -7198,3 +7198,147 @@ if (
 /* =========================================================
    110. FIN DEL SCRIPT.JS
    ========================================================= */
+/* =========================================================
+   MARKET FLASH - CORRECCIÓN DE ARRANQUE
+   ========================================================= */
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    const welcome = document.getElementById("welcome-screen");
+    const login = document.getElementById("login-screen");
+    const register = document.getElementById("register-screen");
+    const dashboard = document.getElementById("dashboard-screen");
+
+    const loginButton = document.getElementById("login-button");
+    const registerButton = document.getElementById("register-button");
+
+    const backLogin = document.getElementById("back-from-login");
+    const backRegister = document.getElementById("back-from-register");
+
+    const publishButton = document.getElementById("create-publication-button");
+    const publicationPanel = document.getElementById("publication-panel");
+    const closePublication = document.getElementById("close-publication-panel");
+    const cancelPublication = document.getElementById("cancel-publication-button");
+
+    function hideAllScreens() {
+        [welcome, login, register, dashboard].forEach(el => {
+            if (el) el.style.display = "none";
+        });
+    }
+
+    function showWelcome() {
+        hideAllScreens();
+        if (welcome) welcome.style.display = "";
+    }
+
+    function showLogin() {
+        hideAllScreens();
+        if (login) login.style.display = "";
+    }
+
+    function showRegister() {
+        hideAllScreens();
+        if (register) register.style.display = "";
+    }
+
+    function showDashboard() {
+        hideAllScreens();
+        if (dashboard) dashboard.style.display = "";
+    }
+
+    /* BOTÓN INICIAR SESIÓN */
+    if (loginButton) {
+        loginButton.addEventListener("click", () => {
+            showLogin();
+        });
+    }
+
+    /* BOTÓN CREAR CUENTA */
+    if (registerButton) {
+        registerButton.addEventListener("click", () => {
+            showRegister();
+        });
+    }
+
+    /* VOLVER DESDE LOGIN */
+    if (backLogin) {
+        backLogin.addEventListener("click", () => {
+            showWelcome();
+        });
+    }
+
+    /* VOLVER DESDE REGISTRO */
+    if (backRegister) {
+        backRegister.addEventListener("click", () => {
+            showWelcome();
+        });
+    }
+
+    /* PUBLICAR */
+    if (publishButton) {
+        publishButton.addEventListener("click", () => {
+
+            if (!MF || !MF.user) {
+                alert("Debes iniciar sesión o crear una cuenta para publicar.");
+                showWelcome();
+                return;
+            }
+
+            if (publicationPanel) {
+                publicationPanel.style.display = "";
+            }
+        });
+    }
+
+    /* CERRAR PUBLICACIÓN */
+    if (closePublication) {
+        closePublication.addEventListener("click", () => {
+            if (publicationPanel) {
+                publicationPanel.style.display = "none";
+            }
+        });
+    }
+
+    if (cancelPublication) {
+        cancelPublication.addEventListener("click", () => {
+            if (publicationPanel) {
+                publicationPanel.style.display = "none";
+            }
+        });
+    }
+
+    /* COMPROBAR SESIÓN REAL DE SUPABASE */
+    try {
+
+        if (typeof supabase !== "undefined" && supabase.auth) {
+
+            const { data } = await supabase.auth.getSession();
+
+            if (data && data.session && data.session.user) {
+
+                if (typeof MF !== "undefined") {
+                    MF.user = data.session.user;
+                }
+
+                showDashboard();
+
+            } else {
+
+                showWelcome();
+
+            }
+
+        } else {
+
+            showWelcome();
+
+        }
+
+    } catch (error) {
+
+        console.error("Error comprobando sesión:", error);
+        showWelcome();
+
+    }
+
+});
