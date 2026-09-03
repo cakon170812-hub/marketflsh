@@ -1646,4 +1646,2988 @@ label {
 
 body.no-scroll {
     overflow: hidden;
+}/* =========================================================
+   MARKET FLASH
+   SCRIPT PRINCIPAL
+   PARTE 2
+   AUTENTICACIÓN + SESIÓN + PERFIL + AJUSTES
+   ========================================================= */
+
+
+/* =========================================================
+   REFERENCIAS DEL DOM
+   ========================================================= */
+
+const welcomeScreen = $("welcome-screen");
+const loginScreen = $("login-screen");
+const registerScreen = $("register-screen");
+const dashboardScreen = $("dashboard-screen");
+
+const loginButton = $("login-button");
+const registerButton = $("register-button");
+
+const loginForm = $("login-form");
+const loginCedula = $("login-cedula");
+const loginPassword = $("login-password");
+const forgotPasswordButton = $("forgot-password-button");
+const backFromLogin = $("back-from-login");
+
+const registerForm = $("register-form");
+const registerName = $("register-name");
+const registerCedula = $("register-cedula");
+const registerPhone = $("register-phone");
+const registerPassword = $("register-password");
+const registerPasswordConfirm = $("register-password-confirm");
+const backFromRegister = $("back-from-register");
+
+const settingsButton = $("settings-button");
+
+const profileNavButton = $("profile-nav-button");
+const homeNavButton = $("home-nav-button");
+
+const profilePanel = $("profile-panel");
+const closeProfilePanel = $("close-profile-panel");
+
+const profilePhoto = $("profile-photo");
+const profileName = $("profile-name");
+const profilePhone = $("profile-phone");
+const profilePublicationsCount = $("profile-publications-count");
+const profileLikesCount = $("profile-likes-count");
+const profileSavesCount = $("profile-saves-count");
+
+const editProfileButton = $("edit-profile-button");
+const profileSettingsButton = $("profile-settings-button");
+const administrationButton = $("administration-button");
+const logoutProfileButton = $("logout-profile-button");
+const deleteAccountButton = $("delete-account-button");
+
+const settingsPanel = $("settings-panel");
+const closeSettings = $("close-settings");
+
+const appSettingsButton = $("app-settings-button");
+const settingsProfileButton = $("settings-profile-button");
+const logoutButton = $("logout-button");
+
+const editProfilePanel = $("edit-profile-panel");
+const closeEditProfilePanel = $("close-edit-profile-panel");
+
+const editProfileForm = $("edit-profile-form");
+const editProfileName = $("edit-profile-name");
+const editProfilePhone = $("edit-profile-phone");
+const editProfilePhoto = $("edit-profile-photo");
+
+
+/* =========================================================
+   UTILIDADES DE AUTENTICACIÓN
+   ========================================================= */
+
+function normalizeCedula(value) {
+    return String(value || "").replace(/\D/g, "");
 }
+
+
+/*
+   Supabase Auth trabaja con email/phone.
+   Como Market Flash utilizará la cédula como identificador
+   de inicio de sesión, generamos un correo interno único.
+
+   IMPORTANTE:
+   Este correo NO sustituye la cédula que guardaremos
+   en el perfil del usuario.
+*/
+
+function makeAuthEmail(cedula) {
+    const cleanCedula = normalizeCedula(cedula);
+
+    return `${cleanCedula}@marketflash.app`;
+}
+
+
+/* =========================================================
+   INICIALIZACIÓN GENERAL
+   ========================================================= */
+
+async function initializeApplication() {
+    console.log("Inicializando aplicación Market Flash...");
+
+    bindAuthenticationEvents();
+    bindNavigationEvents();
+    bindProfileEvents();
+    bindSettingsEvents();
+
+    await restoreSession();
+
+    console.log("Market Flash listo.");
+}
+
+
+/* =========================================================
+   EVENTOS DE AUTENTICACIÓN
+   ========================================================= */
+
+function bindAuthenticationEvents() {
+
+    if (loginButton) {
+        loginButton.addEventListener("click", function () {
+            showScreen("login-screen");
+        });
+    }
+
+    if (registerButton) {
+        registerButton.addEventListener("click", function () {
+            showScreen("register-screen");
+        });
+    }
+
+    if (backFromLogin) {
+        backFromLogin.addEventListener("click", function () {
+            showScreen("welcome-screen");
+        });
+    }
+
+    if (backFromRegister) {
+        backFromRegister.addEventListener("click", function () {
+            showScreen("welcome-screen");
+        });
+    }
+
+    if (loginForm) {
+        loginForm.addEventListener("submit", handleLogin);
+    }
+
+    if (registerForm) {
+        registerForm.addEventListener("submit", handleRegistration);
+    }
+
+    if (forgotPasswordButton) {
+        forgotPasswordButton.addEventListener(
+            "click",
+            handleForgotPassword
+        );
+    }
+}
+
+
+/* =========================================================
+   REGISTRO
+   ========================================================= */
+
+async function handleRegistration(event) {
+
+    event.preventDefault();
+
+    if (!supabaseClient) {
+        showToast(
+            "Supabase todavía no está conectado.",
+            "error"
+        );
+        return;
+    }
+
+    const name = String(registerName?.value || "").trim();
+    const cedula = normalizeCedula(registerCedula?.value);
+    const phone = normalizePhone(registerPhone?.value);
+    const password = String(registerPassword?.value || "");
+    const passwordConfirm =
+        String(registerPasswordConfirm?.value || "");
+
+    if (!name) {
+        showToast(
+            "Escribe tu nombre completo.",
+            "error"
+        );
+        registerName?.focus();
+        return;
+    }
+
+    if (!cedula) {
+        showToast(
+            "Escribe tu cédula.",
+            "error"
+        );
+        registerCedula?.focus();
+        return;
+    }
+
+    if (cedula.length < 6) {
+        showToast(
+            "La cédula parece incompleta.",
+            "error"
+        );
+        registerCedula?.focus();
+        return;
+    }
+
+    if (!phone) {
+        showToast(
+            "Escribe tu número de WhatsApp.",
+            "error"
+        );
+        registerPhone?.focus();
+        return;
+    }
+
+    if (password.length < 6) {
+        showToast(
+            "La contraseña debe tener al menos 6 caracteres.",
+            "error"
+        );
+        registerPassword?.focus();
+        return;
+    }
+
+    if (password !== passwordConfirm) {
+        showToast(
+            "Las contraseñas no coinciden.",
+            "error"
+        );
+        registerPasswordConfirm?.focus();
+        return;
+    }
+
+    showLoading("Creando tu cuenta...");
+
+    try {
+
+        /*
+           Primero comprobamos si la cédula ya existe
+           en la tabla profiles.
+
+           Si la tabla todavía no existe, el error se mostrará
+           claramente. Más adelante la crearemos con el SQL.
+        */
+
+        const {
+            data: existingProfile,
+            error: profileCheckError
+        } = await supabaseClient
+            .from("profiles")
+            .select("id, cedula")
+            .eq("cedula", cedula)
+            .maybeSingle();
+
+        if (
+            profileCheckError &&
+            profileCheckError.code !== "PGRST116"
+        ) {
+            console.error(
+                "Error comprobando cédula:",
+                profileCheckError
+            );
+        }
+
+        if (existingProfile) {
+            hideLoading();
+
+            showToast(
+                "Ya existe una cuenta con esa cédula.",
+                "error"
+            );
+
+            return;
+        }
+
+        const authEmail = makeAuthEmail(cedula);
+
+        const {
+            data,
+            error
+        } = await supabaseClient.auth.signUp({
+            email: authEmail,
+            password: password,
+            options: {
+                data: {
+                    full_name: name,
+                    cedula: cedula,
+                    phone: phone
+                }
+            }
+        });
+
+        if (error) {
+            console.error(
+                "Error registrando usuario:",
+                error
+            );
+
+            hideLoading();
+
+            if (
+                error.message &&
+                error.message.toLowerCase().includes("already registered")
+            ) {
+                showToast(
+                    "Ya existe una cuenta con esos datos.",
+                    "error"
+                );
+            } else {
+                showToast(
+                    error.message || "No se pudo crear la cuenta.",
+                    "error"
+                );
+            }
+
+            return;
+        }
+
+        if (!data?.user) {
+            hideLoading();
+
+            showToast(
+                "Supabase no devolvió el usuario creado.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        /*
+           Si Supabase permite iniciar sesión inmediatamente,
+           guardamos también el perfil.
+        */
+
+        if (data.session) {
+
+            await createOrUpdateProfile(
+                data.user,
+                {
+                    full_name: name,
+                    cedula: cedula,
+                    phone: phone
+                }
+            );
+
+            currentUser = data.user;
+
+            await loadCurrentUserProfile();
+
+            saveLocalUser({
+                id: data.user.id,
+                name: name,
+                cedula: cedula,
+                phone: phone
+            });
+
+            await updateLastSeen();
+
+            hideLoading();
+
+            showToast(
+                "¡Cuenta creada correctamente!",
+                "success"
+            );
+
+            clearRegistrationForm();
+
+            showScreen("dashboard-screen");
+
+            return;
+        }
+
+
+        /*
+           Si la confirmación de correo está activa en Supabase,
+           no tendremos sesión inmediatamente.
+
+           Como este proyecto utiliza la cédula como acceso,
+           posteriormente dejaremos la configuración de Auth
+           preparada para que no dependa de un correo visible
+           para el usuario.
+        */
+
+        hideLoading();
+
+        showToast(
+            "La cuenta fue creada. Revisa la configuración de Auth de Supabase antes de continuar.",
+            "success"
+        );
+
+        clearRegistrationForm();
+
+        showScreen("login-screen");
+
+    } catch (error) {
+
+        console.error(
+            "Error inesperado durante el registro:",
+            error
+        );
+
+        hideLoading();
+
+        showToast(
+            "Ocurrió un error creando la cuenta.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   CREAR / ACTUALIZAR PERFIL
+   ========================================================= */
+
+async function createOrUpdateProfile(
+    user,
+    profileData = {}
+) {
+
+    if (!supabaseClient || !user) {
+        return null;
+    }
+
+    const payload = {
+        id: user.id,
+        full_name:
+            profileData.full_name ||
+            user.user_metadata?.full_name ||
+            "",
+        cedula:
+            profileData.cedula ||
+            user.user_metadata?.cedula ||
+            "",
+        phone:
+            profileData.phone ||
+            user.user_metadata?.phone ||
+            "",
+        status: "active"
+    };
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("profiles")
+        .upsert(
+            payload,
+            {
+                onConflict: "id"
+            }
+        )
+        .select()
+        .maybeSingle();
+
+    if (error) {
+        console.error(
+            "No se pudo guardar el perfil:",
+            error
+        );
+
+        return null;
+    }
+
+    return data;
+}
+
+
+/* =========================================================
+   INICIO DE SESIÓN
+   ========================================================= */
+
+async function handleLogin(event) {
+
+    event.preventDefault();
+
+    if (!supabaseClient) {
+        showToast(
+            "Supabase todavía no está conectado.",
+            "error"
+        );
+        return;
+    }
+
+    const cedula = normalizeCedula(loginCedula?.value);
+    const password = String(loginPassword?.value || "");
+
+    if (!cedula) {
+        showToast(
+            "Escribe tu cédula.",
+            "error"
+        );
+        loginCedula?.focus();
+        return;
+    }
+
+    if (!password) {
+        showToast(
+            "Escribe tu contraseña.",
+            "error"
+        );
+        loginPassword?.focus();
+        return;
+    }
+
+    showLoading("Iniciando sesión...");
+
+    try {
+
+        const authEmail = makeAuthEmail(cedula);
+
+        const {
+            data,
+            error
+        } = await supabaseClient.auth.signInWithPassword({
+            email: authEmail,
+            password: password
+        });
+
+        if (error) {
+            console.error(
+                "Error iniciando sesión:",
+                error
+            );
+
+            hideLoading();
+
+            showToast(
+                "Cédula o contraseña incorrecta.",
+                "error"
+            );
+
+            return;
+        }
+
+        if (!data?.user) {
+            hideLoading();
+
+            showToast(
+                "No se pudo obtener la sesión.",
+                "error"
+            );
+
+            return;
+        }
+
+        currentUser = data.user;
+
+        await loadCurrentUserProfile();
+
+        if (
+            currentProfile &&
+            ["blocked", "suspended", "deleted"].includes(
+                currentProfile.status
+            )
+        ) {
+
+            await supabaseClient.auth.signOut();
+
+            currentUser = null;
+            currentProfile = null;
+
+            hideLoading();
+
+            showToast(
+                "Esta cuenta no puede acceder a Market Flash.",
+                "error"
+            );
+
+            return;
+        }
+
+        saveLocalUser({
+            id: data.user.id,
+            name:
+                currentProfile?.full_name ||
+                data.user.user_metadata?.full_name ||
+                "",
+            cedula:
+                currentProfile?.cedula ||
+                cedula,
+            phone:
+                currentProfile?.phone ||
+                data.user.user_metadata?.phone ||
+                ""
+        });
+
+        await updateLastSeen();
+
+        hideLoading();
+
+        loginForm?.reset();
+
+        showScreen("dashboard-screen");
+
+        await refreshDashboardAfterLogin();
+
+        showToast(
+            "¡Bienvenido nuevamente!",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error inesperado iniciando sesión:",
+            error
+        );
+
+        hideLoading();
+
+        showToast(
+            "No se pudo iniciar sesión.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   CARGAR PERFIL ACTUAL
+   ========================================================= */
+
+async function loadCurrentUserProfile() {
+
+    if (!supabaseClient || !currentUser) {
+        return null;
+    }
+
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id", currentUser.id)
+            .maybeSingle();
+
+        if (error) {
+            console.error(
+                "Error cargando perfil:",
+                error
+            );
+
+            return null;
+        }
+
+        if (data) {
+
+            currentProfile = data;
+
+            renderProfile();
+
+            return data;
+        }
+
+
+        /*
+           Si todavía no existe el perfil, intentamos crearlo
+           utilizando los metadatos de Supabase Auth.
+        */
+
+        const metadata = currentUser.user_metadata || {};
+
+        const createdProfile =
+            await createOrUpdateProfile(
+                currentUser,
+                {
+                    full_name:
+                        metadata.full_name || "",
+                    cedula:
+                        metadata.cedula || "",
+                    phone:
+                        metadata.phone || ""
+                }
+            );
+
+        currentProfile = createdProfile;
+
+        renderProfile();
+
+        return createdProfile;
+
+    } catch (error) {
+
+        console.error(
+            "Error obteniendo perfil:",
+            error
+        );
+
+        return null;
+    }
+}
+
+
+/* =========================================================
+   SESIÓN EXISTENTE
+   ========================================================= */
+
+async function restoreSession() {
+
+    if (!supabaseClient) {
+        return;
+    }
+
+    try {
+
+        const {
+            data,
+            error
+        } = await supabaseClient.auth.getSession();
+
+        if (error) {
+            console.error(
+                "Error recuperando sesión:",
+                error
+            );
+
+            showScreen("welcome-screen");
+
+            return;
+        }
+
+        if (data?.session?.user) {
+
+            currentUser = data.session.user;
+
+            await loadCurrentUserProfile();
+
+            if (
+                currentProfile &&
+                ["blocked", "suspended", "deleted"].includes(
+                    currentProfile.status
+                )
+            ) {
+
+                await supabaseClient.auth.signOut();
+
+                currentUser = null;
+                currentProfile = null;
+
+                showScreen("welcome-screen");
+
+                showToast(
+                    "Tu cuenta no tiene acceso actualmente.",
+                    "error"
+                );
+
+                return;
+            }
+
+            await updateLastSeen();
+
+            saveLocalUser({
+                id: currentUser.id,
+                name:
+                    currentProfile?.full_name ||
+                    currentUser.user_metadata?.full_name ||
+                    "",
+                cedula:
+                    currentProfile?.cedula ||
+                    "",
+                phone:
+                    currentProfile?.phone ||
+                    ""
+            });
+
+            showScreen("dashboard-screen");
+
+            await refreshDashboardAfterLogin();
+
+        } else {
+
+            showScreen("welcome-screen");
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error restaurando sesión:",
+            error
+        );
+
+        showScreen("welcome-screen");
+    }
+
+
+    /*
+       Escuchamos cambios posteriores de autenticación.
+    */
+
+    supabaseClient.auth.onAuthStateChange(
+        function (event, session) {
+
+            console.log(
+                "Cambio de autenticación:",
+                event
+            );
+
+            if (session?.user) {
+                currentUser = session.user;
+            }
+
+            if (event === "SIGNED_OUT") {
+
+                currentUser = null;
+                currentProfile = null;
+
+                clearLocalUser();
+
+                showScreen("welcome-screen");
+            }
+        }
+    );
+}
+
+
+/* =========================================================
+   ÚLTIMA ACTIVIDAD
+   ========================================================= */
+
+async function updateLastSeen() {
+
+    if (!supabaseClient || !currentUser) {
+        return;
+    }
+
+    try {
+
+        await supabaseClient
+            .from("profiles")
+            .update({
+                last_seen_at: new Date().toISOString()
+            })
+            .eq("id", currentUser.id);
+
+    } catch (error) {
+
+        console.warn(
+            "No se pudo actualizar la última conexión:",
+            error
+        );
+    }
+}
+
+
+/* =========================================================
+   NAVEGACIÓN PRINCIPAL
+   ========================================================= */
+
+function bindNavigationEvents() {
+
+    if (homeNavButton) {
+        homeNavButton.addEventListener(
+            "click",
+            function () {
+
+                closePanel("profile-panel");
+                closePanel("settings-panel");
+                closePanel("edit-profile-panel");
+
+                showScreen("dashboard-screen");
+
+                if (typeof loadPublications === "function") {
+                    loadPublications();
+                }
+            }
+        );
+    }
+
+    if (profileNavButton) {
+        profileNavButton.addEventListener(
+            "click",
+            function () {
+                openProfile();
+            }
+        );
+    }
+
+    if (settingsButton) {
+        settingsButton.addEventListener(
+            "click",
+            function () {
+                openSettings();
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   PERFIL
+   ========================================================= */
+
+function bindProfileEvents() {
+
+    if (closeProfilePanel) {
+        closeProfilePanel.addEventListener(
+            "click",
+            function () {
+                closePanel("profile-panel");
+            }
+        );
+    }
+
+    if (editProfileButton) {
+        editProfileButton.addEventListener(
+            "click",
+            function () {
+                openEditProfile();
+            }
+        );
+    }
+
+    if (profileSettingsButton) {
+        profileSettingsButton.addEventListener(
+            "click",
+            function () {
+                closePanel("profile-panel");
+                openSettings();
+            }
+        );
+    }
+
+    if (administrationButton) {
+        administrationButton.addEventListener(
+            "click",
+            openAdministrationFromProfile
+        );
+    }
+
+    if (logoutProfileButton) {
+        logoutProfileButton.addEventListener(
+            "click",
+            handleLogout
+        );
+    }
+
+    if (deleteAccountButton) {
+        deleteAccountButton.addEventListener(
+            "click",
+            handleDeleteAccount
+        );
+    }
+
+    if (closeEditProfilePanel) {
+        closeEditProfilePanel.addEventListener(
+            "click",
+            function () {
+                closePanel("edit-profile-panel");
+            }
+        );
+    }
+
+    if (editProfileForm) {
+        editProfileForm.addEventListener(
+            "submit",
+            handleEditProfile
+        );
+    }
+}
+
+
+/* =========================================================
+   ABRIR PERFIL
+   ========================================================= */
+
+async function openProfile() {
+
+    if (!currentUser) {
+        showScreen("welcome-screen");
+        return;
+    }
+
+    await loadCurrentUserProfile();
+
+    renderProfile();
+
+    openPanel("profile-panel");
+}
+
+
+/* =========================================================
+   RENDERIZAR PERFIL
+   ========================================================= */
+
+function renderProfile() {
+
+    if (!currentProfile) {
+        return;
+    }
+
+    if (profileName) {
+        profileName.textContent =
+            currentProfile.full_name ||
+            "Usuario Market Flash";
+    }
+
+    if (profilePhone) {
+        profilePhone.textContent =
+            currentProfile.phone ||
+            "Sin número registrado";
+    }
+
+    if (profilePhoto) {
+
+        profilePhoto.src =
+            currentProfile.avatar_url ||
+            defaultProductImage();
+    }
+
+    if (profilePublicationsCount) {
+        profilePublicationsCount.textContent =
+            currentProfile.publications_count || 0;
+    }
+
+    if (profileLikesCount) {
+        profileLikesCount.textContent =
+            currentProfile.likes_received || 0;
+    }
+
+    if (profileSavesCount) {
+        profileSavesCount.textContent =
+            currentProfile.saves_received || 0;
+    }
+
+
+    /*
+       El botón de administración solo se muestra
+       a usuarios que tengan permisos administrativos.
+    */
+
+    if (administrationButton) {
+
+        const admin =
+            currentProfile.role === "admin" ||
+            currentProfile.is_admin === true;
+
+        administrationButton.hidden = !admin;
+    }
+}
+
+
+/* =========================================================
+   AJUSTES
+   ========================================================= */
+
+function bindSettingsEvents() {
+
+    if (closeSettings) {
+        closeSettings.addEventListener(
+            "click",
+            function () {
+                closePanel("settings-panel");
+            }
+        );
+    }
+
+    if (settingsProfileButton) {
+        settingsProfileButton.addEventListener(
+            "click",
+            function () {
+
+                closePanel("settings-panel");
+
+                openEditProfile();
+            }
+        );
+    }
+
+    if (appSettingsButton) {
+        appSettingsButton.addEventListener(
+            "click",
+            function () {
+
+                showToast(
+                    "Las opciones generales de Market Flash se configurarán aquí.",
+                    "info"
+                );
+            }
+        );
+    }
+
+    if (logoutButton) {
+        logoutButton.addEventListener(
+            "click",
+            handleLogout
+        );
+    }
+}
+
+
+function openSettings() {
+
+    if (!currentUser) {
+        showScreen("welcome-screen");
+        return;
+    }
+
+    openPanel("settings-panel");
+}
+
+
+/* =========================================================
+   EDITAR PERFIL
+   ========================================================= */
+
+function openEditProfile() {
+
+    if (!currentUser) {
+        return;
+    }
+
+    closePanel("profile-panel");
+    closePanel("settings-panel");
+
+    if (editProfileName) {
+        editProfileName.value =
+            currentProfile?.full_name || "";
+    }
+
+    if (editProfilePhone) {
+        editProfilePhone.value =
+            currentProfile?.phone || "";
+    }
+
+    editingProfilePhoto = null;
+
+    if (editProfilePhoto) {
+        editProfilePhoto.value = "";
+    }
+
+    openPanel("edit-profile-panel");
+}
+
+
+/* =========================================================
+   FOTO DEL PERFIL
+   ========================================================= */
+
+if (editProfilePhoto) {
+
+    editProfilePhoto.addEventListener(
+        "change",
+        function () {
+
+            const file =
+                editProfilePhoto.files?.[0];
+
+            if (!file) {
+                editingProfilePhoto = null;
+                return;
+            }
+
+            if (!file.type.startsWith("image/")) {
+
+                showToast(
+                    "Selecciona una imagen válida.",
+                    "error"
+                );
+
+                editProfilePhoto.value = "";
+                editingProfilePhoto = null;
+
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+
+                showToast(
+                    "La foto no puede superar 5 MB.",
+                    "error"
+                );
+
+                editProfilePhoto.value = "";
+                editingProfilePhoto = null;
+
+                return;
+            }
+
+            editingProfilePhoto = file;
+
+            showToast(
+                "Nueva foto seleccionada.",
+                "success"
+            );
+        }
+    );
+}
+
+
+/* =========================================================
+   GUARDAR CAMBIOS DEL PERFIL
+   ========================================================= */
+
+async function handleEditProfile(event) {
+
+    event.preventDefault();
+
+    if (!supabaseClient || !currentUser) {
+        showToast(
+            "No hay una sesión activa.",
+            "error"
+        );
+        return;
+    }
+
+    const name =
+        String(editProfileName?.value || "").trim();
+
+    const phone =
+        normalizePhone(editProfilePhone?.value);
+
+    if (!name) {
+        showToast(
+            "El nombre no puede estar vacío.",
+            "error"
+        );
+        return;
+    }
+
+    if (!phone) {
+        showToast(
+            "Escribe un número de teléfono.",
+            "error"
+        );
+        return;
+    }
+
+    showLoading("Guardando perfil...");
+
+    try {
+
+        let avatarUrl =
+            currentProfile?.avatar_url || null;
+
+
+        /*
+           Si el usuario seleccionó una foto,
+           la subimos al bucket profile-photos.
+        */
+
+        if (editingProfilePhoto) {
+
+            const extension =
+                getFileExtension(
+                    editingProfilePhoto.name
+                );
+
+            const filePath =
+                `${currentUser.id}/avatar-${Date.now()}.${extension}`;
+
+            const {
+                error: uploadError
+            } = await supabaseClient
+                .storage
+                .from("profile-photos")
+                .upload(
+                    filePath,
+                    editingProfilePhoto,
+                    {
+                        upsert: true,
+                        contentType:
+                            editingProfilePhoto.type
+                    }
+                );
+
+            if (uploadError) {
+
+                console.error(
+                    "Error subiendo foto:",
+                    uploadError
+                );
+
+                hideLoading();
+
+                showToast(
+                    "No se pudo subir la foto. Primero debemos configurar Storage en Supabase.",
+                    "error"
+                );
+
+                return;
+            }
+
+            const {
+                data: publicUrlData
+            } = supabaseClient
+                .storage
+                .from("profile-photos")
+                .getPublicUrl(filePath);
+
+            avatarUrl =
+                publicUrlData?.publicUrl ||
+                avatarUrl;
+        }
+
+
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("profiles")
+            .update({
+                full_name: name,
+                phone: phone,
+                avatar_url: avatarUrl
+            })
+            .eq("id", currentUser.id)
+            .select()
+            .maybeSingle();
+
+        if (error) {
+
+            console.error(
+                "Error actualizando perfil:",
+                error
+            );
+
+            hideLoading();
+
+            showToast(
+                error.message ||
+                "No se pudo guardar el perfil.",
+                "error"
+            );
+
+            return;
+        }
+
+        currentProfile =
+            data || {
+                ...currentProfile,
+                full_name: name,
+                phone: phone,
+                avatar_url: avatarUrl
+            };
+
+        saveLocalUser({
+            id: currentUser.id,
+            name: name,
+            cedula:
+                currentProfile.cedula || "",
+            phone: phone
+        });
+
+        renderProfile();
+
+        closePanel("edit-profile-panel");
+
+        hideLoading();
+
+        showToast(
+            "Perfil actualizado correctamente.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error inesperado actualizando perfil:",
+            error
+        );
+
+        hideLoading();
+
+        showToast(
+            "No se pudo actualizar el perfil.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   CERRAR SESIÓN
+   ========================================================= */
+
+async function handleLogout() {
+
+    if (!supabaseClient) {
+        return;
+    }
+
+    const confirmed =
+        window.confirm(
+            "¿Seguro que quieres cerrar sesión?"
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+    showLoading("Cerrando sesión...");
+
+    try {
+
+        const {
+            error
+        } = await supabaseClient.auth.signOut();
+
+        if (error) {
+            console.error(
+                "Error cerrando sesión:",
+                error
+            );
+
+            hideLoading();
+
+            showToast(
+                "No se pudo cerrar la sesión.",
+                "error"
+            );
+
+            return;
+        }
+
+        currentUser = null;
+        currentProfile = null;
+        currentPublication = null;
+        currentConversation = null;
+
+        clearLocalUser();
+
+        closePanel("profile-panel");
+        closePanel("settings-panel");
+        closePanel("edit-profile-panel");
+
+        hideLoading();
+
+        showScreen("welcome-screen");
+
+        showToast(
+            "Sesión cerrada.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error inesperado cerrando sesión:",
+            error
+        );
+
+        hideLoading();
+
+        showToast(
+            "Ocurrió un error cerrando la sesión.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   ELIMINAR CUENTA
+   ========================================================= */
+
+async function handleDeleteAccount() {
+
+    if (!supabaseClient || !currentUser) {
+        return;
+    }
+
+    const firstConfirm =
+        window.confirm(
+            "¿Seguro que quieres eliminar tu cuenta de Market Flash?"
+        );
+
+    if (!firstConfirm) {
+        return;
+    }
+
+    const secondConfirm =
+        window.confirm(
+            "Esta acción marcará tu cuenta como eliminada y cerrará tu sesión. ¿Continuar?"
+        );
+
+    if (!secondConfirm) {
+        return;
+    }
+
+    showLoading("Eliminando cuenta...");
+
+    try {
+
+        /*
+           Por seguridad, desde el navegador no utilizamos
+           la service_role key para borrar directamente
+           auth.users.
+
+           Primero marcamos la cuenta como eliminada.
+           Más adelante el backend podrá realizar la
+           eliminación definitiva de Auth.
+        */
+
+        const {
+            error
+        } = await supabaseClient
+            .from("profiles")
+            .update({
+                status: "deleted",
+                deleted_at: new Date().toISOString()
+            })
+            .eq("id", currentUser.id);
+
+        if (error) {
+
+            console.error(
+                "Error eliminando cuenta:",
+                error
+            );
+
+            hideLoading();
+
+            showToast(
+                "No se pudo eliminar la cuenta.",
+                "error"
+            );
+
+            return;
+        }
+
+        await supabaseClient.auth.signOut();
+
+        currentUser = null;
+        currentProfile = null;
+
+        clearLocalUser();
+
+        closePanel("profile-panel");
+        closePanel("settings-panel");
+        closePanel("edit-profile-panel");
+
+        hideLoading();
+
+        showScreen("welcome-screen");
+
+        showToast(
+            "Tu cuenta ha sido eliminada.",
+            "success"
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error inesperado eliminando cuenta:",
+            error
+        );
+
+        hideLoading();
+
+        showToast(
+            "No se pudo completar la eliminación.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   RECUPERACIÓN DE CONTRASEÑA
+   ========================================================= */
+
+async function handleForgotPassword() {
+
+    const cedula =
+        normalizeCedula(
+            window.prompt(
+                "Escribe tu cédula para iniciar la recuperación:"
+            )
+        );
+
+    if (!cedula) {
+        return;
+    }
+
+    /*
+       Como el acceso se realiza mediante una cédula
+       convertida internamente en un identificador de Auth,
+       la recuperación definitiva por cédula necesitará
+       un flujo seguro de backend/Edge Function.
+
+       No vamos a poner una contraseña maestra ni una
+       clave privada en JavaScript.
+    */
+
+    showToast(
+        "La recuperación segura por cédula se conectará con Supabase en el siguiente bloque.",
+        "info"
+    );
+}
+
+
+/* =========================================================
+   ADMINISTRACIÓN
+   ========================================================= */
+
+function openAdministrationFromProfile() {
+
+    if (!currentUser || !currentProfile) {
+        showToast(
+            "Debes iniciar sesión.",
+            "error"
+        );
+        return;
+    }
+
+    const isAdmin =
+        currentProfile.role === "admin" ||
+        currentProfile.is_admin === true;
+
+    if (!isAdmin) {
+
+        showToast(
+            "No tienes permisos de administrador.",
+            "error"
+        );
+
+        return;
+    }
+
+    closePanel("profile-panel");
+
+    /*
+       La función completa del panel administrativo
+       se añadirá en la parte correspondiente.
+    */
+
+    if (typeof openAdministrationPanel === "function") {
+        openAdministrationPanel();
+    } else {
+        showToast(
+            "El panel administrativo se conectará en la siguiente parte.",
+            "info"
+        );
+    }
+}
+
+
+/* =========================================================
+   EXTENSIONES DE ARCHIVO
+   ========================================================= */
+
+function getFileExtension(filename) {
+
+    const cleanName =
+        String(filename || "").trim();
+
+    const parts =
+        cleanName.split(".");
+
+    if (parts.length < 2) {
+        return "jpg";
+    }
+
+    return parts
+        .pop()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "") || "jpg";
+}
+
+
+/* =========================================================
+   LIMPIAR FORMULARIO DE REGISTRO
+   ========================================================= */
+
+function clearRegistrationForm() {
+
+    if (registerForm) {
+        registerForm.reset();
+    }
+}
+
+
+/* =========================================================
+   REFRESCO DESPUÉS DEL LOGIN
+   ========================================================= */
+
+async function refreshDashboardAfterLogin() {
+
+    /*
+       Estas funciones serán creadas en las siguientes partes.
+       Comprobamos primero que existan para evitar errores.
+    */
+
+    if (typeof loadCategories === "function") {
+        await loadCategories();
+    }
+
+    if (typeof loadFlashPromotions === "function") {
+        await loadFlashPromotions();
+    }
+
+    if (typeof loadPublications === "function") {
+        await loadPublications();
+    }
+
+    if (typeof updateDashboardMetrics === "function") {
+        await updateDashboardMetrics();
+    }
+}/* =========================================================
+   MARKET FLASH
+   SCRIPT PRINCIPAL
+   PARTE 3
+   PUBLICACIONES + FOTOS + VIDEO + VISTA PREVIA
+   ========================================================= */
+
+
+/* =========================================================
+   REFERENCIAS DE PUBLICACIONES
+   ========================================================= */
+
+const publicationPanel = $("publication-panel");
+const closePublicationPanel = $("close-publication-panel");
+
+const publicationForm = $("publication-form");
+
+const publicationPhotoPreview = $("publication-photo-preview");
+const takePhotoButton = $("take-photo-button");
+const choosePhotoButton = $("choose-photo-button");
+const publicationImages = $("publication-images");
+
+const publicationVideoPreview = $("publication-video-preview");
+const chooseVideoButton = $("choose-video-button");
+const publicationVideo = $("publication-video");
+
+const publicationName = $("publication-name");
+const publicationCategory = $("publication-category");
+const publicationPrice = $("publication-price");
+const publicationQuantity = $("publication-quantity");
+const publicationDescription = $("publication-description");
+const publicationLocation = $("publication-location");
+const publicationWhatsapp = $("publication-whatsapp");
+
+const cancelPublicationButton =
+    $("cancel-publication-button");
+
+
+/* =========================================================
+   REFERENCIAS DE VISTA PREVIA
+   ========================================================= */
+
+const publicationPreviewPanel =
+    $("publication-preview-panel");
+
+const closePublicationPreview =
+    $("close-publication-preview");
+
+const publicationPreview =
+    $("publication-preview");
+
+const editPreviewButton =
+    $("edit-preview-button");
+
+const confirmPublicationButton =
+    $("confirm-publication-button");
+
+
+/* =========================================================
+   ABRIR CREACIÓN DE PUBLICACIÓN
+   ========================================================= */
+
+function openPublicationCreator() {
+
+    if (!currentUser) {
+
+        showToast(
+            "Debes iniciar sesión para publicar.",
+            "error"
+        );
+
+        showScreen("login-screen");
+
+        return;
+    }
+
+    resetPublicationCreator();
+
+    openPanel("publication-panel");
+}
+
+
+/* =========================================================
+   EVENTOS DE PUBLICACIÓN
+   ========================================================= */
+
+function bindPublicationEvents() {
+
+    const createPublicationButton =
+        $("create-publication-button");
+
+    const promoteButton =
+        $("promote-button");
+
+    if (createPublicationButton) {
+
+        createPublicationButton.addEventListener(
+            "click",
+            openPublicationCreator
+        );
+    }
+
+    if (closePublicationPanel) {
+
+        closePublicationPanel.addEventListener(
+            "click",
+            function () {
+
+                closePanel(
+                    "publication-panel"
+                );
+
+                resetPublicationCreator();
+            }
+        );
+    }
+
+    if (cancelPublicationButton) {
+
+        cancelPublicationButton.addEventListener(
+            "click",
+            function () {
+
+                closePanel(
+                    "publication-panel"
+                );
+
+                resetPublicationCreator();
+            }
+        );
+    }
+
+    if (takePhotoButton) {
+
+        takePhotoButton.addEventListener(
+            "click",
+            function () {
+
+                if (publicationImages) {
+                    publicationImages.setAttribute(
+                        "capture",
+                        "environment"
+                    );
+
+                    publicationImages.click();
+                }
+            }
+        );
+    }
+
+    if (choosePhotoButton) {
+
+        choosePhotoButton.addEventListener(
+            "click",
+            function () {
+
+                if (publicationImages) {
+                    publicationImages.removeAttribute(
+                        "capture"
+                    );
+
+                    publicationImages.click();
+                }
+            }
+        );
+    }
+
+    if (publicationImages) {
+
+        publicationImages.addEventListener(
+            "change",
+            handlePublicationImages
+        );
+    }
+
+    if (chooseVideoButton) {
+
+        chooseVideoButton.addEventListener(
+            "click",
+            function () {
+
+                if (publicationVideo) {
+                    publicationVideo.click();
+                }
+            }
+        );
+    }
+
+    if (publicationVideo) {
+
+        publicationVideo.addEventListener(
+            "change",
+            handlePublicationVideo
+        );
+    }
+
+    if (publicationForm) {
+
+        publicationForm.addEventListener(
+            "submit",
+            handlePublicationFormSubmit
+        );
+    }
+
+    if (closePublicationPreview) {
+
+        closePublicationPreview.addEventListener(
+            "click",
+            function () {
+                closePanel(
+                    "publication-preview-panel"
+                );
+            }
+        );
+    }
+
+    if (editPreviewButton) {
+
+        editPreviewButton.addEventListener(
+            "click",
+            function () {
+
+                closePanel(
+                    "publication-preview-panel"
+                );
+
+                openPanel(
+                    "publication-panel"
+                );
+            }
+        );
+    }
+
+    if (confirmPublicationButton) {
+
+        confirmPublicationButton.addEventListener(
+            "click",
+            publishConfirmedPublication
+        );
+    }
+
+    if (promoteButton) {
+
+        promoteButton.addEventListener(
+            "click",
+            function () {
+
+                if (
+                    typeof openPromotionPanel ===
+                    "function"
+                ) {
+                    openPromotionPanel();
+                } else {
+
+                    showToast(
+                        "La promoción Flash se conectará en la siguiente parte.",
+                        "info"
+                    );
+                }
+            }
+        );
+    }
+}
+
+
+/* =========================================================
+   FOTOS DE LA PUBLICACIÓN
+   ========================================================= */
+
+async function handlePublicationImages(event) {
+
+    const files =
+        Array.from(
+            event.target.files || []
+        );
+
+    if (!files.length) {
+        return;
+    }
+
+    const validImages = [];
+
+    for (const file of files) {
+
+        if (!file.type.startsWith("image/")) {
+
+            showToast(
+                `${file.name} no es una imagen válida.`,
+                "error"
+            );
+
+            continue;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+
+            showToast(
+                `${file.name} supera el límite de 10 MB.`,
+                "error"
+            );
+
+            continue;
+        }
+
+        validImages.push(file);
+    }
+
+    if (!validImages.length) {
+        return;
+    }
+
+
+    /*
+       Permitimos varias imágenes.
+       La primera imagen será la portada.
+    */
+
+    selectedPublicationImages = [
+        ...selectedPublicationImages,
+        ...validImages
+    ].slice(0, 10);
+
+    renderPublicationImagePreviews();
+
+    showToast(
+        `${selectedPublicationImages.length} foto(s) seleccionada(s).`,
+        "success"
+    );
+
+    event.target.value = "";
+}
+
+
+/* =========================================================
+   PREVISUALIZAR FOTOS
+   ========================================================= */
+
+function renderPublicationImagePreviews() {
+
+    if (!publicationPhotoPreview) {
+        return;
+    }
+
+    publicationPhotoPreview.innerHTML = "";
+
+    if (!selectedPublicationImages.length) {
+
+        publicationPhotoPreview.innerHTML = `
+            <div class="media-empty">
+                <span>📷</span>
+                <p>Aún no has seleccionado fotos</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    selectedPublicationImages.forEach(
+        function (file, index) {
+
+            const wrapper =
+                document.createElement("div");
+
+            wrapper.className =
+                "selected-media-item";
+
+            const image =
+                document.createElement("img");
+
+            image.alt =
+                `Foto ${index + 1}`;
+
+            image.src =
+                URL.createObjectURL(file);
+
+            const number =
+                document.createElement("span");
+
+            number.className =
+                "media-number";
+
+            number.textContent =
+                index + 1;
+
+            const remove =
+                document.createElement("button");
+
+            remove.type = "button";
+            remove.className =
+                "remove-media-button";
+
+            remove.textContent = "×";
+
+            remove.title =
+                "Eliminar foto";
+
+            remove.addEventListener(
+                "click",
+                function () {
+
+                    selectedPublicationImages
+                        .splice(index, 1);
+
+                    renderPublicationImagePreviews();
+                }
+            );
+
+            wrapper.appendChild(image);
+            wrapper.appendChild(number);
+            wrapper.appendChild(remove);
+
+            publicationPhotoPreview
+                .appendChild(wrapper);
+        }
+    );
+}
+
+
+/* =========================================================
+   VIDEO
+   ========================================================= */
+
+function handlePublicationVideo(event) {
+
+    const file =
+        event.target.files?.[0];
+
+    if (!file) {
+        selectedPublicationVideo = null;
+        return;
+    }
+
+    if (!file.type.startsWith("video/")) {
+
+        showToast(
+            "Selecciona un vídeo válido.",
+            "error"
+        );
+
+        event.target.value = "";
+        return;
+    }
+
+    /*
+       Para evitar archivos enormes desde el teléfono,
+       ponemos un límite inicial de 100 MB.
+    */
+
+    if (file.size > 100 * 1024 * 1024) {
+
+        showToast(
+            "El vídeo no puede superar 100 MB.",
+            "error"
+        );
+
+        event.target.value = "";
+        return;
+    }
+
+    selectedPublicationVideo = file;
+
+    renderPublicationVideoPreview();
+
+    showToast(
+        "Vídeo seleccionado correctamente.",
+        "success"
+    );
+}
+
+
+/* =========================================================
+   PREVISUALIZAR VIDEO
+   ========================================================= */
+
+function renderPublicationVideoPreview() {
+
+    if (!publicationVideoPreview) {
+        return;
+    }
+
+    publicationVideoPreview.innerHTML = "";
+
+    if (!selectedPublicationVideo) {
+        return;
+    }
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "selected-video-item";
+
+    const video =
+        document.createElement("video");
+
+    video.controls = true;
+    video.playsInline = true;
+
+    video.src =
+        URL.createObjectURL(
+            selectedPublicationVideo
+        );
+
+    const remove =
+        document.createElement("button");
+
+    remove.type = "button";
+
+    remove.className =
+        "remove-media-button";
+
+    remove.textContent = "×";
+
+    remove.title =
+        "Eliminar vídeo";
+
+    remove.addEventListener(
+        "click",
+        function () {
+
+            selectedPublicationVideo = null;
+
+            if (publicationVideo) {
+                publicationVideo.value = "";
+            }
+
+            renderPublicationVideoPreview();
+        }
+    );
+
+    wrapper.appendChild(video);
+    wrapper.appendChild(remove);
+
+    publicationVideoPreview
+        .appendChild(wrapper);
+}
+
+
+/* =========================================================
+   VALIDAR PUBLICACIÓN
+   ========================================================= */
+
+function validatePublicationForm() {
+
+    const name =
+        String(
+            publicationName?.value || ""
+        ).trim();
+
+    const category =
+        String(
+            publicationCategory?.value || ""
+        ).trim();
+
+    const price =
+        Number(
+            publicationPrice?.value || 0
+        );
+
+    const quantity =
+        Number(
+            publicationQuantity?.value || 0
+        );
+
+    const description =
+        String(
+            publicationDescription?.value || ""
+        ).trim();
+
+    const location =
+        String(
+            publicationLocation?.value || ""
+        ).trim();
+
+    if (!name) {
+
+        showToast(
+            "Escribe el nombre del producto.",
+            "error"
+        );
+
+        publicationName?.focus();
+
+        return false;
+    }
+
+    if (!category) {
+
+        showToast(
+            "Selecciona una categoría.",
+            "error"
+        );
+
+        publicationCategory?.focus();
+
+        return false;
+    }
+
+    if (
+        !Number.isFinite(price) ||
+        price < 0
+    ) {
+
+        showToast(
+            "Escribe un precio válido.",
+            "error"
+        );
+
+        publicationPrice?.focus();
+
+        return false;
+    }
+
+    if (
+        !Number.isFinite(quantity) ||
+        quantity < 1
+    ) {
+
+        showToast(
+            "La cantidad debe ser de al menos 1.",
+            "error"
+        );
+
+        publicationQuantity?.focus();
+
+        return false;
+    }
+
+    if (!description) {
+
+        showToast(
+            "Escribe una descripción.",
+            "error"
+        );
+
+        publicationDescription?.focus();
+
+        return false;
+    }
+
+    if (!location) {
+
+        showToast(
+            "Indica la ubicación del producto.",
+            "error"
+        );
+
+        publicationLocation?.focus();
+
+        return false;
+    }
+
+    /*
+       No obligamos a tener foto.
+       El usuario puede publicar texto/datos,
+       aunque recomendamos añadir imágenes.
+    */
+
+    return true;
+}
+
+
+/* =========================================================
+   ENVIAR FORMULARIO
+   ========================================================= */
+
+function handlePublicationFormSubmit(event) {
+
+    event.preventDefault();
+
+    if (!currentUser) {
+
+        showToast(
+            "Debes iniciar sesión.",
+            "error"
+        );
+
+        return;
+    }
+
+    if (!validatePublicationForm()) {
+        return;
+    }
+
+    buildPublicationPreview();
+
+    closePanel(
+        "publication-panel"
+    );
+
+    openPanel(
+        "publication-preview-panel"
+    );
+}
+
+
+/* =========================================================
+   CONSTRUIR VISTA PREVIA
+   ========================================================= */
+
+function buildPublicationPreview() {
+
+    if (!publicationPreview) {
+        return;
+    }
+
+    const name =
+        String(
+            publicationName?.value || ""
+        ).trim();
+
+    const category =
+        String(
+            publicationCategory?.value || ""
+        ).trim();
+
+    const price =
+        Number(
+            publicationPrice?.value || 0
+        );
+
+    const quantity =
+        Number(
+            publicationQuantity?.value || 1
+        );
+
+    const description =
+        String(
+            publicationDescription?.value || ""
+        ).trim();
+
+    const location =
+        String(
+            publicationLocation?.value || ""
+        ).trim();
+
+    const whatsappEnabled =
+        Boolean(
+            publicationWhatsapp?.checked
+        );
+
+    let mediaHTML = "";
+
+
+    /* IMÁGENES */
+
+    if (selectedPublicationImages.length) {
+
+        const imagesHTML =
+            selectedPublicationImages
+                .map(
+                    function (file, index) {
+
+                        return `
+                            <div class="preview-image">
+                                <img
+                                    src="${URL.createObjectURL(file)}"
+                                    alt="Imagen ${index + 1}"
+                                >
+                            </div>
+                        `;
+                    }
+                )
+                .join("");
+
+        mediaHTML += `
+            <div class="preview-images">
+                ${imagesHTML}
+            </div>
+        `;
+    }
+
+
+    /* VIDEO */
+
+    if (selectedPublicationVideo) {
+
+        mediaHTML += `
+            <div class="preview-video">
+                <video
+                    controls
+                    playsinline
+                    src="${URL.createObjectURL(
+                        selectedPublicationVideo
+                    )}">
+                </video>
+            </div>
+        `;
+    }
+
+
+    /* PUBLICACIÓN */
+
+    publicationPreview.innerHTML = `
+
+        <article class="preview-publication-card">
+
+            <div class="preview-media-container">
+                ${mediaHTML}
+            </div>
+
+            <div class="preview-publication-content">
+
+                <span class="publication-category">
+                    ${escapeHTML(category)}
+                </span>
+
+                <h2>
+                    ${escapeHTML(name)}
+                </h2>
+
+                <div class="preview-price">
+                    ${formatMoney(price)}
+                </div>
+
+                <div class="preview-quantity">
+                    Cantidad disponible:
+                    <strong>
+                        ${quantity}
+                    </strong>
+                </div>
+
+                <p class="preview-description">
+                    ${escapeHTML(description)}
+                </p>
+
+                <div class="preview-location">
+                    📍 ${escapeHTML(location)}
+                </div>
+
+                ${
+                    whatsappEnabled
+                    ? `
+                        <div class="preview-whatsapp">
+                            <span>🟢</span>
+                            WhatsApp activado
+                        </div>
+                    `
+                    : `
+                        <div class="preview-whatsapp disabled">
+                            WhatsApp desactivado
+                        </div>
+                    `
+                }
+
+            </div>
+
+        </article>
+    `;
+}
+
+
+/* =========================================================
+   PUBLICAR DESPUÉS DE CONFIRMAR
+   ========================================================= */
+
+async function publishConfirmedPublication() {
+
+    if (!currentUser) {
+
+        showToast(
+            "Tu sesión expiró. Inicia sesión nuevamente.",
+            "error"
+        );
+
+        closePanel(
+            "publication-preview-panel"
+        );
+
+        showScreen("login-screen");
+
+        return;
+    }
+
+    if (!validatePublicationForm()) {
+
+        closePanel(
+            "publication-preview-panel"
+        );
+
+        openPanel(
+            "publication-panel"
+        );
+
+        return;
+    }
+
+    showLoading(
+        "Publicando tu producto..."
+    );
+
+    try {
+
+        /*
+           1. Creamos primero la publicación.
+        */
+
+        const publicationPayload = {
+            seller_id: currentUser.id,
+            title:
+                String(
+                    publicationName?.value || ""
+                ).trim(),
+            category:
+                String(
+                    publicationCategory?.value || ""
+                ).trim(),
+            price:
+                Number(
+                    publicationPrice?.value || 0
+                ),
+            quantity:
+                Number(
+                    publicationQuantity?.value || 1
+                ),
+            description:
+                String(
+                    publicationDescription?.value || ""
+                ).trim(),
+            location:
+                String(
+                    publicationLocation?.value || ""
+                ).trim(),
+            whatsapp_enabled:
+                Boolean(
+                    publicationWhatsapp?.checked
+                ),
+            status: "published",
+            views_count: 0,
+            likes_count: 0,
+            saves_count: 0
+        };
+
+        const {
+            data: publication,
+            error: publicationError
+        } = await supabaseClient
+            .from("publications")
+            .insert(publicationPayload)
+            .select()
+            .single();
+
+        if (publicationError) {
+
+            console.error(
+                "Error creando publicación:",
+                publicationError
+            );
+
+            hideLoading();
+
+            showToast(
+                publicationError.message ||
+                "No se pudo crear la publicación.",
+                "error"
+            );
+
+            return;
+        }
+
+
+        /*
+           2. Subimos las imágenes.
+        */
+
+        if (
+            selectedPublicationImages.length
+        ) {
+
+            await uploadPublicationImages(
+                publication.id
+            );
+        }
+
+
+        /*
+           3. Subimos el vídeo si existe.
+        */
+
+        if (selectedPublicationVideo) {
+
+            await uploadPublicationVideo(
+                publication.id
+            );
+        }
+
+
+        /*
+           4. Limpiamos y cerramos.
+        */
+
+        closePanel(
+            "publication-preview-panel"
+        );
+
+        resetPublicationCreator();
+
+        hideLoading();
+
+        showToast(
+            "🎉 ¡Tu publicación fue publicada correctamente!",
+            "success"
+        );
+
+
+        /*
+           Actualizamos inmediatamente el listado
+           si la función ya existe.
+        */
+
+        if (
+            typeof loadPublications ===
+            "function"
+        ) {
+            await loadPublications();
+        }
+
+        if (
+            typeof updateDashboardMetrics ===
+            "function"
+        ) {
+            await updateDashboardMetrics();
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error publicando producto:",
+            error
+        );
+
+        hideLoading();
+
+        showToast(
+            "Ocurrió un error al publicar.",
+            "error"
+        );
+    }
+}
+
+
+/* =========================================================
+   SUBIR IMÁGENES
+   ========================================================= */
+
+async function uploadPublicationImages(
+    publicationId
+) {
+
+    if (
+        !supabaseClient ||
+        !currentUser ||
+        !publicationId
+    ) {
+        return;
+    }
+
+    for (
+        let index = 0;
+        index < selectedPublicationImages.length;
+        index++
+    ) {
+
+        const file =
+            selectedPublicationImages[index];
+
+        const extension =
+            getFileExtension(file.name);
+
+        const filePath =
+            `${currentUser.id}/${publicationId}/image-${Date.now()}-${index}.${extension}`;
+
+
+        const {
+            error: uploadError
+        } = await supabaseClient
+            .storage
+            .from("publication-media")
+            .upload(
+                filePath,
+                file,
+                {
+                    upsert: false,
+                    contentType: file.type
+                }
+            );
+
+        if (uploadError) {
+
+            console.error(
+                "Error subiendo imagen:",
+                uploadError
+            );
+
+            continue;
+        }
+
+
+        const {
+            data: publicUrlData
+        } = supabaseClient
+            .storage
+            .from("publication-media")
+            .getPublicUrl(filePath);
+
+        const publicUrl =
+            publicUrlData?.publicUrl || "";
+
+
+        /*
+           Guardamos cada archivo en la tabla
+           publication_media.
+        */
+
+        const {
+            error: mediaError
+        } = await supabaseClient
+            .from("publication_media")
+            .insert({
+                publication_id:
+                    publicationId,
+                media_type: "image",
+                storage_path:
+                    filePath,
+                public_url:
+                    publicUrl,
+                sort_order:
+                    index
+            });
+
+        if (mediaError) {
+
+            console.error(
+                "Error guardando imagen:",
+                mediaError
+            );
+        }
+    }
+}
+
+
+/* =========================================================
+   SUBIR VIDEO
+   ========================================================= */
+
+async function uploadPublicationVideo(
+    publicationId
+) {
+
+    if (
+        !supabaseClient ||
+        !currentUser ||
+        !publicationId ||
+        !selectedPublicationVideo
+    ) {
+        return;
+    }
+
+    const file =
+        selectedPublicationVideo;
+
+    const extension =
+        getFileExtension(file.name);
+
+    const filePath =
+        `${currentUser.id}/${publicationId}/video-${Date.now()}.${extension}`;
+
+
+    const {
+        error: uploadError
+    } = await supabaseClient
+        .storage
+        .from("publication-media")
+        .upload(
+            filePath,
+            file,
+            {
+                upsert: false,
+                contentType: file.type
+            }
+        );
+
+    if (uploadError) {
+
+        console.error(
+            "Error subiendo vídeo:",
+            uploadError
+        );
+
+        showToast(
+            "La publicación se creó, pero el vídeo no pudo subirse.",
+            "error"
+        );
+
+        return;
+    }
+
+
+    const {
+        data: publicUrlData
+    } = supabaseClient
+        .storage
+        .from("publication-media")
+        .getPublicUrl(filePath);
+
+    const publicUrl =
+        publicUrlData?.publicUrl || "";
+
+
+    const {
+        error: mediaError
+    } = await supabaseClient
+        .from("publication_media")
+        .insert({
+            publication_id:
+                publicationId,
+            media_type: "video",
+            storage_path:
+                filePath,
+            public_url:
+                publicUrl,
+            sort_order: 0
+        });
+
+    if (mediaError) {
+
+        console.error(
+            "Error guardando vídeo:",
+            mediaError
+        );
+    }
+}
+
+
+/* =========================================================
+   REINICIAR CREADOR
+   ========================================================= */
+
+function resetPublicationCreator() {
+
+    selectedPublicationImages = [];
+    selectedPublicationVideo = null;
+
+    if (publicationForm) {
+        publicationForm.reset();
+    }
+
+    if (publicationPhotoPreview) {
+
+        publicationPhotoPreview.innerHTML = `
+            <div class="media-empty">
+                <span>📷</span>
+                <p>Aún no has seleccionado fotos</p>
+            </div>
+        `;
+    }
+
+    if (publicationVideoPreview) {
+        publicationVideoPreview.innerHTML = "";
+    }
+
+    if (publicationImages) {
+        publicationImages.value = "";
+    }
+
+    if (publicationVideo) {
+        publicationVideo.value = "";
+    }
+}
+
+
+/* =========================================================
+   INICIALIZAR EVENTOS DE PUBLICACIONES
+   ========================================================= */
+
+bindPublicationEvents();
