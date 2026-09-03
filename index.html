@@ -1,797 +1,1095 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0066ff">
 
-  <title>Market Flash</title>
+    <title>Market Flash</title>
 
-  <link rel="stylesheet" href="style.css">
-
-  <!-- Iconos -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  >
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <!-- =========================
-       ENCABEZADO
-  ========================== -->
-  <header class="top-header">
+<header class="top-header">
 
     <div class="brand">
-      <div class="brand-icon">
-        <i class="fa-solid fa-bolt"></i>
-      </div>
+        <div class="brand-icon">⚡</div>
 
-      <div>
-        <h1>Market Flash</h1>
-        <span>Compra • Vende • Promociona</span>
-      </div>
+        <div>
+            <h1>Market Flash</h1>
+            <span>Compra • Vende • Promociona</span>
+        </div>
     </div>
 
-    <button class="profile-button" id="profileButton">
-      <i class="fa-solid fa-user"></i>
+    <button class="notification-btn" onclick="showNotifications()">
+        🔔
+        <span id="notificationCount">0</span>
     </button>
 
-  </header>
+</header>
 
 
-  <!-- =========================
-       CONTENIDO PRINCIPAL
-  ========================== -->
-  <main>
+<main>
 
     <!-- BUSCADOR -->
+
     <section class="search-section">
 
-      <div class="search-box">
-        <i class="fa-solid fa-magnifying-glass"></i>
+        <div class="search-box">
+            <span>🔎</span>
 
-        <input
-          type="search"
-          id="searchInput"
-          placeholder="¿Qué estás buscando?"
-          autocomplete="off"
-        >
-      </div>
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="¿Qué estás buscando?"
+                oninput="searchProducts()"
+            >
+
+            <button onclick="openFilters()">⚙️</button>
+        </div>
 
     </section>
 
 
     <!-- CATEGORÍAS -->
+
     <section class="categories-section">
 
-      <div class="section-title">
-        <h2>Categorías</h2>
-        <button id="allCategoriesButton">
-          Ver todas
-        </button>
-      </div>
+        <div class="section-title">
+            <h2>Categorías</h2>
+            <button onclick="showAllProducts()">Ver todas</button>
+        </div>
 
-      <div class="category-list" id="categoryList">
+        <div class="categories">
 
-        <button class="category-chip active" data-category="Todos">
-          <i class="fa-solid fa-border-all"></i>
-          Todos
-        </button>
+            <button onclick="filterCategory('Todos')">
+                🛍️ Todos
+            </button>
 
-        <button class="category-chip" data-category="Tecnología">
-          <i class="fa-solid fa-mobile-screen"></i>
-          Tecnología
-        </button>
+            <button onclick="filterCategory('Tecnología')">
+                📱 Tecnología
+            </button>
 
-        <button class="category-chip" data-category="Vehículos">
-          <i class="fa-solid fa-car"></i>
-          Vehículos
-        </button>
+            <button onclick="filterCategory('Vehículos')">
+                🚗 Vehículos
+            </button>
 
-        <button class="category-chip" data-category="Hogar">
-          <i class="fa-solid fa-house"></i>
-          Hogar
-        </button>
+            <button onclick="filterCategory('Hogar')">
+                🏠 Hogar
+            </button>
 
-        <button class="category-chip" data-category="Ropa">
-          <i class="fa-solid fa-shirt"></i>
-          Ropa
-        </button>
+            <button onclick="filterCategory('Ropa')">
+                👕 Ropa
+            </button>
 
-        <button class="category-chip" data-category="Electrodomésticos">
-          <i class="fa-solid fa-blender"></i>
-          Electrodomésticos
-        </button>
+            <button onclick="filterCategory('Servicios')">
+                🔧 Servicios
+            </button>
 
-        <button class="category-chip" data-category="Servicios">
-          <i class="fa-solid fa-briefcase"></i>
-          Servicios
-        </button>
+            <button onclick="filterCategory('Otros')">
+                📦 Otros
+            </button>
 
-      </div>
+        </div>
 
     </section>
 
 
-    <!-- =========================
-         PUBLICIDAD
-    ========================== -->
-    <section class="advertising-section" id="advertisingSection">
+    <!-- PUBLICIDAD -->
 
-      <div class="ad-content">
+    <section id="advertisementSection" class="advertisement">
 
-        <span class="ad-label">
-          PUBLICIDAD
-        </span>
+        <div class="ad-label">
+            PUBLICIDAD
+        </div>
 
-        <h2>Haz que tu producto llegue a más personas</h2>
+        <div class="ad-content">
 
-        <p>
-          Promociona tu publicación en Market Flash.
-        </p>
+            <div>
+                <strong>🚀 Promociona tu producto</strong>
 
-        <button id="promoteButton" class="primary-button">
-          Promocionar publicación
-        </button>
+                <p>
+                    Haz que más personas vean tu publicación.
+                </p>
+            </div>
 
-      </div>
+            <button onclick="openPromotion()">
+                Promocionar
+            </button>
+
+        </div>
 
     </section>
 
 
-    <!-- =========================
-         PRODUCTOS
-    ========================== -->
+    <!-- PRODUCTOS -->
+
     <section class="products-section">
 
-      <div class="section-title">
-        <div>
-          <h2>Productos</h2>
-          <p id="productCounter">Productos recientes</p>
+        <div class="section-title">
+
+            <h2>Productos recientes</h2>
+
+            <button onclick="showAllProducts()">
+                Ver todos
+            </button>
+
         </div>
 
-        <button id="filterButton">
-          <i class="fa-solid fa-sliders"></i>
-        </button>
-      </div>
-
-
-      <div
-        class="product-grid"
-        id="productGrid"
-      ></div>
-
-
-      <!-- SIN PRODUCTOS -->
-      <div
-        class="empty-products"
-        id="emptyProducts"
-        hidden
-      >
-        <i class="fa-solid fa-box-open"></i>
-
-        <h3>No encontramos productos</h3>
-
-        <p>
-          Intenta cambiar tu búsqueda o categoría.
-        </p>
-      </div>
+        <div id="productsGrid" class="products-grid"></div>
 
     </section>
 
-  </main>
+</main>
 
 
-  <!-- =========================
-       NAVEGACIÓN INFERIOR
-  ========================== -->
-  <nav class="bottom-navigation">
+<!-- BOTÓN PUBLICAR -->
 
-    <button
-      class="nav-button active"
-      data-page="home"
-    >
-      <i class="fa-solid fa-house"></i>
-      <span>Inicio</span>
+<button class="publish-button" onclick="openPublishModal()">
+    <span>＋</span>
+    Publicar
+</button>
+
+
+<!-- NAVEGACIÓN -->
+
+<nav class="bottom-nav">
+
+    <button class="nav-item active" onclick="goHome()">
+        <span>🏠</span>
+        Inicio
     </button>
 
-
-    <button
-      class="nav-button"
-      data-page="favorites"
-    >
-      <i class="fa-solid fa-heart"></i>
-      <span>Guardados</span>
+    <button class="nav-item" onclick="openMessages()">
+        <span>💬</span>
+        Chat
     </button>
 
-
-    <!-- BOTÓN PUBLICAR -->
-    <button
-      class="publish-button"
-      id="publishButton"
-    >
-      <i class="fa-solid fa-plus"></i>
-      <span>Publicar</span>
+    <button class="nav-item publish-nav" onclick="openPublishModal()">
+        <span>＋</span>
     </button>
 
-
-    <button
-      class="nav-button"
-      data-page="messages"
-    >
-      <i class="fa-solid fa-comments"></i>
-      <span>Chat</span>
+    <button class="nav-item" onclick="openFavorites()">
+        <span>❤️</span>
+        Guardados
     </button>
 
-
-    <button
-      class="nav-button"
-      data-page="profile"
-    >
-      <i class="fa-solid fa-user"></i>
-      <span>Perfil</span>
+    <button class="nav-item" onclick="openProfile()">
+        <span>👤</span>
+        Perfil
     </button>
 
-  </nav>
+</nav>
 
 
-  <!-- =========================
-       MODAL: PUBLICAR
-  ========================== -->
-  <div
-    class="modal"
-    id="publishModal"
-    hidden
-  >
+<!-- MODAL PUBLICAR -->
 
-    <div class="modal-overlay" data-close-modal></div>
+<div id="publishModal" class="modal">
 
     <div class="modal-content">
 
-      <div class="modal-header">
+        <div class="modal-header">
 
-        <h2>Publicar producto</h2>
+            <h2>Publicar producto</h2>
 
-        <button
-          class="close-button"
-          data-close-modal
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-
-      </div>
-
-
-      <form id="publishForm">
-
-        <!-- FOTOS -->
-        <div class="form-group">
-
-          <label>
-            Fotos del producto
-          </label>
-
-          <div
-            class="upload-box"
-            id="imageUploadBox"
-          >
-
-            <i class="fa-solid fa-camera"></i>
-
-            <strong>
-              Agregar fotos
-            </strong>
-
-            <span>
-              Puedes seleccionar varias
-            </span>
-
-            <input
-              type="file"
-              id="productImages"
-              accept="image/*"
-              multiple
-              hidden
-            >
-
-          </div>
-
-          <div
-            class="image-preview"
-            id="imagePreview"
-          ></div>
+            <button onclick="closeModal('publishModal')">
+                ✕
+            </button>
 
         </div>
 
+        <label>Nombre del producto</label>
 
-        <!-- VIDEO -->
-        <div class="form-group">
-
-          <label>
-            Video del producto
-          </label>
-
-          <div class="upload-box small">
-
-            <i class="fa-solid fa-video"></i>
-
-            <strong>
-              Agregar video
-            </strong>
-
-            <span>
-              Opcional
-            </span>
-
-            <input
-              type="file"
-              id="productVideo"
-              accept="video/*"
-              hidden
-            >
-
-          </div>
-
-        </div>
-
-
-        <!-- NOMBRE -->
-        <div class="form-group">
-
-          <label for="productName">
-            Nombre del producto
-          </label>
-
-          <input
+        <input
             type="text"
             id="productName"
-            placeholder="Ej. iPhone 15 Pro"
-            required
-          >
-
-        </div>
-
-
-        <!-- PRECIO -->
-        <div class="form-row">
-
-          <div class="form-group">
-
-            <label for="productPrice">
-              Precio
-            </label>
-
-            <input
-              type="number"
-              id="productPrice"
-              placeholder="0"
-              min="0"
-              step="0.01"
-              required
-            >
-
-          </div>
-
-
-          <div class="form-group">
-
-            <label for="productQuantity">
-              Cantidad
-            </label>
-
-            <input
-              type="number"
-              id="productQuantity"
-              placeholder="1"
-              min="1"
-              value="1"
-            >
-
-          </div>
-
-        </div>
-
-
-        <!-- CATEGORÍA -->
-        <div class="form-group">
-
-          <label for="productCategory">
-            Categoría
-          </label>
-
-          <select
-            id="productCategory"
-            required
-          >
-
-            <option value="">
-              Seleccionar categoría
-            </option>
-
-            <option value="Tecnología">
-              Tecnología
-            </option>
-
-            <option value="Vehículos">
-              Vehículos
-            </option>
-
-            <option value="Hogar">
-              Hogar
-            </option>
-
-            <option value="Ropa">
-              Ropa
-            </option>
-
-            <option value="Electrodomésticos">
-              Electrodomésticos
-            </option>
-
-            <option value="Servicios">
-              Servicios
-            </option>
-
-            <option value="Otros">
-              Otros
-            </option>
-
-          </select>
-
-        </div>
-
-
-        <!-- DESCRIPCIÓN -->
-        <div class="form-group">
-
-          <label for="productDescription">
-            Descripción
-          </label>
-
-          <textarea
-            id="productDescription"
-            rows="4"
-            placeholder="Describe tu producto..."
-            required
-          ></textarea>
-
-        </div>
-
-
-        <!-- UBICACIÓN -->
-        <div class="form-group">
-
-          <label for="productLocation">
-            Ubicación
-          </label>
-
-          <input
-            type="text"
-            id="productLocation"
-            placeholder="Ej. Santo Domingo Este"
-          >
-
-        </div>
-
-
-        <!-- CONTACTO -->
-        <div class="contact-options">
-
-          <h3>Opciones de contacto</h3>
-
-          <label class="switch-option">
-
-            <span>
-              <i class="fa-brands fa-whatsapp"></i>
-              Permitir WhatsApp
-            </span>
-
-            <input
-              type="checkbox"
-              id="allowWhatsapp"
-              checked
-            >
-
-          </label>
-
-
-          <label class="switch-option">
-
-            <span>
-              <i class="fa-solid fa-comments"></i>
-              Permitir chat interno
-            </span>
-
-            <input
-              type="checkbox"
-              id="allowChat"
-              checked
-            >
-
-          </label>
-
-        </div>
-
-
-        <!-- PREVISUALIZAR -->
-        <button
-          type="button"
-          class="secondary-button"
-          id="previewPublishButton"
+            placeholder="Ej: iPhone 15 Pro"
         >
-          <i class="fa-solid fa-eye"></i>
-          Previsualizar
-        </button>
 
+        <label>Precio</label>
 
-        <!-- PUBLICAR -->
-        <button
-          type="submit"
-          class="primary-button publish-submit"
+        <input
+            type="number"
+            id="productPrice"
+            placeholder="Precio en RD$"
         >
-          <i class="fa-solid fa-paper-plane"></i>
-          Publicar producto
-        </button>
 
-      </form>
+        <label>Categoría</label>
 
-    </div>
+        <select id="productCategory">
 
-  </div>
-
-
-  <!-- =========================
-       MODAL: PREVISUALIZACIÓN
-  ========================== -->
-  <div
-    class="modal"
-    id="previewModal"
-    hidden
-  >
-
-    <div class="modal-overlay" data-close-modal></div>
-
-    <div class="modal-content preview-modal">
-
-      <div class="modal-header">
-
-        <h2>Previsualización</h2>
-
-        <button
-          class="close-button"
-          data-close-modal
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-
-      </div>
-
-      <div id="previewContent"></div>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================
-       MODAL: PROMOCIÓN
-  ========================== -->
-  <div
-    class="modal"
-    id="promotionModal"
-    hidden
-  >
-
-    <div class="modal-overlay" data-close-modal></div>
-
-    <div class="modal-content">
-
-      <div class="modal-header">
-
-        <h2>Promocionar publicación</h2>
-
-        <button
-          class="close-button"
-          data-close-modal
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-
-      </div>
-
-
-      <div class="promotion-plans">
-
-        <button
-          class="promotion-plan"
-          data-plan="cheap"
-          data-price="199"
-        >
-          <strong>Plan Económico</strong>
-          <span>Mayor visibilidad</span>
-          <b>RD$199</b>
-        </button>
-
-
-        <button
-          class="promotion-plan"
-          data-plan="normal"
-          data-price="399"
-        >
-          <strong>Plan Normal</strong>
-          <span>Más alcance</span>
-          <b>RD$399</b>
-        </button>
-
-
-        <button
-          class="promotion-plan"
-          data-plan="pro"
-          data-price="799"
-        >
-          <strong>Plan Pro</strong>
-          <span>Máxima exposición</span>
-          <b>RD$799</b>
-        </button>
-
-      </div>
-
-
-      <div class="payment-section">
-
-        <h3>Método de pago</h3>
-
-        <select id="paymentMethod">
-
-          <option value="">
-            Seleccionar método
-          </option>
-
-          <option value="bank">
-            Transferencia bancaria
-          </option>
-
-          <option value="paypal">
-            PayPal
-          </option>
-
-          <option value="binance">
-            Binance
-          </option>
+            <option value="Tecnología">Tecnología</option>
+            <option value="Vehículos">Vehículos</option>
+            <option value="Hogar">Hogar</option>
+            <option value="Ropa">Ropa</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Otros">Otros</option>
 
         </select>
 
+        <label>Descripción</label>
 
-        <label class="receipt-upload">
+        <textarea
+            id="productDescription"
+            placeholder="Describe tu producto..."
+        ></textarea>
 
-          <i class="fa-solid fa-receipt"></i>
+        <label>Ubicación</label>
 
-          <span>
-            Subir comprobante de pago
-          </span>
+        <input
+            type="text"
+            id="productLocation"
+            placeholder="Ej: Santo Domingo"
+        >
 
-          <input
+        <label>Foto o video</label>
+
+        <input
             type="file"
-            id="paymentReceipt"
-            accept="image/*"
-            hidden
-          >
+            id="productMedia"
+            accept="image/*,video/*"
+            multiple
+        >
+
+        <label class="switch-row">
+
+            <span>
+                Permitir contacto por WhatsApp
+            </span>
+
+            <input
+                type="checkbox"
+                id="whatsappEnabled"
+                checked
+            >
 
         </label>
 
-
         <button
-          class="primary-button"
-          id="submitPromotion"
+            class="primary-button"
+            onclick="createProduct()"
         >
-          Enviar promoción para revisión
+            🚀 Publicar ahora
         </button>
-
-      </div>
 
     </div>
 
-  </div>
+</div>
 
 
-  <!-- =========================
-       MODAL: PERFIL
-  ========================== -->
-  <div
-    class="modal"
-    id="profileModal"
-    hidden
-  >
+<!-- MODAL PRODUCTO -->
 
-    <div class="modal-overlay" data-close-modal></div>
+<div id="productModal" class="modal">
 
     <div class="modal-content">
 
-      <div class="modal-header">
-
-        <h2>Mi perfil</h2>
-
-        <button
-          class="close-button"
-          data-close-modal
-        >
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-
-      </div>
-
-
-      <div class="profile-card">
-
-        <div class="profile-avatar">
-          <i class="fa-solid fa-user"></i>
-        </div>
-
-        <h3 id="profileName">
-          Usuario
-        </h3>
-
-        <p id="profileStatus">
-          En línea
-        </p>
-
-      </div>
-
-
-      <div class="profile-actions">
-
-        <button>
-          <i class="fa-solid fa-user-pen"></i>
-          Editar perfil
-        </button>
-
-        <button>
-          <i class="fa-solid fa-box"></i>
-          Mis publicaciones
-        </button>
-
-        <button>
-          <i class="fa-solid fa-chart-line"></i>
-          Mis estadísticas
-        </button>
-
-        <button>
-          <i class="fa-solid fa-gear"></i>
-          Configuración
-        </button>
-
-        <button class="danger-button">
-          <i class="fa-solid fa-trash"></i>
-          Eliminar cuenta
-        </button>
-
-      </div>
+        <div id="productDetails"></div>
 
     </div>
 
-  </div>
+</div>
 
 
-  <!-- =========================
-       NOTIFICACIONES
-  ========================== -->
-  <div
-    class="toast"
-    id="toast"
-    hidden
-  >
-    <i class="fa-solid fa-circle-check"></i>
-    <span id="toastMessage">
-      Operación realizada
-    </span>
-  </div>
+<!-- MODAL PERFIL -->
+
+<div id="profileModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Mi perfil</h2>
+
+            <button onclick="closeModal('profileModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <div class="profile-card">
+
+            <div class="profile-photo">
+                👤
+            </div>
+
+            <h3 id="profileName">
+                Usuario Market Flash
+            </h3>
+
+            <p id="profilePhone">
+                WhatsApp no configurado
+            </p>
+
+            <p class="online-status">
+                🟢 En línea
+            </p>
+
+        </div>
+
+        <button
+            class="secondary-button"
+            onclick="openStats()"
+        >
+            📊 Mis estadísticas
+        </button>
+
+        <button
+            class="secondary-button"
+            onclick="openPromotion()"
+        >
+            📢 Mis promociones
+        </button>
+
+        <button
+            class="secondary-button danger"
+            onclick="deleteAccount()"
+        >
+            🗑️ Eliminar cuenta
+        </button>
+
+    </div>
+
+</div>
 
 
-  <!-- =========================
-       JAVASCRIPT
-  ========================== -->
-  <script src="script.js"></script>
+<!-- MODAL FILTROS -->
+
+<div id="filterModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Filtros</h2>
+
+            <button onclick="closeModal('filterModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <label>Precio mínimo</label>
+
+        <input
+            type="number"
+            id="minPrice"
+            placeholder="RD$ 0"
+        >
+
+        <label>Precio máximo</label>
+
+        <input
+            type="number"
+            id="maxPrice"
+            placeholder="RD$ 999999"
+        >
+
+        <button
+            class="primary-button"
+            onclick="applyFilters()"
+        >
+            Aplicar filtros
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL PROMOCIÓN -->
+
+<div id="promotionModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Promocionar publicación</h2>
+
+            <button onclick="closeModal('promotionModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <p>
+            Selecciona el plan que deseas utilizar.
+        </p>
+
+        <div class="plans">
+
+            <div
+                class="plan"
+                onclick="selectPlan('Económico', 100)"
+            >
+                <h3>Económico</h3>
+                <strong>RD$100</strong>
+                <p>Promoción básica</p>
+            </div>
+
+            <div
+                class="plan featured-plan"
+                onclick="selectPlan('Normal', 250)"
+            >
+                <h3>Normal</h3>
+                <strong>RD$250</strong>
+                <p>Mayor alcance</p>
+            </div>
+
+            <div
+                class="plan"
+                onclick="selectPlan('Pro', 500)"
+            >
+                <h3>Pro</h3>
+                <strong>RD$500</strong>
+                <p>Máxima exposición</p>
+            </div>
+
+        </div>
+
+        <div id="paymentStep" class="hidden">
+
+            <h3>Método de pago</h3>
+
+            <select id="paymentMethod">
+
+                <option value="">
+                    Seleccionar método
+                </option>
+
+                <option value="Banco">
+                    Transferencia bancaria
+                </option>
+
+                <option value="PayPal">
+                    PayPal
+                </option>
+
+                <option value="Binance">
+                    Binance
+                </option>
+
+            </select>
+
+            <label>
+                Subir comprobante
+            </label>
+
+            <input
+                type="file"
+                id="paymentReceipt"
+                accept="image/*"
+            >
+
+            <button
+                class="primary-button"
+                onclick="submitPromotion()"
+            >
+                📤 Enviar comprobante
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL ESTADÍSTICAS -->
+
+<div id="statsModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Mis estadísticas</h2>
+
+            <button onclick="closeModal('statsModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <div class="stats-grid">
+
+            <div class="stat">
+                <strong id="totalViews">0</strong>
+                <span>Visualizaciones</span>
+            </div>
+
+            <div class="stat">
+                <strong id="totalLikes">0</strong>
+                <span>Me gusta</span>
+            </div>
+
+            <div class="stat">
+                <strong id="totalSaved">0</strong>
+                <span>Guardados</span>
+            </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0066ff">
+
+    <title>Market Flash</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="top-header">
+
+    <div class="brand">
+        <div class="brand-icon">⚡</div>
+
+        <div>
+            <h1>Market Flash</h1>
+            <span>Compra • Vende • Promociona</span>
+        </div>
+    </div>
+
+    <button class="notification-btn" onclick="showNotifications()">
+        🔔
+        <span id="notificationCount">0</span>
+    </button>
+
+</header>
+
+
+<main>
+
+    <!-- BUSCADOR -->
+
+    <section class="search-section">
+
+        <div class="search-box">
+            <span>🔎</span>
+
+            <input
+                type="text"
+                id="searchInput"
+                placeholder="¿Qué estás buscando?"
+                oninput="searchProducts()"
+            >
+
+            <button onclick="openFilters()">⚙️</button>
+        </div>
+
+    </section>
+
+
+    <!-- CATEGORÍAS -->
+
+    <section class="categories-section">
+
+        <div class="section-title">
+            <h2>Categorías</h2>
+            <button onclick="showAllProducts()">Ver todas</button>
+        </div>
+
+        <div class="categories">
+
+            <button onclick="filterCategory('Todos')">
+                🛍️ Todos
+            </button>
+
+            <button onclick="filterCategory('Tecnología')">
+                📱 Tecnología
+            </button>
+
+            <button onclick="filterCategory('Vehículos')">
+                🚗 Vehículos
+            </button>
+
+            <button onclick="filterCategory('Hogar')">
+                🏠 Hogar
+            </button>
+
+            <button onclick="filterCategory('Ropa')">
+                👕 Ropa
+            </button>
+
+            <button onclick="filterCategory('Servicios')">
+                🔧 Servicios
+            </button>
+
+            <button onclick="filterCategory('Otros')">
+                📦 Otros
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- PUBLICIDAD -->
+
+    <section id="advertisementSection" class="advertisement">
+
+        <div class="ad-label">
+            PUBLICIDAD
+        </div>
+
+        <div class="ad-content">
+
+            <div>
+                <strong>🚀 Promociona tu producto</strong>
+
+                <p>
+                    Haz que más personas vean tu publicación.
+                </p>
+            </div>
+
+            <button onclick="openPromotion()">
+                Promocionar
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- PRODUCTOS -->
+
+    <section class="products-section">
+
+        <div class="section-title">
+
+            <h2>Productos recientes</h2>
+
+            <button onclick="showAllProducts()">
+                Ver todos
+            </button>
+
+        </div>
+
+        <div id="productsGrid" class="products-grid"></div>
+
+    </section>
+
+</main>
+
+
+<!-- BOTÓN PUBLICAR -->
+
+<button class="publish-button" onclick="openPublishModal()">
+    <span>＋</span>
+    Publicar
+</button>
+
+
+<!-- NAVEGACIÓN -->
+
+<nav class="bottom-nav">
+
+    <button class="nav-item active" onclick="goHome()">
+        <span>🏠</span>
+        Inicio
+    </button>
+
+    <button class="nav-item" onclick="openMessages()">
+        <span>💬</span>
+        Chat
+    </button>
+
+    <button class="nav-item publish-nav" onclick="openPublishModal()">
+        <span>＋</span>
+    </button>
+
+    <button class="nav-item" onclick="openFavorites()">
+        <span>❤️</span>
+        Guardados
+    </button>
+
+    <button class="nav-item" onclick="openProfile()">
+        <span>👤</span>
+        Perfil
+    </button>
+
+</nav>
+
+
+<!-- MODAL PUBLICAR -->
+
+<div id="publishModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Publicar producto</h2>
+
+            <button onclick="closeModal('publishModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <label>Nombre del producto</label>
+
+        <input
+            type="text"
+            id="productName"
+            placeholder="Ej: iPhone 15 Pro"
+        >
+
+        <label>Precio</label>
+
+        <input
+            type="number"
+            id="productPrice"
+            placeholder="Precio en RD$"
+        >
+
+        <label>Categoría</label>
+
+        <select id="productCategory">
+
+            <option value="Tecnología">Tecnología</option>
+            <option value="Vehículos">Vehículos</option>
+            <option value="Hogar">Hogar</option>
+            <option value="Ropa">Ropa</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Otros">Otros</option>
+
+        </select>
+
+        <label>Descripción</label>
+
+        <textarea
+            id="productDescription"
+            placeholder="Describe tu producto..."
+        ></textarea>
+
+        <label>Ubicación</label>
+
+        <input
+            type="text"
+            id="productLocation"
+            placeholder="Ej: Santo Domingo"
+        >
+
+        <label>Foto o video</label>
+
+        <input
+            type="file"
+            id="productMedia"
+            accept="image/*,video/*"
+            multiple
+        >
+
+        <label class="switch-row">
+
+            <span>
+                Permitir contacto por WhatsApp
+            </span>
+
+            <input
+                type="checkbox"
+                id="whatsappEnabled"
+                checked
+            >
+
+        </label>
+
+        <button
+            class="primary-button"
+            onclick="createProduct()"
+        >
+            🚀 Publicar ahora
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL PRODUCTO -->
+
+<div id="productModal" class="modal">
+
+    <div class="modal-content">
+
+        <div id="productDetails"></div>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL PERFIL -->
+
+<div id="profileModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Mi perfil</h2>
+
+            <button onclick="closeModal('profileModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <div class="profile-card">
+
+            <div class="profile-photo">
+                👤
+            </div>
+
+            <h3 id="profileName">
+                Usuario Market Flash
+            </h3>
+
+            <p id="profilePhone">
+                WhatsApp no configurado
+            </p>
+
+            <p class="online-status">
+                🟢 En línea
+            </p>
+
+        </div>
+
+        <button
+            class="secondary-button"
+            onclick="openStats()"
+        >
+            📊 Mis estadísticas
+        </button>
+
+        <button
+            class="secondary-button"
+            onclick="openPromotion()"
+        >
+            📢 Mis promociones
+        </button>
+
+        <button
+            class="secondary-button danger"
+            onclick="deleteAccount()"
+        >
+            🗑️ Eliminar cuenta
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL FILTROS -->
+
+<div id="filterModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Filtros</h2>
+
+            <button onclick="closeModal('filterModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <label>Precio mínimo</label>
+
+        <input
+            type="number"
+            id="minPrice"
+            placeholder="RD$ 0"
+        >
+
+        <label>Precio máximo</label>
+
+        <input
+            type="number"
+            id="maxPrice"
+            placeholder="RD$ 999999"
+        >
+
+        <button
+            class="primary-button"
+            onclick="applyFilters()"
+        >
+            Aplicar filtros
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL PROMOCIÓN -->
+
+<div id="promotionModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Promocionar publicación</h2>
+
+            <button onclick="closeModal('promotionModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <p>
+            Selecciona el plan que deseas utilizar.
+        </p>
+
+        <div class="plans">
+
+            <div
+                class="plan"
+                onclick="selectPlan('Económico', 100)"
+            >
+                <h3>Económico</h3>
+                <strong>RD$100</strong>
+                <p>Promoción básica</p>
+            </div>
+
+            <div
+                class="plan featured-plan"
+                onclick="selectPlan('Normal', 250)"
+            >
+                <h3>Normal</h3>
+                <strong>RD$250</strong>
+                <p>Mayor alcance</p>
+            </div>
+
+            <div
+                class="plan"
+                onclick="selectPlan('Pro', 500)"
+            >
+                <h3>Pro</h3>
+                <strong>RD$500</strong>
+                <p>Máxima exposición</p>
+            </div>
+
+        </div>
+
+        <div id="paymentStep" class="hidden">
+
+            <h3>Método de pago</h3>
+
+            <select id="paymentMethod">
+
+                <option value="">
+                    Seleccionar método
+                </option>
+
+                <option value="Banco">
+                    Transferencia bancaria
+                </option>
+
+                <option value="PayPal">
+                    PayPal
+                </option>
+
+                <option value="Binance">
+                    Binance
+                </option>
+
+            </select>
+
+            <label>
+                Subir comprobante
+            </label>
+
+            <input
+                type="file"
+                id="paymentReceipt"
+                accept="image/*"
+            >
+
+            <button
+                class="primary-button"
+                onclick="submitPromotion()"
+            >
+                📤 Enviar comprobante
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- MODAL ESTADÍSTICAS -->
+
+<div id="statsModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Mis estadísticas</h2>
+
+            <button onclick="closeModal('statsModal')">
+                ✕
+            </button>
+
+        </div>
+
+        <div class="stats-grid">
+
+            <div class="stat">
+                <strong id="totalViews">0</strong>
+                <span>Visualizaciones</span>
+            </div>
+
+            <div class="stat">
+                <strong id="totalLikes">0</strong>
+                <span>Me gusta</span>
+            </div>
+
+            <div class="stat">
+                <strong id="totalSaved">0</strong>
+                <span>Guardados</span>
+            </div>
+
+            <div class="stat">
+                <strong id="profileVisits">0</strong>
+                <span>Visitas al perfil</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
+            <div class="stat">
+                <strong id="profileVisits">0</strong>
+                <span>Visitas al perfil</span>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script src="script.js"></script>
 
 </body>
 </html>
