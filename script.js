@@ -9,7 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const registerScreen = document.getElementById("register-screen");
     const dashboardScreen = document.getElementById("dashboard-screen");
 
+
     function showScreen(screen) {
+
         if (!screen) return;
 
         [
@@ -18,7 +20,11 @@ document.addEventListener("DOMContentLoaded", () => {
             registerScreen,
             dashboardScreen
         ].forEach((item) => {
-            if (item) item.classList.remove("active");
+
+            if (item) {
+                item.classList.remove("active");
+            }
+
         });
 
         screen.classList.add("active");
@@ -30,14 +36,23 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     function getSavedUser() {
-        const savedUser = localStorage.getItem("marketFlashUser");
+
+        const savedUser =
+            localStorage.getItem("marketFlashUser");
 
         if (!savedUser) return null;
 
         try {
+
             return JSON.parse(savedUser);
+
         } catch (error) {
-            console.error("Error leyendo usuario:", error);
+
+            console.error(
+                "Error leyendo usuario:",
+                error
+            );
+
             return null;
         }
     }
@@ -48,6 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const user = getSavedUser();
 
         if (!user) return;
+
 
         const dashboardUserName =
             document.getElementById("dashboard-user-name");
@@ -64,27 +80,37 @@ document.addEventListener("DOMContentLoaded", () => {
         const profilePhone =
             document.getElementById("profile-user-phone");
 
+
         if (dashboardUserName) {
+
             dashboardUserName.textContent =
                 user.name || "Usuario";
         }
 
+
         if (userNameDisplay) {
+
             userNameDisplay.textContent =
                 user.name || "Usuario";
         }
 
+
         if (profileName) {
+
             profileName.textContent =
                 user.name || "Usuario";
         }
 
+
         if (profileCedula) {
+
             profileCedula.textContent =
                 user.cedula || "—";
         }
 
+
         if (profilePhone) {
+
             profilePhone.textContent =
                 user.phone || "—";
         }
@@ -93,7 +119,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function logout() {
 
-        localStorage.removeItem("marketFlashLoggedIn");
+        localStorage.removeItem(
+            "marketFlashLoggedIn"
+        );
 
         closeAllPanels();
 
@@ -107,17 +135,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function closeAllPanels() {
 
-        const panels = document.querySelectorAll(".modal-panel");
+        const panels =
+            document.querySelectorAll(".modal-panel");
 
         panels.forEach((panel) => {
+
             panel.classList.remove("open");
+
         });
+
 
         const settingsPanel =
             document.getElementById("settings-panel");
 
+
         if (settingsPanel) {
+
             settingsPanel.classList.remove("open");
+
         }
     }
 
@@ -140,30 +175,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     if (loginButton) {
-        loginButton.addEventListener("click", () => {
-            showScreen(loginScreen);
-        });
+
+        loginButton.addEventListener(
+            "click",
+            () => {
+
+                showScreen(loginScreen);
+
+            }
+        );
+
     }
 
 
     if (registerButton) {
-        registerButton.addEventListener("click", () => {
-            showScreen(registerScreen);
-        });
+
+        registerButton.addEventListener(
+            "click",
+            () => {
+
+                showScreen(registerScreen);
+
+            }
+        );
+
     }
 
 
     if (backFromLogin) {
-        backFromLogin.addEventListener("click", () => {
-            showScreen(welcomeScreen);
-        });
+
+        backFromLogin.addEventListener(
+            "click",
+            () => {
+
+                showScreen(welcomeScreen);
+
+            }
+        );
+
     }
 
 
     if (backFromRegister) {
-        backFromRegister.addEventListener("click", () => {
-            showScreen(welcomeScreen);
-        });
+
+        backFromRegister.addEventListener(
+            "click",
+            () => {
+
+                showScreen(welcomeScreen);
+
+            }
+        );
+
     }
 
 
@@ -177,81 +240,117 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (registerForm) {
 
-        registerForm.addEventListener("submit", (event) => {
+        registerForm.addEventListener(
+            "submit",
+            (event) => {
 
-            event.preventDefault();
-
-            const name =
-                document.getElementById("register-name").value.trim();
-
-            const cedula =
-                document.getElementById("register-cedula").value.trim();
-
-            const phone =
-                document.getElementById("register-phone").value.trim();
-
-            const password =
-                document.getElementById("register-password").value;
-
-            const passwordConfirm =
-                document.getElementById("register-password-confirm").value;
+                event.preventDefault();
 
 
-            if (
-                !name ||
-                !cedula ||
-                !phone ||
-                !password ||
-                !passwordConfirm
-            ) {
-                alert("Completa todos los campos.");
-                return;
+                const name =
+                    document
+                        .getElementById("register-name")
+                        .value
+                        .trim();
+
+
+                const cedula =
+                    document
+                        .getElementById("register-cedula")
+                        .value
+                        .trim();
+
+
+                const phone =
+                    document
+                        .getElementById("register-phone")
+                        .value
+                        .trim();
+
+
+                const password =
+                    document
+                        .getElementById("register-password")
+                        .value;
+
+
+                const passwordConfirm =
+                    document
+                        .getElementById("register-password-confirm")
+                        .value;
+
+
+                if (
+                    !name ||
+                    !cedula ||
+                    !phone ||
+                    !password ||
+                    !passwordConfirm
+                ) {
+
+                    alert(
+                        "Completa todos los campos."
+                    );
+
+                    return;
+                }
+
+
+                if (password !== passwordConfirm) {
+
+                    alert(
+                        "Las contraseñas no coinciden."
+                    );
+
+                    return;
+                }
+
+
+                if (password.length < 6) {
+
+                    alert(
+                        "La contraseña debe tener al menos 6 caracteres."
+                    );
+
+                    return;
+                }
+
+
+                const user = {
+
+                    name,
+                    cedula,
+                    phone,
+                    password
+
+                };
+
+
+                localStorage.setItem(
+                    "marketFlashUser",
+                    JSON.stringify(user)
+                );
+
+
+                localStorage.setItem(
+                    "marketFlashLoggedIn",
+                    "true"
+                );
+
+
+                registerForm.reset();
+
+                updateUserInformation();
+
+                showScreen(dashboardScreen);
+
+
+                alert(
+                    "¡Cuenta creada correctamente! Bienvenido a Market Flash."
+                );
+
             }
-
-
-            if (password !== passwordConfirm) {
-                alert("Las contraseñas no coinciden.");
-                return;
-            }
-
-
-            if (password.length < 6) {
-                alert("La contraseña debe tener al menos 6 caracteres.");
-                return;
-            }
-
-
-            const user = {
-                name,
-                cedula,
-                phone,
-                password
-            };
-
-
-            localStorage.setItem(
-                "marketFlashUser",
-                JSON.stringify(user)
-            );
-
-
-            localStorage.setItem(
-                "marketFlashLoggedIn",
-                "true"
-            );
-
-
-            registerForm.reset();
-
-            updateUserInformation();
-
-            showScreen(dashboardScreen);
-
-            alert(
-                "¡Cuenta creada correctamente! Bienvenido a Market Flash."
-            );
-
-        });
+        );
 
     }
 
@@ -266,52 +365,67 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (loginForm) {
 
-        loginForm.addEventListener("submit", (event) => {
+        loginForm.addEventListener(
+            "submit",
+            (event) => {
 
-            event.preventDefault();
-
-            const cedula =
-                document.getElementById("login-cedula").value.trim();
-
-            const password =
-                document.getElementById("login-password").value;
-
-            const user = getSavedUser();
+                event.preventDefault();
 
 
-            if (!user) {
-                alert(
-                    "No existe una cuenta registrada. Primero crea una cuenta."
-                );
-                return;
+                const cedula =
+                    document
+                        .getElementById("login-cedula")
+                        .value
+                        .trim();
+
+
+                const password =
+                    document
+                        .getElementById("login-password")
+                        .value;
+
+
+                const user =
+                    getSavedUser();
+
+
+                if (!user) {
+
+                    alert(
+                        "No existe una cuenta registrada. Primero crea una cuenta."
+                    );
+
+                    return;
+                }
+
+
+                if (
+                    cedula === user.cedula &&
+                    password === user.password
+                ) {
+
+                    localStorage.setItem(
+                        "marketFlashLoggedIn",
+                        "true"
+                    );
+
+
+                    loginForm.reset();
+
+                    updateUserInformation();
+
+                    showScreen(dashboardScreen);
+
+                } else {
+
+                    alert(
+                        "La cédula o la contraseña son incorrectas."
+                    );
+
+                }
+
             }
-
-
-            if (
-                cedula === user.cedula &&
-                password === user.password
-            ) {
-
-                localStorage.setItem(
-                    "marketFlashLoggedIn",
-                    "true"
-                );
-
-                loginForm.reset();
-
-                updateUserInformation();
-
-                showScreen(dashboardScreen);
-
-            } else {
-
-                alert(
-                    "La cédula o la contraseña son incorrectas."
-                );
-
-            }
-
-        });
+        );
 
     }
 
@@ -332,28 +446,126 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (promoteButton) {
 
-        promoteButton.addEventListener("click", () => {
+        promoteButton.addEventListener(
+            "click",
+            () => {
 
-            if (promotionPanel) {
-                promotionPanel.classList.add("open");
+                if (promotionPanel) {
+
+                    promotionPanel.classList.add("open");
+
+                }
+
             }
-
-        });
+        );
 
     }
 
 
     if (closePromotionPanel) {
 
-        closePromotionPanel.addEventListener("click", () => {
+        closePromotionPanel.addEventListener(
+            "click",
+            () => {
 
-            if (promotionPanel) {
-                promotionPanel.classList.remove("open");
+                if (promotionPanel) {
+
+                    promotionPanel.classList.remove("open");
+
+                }
+
             }
-
-        });
+        );
 
     }
+
+
+    // =====================================================
+    // PANEL DE MEMBRESÍAS
+    // =====================================================
+
+    const membershipPanel =
+        document.getElementById("membership-panel");
+
+    const closeMembershipPanel =
+        document.getElementById("close-membership-panel");
+
+
+    if (closeMembershipPanel) {
+
+        closeMembershipPanel.addEventListener(
+            "click",
+            () => {
+
+                if (membershipPanel) {
+
+                    membershipPanel.classList.remove("open");
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // =====================================================
+    // DATOS DE MEMBRESÍAS
+    // =====================================================
+
+    const membershipPlans = {
+
+        basica: {
+
+            id: "basica",
+
+            name: "Básica",
+
+            price: null,
+
+            description:
+                "Promoción destacada"
+
+        },
+
+
+        premium: {
+
+            id: "premium",
+
+            name: "Premium",
+
+            price: null,
+
+            description:
+                "Mayor prioridad y visibilidad"
+
+        },
+
+
+        vip: {
+
+            id: "vip",
+
+            name: "VIP",
+
+            price: null,
+
+            description:
+                "Máxima prioridad y visibilidad"
+
+        }
+
+    };
+
+
+    // =====================================================
+    // VARIABLES DE PROMOCIÓN
+    // =====================================================
+
+    let promotionFiles = [];
+
+    let pendingPromotion = null;
 
 
     // =====================================================
@@ -361,212 +573,306 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const promotionCameraButton =
-        document.getElementById("promotion-camera-button");
+        document.getElementById(
+            "promotion-camera-button"
+        );
+
 
     const promotionGalleryButton =
-        document.getElementById("promotion-gallery-button");
+        document.getElementById(
+            "promotion-gallery-button"
+        );
+
 
     const promotionCameraPhotoInput =
-        document.getElementById("promotion-camera-photo-input");
+        document.getElementById(
+            "promotion-camera-photo-input"
+        );
+
 
     const promotionCameraVideoInput =
-        document.getElementById("promotion-camera-video-input");
+        document.getElementById(
+            "promotion-camera-video-input"
+        );
+
 
     const promotionGalleryInput =
-        document.getElementById("promotion-gallery-input");
+        document.getElementById(
+            "promotion-gallery-input"
+        );
+
 
     const promotionMediaPreview =
-        document.getElementById("promotion-media-preview");
+        document.getElementById(
+            "promotion-media-preview"
+        );
 
 
-    let promotionFiles = [];
-
+    // =====================================================
+    // BOTÓN CÁMARA
+    // =====================================================
 
     if (promotionCameraButton) {
 
-        promotionCameraButton.addEventListener("click", () => {
+        promotionCameraButton.addEventListener(
+            "click",
+            () => {
 
-            const choice = confirm(
-                "Pulsa ACEPTAR para tomar una FOTO.\n\n" +
-                "Pulsa CANCELAR para grabar un VIDEO."
-            );
+                const choice = confirm(
+                    "Pulsa ACEPTAR para tomar una FOTO.\n\n" +
+                    "Pulsa CANCELAR para grabar un VIDEO."
+                );
 
-            if (choice) {
 
-                if (promotionCameraPhotoInput) {
-                    promotionCameraPhotoInput.click();
-                }
+                if (choice) {
 
-            } else {
+                    if (promotionCameraPhotoInput) {
 
-                if (promotionCameraVideoInput) {
-                    promotionCameraVideoInput.click();
+                        promotionCameraPhotoInput.value = "";
+
+                        promotionCameraPhotoInput.click();
+
+                    }
+
+                } else {
+
+                    if (promotionCameraVideoInput) {
+
+                        promotionCameraVideoInput.value = "";
+
+                        promotionCameraVideoInput.click();
+
+                    }
+
                 }
 
             }
-
-        });
+        );
 
     }
 
+
+    // =====================================================
+    // BOTÓN GALERÍA
+    // =====================================================
 
     if (promotionGalleryButton) {
 
-        promotionGalleryButton.addEventListener("click", () => {
+        promotionGalleryButton.addEventListener(
+            "click",
+            () => {
 
-            if (promotionGalleryInput) {
-                promotionGalleryInput.click();
+                if (promotionGalleryInput) {
+
+                    promotionGalleryInput.value = "";
+
+                    promotionGalleryInput.click();
+
+                }
+
             }
-
-        });
+        );
 
     }
 
 
+    // =====================================================
+    // AGREGAR ARCHIVOS
+    // =====================================================
+
     function addPromotionFiles(files) {
 
-        if (!files || !files.length) return;
+        if (!files || !files.length) {
+            return;
+        }
+
+
+        const newFiles =
+            Array.from(files);
+
 
         promotionFiles = [
             ...promotionFiles,
-            ...Array.from(files)
+            ...newFiles
         ];
+
 
         renderPromotionPreview();
     }
 
 
+    // =====================================================
+    // MOSTRAR PREVISUALIZACIÓN
+    // =====================================================
+
     function renderPromotionPreview() {
 
-        if (!promotionMediaPreview) return;
+        if (!promotionMediaPreview) {
+            return;
+        }
+
 
         promotionMediaPreview.innerHTML = "";
 
-        promotionFiles.forEach((file) => {
 
-            const url = URL.createObjectURL(file);
+        if (!promotionFiles.length) {
+            return;
+        }
 
-            if (file.type.startsWith("image/")) {
 
-                const image = document.createElement("img");
+        const counter =
+            document.createElement("div");
 
-                image.src = url;
 
-                image.alt = "Material de promoción";
+        counter.className =
+            "media-count";
 
-                promotionMediaPreview.appendChild(image);
 
-            } else if (file.type.startsWith("video/")) {
+        counter.textContent =
+            `${promotionFiles.length} archivo(s) seleccionado(s)`;
 
-                const video = document.createElement("video");
 
-                video.src = url;
+        promotionMediaPreview.appendChild(
+            counter
+        );
 
-                video.controls = true;
 
-                video.playsInline = true;
+        promotionFiles.forEach(
+            (file, index) => {
 
-                promotionMediaPreview.appendChild(video);
+                const mediaItem =
+                    document.createElement("div");
+
+
+                mediaItem.className =
+                    "promotion-media-item";
+
+
+                const url =
+                    URL.createObjectURL(file);
+
+
+                if (
+                    file.type.startsWith("image/")
+                ) {
+
+                    const image =
+                        document.createElement("img");
+
+
+                    image.src = url;
+
+                    image.alt =
+                        "Material de promoción";
+
+
+                    mediaItem.appendChild(
+                        image
+                    );
+
+
+                } else if (
+                    file.type.startsWith("video/")
+                ) {
+
+                    const video =
+                        document.createElement("video");
+
+
+                    video.src = url;
+
+                    video.controls = true;
+
+                    video.playsInline = true;
+
+
+                    mediaItem.appendChild(
+                        video
+                    );
+
+                }
+
+
+                const number =
+                    document.createElement("span");
+
+
+                number.className =
+                    "media-number";
+
+
+                number.textContent =
+                    index + 1;
+
+
+                mediaItem.appendChild(
+                    number
+                );
+
+
+                promotionMediaPreview.appendChild(
+                    mediaItem
+                );
 
             }
-
-        });
+        );
 
     }
 
+
+    // =====================================================
+    // CÁMARA FOTO
+    // =====================================================
 
     if (promotionCameraPhotoInput) {
 
         promotionCameraPhotoInput.addEventListener(
             "change",
             (event) => {
-                addPromotionFiles(event.target.files);
+
+                addPromotionFiles(
+                    event.target.files
+                );
+
             }
         );
 
     }
 
+
+    // =====================================================
+    // CÁMARA VIDEO
+    // =====================================================
 
     if (promotionCameraVideoInput) {
 
         promotionCameraVideoInput.addEventListener(
             "change",
             (event) => {
-                addPromotionFiles(event.target.files);
+
+                addPromotionFiles(
+                    event.target.files
+                );
+
             }
         );
 
     }
 
+
+    // =====================================================
+    // GALERÍA MÚLTIPLE
+    // =====================================================
 
     if (promotionGalleryInput) {
 
         promotionGalleryInput.addEventListener(
             "change",
             (event) => {
-                addPromotionFiles(event.target.files);
-            }
-        );
 
-    }
-
-
-    // =====================================================
-    // COMPROBANTE DE PAGO
-    // =====================================================
-
-    const paymentProofButton =
-        document.getElementById("payment-proof-button");
-
-    const paymentProofInput =
-        document.getElementById("payment-proof-input");
-
-    const paymentProofPreview =
-        document.getElementById("payment-proof-preview");
-
-
-    let paymentProofFile = null;
-
-
-    if (paymentProofButton) {
-
-        paymentProofButton.addEventListener("click", () => {
-
-            if (paymentProofInput) {
-                paymentProofInput.click();
-            }
-
-        });
-
-    }
-
-
-    if (paymentProofInput) {
-
-        paymentProofInput.addEventListener(
-            "change",
-            (event) => {
-
-                const file = event.target.files[0];
-
-                if (!file) return;
-
-                paymentProofFile = file;
-
-                if (!paymentProofPreview) return;
-
-                paymentProofPreview.innerHTML = "";
-
-                const image =
-                    document.createElement("img");
-
-                image.src =
-                    URL.createObjectURL(file);
-
-                image.alt =
-                    "Comprobante de pago";
-
-                paymentProofPreview.appendChild(image);
+                addPromotionFiles(
+                    event.target.files
+                );
 
             }
         );
@@ -579,131 +885,311 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const promotionForm =
-        document.getElementById("promotion-form");
+        document.getElementById(
+            "promotion-form"
+        );
 
 
     if (promotionForm) {
 
-        promotionForm.addEventListener("submit", (event) => {
+        promotionForm.addEventListener(
+            "submit",
+            (event) => {
 
-            event.preventDefault();
-
-
-            const title =
-                document.getElementById("promotion-title").value.trim();
-
-            const description =
-                document.getElementById("promotion-description").value.trim();
-
-            const price =
-                document.getElementById("promotion-price").value.trim();
-
-            const contact =
-                document.getElementById("promotion-contact").value.trim();
+                event.preventDefault();
 
 
-            if (!promotionFiles.length) {
+                const title =
+                    document
+                        .getElementById("promotion-title")
+                        .value
+                        .trim();
 
-                alert(
-                    "Debes agregar una foto o video para la promoción."
-                );
 
-                return;
+                const description =
+                    document
+                        .getElementById("promotion-description")
+                        .value
+                        .trim();
+
+
+                const price =
+                    document
+                        .getElementById("promotion-price")
+                        .value
+                        .trim();
+
+
+                const contact =
+                    document
+                        .getElementById("promotion-contact")
+                        .value
+                        .trim();
+
+
+                // -----------------------------------------
+                // VALIDAR MATERIAL
+                // -----------------------------------------
+
+                if (!promotionFiles.length) {
+
+                    alert(
+                        "Debes agregar al menos una foto o un video para la promoción."
+                    );
+
+                    return;
+                }
+
+
+                // -----------------------------------------
+                // VALIDAR INFORMACIÓN
+                // -----------------------------------------
+
+                if (
+                    !title ||
+                    !description ||
+                    !contact
+                ) {
+
+                    alert(
+                        "Completa la información de la promoción."
+                    );
+
+                    return;
+                }
+
+
+                // -----------------------------------------
+                // GUARDAR PROMOCIÓN PENDIENTE
+                // -----------------------------------------
+
+                pendingPromotion = {
+
+                    id: Date.now(),
+
+                    user: getSavedUser(),
+
+                    title,
+
+                    description,
+
+                    price,
+
+                    contact,
+
+                    mediaCount:
+                        promotionFiles.length,
+
+                    mediaFiles:
+                        [...promotionFiles],
+
+                    status:
+                        "Esperando membresía",
+
+                    createdAt:
+                        new Date().toISOString()
+
+                };
+
+
+                // -----------------------------------------
+                // CERRAR FORMULARIO
+                // -----------------------------------------
+
+                if (promotionPanel) {
+
+                    promotionPanel.classList.remove(
+                        "open"
+                    );
+
+                }
+
+
+                // -----------------------------------------
+                // ABRIR MEMBRESÍAS
+                // -----------------------------------------
+
+                if (membershipPanel) {
+
+                    membershipPanel.classList.add(
+                        "open"
+                    );
+
+                }
 
             }
-
-
-            if (!title || !description || !contact) {
-
-                alert(
-                    "Completa la información de la promoción."
-                );
-
-                return;
-
-            }
-
-
-            if (!paymentProofFile) {
-
-                alert(
-                    "Debes adjuntar el comprobante de pago."
-                );
-
-                return;
-
-            }
-
-
-            /*
-             * ETAPA 1
-             *
-             * Aquí solamente preparamos la solicitud.
-             *
-             * En la siguiente etapa conectaremos esto
-             * con una base de datos para que llegue
-             * realmente al panel del administrador.
-             */
-
-            const promotionRequest = {
-
-                id: Date.now(),
-
-                user: getSavedUser(),
-
-                title,
-
-                description,
-
-                price,
-
-                contact,
-
-                mediaCount: promotionFiles.length,
-
-                paymentProof: paymentProofFile.name,
-
-                status: "Pendiente",
-
-                createdAt: new Date().toISOString()
-
-            };
-
-
-            console.log(
-                "SOLICITUD DE PROMOCIÓN:",
-                promotionRequest
-            );
-
-
-            alert(
-                "Solicitud preparada correctamente.\n\n" +
-                "En la siguiente etapa conectaremos el envío " +
-                "con el panel del administrador."
-            );
-
-
-            promotionForm.reset();
-
-            promotionFiles = [];
-
-            paymentProofFile = null;
-
-            if (promotionMediaPreview) {
-                promotionMediaPreview.innerHTML = "";
-            }
-
-            if (paymentProofPreview) {
-                paymentProofPreview.innerHTML = "";
-            }
-
-            if (promotionPanel) {
-                promotionPanel.classList.remove("open");
-            }
-
-        });
+        );
 
     }
+
+
+    // =====================================================
+    // SELECCIONAR MEMBRESÍA
+    // =====================================================
+
+    const membershipCards =
+        document.querySelectorAll(
+            ".membership-card"
+        );
+
+
+    membershipCards.forEach(
+        (card) => {
+
+            card.addEventListener(
+                "click",
+                () => {
+
+                    const membershipId =
+                        card.dataset.membership;
+
+
+                    const selectedPlan =
+                        membershipPlans[
+                            membershipId
+                        ];
+
+
+                    if (!selectedPlan) {
+
+                        alert(
+                            "No se pudo encontrar esta membresía."
+                        );
+
+                        return;
+                    }
+
+
+                    if (!pendingPromotion) {
+
+                        alert(
+                            "No hay una promoción pendiente."
+                        );
+
+                        return;
+                    }
+
+
+                    // -------------------------------------
+                    // ASIGNAR MEMBRESÍA
+                    // -------------------------------------
+
+                    pendingPromotion.membership = {
+
+                        id:
+                            selectedPlan.id,
+
+                        name:
+                            selectedPlan.name,
+
+                        price:
+                            selectedPlan.price,
+
+                        description:
+                            selectedPlan.description
+
+                    };
+
+
+                    pendingPromotion.status =
+                        "Membresía seleccionada";
+
+
+                    pendingPromotion.updatedAt =
+                        new Date().toISOString();
+
+
+                    // -------------------------------------
+                    // GUARDAR TEMPORALMENTE
+                    // -------------------------------------
+
+                    localStorage.setItem(
+                        "marketFlashPendingPromotion",
+                        JSON.stringify({
+                            id:
+                                pendingPromotion.id,
+
+                            user:
+                                pendingPromotion.user,
+
+                            title:
+                                pendingPromotion.title,
+
+                            description:
+                                pendingPromotion.description,
+
+                            price:
+                                pendingPromotion.price,
+
+                            contact:
+                                pendingPromotion.contact,
+
+                            mediaCount:
+                                pendingPromotion.mediaCount,
+
+                            membership:
+                                pendingPromotion.membership,
+
+                            status:
+                                pendingPromotion.status,
+
+                            createdAt:
+                                pendingPromotion.createdAt,
+
+                            updatedAt:
+                                pendingPromotion.updatedAt
+                        })
+                    );
+
+
+                    // -------------------------------------
+                    // MOSTRAR RESULTADO
+                    // -------------------------------------
+
+                    alert(
+                        "Membresía seleccionada: " +
+                        selectedPlan.name +
+                        ".\n\n" +
+                        "La siguiente etapa será el proceso de pago."
+                    );
+
+
+                    if (membershipPanel) {
+
+                        membershipPanel.classList.remove(
+                            "open"
+                        );
+
+                    }
+
+
+                    // -------------------------------------
+                    // MOSTRAR EN CONSOLA
+                    // -------------------------------------
+
+                    console.log(
+                        "PROMOCIÓN:",
+                        pendingPromotion
+                    );
+
+
+                    /*
+                     * IMPORTANTE
+                     *
+                     * En esta etapa los archivos de imagen
+                     * y video están disponibles en memoria
+                     * para el proceso actual.
+                     *
+                     * Más adelante conectaremos el proyecto
+                     * con almacenamiento/base de datos para
+                     * enviar realmente estos archivos al servidor.
+                     */
+
+                }
+            );
+
+        }
+    );
 
 
     // =====================================================
@@ -711,37 +1197,59 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const createPublicationButton =
-        document.getElementById("create-publication-button");
+        document.getElementById(
+            "create-publication-button"
+        );
+
 
     const publicationPanel =
-        document.getElementById("publication-panel");
+        document.getElementById(
+            "publication-panel"
+        );
+
 
     const closePublicationPanel =
-        document.getElementById("close-publication-panel");
+        document.getElementById(
+            "close-publication-panel"
+        );
 
 
     if (createPublicationButton) {
 
-        createPublicationButton.addEventListener("click", () => {
+        createPublicationButton.addEventListener(
+            "click",
+            () => {
 
-            if (publicationPanel) {
-                publicationPanel.classList.add("open");
+                if (publicationPanel) {
+
+                    publicationPanel.classList.add(
+                        "open"
+                    );
+
+                }
+
             }
-
-        });
+        );
 
     }
 
 
     if (closePublicationPanel) {
 
-        closePublicationPanel.addEventListener("click", () => {
+        closePublicationPanel.addEventListener(
+            "click",
+            () => {
 
-            if (publicationPanel) {
-                publicationPanel.classList.remove("open");
+                if (publicationPanel) {
+
+                    publicationPanel.classList.remove(
+                        "open"
+                    );
+
+                }
+
             }
-
-        });
+        );
 
     }
 
@@ -751,19 +1259,33 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const publicationCameraButton =
-        document.getElementById("publication-camera-button");
+        document.getElementById(
+            "publication-camera-button"
+        );
+
 
     const publicationGalleryButton =
-        document.getElementById("publication-gallery-button");
+        document.getElementById(
+            "publication-gallery-button"
+        );
+
 
     const publicationCameraInput =
-        document.getElementById("publication-camera-input");
+        document.getElementById(
+            "publication-camera-input"
+        );
+
 
     const publicationGalleryInput =
-        document.getElementById("publication-gallery-input");
+        document.getElementById(
+            "publication-gallery-input"
+        );
+
 
     const publicationMediaPreview =
-        document.getElementById("publication-media-preview");
+        document.getElementById(
+            "publication-media-preview"
+        );
 
 
     let publicationFiles = [];
@@ -771,38 +1293,59 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (publicationCameraButton) {
 
-        publicationCameraButton.addEventListener("click", () => {
+        publicationCameraButton.addEventListener(
+            "click",
+            () => {
 
-            if (publicationCameraInput) {
-                publicationCameraInput.click();
+                if (publicationCameraInput) {
+
+                    publicationCameraInput.value = "";
+
+                    publicationCameraInput.click();
+
+                }
+
             }
-
-        });
+        );
 
     }
 
 
     if (publicationGalleryButton) {
 
-        publicationGalleryButton.addEventListener("click", () => {
+        publicationGalleryButton.addEventListener(
+            "click",
+            () => {
 
-            if (publicationGalleryInput) {
-                publicationGalleryInput.click();
+                if (publicationGalleryInput) {
+
+                    publicationGalleryInput.value = "";
+
+                    publicationGalleryInput.click();
+
+                }
+
             }
-
-        });
+        );
 
     }
 
 
     function addPublicationFiles(files) {
 
-        if (!files || !files.length) return;
+        if (!files || !files.length) {
+            return;
+        }
+
 
         publicationFiles = [
+
             ...publicationFiles,
+
             ...Array.from(files)
+
         ];
+
 
         renderPublicationPreview();
     }
@@ -810,41 +1353,63 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function renderPublicationPreview() {
 
-        if (!publicationMediaPreview) return;
+        if (!publicationMediaPreview) {
+            return;
+        }
+
 
         publicationMediaPreview.innerHTML = "";
 
-        publicationFiles.forEach((file) => {
 
-            const url = URL.createObjectURL(file);
+        publicationFiles.forEach(
+            (file) => {
 
-            if (file.type.startsWith("image/")) {
+                const url =
+                    URL.createObjectURL(file);
 
-                const image =
-                    document.createElement("img");
 
-                image.src = url;
+                if (
+                    file.type.startsWith("image/")
+                ) {
 
-                image.alt = "Imagen de publicación";
+                    const image =
+                        document.createElement("img");
 
-                publicationMediaPreview.appendChild(image);
 
-            } else if (file.type.startsWith("video/")) {
+                    image.src = url;
 
-                const video =
-                    document.createElement("video");
+                    image.alt =
+                        "Imagen de publicación";
 
-                video.src = url;
 
-                video.controls = true;
+                    publicationMediaPreview.appendChild(
+                        image
+                    );
 
-                video.playsInline = true;
 
-                publicationMediaPreview.appendChild(video);
+                } else if (
+                    file.type.startsWith("video/")
+                ) {
+
+                    const video =
+                        document.createElement("video");
+
+
+                    video.src = url;
+
+                    video.controls = true;
+
+                    video.playsInline = true;
+
+
+                    publicationMediaPreview.appendChild(
+                        video
+                    );
+
+                }
 
             }
-
-        });
+        );
 
     }
 
@@ -854,7 +1419,11 @@ document.addEventListener("DOMContentLoaded", () => {
         publicationCameraInput.addEventListener(
             "change",
             (event) => {
-                addPublicationFiles(event.target.files);
+
+                addPublicationFiles(
+                    event.target.files
+                );
+
             }
         );
 
@@ -866,7 +1435,11 @@ document.addEventListener("DOMContentLoaded", () => {
         publicationGalleryInput.addEventListener(
             "change",
             (event) => {
-                addPublicationFiles(event.target.files);
+
+                addPublicationFiles(
+                    event.target.files
+                );
+
             }
         );
 
@@ -878,86 +1451,119 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const publicationForm =
-        document.getElementById("publication-form");
+        document.getElementById(
+            "publication-form"
+        );
 
 
     if (publicationForm) {
 
-        publicationForm.addEventListener("submit", (event) => {
+        publicationForm.addEventListener(
+            "submit",
+            (event) => {
 
-            event.preventDefault();
-
-
-            const title =
-                document.getElementById("publication-title").value.trim();
-
-            const description =
-                document.getElementById("publication-description").value.trim();
-
-            const price =
-                document.getElementById("publication-price").value.trim();
-
-            const contact =
-                document.getElementById("publication-contact").value.trim();
+                event.preventDefault();
 
 
-            if (!title || !description) {
+                const title =
+                    document
+                        .getElementById("publication-title")
+                        .value
+                        .trim();
 
-                alert(
-                    "Completa el título y la descripción."
+
+                const description =
+                    document
+                        .getElementById("publication-description")
+                        .value
+                        .trim();
+
+
+                const price =
+                    document
+                        .getElementById("publication-price")
+                        .value
+                        .trim();
+
+
+                const contact =
+                    document
+                        .getElementById("publication-contact")
+                        .value
+                        .trim();
+
+
+                if (
+                    !title ||
+                    !description
+                ) {
+
+                    alert(
+                        "Completa el título y la descripción."
+                    );
+
+                    return;
+                }
+
+
+                const publication = {
+
+                    id: Date.now(),
+
+                    user:
+                        getSavedUser(),
+
+                    title,
+
+                    description,
+
+                    price,
+
+                    contact,
+
+                    mediaCount:
+                        publicationFiles.length,
+
+                    createdAt:
+                        new Date().toISOString()
+
+                };
+
+
+                console.log(
+                    "PUBLICACIÓN GRATIS:",
+                    publication
                 );
 
-                return;
+
+                alert(
+                    "¡Publicación creada gratis!"
+                );
+
+
+                publicationForm.reset();
+
+                publicationFiles = [];
+
+
+                if (publicationMediaPreview) {
+
+                    publicationMediaPreview.innerHTML =
+                        "";
+
+                }
+
+
+                if (publicationPanel) {
+
+                    publicationPanel.classList.remove(
+                        "open"
+                    );
+
+                }
 
             }
-
-
-            const publication = {
-
-                id: Date.now(),
-
-                user: getSavedUser(),
-
-                title,
-
-                description,
-
-                price,
-
-                contact,
-
-                mediaCount: publicationFiles.length,
-
-                createdAt: new Date().toISOString()
-
-            };
-
-
-            console.log(
-                "PUBLICACIÓN GRATIS:",
-                publication
-            );
-
-
-            alert(
-                "¡Publicación creada gratis!"
-            );
-
-
-            publicationForm.reset();
-
-            publicationFiles = [];
-
-            if (publicationMediaPreview) {
-                publicationMediaPreview.innerHTML = "";
-            }
-
-
-            if (publicationPanel) {
-                publicationPanel.classList.remove("open");
-            }
-
-        });
+        );
 
     }
 
@@ -967,39 +1573,62 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const profileNavButton =
-        document.getElementById("profile-nav-button");
+        document.getElementById(
+            "profile-nav-button"
+        );
+
 
     const profilePanel =
-        document.getElementById("profile-panel");
+        document.getElementById(
+            "profile-panel"
+        );
+
 
     const closeProfilePanel =
-        document.getElementById("close-profile-panel");
+        document.getElementById(
+            "close-profile-panel"
+        );
 
 
     if (profileNavButton) {
 
-        profileNavButton.addEventListener("click", () => {
+        profileNavButton.addEventListener(
+            "click",
+            () => {
 
-            updateUserInformation();
+                updateUserInformation();
 
-            if (profilePanel) {
-                profilePanel.classList.add("open");
+
+                if (profilePanel) {
+
+                    profilePanel.classList.add(
+                        "open"
+                    );
+
+                }
+
             }
-
-        });
+        );
 
     }
 
 
     if (closeProfilePanel) {
 
-        closeProfilePanel.addEventListener("click", () => {
+        closeProfilePanel.addEventListener(
+            "click",
+            () => {
 
-            if (profilePanel) {
-                profilePanel.classList.remove("open");
+                if (profilePanel) {
+
+                    profilePanel.classList.remove(
+                        "open"
+                    );
+
+                }
+
             }
-
-        });
+        );
 
     }
 
@@ -1009,37 +1638,59 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const settingsButton =
-        document.getElementById("settings-button");
+        document.getElementById(
+            "settings-button"
+        );
+
 
     const settingsPanel =
-        document.getElementById("settings-panel");
+        document.getElementById(
+            "settings-panel"
+        );
+
 
     const closeSettings =
-        document.getElementById("close-settings");
+        document.getElementById(
+            "close-settings"
+        );
 
 
     if (settingsButton) {
 
-        settingsButton.addEventListener("click", () => {
+        settingsButton.addEventListener(
+            "click",
+            () => {
 
-            if (settingsPanel) {
-                settingsPanel.classList.add("open");
+                if (settingsPanel) {
+
+                    settingsPanel.classList.add(
+                        "open"
+                    );
+
+                }
+
             }
-
-        });
+        );
 
     }
 
 
     if (closeSettings) {
 
-        closeSettings.addEventListener("click", () => {
+        closeSettings.addEventListener(
+            "click",
+            () => {
 
-            if (settingsPanel) {
-                settingsPanel.classList.remove("open");
+                if (settingsPanel) {
+
+                    settingsPanel.classList.remove(
+                        "open"
+                    );
+
+                }
+
             }
-
-        });
+        );
 
     }
 
@@ -1049,24 +1700,39 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const settingsProfileButton =
-        document.getElementById("settings-profile-button");
+        document.getElementById(
+            "settings-profile-button"
+        );
 
 
     if (settingsProfileButton) {
 
-        settingsProfileButton.addEventListener("click", () => {
+        settingsProfileButton.addEventListener(
+            "click",
+            () => {
 
-            if (settingsPanel) {
-                settingsPanel.classList.remove("open");
+                if (settingsPanel) {
+
+                    settingsPanel.classList.remove(
+                        "open"
+                    );
+
+                }
+
+
+                updateUserInformation();
+
+
+                if (profilePanel) {
+
+                    profilePanel.classList.add(
+                        "open"
+                    );
+
+                }
+
             }
-
-            updateUserInformation();
-
-            if (profilePanel) {
-                profilePanel.classList.add("open");
-            }
-
-        });
+        );
 
     }
 
@@ -1076,22 +1742,36 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const profileSettingsButton =
-        document.getElementById("profile-settings-button");
+        document.getElementById(
+            "profile-settings-button"
+        );
 
 
     if (profileSettingsButton) {
 
-        profileSettingsButton.addEventListener("click", () => {
+        profileSettingsButton.addEventListener(
+            "click",
+            () => {
 
-            if (profilePanel) {
-                profilePanel.classList.remove("open");
+                if (profilePanel) {
+
+                    profilePanel.classList.remove(
+                        "open"
+                    );
+
+                }
+
+
+                if (settingsPanel) {
+
+                    settingsPanel.classList.add(
+                        "open"
+                    );
+
+                }
+
             }
-
-            if (settingsPanel) {
-                settingsPanel.classList.add("open");
-            }
-
-        });
+        );
 
     }
 
@@ -1101,20 +1781,25 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const administrationButton =
-        document.getElementById("administration-button");
+        document.getElementById(
+            "administration-button"
+        );
 
 
     if (administrationButton) {
 
-        administrationButton.addEventListener("click", () => {
+        administrationButton.addEventListener(
+            "click",
+            () => {
 
-            alert(
-                "Panel de Administración.\n\n" +
-                "Esta función se conectará al sistema de " +
-                "aprobación de promociones en la siguiente etapa."
-            );
+                alert(
+                    "Panel de Administración.\n\n" +
+                    "Esta función se conectará al sistema de " +
+                    "aprobación de promociones en la siguiente etapa."
+                );
 
-        });
+            }
+        );
 
     }
 
@@ -1124,18 +1809,23 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const editProfileButton =
-        document.getElementById("edit-profile-button");
+        document.getElementById(
+            "edit-profile-button"
+        );
 
 
     if (editProfileButton) {
 
-        editProfileButton.addEventListener("click", () => {
+        editProfileButton.addEventListener(
+            "click",
+            () => {
 
-            alert(
-                "La edición del perfil se habilitará próximamente."
-            );
+                alert(
+                    "La edición del perfil se habilitará próximamente."
+                );
 
-        });
+            }
+        );
 
     }
 
@@ -1145,35 +1835,54 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const deleteAccountButton =
-        document.getElementById("delete-account-button");
+        document.getElementById(
+            "delete-account-button"
+        );
 
 
     if (deleteAccountButton) {
 
-        deleteAccountButton.addEventListener("click", () => {
+        deleteAccountButton.addEventListener(
+            "click",
+            () => {
 
-            const confirmation = confirm(
-                "¿Estás seguro de que deseas eliminar tu cuenta?"
-            );
-
-
-            if (!confirmation) return;
-
-
-            localStorage.removeItem("marketFlashUser");
-
-            localStorage.removeItem("marketFlashLoggedIn");
-
-            closeAllPanels();
-
-            showScreen(welcomeScreen);
+                const confirmation =
+                    confirm(
+                        "¿Estás seguro de que deseas eliminar tu cuenta?"
+                    );
 
 
-            alert(
-                "Tu cuenta fue eliminada de este dispositivo."
-            );
+                if (!confirmation) {
+                    return;
+                }
 
-        });
+
+                localStorage.removeItem(
+                    "marketFlashUser"
+                );
+
+
+                localStorage.removeItem(
+                    "marketFlashLoggedIn"
+                );
+
+
+                localStorage.removeItem(
+                    "marketFlashPendingPromotion"
+                );
+
+
+                closeAllPanels();
+
+                showScreen(welcomeScreen);
+
+
+                alert(
+                    "Tu cuenta fue eliminada de este dispositivo."
+                );
+
+            }
+        );
 
     }
 
@@ -1183,19 +1892,34 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const logoutButton =
-        document.getElementById("logout-button");
+        document.getElementById(
+            "logout-button"
+        );
+
 
     const logoutProfileButton =
-        document.getElementById("logout-profile-button");
+        document.getElementById(
+            "logout-profile-button"
+        );
 
 
     if (logoutButton) {
-        logoutButton.addEventListener("click", logout);
+
+        logoutButton.addEventListener(
+            "click",
+            logout
+        );
+
     }
 
 
     if (logoutProfileButton) {
-        logoutProfileButton.addEventListener("click", logout);
+
+        logoutProfileButton.addEventListener(
+            "click",
+            logout
+        );
+
     }
 
 
@@ -1204,21 +1928,30 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const homeNavButton =
-        document.getElementById("home-nav-button");
+        document.getElementById(
+            "home-nav-button"
+        );
 
 
     if (homeNavButton) {
 
-        homeNavButton.addEventListener("click", () => {
+        homeNavButton.addEventListener(
+            "click",
+            () => {
 
-            closeAllPanels();
+                closeAllPanels();
 
-            window.scrollTo({
-                top: 0,
-                behavior: "smooth"
-            });
 
-        });
+                window.scrollTo({
+
+                    top: 0,
+
+                    behavior: "smooth"
+
+                });
+
+            }
+        );
 
     }
 
@@ -1228,18 +1961,23 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const appSettingsButton =
-        document.getElementById("app-settings-button");
+        document.getElementById(
+            "app-settings-button"
+        );
 
 
     if (appSettingsButton) {
 
-        appSettingsButton.addEventListener("click", () => {
+        appSettingsButton.addEventListener(
+            "click",
+            () => {
 
-            alert(
-                "Configuración de Market Flash."
-            );
+                alert(
+                    "Configuración de Market Flash."
+                );
 
-        });
+            }
+        );
 
     }
 
@@ -1249,7 +1987,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // =====================================================
 
     const loggedIn =
-        localStorage.getItem("marketFlashLoggedIn");
+        localStorage.getItem(
+            "marketFlashLoggedIn"
+        );
+
 
     const savedUser =
         getSavedUser();
