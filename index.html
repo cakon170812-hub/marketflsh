@@ -41,7 +41,10 @@
                     ⚡ INICIO
                 </button>
 
-                <button id="register-button" class="main-button secondary-button">
+                <button
+                    id="register-button"
+                    class="main-button secondary-button"
+                >
                     ⚡ CREAR CUENTA
                 </button>
 
@@ -178,6 +181,7 @@
                     type="password"
                     id="register-password"
                     placeholder="Mínimo 6 caracteres"
+                    minlength="6"
                     required
                 >
 
@@ -189,6 +193,7 @@
                     type="password"
                     id="register-password-confirm"
                     placeholder="Repite tu contraseña"
+                    minlength="6"
                     required
                 >
 
@@ -219,8 +224,6 @@
 
     <section id="dashboard-screen" class="screen">
 
-        <!-- CABECERA -->
-
         <header class="dashboard-header">
 
             <div class="dashboard-brand">
@@ -245,9 +248,7 @@
 
         <main class="market-home">
 
-            <!-- =============================================
-                 FLASH DEL DÍA
-            ============================================== -->
+            <!-- FLASH DEL DÍA -->
 
             <section
                 id="flash-del-dia"
@@ -261,15 +262,11 @@
                     </div>
 
                     <div>
-
-                        <h2>
-                            FLASH DEL DÍA
-                        </h2>
+                        <h2>FLASH DEL DÍA</h2>
 
                         <p>
                             Promociones destacadas
                         </p>
-
                     </div>
 
                 </div>
@@ -310,9 +307,7 @@
             </section>
 
 
-            <!-- =============================================
-                 PUBLICACIONES NORMALES
-            ============================================== -->
+            <!-- PUBLICACIONES -->
 
             <section
                 id="normal-publications"
@@ -361,7 +356,7 @@
 
 
         <!-- =================================================
-             BARRA DE NAVEGACIÓN INFERIOR
+             NAVEGACIÓN
         ================================================== -->
 
         <nav class="bottom-navigation">
@@ -398,7 +393,7 @@
 
 
         <!-- =================================================
-             PANEL PARA CREAR PUBLICACIÓN NORMAL
+             PANEL NUEVA PUBLICACIÓN
         ================================================== -->
 
         <div
@@ -576,15 +571,9 @@
 
                 <form id="promotion-form">
 
-
-                    <!-- =========================================
-                         MATERIAL DE LA PROMOCIÓN
-                    ========================================== -->
-
                     <div class="form-section-title">
                         MATERIAL DE LA PROMOCIÓN
                     </div>
-
 
                     <p class="media-help-text">
                         Puedes agregar varias fotos y varios videos.
@@ -601,7 +590,6 @@
                             📷 CÁMARA
                         </button>
 
-
                         <button
                             type="button"
                             id="promotion-gallery-button"
@@ -613,8 +601,6 @@
                     </div>
 
 
-                    <!-- CÁMARA FOTO -->
-
                     <input
                         type="file"
                         id="promotion-camera-photo-input"
@@ -623,9 +609,6 @@
                         hidden
                     >
 
-
-                    <!-- CÁMARA VIDEO -->
-
                     <input
                         type="file"
                         id="promotion-camera-video-input"
@@ -633,9 +616,6 @@
                         capture="environment"
                         hidden
                     >
-
-
-                    <!-- GALERÍA: VARIOS ARCHIVOS -->
 
                     <input
                         type="file"
@@ -651,10 +631,6 @@
                         class="media-preview"
                     ></div>
 
-
-                    <!-- =========================================
-                         INFORMACIÓN
-                    ========================================== -->
 
                     <div class="form-section-title">
                         INFORMACIÓN
@@ -710,10 +686,6 @@
                     >
 
 
-                    <!-- =========================================
-                         AVISO
-                    ========================================== -->
-
                     <div class="promotion-notice">
 
                         <strong>
@@ -722,7 +694,7 @@
 
                         <p>
                             Al enviar la promoción podrás elegir
-                            la membresía que deseas pagar.
+                            la membresía y el método de pago.
                         </p>
 
                     </div>
@@ -744,6 +716,7 @@
 
         <!-- =================================================
              PANEL DE MEMBRESÍAS
+             TODOS LOS PRECIOS SERÁN CONFIGURABLES
         ================================================== -->
 
         <div
@@ -773,27 +746,25 @@
                     </h2>
 
                     <p>
-                        Selecciona la membresía para promocionar
-                        tu publicación en FLASH DEL DÍA.
+                        Selecciona la membresía que deseas utilizar
+                        para promocionar tu publicación.
                     </p>
 
                 </div>
 
 
-                <!-- =========================================
-                     MEMBRESÍA BÁSICA
-                ========================================== -->
+                <!-- BÁSICA -->
 
                 <button
                     type="button"
                     class="membership-card"
                     data-membership="basica"
-                    data-price=""
                 >
 
                     <div class="membership-card-header">
 
                         <div>
+
                             <span class="membership-badge">
                                 BÁSICA
                             </span>
@@ -801,16 +772,37 @@
                             <h3>
                                 Membresía Básica
                             </h3>
+
                         </div>
 
                         <div class="membership-price">
-                            RD$ <span>POR DEFINIR</span>
+
+                            <span class="membership-price-label">
+                                DESDE
+                            </span>
+
+                            <strong
+                                id="membership-price-basica"
+                            >
+                                RD$ 0.00
+                            </strong>
+
                         </div>
 
                     </div>
 
 
-                    <ul>
+                    <p
+                        id="membership-description-basica"
+                        class="membership-description"
+                    >
+                        Promoción destacada para comenzar.
+                    </p>
+
+
+                    <ul
+                        id="membership-features-basica"
+                    >
                         <li>⚡ Promoción destacada</li>
                         <li>📱 Publicación en FLASH DEL DÍA</li>
                         <li>📸 Fotos y videos</li>
@@ -819,20 +811,18 @@
                 </button>
 
 
-                <!-- =========================================
-                     MEMBRESÍA PREMIUM
-                ========================================== -->
+                <!-- PREMIUM -->
 
                 <button
                     type="button"
                     class="membership-card"
                     data-membership="premium"
-                    data-price=""
                 >
 
                     <div class="membership-card-header">
 
                         <div>
+
                             <span class="membership-badge">
                                 PREMIUM
                             </span>
@@ -840,16 +830,37 @@
                             <h3>
                                 Membresía Premium
                             </h3>
+
                         </div>
 
                         <div class="membership-price">
-                            RD$ <span>POR DEFINIR</span>
+
+                            <span class="membership-price-label">
+                                DESDE
+                            </span>
+
+                            <strong
+                                id="membership-price-premium"
+                            >
+                                RD$ 0.00
+                            </strong>
+
                         </div>
 
                     </div>
 
 
-                    <ul>
+                    <p
+                        id="membership-description-premium"
+                        class="membership-description"
+                    >
+                        Más prioridad y visibilidad.
+                    </p>
+
+
+                    <ul
+                        id="membership-features-premium"
+                    >
                         <li>⚡ Mayor prioridad</li>
                         <li>🔥 Mayor visibilidad</li>
                         <li>📸 Fotos y videos</li>
@@ -858,20 +869,18 @@
                 </button>
 
 
-                <!-- =========================================
-                     MEMBRESÍA VIP
-                ========================================== -->
+                <!-- VIP -->
 
                 <button
                     type="button"
                     class="membership-card membership-vip"
                     data-membership="vip"
-                    data-price=""
                 >
 
                     <div class="membership-card-header">
 
                         <div>
+
                             <span class="membership-badge">
                                 VIP
                             </span>
@@ -879,16 +888,37 @@
                             <h3>
                                 Membresía VIP
                             </h3>
+
                         </div>
 
                         <div class="membership-price">
-                            RD$ <span>POR DEFINIR</span>
+
+                            <span class="membership-price-label">
+                                DESDE
+                            </span>
+
+                            <strong
+                                id="membership-price-vip"
+                            >
+                                RD$ 0.00
+                            </strong>
+
                         </div>
 
                     </div>
 
 
-                    <ul>
+                    <p
+                        id="membership-description-vip"
+                        class="membership-description"
+                    >
+                        Máxima prioridad y visibilidad.
+                    </p>
+
+
+                    <ul
+                        id="membership-features-vip"
+                    >
                         <li>👑 Máxima prioridad</li>
                         <li>⚡ Máxima visibilidad</li>
                         <li>🔥 Destacado VIP</li>
@@ -905,11 +935,316 @@
                     </strong>
 
                     <p>
-                        Después de seleccionar tu membresía,
-                        continuaremos con el proceso de pago.
+                        Los precios y métodos de pago son configurados
+                        por el administrador.
                     </p>
 
                 </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PANEL DE MÉTODOS DE PAGO
+        ================================================== -->
+
+        <div
+            id="payment-method-panel"
+            class="modal-panel"
+        >
+
+            <div class="modal-content payment-modal">
+
+                <button
+                    id="close-payment-method-panel"
+                    class="modal-close"
+                    type="button"
+                >
+                    ×
+                </button>
+
+
+                <div class="payment-title-area">
+
+                    <div class="modal-icon flash-modal-icon">
+                        💳
+                    </div>
+
+                    <h2>
+                        MÉTODO DE PAGO
+                    </h2>
+
+                    <p>
+                        Selecciona cómo deseas realizar el pago.
+                    </p>
+
+                </div>
+
+
+                <!-- INFORMACIÓN DE LA MEMBRESÍA -->
+
+                <div
+                    id="selected-membership-summary"
+                    class="selected-membership-summary"
+                >
+
+                    <span>
+                        Membresía seleccionada
+                    </span>
+
+                    <strong id="selected-membership-name">
+                        —
+                    </strong>
+
+                    <div class="selected-membership-price">
+                        <span>
+                            Total a pagar
+                        </span>
+
+                        <strong id="selected-membership-price">
+                            RD$ 0.00
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="form-section-title">
+                    MÉTODOS DISPONIBLES
+                </div>
+
+
+                <div
+                    id="payment-methods-list"
+                    class="payment-methods-list"
+                >
+
+                    <!--
+                        Los métodos de pago serán generados
+                        dinámicamente desde Administración.
+                    -->
+
+                    <div class="empty-payment-methods">
+
+                        <div>
+                            💳
+                        </div>
+
+                        <h3>
+                            No hay métodos configurados
+                        </h3>
+
+                        <p>
+                            El administrador todavía no ha configurado
+                            los métodos de pago.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="selected-payment-summary"
+                    class="selected-payment-summary"
+                >
+
+                    <span>
+                        Método seleccionado
+                    </span>
+
+                    <strong id="selected-payment-method">
+                        —
+                    </strong>
+
+                    <span>
+                        Precio
+                    </span>
+
+                    <strong id="selected-payment-price">
+                        RD$ 0.00
+                    </strong>
+
+                </div>
+
+
+                <button
+                    id="continue-to-proof-button"
+                    class="main-button"
+                    type="button"
+                    disabled
+                >
+                    CONTINUAR → COMPROBANTE
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PANEL PARA ENVIAR COMPROBANTE
+        ================================================== -->
+
+        <div
+            id="payment-proof-panel"
+            class="modal-panel"
+        >
+
+            <div class="modal-content payment-proof-modal">
+
+                <button
+                    id="close-payment-proof-panel"
+                    class="modal-close"
+                    type="button"
+                >
+                    ×
+                </button>
+
+
+                <div class="payment-title-area">
+
+                    <div class="modal-icon flash-modal-icon">
+                        🧾
+                    </div>
+
+                    <h2>
+                        COMPROBANTE DE PAGO
+                    </h2>
+
+                    <p>
+                        Envía una foto clara de tu comprobante.
+                    </p>
+
+                </div>
+
+
+                <!-- RESUMEN DEL PAGO -->
+
+                <div
+                    id="proof-payment-summary"
+                    class="proof-payment-summary"
+                >
+
+                    <div>
+                        <span>Membresía</span>
+                        <strong id="proof-membership-name">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Método de pago</span>
+                        <strong id="proof-payment-method">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Monto</span>
+                        <strong id="proof-payment-amount">
+                            RD$ 0.00
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <div class="form-section-title">
+                    COMPROBANTE
+                </div>
+
+
+                <p class="media-help-text">
+                    Puedes tomar una foto con la cámara o
+                    seleccionar una desde tu galería.
+                </p>
+
+
+                <div class="media-actions">
+
+                    <button
+                        type="button"
+                        id="proof-camera-button"
+                        class="media-button"
+                    >
+                        📷 TOMAR FOTO
+                    </button>
+
+
+                    <button
+                        type="button"
+                        id="proof-gallery-button"
+                        class="media-button"
+                    >
+                        🖼️ GALERÍA
+                    </button>
+
+                </div>
+
+
+                <input
+                    type="file"
+                    id="proof-camera-input"
+                    accept="image/*"
+                    capture="environment"
+                    hidden
+                >
+
+
+                <input
+                    type="file"
+                    id="proof-gallery-input"
+                    accept="image/*"
+                    hidden
+                >
+
+
+                <div
+                    id="payment-proof-preview"
+                    class="payment-proof-preview"
+                >
+
+                    <div class="proof-empty-state">
+
+                        <div>
+                            🧾
+                        </div>
+
+                        <p>
+                            Todavía no has seleccionado
+                            un comprobante.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="payment-proof-notice">
+
+                    <strong>
+                        ⚠️ IMPORTANTE
+                    </strong>
+
+                    <p>
+                        Asegúrate de que la foto sea clara y que
+                        se pueda verificar el pago.
+                    </p>
+
+                </div>
+
+
+                <button
+                    id="send-payment-proof-button"
+                    class="main-button"
+                    type="button"
+                    disabled
+                >
+                    📤 ENVIAR COMPROBANTE
+                </button>
 
             </div>
 
@@ -949,26 +1284,41 @@
                 <div class="profile-user-card">
 
                     <div class="profile-name">
-                        <span>Usuario</span>
+
+                        <span>
+                            Usuario
+                        </span>
+
                         <strong id="profile-user-name">
                             Usuario
                         </strong>
+
                     </div>
 
 
                     <div class="profile-data">
-                        <span>Cédula</span>
+
+                        <span>
+                            Cédula
+                        </span>
+
                         <strong id="profile-user-cedula">
                             —
                         </strong>
+
                     </div>
 
 
                     <div class="profile-data">
-                        <span>Teléfono</span>
+
+                        <span>
+                            Teléfono
+                        </span>
+
                         <strong id="profile-user-phone">
                             —
                         </strong>
+
                     </div>
 
                 </div>
@@ -1027,6 +1377,561 @@
                 </div>
 
             </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PANEL DE ADMINISTRACIÓN
+        ================================================== -->
+
+        <div
+            id="administration-panel"
+            class="modal-panel"
+        >
+
+            <div class="modal-content administration-modal">
+
+                <button
+                    id="close-administration-panel"
+                    class="modal-close"
+                    type="button"
+                >
+                    ×
+                </button>
+
+
+                <div class="administration-title-area">
+
+                    <div class="modal-icon">
+                        🛡️
+                    </div>
+
+                    <h2>
+                        ADMINISTRACIÓN
+                    </h2>
+
+                    <p>
+                        Controla membresías, precios, métodos de pago
+                        y comprobantes.
+                    </p>
+
+                </div>
+
+
+                <!-- =================================================
+                     ADMINISTRAR MEMBRESÍAS
+                ================================================== -->
+
+                <div class="admin-section">
+
+                    <div class="admin-section-header">
+
+                        <div>
+                            <h3>
+                                ⚡ MEMBRESÍAS
+                            </h3>
+
+                            <p>
+                                Todos los precios son editables.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <!-- BÁSICA -->
+
+                    <div
+                        class="admin-membership-card"
+                        data-admin-membership="basica"
+                    >
+
+                        <div class="admin-card-heading">
+
+                            <strong>
+                                Membresía Básica
+                            </strong>
+
+                            <span>
+                                BÁSICA
+                            </span>
+
+                        </div>
+
+
+                        <label for="admin-basica-name">
+                            Nombre
+                        </label>
+
+                        <input
+                            type="text"
+                            id="admin-basica-name"
+                            placeholder="Nombre de la membresía"
+                        >
+
+
+                        <label for="admin-basica-description">
+                            Descripción
+                        </label>
+
+                        <textarea
+                            id="admin-basica-description"
+                            rows="2"
+                            placeholder="Descripción"
+                        ></textarea>
+
+
+                        <label for="admin-basica-price">
+                            Precio general
+                        </label>
+
+                        <input
+                            type="number"
+                            id="admin-basica-price"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                        >
+
+
+                        <label for="admin-basica-features">
+                            Características
+                        </label>
+
+                        <textarea
+                            id="admin-basica-features"
+                            rows="4"
+                            placeholder="Una característica por línea"
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- PREMIUM -->
+
+                    <div
+                        class="admin-membership-card"
+                        data-admin-membership="premium"
+                    >
+
+                        <div class="admin-card-heading">
+
+                            <strong>
+                                Membresía Premium
+                            </strong>
+
+                            <span>
+                                PREMIUM
+                            </span>
+
+                        </div>
+
+
+                        <label for="admin-premium-name">
+                            Nombre
+                        </label>
+
+                        <input
+                            type="text"
+                            id="admin-premium-name"
+                            placeholder="Nombre de la membresía"
+                        >
+
+
+                        <label for="admin-premium-description">
+                            Descripción
+                        </label>
+
+                        <textarea
+                            id="admin-premium-description"
+                            rows="2"
+                            placeholder="Descripción"
+                        ></textarea>
+
+
+                        <label for="admin-premium-price">
+                            Precio general
+                        </label>
+
+                        <input
+                            type="number"
+                            id="admin-premium-price"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                        >
+
+
+                        <label for="admin-premium-features">
+                            Características
+                        </label>
+
+                        <textarea
+                            id="admin-premium-features"
+                            rows="4"
+                            placeholder="Una característica por línea"
+                        ></textarea>
+
+                    </div>
+
+
+                    <!-- VIP -->
+
+                    <div
+                        class="admin-membership-card"
+                        data-admin-membership="vip"
+                    >
+
+                        <div class="admin-card-heading">
+
+                            <strong>
+                                Membresía VIP
+                            </strong>
+
+                            <span>
+                                VIP
+                            </span>
+
+                        </div>
+
+
+                        <label for="admin-vip-name">
+                            Nombre
+                        </label>
+
+                        <input
+                            type="text"
+                            id="admin-vip-name"
+                            placeholder="Nombre de la membresía"
+                        >
+
+
+                        <label for="admin-vip-description">
+                            Descripción
+                        </label>
+
+                        <textarea
+                            id="admin-vip-description"
+                            rows="2"
+                            placeholder="Descripción"
+                        ></textarea>
+
+
+                        <label for="admin-vip-price">
+                            Precio general
+                        </label>
+
+                        <input
+                            type="number"
+                            id="admin-vip-price"
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                        >
+
+
+                        <label for="admin-vip-features">
+                            Características
+                        </label>
+
+                        <textarea
+                            id="admin-vip-features"
+                            rows="4"
+                            placeholder="Una característica por línea"
+                        ></textarea>
+
+                    </div>
+
+
+                    <button
+                        id="save-membership-settings"
+                        class="main-button"
+                        type="button"
+                    >
+                        💾 GUARDAR MEMBRESÍAS
+                    </button>
+
+                </div>
+
+
+                <!-- =================================================
+                     MÉTODOS DE PAGO
+                ================================================== -->
+
+                <div class="admin-section">
+
+                    <div class="admin-section-header">
+
+                        <div>
+
+                            <h3>
+                                💳 MÉTODOS DE PAGO
+                            </h3>
+
+                            <p>
+                                Configura y modifica todos los precios
+                                por método de pago.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="admin-payment-methods-list"
+                        class="admin-payment-methods-list"
+                    >
+
+                        <!--
+                            Los métodos serán generados dinámicamente.
+                        -->
+
+                    </div>
+
+
+                    <button
+                        id="add-payment-method-button"
+                        class="secondary-admin-button"
+                        type="button"
+                    >
+                        ＋ AGREGAR MÉTODO DE PAGO
+                    </button>
+
+
+                    <button
+                        id="save-payment-methods-button"
+                        class="main-button"
+                        type="button"
+                    >
+                        💾 GUARDAR MÉTODOS DE PAGO
+                    </button>
+
+                </div>
+
+
+                <!-- =================================================
+                     COMPROBANTES
+                ================================================== -->
+
+                <div class="admin-section">
+
+                    <div class="admin-section-header">
+
+                        <div>
+
+                            <h3>
+                                🧾 COMPROBANTES DE PAGO
+                            </h3>
+
+                            <p>
+                                Revisa los pagos enviados por los usuarios.
+                            </p>
+
+                        </div>
+
+                        <span
+                            id="pending-proof-count"
+                            class="pending-count"
+                        >
+                            0 PENDIENTES
+                        </span>
+
+                    </div>
+
+
+                    <div
+                        id="admin-payment-proofs-list"
+                        class="admin-payment-proofs-list"
+                    >
+
+                        <div class="empty-admin-proofs">
+
+                            <div>
+                                🧾
+                            </div>
+
+                            <h3>
+                                No hay comprobantes
+                            </h3>
+
+                            <p>
+                                Los comprobantes enviados aparecerán aquí.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             PANEL DETALLE DEL COMPROBANTE
+        ================================================== -->
+
+        <div
+            id="admin-proof-detail-panel"
+            class="modal-panel"
+        >
+
+            <div class="modal-content admin-proof-detail-modal">
+
+                <button
+                    id="close-admin-proof-detail"
+                    class="modal-close"
+                    type="button"
+                >
+                    ×
+                </button>
+
+
+                <div class="administration-title-area">
+
+                    <div class="modal-icon">
+                        🧾
+                    </div>
+
+                    <h2>
+                        REVISAR COMPROBANTE
+                    </h2>
+
+                    <p>
+                        Verifica el comprobante antes de aprobar el pago.
+                    </p>
+
+                </div>
+
+
+                <!-- DATOS DEL PAGO -->
+
+                <div
+                    id="admin-proof-payment-data"
+                    class="admin-proof-payment-data"
+                >
+
+                    <div>
+                        <span>Usuario</span>
+                        <strong id="admin-proof-user">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Membresía</span>
+                        <strong id="admin-proof-membership">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Método de pago</span>
+                        <strong id="admin-proof-method">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Monto</span>
+                        <strong id="admin-proof-amount">
+                            RD$ 0.00
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Fecha</span>
+                        <strong id="admin-proof-date">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Estado</span>
+                        <strong id="admin-proof-status">
+                            PENDIENTE
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <!-- IMAGEN -->
+
+                <div class="admin-proof-image-container">
+
+                    <img
+                        id="admin-proof-image"
+                        src=""
+                        alt="Comprobante de pago"
+                    >
+
+                </div>
+
+
+                <button
+                    id="view-proof-fullscreen-button"
+                    class="secondary-admin-button"
+                    type="button"
+                >
+                    🔍 VER IMAGEN EN PANTALLA COMPLETA
+                </button>
+
+
+                <div class="admin-proof-actions">
+
+                    <button
+                        id="approve-proof-button"
+                        class="approve-button"
+                        type="button"
+                    >
+                        ✅ APROBAR
+                    </button>
+
+
+                    <button
+                        id="reject-proof-button"
+                        class="reject-button"
+                        type="button"
+                    >
+                        ❌ RECHAZAR
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             VISOR DE IMAGEN A PANTALLA COMPLETA
+        ================================================== -->
+
+        <div
+            id="proof-fullscreen-viewer"
+            class="fullscreen-image-viewer"
+        >
+
+            <button
+                id="close-proof-fullscreen"
+                class="fullscreen-close"
+                type="button"
+                aria-label="Cerrar imagen"
+            >
+                ×
+            </button>
+
+
+            <img
+                id="proof-fullscreen-image"
+                src=""
+                alt="Comprobante de pago ampliado"
+            >
 
         </div>
 
