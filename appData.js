@@ -83,7 +83,269 @@ const APP_DATA = {
 
 
     /* =====================================================
-       FUNCIONES QUE AGREGAREMOS MÁS ADELANTE
+       MEMBRESÍAS
+       ===================================================== */
+
+    memberships: {
+
+        editableFromAdministration: true,
+
+        plans: {
+
+            basica: {
+
+                id: "basica",
+
+                name: "Básica",
+
+                description:
+                    "Una promoción sencilla para comenzar a destacar tu publicación.",
+
+                price: null,
+
+                features: [
+                    "Publicación promocionada",
+                    "Mayor visibilidad",
+                    "Presencia en Flash del Día"
+                ]
+
+            },
+
+
+            premium: {
+
+                id: "premium",
+
+                name: "Premium",
+
+                description:
+                    "Más visibilidad y prioridad para que tu publicación llegue a más personas.",
+
+                price: null,
+
+                features: [
+                    "Mayor prioridad",
+                    "Mayor visibilidad",
+                    "Posición destacada",
+                    "Presencia en Flash del Día"
+                ]
+
+            },
+
+
+            vip: {
+
+                id: "vip",
+
+                name: "VIP",
+
+                description:
+                    "La máxima opción de promoción para conseguir la mayor exposición.",
+
+                price: null,
+
+                features: [
+                    "Máxima prioridad",
+                    "Máxima visibilidad",
+                    "Posición especial",
+                    "Promoción destacada",
+                    "Mayor exposición"
+                ]
+
+            }
+
+        }
+
+    },
+
+
+    /* =====================================================
+       MÉTODOS DE PAGO
+       ===================================================== */
+
+    payments: {
+
+        editableFromAdministration: true,
+
+        allowDifferentPriceByMethod: true,
+
+        methods: [
+
+            {
+                id: "banreservas",
+
+                name: "BanReservas",
+
+                prices: {
+
+                    basica: null,
+
+                    premium: null,
+
+                    vip: null
+
+                }
+
+            },
+
+
+            {
+                id: "bhd",
+
+                name: "BHD",
+
+                prices: {
+
+                    basica: null,
+
+                    premium: null,
+
+                    vip: null
+
+                }
+
+            },
+
+
+            {
+                id: "popular",
+
+                name: "Banco Popular",
+
+                prices: {
+
+                    basica: null,
+
+                    premium: null,
+
+                    vip: null
+
+                }
+
+            }
+
+        ]
+
+    },
+
+
+    /* =====================================================
+       COMPROBANTES DE PAGO
+       ===================================================== */
+
+    paymentProofs: {
+
+        enabled: true,
+
+        allowCamera: true,
+
+        allowGallery: true,
+
+        statuses: [
+            "PENDIENTE",
+            "APROBADO",
+            "RECHAZADO"
+        ],
+
+        administrationActions: [
+            "Ver comprobante",
+            "Ver pantalla completa",
+            "Aprobar",
+            "Rechazar"
+        ]
+
+    },
+
+
+    /* =====================================================
+       PROMOCIONES
+       ===================================================== */
+
+    promotions: {
+
+        enabled: true,
+
+        requireMembership: true,
+
+        requirePaymentProof: true,
+
+        approvalRequired: true,
+
+        statuses: [
+            "Esperando membresía",
+            "Membresía seleccionada",
+            "Esperando comprobante",
+            "PAGO PENDIENTE DE APROBACIÓN",
+            "PROMOCIÓN APROBADA",
+            "COMPROBANTE RECHAZADO"
+        ]
+
+    },
+
+
+    /* =====================================================
+       ADMINISTRACIÓN
+       ===================================================== */
+
+    administration: {
+
+        enabled: true,
+
+        path: "Perfil → Administración",
+
+        canEditMemberships: true,
+
+        canEditMembershipPrices: true,
+
+        canEditPaymentMethods: true,
+
+        canEditPaymentPrices: true,
+
+        canAddPaymentMethods: true,
+
+        canDeletePaymentMethods: true,
+
+        canViewPaymentProofs: true,
+
+        canApprovePaymentProofs: true,
+
+        canRejectPaymentProofs: true
+
+    },
+
+
+    /* =====================================================
+       PUBLICACIONES
+       ===================================================== */
+
+    publications: {
+
+        normal: {
+
+            enabled: true,
+
+            free: true
+
+        },
+
+
+        flashDelDia: {
+
+            enabled: true,
+
+            paid: true,
+
+            requiresMembership: true,
+
+            requiresApproval: true
+
+        }
+
+    },
+
+
+    /* =====================================================
+       FUNCIONES
        ===================================================== */
 
     features: {
@@ -94,13 +356,17 @@ const APP_DATA = {
 
         receipts: false,
 
-        promotions: false,
+        promotions: true,
 
         products: false,
 
         customers: false,
 
-        notifications: false
+        notifications: false,
+
+        paymentProofs: true,
+
+        administration: true
 
     },
 
@@ -119,7 +385,7 @@ const APP_DATA = {
 
         cloudStorage: false,
 
-        payments: false
+        payments: true
 
     }
 
