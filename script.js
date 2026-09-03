@@ -1,37 +1,19 @@
 /* =========================================================
-   MARKET FLASH
+   MARKET FLASH ⚡
    SCRIPT PRINCIPAL
-   Supabase Auth + Base de datos
+   Supabase Auth + Base de datos + Storage
    ========================================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
 
     /* =========================================================
-       CONFIGURACIÓN
+       SUPABASE
        ========================================================= */
 
-    const SUPABASE_URL = "https://osxuhmgnpgbxfopqdhqr.supabase.co";
-
-    const SUPABASE_KEY =
-        "sb_publishable_6qLmRFGHrwGq_CKqsIH7jA_Oz8TTlQZ";
-
-    /*
-       Si supabaseClient.js ya creó window.supabaseClient,
-       usamos esa conexión.
-
-       Si no existe, creamos una aquí.
-    */
-    let db = window.supabaseClient;
-
-    if (!db && window.supabase && typeof window.supabase.createClient === "function") {
-        db = window.supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_KEY
-        );
-    }
+    const db = window.supabaseClient;
 
     if (!db) {
-        console.error("No se pudo conectar con Supabase.");
+        console.error("Market Flash: Supabase no está disponible.");
         alert("No se pudo conectar con Supabase. Revisa supabaseClient.js.");
         return;
     }
@@ -47,10 +29,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const TABLE_PAYMENT_METHODS = "payment_methods";
     const TABLE_PAYMENT_PROOFS = "payment_proofs";
 
-    /*
-       Este bucket deberá crearse en Supabase Storage.
-    */
     const STORAGE_BUCKET = "market-flash-images";
+
+    /* =========================================================
+       ESTADO
+       ========================================================= */
 
     let currentUser = null;
     let currentProfile = null;
@@ -65,7 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let paymentProofImageData = null;
 
     /* =========================================================
-       ELEMENTOS
+       ELEMENTOS PRINCIPALES
        ========================================================= */
 
     const welcomeScreen = document.getElementById("welcome-screen");
@@ -87,78 +70,221 @@ document.addEventListener("DOMContentLoaded", () => {
     const loginError = document.getElementById("login-error");
     const registerError = document.getElementById("register-error");
 
+    /* =========================================================
+       MENÚ
+       ========================================================= */
+
     const menuButton = document.getElementById("menu-button");
     const closeSideMenu = document.getElementById("close-side-menu");
+    const closeMenuButton = document.getElementById("close-menu-button");
     const sideMenu = document.getElementById("side-menu");
 
-    const homeScreen = document.getElementById("home-screen");
-    const publicationsScreen = document.getElementById("publications-screen");
-    const profileScreen = document.getElementById("profile-screen");
-
     const menuHomeButton = document.getElementById("menu-home-button");
-    const menuPublicationsButton = document.getElementById("menu-publications-button");
-    const menuProfileButton = document.getElementById("menu-profile-button");
-    const menuAdministrationButton = document.getElementById("menu-administration-button");
-    const menuSettingsButton = document.getElementById("menu-settings-button");
-    const menuLogoutButton = document.getElementById("menu-logout-button");
+    const menuPublicationsButton =
+        document.getElementById("menu-publications-button");
+    const menuProfileButton =
+        document.getElementById("menu-profile-button");
+    const menuAdministrationButton =
+        document.getElementById("menu-administration-button");
+    const menuSettingsButton =
+        document.getElementById("menu-settings-button");
+    const menuLogoutButton =
+        document.getElementById("menu-logout-button");
 
-    const headerProfileButton = document.getElementById("header-profile-button");
-    const notificationsButton = document.getElementById("notifications-button");
+    /* =========================================================
+       PÁGINAS
+       ========================================================= */
 
-    const viewAllPublications = document.getElementById("view-all-publications");
-    const publishButton = document.getElementById("publish-button");
+    const homeScreen = document.getElementById("home-screen");
+    const publicationsScreen =
+        document.getElementById("publications-screen");
+    const profileScreen =
+        document.getElementById("profile-screen");
 
-    const publishPanel = document.getElementById("publish-panel");
-    const closePublishPanel = document.getElementById("close-publish-panel");
-    const publishForm = document.getElementById("publish-form");
+    /* =========================================================
+       HEADER
+       ========================================================= */
 
-    const publicationTitle = document.getElementById("publication-title");
-    const publicationDescription = document.getElementById("publication-description");
-    const publicationPrice = document.getElementById("publication-price");
-    const publicationContact = document.getElementById("publication-contact");
-    const publicationImage = document.getElementById("publication-image");
-    const publicationImagePreview = document.getElementById("publication-image-preview");
+    const headerProfileButton =
+        document.getElementById("header-profile-button");
 
-    const promotionPanel = document.getElementById("promotion-panel");
-    const closePromotionPanel = document.getElementById("close-promotion-panel");
-    const promotionForm = document.getElementById("promotion-form");
+    const notificationsButton =
+        document.getElementById("notifications-button");
 
-    const promotionTitle = document.getElementById("promotion-title");
-    const promotionDescription = document.getElementById("promotion-description");
-    const promotionPrice = document.getElementById("promotion-price");
-    const promotionContact = document.getElementById("promotion-contact");
+    const headerProfileName =
+        document.getElementById("header-profile-name");
 
-    const promotionImageCamera = document.getElementById("promotion-image-camera");
-    const promotionImageGallery = document.getElementById("promotion-image-gallery");
-    const promotionImagePreview = document.getElementById("promotion-image-preview");
+    /* =========================================================
+       HOME
+       ========================================================= */
 
-    const membershipPanel = document.getElementById("membership-panel");
-    const closeMembershipPanel = document.getElementById("close-membership-panel");
+    const homeUserName =
+        document.getElementById("home-user-name");
 
-    const membershipContainer = document.getElementById("membership-container");
+    const homeUserPhone =
+        document.getElementById("home-user-phone");
 
-    const paymentMethodPanel = document.getElementById("payment-method-panel");
-    const closePaymentMethodPanel = document.getElementById("close-payment-method-panel");
+    const viewAllPublications =
+        document.getElementById("view-all-publications");
 
-    const selectedMembershipInfo = document.getElementById("selected-membership-info");
-    const paymentMethodSelect = document.getElementById("payment-method-select");
-    const paymentAmount = document.getElementById("payment-amount");
-    const continuePaymentButton = document.getElementById("continue-payment-button");
+    const publishButton =
+        document.getElementById("publish-button");
 
-    const paymentProofPanel = document.getElementById("payment-proof-panel");
-    const closePaymentProofPanel = document.getElementById("close-payment-proof-panel");
+    const flashPromoteButton =
+        document.getElementById("flash-promote-button");
 
-    const paymentSummary = document.getElementById("payment-summary");
-    const paymentProofCamera = document.getElementById("payment-proof-camera");
-    const paymentProofGallery = document.getElementById("payment-proof-gallery");
-    const paymentProofPreview = document.getElementById("payment-proof-preview");
-    const sendPaymentProofButton = document.getElementById("send-payment-proof-button");
+    const publicationsContainer =
+        document.getElementById("publications-container");
 
-    const administrationPanel = document.getElementById("administration-panel");
-    const closeAdministrationPanel = document.getElementById("close-administration-panel");
+    const allPublicationsContainer =
+        document.getElementById("all-publications-container");
 
-    const saveMembershipsButton = document.getElementById("save-memberships-button");
-    const addPaymentMethodButton = document.getElementById("add-payment-method-button");
+    const flashContainer =
+        document.getElementById("flash-container");
+
+    /* =========================================================
+       PUBLICACIONES
+       ========================================================= */
+
+    const publishPanel =
+        document.getElementById("publish-panel");
+
+    const closePublishPanel =
+        document.getElementById("close-publish-panel");
+
+    const publishForm =
+        document.getElementById("publish-form");
+
+    const publicationTitle =
+        document.getElementById("publication-title");
+
+    const publicationDescription =
+        document.getElementById("publication-description");
+
+    const publicationPrice =
+        document.getElementById("publication-price");
+
+    const publicationContact =
+        document.getElementById("publication-contact");
+
+    const publicationImage =
+        document.getElementById("publication-image");
+
+    const publicationImagePreview =
+        document.getElementById("publication-image-preview");
+
+    /* =========================================================
+       FLASH DEL DÍA
+       ========================================================= */
+
+    const promotionPanel =
+        document.getElementById("promotion-panel");
+
+    const closePromotionPanel =
+        document.getElementById("close-promotion-panel");
+
+    const promotionForm =
+        document.getElementById("promotion-form");
+
+    const promotionTitle =
+        document.getElementById("promotion-title");
+
+    const promotionDescription =
+        document.getElementById("promotion-description");
+
+    const promotionPrice =
+        document.getElementById("promotion-price");
+
+    const promotionContact =
+        document.getElementById("promotion-contact");
+
+    const promotionImageCamera =
+        document.getElementById("promotion-image-camera");
+
+    const promotionImageGallery =
+        document.getElementById("promotion-image-gallery");
+
+    const promotionImagePreview =
+        document.getElementById("promotion-image-preview");
+
+    /* =========================================================
+       MEMBRESÍAS
+       ========================================================= */
+
+    const membershipPanel =
+        document.getElementById("membership-panel");
+
+    const closeMembershipPanel =
+        document.getElementById("close-membership-panel");
+
+    const membershipContainer =
+        document.getElementById("membership-container");
+
+    /* =========================================================
+       MÉTODOS DE PAGO
+       ========================================================= */
+
+    const paymentMethodPanel =
+        document.getElementById("payment-method-panel");
+
+    const closePaymentMethodPanel =
+        document.getElementById("close-payment-method-panel");
+
+    const selectedMembershipInfo =
+        document.getElementById("selected-membership-info");
+
+    const paymentMethodSelect =
+        document.getElementById("payment-method-select");
+
+    const paymentAmount =
+        document.getElementById("payment-amount");
+
+    const continuePaymentButton =
+        document.getElementById("continue-payment-button");
+
+    /* =========================================================
+       COMPROBANTE
+       ========================================================= */
+
+    const paymentProofPanel =
+        document.getElementById("payment-proof-panel");
+
+    const closePaymentProofPanel =
+        document.getElementById("close-payment-proof-panel");
+
+    const paymentSummary =
+        document.getElementById("payment-summary");
+
+    const paymentProofCamera =
+        document.getElementById("payment-proof-camera");
+
+    const paymentProofGallery =
+        document.getElementById("payment-proof-gallery");
+
+    const paymentProofPreview =
+        document.getElementById("payment-proof-preview");
+
+    const sendPaymentProofButton =
+        document.getElementById("send-payment-proof-button");
+
+    /* =========================================================
+       ADMINISTRACIÓN
+       ========================================================= */
+
+    const administrationPanel =
+        document.getElementById("administration-panel");
+
+    const closeAdministrationPanel =
+        document.getElementById("close-administration-panel");
+
+    const administrationButton =
+        document.getElementById("administration-button");
+
+    const saveMembershipsButton =
+        document.getElementById("save-memberships-button");
+
+    const addPaymentMethodButton =
+        document.getElementById("add-payment-method-button");
 
     const adminPaymentMethodsContainer =
         document.getElementById("admin-payment-methods-container");
@@ -166,11 +292,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const adminPaymentProofsContainer =
         document.getElementById("admin-payment-proofs-container");
 
+    /* =========================================================
+       DETALLE COMPROBANTE
+       ========================================================= */
+
     const paymentProofDetailPanel =
         document.getElementById("payment-proof-detail-panel");
 
     const closePaymentProofDetailPanel =
-        document.getElementById("close-payment-proof-detail-panel");
+        document.getElementById(
+            "close-payment-proof-detail-panel"
+        );
 
     const paymentProofDetail =
         document.getElementById("payment-proof-detail");
@@ -187,41 +319,61 @@ document.addEventListener("DOMContentLoaded", () => {
     const fullscreenPaymentProofButton =
         document.getElementById("fullscreen-payment-proof-button");
 
-    const profilePanel = document.getElementById("profile-panel");
-    const closeProfilePanel = document.getElementById("close-profile-panel");
-    const profileForm = document.getElementById("profile-form");
+    /* =========================================================
+       PERFIL
+       ========================================================= */
 
-    const profileEditName = document.getElementById("profile-edit-name");
-    const profileEditCedula = document.getElementById("profile-edit-cedula");
-    const profileEditPhone = document.getElementById("profile-edit-phone");
+    const profileAvatar =
+        document.getElementById("profile-avatar");
 
-    const settingsPanel = document.getElementById("settings-panel");
-    const closeSettingsPanel = document.getElementById("close-settings-panel");
-    const settingsProfileButton = document.getElementById("settings-profile-button");
-    const settingsLogoutButton = document.getElementById("settings-logout-button");
+    const profileName =
+        document.getElementById("profile-name");
 
-    const profileEditButton = document.getElementById("profile-edit-button");
-    const administrationButton = document.getElementById("administration-button");
-    const settingsButton = document.getElementById("settings-button");
-    const logoutButton = document.getElementById("logout-button");
+    const profilePhone =
+        document.getElementById("profile-phone");
 
-    const headerProfileName = document.getElementById("header-profile-name");
-    const homeUserName = document.getElementById("home-user-name");
-    const homeUserPhone = document.getElementById("home-user-phone");
+    const profileEditButton =
+        document.getElementById("profile-edit-button");
 
-    const profileAvatar = document.getElementById("profile-avatar");
-    const profileName = document.getElementById("profile-name");
-    const profilePhone = document.getElementById("profile-phone");
+    const profilePanel =
+        document.getElementById("profile-panel");
 
-    const publicationsContainer =
-        document.getElementById("publications-container");
+    const closeProfilePanel =
+        document.getElementById("close-profile-panel");
 
-    const allPublicationsContainer =
-        document.getElementById("all-publications-container");
+    const profileForm =
+        document.getElementById("profile-form");
 
-    const flashContainer =
-        document.getElementById("flash-container");
+    const profileEditName =
+        document.getElementById("profile-edit-name");
 
+    const profileEditCedula =
+        document.getElementById("profile-edit-cedula");
+
+    const profileEditPhone =
+        document.getElementById("profile-edit-phone");
+
+    const logoutButton =
+        document.getElementById("logout-button");
+
+    /* =========================================================
+       CONFIGURACIÓN
+       ========================================================= */
+
+    const settingsButton =
+        document.getElementById("settings-button");
+
+    const settingsPanel =
+        document.getElementById("settings-panel");
+
+    const closeSettingsPanel =
+        document.getElementById("close-settings-panel");
+
+    const settingsProfileButton =
+        document.getElementById("settings-profile-button");
+
+    const settingsLogoutButton =
+        document.getElementById("settings-logout-button");
 
     /* =========================================================
        UTILIDADES
@@ -234,9 +386,10 @@ document.addEventListener("DOMContentLoaded", () => {
             loginScreen,
             registerScreen,
             appScreen
-        ].forEach(element => {
-            if (element) {
-                element.classList.remove("active");
+        ].forEach(item => {
+
+            if (item) {
+                item.classList.remove("active");
             }
         });
 
@@ -252,9 +405,10 @@ document.addEventListener("DOMContentLoaded", () => {
             homeScreen,
             publicationsScreen,
             profileScreen
-        ].forEach(element => {
-            if (element) {
-                element.classList.remove("active");
+        ].forEach(item => {
+
+            if (item) {
+                item.classList.remove("active");
             }
         });
 
@@ -271,6 +425,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!panel) return;
 
         panel.classList.add("active");
+        panel.setAttribute("aria-hidden", "false");
     }
 
 
@@ -279,14 +434,41 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!panel) return;
 
         panel.classList.remove("active");
+        panel.setAttribute("aria-hidden", "true");
     }
 
 
     function closeMenu() {
 
-        if (sideMenu) {
-            sideMenu.classList.remove("active");
-        }
+        if (!sideMenu) return;
+
+        sideMenu.classList.remove("active");
+        sideMenu.setAttribute("aria-hidden", "true");
+    }
+
+
+    function openMenu() {
+
+        if (!sideMenu) return;
+
+        sideMenu.classList.add("active");
+        sideMenu.setAttribute("aria-hidden", "false");
+    }
+
+
+    function closeAllPanels() {
+
+        [
+            publishPanel,
+            promotionPanel,
+            membershipPanel,
+            paymentMethodPanel,
+            paymentProofPanel,
+            administrationPanel,
+            paymentProofDetailPanel,
+            profilePanel,
+            settingsPanel
+        ].forEach(closePanel);
     }
 
 
@@ -323,12 +505,10 @@ document.addEventListener("DOMContentLoaded", () => {
             return "MF";
         }
 
-        const parts = String(name)
+        return String(name)
             .trim()
             .split(/\s+/)
-            .slice(0, 2);
-
-        return parts
+            .slice(0, 2)
             .map(part => part.charAt(0).toUpperCase())
             .join("");
     }
@@ -349,14 +529,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    function setButtonLoading(button, loading, originalText = "Continuar") {
+    function setButtonLoading(
+        button,
+        loading,
+        originalText = "Continuar"
+    ) {
 
         if (!button) return;
 
         if (loading) {
 
-            button.dataset.originalText =
-                button.textContent;
+            if (!button.dataset.originalText) {
+                button.dataset.originalText =
+                    button.textContent;
+            }
 
             button.disabled = true;
             button.textContent = "Procesando...";
@@ -366,13 +552,24 @@ document.addEventListener("DOMContentLoaded", () => {
             button.disabled = false;
 
             button.textContent =
-                button.dataset.originalText || originalText;
+                button.dataset.originalText ||
+                originalText;
+
+            delete button.dataset.originalText;
         }
     }
 
 
+    function normalizeCedula(value) {
+
+        return String(value || "")
+            .trim()
+            .replace(/\s+/g, "");
+    }
+
+
     /* =========================================================
-       ARCHIVOS / IMÁGENES
+       IMÁGENES
        ========================================================= */
 
     function readFileAsDataURL(file) {
@@ -386,13 +583,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const reader = new FileReader();
 
-            reader.onload = () => {
-                resolve(reader.result);
-            };
+            reader.onload = () => resolve(reader.result);
 
-            reader.onerror = () => {
-                reject(reader.error);
-            };
+            reader.onerror = () => reject(reader.error);
 
             reader.readAsDataURL(file);
         });
@@ -407,47 +600,69 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
 
+            if (!file.type.startsWith("image/")) {
+
+                alert("El archivo seleccionado no es una imagen.");
+
+                return null;
+            }
+
             const extension =
                 file.name.includes(".")
                     ? file.name.split(".").pop().toLowerCase()
                     : "jpg";
 
-            const fileName =
-                `${crypto.randomUUID()}.${extension}`;
+            const randomName =
+                typeof crypto !== "undefined" &&
+                crypto.randomUUID
+                    ? crypto.randomUUID()
+                    : `${Date.now()}-${Math.random()
+                        .toString(36)
+                        .substring(2)}`;
 
             const filePath =
-                `${folder}/${fileName}`;
+                `${folder}/${randomName}.${extension}`;
 
-            const { error: uploadError } =
-                await db.storage
-                    .from(STORAGE_BUCKET)
-                    .upload(filePath, file, {
-                        cacheControl: "3600",
-                        upsert: false,
-                        contentType: file.type || "image/jpeg"
-                    });
+            const {
+                error: uploadError
+            } = await db.storage
+                .from(STORAGE_BUCKET)
+                .upload(filePath, file, {
+                    cacheControl: "3600",
+                    upsert: false,
+                    contentType: file.type
+                });
 
             if (uploadError) {
-                console.error("Error subiendo imagen:", uploadError);
 
-                /*
-                   Si todavía no existe el bucket,
-                   devolvemos null en lugar de romper la publicación.
-                */
+                console.error(
+                    "Error subiendo imagen:",
+                    uploadError
+                );
+
+                alert(
+                    "No se pudo subir la imagen. Revisa el bucket " +
+                    STORAGE_BUCKET +
+                    " en Supabase."
+                );
 
                 return null;
             }
 
-            const { data } =
-                db.storage
-                    .from(STORAGE_BUCKET)
-                    .getPublicUrl(filePath);
+            const {
+                data
+            } = db.storage
+                .from(STORAGE_BUCKET)
+                .getPublicUrl(filePath);
 
             return data?.publicUrl || null;
 
         } catch (error) {
 
-            console.error("Error de Storage:", error);
+            console.error(
+                "Error de Storage:",
+                error
+            );
 
             return null;
         }
@@ -461,6 +676,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!source) {
 
             container.innerHTML = "";
+
             return;
         }
 
@@ -468,53 +684,64 @@ document.addEventListener("DOMContentLoaded", () => {
             <img
                 src="${escapeHTML(source)}"
                 alt="Vista previa"
-                style="
-                    width:100%;
-                    max-height:280px;
-                    object-fit:cover;
-                    border-radius:16px;
-                    display:block;
-                "
+                class="media-preview-image"
             >
         `;
     }
 
 
     /* =========================================================
-       PERFIL / USUARIO
+       PERFIL
        ========================================================= */
 
     async function loadCurrentUser() {
 
-        const {
-            data,
-            error
-        } = await db.auth.getSession();
+        try {
 
-        if (error) {
+            const {
+                data,
+                error
+            } = await db.auth.getSession();
+
+            if (error) {
+
+                console.error(
+                    "Error obteniendo sesión:",
+                    error
+                );
+
+                return null;
+            }
+
+            currentUser =
+                data?.session?.user || null;
+
+            if (!currentUser) {
+
+                currentProfile = null;
+
+                return null;
+            }
+
+            await loadCurrentProfile();
+
+            return currentUser;
+
+        } catch (error) {
 
             console.error(error);
+
             return null;
         }
-
-        currentUser =
-            data?.session?.user || null;
-
-        if (!currentUser) {
-
-            currentProfile = null;
-            return null;
-        }
-
-        await loadCurrentProfile();
-
-        return currentUser;
     }
 
 
     async function loadCurrentProfile() {
 
         if (!currentUser) {
+
+            currentProfile = null;
+
             return null;
         }
 
@@ -534,6 +761,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 error
             );
 
+            currentProfile = null;
+
             return null;
         }
 
@@ -551,41 +780,56 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const name =
+        const firstName =
             currentProfile.nombre || "Usuario";
 
+        const lastName =
+            currentProfile.apellido || "";
+
+        const fullName =
+            `${firstName} ${lastName}`.trim();
+
         const phone =
-            currentProfile.telefono || "—";
+            currentProfile.telefono || "Teléfono no agregado";
 
         const initials =
-            getInitials(name);
+            getInitials(fullName);
 
         if (headerProfileName) {
-            headerProfileName.textContent = name;
+            headerProfileName.textContent =
+                currentProfile.apodo ||
+                firstName;
         }
 
         if (homeUserName) {
-            homeUserName.textContent = name;
+            homeUserName.textContent =
+                currentProfile.apodo ||
+                fullName;
         }
 
         if (homeUserPhone) {
-            homeUserPhone.textContent = phone;
+            homeUserPhone.textContent =
+                phone;
         }
 
         if (profileName) {
-            profileName.textContent = name;
+            profileName.textContent =
+                fullName;
         }
 
         if (profilePhone) {
-            profilePhone.textContent = phone;
+            profilePhone.textContent =
+                phone;
         }
 
         if (profileAvatar) {
-            profileAvatar.textContent = initials;
+            profileAvatar.textContent =
+                initials;
         }
 
         if (profileEditName) {
-            profileEditName.value = name;
+            profileEditName.value =
+                fullName;
         }
 
         if (profileEditCedula) {
@@ -594,9 +838,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         if (profileEditPhone) {
-            profileEditPhone.value = phone === "—"
-                ? ""
-                : phone;
+            profileEditPhone.value =
+                currentProfile.telefono || "";
         }
     }
 
@@ -612,26 +855,111 @@ document.addEventListener("DOMContentLoaded", () => {
         clearErrors();
 
         const name =
-            document.getElementById("register-name")?.value.trim();
+            document.getElementById("register-name")
+                ?.value.trim();
+
+        const lastName =
+            document.getElementById("register-last-name")
+                ?.value.trim();
+
+        const nickname =
+            document.getElementById("register-nickname")
+                ?.value.trim();
 
         const cedula =
-            document.getElementById("register-cedula")?.value.trim();
+            document.getElementById("register-cedula")
+                ?.value.trim();
+
+        const address =
+            document.getElementById("register-address")
+                ?.value.trim();
 
         const phone =
-            document.getElementById("register-phone")?.value.trim();
+            document.getElementById("register-phone")
+                ?.value.trim();
+
+        const email =
+            document.getElementById("register-email")
+                ?.value.trim();
 
         const password =
-            document.getElementById("register-password")?.value;
+            document.getElementById("register-password")
+                ?.value;
 
         const passwordConfirm =
-            document.getElementById("register-password-confirm")?.value;
+            document.getElementById(
+                "register-password-confirm"
+            )?.value;
+
+        const terms =
+            document.getElementById("register-terms")
+                ?.checked;
 
 
-        if (!name || !cedula || !phone || !password) {
+        /* -----------------------------------------------------
+           VALIDACIONES
+           ----------------------------------------------------- */
+
+        if (!name) {
 
             showError(
                 registerError,
-                "Completa todos los campos."
+                "Escribe tu nombre."
+            );
+
+            return;
+        }
+
+
+        if (!lastName) {
+
+            showError(
+                registerError,
+                "Escribe tu apellido."
+            );
+
+            return;
+        }
+
+
+        if (!nickname) {
+
+            showError(
+                registerError,
+                "Escribe un apodo."
+            );
+
+            return;
+        }
+
+
+        if (!cedula) {
+
+            showError(
+                registerError,
+                "La cédula es obligatoria."
+            );
+
+            return;
+        }
+
+
+        if (!address) {
+
+            showError(
+                registerError,
+                "Escribe tu dirección."
+            );
+
+            return;
+        }
+
+
+        if (!password) {
+
+            showError(
+                registerError,
+                "Crea una contraseña."
             );
 
             return;
@@ -660,22 +988,51 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
+        if (!terms) {
+
+            showError(
+                registerError,
+                "Debes aceptar los términos y condiciones."
+            );
+
+            return;
+        }
+
+
+        if (
+            email &&
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        ) {
+
+            showError(
+                registerError,
+                "El correo electrónico no es válido."
+            );
+
+            return;
+        }
+
+
         try {
 
-            /*
-               Como tu login utiliza CÉDULA, creamos
-               internamente un email técnico.
+            const cleanCedula =
+                normalizeCedula(cedula);
 
-               El usuario no necesita escribir el email.
+
+            /*
+               Correo técnico utilizado únicamente
+               para Supabase Auth.
+
+               El correo real del usuario, si lo proporciona,
+               se guarda en public.users.
             */
 
             const internalEmail =
-                `${cedula.replace(/\s+/g, "")}@marketflash.app`;
+                `${cleanCedula}@marketflash.app`;
 
 
             /*
-               Primero verificamos si la cédula ya existe
-               en nuestra tabla de perfiles.
+               Verificar cédula antes de crear cuenta.
             */
 
             const {
@@ -712,17 +1069,28 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
 
+            /*
+               Crear cuenta en Supabase Auth.
+            */
+
             const {
                 data,
                 error
             } = await db.auth.signUp({
+
                 email: internalEmail,
+
                 password: password,
+
                 options: {
                     data: {
                         nombre: name,
+                        apellido: lastName,
+                        apodo: nickname,
                         cedula: cedula,
-                        telefono: phone
+                        direccion: address,
+                        telefono: phone || null,
+                        correo_real: email || null
                     }
                 }
             });
@@ -731,13 +1099,14 @@ document.addEventListener("DOMContentLoaded", () => {
             if (error) {
 
                 console.error(
-                    "Error de Supabase Auth:",
+                    "Error creando cuenta:",
                     error
                 );
 
                 showError(
                     registerError,
-                    error.message || "No se pudo crear la cuenta."
+                    error.message ||
+                    "No se pudo crear la cuenta."
                 );
 
                 return;
@@ -756,7 +1125,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             /*
-               Guardamos el perfil en nuestra tabla.
+               Guardar perfil.
+
+               IMPORTANTE:
+               Estas columnas deben existir en Supabase:
+               apellido
+               apodo
+               direccion
+               correo
             */
 
             const {
@@ -766,8 +1142,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 .insert({
                     auth_id: data.user.id,
                     nombre: name,
+                    apellido: lastName,
+                    apodo: nickname,
                     cedula: cedula,
-                    telefono: phone,
+                    direccion: address,
+                    telefono: phone || null,
+                    correo: email || null,
                     rol: "usuario"
                 });
 
@@ -778,11 +1158,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     "Error creando perfil:",
                     profileError
                 );
-
-                /*
-                   Si la cuenta Auth se creó pero el perfil falló,
-                   avisamos para no ocultar el problema.
-                */
 
                 showError(
                     registerError,
@@ -795,15 +1170,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             /*
-               Si Supabase exige confirmación de correo,
-               probablemente no habrá sesión inmediatamente.
+               Si no existe sesión inmediatamente,
+               normalmente Supabase tiene activa
+               la confirmación de correo.
             */
 
             if (!data.session) {
 
                 showError(
                     registerError,
-                    "Cuenta creada. Si Supabase solicita confirmación, debes desactivarla para este sistema de acceso por cédula."
+                    "La cuenta fue creada, pero Supabase está solicitando confirmación de correo. Desactiva la confirmación de correo en Authentication > Providers > Email."
                 );
 
                 return;
@@ -815,13 +1191,17 @@ document.addEventListener("DOMContentLoaded", () => {
             await loadCurrentProfile();
 
             showScreen(appScreen);
+
             showPage(homeScreen);
 
             await refreshApplication();
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                "Error de registro:",
+                error
+            );
 
             showError(
                 registerError,
@@ -842,10 +1222,12 @@ document.addEventListener("DOMContentLoaded", () => {
         clearErrors();
 
         const cedula =
-            document.getElementById("login-cedula")?.value.trim();
+            document.getElementById("login-cedula")
+                ?.value.trim();
 
         const password =
-            document.getElementById("login-password")?.value;
+            document.getElementById("login-password")
+                ?.value;
 
 
         if (!cedula || !password) {
@@ -861,15 +1243,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
 
+            const cleanCedula =
+                normalizeCedula(cedula);
+
             const internalEmail =
-                `${cedula.replace(/\s+/g, "")}@marketflash.app`;
+                `${cleanCedula}@marketflash.app`;
 
 
             const {
                 data,
                 error
             } = await db.auth.signInWithPassword({
+
                 email: internalEmail,
+
                 password: password
             });
 
@@ -920,6 +1307,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
             showScreen(appScreen);
+
             showPage(homeScreen);
 
             await refreshApplication();
@@ -937,7 +1325,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       CERRAR SESIÓN
+       LOGOUT
        ========================================================= */
 
     async function logout() {
@@ -948,15 +1336,24 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                "Error cerrando sesión:",
+                error
+            );
         }
+
 
         currentUser = null;
         currentProfile = null;
+
         selectedMembership = null;
         selectedPaymentMethod = null;
         pendingPromotion = null;
         selectedProof = null;
+
+        publicationImageData = null;
+        promotionImageData = null;
+        paymentProofImageData = null;
 
         closeAllPanels();
         closeMenu();
@@ -976,33 +1373,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       NAVEGACIÓN
-       ========================================================= */
-
-    function openApplication() {
-
-        showScreen(appScreen);
-        showPage(homeScreen);
-    }
-
-
-    function closeAllPanels() {
-
-        [
-            publishPanel,
-            promotionPanel,
-            membershipPanel,
-            paymentMethodPanel,
-            paymentProofPanel,
-            administrationPanel,
-            paymentProofDetailPanel,
-            profilePanel,
-            settingsPanel
-        ].forEach(closePanel);
-    }
-
-
-    /* =========================================================
        PUBLICACIONES
        ========================================================= */
 
@@ -1013,6 +1383,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!currentUser || !currentProfile) {
 
             alert("Debes iniciar sesión para publicar.");
+
             return;
         }
 
@@ -1030,18 +1401,33 @@ document.addEventListener("DOMContentLoaded", () => {
             publicationContact?.value.trim();
 
 
-        if (!title || !description) {
+        if (!title) {
 
-            alert("Completa el título y la descripción.");
+            alert("Escribe el título del producto.");
+
+            return;
+        }
+
+
+        if (!description) {
+
+            alert("Escribe una descripción.");
+
             return;
         }
 
 
         try {
 
+            const submitButton =
+                publishForm?.querySelector(
+                    "button[type='submit']"
+                );
+
             setButtonLoading(
-                publishForm?.querySelector("button[type='submit']"),
-                true
+                submitButton,
+                true,
+                "Publicar"
             );
 
 
@@ -1058,11 +1444,15 @@ document.addEventListener("DOMContentLoaded", () => {
                         file,
                         `publications/${currentUser.id}`
                     );
+
+                if (!imageUrl) {
+
+                    return;
+                }
             }
 
 
             const {
-                data,
                 error
             } = await db
                 .from(TABLE_PUBLICATIONS)
@@ -1071,11 +1461,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     titulo: title,
                     descripcion: description,
                     precio: price,
-                    contacto: contact || currentProfile.telefono,
+                    contacto:
+                        contact ||
+                        currentProfile.telefono ||
+                        null,
                     imagen_url: imageUrl
-                })
-                .select()
-                .single();
+                });
 
 
             if (error) {
@@ -1104,7 +1495,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             await loadPublications();
 
-            alert("¡Producto publicado correctamente!");
+            alert(
+                "¡Producto publicado correctamente!"
+            );
 
         } catch (error) {
 
@@ -1116,8 +1509,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } finally {
 
+            const submitButton =
+                publishForm?.querySelector(
+                    "button[type='submit']"
+                );
+
             setButtonLoading(
-                publishForm?.querySelector("button[type='submit']"),
+                submitButton,
                 false,
                 "Publicar"
             );
@@ -1127,8 +1525,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function loadPublications() {
 
-        if (!publicationsContainer &&
-            !allPublicationsContainer) {
+        if (
+            !publicationsContainer &&
+            !allPublicationsContainer
+        ) {
             return;
         }
 
@@ -1142,6 +1542,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 *,
                 users (
                     nombre,
+                    apellido,
+                    apodo,
                     telefono
                 )
             `)
@@ -1187,20 +1589,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
         container.innerHTML = `
             <div class="empty-publications">
+                <div class="empty-icon">📦</div>
                 <p>No hay publicaciones todavía.</p>
             </div>
         `;
     }
 
 
-    function renderPublications(container, publications) {
+    function renderPublications(
+        container,
+        publications
+    ) {
 
         if (!container) return;
 
 
-        if (!publications || publications.length === 0) {
+        if (
+            !publications ||
+            publications.length === 0
+        ) {
 
             renderEmptyPublications(container);
+
             return;
         }
 
@@ -1210,21 +1620,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const image =
                     publication.imagen_url
-                    ? `
-                        <img
-                            src="${escapeHTML(publication.imagen_url)}"
-                            alt="${escapeHTML(publication.titulo)}"
-                            class="publication-image"
-                        >
-                    `
-                    : `
-                        <div class="publication-image-placeholder">
-                            📦
-                        </div>
-                    `;
+                        ? `
+                            <img
+                                src="${escapeHTML(
+                                    publication.imagen_url
+                                )}"
+                                alt="${escapeHTML(
+                                    publication.titulo
+                                )}"
+                                class="publication-image"
+                                loading="lazy"
+                            >
+                        `
+                        : `
+                            <div class="publication-image-placeholder">
+                                📦
+                            </div>
+                        `;
 
 
                 const owner =
+                    publication.users?.apodo ||
                     publication.users?.nombre ||
                     "Usuario";
 
@@ -1245,31 +1661,43 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="publication-card-content">
 
                             <h3>
-                                ${escapeHTML(publication.titulo)}
+                                ${escapeHTML(
+                                    publication.titulo
+                                )}
                             </h3>
 
                             <p>
-                                ${escapeHTML(publication.descripcion)}
+                                ${escapeHTML(
+                                    publication.descripcion
+                                )}
                             </p>
 
                             <strong class="publication-price">
-                                ${formatPrice(publication.precio)}
+                                ${formatPrice(
+                                    publication.precio
+                                )}
                             </strong>
 
                             <div class="publication-owner">
+
                                 <span>
-                                    👤 ${escapeHTML(owner)}
+                                    👤
+                                    ${escapeHTML(owner)}
                                 </span>
 
                                 ${
                                     contact
-                                    ? `
-                                        <span>
-                                            📞 ${escapeHTML(contact)}
-                                        </span>
-                                    `
-                                    : ""
+                                        ? `
+                                            <span>
+                                                📞
+                                                ${escapeHTML(
+                                                    contact
+                                                )}
+                                            </span>
+                                        `
+                                        : ""
                                 }
+
                             </div>
 
                         </div>
@@ -1289,7 +1717,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!currentUser) {
 
-            alert("Debes iniciar sesión.");
+            alert(
+                "Debes iniciar sesión para crear un Flash del Día."
+            );
+
             return;
         }
 
@@ -1304,6 +1735,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!currentUser || !currentProfile) {
 
             alert("Debes iniciar sesión.");
+
             return;
         }
 
@@ -1333,9 +1765,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
 
+            const submitButton =
+                promotionForm?.querySelector(
+                    "button[type='submit']"
+                );
+
             setButtonLoading(
-                promotionForm?.querySelector("button[type='submit']"),
-                true
+                submitButton,
+                true,
+                "Continuar con el pago"
             );
 
 
@@ -1354,6 +1792,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         file,
                         `promotions/${currentUser.id}`
                     );
+
+                if (!imageUrl) {
+
+                    return;
+                }
             }
 
 
@@ -1367,7 +1810,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     titulo: title,
                     descripcion: description,
                     precio: price,
-                    contacto: contact || currentProfile.telefono,
+                    contacto:
+                        contact ||
+                        currentProfile.telefono ||
+                        null,
                     imagen_url: imageUrl,
                     estado: "pendiente"
                 })
@@ -1392,6 +1838,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             promotionForm.reset();
 
+            promotionImageData = null;
+
             showImagePreview(
                 promotionImagePreview,
                 null
@@ -1413,8 +1861,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } finally {
 
+            const submitButton =
+                promotionForm?.querySelector(
+                    "button[type='submit']"
+                );
+
             setButtonLoading(
-                promotionForm?.querySelector("button[type='submit']"),
+                submitButton,
                 false,
                 "Continuar con el pago"
             );
@@ -1436,6 +1889,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 *,
                 users (
                     nombre,
+                    apellido,
+                    apodo,
                     telefono
                 )
             `)
@@ -1472,6 +1927,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             flashContainer.innerHTML = `
                 <div class="empty-flash">
+                    <div class="empty-icon">⚡</div>
                     <p>No hay Flash del Día todavía.</p>
                 </div>
             `;
@@ -1485,18 +1941,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const image =
                     promotion.imagen_url
-                    ? `
-                        <img
-                            src="${escapeHTML(promotion.imagen_url)}"
-                            alt="${escapeHTML(promotion.titulo)}"
-                            class="flash-image"
-                        >
-                    `
-                    : `
-                        <div class="flash-image-placeholder">
-                            ⚡
-                        </div>
-                    `;
+                        ? `
+                            <img
+                                src="${escapeHTML(
+                                    promotion.imagen_url
+                                )}"
+                                alt="${escapeHTML(
+                                    promotion.titulo
+                                )}"
+                                class="flash-image"
+                                loading="lazy"
+                            >
+                        `
+                        : `
+                            <div class="flash-image-placeholder">
+                                ⚡
+                            </div>
+                        `;
+
+
+                const owner =
+                    promotion.users?.apodo ||
+                    promotion.users?.nombre ||
+                    "Usuario";
 
 
                 return `
@@ -1509,20 +1976,30 @@ document.addEventListener("DOMContentLoaded", () => {
                         <div class="flash-card-content">
 
                             <span class="flash-badge">
-                                ⚡ FLASH
+                                ⚡ FLASH DEL DÍA
                             </span>
 
                             <h3>
-                                ${escapeHTML(promotion.titulo)}
+                                ${escapeHTML(
+                                    promotion.titulo
+                                )}
                             </h3>
 
                             <p>
-                                ${escapeHTML(promotion.descripcion)}
+                                ${escapeHTML(
+                                    promotion.descripcion
+                                )}
                             </p>
 
                             <strong>
-                                ${formatPrice(promotion.precio)}
+                                ${formatPrice(
+                                    promotion.precio
+                                )}
                             </strong>
+
+                            <small>
+                                👤 ${escapeHTML(owner)}
+                            </small>
 
                         </div>
 
@@ -1570,18 +2047,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateMembershipDisplay(memberships) {
 
-        const list = [
+        const codes = [
             "basica",
             "premium",
             "vip"
         ];
 
 
-        list.forEach(code => {
+        codes.forEach(code => {
 
             const membership =
                 memberships.find(
-                    item => item.codigo === code
+                    item =>
+                        item.codigo === code
                 );
 
 
@@ -1590,17 +2068,15 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
 
-            const nameElement =
+            const descriptionElement =
                 document.getElementById(
                     `membership-description-${code}`
                 );
-
 
             const priceElement =
                 document.getElementById(
                     `membership-price-${code}`
                 );
-
 
             const featuresElement =
                 document.getElementById(
@@ -1608,9 +2084,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 );
 
 
-            if (nameElement) {
+            if (descriptionElement) {
 
-                nameElement.textContent =
+                descriptionElement.textContent =
                     membership.descripcion ||
                     membership.nombre;
             }
@@ -1619,16 +2095,20 @@ document.addEventListener("DOMContentLoaded", () => {
             if (priceElement) {
 
                 priceElement.textContent =
-                    formatPrice(membership.precio);
+                    formatPrice(
+                        membership.precio
+                    );
             }
 
 
             if (featuresElement) {
 
                 const features =
-                    Array.isArray(membership.caracteristicas)
-                    ? membership.caracteristicas
-                    : [];
+                    Array.isArray(
+                        membership.caracteristicas
+                    )
+                        ? membership.caracteristicas
+                        : [];
 
 
                 featuresElement.innerHTML =
@@ -1652,10 +2132,13 @@ document.addEventListener("DOMContentLoaded", () => {
             .from(TABLE_MEMBERSHIPS)
             .select("*")
             .eq("codigo", code)
+            .eq("activa", true)
             .maybeSingle();
 
 
         if (error || !data) {
+
+            console.error(error);
 
             alert(
                 "No se pudo seleccionar la membresía."
@@ -1671,23 +2154,29 @@ document.addEventListener("DOMContentLoaded", () => {
         if (selectedMembershipInfo) {
 
             selectedMembershipInfo.innerHTML = `
-                <strong>
-                    ${escapeHTML(data.nombre)}
-                </strong>
+                <div class="selected-membership">
 
-                <span>
-                    ${formatPrice(data.precio)}
-                </span>
+                    <strong>
+                        ${escapeHTML(data.nombre)}
+                    </strong>
 
-                ${
-                    data.descripcion
-                    ? `
-                        <p>
-                            ${escapeHTML(data.descripcion)}
-                        </p>
-                    `
-                    : ""
-                }
+                    <span>
+                        ${formatPrice(data.precio)}
+                    </span>
+
+                    ${
+                        data.descripcion
+                            ? `
+                                <p>
+                                    ${escapeHTML(
+                                        data.descripcion
+                                    )}
+                                </p>
+                            `
+                            : ""
+                    }
+
+                </div>
             `;
         }
 
@@ -1767,16 +2256,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
             paymentAmount.textContent =
                 selectedMembership
-                ? `Monto: ${formatPrice(selectedMembership.precio)}`
-                : "Selecciona un método de pago";
+                    ? `Monto: ${formatPrice(
+                        selectedMembership.precio
+                    )}`
+                    : "Selecciona un método de pago";
         }
     }
 
 
-    function handlePaymentMethodChange() {
+    async function handlePaymentMethodChange() {
 
         const id =
-            Number(paymentMethodSelect?.value || 0);
+            Number(
+                paymentMethodSelect?.value || 0
+            );
 
 
         if (!id) {
@@ -1787,15 +2280,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 paymentAmount.textContent =
                     selectedMembership
-                    ? `Monto: ${formatPrice(selectedMembership.precio)}`
-                    : "Selecciona un método de pago";
+                        ? `Monto: ${formatPrice(
+                            selectedMembership.precio
+                        )}`
+                        : "Selecciona un método de pago";
             }
 
             return;
         }
 
 
-        loadSelectedPaymentMethod(id);
+        await loadSelectedPaymentMethod(id);
     }
 
 
@@ -1808,12 +2303,14 @@ document.addEventListener("DOMContentLoaded", () => {
             .from(TABLE_PAYMENT_METHODS)
             .select("*")
             .eq("id", id)
+            .eq("activo", true)
             .maybeSingle();
 
 
         if (error || !data) {
 
             selectedPaymentMethod = null;
+
             return;
         }
 
@@ -1824,36 +2321,42 @@ document.addEventListener("DOMContentLoaded", () => {
         if (paymentAmount) {
 
             paymentAmount.innerHTML = `
+
                 <strong>
-                    ${formatPrice(selectedMembership?.precio || 0)}
+                    ${formatPrice(
+                        selectedMembership?.precio || 0
+                    )}
                 </strong>
 
                 <br>
 
-                <small>
+                <span>
                     ${escapeHTML(data.nombre)}
-                </small>
+                </span>
 
                 ${
                     data.descripcion
-                    ? `
-                        <br>
-                        <small>
-                            ${escapeHTML(data.descripcion)}
-                        </small>
-                    `
-                    : ""
+                        ? `
+                            <br>
+                            <small>
+                                ${escapeHTML(
+                                    data.descripcion
+                                )}
+                            </small>
+                        `
+                        : ""
                 }
 
                 ${
                     data.datos_pago
-                    ? `
-                        <br><br>
-                        <small>
-                            ${escapeHTML(data.datos_pago)}
-                        </small>
-                    `
-                    : ""
+                        ? `
+                            <div class="payment-data">
+                                ${escapeHTML(
+                                    data.datos_pago
+                                )}
+                            </div>
+                        `
+                        : ""
                 }
             `;
         }
@@ -1885,52 +2388,50 @@ document.addEventListener("DOMContentLoaded", () => {
         if (paymentSummary) {
 
             paymentSummary.innerHTML = `
-                <div>
-                    <strong>
-                        Membresía
-                    </strong>
 
+                <div>
+                    <strong>Membresía</strong>
                     <span>
-                        ${escapeHTML(selectedMembership.nombre)}
+                        ${escapeHTML(
+                            selectedMembership.nombre
+                        )}
                     </span>
                 </div>
 
                 <div>
-                    <strong>
-                        Método de pago
-                    </strong>
-
+                    <strong>Método de pago</strong>
                     <span>
-                        ${escapeHTML(selectedPaymentMethod.nombre)}
+                        ${escapeHTML(
+                            selectedPaymentMethod.nombre
+                        )}
                     </span>
                 </div>
 
                 <div>
-                    <strong>
-                        Total
-                    </strong>
-
+                    <strong>Total</strong>
                     <span>
-                        ${formatPrice(selectedMembership.precio)}
+                        ${formatPrice(
+                            selectedMembership.precio
+                        )}
                     </span>
                 </div>
 
                 ${
                     selectedPaymentMethod.datos_pago
-                    ? `
-                        <div>
-                            <strong>
-                                Datos para pagar
-                            </strong>
+                        ? `
+                            <div>
+                                <strong>
+                                    Datos para pagar
+                                </strong>
 
-                            <span>
-                                ${escapeHTML(
-                                    selectedPaymentMethod.datos_pago
-                                )}
-                            </span>
-                        </div>
-                    `
-                    : ""
+                                <span>
+                                    ${escapeHTML(
+                                        selectedPaymentMethod.datos_pago
+                                    )}
+                                </span>
+                            </div>
+                        `
+                        : ""
                 }
             `;
         }
@@ -1948,7 +2449,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function sendPaymentProof() {
 
-        if (!currentProfile) {
+        if (!currentUser || !currentProfile) {
 
             alert(
                 "Debes iniciar sesión."
@@ -1998,39 +2499,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
             setButtonLoading(
                 sendPaymentProofButton,
-                true
+                true,
+                "Enviar comprobante"
             );
 
 
-            let imageUrl = null;
+            const imageUrl =
+                await uploadImage(
+                    file,
+                    `payment-proofs/${currentUser.id}`
+                );
 
 
-            if (file) {
+            if (!imageUrl) {
 
-                imageUrl =
-                    await uploadImage(
-                        file,
-                        `payment-proofs/${currentUser.id}`
-                    );
+                return;
             }
 
 
             const {
-                data,
                 error
             } = await db
                 .from(TABLE_PAYMENT_PROOFS)
                 .insert({
                     user_id: currentProfile.id,
                     membership_id: selectedMembership.id,
-                    payment_method_id: selectedPaymentMethod.id,
-                    promotion_id: pendingPromotion?.id || null,
-                    monto: Number(selectedMembership.precio || 0),
+                    payment_method_id:
+                        selectedPaymentMethod.id,
+                    promotion_id:
+                        pendingPromotion?.id || null,
+                    monto:
+                        Number(
+                            selectedMembership.precio || 0
+                        ),
                     imagen_url: imageUrl,
                     estado: "pendiente"
-                })
-                .select()
-                .single();
+                });
 
 
             if (error) {
@@ -2046,11 +2550,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
 
-            /*
-               Si había una promoción pendiente,
-               queda esperando aprobación.
-            */
-
             if (pendingPromotion?.id) {
 
                 await db
@@ -2058,14 +2557,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     .update({
                         estado: "pendiente"
                     })
-                    .eq("id", pendingPromotion.id);
+                    .eq(
+                        "id",
+                        pendingPromotion.id
+                    );
             }
 
 
-            paymentProofCamera.value = "";
-            paymentProofGallery.value = "";
+            if (paymentProofCamera) {
+                paymentProofCamera.value = "";
+            }
+
+            if (paymentProofGallery) {
+                paymentProofGallery.value = "";
+            }
+
 
             paymentProofImageData = null;
+
 
             showImagePreview(
                 paymentProofPreview,
@@ -2110,7 +2619,21 @@ document.addEventListener("DOMContentLoaded", () => {
        ADMINISTRACIÓN
        ========================================================= */
 
+    function isAdmin() {
+
+        return (
+            currentProfile &&
+            (
+                currentProfile.rol === "admin" ||
+                currentProfile.rol === "administrador"
+            )
+        );
+    }
+
+
     async function openAdministration() {
+
+        closeMenu();
 
         if (!currentProfile) {
 
@@ -2122,15 +2645,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
-        /*
-           De momento verificamos el rol guardado
-           en users.
-        */
-
-        if (
-            currentProfile.rol !== "admin" &&
-            currentProfile.rol !== "administrador"
-        ) {
+        if (!isAdmin()) {
 
             alert(
                 "No tienes permisos de administrador."
@@ -2164,6 +2679,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (error) {
 
             console.error(error);
+
             return;
         }
 
@@ -2213,9 +2729,11 @@ document.addEventListener("DOMContentLoaded", () => {
             if (features) {
 
                 features.value =
-                    Array.isArray(membership.caracteristicas)
-                    ? membership.caracteristicas.join("\n")
-                    : "";
+                    Array.isArray(
+                        membership.caracteristicas
+                    )
+                        ? membership.caracteristicas.join("\n")
+                        : "";
             }
 
         });
@@ -2224,15 +2742,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function saveMemberships() {
 
-        if (!currentProfile) return;
+        if (!isAdmin()) {
 
+            alert(
+                "No tienes permisos."
+            );
 
-        if (
-            currentProfile.rol !== "admin" &&
-            currentProfile.rol !== "administrador"
-        ) {
-
-            alert("No tienes permisos.");
             return;
         }
 
@@ -2248,7 +2763,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             setButtonLoading(
                 saveMembershipsButton,
-                true
+                true,
+                "Guardar membresías"
             );
 
 
@@ -2297,7 +2813,10 @@ document.addEventListener("DOMContentLoaded", () => {
                         descripcion: description,
                         caracteristicas: features
                     })
-                    .eq("codigo", code);
+                    .eq(
+                        "codigo",
+                        code
+                    );
 
 
                 if (error) {
@@ -2317,6 +2836,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
             alert(
                 "Membresías guardadas correctamente."
+            );
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "Ocurrió un error guardando las membresías."
             );
 
         } finally {
@@ -2355,6 +2882,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (error) {
 
             console.error(error);
+
+            adminPaymentMethodsContainer.innerHTML = `
+                <p>
+                    No se pudieron cargar los métodos de pago.
+                </p>
+            `;
+
             return;
         }
 
@@ -2362,7 +2896,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!data?.length) {
 
             adminPaymentMethodsContainer.innerHTML = `
-                <p>No hay métodos de pago.</p>
+                <p>
+                    No hay métodos de pago.
+                </p>
             `;
 
             return;
@@ -2375,36 +2911,40 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div
                     class="admin-payment-method-item"
                     data-id="${method.id}"
-                    style="
-                        padding:16px;
-                        margin-bottom:12px;
-                        border:1px solid rgba(255,255,255,.1);
-                        border-radius:14px;
-                    "
                 >
 
                     <input
                         type="text"
                         class="admin-payment-name"
-                        value="${escapeHTML(method.nombre)}"
+                        value="${escapeHTML(
+                            method.nombre
+                        )}"
                         placeholder="Nombre"
                     >
 
                     <textarea
                         class="admin-payment-description"
                         placeholder="Descripción"
-                    >${escapeHTML(method.descripcion || "")}</textarea>
+                    >${escapeHTML(
+                        method.descripcion || ""
+                    )}</textarea>
 
                     <textarea
                         class="admin-payment-data"
                         placeholder="Datos para pagar"
-                    >${escapeHTML(method.datos_pago || "")}</textarea>
+                    >${escapeHTML(
+                        method.datos_pago || ""
+                    )}</textarea>
 
                     <label>
                         <input
                             type="checkbox"
                             class="admin-payment-active"
-                            ${method.activo ? "checked" : ""}
+                            ${
+                                method.activo
+                                    ? "checked"
+                                    : ""
+                            }
                         >
                         Activo
                     </label>
@@ -2431,31 +2971,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function addPaymentMethod() {
 
-        if (!currentProfile) return;
+        if (!isAdmin()) {
 
+            alert(
+                "No tienes permisos."
+            );
 
-        if (
-            currentProfile.rol !== "admin" &&
-            currentProfile.rol !== "administrador"
-        ) {
-
-            alert("No tienes permisos.");
             return;
         }
 
 
         const name =
-            prompt("Nombre del método de pago:");
+            prompt(
+                "Nombre del método de pago:"
+            );
 
-        if (!name) return;
+
+        if (!name) {
+            return;
+        }
 
 
         const description =
-            prompt("Descripción del método:") || "";
+            prompt(
+                "Descripción del método:"
+            ) || "";
 
 
         const paymentData =
-            prompt("Datos para realizar el pago:") || "";
+            prompt(
+                "Datos para realizar el pago:"
+            ) || "";
 
 
         const {
@@ -2463,9 +3009,9 @@ document.addEventListener("DOMContentLoaded", () => {
         } = await db
             .from(TABLE_PAYMENT_METHODS)
             .insert({
-                nombre: name,
-                descripcion: description,
-                datos_pago: paymentData,
+                nombre: name.trim(),
+                descripcion: description.trim(),
+                datos_pago: paymentData.trim(),
                 activo: true
             });
 
@@ -2493,24 +3039,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function savePaymentMethod(item) {
 
+        if (!item) return;
+
+
         const id =
             Number(item.dataset.id);
 
 
         const name =
-            item.querySelector(".admin-payment-name")?.value.trim();
+            item.querySelector(
+                ".admin-payment-name"
+            )?.value.trim();
 
 
         const description =
-            item.querySelector(".admin-payment-description")?.value.trim();
+            item.querySelector(
+                ".admin-payment-description"
+            )?.value.trim();
 
 
         const paymentData =
-            item.querySelector(".admin-payment-data")?.value.trim();
+            item.querySelector(
+                ".admin-payment-data"
+            )?.value.trim();
 
 
         const active =
-            item.querySelector(".admin-payment-active")?.checked;
+            item.querySelector(
+                ".admin-payment-active"
+            )?.checked;
 
 
         const {
@@ -2538,6 +3095,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         await loadAdminPaymentMethods();
+
         await loadPaymentMethods();
 
         alert(
@@ -2547,6 +3105,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     async function deletePaymentMethod(item) {
+
+        if (!item) return;
+
 
         const id =
             Number(item.dataset.id);
@@ -2581,6 +3142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         await loadAdminPaymentMethods();
+
         await loadPaymentMethods();
     }
 
@@ -2605,6 +3167,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 *,
                 users (
                     nombre,
+                    apellido,
+                    apodo,
                     cedula,
                     telefono
                 ),
@@ -2653,46 +3217,35 @@ document.addEventListener("DOMContentLoaded", () => {
                     proof.estado || "pendiente";
 
 
+                const userName =
+                    proof.users?.apodo ||
+                    proof.users?.nombre ||
+                    "Usuario";
+
+
                 return `
                     <button
                         type="button"
                         class="admin-proof-item"
                         data-proof-id="${proof.id}"
-                        style="
-                            width:100%;
-                            text-align:left;
-                            padding:16px;
-                            margin-bottom:10px;
-                            border:1px solid rgba(255,255,255,.1);
-                            border-radius:14px;
-                            background:transparent;
-                            color:inherit;
-                        "
                     >
 
                         <strong>
-                            ${escapeHTML(
-                                proof.users?.nombre ||
-                                "Usuario"
-                            )}
+                            ${escapeHTML(userName)}
                         </strong>
 
                         <span>
-                            ${
-                                escapeHTML(
-                                    proof.memberships?.nombre ||
-                                    "Membresía"
-                                )
-                            }
+                            ${escapeHTML(
+                                proof.memberships?.nombre ||
+                                "Membresía"
+                            )}
                         </span>
 
                         <span>
-                            ${
-                                escapeHTML(
-                                    proof.payment_methods?.nombre ||
-                                    "Método de pago"
-                                )
-                            }
+                            ${escapeHTML(
+                                proof.payment_methods?.nombre ||
+                                "Método de pago"
+                            )}
                         </span>
 
                         <span>
@@ -2722,6 +3275,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 *,
                 users (
                     nombre,
+                    apellido,
+                    apodo,
                     cedula,
                     telefono
                 ),
@@ -2749,6 +3304,12 @@ document.addEventListener("DOMContentLoaded", () => {
         selectedProof = data;
 
 
+        const userName =
+            data.users?.apodo ||
+            data.users?.nombre ||
+            "Usuario";
+
+
         if (paymentProofDetail) {
 
             paymentProofDetail.innerHTML = `
@@ -2756,10 +3317,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <div class="proof-detail-content">
 
                     <h3>
-                        ${escapeHTML(
-                            data.users?.nombre ||
-                            "Usuario"
-                        )}
+                        ${escapeHTML(userName)}
                     </h3>
 
                     <p>
@@ -2779,16 +3337,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     <p>
                         <strong>Membresía:</strong>
                         ${escapeHTML(
-                            data.memberships?.nombre ||
-                            ""
+                            data.memberships?.nombre || ""
                         )}
                     </p>
 
                     <p>
                         <strong>Método:</strong>
                         ${escapeHTML(
-                            data.payment_methods?.nombre ||
-                            ""
+                            data.payment_methods?.nombre || ""
                         )}
                     </p>
 
@@ -2799,29 +3355,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     <p>
                         <strong>Estado:</strong>
-                        ${escapeHTML(data.estado)}
+                        ${escapeHTML(
+                            data.estado || "pendiente"
+                        )}
                     </p>
 
                     ${
                         data.imagen_url
-                        ? `
-                            <img
-                                src="${escapeHTML(data.imagen_url)}"
-                                alt="Comprobante"
-                                style="
-                                    width:100%;
-                                    max-height:500px;
-                                    object-fit:contain;
-                                    border-radius:16px;
-                                    margin-top:15px;
-                                "
-                            >
-                        `
-                        : `
-                            <p>
-                                No hay imagen del comprobante.
-                            </p>
-                        `
+                            ? `
+                                <img
+                                    src="${escapeHTML(
+                                        data.imagen_url
+                                    )}"
+                                    alt="Comprobante"
+                                    class="proof-image"
+                                >
+                            `
+                            : `
+                                <p>
+                                    No hay imagen del comprobante.
+                                </p>
+                            `
                     }
 
                 </div>
@@ -2835,7 +3389,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 data.estado === "pendiente";
 
             paymentProofAdminActions.style.display =
-                pending ? "flex" : "none";
+                pending
+                    ? "flex"
+                    : "none";
         }
 
 
@@ -2850,6 +3406,16 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
 
+        if (!isAdmin()) {
+
+            alert(
+                "No tienes permisos."
+            );
+
+            return;
+        }
+
+
         const {
             error
         } = await db
@@ -2857,7 +3423,10 @@ document.addEventListener("DOMContentLoaded", () => {
             .update({
                 estado: status
             })
-            .eq("id", selectedProof.id);
+            .eq(
+                "id",
+                selectedProof.id
+            );
 
 
         if (error) {
@@ -2872,8 +3441,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         /*
-           Si se aprueba un comprobante asociado
-           a una promoción, aprobamos la promoción.
+           Aprobar promoción relacionada.
         */
 
         if (
@@ -2881,7 +3449,9 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedProof.promotion_id
         ) {
 
-            await db
+            const {
+                error: promotionError
+            } = await db
                 .from(TABLE_PROMOTIONS)
                 .update({
                     estado: "aprobada"
@@ -2890,11 +3460,17 @@ document.addEventListener("DOMContentLoaded", () => {
                     "id",
                     selectedProof.promotion_id
                 );
+
+            if (promotionError) {
+                console.error(
+                    promotionError
+                );
+            }
         }
 
 
         /*
-           Si se rechaza, la promoción también queda rechazada.
+           Rechazar promoción relacionada.
         */
 
         if (
@@ -2902,7 +3478,9 @@ document.addEventListener("DOMContentLoaded", () => {
             selectedProof.promotion_id
         ) {
 
-            await db
+            const {
+                error: promotionError
+            } = await db
                 .from(TABLE_PROMOTIONS)
                 .update({
                     estado: "rechazada"
@@ -2911,6 +3489,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     "id",
                     selectedProof.promotion_id
                 );
+
+            if (promotionError) {
+                console.error(
+                    promotionError
+                );
+            }
         }
 
 
@@ -2921,9 +3505,14 @@ document.addEventListener("DOMContentLoaded", () => {
         );
 
 
-        closePanel(paymentProofDetailPanel);
+        selectedProof = null;
+
+        closePanel(
+            paymentProofDetailPanel
+        );
 
         await loadAdminPaymentProofs();
+
         await loadPromotions();
     }
 
@@ -2953,6 +3542,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openProfilePanel() {
 
+        if (!currentProfile) {
+
+            alert(
+                "Debes iniciar sesión."
+            );
+
+            return;
+        }
+
         updateUserInterface();
 
         openPanel(profilePanel);
@@ -2965,26 +3563,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
         if (!currentProfile) {
+
+            alert(
+                "Debes iniciar sesión."
+            );
+
             return;
         }
 
 
-        const name =
+        const fullName =
             profileEditName?.value.trim();
 
         const phone =
             profileEditPhone?.value.trim();
 
 
-        if (!name || !phone) {
+        if (!fullName) {
 
             alert(
-                "Completa nombre y teléfono."
+                "Escribe tu nombre."
             );
 
             return;
         }
 
+
+        /*
+           El campo antiguo de perfil solo tiene un nombre.
+           Conservamos el nombre completo allí.
+        */
 
         const {
             data,
@@ -2992,10 +3600,13 @@ document.addEventListener("DOMContentLoaded", () => {
         } = await db
             .from(TABLE_USERS)
             .update({
-                nombre: name,
-                telefono: phone
+                nombre: fullName,
+                telefono: phone || null
             })
-            .eq("id", currentProfile.id)
+            .eq(
+                "id",
+                currentProfile.id
+            )
             .select()
             .single();
 
@@ -3029,18 +3640,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function openSettings() {
 
+        if (!currentUser) {
+
+            alert(
+                "Debes iniciar sesión."
+            );
+
+            return;
+        }
+
+        closeMenu();
+
         openPanel(settingsPanel);
     }
 
 
     /* =========================================================
-       IMÁGENES - PREVISUALIZACIÓN
+       PREVISUALIZACIÓN DE IMÁGENES
        ========================================================= */
 
     async function handlePublicationImage() {
 
         const file =
             publicationImage?.files?.[0];
+
 
         if (!file) {
 
@@ -3071,6 +3694,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const file =
             input?.files?.[0];
 
+
         if (!file) {
             return;
         }
@@ -3085,10 +3709,6 @@ document.addEventListener("DOMContentLoaded", () => {
             promotionImageData
         );
 
-
-        /*
-           Evitamos tener dos imágenes diferentes.
-        */
 
         if (
             input === promotionImageCamera &&
@@ -3111,6 +3731,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const file =
             input?.files?.[0];
+
 
         if (!file) {
             return;
@@ -3145,7 +3766,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       ACTUALIZAR TODA LA APP
+       ACTUALIZAR APP
        ========================================================= */
 
     async function refreshApplication() {
@@ -3161,41 +3782,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       EVENTOS - BIENVENIDA / LOGIN / REGISTRO
+       EVENTOS
        ========================================================= */
+
+    /* ---------- Bienvenida ---------- */
 
     if (startButton) {
 
         startButton.addEventListener(
             "click",
-            () => {
-
-                showScreen(loginScreen);
-            }
+            () => showScreen(loginScreen)
         );
     }
 
+
+    /* ---------- Login ---------- */
 
     if (loginBackButton) {
 
         loginBackButton.addEventListener(
             "click",
-            () => {
-
-                showScreen(welcomeScreen);
-            }
+            () => showScreen(welcomeScreen)
         );
     }
 
+
+    /* ---------- Registro ---------- */
 
     if (registerBackButton) {
 
         registerBackButton.addEventListener(
             "click",
-            () => {
-
-                showScreen(welcomeScreen);
-            }
+            () => showScreen(welcomeScreen)
         );
     }
 
@@ -3207,6 +3825,7 @@ document.addEventListener("DOMContentLoaded", () => {
             () => {
 
                 clearErrors();
+
                 showScreen(registerScreen);
             }
         );
@@ -3220,6 +3839,7 @@ document.addEventListener("DOMContentLoaded", () => {
             () => {
 
                 clearErrors();
+
                 showScreen(loginScreen);
             }
         );
@@ -3244,18 +3864,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       MENÚ
-       ========================================================= */
+    /* ---------- Menú ---------- */
 
     if (menuButton) {
 
         menuButton.addEventListener(
             "click",
-            () => {
-
-                sideMenu?.classList.add("active");
-            }
+            openMenu
         );
     }
 
@@ -3269,14 +3884,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
+    if (closeMenuButton) {
+
+        closeMenuButton.addEventListener(
+            "click",
+            closeMenu
+        );
+    }
+
+
     if (menuHomeButton) {
 
         menuHomeButton.addEventListener(
             "click",
-            () => {
-
-                showPage(homeScreen);
-            }
+            () => showPage(homeScreen)
         );
     }
 
@@ -3299,10 +3920,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         menuProfileButton.addEventListener(
             "click",
-            () => {
-
-                showPage(profileScreen);
-            }
+            () => showPage(profileScreen)
         );
     }
 
@@ -3320,11 +3938,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         menuSettingsButton.addEventListener(
             "click",
-            () => {
-
-                closeMenu();
-                openSettings();
-            }
+            openSettings
         );
     }
 
@@ -3338,9 +3952,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       HEADER
-       ========================================================= */
+    /* ---------- Header ---------- */
 
     if (headerProfileButton) {
 
@@ -3382,15 +3994,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       PUBLICAR
-       ========================================================= */
+    /* ---------- Publicar ---------- */
 
     if (publishButton) {
 
         publishButton.addEventListener(
             "click",
             () => {
+
+                if (!currentUser) {
+
+                    alert(
+                        "Debes iniciar sesión."
+                    );
+
+                    return;
+                }
 
                 openPanel(publishPanel);
             }
@@ -3402,10 +4021,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         closePublishPanel.addEventListener(
             "click",
-            () => {
-
-                closePanel(publishPanel);
-            }
+            () => closePanel(publishPanel)
         );
     }
 
@@ -3428,18 +4044,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       FLASH
-       ========================================================= */
+    /* ---------- Flash ---------- */
+
+    if (flashPromoteButton) {
+
+        flashPromoteButton.addEventListener(
+            "click",
+            openPromotionPanel
+        );
+    }
+
 
     if (closePromotionPanel) {
 
         closePromotionPanel.addEventListener(
             "click",
-            () => {
-
-                closePanel(promotionPanel);
-            }
+            () => closePanel(promotionPanel)
         );
     }
 
@@ -3475,18 +4095,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       MEMBRESÍAS
-       ========================================================= */
+    /* ---------- Membresías ---------- */
 
     if (closeMembershipPanel) {
 
         closeMembershipPanel.addEventListener(
             "click",
-            () => {
-
-                closePanel(membershipPanel);
-            }
+            () => closePanel(membershipPanel)
         );
     }
 
@@ -3521,18 +4136,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       MÉTODOS DE PAGO
-       ========================================================= */
+    /* ---------- Pago ---------- */
 
     if (closePaymentMethodPanel) {
 
         closePaymentMethodPanel.addEventListener(
             "click",
-            () => {
-
-                closePanel(paymentMethodPanel);
-            }
+            () => closePanel(paymentMethodPanel)
         );
     }
 
@@ -3555,18 +4165,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       COMPROBANTE
-       ========================================================= */
+    /* ---------- Comprobante ---------- */
 
     if (closePaymentProofPanel) {
 
         closePaymentProofPanel.addEventListener(
             "click",
-            () => {
-
-                closePanel(paymentProofPanel);
-            }
+            () => closePanel(paymentProofPanel)
         );
     }
 
@@ -3602,18 +4207,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       ADMINISTRACIÓN
-       ========================================================= */
+    /* ---------- Administración ---------- */
 
     if (closeAdministrationPanel) {
 
         closeAdministrationPanel.addEventListener(
             "click",
-            () => {
-
-                closePanel(administrationPanel);
-            }
+            () => closePanel(administrationPanel)
         );
     }
 
@@ -3651,6 +4251,17 @@ document.addEventListener("DOMContentLoaded", () => {
             "click",
             event => {
 
+                const item =
+                    event.target.closest(
+                        ".admin-payment-method-item"
+                    );
+
+
+                if (!item) {
+                    return;
+                }
+
+
                 const saveButton =
                     event.target.closest(
                         ".save-payment-method"
@@ -3661,17 +4272,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     event.target.closest(
                         ".delete-payment-method"
                     );
-
-
-                const item =
-                    event.target.closest(
-                        ".admin-payment-method-item"
-                    );
-
-
-                if (!item) {
-                    return;
-                }
 
 
                 if (saveButton) {
@@ -3721,9 +4321,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       DETALLE DE COMPROBANTE
-       ========================================================= */
+    /* ---------- Detalle comprobante ---------- */
 
     if (closePaymentProofDetailPanel) {
 
@@ -3776,9 +4374,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       PERFIL
-       ========================================================= */
+    /* ---------- Perfil ---------- */
 
     if (profileEditButton) {
 
@@ -3793,10 +4389,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         closeProfilePanel.addEventListener(
             "click",
-            () => {
-
-                closePanel(profilePanel);
-            }
+            () => closePanel(profilePanel)
         );
     }
 
@@ -3819,9 +4412,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
 
-    /* =========================================================
-       CONFIGURACIÓN
-       ========================================================= */
+    /* ---------- Configuración ---------- */
 
     if (settingsButton) {
 
@@ -3836,10 +4427,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         closeSettingsPanel.addEventListener(
             "click",
-            () => {
-
-                closePanel(settingsPanel);
-            }
+            () => closePanel(settingsPanel)
         );
     }
 
@@ -3851,6 +4439,7 @@ document.addEventListener("DOMContentLoaded", () => {
             () => {
 
                 closePanel(settingsPanel);
+
                 openProfilePanel();
             }
         );
@@ -3867,14 +4456,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =========================================================
-       SUPABASE AUTH STATE
+       SUPABASE AUTH
        ========================================================= */
 
     db.auth.onAuthStateChange(
         async (event, session) => {
 
             console.log(
-                "Supabase Auth:",
+                "Market Flash Auth:",
                 event
             );
 
@@ -3883,30 +4472,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 currentUser =
                     session.user;
-
-
-                /*
-                   Esperamos un poco para evitar conflictos
-                   con la actualización de la sesión.
-                */
-
-                setTimeout(
-                    async () => {
-
-                        await loadCurrentProfile();
-
-                        if (currentProfile) {
-
-                            showScreen(appScreen);
-
-                            showPage(homeScreen);
-
-                            await refreshApplication();
-                        }
-
-                    },
-                    0
-                );
 
             } else {
 
@@ -3930,34 +4495,61 @@ document.addEventListener("DOMContentLoaded", () => {
         closeMenu();
 
 
-        const {
-            data
-        } = await db.auth.getSession();
+        try {
+
+            const {
+                data,
+                error
+            } = await db.auth.getSession();
 
 
-        if (data?.session?.user) {
+            if (error) {
 
-            currentUser =
-                data.session.user;
+                console.error(
+                    "Error comprobando sesión:",
+                    error
+                );
+
+                showScreen(welcomeScreen);
+
+                return;
+            }
 
 
-            await loadCurrentProfile();
+            if (data?.session?.user) {
+
+                currentUser =
+                    data.session.user;
+
+                await loadCurrentProfile();
 
 
-            if (currentProfile) {
+                if (currentProfile) {
 
-                showScreen(appScreen);
+                    showScreen(appScreen);
 
-                showPage(homeScreen);
+                    showPage(homeScreen);
 
-                await refreshApplication();
+                    await refreshApplication();
+
+                } else {
+
+                    await db.auth.signOut();
+
+                    showScreen(welcomeScreen);
+                }
 
             } else {
 
-                showScreen(loginScreen);
+                showScreen(welcomeScreen);
             }
 
-        } else {
+        } catch (error) {
+
+            console.error(
+                "Error inicializando Market Flash:",
+                error
+            );
 
             showScreen(welcomeScreen);
         }
