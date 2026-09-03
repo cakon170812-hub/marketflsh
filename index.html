@@ -2,1094 +2,1611 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0066ff">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <meta
+        name="description"
+        content="Market Flash - Compra, vende y promociona productos."
+    >
+
+    <meta name="theme-color" content="#0d6efd">
 
     <title>Market Flash</title>
 
+    <!-- Estilos principales -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
 
-<header class="top-header">
+    <!-- =====================================================
+         APP PRINCIPAL
+    ====================================================== -->
 
-    <div class="brand">
-        <div class="brand-icon">⚡</div>
+    <div id="app" class="app">
 
-        <div>
-            <h1>Market Flash</h1>
-            <span>Compra • Vende • Promociona</span>
-        </div>
-    </div>
+        <!-- =================================================
+             ENCABEZADO
+        ================================================== -->
 
-    <button class="notification-btn" onclick="showNotifications()">
-        🔔
-        <span id="notificationCount">0</span>
-    </button>
+        <header class="top-header">
 
-</header>
+            <div class="brand-area">
+                <div class="brand-logo">MF</div>
+
+                <div class="brand-text">
+                    <h1>Market Flash</h1>
+                    <span>Compra • Vende • Promociona</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+
+                <!-- Notificaciones -->
+                <button
+                    id="notificationsBtn"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Notificaciones"
+                >
+                    🔔
+                    <span
+                        id="notificationBadge"
+                        class="notification-badge hidden"
+                    >
+                        0
+                    </span>
+                </button>
+
+                <!-- Configuración -->
+                <button
+                    id="settingsBtn"
+                    class="icon-button"
+                    type="button"
+                    aria-label="Configuración"
+                >
+                    ⚙️
+                </button>
+
+            </div>
+
+        </header>
 
 
-<main>
+        <!-- =================================================
+             CONTENIDO PRINCIPAL
+        ================================================== -->
 
-    <!-- BUSCADOR -->
+        <main class="main-content">
 
-    <section class="search-section">
+            <!-- =============================================
+                 BUSCADOR
+            ============================================== -->
 
-        <div class="search-box">
-            <span>🔎</span>
+            <section class="search-section">
 
-            <input
-                type="text"
-                id="searchInput"
-                placeholder="¿Qué estás buscando?"
-                oninput="searchProducts()"
+                <div class="search-box">
+
+                    <span class="search-icon">🔎</span>
+
+                    <input
+                        id="searchInput"
+                        type="search"
+                        placeholder="¿Qué estás buscando?"
+                        autocomplete="off"
+                    >
+
+                    <button
+                        id="filterBtn"
+                        class="search-filter-button"
+                        type="button"
+                        aria-label="Filtros"
+                    >
+                        ☷
+                    </button>
+
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 CATEGORÍAS
+            ============================================== -->
+
+            <section class="categories-section">
+
+                <div class="section-heading">
+                    <h2>Categorías</h2>
+
+                    <button
+                        id="allCategoriesBtn"
+                        type="button"
+                        class="text-button"
+                    >
+                        Ver todas
+                    </button>
+                </div>
+
+                <div
+                    id="categoriesContainer"
+                    class="categories-container"
+                >
+                    <!-- Las categorías serán cargadas por JavaScript -->
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 PUBLICIDAD
+            ============================================== -->
+
+            <section
+                id="advertisingSection"
+                class="advertising-section"
             >
 
-            <button onclick="openFilters()">⚙️</button>
+                <div class="section-heading">
+
+                    <div>
+                        <span class="section-label">DESTACADO</span>
+                        <h2>Publicidad</h2>
+                    </div>
+
+                    <button
+                        id="advertisingInfoBtn"
+                        type="button"
+                        class="text-button"
+                    >
+                        Ver más
+                    </button>
+
+                </div>
+
+                <div
+                    id="advertisingContainer"
+                    class="advertising-container"
+                >
+                    <!-- Publicidad cargada por JavaScript -->
+                </div>
+
+            </section>
+
+
+            <!-- =============================================
+                 PRODUCTOS RECIENTES
+            ============================================== -->
+
+            <section class="products-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <span class="section-label">NUEVOS</span>
+                        <h2>Productos recientes</h2>
+                    </div>
+
+                    <button
+                        id="recentProductsBtn"
+                        type="button"
+                        class="text-button"
+                    >
+                        Ver todos
+                    </button>
+
+                </div>
+
+                <div
+                    id="productsGrid"
+                    class="products-grid"
+                >
+                    <!-- Productos cargados por JavaScript -->
+                </div>
+
+                <div
+                    id="emptyProducts"
+                    class="empty-state hidden"
+                >
+                    <div class="empty-icon">📦</div>
+                    <h3>No hay productos</h3>
+                    <p>Cuando se publiquen productos aparecerán aquí.</p>
+                </div>
+
+            </section>
+
+        </main>
+
+
+        <!-- =================================================
+             NAVEGACIÓN INFERIOR
+        ================================================== -->
+
+        <nav class="bottom-navigation">
+
+            <button
+                class="nav-item active"
+                data-page="home"
+                type="button"
+            >
+                <span class="nav-icon">🏠</span>
+                <span>Inicio</span>
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-page="search"
+                type="button"
+            >
+                <span class="nav-icon">🔎</span>
+                <span>Buscar</span>
+            </button>
+
+
+            <!-- BOTÓN GRANDE DE PUBLICAR -->
+
+            <button
+                id="publishBtn"
+                class="publish-button"
+                type="button"
+                aria-label="Publicar producto"
+            >
+                <span>＋</span>
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-page="messages"
+                type="button"
+            >
+                <span class="nav-icon">💬</span>
+                <span>Chat</span>
+            </button>
+
+
+            <button
+                class="nav-item"
+                data-page="profile"
+                type="button"
+            >
+                <span class="nav-icon">👤</span>
+                <span>Perfil</span>
+            </button>
+
+        </nav>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL: INICIAR SESIÓN
+    ====================================================== -->
+
+    <div
+        id="loginModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
+
+        <div class="modal-overlay"></div>
+
+        <div class="modal-card">
+
+            <button
+                class="modal-close"
+                data-close="loginModal"
+                type="button"
+            >
+                ×
+            </button>
+
+            <div class="modal-header">
+                <div class="modal-icon">👤</div>
+                <h2>Iniciar sesión</h2>
+                <p>Entra a tu cuenta de Market Flash.</p>
+            </div>
+
+            <form id="loginForm">
+
+                <label for="loginEmail">
+                    Correo electrónico
+                </label>
+
+                <input
+                    id="loginEmail"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    placeholder="Tu correo"
+                >
+
+
+                <label for="loginPassword">
+                    Contraseña
+                </label>
+
+                <input
+                    id="loginPassword"
+                    type="password"
+                    required
+                    autocomplete="current-password"
+                    placeholder="Tu contraseña"
+                >
+
+
+                <button
+                    class="primary-button"
+                    type="submit"
+                >
+                    Iniciar sesión
+                </button>
+
+            </form>
+
+            <button
+                id="forgotPasswordBtn"
+                class="link-button"
+                type="button"
+            >
+                ¿Olvidaste tu contraseña?
+            </button>
+
+            <button
+                id="openRegisterBtn"
+                class="secondary-button"
+                type="button"
+            >
+                Crear una cuenta
+            </button>
+
         </div>
 
-    </section>
+    </div>
 
 
-    <!-- CATEGORÍAS -->
+    <!-- =====================================================
+         MODAL: REGISTRO
+    ====================================================== -->
 
-    <section class="categories-section">
+    <div
+        id="registerModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
 
-        <div class="section-title">
-            <h2>Categorías</h2>
-            <button onclick="showAllProducts()">Ver todas</button>
+        <div class="modal-overlay"></div>
+
+        <div class="modal-card">
+
+            <button
+                class="modal-close"
+                data-close="registerModal"
+                type="button"
+            >
+                ×
+            </button>
+
+            <div class="modal-header">
+                <div class="modal-icon">📝</div>
+                <h2>Crear cuenta</h2>
+                <p>Únete a Market Flash.</p>
+            </div>
+
+            <form id="registerForm">
+
+                <label for="registerName">
+                    Nombre
+                </label>
+
+                <input
+                    id="registerName"
+                    type="text"
+                    required
+                    placeholder="Tu nombre"
+                >
+
+
+                <label for="registerEmail">
+                    Correo electrónico
+                </label>
+
+                <input
+                    id="registerEmail"
+                    type="email"
+                    required
+                    autocomplete="email"
+                    placeholder="Tu correo"
+                >
+
+
+                <label for="registerWhatsapp">
+                    Número de WhatsApp
+                </label>
+
+                <input
+                    id="registerWhatsapp"
+                    type="tel"
+                    required
+                    placeholder="+1 809 000 0000"
+                >
+
+
+                <label for="registerPassword">
+                    Contraseña
+                </label>
+
+                <input
+                    id="registerPassword"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    placeholder="Crea una contraseña"
+                >
+
+
+                <label for="registerPasswordConfirm">
+                    Confirmar contraseña
+                </label>
+
+                <input
+                    id="registerPasswordConfirm"
+                    type="password"
+                    required
+                    autocomplete="new-password"
+                    placeholder="Repite la contraseña"
+                >
+
+
+                <button
+                    class="primary-button"
+                    type="submit"
+                >
+                    Crear cuenta
+                </button>
+
+            </form>
+
         </div>
 
-        <div class="categories">
+    </div>
 
-            <button onclick="filterCategory('Todos')">
-                🛍️ Todos
+
+    <!-- =====================================================
+         MODAL: PUBLICAR PRODUCTO
+    ====================================================== -->
+
+    <div
+        id="publishModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
+
+        <div class="modal-overlay"></div>
+
+        <div class="modal-card publish-modal">
+
+            <button
+                class="modal-close"
+                data-close="publishModal"
+                type="button"
+            >
+                ×
             </button>
 
-            <button onclick="filterCategory('Tecnología')">
-                📱 Tecnología
-            </button>
+            <div class="modal-header">
 
-            <button onclick="filterCategory('Vehículos')">
-                🚗 Vehículos
-            </button>
+                <div class="modal-icon">＋</div>
 
-            <button onclick="filterCategory('Hogar')">
-                🏠 Hogar
-            </button>
-
-            <button onclick="filterCategory('Ropa')">
-                👕 Ropa
-            </button>
-
-            <button onclick="filterCategory('Servicios')">
-                🔧 Servicios
-            </button>
-
-            <button onclick="filterCategory('Otros')">
-                📦 Otros
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <!-- PUBLICIDAD -->
-
-    <section id="advertisementSection" class="advertisement">
-
-        <div class="ad-label">
-            PUBLICIDAD
-        </div>
-
-        <div class="ad-content">
-
-            <div>
-                <strong>🚀 Promociona tu producto</strong>
+                <h2>Publicar producto</h2>
 
                 <p>
-                    Haz que más personas vean tu publicación.
+                    Publica tu producto para que aparezca en
+                    Market Flash.
                 </p>
+
             </div>
 
-            <button onclick="openPromotion()">
-                Promocionar
-            </button>
+
+            <form id="publishForm">
+
+                <!-- Fotos -->
+
+                <label>
+                    Fotos del producto
+                </label>
+
+                <div
+                    id="publishImagePreview"
+                    class="upload-preview"
+                >
+                    <div class="upload-placeholder">
+                        📷
+                        <span>Agregar fotos</span>
+                    </div>
+                </div>
+
+                <input
+                    id="productImages"
+                    type="file"
+                    accept="image/*"
+                    multiple
+                >
+
+
+                <!-- Video -->
+
+                <label for="productVideo">
+                    Video del producto
+                </label>
+
+                <input
+                    id="productVideo"
+                    type="file"
+                    accept="video/*"
+                >
+
+
+                <!-- Nombre -->
+
+                <label for="productName">
+                    Nombre del producto
+                </label>
+
+                <input
+                    id="productName"
+                    type="text"
+                    required
+                    placeholder="Ej. iPhone 15 Pro"
+                >
+
+
+                <!-- Categoría -->
+
+                <label for="productCategory">
+                    Categoría
+                </label>
+
+                <select
+                    id="productCategory"
+                    required
+                >
+                    <option value="">
+                        Selecciona una categoría
+                    </option>
+                </select>
+
+
+                <!-- Precio -->
+
+                <label for="productPrice">
+                    Precio
+                </label>
+
+                <input
+                    id="productPrice"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    required
+                    placeholder="0.00"
+                >
+
+
+                <!-- Cantidad -->
+
+                <label for="productQuantity">
+                    Cantidad disponible
+                </label>
+
+                <input
+                    id="productQuantity"
+                    type="number"
+                    min="1"
+                    value="1"
+                    required
+                >
+
+
+                <!-- Descripción -->
+
+                <label for="productDescription">
+                    Descripción
+                </label>
+
+                <textarea
+                    id="productDescription"
+                    rows="5"
+                    required
+                    placeholder="Describe tu producto..."
+                ></textarea>
+
+
+                <!-- Ubicación -->
+
+                <label for="productLocation">
+                    Ubicación
+                </label>
+
+                <input
+                    id="productLocation"
+                    type="text"
+                    placeholder="Ciudad o sector"
+                >
+
+
+                <!-- WhatsApp -->
+
+                <label class="switch-row">
+
+                    <span>
+                        Permitir contacto por WhatsApp
+                    </span>
+
+                    <input
+                        id="allowWhatsapp"
+                        type="checkbox"
+                        checked
+                    >
+
+                </label>
+
+
+                <!-- Chat -->
+
+                <label class="switch-row">
+
+                    <span>
+                        Permitir chat interno
+                    </span>
+
+                    <input
+                        id="allowInternalChat"
+                        type="checkbox"
+                        checked
+                    >
+
+                </label>
+
+
+                <!-- Previsualización -->
+
+                <div
+                    id="publishPreview"
+                    class="publish-preview hidden"
+                >
+                    <h3>Previsualización</h3>
+
+                    <div id="previewContent"></div>
+                </div>
+
+
+                <button
+                    id="previewPublishBtn"
+                    class="secondary-button"
+                    type="button"
+                >
+                    👁️ Previsualizar
+                </button>
+
+
+                <button
+                    class="primary-button publish-submit-button"
+                    type="submit"
+                >
+                    🚀 Publicar producto
+                </button>
+
+            </form>
 
         </div>
-
-    </section>
-
-
-    <!-- PRODUCTOS -->
-
-    <section class="products-section">
-
-        <div class="section-title">
-
-            <h2>Productos recientes</h2>
-
-            <button onclick="showAllProducts()">
-                Ver todos
-            </button>
-
-        </div>
-
-        <div id="productsGrid" class="products-grid"></div>
-
-    </section>
-
-</main>
-
-
-<!-- BOTÓN PUBLICAR -->
-
-<button class="publish-button" onclick="openPublishModal()">
-    <span>＋</span>
-    Publicar
-</button>
-
-
-<!-- NAVEGACIÓN -->
-
-<nav class="bottom-nav">
-
-    <button class="nav-item active" onclick="goHome()">
-        <span>🏠</span>
-        Inicio
-    </button>
-
-    <button class="nav-item" onclick="openMessages()">
-        <span>💬</span>
-        Chat
-    </button>
-
-    <button class="nav-item publish-nav" onclick="openPublishModal()">
-        <span>＋</span>
-    </button>
-
-    <button class="nav-item" onclick="openFavorites()">
-        <span>❤️</span>
-        Guardados
-    </button>
-
-    <button class="nav-item" onclick="openProfile()">
-        <span>👤</span>
-        Perfil
-    </button>
-
-</nav>
-
-
-<!-- MODAL PUBLICAR -->
-
-<div id="publishModal" class="modal">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>Publicar producto</h2>
-
-            <button onclick="closeModal('publishModal')">
-                ✕
-            </button>
-
-        </div>
-
-        <label>Nombre del producto</label>
-
-        <input
-            type="text"
-            id="productName"
-            placeholder="Ej: iPhone 15 Pro"
-        >
-
-        <label>Precio</label>
-
-        <input
-            type="number"
-            id="productPrice"
-            placeholder="Precio en RD$"
-        >
-
-        <label>Categoría</label>
-
-        <select id="productCategory">
-
-            <option value="Tecnología">Tecnología</option>
-            <option value="Vehículos">Vehículos</option>
-            <option value="Hogar">Hogar</option>
-            <option value="Ropa">Ropa</option>
-            <option value="Servicios">Servicios</option>
-            <option value="Otros">Otros</option>
-
-        </select>
-
-        <label>Descripción</label>
-
-        <textarea
-            id="productDescription"
-            placeholder="Describe tu producto..."
-        ></textarea>
-
-        <label>Ubicación</label>
-
-        <input
-            type="text"
-            id="productLocation"
-            placeholder="Ej: Santo Domingo"
-        >
-
-        <label>Foto o video</label>
-
-        <input
-            type="file"
-            id="productMedia"
-            accept="image/*,video/*"
-            multiple
-        >
-
-        <label class="switch-row">
-
-            <span>
-                Permitir contacto por WhatsApp
-            </span>
-
-            <input
-                type="checkbox"
-                id="whatsappEnabled"
-                checked
-            >
-
-        </label>
-
-        <button
-            class="primary-button"
-            onclick="createProduct()"
-        >
-            🚀 Publicar ahora
-        </button>
 
     </div>
 
-</div>
+
+    <!-- =====================================================
+         MODAL: CHAT CON VENDEDOR
+    ====================================================== -->
+
+    <div
+        id="chatModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
+
+        <div class="modal-overlay"></div>
+
+        <div class="chat-window">
+
+            <!-- Cabecera del chat -->
+
+            <header class="chat-header">
+
+                <button
+                    class="chat-back-button"
+                    data-close="chatModal"
+                    type="button"
+                    aria-label="Cerrar chat"
+                >
+                    ←
+                </button>
 
 
-<!-- MODAL PRODUCTO -->
-
-<div id="productModal" class="modal">
-
-    <div class="modal-content">
-
-        <div id="productDetails"></div>
-
-    </div>
-
-</div>
+                <div
+                    id="chatSellerAvatar"
+                    class="chat-avatar"
+                >
+                    👤
+                </div>
 
 
-<!-- MODAL PERFIL -->
+                <div class="chat-seller-info">
 
-<div id="profileModal" class="modal">
+                    <strong id="chatSellerName">
+                        Vendedor
+                    </strong>
 
-    <div class="modal-content">
+                    <span id="chatSellerStatus">
+                        Disponible
+                    </span>
 
-        <div class="modal-header">
+                </div>
 
-            <h2>Mi perfil</h2>
-
-            <button onclick="closeModal('profileModal')">
-                ✕
-            </button>
-
-        </div>
-
-        <div class="profile-card">
-
-            <div class="profile-photo">
-                👤
-            </div>
-
-            <h3 id="profileName">
-                Usuario Market Flash
-            </h3>
-
-            <p id="profilePhone">
-                WhatsApp no configurado
-            </p>
-
-            <p class="online-status">
-                🟢 En línea
-            </p>
-
-        </div>
-
-        <button
-            class="secondary-button"
-            onclick="openStats()"
-        >
-            📊 Mis estadísticas
-        </button>
-
-        <button
-            class="secondary-button"
-            onclick="openPromotion()"
-        >
-            📢 Mis promociones
-        </button>
-
-        <button
-            class="secondary-button danger"
-            onclick="deleteAccount()"
-        >
-            🗑️ Eliminar cuenta
-        </button>
-
-    </div>
-
-</div>
+            </header>
 
 
-<!-- MODAL FILTROS -->
-
-<div id="filterModal" class="modal">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>Filtros</h2>
-
-            <button onclick="closeModal('filterModal')">
-                ✕
-            </button>
-
-        </div>
-
-        <label>Precio mínimo</label>
-
-        <input
-            type="number"
-            id="minPrice"
-            placeholder="RD$ 0"
-        >
-
-        <label>Precio máximo</label>
-
-        <input
-            type="number"
-            id="maxPrice"
-            placeholder="RD$ 999999"
-        >
-
-        <button
-            class="primary-button"
-            onclick="applyFilters()"
-        >
-            Aplicar filtros
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- MODAL PROMOCIÓN -->
-
-<div id="promotionModal" class="modal">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>Promocionar publicación</h2>
-
-            <button onclick="closeModal('promotionModal')">
-                ✕
-            </button>
-
-        </div>
-
-        <p>
-            Selecciona el plan que deseas utilizar.
-        </p>
-
-        <div class="plans">
+            <!-- Fondo del chat -->
 
             <div
-                class="plan"
-                onclick="selectPlan('Económico', 100)"
+                id="chatMessages"
+                class="chat-messages"
             >
-                <h3>Económico</h3>
-                <strong>RD$100</strong>
-                <p>Promoción básica</p>
+
+                <!-- Los mensajes serán agregados por JavaScript -->
+
             </div>
 
-            <div
-                class="plan featured-plan"
-                onclick="selectPlan('Normal', 250)"
+
+            <!-- Escribir mensaje -->
+
+            <form
+                id="chatForm"
+                class="chat-input-area"
             >
-                <h3>Normal</h3>
-                <strong>RD$250</strong>
-                <p>Mayor alcance</p>
+
+                <button
+                    id="chatAttachBtn"
+                    type="button"
+                    class="chat-action-button"
+                    aria-label="Adjuntar"
+                >
+                    📎
+                </button>
+
+                <input
+                    id="chatMessageInput"
+                    type="text"
+                    autocomplete="off"
+                    placeholder="Escribe un mensaje..."
+                >
+
+                <button
+                    type="submit"
+                    class="chat-send-button"
+                    aria-label="Enviar mensaje"
+                >
+                    ➤
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL: MIS ESTADÍSTICAS
+    ====================================================== -->
+
+    <div
+        id="statisticsModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
+
+        <div class="modal-overlay"></div>
+
+        <div class="modal-card statistics-modal">
+
+            <button
+                class="modal-close"
+                data-close="statisticsModal"
+                type="button"
+            >
+                ×
+            </button>
+
+            <div class="modal-header">
+
+                <div class="modal-icon">📊</div>
+
+                <h2>Mis estadísticas</h2>
+
+                <p>
+                    Resumen de tu actividad en Market Flash.
+                </p>
+
             </div>
 
-            <div
-                class="plan"
-                onclick="selectPlan('Pro', 500)"
-            >
-                <h3>Pro</h3>
-                <strong>RD$500</strong>
-                <p>Máxima exposición</p>
+
+            <div class="statistics-grid">
+
+                <button
+                    class="stat-card"
+                    data-stat="sales"
+                    type="button"
+                >
+                    <span>💰</span>
+                    <strong id="statSales">0</strong>
+                    <small>Ventas</small>
+                </button>
+
+
+                <button
+                    class="stat-card"
+                    data-stat="views"
+                    type="button"
+                >
+                    <span>👁️</span>
+                    <strong id="statViews">0</strong>
+                    <small>Visualizaciones</small>
+                </button>
+
+
+                <button
+                    class="stat-card"
+                    data-stat="likes"
+                    type="button"
+                >
+                    <span>❤️</span>
+                    <strong id="statLikes">0</strong>
+                    <small>Me gusta</small>
+                </button>
+
+
+                <button
+                    class="stat-card"
+                    data-stat="comments"
+                    type="button"
+                >
+                    <span>💬</span>
+                    <strong id="statComments">0</strong>
+                    <small>Comentarios</small>
+                </button>
+
+
+                <button
+                    class="stat-card"
+                    data-stat="saved"
+                    type="button"
+                >
+                    <span>🔖</span>
+                    <strong id="statSaved">0</strong>
+                    <small>Guardados</small>
+                </button>
+
+
+                <button
+                    class="stat-card"
+                    data-stat="profileVisits"
+                    type="button"
+                >
+                    <span>👤</span>
+                    <strong id="statProfileVisits">0</strong>
+                    <small>Visitas al perfil</small>
+                </button>
+
             </div>
 
         </div>
 
-        <div id="paymentStep" class="hidden">
+    </div>
 
-            <h3>Método de pago</h3>
 
-            <select id="paymentMethod">
+    <!-- =====================================================
+         MODAL: PERFIL
+    ====================================================== -->
 
-                <option value="">
-                    Seleccionar método
-                </option>
+    <div
+        id="profileModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
 
-                <option value="Banco">
-                    Transferencia bancaria
-                </option>
+        <div class="modal-overlay"></div>
 
-                <option value="PayPal">
-                    PayPal
-                </option>
+        <div class="modal-card profile-modal">
 
-                <option value="Binance">
-                    Binance
-                </option>
+            <button
+                class="modal-close"
+                data-close="profileModal"
+                type="button"
+            >
+                ×
+            </button>
 
+
+            <div class="profile-header">
+
+                <div
+                    id="profileAvatar"
+                    class="profile-avatar"
+                >
+                    👤
+                </div>
+
+                <h2 id="profileName">
+                    Mi perfil
+                </h2>
+
+                <span id="profileWhatsapp">
+                    WhatsApp no configurado
+                </span>
+
+            </div>
+
+
+            <div class="profile-menu">
+
+                <button
+                    id="myStatisticsBtn"
+                    class="profile-menu-item"
+                    type="button"
+                >
+                    <span>📊</span>
+                    <div>
+                        <strong>Mis estadísticas</strong>
+                        <small>
+                            Ventas, me gusta, comentarios y más
+                        </small>
+                    </div>
+                    <span>›</span>
+                </button>
+
+
+                <button
+                    id="myProductsBtn"
+                    class="profile-menu-item"
+                    type="button"
+                >
+                    <span>📦</span>
+                    <div>
+                        <strong>Mis productos</strong>
+                        <small>
+                            Administrar mis publicaciones
+                        </small>
+                    </div>
+                    <span>›</span>
+                </button>
+
+
+                <button
+                    id="adminPanelBtn"
+                    class="profile-menu-item admin-option hidden"
+                    type="button"
+                >
+                    <span>🛡️</span>
+                    <div>
+                        <strong>Panel de administración</strong>
+                        <small>
+                            Acceso protegido
+                        </small>
+                    </div>
+                    <span>›</span>
+                </button>
+
+
+                <button
+                    id="editProfileBtn"
+                    class="profile-menu-item"
+                    type="button"
+                >
+                    <span>✏️</span>
+                    <div>
+                        <strong>Editar perfil</strong>
+                        <small>
+                            Modifica tus datos
+                        </small>
+                    </div>
+                    <span>›</span>
+                </button>
+
+
+                <button
+                    id="logoutBtn"
+                    class="profile-menu-item danger"
+                    type="button"
+                >
+                    <span>🚪</span>
+                    <div>
+                        <strong>Cerrar sesión</strong>
+                        <small>
+                            Salir de tu cuenta
+                        </small>
+                    </div>
+                    <span>›</span>
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL: CONFIGURACIÓN
+    ====================================================== -->
+
+    <div
+        id="settingsModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
+
+        <div class="modal-overlay"></div>
+
+        <div class="modal-card settings-modal">
+
+            <button
+                class="modal-close"
+                data-close="settingsModal"
+                type="button"
+            >
+                ×
+            </button>
+
+
+            <div class="modal-header">
+
+                <div class="modal-icon">⚙️</div>
+
+                <h2>Configuración</h2>
+
+                <p>
+                    Personaliza tu experiencia en Market Flash.
+                </p>
+
+            </div>
+
+
+            <div class="settings-list">
+
+                <button
+                    id="settingsProfileBtn"
+                    class="settings-item"
+                    type="button"
+                >
+                    👤
+                    <span>Editar perfil</span>
+                    <b>›</b>
+                </button>
+
+
+                <button
+                    id="changePasswordBtn"
+                    class="settings-item"
+                    type="button"
+                >
+                    🔐
+                    <span>Cambiar contraseña</span>
+                    <b>›</b>
+                </button>
+
+
+                <button
+                    id="styleSettingsBtn"
+                    class="settings-item"
+                    type="button"
+                >
+                    🎨
+                    <span>Cambiar estilo</span>
+                    <b>›</b>
+                </button>
+
+
+                <button
+                    id="languageSettingsBtn"
+                    class="settings-item"
+                    type="button"
+                >
+                    🌐
+                    <span>Idioma</span>
+                    <b>›</b>
+                </button>
+
+
+                <button
+                    id="notificationSettingsBtn"
+                    class="settings-item"
+                    type="button"
+                >
+                    🔔
+                    <span>Notificaciones</span>
+                    <b>›</b>
+                </button>
+
+
+                <button
+                    id="chatSettingsBtn"
+                    class="settings-item"
+                    type="button"
+                >
+                    💬
+                    <span>Configuración del chat</span>
+                    <b>›</b>
+                </button>
+
+
+                <button
+                    id="privacySettingsBtn"
+                    class="settings-item"
+                    type="button"
+                >
+                    🛡️
+                    <span>Privacidad y seguridad</span>
+                    <b>›</b>
+                </button>
+
+
+                <button
+                    id="helpSettingsBtn"
+                    class="settings-item"
+                    type="button"
+                >
+                    ❓
+                    <span>Centro de ayuda</span>
+                    <b>›</b>
+                </button>
+
+
+                <button
+                    id="termsSettingsBtn"
+                    class="settings-item"
+                    type="button"
+                >
+                    📄
+                    <span>Términos y condiciones</span>
+                    <b>›</b>
+                </button>
+
+
+                <button
+                    id="aboutSettingsBtn"
+                    class="settings-item"
+                    type="button"
+                >
+                    ℹ️
+                    <span>Acerca de Market Flash</span>
+                    <b>›</b>
+                </button>
+
+
+                <button
+                    id="deleteAccountBtn"
+                    class="settings-item danger"
+                    type="button"
+                >
+                    🗑️
+                    <span>Eliminar cuenta</span>
+                    <b>›</b>
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL: ACCESO ADMINISTRADOR
+    ====================================================== -->
+
+    <div
+        id="adminPasswordModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
+
+        <div class="modal-overlay"></div>
+
+        <div class="modal-card">
+
+            <button
+                class="modal-close"
+                data-close="adminPasswordModal"
+                type="button"
+            >
+                ×
+            </button>
+
+            <div class="modal-header">
+
+                <div class="modal-icon">🔐</div>
+
+                <h2>Panel de administración</h2>
+
+                <p>
+                    Introduce la contraseña de administrador.
+                </p>
+
+            </div>
+
+
+            <form id="adminPasswordForm">
+
+                <label for="adminPassword">
+                    Contraseña
+                </label>
+
+                <input
+                    id="adminPassword"
+                    type="password"
+                    required
+                    placeholder="Contraseña de administrador"
+                >
+
+
+                <button
+                    class="primary-button"
+                    type="submit"
+                >
+                    Entrar al panel
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL: PANEL ADMINISTRADOR
+    ====================================================== -->
+
+    <div
+        id="adminPanelModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
+
+        <div class="modal-overlay"></div>
+
+        <div class="modal-card admin-modal">
+
+            <button
+                class="modal-close"
+                data-close="adminPanelModal"
+                type="button"
+            >
+                ×
+            </button>
+
+            <div class="modal-header">
+
+                <div class="modal-icon">🛡️</div>
+
+                <h2>Panel de administración</h2>
+
+                <p>
+                    Administración de Market Flash.
+                </p>
+
+            </div>
+
+
+            <div class="admin-grid">
+
+                <button
+                    class="admin-card"
+                    data-admin-section="users"
+                    type="button"
+                >
+                    👥
+                    <strong>Usuarios</strong>
+                    <span>Administrar usuarios</span>
+                </button>
+
+
+                <button
+                    class="admin-card"
+                    data-admin-section="products"
+                    type="button"
+                >
+                    📦
+                    <strong>Publicaciones</strong>
+                    <span>Revisar productos</span>
+                </button>
+
+
+                <button
+                    class="admin-card"
+                    data-admin-section="advertising"
+                    type="button"
+                >
+                    📢
+                    <strong>Publicidad</strong>
+                    <span>Administrar promociones</span>
+                </button>
+
+
+                <button
+                    class="admin-card"
+                    data-admin-section="payments"
+                    type="button"
+                >
+                    💳
+                    <strong>Pagos</strong>
+                    <span>Revisar comprobantes</span>
+                </button>
+
+
+                <button
+                    class="admin-card"
+                    data-admin-section="statistics"
+                    type="button"
+                >
+                    📊
+                    <strong>Estadísticas</strong>
+                    <span>Ver estadísticas</span>
+                </button>
+
+
+                <button
+                    class="admin-card"
+                    data-admin-section="settings"
+                    type="button"
+                >
+                    ⚙️
+                    <strong>Configuración</strong>
+                    <span>Ajustes administrativos</span>
+                </button>
+
+
+                <button
+                    id="changeAdminPasswordBtn"
+                    class="admin-card"
+                    type="button"
+                >
+                    🔑
+                    <strong>Cambiar contraseña</strong>
+                    <span>Modificar acceso</span>
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL: CAMBIAR CONTRASEÑA ADMINISTRADOR
+    ====================================================== -->
+
+    <div
+        id="changeAdminPasswordModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
+
+        <div class="modal-overlay"></div>
+
+        <div class="modal-card">
+
+            <button
+                class="modal-close"
+                data-close="changeAdminPasswordModal"
+                type="button"
+            >
+                ×
+            </button>
+
+            <div class="modal-header">
+
+                <div class="modal-icon">🔑</div>
+
+                <h2>Cambiar contraseña</h2>
+
+                <p>
+                    Actualiza la contraseña del administrador.
+                </p>
+
+            </div>
+
+
+            <form id="changeAdminPasswordForm">
+
+                <label for="currentAdminPassword">
+                    Contraseña actual
+                </label>
+
+                <input
+                    id="currentAdminPassword"
+                    type="password"
+                    required
+                >
+
+
+                <label for="newAdminPassword">
+                    Nueva contraseña
+                </label>
+
+                <input
+                    id="newAdminPassword"
+                    type="password"
+                    required
+                >
+
+
+                <label for="confirmAdminPassword">
+                    Confirmar nueva contraseña
+                </label>
+
+                <input
+                    id="confirmAdminPassword"
+                    type="password"
+                    required
+                >
+
+
+                <button
+                    class="primary-button"
+                    type="submit"
+                >
+                    Guardar nueva contraseña
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MODAL: FILTROS
+    ====================================================== -->
+
+    <div
+        id="filterModal"
+        class="modal hidden"
+        aria-hidden="true"
+    >
+
+        <div class="modal-overlay"></div>
+
+        <div class="modal-card">
+
+            <button
+                class="modal-close"
+                data-close="filterModal"
+                type="button"
+            >
+                ×
+            </button>
+
+            <div class="modal-header">
+
+                <div class="modal-icon">🔎</div>
+
+                <h2>Filtros</h2>
+
+                <p>
+                    Encuentra exactamente lo que buscas.
+                </p>
+
+            </div>
+
+
+            <label for="filterCategory">
+                Categoría
+            </label>
+
+            <select id="filterCategory">
+                <option value="">Todas</option>
             </select>
 
-            <label>
-                Subir comprobante
+
+            <label for="filterMinPrice">
+                Precio mínimo
             </label>
 
             <input
-                type="file"
-                id="paymentReceipt"
-                accept="image/*"
+                id="filterMinPrice"
+                type="number"
+                min="0"
+                placeholder="0"
             >
 
-            <button
-                class="primary-button"
-                onclick="submitPromotion()"
-            >
-                📤 Enviar comprobante
-            </button>
 
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- MODAL ESTADÍSTICAS -->
-
-<div id="statsModal" class="modal">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>Mis estadísticas</h2>
-
-            <button onclick="closeModal('statsModal')">
-                ✕
-            </button>
-
-        </div>
-
-        <div class="stats-grid">
-
-            <div class="stat">
-                <strong id="totalViews">0</strong>
-                <span>Visualizaciones</span>
-            </div>
-
-            <div class="stat">
-                <strong id="totalLikes">0</strong>
-                <span>Me gusta</span>
-            </div>
-
-            <div class="stat">
-                <strong id="totalSaved">0</strong>
-                <span>Guardados</span>
-            </div>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0066ff">
-
-    <title>Market Flash</title>
-
-    <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-
-<header class="top-header">
-
-    <div class="brand">
-        <div class="brand-icon">⚡</div>
-
-        <div>
-            <h1>Market Flash</h1>
-            <span>Compra • Vende • Promociona</span>
-        </div>
-    </div>
-
-    <button class="notification-btn" onclick="showNotifications()">
-        🔔
-        <span id="notificationCount">0</span>
-    </button>
-
-</header>
-
-
-<main>
-
-    <!-- BUSCADOR -->
-
-    <section class="search-section">
-
-        <div class="search-box">
-            <span>🔎</span>
-
-            <input
-                type="text"
-                id="searchInput"
-                placeholder="¿Qué estás buscando?"
-                oninput="searchProducts()"
-            >
-
-            <button onclick="openFilters()">⚙️</button>
-        </div>
-
-    </section>
-
-
-    <!-- CATEGORÍAS -->
-
-    <section class="categories-section">
-
-        <div class="section-title">
-            <h2>Categorías</h2>
-            <button onclick="showAllProducts()">Ver todas</button>
-        </div>
-
-        <div class="categories">
-
-            <button onclick="filterCategory('Todos')">
-                🛍️ Todos
-            </button>
-
-            <button onclick="filterCategory('Tecnología')">
-                📱 Tecnología
-            </button>
-
-            <button onclick="filterCategory('Vehículos')">
-                🚗 Vehículos
-            </button>
-
-            <button onclick="filterCategory('Hogar')">
-                🏠 Hogar
-            </button>
-
-            <button onclick="filterCategory('Ropa')">
-                👕 Ropa
-            </button>
-
-            <button onclick="filterCategory('Servicios')">
-                🔧 Servicios
-            </button>
-
-            <button onclick="filterCategory('Otros')">
-                📦 Otros
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <!-- PUBLICIDAD -->
-
-    <section id="advertisementSection" class="advertisement">
-
-        <div class="ad-label">
-            PUBLICIDAD
-        </div>
-
-        <div class="ad-content">
-
-            <div>
-                <strong>🚀 Promociona tu producto</strong>
-
-                <p>
-                    Haz que más personas vean tu publicación.
-                </p>
-            </div>
-
-            <button onclick="openPromotion()">
-                Promocionar
-            </button>
-
-        </div>
-
-    </section>
-
-
-    <!-- PRODUCTOS -->
-
-    <section class="products-section">
-
-        <div class="section-title">
-
-            <h2>Productos recientes</h2>
-
-            <button onclick="showAllProducts()">
-                Ver todos
-            </button>
-
-        </div>
-
-        <div id="productsGrid" class="products-grid"></div>
-
-    </section>
-
-</main>
-
-
-<!-- BOTÓN PUBLICAR -->
-
-<button class="publish-button" onclick="openPublishModal()">
-    <span>＋</span>
-    Publicar
-</button>
-
-
-<!-- NAVEGACIÓN -->
-
-<nav class="bottom-nav">
-
-    <button class="nav-item active" onclick="goHome()">
-        <span>🏠</span>
-        Inicio
-    </button>
-
-    <button class="nav-item" onclick="openMessages()">
-        <span>💬</span>
-        Chat
-    </button>
-
-    <button class="nav-item publish-nav" onclick="openPublishModal()">
-        <span>＋</span>
-    </button>
-
-    <button class="nav-item" onclick="openFavorites()">
-        <span>❤️</span>
-        Guardados
-    </button>
-
-    <button class="nav-item" onclick="openProfile()">
-        <span>👤</span>
-        Perfil
-    </button>
-
-</nav>
-
-
-<!-- MODAL PUBLICAR -->
-
-<div id="publishModal" class="modal">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>Publicar producto</h2>
-
-            <button onclick="closeModal('publishModal')">
-                ✕
-            </button>
-
-        </div>
-
-        <label>Nombre del producto</label>
-
-        <input
-            type="text"
-            id="productName"
-            placeholder="Ej: iPhone 15 Pro"
-        >
-
-        <label>Precio</label>
-
-        <input
-            type="number"
-            id="productPrice"
-            placeholder="Precio en RD$"
-        >
-
-        <label>Categoría</label>
-
-        <select id="productCategory">
-
-            <option value="Tecnología">Tecnología</option>
-            <option value="Vehículos">Vehículos</option>
-            <option value="Hogar">Hogar</option>
-            <option value="Ropa">Ropa</option>
-            <option value="Servicios">Servicios</option>
-            <option value="Otros">Otros</option>
-
-        </select>
-
-        <label>Descripción</label>
-
-        <textarea
-            id="productDescription"
-            placeholder="Describe tu producto..."
-        ></textarea>
-
-        <label>Ubicación</label>
-
-        <input
-            type="text"
-            id="productLocation"
-            placeholder="Ej: Santo Domingo"
-        >
-
-        <label>Foto o video</label>
-
-        <input
-            type="file"
-            id="productMedia"
-            accept="image/*,video/*"
-            multiple
-        >
-
-        <label class="switch-row">
-
-            <span>
-                Permitir contacto por WhatsApp
-            </span>
-
-            <input
-                type="checkbox"
-                id="whatsappEnabled"
-                checked
-            >
-
-        </label>
-
-        <button
-            class="primary-button"
-            onclick="createProduct()"
-        >
-            🚀 Publicar ahora
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- MODAL PRODUCTO -->
-
-<div id="productModal" class="modal">
-
-    <div class="modal-content">
-
-        <div id="productDetails"></div>
-
-    </div>
-
-</div>
-
-
-<!-- MODAL PERFIL -->
-
-<div id="profileModal" class="modal">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>Mi perfil</h2>
-
-            <button onclick="closeModal('profileModal')">
-                ✕
-            </button>
-
-        </div>
-
-        <div class="profile-card">
-
-            <div class="profile-photo">
-                👤
-            </div>
-
-            <h3 id="profileName">
-                Usuario Market Flash
-            </h3>
-
-            <p id="profilePhone">
-                WhatsApp no configurado
-            </p>
-
-            <p class="online-status">
-                🟢 En línea
-            </p>
-
-        </div>
-
-        <button
-            class="secondary-button"
-            onclick="openStats()"
-        >
-            📊 Mis estadísticas
-        </button>
-
-        <button
-            class="secondary-button"
-            onclick="openPromotion()"
-        >
-            📢 Mis promociones
-        </button>
-
-        <button
-            class="secondary-button danger"
-            onclick="deleteAccount()"
-        >
-            🗑️ Eliminar cuenta
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- MODAL FILTROS -->
-
-<div id="filterModal" class="modal">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>Filtros</h2>
-
-            <button onclick="closeModal('filterModal')">
-                ✕
-            </button>
-
-        </div>
-
-        <label>Precio mínimo</label>
-
-        <input
-            type="number"
-            id="minPrice"
-            placeholder="RD$ 0"
-        >
-
-        <label>Precio máximo</label>
-
-        <input
-            type="number"
-            id="maxPrice"
-            placeholder="RD$ 999999"
-        >
-
-        <button
-            class="primary-button"
-            onclick="applyFilters()"
-        >
-            Aplicar filtros
-        </button>
-
-    </div>
-
-</div>
-
-
-<!-- MODAL PROMOCIÓN -->
-
-<div id="promotionModal" class="modal">
-
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>Promocionar publicación</h2>
-
-            <button onclick="closeModal('promotionModal')">
-                ✕
-            </button>
-
-        </div>
-
-        <p>
-            Selecciona el plan que deseas utilizar.
-        </p>
-
-        <div class="plans">
-
-            <div
-                class="plan"
-                onclick="selectPlan('Económico', 100)"
-            >
-                <h3>Económico</h3>
-                <strong>RD$100</strong>
-                <p>Promoción básica</p>
-            </div>
-
-            <div
-                class="plan featured-plan"
-                onclick="selectPlan('Normal', 250)"
-            >
-                <h3>Normal</h3>
-                <strong>RD$250</strong>
-                <p>Mayor alcance</p>
-            </div>
-
-            <div
-                class="plan"
-                onclick="selectPlan('Pro', 500)"
-            >
-                <h3>Pro</h3>
-                <strong>RD$500</strong>
-                <p>Máxima exposición</p>
-            </div>
-
-        </div>
-
-        <div id="paymentStep" class="hidden">
-
-            <h3>Método de pago</h3>
-
-            <select id="paymentMethod">
-
-                <option value="">
-                    Seleccionar método
-                </option>
-
-                <option value="Banco">
-                    Transferencia bancaria
-                </option>
-
-                <option value="PayPal">
-                    PayPal
-                </option>
-
-                <option value="Binance">
-                    Binance
-                </option>
-
-            </select>
-
-            <label>
-                Subir comprobante
+            <label for="filterMaxPrice">
+                Precio máximo
             </label>
 
             <input
-                type="file"
-                id="paymentReceipt"
-                accept="image/*"
+                id="filterMaxPrice"
+                type="number"
+                min="0"
+                placeholder="Sin límite"
             >
+
 
             <button
+                id="applyFiltersBtn"
                 class="primary-button"
-                onclick="submitPromotion()"
+                type="button"
             >
-                📤 Enviar comprobante
+                Aplicar filtros
             </button>
 
         </div>
 
     </div>
 
-</div>
+
+    <!-- =====================================================
+         TOAST / MENSAJES
+    ====================================================== -->
+
+    <div
+        id="toast"
+        class="toast hidden"
+        role="alert"
+    >
+        <span id="toastIcon">✓</span>
+        <span id="toastMessage"></span>
+    </div>
 
 
-<!-- MODAL ESTADÍSTICAS -->
+    <!-- =====================================================
+         CARGANDO
+    ====================================================== -->
 
-<div id="statsModal" class="modal">
+    <div
+        id="loadingScreen"
+        class="loading-screen hidden"
+    >
 
-    <div class="modal-content">
+        <div class="loading-spinner"></div>
 
-        <div class="modal-header">
-
-            <h2>Mis estadísticas</h2>
-
-            <button onclick="closeModal('statsModal')">
-                ✕
-            </button>
-
-        </div>
-
-        <div class="stats-grid">
-
-            <div class="stat">
-                <strong id="totalViews">0</strong>
-                <span>Visualizaciones</span>
-            </div>
-
-            <div class="stat">
-                <strong id="totalLikes">0</strong>
-                <span>Me gusta</span>
-            </div>
-
-            <div class="stat">
-                <strong id="totalSaved">0</strong>
-                <span>Guardados</span>
-            </div>
-
-            <div class="stat">
-                <strong id="profileVisits">0</strong>
-                <span>Visitas al perfil</span>
-            </div>
-
-        </div>
+        <p>Cargando Market Flash...</p>
 
     </div>
 
-</div>
 
+    <!-- =====================================================
+         DATOS DE LA APP
+    ====================================================== -->
 
-<script src="script.js"></script>
+    <script src="app-data.js"></script>
 
-</body>
-</html>
-            <div class="stat">
-                <strong id="profileVisits">0</strong>
-                <span>Visitas al perfil</span>
-            </div>
+    <!-- Cliente de Supabase -->
+    <script src="supabase-client.js"></script>
 
-        </div>
-
-    </div>
-
-</div>
-
-
-<script src="script.js"></script>
+    <!-- Lógica principal -->
+    <script src="script.js"></script>
 
 </body>
 </html>
