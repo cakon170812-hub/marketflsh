@@ -40,4 +40,59 @@
 
   <script src="script.js"></script>
 </body>
+</html>    <!-- EFECTO DE FONDO FLASH -->
+    <div class="flash-bg"></div>
+    
+    <!-- PARTICULAS DE ENERGIA -->
+    <div class="particles">
+      <span class="particle"></span>
+      <span class="particle"></span>
+      <span class="particle"></span>
+      <span class="particle"></span>
+      <span class="particle"></span>
+    </div>
+
+  </div>
+
+  <!-- SCRIPT DE ANIMACION Y TRANSICION -->
+  <script>
+    // Animación de entrada del logo
+    window.addEventListener('load', () => {
+      document.querySelector('.logo-flash').classList.add('animate-flash');
+      document.querySelector('.logo-text').classList.add('animate-fade-in');
+    });
+
+    // Función para ir a otra página con transición
+    function irA(pagina) {
+      document.body.classList.add('fade-out');
+      setTimeout(() => {
+        window.location.href = pagina;
+      }, 300);
+    }
+
+    // Login con Google - Placeholder para Supabase
+    async function loginGoogle() {
+      // Se conectará con supabase.auth.signInWithOAuth
+      alert('Login con Google - Se activará en Fase 4');
+    }
+
+    // Login con Apple - Placeholder para Supabase
+    async function loginApple() {
+      // Se conectará con supabase.auth.signInWithOAuth
+      alert('Login con Apple - Se activará en Fase 4');
+    }
+  </script>    <!-- FOOTER -->
+    <footer class="welcome-footer">
+      <p>© 2026 MARKET FLASH ⚡</p>
+      <p>Propietario: Julio Alcántara Gómera</p>
+      <div class="footer-links">
+        <a href="#">Términos</a>
+        <a href="#">Privacidad</a>
+        <a href="#">Ayuda</a>
+      </div>
+    </footer>
+
+  </div>
+
+</body>
 </html>
