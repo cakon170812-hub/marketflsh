@@ -2,97 +2,227 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MARKET FLASH ⚡</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="welcome-body">
-  
-  <div class="welcome-container">
-    
-    <!-- LOGO ANIMADO -->
-    <div class="logo-flash-container">
-      <div class="logo-flash">⚡</div>
-      <h1 class="logo-text">MARKET FLASH</h1>
-      <p class="logo-slogan">Compra y Vende en un Flash</p>
-    </div>
-
-    <!-- BOTONES PRINCIPALES -->
-    <div class="welcome-buttons">
-      <button class="btn-primary btn-large" onclick="irA('auth.html')">Iniciar Sesión</button>
-      <button class="btn-secondary btn-large" onclick="irA('auth.html?tab=registro')">Crear Cuenta</button>
-    </div>
-
-    <!-- LOGIN SOCIAL -->
-    <div class="social-login">
-      <p>O continúa con</p>
-      <div class="social-buttons">
-        <button class="btn-social" onclick="loginGoogle()">
-          <span>G</span> Google
-        </button>
-        <button class="btn-social" onclick="loginApple()">
-          <span></span> Apple
-        </button>
-      </div>
-    </div>
-
+<body class="auth-body">
+  <div class="logo-market">
+    <div class="rayo">⚡</div>
+    <h1>MARKET FLASH</h1>
+    <p style="color:var(--text-gray)">Compra y Vende en Segundos</p>
   </div>
 
-  <script src="script.js"></script>
+  <div style="width:100%; max-width:400px;">
+    <button class="btn-neon btn-naranja" onclick="window.location.href='auth.html'">
+      👤+ CREAR CUENTA >
+    </button>
+    <button class="btn-neon btn-azul" onclick="window.location.href='auth.html'">
+      → INICIAR SESIÓN >
+    </button>
+  </div>
+
+  <div class="footer-credito">
+    PROPIEDAD: <b>JULIO ALCÁNTARA GOMERAS</b>
+  </div>
 </body>
-</html>    <!-- EFECTO DE FONDO FLASH -->
-    <div class="flash-bg"></div>
-    
-    <!-- PARTICULAS DE ENERGIA -->
-    <div class="particles">
-      <span class="particle"></span>
-      <span class="particle"></span>
-      <span class="particle"></span>
-      <span class="particle"></span>
-      <span class="particle"></span>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso - MARKET FLASH ⚡</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-body">
+  <div class="logo-market"><h1>MARKET <span style="color:var(--primary-naranja)">FLASH</span> ⚡</h1></div>
+
+  <div id="pantalla-inicio" style="width:100%; max-width:400px;">
+    <button class="btn-neon btn-naranja" onclick="mostrarForm('registro')">👤+ CREAR CUENTA ></button>
+    <button class="btn-neon btn-azul" onclick="mostrarForm('login')">→ INICIAR SESIÓN ></button>
+  </div>
+
+  <div id="form-registro" class="card-neon" style="display:none; width:100%; max-width:450px;">
+    <h2>CREAR CUENTA</h2>
+    <input type="text" placeholder="👤 Nombre Completo" class="input-field">
+    <input type="text" placeholder="📇 Número de cédula *" class="input-field">
+    <input type="tel" placeholder="📞 Teléfono" class="input-field">
+    <input type="email" placeholder="✉️ Correo" class="input-field">
+    <input type="password" placeholder="🔒 Contraseña" class="input-field">
+    <button class="btn-neon btn-naranja">CREAR CUENTA ></button>
+    <p onclick="volverInicio()" style="color:var(--primary-azul); text-align:center; margin-top:15px; cursor:pointer;">← Volver</p>
+  </div>
+
+  <div id="form-login" class="card-neon" style="display:none; width:100%; max-width:450px;">
+    <h2>INICIAR SESIÓN</h2>
+    <input type="text" placeholder="📇 Cédula o Correo" class="input-field">
+    <input type="password" placeholder="🔒 Contraseña" class="input-field">
+    <button class="btn-neon btn-azul">INICIAR SESIÓN ></button>
+    <p onclick="volverInicio()" style="color:var(--primary-azul); text-align:center; margin-top:15px; cursor:pointer;">← Volver</p>
+  </div>
+
+  <div class="footer-credito">PROPIEDAD: <b>JULIO ALCÁNTARA GOMERAS</b></div>
+  <script>
+    function mostrarForm(tipo){ document.getElementById('pantalla-inicio').style.display='none'; document.getElementById('form-'+tipo).style.display='block'; }
+    function volverInicio(){ document.getElementById('pantalla-inicio').style.display='block'; document.getElementById('form-registro').style.display='none'; document.getElementById('form-login').style.display='none'; }
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio - MARKET FLASH ⚡</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="main-body" style="padding-bottom: 80px;">
+
+  <header style="padding:20px; display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="font-weight:900;">MARKET <span style="color:var(--primary-naranja)">FLASH</span> ⚡</h2>
+    <div style="width:40px; height:40px; border-radius:50%; background:var(--primary-azul); box-shadow:var(--glow-azul);"></div>
+  </header>
+
+  <div style="padding: 0 20px;">
+    <input type="text" placeholder="🔍 Buscar productos, marcas..." class="input-field" style="border-radius:20px;">
+  </div>
+
+  <div style="padding: 20px; display:grid; gap:15px;">
+    <!-- PRODUCTO EJEMPLO -->
+    <div class="card-neon" onclick="window.location.href='producto.html'">
+      <img src="https://via.placeholder.com/400x200/0F1729/FF6B00" style="width:100%; border-radius:12px; margin-bottom:10px;">
+      <h3>iPhone 15 Pro Max</h3>
+      <p style="color:var(--primary-naranja); font-size:20px; font-weight:800;">RD$ 85,000</p>
+      <p style="color:var(--text-gray); font-size:13px;">📍 Santo Domingo • Hace 2h</p>
     </div>
 
+    <div class="card-neon">
+      <img src="https://via.placeholder.com/400x200/0F1729/00A3FF" style="width:100%; border-radius:12px; margin-bottom:10px;">
+      <h3>PlayStation 5</h3>
+      <p style="color:var(--primary-naranja); font-size:20px; font-weight:800;">RD$ 45,000</p>
+      <p style="color:var(--text-gray); font-size:13px;">📍 Santiago • Ayer</p>
+    </div>
   </div>
 
-  <!-- SCRIPT DE ANIMACION Y TRANSICION -->
-  <script>
-    // Animación de entrada del logo
-    window.addEventListener('load', () => {
-      document.querySelector('.logo-flash').classList.add('animate-flash');
-      document.querySelector('.logo-text').classList.add('animate-fade-in');
-    });
+  <!-- BOTTOM NAV NEON -->
+  <nav class="bottom-nav">
+    <button class="nav-item active">🏠<br>Inicio</button>
+    <button class="nav-item" onclick="window.location.href='publicar.html'">➕<br>Vender</button>
+    <button class="nav-item">💬<br>Chats</button>
+    <button class="nav-item" onclick="window.location.href='perfil.html'">👤<br>Perfil</button>
+  </nav>
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Publicar - MARKET FLASH ⚡</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="main-body" style="padding:20px; padding-bottom:80px;">
+  
+  <h2 style="margin-bottom:20px;">VENDER PRODUCTO ⚡</h2>
 
-    // Función para ir a otra página con transición
-    function irA(pagina) {
-      document.body.classList.add('fade-out');
-      setTimeout(() => {
-        window.location.href = pagina;
-      }, 300);
-    }
+  <div class="card-neon">
+    <input type="text" placeholder="📦 Título del producto" class="input-field">
+    <input type="number" placeholder="💰 Precio RD$" class="input-field">
+    <textarea placeholder="📝 Descripción" class="input-field" rows="4"></textarea>
+    <input type="text" placeholder="📍 Ubicación" class="input-field">
+    
+    <div style="border:2px dashed var(--primary-azul); border-radius:12px; padding:40px; text-align:center; margin-bottom:15px;">
+      📷 + Agregar Fotos
+    </div>
 
-    // Login con Google - Placeholder para Supabase
-    async function loginGoogle() {
-      // Se conectará con supabase.auth.signInWithOAuth
-      alert('Login con Google - Se activará en Fase 4');
-    }
+    <button class="btn-neon btn-naranja">PUBLICAR PRODUCTO ></button>
+  </div>
 
-    // Login con Apple - Placeholder para Supabase
-    async function loginApple() {
-      // Se conectará con supabase.auth.signInWithOAuth
-      alert('Login con Apple - Se activará en Fase 4');
-    }
-  </script>    <!-- FOOTER -->
-    <footer class="welcome-footer">
-      <p>© 2026 MARKET FLASH ⚡</p>
-      <p>Propietario: Julio Alcántara Gómera</p>
-      <div class="footer-links">
-        <a href="#">Términos</a>
-        <a href="#">Privacidad</a>
-        <a href="#">Ayuda</a>
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location.href='feed.html'">🏠<br>Inicio</button>
+    <button class="nav-item active">➕<br>Vender</button>
+    <button class="nav-item">💬<br>Chats</button>
+    <button class="nav-item" onclick="window.location.href='perfil.html'">👤<br>Perfil</button>
+  </nav>
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle - MARKET FLASH ⚡</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="main-body" style="padding-bottom: 80px;">
+
+  <header style="padding:20px;">
+    <button onclick="history.back()" style="background:none; border:none; color:#fff; font-size:20px;">←</button>
+  </header>
+
+  <div class="card-neon" style="margin:0 20px;">
+    <img src="https://via.placeholder.com/400x300/0F1729/FF6B00" style="width:100%; border-radius:12px; margin-bottom:15px;">
+    
+    <h2>iPhone 15 Pro Max 256GB</h2>
+    <p style="color:var(--primary-naranja); font-size:28px; font-weight:900; margin:10px 0;">RD$ 85,000</p>
+    <p style="color:var(--text-gray);">📍 Santo Domingo • Publicado hace 2 horas</p>
+    
+    <hr style="border-color:#1F2A44; margin:20px 0;">
+
+    <h3>Descripción</h3>
+    <p style="color:var(--text-gray); line-height:1.6;">iPhone 15 Pro Max color Titanio Natural. 100% funcional. Incluye caja y cable. Batería 95%. Libre de fábrica.</p>
+
+    <h3 style="margin-top:20px;">Vendedor</h3>
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="width:50px; height:50px; border-radius:50%; background:var(--primary-azul); box-shadow:var(--glow-azul);"></div>
+      <div>
+        <p style="font-weight:700;">Carlos M.</p>
+        <p style="color:var(--text-gray); font-size:13px;">⭐ 4.9 • 23 ventas</p>
       </div>
-    </footer>
+    </div>
 
+    <button class="btn-neon btn-azul" style="margin-top:20px;">💬 CHATEAR CON EL VENDEDOR ></button>
+    <button class="btn-neon btn-naranja">📞 LLAMAR ></button>
+  </div>
+</body>
+</html><!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil - MARKET FLASH ⚡</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="main-body" style="padding-bottom: 80px;">
+
+  <div style="text-align:center; padding:30px 20px;">
+    <div style="width:100px; height:100px; border-radius:50%; background:linear-gradient(45deg, var(--primary-naranja), var(--primary-azul)); box-shadow:var(--glow-naranja); margin:0 auto 15px;"></div>
+    <h2>Julio Alcántara</h2>
+    <p style="color:var(--text-gray);">Miembro desde Sep 2026</p>
   </div>
 
+  <div style="display:flex; justify-content:space-around; padding:0 20px; margin-bottom:20px;">
+    <div class="card-neon" style="text-align:center; width:30%; padding:15px;">
+      <p style="font-size:22px; font-weight:900; color:var(--primary-naranja);">23</p>
+      <p style="font-size:12px; color:var(--text-gray);">Ventas</p>
+    </div>
+    <div class="card-neon" style="text-align:center; width:30%; padding:15px;">
+      <p style="font-size:22px; font-weight:900; color:var(--primary-azul);">4.9</p>
+      <p style="font-size:12px; color:var(--text-gray);">Rating</p>
+    </div>
+    <div class="card-neon" style="text-align:center; width:30%; padding:15px;">
+      <p style="font-size:22px; font-weight:900;">8</p>
+      <p style="font-size:12px; color:var(--text-gray);">Publicados</p>
+    </div>
+  </div>
+
+  <div class="card-neon" style="margin:0 20px;">
+    <h3>Mis Publicaciones</h3>
+    <p style="color:var(--text-gray); margin-top:10px;">Aquí verás todos tus productos activos</p>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="window.location.href='feed.html'">🏠<br>Inicio</button>
+    <button class="nav-item" onclick="window.location.href='publicar.html'">➕<br>Vender</button>
+    <button class="nav-item">💬<br>Chats</button>
+    <button class="nav-item active">👤<br>Perfil</button>
+  </nav>
 </body>
 </html>
