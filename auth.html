@@ -1,124 +1,178 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Acceso - MARKET FLASH ⚡</title>
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión - MARKET FLASH ⚡</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<div class="container">
-<header class="navbar">
-<div class="container">
-<div class="logo" onclick="irA('index.html')">⚡ MARKET <span>FLASH</span></div>
-</div>
-</header>
+<body class="auth-body">
+  
+  <div class="auth-container">
+    
+    <!-- HEADER -->
+    <div class="auth-header">
+      <button class="btn-back" onclick="volver()">←</button>
+      <h2>MARKET FLASH ⚡</h2>
+    </div>
 
-<main class="form-container mt-20">
-<div class="auth-tabs">
-<button class="auth-tab active" onclick="mostrarTab('login')">Iniciar sesión</button>
-<button class="auth-tab" onclick="mostrarTab('registro')">Crear cuenta</button>
-<button class="auth-tab" onclick="mostrarTab('recuperar')">¿Olvidaste?</button>
-</div>
+    <!-- TABS -->
+    <div class="auth-tabs">
+      <button class="tab-btn active" onclick="cambiarTab('login')">Iniciar Sesión</button>
+      <button class="tab-btn" onclick="cambiarTab('registro')">Crear Cuenta</button>
+    </div>
 
-<!-- TAB LOGIN -->
-<div id="login" class="tab-content active">
-<h2>Bienvenido de vuelta</h2>
-<div class="form-group">
-<label>Correo electrónico</label>
-<input type="email" id="login-email" placeholder="tu@email.com">
-</div>
-<div class="form-group">
-<label>Contraseña</label>
-<input type="password" id="login-password" placeholder="••••••••">
-</div>
-<div class="checkbox-group">
-<input type="checkbox" id="recordar">
-<label for="recordar">Recordarme</label>
-</div>
-<button class="btn-primary" onclick="iniciarSesion()">Entrar</button>
+    <!-- FORMULARIO LOGIN -->
+    <div id="login-form" class="auth-form">
+      <h3>Bienvenido de vuelta</h3>
+      
+      <div class="input-group">
+        <label>Correo Electrónico</label>
+        <input type="email" id="login-email" placeholder="tu@correo.com">
+      </div>
 
-<div class="social-login">
-<p class="divider text-center">o continúa con</p>
-<button class="btn-social" onclick="loginSocial('google')">G Google</button>
-<button class="btn-social" onclick="loginSocial('apple')"> Apple</button>
-</div>
-</div>
+      <div class="input-group">
+        <label>Contraseña</label>
+        <div class="password-wrapper">
+          <input type="password" id="login-password" placeholder="••••">
+          <span class="toggle-pass" onclick="togglePassword('login-password')" id="login-password-icon">👁️</span>
+        </div>
+      </div>
 
-<!-- TAB REGISTRO -->
-<div id="registro" class="tab-content">
-<h2>Crear cuenta nueva</h2>
-<div class="grid-2">
-<div class="form-group">
-<label>Nombre completo *</label>
-<input type="text" id="reg-nombre" placeholder="Julio Alcántara">
-</div>
-<div class="form-group">
-<label>WhatsApp *</label>
-<input type="tel" id="reg-whatsapp" placeholder="829-000-0000">
-</div>
-</div>
-<div class="form-group">
-<label>Correo electrónico *</label>
-<input type="email" id="reg-email" placeholder="tu@email.com">
-</div>
-<div class="grid-2">
-<div class="form-group">
-<label>Contraseña *</label>
-<input type="password" id="reg-password">
-</div>
-<div class="form-group">
-<label>Confirmar *</label>
-<input type="password" id="reg-confirm">
-</div>
-</div>
+      <div class="auth-options">
+        <label class="checkbox">
+          <input type="checkbox"> Recordar sesión
+        </label>
+        <a href="#" onclick="cambiarTab('recuperar')">¿Olvidaste tu contraseña?</a>
+      </div>
 
-<h3 class="mt-20">Preguntas de seguridad *</h3>
-<div class="form-group">
-<label>1. ¿Nombre de tu primera mascota?</label>
-<input type="text" id="preg1">
-<input type="text" id="resp1" placeholder="Respuesta">
-</div>
-<div class="form-group">
-<label>2. ¿Ciudad donde naciste?</label>
-<input type="text" id="preg2">
-<input type="text" id="resp2" placeholder="Respuesta">
-</div>
-<div class="form-group">
-<label>3. ¿Nombre de tu escuela primaria?</label>
-<input type="text" id="preg3">
-<input type="text" id="resp3" placeholder="Respuesta">
-</div>
+      <button class="btn-primary btn-large" onclick="iniciarSesion()">Iniciar Sesión</button>
 
-<div class="checkbox-group">
-<input type="checkbox" id="reg-terminos">
-<label for="reg-terminos">Acepto términos y política de privacidad</label>
-</div>
-<button class="btn-primary" onclick="registrarUsuario()">Crear cuenta</button>
-</div>
+      <div class="social-login">
+        <p>O continúa con</p>
+        <div class="social-buttons">
+          <button class="btn-social" onclick="loginGoogle()">G Google</button>
+          <button class="btn-social" onclick="loginApple()"> Apple</button>
+        </div>
+      </div>
+    </div>    <!-- FORMULARIO REGISTRO -->
+    <div id="registro-form" class="auth-form hidden">
+      <h3>Únete a MARKET FLASH ⚡</h3>
+      
+      <div class="input-group">
+        <label>Nombre Completo</label>
+        <input type="text" id="reg-nombre" placeholder="Tu nombre">
+      </div>
 
-<!-- TAB RECUPERAR -->
-<div id="recuperar" class="tab-content">
-<h2>Recuperar acceso</h2>
-<div class="form-group">
-<label>Ingresa tu correo</label>
-<input type="email" id="rec-email" placeholder="tu@email.com">
-</div>
-<button class="btn-primary" onclick="iniciarRecuperacion()">Continuar</button>
+      <div class="input-group">
+        <label>Correo Electrónico</label>
+        <input type="email" id="reg-email" placeholder="tu@correo.com">
+      </div>
 
-<div id="preguntas-rec" class="mt-20"></div>
-</div>
-</main>
-</div>
+      <div class="input-group">
+        <label>WhatsApp</label>
+        <input type="tel" id="reg-whatsapp" placeholder="809-XXX-XXXX">
+        <small>Este número será visible en tus productos</small>
+      </div>
 
-<script src="supabase.js"></script>
-<script src="script.js"></script>
-<script>
-// Leer ?tab= de la URL
-const params = new URLSearchParams(window.location.search);
-const tab = params.get('tab');
-if (tab) mostrarTab(tab);
-</script>
+      <div class="input-group">
+        <label>Contraseña</label>
+        <div class="password-wrapper">
+          <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres">
+          <span class="toggle-pass" onclick="togglePassword('reg-password')" id="reg-password-icon">👁️</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label>Confirmar Contraseña</label>
+        <input type="password" id="reg-password2" placeholder="Repite la contraseña">
+      </div>
+
+      <label class="checkbox">
+        <input type="checkbox" id="reg-terminos"> 
+        Acepto los <a href="#">Términos y Condiciones</a>
+      </label>
+
+      <button class="btn-primary btn-large" onclick="crearCuenta()">Crear Cuenta</button>
+
+      <div class="social-login">
+        <p>O regístrate con</p>
+        <div class="social-buttons">
+          <button class="btn-social" onclick="loginGoogle()">G Google</button>
+          <button class="btn-social" onclick="loginApple()"> Apple</button>
+        </div>
+      </div>
+    </div>    <!-- FORMULARIO RECUPERAR -->
+    <div id="recuperar-form" class="auth-form hidden">
+      <h3>Recuperar Contraseña</h3>
+      <p class="auth-info">Te enviaremos un enlace a tu correo para restablecer tu contraseña.</p>
+      
+      <div class="input-group">
+        <label>Correo Electrónico</label>
+        <input type="email" id="rec-email" placeholder="tu@correo.com">
+      </div>
+
+      <button class="btn-primary btn-large" onclick="recuperarPassword()">Enviar Enlace</button>
+      <button class="btn-secondary" onclick="cambiarTab('login')">Volver a Login</button>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="auth-footer">
+    <p>© 2026 MARKET FLASH ⚡</p>
+  </footer>
+
+  <script src="script.js"></script>
+  <script>
+    // Funciones específicas de Auth
+    function cambiarTab(tab) {
+      document.querySelectorAll('.auth-form').forEach(f => f.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(tab + '-form').classList.remove('hidden');
+      event.target.classList.add('active');
+    }
+
+    function iniciarSesion() {
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-password').value;
+      
+      if(!validarEmail(email)) return mostrarError('Email inválido');
+      if(pass.length < 6) return mostrarError('Contraseña muy corta');
+      
+      // TEMPORAL FASE 1: Simular login
+      guardarSesion({email: email, nombre: 'Usuario Demo'});
+      mostrarExito('Login exitoso!');
+      setTimeout(() => irA('feed.html'), 1000);
+    }
+
+    function crearCuenta() {
+      const nombre = document.getElementById('reg-nombre').value;
+      const email = document.getElementById('reg-email').value;
+      const whatsapp = document.getElementById('reg-whatsapp').value;
+      const pass = document.getElementById('reg-password').value;
+      const pass2 = document.getElementById('reg-password2').value;
+      
+      if(!nombre) return mostrarError('Ingresa tu nombre');
+      if(!validarEmail(email)) return mostrarError('Email inválido');
+      if(!validarWhatsApp(whatsapp)) return mostrarError('WhatsApp inválido');
+      if(pass.length < 6) return mostrarError('Mínimo 6 caracteres');
+      if(pass !== pass2) return mostrarError('Las contraseñas no coinciden');
+      if(!document.getElementById('reg-terminos').checked) return mostrarError('Acepta los términos');
+      
+      // TEMPORAL FASE 1: Simular registro
+      guardarSesion({email: email, nombre: nombre, whatsapp: whatsapp});
+      mostrarExito('Cuenta creada!');
+      setTimeout(() => irA('feed.html'), 1000);
+    }
+
+    function recuperarPassword() {
+      const email = document.getElementById('rec-email').value;
+      if(!validarEmail(email)) return mostrarError('Email inválido');
+      
+      mostrarExito('Si el correo existe, te enviamos un enlace');
+    }
+  </script>
 </body>
 </html>
