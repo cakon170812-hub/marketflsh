@@ -1,62 +1,43 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-<title>MARKET FLASH ⚡</title>
-<meta name="description" content="Compra y vende al instante - Market Flash">
-<meta name="theme-color" content="#0066FF">
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MARKET FLASH ⚡</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body class="welcome-body">
+  
+  <div class="welcome-container">
+    
+    <!-- LOGO ANIMADO -->
+    <div class="logo-flash-container">
+      <div class="logo-flash">⚡</div>
+      <h1 class="logo-text">MARKET FLASH</h1>
+      <p class="logo-slogan">Compra y Vende en un Flash</p>
+    </div>
 
-<!-- Fondo con efecto flash -->
-<div class="flash-bg"></div>
+    <!-- BOTONES PRINCIPALES -->
+    <div class="welcome-buttons">
+      <button class="btn-primary btn-large" onclick="irA('auth.html')">Iniciar Sesión</button>
+      <button class="btn-secondary btn-large" onclick="irA('auth.html?tab=registro')">Crear Cuenta</button>
+    </div>
 
-<!-- Luces parpadeando -->
-<div class="lights">
-<div class="light"></div><div class="light"></div><div class="light"></div>
-<div class="light"></div><div class="light"></div><div class="light"></div>
-</div>
+    <!-- LOGIN SOCIAL -->
+    <div class="social-login">
+      <p>O continúa con</p>
+      <div class="social-buttons">
+        <button class="btn-social" onclick="loginGoogle()">
+          <span>G</span> Google
+        </button>
+        <button class="btn-social" onclick="loginApple()">
+          <span></span> Apple
+        </button>
+      </div>
+    </div>
 
-<!-- Contenido principal -->
-<main class="welcome-container">
-<div class="logo-flash">
-<span class="bolt">⚡</span>
-<h1>MARKET <span>FLASH</span></h1>
-</div>
-<p class="slogan">Compra y vende al instante</p>
+  </div>
 
-<div class="welcome-buttons">
-<button class="btn-flash-primary" onclick="window.location='auth.html?tab=login'">
-Iniciar sesión
-</button>
-<button class="btn-flash-secondary" onclick="window.location='auth.html?tab=registro'">
-Crear cuenta
-</button>
-</div>
-
-<div class="social-login">
-<p class="divider">o continúa con</p>
-<button class="btn-social" onclick="loginSocial('google')">G Google</button>
-<button class="btn-social" onclick="loginSocial('apple')"> Apple</button>
-</div>
-</main>
-
-<script src="supabase.js"></script>
-<script src="script.js"></script>
-<script>
-// Si ya está logueado, mandar directo al menú
-verificarSesion().then(user => {
-if(user) window.location = 'menu.html';
-});
-
-// Registrar service worker para PWA
-if ('serviceWorker' in navigator) {
-navigator.serviceWorker.register('/service-worker.js');
-}
-</script>
+  <script src="script.js"></script>
 </body>
 </html>
