@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inicio - MARKET FLASH ⚡</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="container">
+<!-- HEADER -->
+<header class="navbar">
+<div class="container">
+<div class="logo">⚡ MARKET <span>FLASH</span></div>
+<div class="nav-actions">
+<button class="icon-btn" onclick="abrirModal('modal-notificaciones')">🔔<span id="notif-badge" class="badge">0</span></button>
+<button class="icon-btn" onclick="irA('perfil.html')">👤</button>
+</div>
+</div>
+</header>
+
+<main>
+<!-- BARRA DE BÚSQUEDA -->
+<div class="search-bar">
+<input type="text" id="busqueda" placeholder="Buscar productos..." onkeyup="buscarProductos()">
+<button class="btn-filtro" onclick="abrirModal('modal-filtros')">⚙️ Filtros</button>
+</div>
+
+<!-- CATEGORÍAS RÁPIDAS -->
+<div class="categorias">
+<button class="chip active" onclick="filtrarCategoria('')">Todo</button>
+<button class="chip" onclick="filtrarCategoria('ROPA')">Ropa</button>
+<button class="chip" onclick="filtrarCategoria('TECNOLOGIA')">Tech</button>
+<button class="chip" onclick="filtrarCategoria('HOGAR')">Hogar</button>
+<button class="chip" onclick="filtrarCategoria('VEHICULOS')">Autos</button>
+</div>
+
+<!-- GRID DE PRODUCTOS -->
+<div class="grid-productos" id="grid-productos">
+<!-- Los productos se cargan con JS desde script.js -->
+<p class="text-center">Cargando productos...</p>
+</div>
+</main>
+
+<!-- BOTÓN FLOTANTE PUBLICAR -->
+<button class="btn-flotante" onclick="abrirModal('modal-publicar')">+</button>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+<a href="menu.html" class="nav-item active">
+<span>🏠</span>
+<small>Inicio</small>
+</a>
+<a href="guardados.html" class="nav-item">
+<span>❤️</span>
+<small>Guardados</small>
+</a>
+<a href="mensajes.html" class="nav-item">
+<span>💬</span>
+<small>Chats</small>
+</a>
+<a href="admin.html" class="nav-item" id="btn-admin" style="display:none">
+<span>⚡</span>
+<small>Admin</small>
+</a>
+</nav>
+</div>
+
+<!-- MODAL PUBLICAR -->
+<div id="modal-publicar" class="modal">
+<div class="modal-content">
+<h2>Publicar Producto</h2>
+<div class="form-group">
+<label>Nombre del producto *</label>
+<input type="text" id="prod-nombre">
+</div>
+<div class="grid-2">
+<div class="form-group">
+<label>Precio $ *</label>
+<input type="number" id="prod-precio">
+</div>
+<div class="form-group">
+<label>Cantidad *</label>
+<input type="number" id="prod-cantidad">
+</div>
+</div>
+<div class="grid-2">
+<div class="form-group">
+<label>Categoría *</label>
+<select id="prod-categoria">
+<option value="ROPA">Ropa</option>
+<option value="TECNOLOGIA">Tecnología</option>
+<option value="HOGAR">Hogar</option>
+</select>
+</div>
+<div class="form-group">
+<label>WhatsApp Contacto *</label>
+<input type="tel" id="prod-whatsapp">
+</div>
+</div>
+<div class="form-group">
+<label>Descripción</label>
+<textarea id="prod-descripcion" rows="3"></textarea>
+</div>
+<div class="form-group">
+<label>Subir hasta 5 fotos *</label>
+<input type="file" id="prod-fotos" multiple accept="image/*">
+</div>
+<button class="btn-primary" onclick="vistaPrevia()">Vista Previa</button>
+<button class="btn-primary" onclick="publicarProducto()">Publicar</button>
+<button onclick="cerrarModal('modal-publicar')">Cancelar</button>
+</div>
+</div>
+
+<script src="supabase.js"></script>
+<script src="script.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+await verificarSesion();
+cargarProductos();
+cargarNotificaciones();
+
+// Mostrar botón admin si es admin
+if(tipoUsuario === 'ADMINISTRADOR') {
+document.getElementById('btn-admin').style.display = 'flex';
+}
+});
+
+function buscarProductos() {
+const texto = document.getElementById('busqueda').value;
+cargarProductos({ busqueda: texto });
+}
+
+function filtrarCategoria(cat) {
+document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+event.target.classList.add('active');
+cargarProductos({ categoria: cat });
+}
+</script>
+</body>
+</html>
