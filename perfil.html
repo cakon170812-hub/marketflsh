@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Perfil - MARKET FLASH ⚡</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="container">
+<!-- HEADER -->
+<header class="navbar">
+<div class="container">
+<button onclick="irA('menu.html')">←</button>
+<div class="logo">Mi Perfil</div>
+<button onclick="cerrarSesion()">Salir</button>
+</div>
+</header>
+
+<main>
+<!-- INFO USUARIO -->
+<div class="perfil-header">
+<img id="foto-perfil" src="placeholder-avatar.png" alt="Foto" class="avatar">
+<h2 id="nombre-perfil">Cargando...</h2>
+<p id="tipo-perfil" class="badge-usuario">USUARIO</p>
+<button class="btn-secondary" onclick="abrirModal('modal-editar-perfil')">Editar Perfil</button>
+</div>
+
+<!-- TABS -->
+<div class="auth-tabs">
+<button class="auth-tab active" onclick="mostrarTab('mis-productos')">Mis Productos</button>
+<button class="auth-tab" onclick="mostrarTab('guardados')">Guardados</button>
+<button class="auth-tab" onclick="mostrarTab('config')">Configuración</button>
+</div>
+
+<!-- TAB MIS PRODUCTOS -->
+<div id="mis-productos" class="tab-content active">
+<div class="grid-productos" id="grid-mis-productos">
+<p class="text-center">Cargando tus productos...</p>
+</div>
+</div>
+
+<!-- TAB GUARDADOS -->
+<div id="guardados" class="tab-content">
+<div class="grid-productos" id="grid-guardados">
+<p class="text-center">No tienes productos guardados</p>
+</div>
+</div>
+
+<!-- TAB CONFIGURACIÓN -->
+<div id="config" class="tab-content">
+<div class="form-container">
+<h3>Seguridad</h3>
+<div class="form-group">
+<label>Cambiar Contraseña</label>
+<button class="btn-secondary" onclick="abrirModal('modal-cambiar-pass')">Cambiar</button>
+</div>
+
+<h3 class="mt-20">Preguntas de Seguridad</h3>
+<button class="btn-secondary" onclick="abrirModal('modal-preguntas')">Editar Preguntas</button>
+
+<h3 class="mt-20">Notificaciones</h3>
+<div class="checkbox-group">
+<div class="toggle-switch" id="toggle-notif" onclick="toggleSwitch('toggle-notif')"></div>
+<label>Recibir notificaciones push</label>
+</div>
+</div>
+</div>
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+<a href="menu.html" class="nav-item">
+<span>🏠</span>
+<small>Inicio</small>
+</a>
+<a href="guardados.html" class="nav-item">
+<span>❤️</span>
+<small>Guardados</small>
+</a>
+<a href="mensajes.html" class="nav-item">
+<span>💬</span>
+<small>Chats</small>
+</a>
+<a href="perfil.html" class="nav-item active">
+<span>👤</span>
+<small>Perfil</small>
+</a>
+</nav>
+</div>
+
+<!-- MODAL EDITAR PERFIL -->
+<div id="modal-editar-perfil" class="modal">
+<div class="modal-content">
+<h2>Editar Perfil</h2>
+<div class="form-group">
+<label>Nombre completo</label>
+<input type="text" id="edit-nombre">
+</div>
+<div class="form-group">
+<label>WhatsApp</label>
+<input type="tel" id="edit-whatsapp">
+</div>
+<div class="form-group">
+<label>Foto de perfil</label>
+<input type="file" id="edit-foto" accept="image/*">
+</div>
+<button class="btn-primary" onclick="guardarPerfil()">Guardar Cambios</button>
+<button onclick="cerrarModal('modal-editar-perfil')">Cancelar</button>
+</div>
+</div>
+
+<script src="supabase.js"></script>
+<script src="script.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+await verificarSesion();
+if (!usuarioActual) return irA('auth.html');
+
+cargarDatosPerfil();
+cargarMisProductos();
+cargarGuardados();
+});
+
+async function cargarDatosPerfil() {
+const { data } = await supabase.from('perfiles').select('*').eq('id', usuarioActual.id).single();
+if (data) {
+document.getElementById('nombre-perfil').innerText = data.nombre_completo;
+document.getElementById('tipo-perfil').innerText = data.tipo_usuario;
+document.getElementById('edit-nombre').value = data.nombre_completo;
+document.getElementById('edit-whatsapp').value = data.whatsapp;
+}
+}
+
+async function cargarMisProductos() {
+const { data } = await supabase.from('productos').select('*').eq('vendedor', usuarioActual.id);
+const grid = document.getElementById('grid-mis-productos');
+grid.innerHTML = data.map(p => `
+<div class="card-producto">
+<img src="${p.multimedia?.[0]?.url || 'placeholder.jpg'}">
+<div class="card-info">
+<h4>${p.nombre}</h4>
+<div class="precio">$${p.precio}</div>
+<span class="badge-estado">${p.estado}</span>
+</div>
+</div>
+`).join('');
+}
+</script>
+</body>
+</html>
