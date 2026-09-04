@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notificaciones - MARKET FLASH ⚡</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="noti-body">
+  
+  <!-- HEADER -->
+  <header class="noti-header">
+    <button class="btn-back" onclick="irA('feed.html')">←</button>
+    <h2>Notificaciones</h2>
+    <button class="btn-text" onclick="marcarTodasLeidas()">Marcar leídas</button>
+  </header>
+
+  <!-- TABS -->
+  <div class="noti-tabs">
+    <button class="tab-btn active" onclick="cambiarTabNoti('todas')">Todas</button>
+    <button class="tab-btn" onclick="cambiarTabNoti('ventas')">Ventas</button>
+    <button class="tab-btn" onclick="cambiarTabNoti('likes')">Likes</button>
+  </div>
+
+  <!-- LISTA NOTIFICACIONES -->
+  <main class="noti-lista" id="noti-lista">
+    
+    <!-- NOTI TIPO: NUEVO CONTACTO WHATSAPP -->
+    <div class="noti-item nueva">
+      <div class="noti-icon">💬</div>
+      <div class="noti-content">
+        <p><strong>Juan Pérez</strong> te contactó por WhatsApp</p>
+        <span>Sobre: iPhone 15 Pro Max</span>
+        <small>Hace 5 min</small>
+      </div>
+      <button class="btn-whatsapp-mini" onclick="contactarWhatsApp('8095551234')">Abrir</button>
+    </div>
+
+    <!-- NOTI TIPO: LIKE -->
+    <div class="noti-item nueva">
+      <div class="noti-icon">❤️</div>
+      <div class="noti-content">
+        <p>A <strong>María G.</strong> le gustó tu producto</p>
+        <span>MacBook Air M2</span>
+        <small>Hace 1 hora</small>
+      </div>
+      <button class="btn-ver" onclick="irA('perfil.html')">Ver</button>
+    </div>
+
+    <!-- NOTI TIPO: PRODUCTO VENDIDO -->
+    <div class="noti-item">
+      <div class="noti-icon">✅</div>
+      <div class="noti-content">
+        <p>¡Felicidades! Tu producto fue marcado como <strong>vendido</strong></p>
+        <span>PS5 Slim</span>
+        <small>Ayer</small>
+      </div>
+    </div>
+
+    <!-- NOTI TIPO: ALERTA DE BUSQUEDA -->
+    <div class="noti-item">
+      <div class="noti-icon">🔔</div>
+      <div class="noti-content">
+        <p>Nuevo producto en tu búsqueda guardada</p>
+        <span>"laptop gaming" en Santo Domingo</span>
+        <small>Hace 2 días</small>
+      </div>
+      <button class="btn-ver" onclick="irA('buscar.html')">Ver</button>
+    </div>
+
+  </main>  </main>
+
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const usuario = obtenerSesion();
+      if(!usuario) irA('auth.html');
+      cargarNotificaciones();
+    });
+
+    let tabActual = 'todas';
+
+    function cambiarTabNoti(tab) {
+      tabActual = tab;
+      document.querySelectorAll('.noti-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      filtrarNotis();
+    }
+
+    function filtrarNotis() {
+      const items = document.querySelectorAll('.noti-item');
+      items.forEach(item => {
+        if(tabActual === 'todas') {
+          item.style.display = 'flex';
+        } else if(tabActual === 'ventas' && item.querySelector('.noti-icon').textContent.includes('✅')) {
+          item.style.display = 'flex';
+        } else if(tabActual === 'likes' && item.querySelector('.noti-icon').textContent.includes('❤️')) {
+          item.style.display = 'flex';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+
+    function marcarTodasLeidas() {
+      document.querySelectorAll('.noti-item.nueva').forEach(item => {
+        item.classList.remove('nueva');
+      });
+      alert('Todas las notificaciones marcadas como leídas');
+    }
+
+    function contactarWhatsApp(numero) {
+      const msg = encodeURIComponent('Hola! Vi tu producto en MARKET FLASH ⚡');
+      window.open(`https://wa.me/1${numero}?text=${msg}`, '_blank');
+    }
+
+    function cargarNotificaciones() {
+      // FASE 1: Demo. En Fase 2 conectamos a BD real
+      console.log('Cargando notificaciones para', obtenerSesion().email);
+    }
+  </script>
+  <style>
+    .noti-body { background: var(--bg-dark); padding-bottom: 100px; }
+    
+    .noti-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      padding: 15px 20px; 
+      background: var(--card-bg); 
+      position: sticky; 
+      top: 0; 
+      z-index: 50;
+    }
+    .noti-header h2 { font-size: 20px; }
+    
+    .noti-tabs { 
+      display: flex; 
+      gap: 10px; 
+      padding: 15px 20px; 
+      background: var(--card-bg); 
+      border-bottom: 1px solid #222;
+    }
+    .tab-btn { 
+      padding: 8px 16px; 
+      background: #1a1a1a; 
+      border: 1px solid #333; 
+      border-radius: 20px; 
+      color: var(--text-gray);
+    }
+    .tab-btn.active { background: var(--primary); color: #000; border-color: var(--primary); }
+    
+    .noti-lista { padding: 15px; display: flex; flex-direction: column; gap: 12px; }
+    .noti-item { 
+      display: flex; 
+      gap: 12px; 
+      padding: 15px; 
+      background: var(--card-bg); 
+      border-radius: 12px; 
+      align-items: center;
+    }
+    .noti-item.nueva { border-left: 3px solid var(--primary); }
+    .noti-icon { font-size: 24px; }
+    .noti-content { flex: 1; }
+    .noti-content p { margin-bottom: 4px; }
+    .noti-content span { color: var(--text-gray); font-size: 13px; }
+    .noti-content small { color: #666; font-size: 12px; }
+    
+    .btn-whatsapp-mini, .btn-ver { 
+      padding: 8px 12px; 
+      background: var(--primary); 
+      border: none; 
+      border-radius: 8px; 
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .btn-ver { background: #333; color: var(--text); }
+  </style>
+
+  <!-- NAVEGACIÓN INFERIOR -->
+  <nav class="bottom-nav">
+    <button class="nav-item" onclick="irA('feed.html')">
+      <span>🏠</span>
+      <p>Inicio</p>
+    </button>
+    <button class="nav-item" onclick="irA('buscar.html')">
+      <span>🔍</span>
+      <p>Buscar</p>
+    </button>
+    <div class="nav-spacer"></div>
+    <button class="nav-item active">
+      <span>🔔</span>
+      <p>Alertas</p>
+    </button>
+    <button class="nav-item" onclick="irA('perfil.html')">
+      <span>👤</span>
+      <p>Perfil</p>
+    </button>
+  </nav>
+</body>
+</html>
