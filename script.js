@@ -1304,3 +1304,953 @@ document.addEventListener(
     initializeMarketFlash();
   }
 );
+/* =========================================================
+   MARKET FLASH — JAVASCRIPT
+   PARTE 2 DE 3
+   ========================================================= */
+
+/* =========================================================
+   FLASH DEL DÍA — FORMULARIO
+   ========================================================= */
+
+async function prepareDailyFlash(event) {
+  event.preventDefault();
+
+  if (!currentUser) {
+    showToast("Debes iniciar sesión.");
+    return;
+  }
+
+  const name =
+    document.getElementById("flashName")
+      ?.value.trim();
+
+  const description =
+    document.getElementById("flashDescription")
+      ?.value.trim();
+
+  const whatsappEnabled =
+    document.getElementById(
+      "flashWhatsappEnabled"
+    )?.checked || false;
+
+  const whatsapp =
+    document.getElementById("flashWhatsapp")
+      ?.value.trim() || "";
+
+  const imageInput =
+    document.getElementById("flashImages");
+
+  const videoInput =
+    document.getElementById("flashVideo");
+
+  const imageFiles = [
+    ...(imageInput?.files || [])
+  ];
+
+  const videoFiles = [
+    ...(videoInput?.files || [])
+  ];
+
+  if (!name || !description) {
+    showToast(
+      "Completa el nombre y la descripción."
+    );
+    return;
+  }
+
+  if (!imageFiles.length && !videoFiles.length) {
+    showToast(
+      "Agrega por lo menos una foto o un video."
+    );
+    return;
+  }
+
+  if (whatsappEnabled && !whatsapp) {
+    showToast(
+      "Escribe el número de WhatsApp."
+    );
+    return;
+  }
+
+  const images =
+    await filesToDataURLs(imageFiles);
+
+  let video = "";
+
+  if (videoFiles.length) {
+    const videos =
+      await filesToDataURLs(videoFiles);
+
+    video = videos[0] || "";
+  }
+
+  currentFlashDraft = {
+    id: `flash-${Date.now()}`,
+    user_id: currentUser.id,
+    name,
+    description,
+    images,
+    video,
+    whatsappEnabled,
+    whatsapp,
+    status: "pending",
+    created_at:
+      new Date().toISOString()
+  };
+
+  closeModal("dailyFlashModal");
+
+  renderPlans();
+
+  openModal("plansModal");
+}
+
+/* =========================================================
+   MOSTRAR LOS 3 PLANES
+   ========================================================= */
+
+function renderPlans() {
+  const container =
+    document.getElementById(
+      "plansContainer"
+    );
+
+  if (!container) return;
+
+  const config = getConfig();
+
+  const plans = [
+    {
+      id: "cheap",
+      name:
+        config.plans.cheap.name,
+      price:
+        config.plans.cheap.price,
+      description:
+        config.plans.cheap.description,
+      tag: "ECONÓMICO"
+    },
+    {
+      id: "normal",
+      name:
+        config.plans.normal.name,
+      price:
+        config.plans.normal.price,
+      description:
+        config.plans.normal.description,
+      tag: "POPULAR"
+    },
+    {
+      id: "pro",
+      name:
+        config.plans.pro.name,
+      price:
+        config.plans.pro.price,
+      description:
+        config.plans.pro.description,
+      tag: "MÁXIMA EXPOSICIÓN"
+    }
+  ];
+
+  container.innerHTML =
+    plans.map(plan => `
+      <div
+        class="plan-card ${
+          plan.id === "normal"
+            ? "featured"
+            : ""
+        }"
+        data-plan="${plan.id}"
+      >
+
+        ${
+          plan.id === "normal"
+            ? `<span class="plan-tag">MÁS ELEGIDO</span>`
+            : ""
+        }
+
+        <h3>${escapeHTML(
+          plan.name
+        )}</h3>
+
+        <p>${escapeHTML(
+          plan.description
+        )}</p>
+
+        <div class="plan-price">
+          ${formatMoney(plan.price)}
+        </div>
+
+        <small style="
+          display:block;
+          color:#65839b;
+          margin-top:7px;
+          font-size:9px;
+        ">
+          ${escapeHTML(plan.tag)}
+        </small>
+
+      </div>
+    `).join("");
+
+  container
+    .querySelectorAll(".plan-card")
+    .forEach(card => {
+
+      card.addEventListener(
+        "click",
+        () => {
+
+          const planId =
+            card.dataset.plan;
+
+          selectFlashPlan(planId);
+        }
+      );
+
+    });
+}
+
+/* =========================================================
+   SELECCIONAR PLAN
+   ========================================================= */
+
+function selectFlashPlan(planId) {
+  const config = getConfig();
+
+  const plan =
+    config.plans[planId];
+
+  if (!plan) {
+    showToast(
+      "No se encontró el plan."
+    );
+    return;
+  }
+
+  selectedPlan = {
+    id: planId,
+    name: plan.name,
+    price: Number(plan.price) || 0,
+    description:
+      plan.description
+  };
+
+  closeModal("plansModal");
+
+  renderPaymentMethods();
+
+  openModal("paymentModal");
+}
+
+/* =========================================================
+   MÉTODOS DE PAGO
+   ========================================================= */
+
+function renderPaymentMethods() {
+  const container =
+    document.getElementById(
+      "paymentMethods"
+    );
+
+  if (!container) return;
+
+  const config = getConfig();
+
+  const methods = [
+    {
+      id: "bank",
+      name:
+        "🏦 Transferencia bancaria"
+    },
+    {
+      id: "paypal",
+      name:
+        "🅿️ PayPal"
+    },
+    {
+      id: "binance",
+      name:
+        "₿ Binance"
+    }
+  ];
+
+  container.innerHTML =
+    methods
+      .filter(method =>
+        config.payments[
+          method.id
+        ] !== false
+      )
+      .map(method => `
+        <button
+          type="button"
+          class="payment-option"
+          data-payment="${method.id}"
+        >
+          ${method.name}
+        </button>
+      `)
+      .join("");
+
+  selectedPaymentMethod = null;
+
+  container
+    .querySelectorAll(
+      ".payment-option"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          container
+            .querySelectorAll(
+              ".payment-option"
+            )
+            .forEach(item =>
+              item.classList.remove(
+                "selected"
+              )
+            );
+
+          button.classList.add(
+            "selected"
+          );
+
+          selectedPaymentMethod =
+            button.dataset.payment;
+        }
+      );
+
+    });
+}
+
+/* =========================================================
+   ENVIAR SOLICITUD DE FLASH
+   ========================================================= */
+
+async function sendFlashPayment() {
+  if (!currentFlashDraft) {
+    showToast(
+      "No hay una publicidad preparada."
+    );
+    return;
+  }
+
+  if (!selectedPlan) {
+    showToast(
+      "Selecciona un plan."
+    );
+    return;
+  }
+
+  if (!selectedPaymentMethod) {
+    showToast(
+      "Selecciona un método de pago."
+    );
+    return;
+  }
+
+  const receiptInput =
+    document.getElementById(
+      "paymentReceipt"
+    );
+
+  const receiptFile =
+    receiptInput?.files?.[0];
+
+  if (!receiptFile) {
+    showToast(
+      "Debes subir el comprobante."
+    );
+    return;
+  }
+
+  showToast(
+    "Procesando solicitud..."
+  );
+
+  let receiptImage = "";
+
+  try {
+    const receiptData =
+      await filesToDataURLs([
+        receiptFile
+      ]);
+
+    receiptImage =
+      receiptData[0] || "";
+  } catch {
+    showToast(
+      "No se pudo leer el comprobante."
+    );
+    return;
+  }
+
+  const request = {
+    ...currentFlashDraft,
+
+    plan_id:
+      selectedPlan.id,
+
+    plan_name:
+      selectedPlan.name,
+
+    plan_price:
+      selectedPlan.price,
+
+    payment_method:
+      selectedPaymentMethod,
+
+    receipt:
+      receiptImage,
+
+    status:
+      "pending_payment_review",
+
+    submitted_at:
+      new Date().toISOString()
+  };
+
+  saveFlashRequest(request);
+
+  /*
+   * GUARDADO REAL EN SUPABASE
+   *
+   * Esta parte intenta guardar la solicitud
+   * si existe una tabla llamada flash_requests.
+   */
+
+  if (mfSupabase) {
+    try {
+
+      const {
+        error
+      } = await mfSupabase
+        .from("flash_requests")
+        .insert({
+          user_id:
+            currentUser.id,
+
+          name:
+            request.name,
+
+          description:
+            request.description,
+
+          whatsapp:
+            request.whatsappEnabled
+              ? request.whatsapp
+              : null,
+
+          plan_id:
+            request.plan_id,
+
+          plan_price:
+            request.plan_price,
+
+          payment_method:
+            request.payment_method,
+
+          receipt:
+            request.receipt,
+
+          status:
+            request.status
+        });
+
+      if (error) {
+        console.warn(
+          "Supabase flash_requests:",
+          error.message
+        );
+      }
+
+    } catch (error) {
+      console.warn(
+        "Error guardando Flash:",
+        error
+      );
+    }
+  }
+
+  addNotification(
+    "Solicitud enviada",
+    "Tu Flash del Día fue enviado para revisión."
+  );
+
+  closeModal("paymentModal");
+
+  document
+    .getElementById(
+      "flashForm"
+    )
+    ?.reset();
+
+  document
+    .getElementById(
+      "paymentReceipt"
+    )
+    ?.value = "";
+
+  currentFlashDraft = null;
+  selectedPlan = null;
+  selectedPaymentMethod = null;
+
+  showToast(
+    "⚡ Solicitud enviada al administrador."
+  );
+}
+
+/* =========================================================
+   GUARDAR SOLICITUD LOCAL
+   ========================================================= */
+
+function getFlashRequests() {
+  try {
+
+    return JSON.parse(
+      localStorage.getItem(
+        "mf_flash_requests"
+      ) || "[]"
+    );
+
+  } catch {
+    return [];
+  }
+}
+
+function saveFlashRequests(requests) {
+  localStorage.setItem(
+    "mf_flash_requests",
+    JSON.stringify(requests)
+  );
+}
+
+function saveFlashRequest(request) {
+  const requests =
+    getFlashRequests();
+
+  requests.unshift(request);
+
+  saveFlashRequests(requests);
+}
+
+/* =========================================================
+   FLASH PUBLICADOS
+   ========================================================= */
+
+function getPublishedFlash() {
+  try {
+
+    return JSON.parse(
+      localStorage.getItem(
+        STORAGE_FLASH
+      ) || "[]"
+    );
+
+  } catch {
+    return [];
+  }
+}
+
+function savePublishedFlash(flash) {
+  localStorage.setItem(
+    STORAGE_FLASH,
+    JSON.stringify(flash)
+  );
+}
+
+/* =========================================================
+   MOSTRAR FLASH DEL DÍA
+   ========================================================= */
+
+function renderFlashList() {
+  const container =
+    document.getElementById(
+      "flashList"
+    );
+
+  if (!container) return;
+
+  const flashes =
+    getPublishedFlash();
+
+  if (!flashes.length) {
+
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">
+          ⚡
+        </div>
+
+        <h3>
+          Todavía no hay Flash del Día
+        </h3>
+
+        <p>
+          Las publicidades premium aparecerán
+          aquí después de ser aprobadas.
+        </p>
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML =
+    flashes
+      .map(flash => {
+
+        let media = "";
+
+        if (flash.video) {
+
+          media = `
+            <video
+              src="${flash.video}"
+              controls
+              playsinline
+            ></video>
+          `;
+
+        } else if (
+          flash.images &&
+          flash.images.length
+        ) {
+
+          media = `
+            <img
+              src="${flash.images[0]}"
+              alt="${escapeHTML(
+                flash.name
+              )}"
+            >
+          `;
+
+        } else {
+
+          media = `
+            <div style="
+              height:100%;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              font-size:60px;
+            ">
+              ⚡
+            </div>
+          `;
+        }
+
+        return `
+          <article class="flash-item">
+
+            <div class="flash-item-media">
+              ${media}
+            </div>
+
+            <div class="flash-item-info">
+
+              <h3>
+                ${escapeHTML(
+                  flash.name
+                )}
+              </h3>
+
+              <p>
+                ${escapeHTML(
+                  flash.description
+                )}
+              </p>
+
+              ${
+                flash.whatsappEnabled &&
+                flash.whatsapp
+                  ? `
+                    <a
+                      class="flash-whatsapp"
+                      href="https://wa.me/${cleanPhone(
+                        flash.whatsapp
+                      )}"
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      📱 WhatsApp
+                    </a>
+                  `
+                  : ""
+              }
+
+            </div>
+
+          </article>
+        `;
+      })
+      .join("");
+}
+
+/* =========================================================
+   LIMPIAR TELÉFONO
+   ========================================================= */
+
+function cleanPhone(phone) {
+  return String(phone || "")
+    .replace(/\D/g, "");
+}
+
+/* =========================================================
+   APROBAR FLASH
+   ========================================================= */
+
+function approveFlashRequest(requestId) {
+  const requests =
+    getFlashRequests();
+
+  const index =
+    requests.findIndex(
+      request =>
+        String(request.id) ===
+        String(requestId)
+    );
+
+  if (index === -1) {
+    showToast(
+      "Solicitud no encontrada."
+    );
+    return;
+  }
+
+  const request =
+    requests[index];
+
+  request.status =
+    "approved";
+
+  request.approved_at =
+    new Date().toISOString();
+
+  const published =
+    getPublishedFlash();
+
+  published.unshift({
+    ...request,
+    status: "published"
+  });
+
+  savePublishedFlash(
+    published
+  );
+
+  requests.splice(index, 1);
+
+  saveFlashRequests(
+    requests
+  );
+
+  addNotification(
+    "Flash publicado",
+    `${request.name} fue aprobado y publicado.`
+  );
+
+  renderAdminRequests();
+
+  showToast(
+    "⚡ Flash aprobado y publicado."
+  );
+}
+
+/* =========================================================
+   RECHAZAR FLASH
+   ========================================================= */
+
+function rejectFlashRequest(requestId) {
+  const requests =
+    getFlashRequests();
+
+  const index =
+    requests.findIndex(
+      request =>
+        String(request.id) ===
+        String(requestId)
+    );
+
+  if (index === -1) {
+    showToast(
+      "Solicitud no encontrada."
+    );
+    return;
+  }
+
+  const request =
+    requests[index];
+
+  request.status =
+    "rejected";
+
+  request.rejected_at =
+    new Date().toISOString();
+
+  requests.splice(
+    index,
+    1
+  );
+
+  saveFlashRequests(
+    requests
+  );
+
+  addNotification(
+    "Flash rechazado",
+    `La solicitud ${request.name} fue rechazada.`
+  );
+
+  renderAdminRequests();
+
+  showToast(
+    "Solicitud rechazada."
+  );
+}
+
+/* =========================================================
+   VER COMPROBANTE
+   ========================================================= */
+
+function viewReceipt(requestId) {
+  const request =
+    getFlashRequests()
+      .find(
+        item =>
+          String(item.id) ===
+          String(requestId)
+      );
+
+  if (!request) {
+    showToast(
+      "Comprobante no encontrado."
+    );
+    return;
+  }
+
+  if (!request.receipt) {
+    showToast(
+      "Esta solicitud no tiene comprobante."
+    );
+    return;
+  }
+
+  const existing =
+    document.getElementById(
+      "receiptViewer"
+    );
+
+  if (existing) {
+    existing.remove();
+  }
+
+  const viewer =
+    document.createElement(
+      "div"
+    );
+
+  viewer.id =
+    "receiptViewer";
+
+  viewer.className =
+    "modal";
+
+  viewer.innerHTML = `
+    <div
+      class="modal-backdrop"
+      data-close-receipt="true"
+    ></div>
+
+    <div class="modal-card">
+
+      <button
+        class="close-modal"
+        data-close-receipt="true"
+      >
+        ×
+      </button>
+
+      <div class="modal-icon">
+        🧾
+      </div>
+
+      <h2>
+        Comprobante
+      </h2>
+
+      <p>
+        Comprobante enviado por
+        ${escapeHTML(
+          request.name
+        )}
+      </p>
+
+      <img
+        src="${request.receipt}"
+        alt="Comprobante de pago"
+        style="
+          width:100%;
+          max-height:65vh;
+          object-fit:contain;
+          border-radius:16px;
+          background:#000;
+          margin-top:10px;
+        "
+      >
+
+    </div>
+  `;
+
+  document.body.appendChild(
+    viewer
+  );
+
+  viewer
+    .querySelectorAll(
+      "[data-close-receipt='true']"
+    )
+    .forEach(element => {
+
+      element.addEventListener(
+        "click",
+        () => viewer.remove()
+      );
+
+    });
+}
+
+/* =========================================================
+   EVENTOS DE FLASH Y PAGOS
+   ========================================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    document
+      .getElementById(
+        "flashForm"
+      )
+      ?.addEventListener(
+        "submit",
+        prepareDailyFlash
+      );
+
+    document
+      .getElementById(
+        "sendPaymentButton"
+      )
+      ?.addEventListener(
+        "click",
+        sendFlashPayment
+      );
+
+  }
+);
