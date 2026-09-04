@@ -1,361 +1,180 @@
 /* ========================================
-MARKET FLASH ⚡ - SCRIPT.JS PARTE 1/4
-Propietario: Julio Alcántara Gómera
-Supabase + Navegación + Auth
-======================================== */
+   MARKET FLASH ⚡ - SCRIPT.JS
+   Propietario: Julio Alcántara Gómera
+   ======================================== */
 
-// CONFIGURACIÓN SUPABASE - CAMBIAR POR TUS CREDENCIALES
-const SUPABASE_URL = 'https://tu-proyecto.supabase.co';
-const SUPABASE_ANON_KEY = 'tu-anon-key-aqui';
+// 1. CONFIGURACION GLOBAL
+const APP_NAME = "MARKET FLASH ⚡";
+const VERSION = "1.0.0";
 
-// Inicializar cliente
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ESTADO GLOBAL
-let usuarioActual = null;
-let tipoUsuario = 'USUARIO';
-
-// ========================================
-// NAVEGACIÓN Y UI
-// ========================================
-
-function irA(ruta) {
-window.location = ruta;
+// 2. NAVEGACION Y TRANSICIONES
+function irA(pagina) {
+  document.body.classList.add('fade-out');
+  setTimeout(() => {
+    window.location.href = pagina;
+  }, 300);
 }
 
-function mostrarTab(tab) {
-document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-
-document.getElementById(tab)?.classList.add('active');
-document.querySelector(`[onclick="mostrarTab('${tab}')"]`)?.classList.add('active');
+function volver() {
+  window.history.back();
 }
 
-function abrirModal(id) {
-document.getElementById(id)?.classList.add('active');
-}
-function cerrarModal(id) {
-document.getElementById(id)?.classList.remove('active');
-}
-
-// Toggle mostrar/ocultar contraseña
+// 3. MOSTRAR/OCULTAR CONTRASEÑA
 function togglePassword(inputId) {
-const input = document.getElementById(inputId);
-input.type = input.type === 'password' ? 'text' : 'password';/* ========================================
-MARKET FLASH ⚡ - SCRIPT.JS PARTE 2/4
-Registro + Seguridad + Recuperación
-======================================== */
-
-// ========================================
-// REGISTRO CON PREGUNTAS DE SEGURIDAD
-// ========================================
-
-async function registrarUsuario() {
-const nombre = document.getElementById('reg-nombre').value;
-const whatsapp = document.getElementById('reg-whatsapp').value;
-const email = document.getElementById('reg-email').value;
-const password = document.getElementById('reg-password').value;
-const confirm = document.getElementById('reg-confirm').value;
-const terminos = document.getElementById('reg-terminos').checked;
-
-// Validaciones
-if (!nombre || !whatsapp || !email || !password) {
-alert('Completa todos los campos obligatorios');
-return;
-}
-if (password !== confirm) {
-alert('Las contraseñas no coinciden');
-return;
-}
-if (!terminos) {
-alert('Debes aceptar los términos y privacidad');
-return;
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(inputId + '-icon');
+  
+  if (input.type === 'password') {
+    input.type = 'text';
+    if(icon) icon.textContent = '🙈';
+  } else {
+    input.type = 'password';
+    if(icon) icon.textContent = '👁️';
+  }
 }
 
-// Obtener preguntas de seguridad
-const preguntas = [
-{ pregunta: document.getElementById('preg1').value, respuesta: document.getElementById('resp1').value },
-{ pregunta: document.getElementById('preg2').value, respuesta: document.getElementById('resp2').value },
-{ pregunta: document.getElementById('preg3').value, respuesta: document.getElementById('resp3').value }
-];
-
-if (preguntas.some(p => !p.pregunta || !p.respuesta)) {
-alert('Completa las 3 preguntas de seguridad');
-return;
+// 4. VALIDACIONES BASICAS
+function validarEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
 }
 
-// 1. Crear usuario en Auth
-const { data: authData, error: authError } = await supabase.auth.signUp({
-email, password
-});
-
-if (authError) {
-alert('Error: ' + authError.message);
-return;
+function validarWhatsApp(whatsapp) {
+  // Acepta formato DO: 809-XXX-XXXX
+  const re = /^[0-9]{10}$/;
+  return re.test(whatsapp.replace(/[^0-9]/g, ''));
 }
 
-// 2. Guardar perfil + preguntas hasheadas en tabla perfiles
-const respuestasHasheadas = await Promise.all(
-preguntas.map(async p => {
-const hash = await hashRespuesta(p.respuesta);
-return { pregunta: p.pregunta, respuesta_hash: hash };
-})
-);
-
-const { error: perfilError } = await supabase.from('perfiles').insert([{
-id: authData.user.id,
-nombre_completo: nombre,
-correo: email,
-whatsapp: whatsapp,
-tipo_usuario: 'USUARIO',
-preguntas_seguridad: respuestasHasheadas,
-estado: 'ACTIVO'
-}]);
-
-if (perfilError) {
-alert('Error guardando perfil: ' + perfilError.message);
-} else {
-alert('Registro exitoso. Revisa tu correo para confirmar.');
-irA('menu.html');
-}
+function mostrarError(mensaje) {
+  alert('⚠️ ' + mensaje);
 }
 
-// Hashear respuestas de seguridad - NO guardar en texto plano
-async function hashRespuesta(texto) {
-const encoder = new TextEncoder();
-const data = encoder.encode(texto.toLowerCase().trim());
-const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-const hashArray = Array.from(new Uint8Array(hashBuffer));
-return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+function mostrarExito(mensaje) {
+  alert('✅ ' + mensaje);
 }
 
-// ========================================
-// RECUPERACIÓN DE CONTRASEÑA POR PREGUNTAS
-// ========================================
-
-let intentosRecuperacion = 0;
-const MAX_INTENTOS = 3;
-let usuarioRecuperacion = null;
-
-async function iniciarRecuperacion() {
-const email = document.getElementById('rec-email').value;
-if (!email) return alert('Ingresa tu correo');
-
-const { data, error } = await supabase.from('perfiles').select('*').eq('correo', email).single();
-if (error || !data) return alert('Correo no encontrado');
-
-usuarioRecuperacion = data;
-intentosRecuperacion = 0;
-
-// Mostrar preguntas
-document.getElementById('preguntas-rec').innerHTML = `
-<div class="form-group">
-<label>${data.preguntas_seguridad[0].pregunta}</label>
-<input type="text" id="rec-resp1">
-</div>
-<div class="form-group">
-<label>${data.preguntas_seguridad[1].pregunta}</label>
-<input type="text" id="rec-resp2">
-</div>
-<div class="form-group">
-<label>${data.preguntas_seguridad[2].pregunta}</label>
-<input type="text" id="rec-resp3">
-</div>
-<button class="btn-primary" onclick="validarRespuestas()">Validar respuestas</button>
-`;
+// 5. LOGIN SOCIAL - PLACEHOLDERS FASE 4
+async function loginGoogle() {
+  console.log('Login Google - Conectar con Supabase Auth');
+  mostrarError('Login con Google se activará en Fase 4 con Supabase');
 }
 
-async function validarRespuestas() {
-if (intentosRecuperacion >= MAX_INTENTOS) {
-return alert('Máximo de intentos alcanzado. Intenta más tarde.');
+async function loginApple() {
+  console.log('Login Apple - Conectar con Supabase Auth');
+  mostrarError('Login con Apple se activará en Fase 4 con Supabase');
 }
 
-const respuestas = [
-document.getElementById('rec-resp1').value,
-document.getElementById('rec-resp2').value,
-document.getElementById('rec-resp3').value
-];
-
-const validaciones = await Promise.all(
-respuestas.map((r, i) => hashRespuesta(r) === usuarioRecuperacion.preguntas_seguridad[i].respuesta_hash)
-);
-
-if (validaciones.every(v => v)) {
-// Mostrar formulario nueva contraseña
-document.getElementById('preguntas-rec').innerHTML = `
-<div class="form-group">
-<label>Nueva contraseña</label>
-<input type="password" id="new-pass">
-</div>
-<div class="form-group">
-<label>Confirmar contraseña</label>
-<input type="password" id="new-pass-confirm">
-</div>
-<button class="btn-primary" onclick="cambiarPassword()">Cambiar contraseña</button>
-`;
-} else {
-intentosRecuperacion++;
-alert(`Respuestas incorrectas. Intentos restantes: ${MAX_INTENTOS - intentosRecuperacion}`);
-}
+// 6. GESTION DE SESION LOCAL TEMPORAL
+function guardarSesion(usuario) {
+  localStorage.setItem('mf_usuario', JSON.stringify(usuario));
 }
 
-async function cambiarPassword() {
-const newPass = document.getElementById('new-pass').value;
-const confirm = document.getElementById('new-pass-confirm').value;
-
-if (newPass !== confirm) return alert('Las contraseñas no coinciden');
-
-const { error } = await supabase.auth.updateUser({ password: newPass });
-if (error) alert('Error: ' + error.message);
-else {
-alert('Contraseña actualizada. Ya puedes iniciar sesión.');
-irA('auth.html?tab=login');
-}
-}/* ========================================
-MARKET FLASH ⚡ - SCRIPT.JS PARTE 3/4
-Productos, Fotos, Likes, Guardados
-======================================== */
-
-// ========================================
-// PUBLICAR PRODUCTO
-// ========================================
-
-async function publicarProducto() {
-if (!usuarioActual) return alert('Debes iniciar sesión');
-
-const formData = {
-vendedor: usuarioActual.id,
-nombre: document.getElementById('prod-nombre').value,
-precio: parseFloat(document.getElementById('prod-precio').value),
-cantidad: parseInt(document.getElementById('prod-cantidad').value),
-categoria: document.getElementById('prod-categoria').value,
-subcategoria: document.getElementById('prod-subcategoria').value,
-descripcion: document.getElementById('prod-descripcion').value,
-ubicacion: document.getElementById('prod-ubicacion').value,
-whatsapp: document.getElementById('prod-whatsapp').value,
-estado: 'PENDIENTE' // para moderación/* ========================================
-MARKET FLASH ⚡ - SCRIPT.JS PARTE 4/4
-Panel Admin + Publicidad + Stats
-======================================== */
-
-// ========================================
-// PANEL ADMINISTRATIVO
-// ========================================
-
-async function cargarPanelAdmin() {
-if (tipoUsuario!== 'ADMINISTRADOR') return irA('menu.html');
-
-// Usuarios
-const { data: usuarios } = await supabase.from('perfiles').select('*').limit(50);
-document.getElementById('admin-usuarios').innerHTML = usuarios.map(u => `
-<div class="admin-card">
-<strong>${u.nombre_completo}</strong> - ${u.tipo_usuario}
-<div class="admin-actions">
-<button class="btn-ver" onclick="verPerfilAdmin('${u.id}')">Ver</button>
-<button class="btn-rechazar" onclick="cambiarEstadoUsuario('${u.id}', 'BLOQUEADO')">Bloquear</button>
-</div>
-</div>
-`).join('');
-
-// Publicaciones pendientes
-const { data: pendientes } = await supabase.from('productos').select('*').eq('estado', 'PENDIENTE');
-document.getElementById('admin-pendientes').innerHTML = pendientes.map(p => `
-<div class="admin-card">
-<strong>${p.nombre}</strong> - $${p.precio}
-<div class="admin-actions">
-<button class="btn-aceptar" onclick="aprobarProducto('${p.id}')">Aprobar</button>
-<button class="btn-rechazar" onclick="rechazarProducto('${p.id}')">Rechazar</button>
-</div>
-</div>
-`).join('');
+function obtenerSesion() {
+  const data = localStorage.getItem('mf_usuario');
+  return data ? JSON.parse(data) : null;
 }
 
-async function aprobarProducto(id) {
-await supabase.from('productos').update({ estado: 'ACTIVO' }).eq('id', id);
-crearNotificacion(id, 'aprobada');
-cargarPanelAdmin();
+function cerrarSesion() {
+  localStorage.removeItem('mf_usuario');
+  irA('index.html');
 }
 
-async function rechazarProducto(id) {
-const motivo = prompt('Motivo del rechazo:');
-await supabase.from('productos').update({ estado: 'RECHAZADO' }).eq('id', id);
-await supabase.from('notificaciones').insert([{
-usuario: usuarioActual.id, tipo: 'rechazada', mensaje: `Tu producto fue rechazado: ${motivo}`
-}]);
-cargarPanelAdmin();
+// 7. DETECTAR DISPOSITIVO
+function esMovil() {
+  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
-// ========================================
-// PUBLICIDAD Y PAGOS
-// ========================================
-
-async function contratarPublicidad(plan) {
-const { data: config } = await supabase.from('configuracion').select('precio_' + plan).single();
-
-abrirModal('modal-pago');
-document.getElementById('plan-seleccionado').innerText = plan.toUpperCase();
-document.getElementById('precio-plan').innerText = `$${config['precio_' + plan]}`;
-}
-
-async function subirComprobante() {
-const file = document.getElementById('comprobante-file').files[0];
-const fileName = `comprobantes/${usuarioActual.id}_${Date.now()}.jpg`;
-
-const { data } = await supabase.storage.from('pagos').upload(fileName, file);
-if (data) {
-const { data: urlData } = supabase.storage.from('pagos').getPublicUrl(fileName);
-await supabase.from('publicidad').insert([{
-anunciante: usuarioActual.id,
-plan: document.getElementById('plan-seleccionado').innerText,
-estado: 'PENDIENTE_PAGO',
-comprobante: urlData.publicUrl
-}]);
-alert('Comprobante enviado. En revisión.');
-}
-}
-
-// Admin aprueba publicidad
-async function aprobarPublicidad(id) {
-await supabase.from('publicidad').update({ estado: 'ACTIVO' }).eq('id', id);
-}
-
-// ========================================
-// ESTADÍSTICAS
-// ========================================
-
-async function cargarEstadisticas() {
-const [usuarios] = await Promise.all([
-supabase.from('perfiles').select('id', { count: 'exact' }),
-supabase.from('productos').select('id', { count: 'exact' }),
-supabase.from('interacciones').select('id', { count: 'exact' })
-]);
-
-document.getElementById('stat-usuarios').innerText = usuarios.count;
-document.getElementById('stat-productos').innerText = productos.count;
-document.getElementById('stat-interacciones').innerText = interacciones.count;
-}
-
-// ========================================
-// CONFIGURACIÓN GENERAL
-// ========================================
-
-async function guardarConfiguracion() {
-const config = {
-publicidad_activa: document.getElementById('toggle-publi').classList.contains('active'),
-moderacion_activa: document.getElementById('toggle-moderacion').classList.contains('active'),
-registro_activo: document.getElementById('toggle-registro').classList.contains('active')
-};
-
-await supabase.from('configuracion').update(config).eq('id', 1);
-alert('Configuración guardada');
-}
-
-function toggleSwitch(id) {
-document.getElementById(id).classList.toggle('active');
-}
-
-// Inicializar al cargar
+// 8. INICIALIZACION AL CARGAR
 document.addEventListener('DOMContentLoaded', () => {
-verificarSesion();
-cargarProductos();
-});
+  console.log(`${APP_NAME} v${VERSION} Iniciado`);
+  
+  // Animacion logo si existe
+  const logo = document.querySelector('.logo-flash');
+  if(logo) {
+    setTimeout(() => logo.classList.add('animate-flash'), 100);
+  }
+});// 9. FUNCIONES PARA PRODUCTOS - PLACEHOLDERS FASE 6
+function publicarProducto() {
+  console.log('Abrir formulario de publicación');
+  irA('publicar.html');
+}
+
+function verProducto(id) {
+  console.log('Ver producto:', id);
+  irA(`producto.html?id=${id}`);
+}
+
+// 10. LIKES Y GUARDADOS - PLACEHOLDERS FASE 7
+function toggleLike(productoId) {
+  const btn = document.getElementById(`like-${productoId}`);
+  if(btn) {
+    btn.classList.toggle('liked');
+    console.log('Like toggle:', productoId);
+  }
+}
+
+function toggleGuardar(productoId) {
+  const btn = document.getElementById(`save-${productoId}`);
+  if(btn) {
+    btn.classList.toggle('saved');
+    console.log('Guardar toggle:', productoId);
+  }
+}
+
+// 11. NOTIFICACIONES - PLACEHOLDERS FASE 7
+function actualizarContadorNotificaciones(cantidad) {
+  const badge = document.getElementById('notif-badge');
+  if(badge) {
+    badge.textContent = cantidad;
+    badge.style.display = cantidad > 0 ? 'block' : 'none';
+  }
+}
+
+// 12. NAVEGACION INFERIOR
+function navegar(seccion) {
+  const secciones = ['inicio', 'buscar', 'publicar', 'notificaciones', 'perfil'];
+  
+  if(seccion === 'publicar') {
+    publicarProducto();
+    return;
+  }
+  
+  // Quitar active de todos
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active');
+  });
+  
+  // Agregar active al actual
+  const activo = document.getElementById(`nav-${seccion}`);
+  if(activo) activo.classList.add('active');
+  
+  console.log('Navegando a:', seccion);
+}
+
+// 13. BUSQUEDA Y FILTROS - PLACEHOLDERS FASE 6
+function buscar(query) {
+  console.log('Buscar:', query);
+  irA(`buscar.html?q=${encodeURIComponent(query)}`);
+}
+
+function limpiarFiltros() {
+  console.log('Limpiar filtros');
+}
+
+// 14. UTILIDADES UI
+function mostrarLoader() {
+  document.getElementById('loader')?.classList.remove('hidden');
+}
+
+function ocultarLoader() {
+  document.getElementById('loader')?.classList.add('hidden');
+}
+
+// 15. PROXIMAS FASES
+// FASE 4: Integración Supabase Auth
+// FASE 5: Sesiones reales
+// FASE 6: CRUD Productos + Storage
+// FASE 7: Likes, Guardados, Notificaciones reales
+// FASE 8: Publicidad y Pagos
+
+console.log('Market Flash ⚡ Script cargado correctamente');
