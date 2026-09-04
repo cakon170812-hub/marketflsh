@@ -233,4 +233,129 @@ subcategoria: document.getElementById('prod-subcategoria').value,
 descripcion: document.getElementById('prod-descripcion').value,
 ubicacion: document.getElementById('prod-ubicacion').value,
 whatsapp: document.getElementById('prod-whatsapp').value,
-estado: 'PENDIENTE' // para moderación
+estado: 'PENDIENTE' // para moderación/* ========================================
+MARKET FLASH ⚡ - SCRIPT.JS PARTE 4/4
+Panel Admin + Publicidad + Stats
+======================================== */
+
+// ========================================
+// PANEL ADMINISTRATIVO
+// ========================================
+
+async function cargarPanelAdmin() {
+if (tipoUsuario!== 'ADMINISTRADOR') return irA('menu.html');
+
+// Usuarios
+const { data: usuarios } = await supabase.from('perfiles').select('*').limit(50);
+document.getElementById('admin-usuarios').innerHTML = usuarios.map(u => `
+<div class="admin-card">
+<strong>${u.nombre_completo}</strong> - ${u.tipo_usuario}
+<div class="admin-actions">
+<button class="btn-ver" onclick="verPerfilAdmin('${u.id}')">Ver</button>
+<button class="btn-rechazar" onclick="cambiarEstadoUsuario('${u.id}', 'BLOQUEADO')">Bloquear</button>
+</div>
+</div>
+`).join('');
+
+// Publicaciones pendientes
+const { data: pendientes } = await supabase.from('productos').select('*').eq('estado', 'PENDIENTE');
+document.getElementById('admin-pendientes').innerHTML = pendientes.map(p => `
+<div class="admin-card">
+<strong>${p.nombre}</strong> - $${p.precio}
+<div class="admin-actions">
+<button class="btn-aceptar" onclick="aprobarProducto('${p.id}')">Aprobar</button>
+<button class="btn-rechazar" onclick="rechazarProducto('${p.id}')">Rechazar</button>
+</div>
+</div>
+`).join('');
+}
+
+async function aprobarProducto(id) {
+await supabase.from('productos').update({ estado: 'ACTIVO' }).eq('id', id);
+crearNotificacion(id, 'aprobada');
+cargarPanelAdmin();
+}
+
+async function rechazarProducto(id) {
+const motivo = prompt('Motivo del rechazo:');
+await supabase.from('productos').update({ estado: 'RECHAZADO' }).eq('id', id);
+await supabase.from('notificaciones').insert([{
+usuario: usuarioActual.id, tipo: 'rechazada', mensaje: `Tu producto fue rechazado: ${motivo}`
+}]);
+cargarPanelAdmin();
+}
+
+// ========================================
+// PUBLICIDAD Y PAGOS
+// ========================================
+
+async function contratarPublicidad(plan) {
+const { data: config } = await supabase.from('configuracion').select('precio_' + plan).single();
+
+abrirModal('modal-pago');
+document.getElementById('plan-seleccionado').innerText = plan.toUpperCase();
+document.getElementById('precio-plan').innerText = `$${config['precio_' + plan]}`;
+}
+
+async function subirComprobante() {
+const file = document.getElementById('comprobante-file').files[0];
+const fileName = `comprobantes/${usuarioActual.id}_${Date.now()}.jpg`;
+
+const { data } = await supabase.storage.from('pagos').upload(fileName, file);
+if (data) {
+const { data: urlData } = supabase.storage.from('pagos').getPublicUrl(fileName);
+await supabase.from('publicidad').insert([{
+anunciante: usuarioActual.id,
+plan: document.getElementById('plan-seleccionado').innerText,
+estado: 'PENDIENTE_PAGO',
+comprobante: urlData.publicUrl
+}]);
+alert('Comprobante enviado. En revisión.');
+}
+}
+
+// Admin aprueba publicidad
+async function aprobarPublicidad(id) {
+await supabase.from('publicidad').update({ estado: 'ACTIVO' }).eq('id', id);
+}
+
+// ========================================
+// ESTADÍSTICAS
+// ========================================
+
+async function cargarEstadisticas() {
+const [usuarios] = await Promise.all([
+supabase.from('perfiles').select('id', { count: 'exact' }),
+supabase.from('productos').select('id', { count: 'exact' }),
+supabase.from('interacciones').select('id', { count: 'exact' })
+]);
+
+document.getElementById('stat-usuarios').innerText = usuarios.count;
+document.getElementById('stat-productos').innerText = productos.count;
+document.getElementById('stat-interacciones').innerText = interacciones.count;
+}
+
+// ========================================
+// CONFIGURACIÓN GENERAL
+// ========================================
+
+async function guardarConfiguracion() {
+const config = {
+publicidad_activa: document.getElementById('toggle-publi').classList.contains('active'),
+moderacion_activa: document.getElementById('toggle-moderacion').classList.contains('active'),
+registro_activo: document.getElementById('toggle-registro').classList.contains('active')
+};
+
+await supabase.from('configuracion').update(config).eq('id', 1);
+alert('Configuración guardada');
+}
+
+function toggleSwitch(id) {
+document.getElementById(id).classList.toggle('active');
+}
+
+// Inicializar al cargar
+document.addEventListener('DOMContentLoaded', () => {
+verificarSesion();
+cargarProductos();
+});
