@@ -1303,8 +1303,7 @@ document.addEventListener(
 
     initializeMarketFlash();
   }
-);
-/* =========================================================
+);/* =========================================================
    MARKET FLASH — JAVASCRIPT
    PARTE 2 DE 3
    ========================================================= */
@@ -2253,4 +2252,1404 @@ document.addEventListener(
       );
 
   }
+);/* =========================================================
+   MARKET FLASH — SCRIPT.JS — PARTE 3 DE 3
+   ADMIN + CONFIGURACIÓN + SESIÓN + FINALIZACIÓN
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. ACCESO DE ADMINISTRADOR
+   --------------------------------------------------------- */
+
+/*
+  IMPORTANTE:
+  Esta contraseña funciona como acceso temporal de DEMO.
+  Para producción la moveremos a Supabase mediante una función
+  RPC segura y quitaremos la contraseña del JavaScript.
+*/
+const ADMIN_DEMO_PASSWORD = "170812";
+
+let adminAccessGranted = false;
+
+function openAdminPassword(){
+  const input = document.getElementById("adminPassword");
+  const message = document.getElementById("adminPasswordMessage");
+
+  if(input) input.value = "";
+  if(message){
+    message.textContent = "";
+    message.className = "";
+  }
+
+  openModal("adminPasswordModal");
+
+  setTimeout(() => {
+    if(input) input.focus();
+  }, 150);
+}
+
+
+async function verifyAdminPassword(password){
+
+  if(!password){
+    return false;
+  }
+
+  /*
+    Si posteriormente creamos el RPC:
+    verify_admin_password
+
+    podremos utilizarlo aquí para que la contraseña nunca
+    esté expuesta en el navegador.
+  */
+
+  if(mfSupabase){
+
+    try{
+
+      const { data, error } = await mfSupabase.rpc(
+        "verify_admin_password",
+        {
+          p_password: password
+        }
+      );
+
+      if(!error && data === true){
+        return true;
+      }
+
+    }catch(error){
+      console.warn("RPC de administrador no disponible:", error);
+    }
+  }
+
+  /*
+    Modo DEMO temporal.
+    Se eliminará cuando conectemos el sistema de administrador
+    seguro de Supabase.
+  */
+
+  return password === ADMIN_DEMO_PASSWORD;
+}
+
+
+async function loginAdmin(){
+
+  const input = document.getElementById("adminPassword");
+  const message = document.getElementById("adminPasswordMessage");
+
+  const password = input ? input.value.trim() : "";
+
+  if(!password){
+
+    if(message){
+      message.textContent = "Introduce la contraseña.";
+      message.className = "error-message";
+    }
+
+    return;
+  }
+
+  if(message){
+    message.textContent = "Verificando...";
+    message.className = "";
+  }
+
+  const valid = await verifyAdminPassword(password);
+
+  if(!valid){
+
+    if(message){
+      message.textContent = "Contraseña incorrecta.";
+      message.className = "error-message";
+    }
+
+    return;
+  }
+
+  adminAccessGranted = true;
+
+  closeModal("adminPasswordModal");
+
+  loadAdminPlans();
+
+  await loadAdminRequestsFromSupabase();
+
+  renderAdminRequests();
+  renderAdminPayments();
+
+  openModal("adminModal");
+
+  showToast("Panel de administrador abierto.");
+}
+
+
+/* ---------------------------------------------------------
+   2. RENDERIZAR SOLICITUDES DE FLASH DEL DÍA
+   --------------------------------------------------------- */
+
+async function loadAdminRequestsFromSupabase(){
+
+  if(!mfSupabase || !adminAccessGranted){
+    return;
+  }
+
+  try{
+
+    const { data, error } = await mfSupabase
+      .from("flash_requests")
+      .select("*")
+      .order("created_at", { ascending:false });
+
+    if(error){
+      console.warn("No se pudieron cargar solicitudes:", error);
+      return;
+    }
+
+    if(Array.isArray(data) && data.length){
+
+      const localRequests = getFlashRequests();
+
+      const merged = [...data];
+
+      localRequests.forEach(localItem => {
+
+        const exists = merged.some(
+          item => String(item.id) === String(localItem.id)
+        );
+
+        if(!exists){
+          merged.push(localItem);
+        }
+
+      });
+
+      saveFlashRequests(merged);
+    }
+
+  }catch(error){
+    console.warn("Error cargando solicitudes:", error);
+  }
+}
+
+
+function renderAdminRequests(){
+
+  const container = document.getElementById("adminRequests");
+
+  if(!container) return;
+
+  const requests = getFlashRequests();
+
+  const pending = requests.filter(request =>
+    request.status === "pending_payment_review"
+  );
+
+  if(!pending.length){
+
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">⚡</div>
+        <h3>No hay solicitudes pendientes</h3>
+        <p>Cuando un usuario pague un Flash del Día, aparecerá aquí.</p>
+      </div>
+    `;
+
+    return;
+  }
+
+  container.innerHTML = pending.map(request => {
+
+    const date = request.created_at
+      ? new Date(request.created_at).toLocaleString("es-DO")
+      : "Fecha no disponible";
+
+    const phone = request.whatsapp || "No indicó WhatsApp";
+
+    return `
+      <div class="admin-request">
+
+        <div class="admin-request-header">
+
+          <div>
+            <span class="admin-request-badge">PENDIENTE</span>
+
+            <h3>${escapeHTML(
+              request.name || "Flash sin nombre"
+            )}</h3>
+
+            <small>${escapeHTML(date)}</small>
+          </div>
+
+          <div class="admin-request-price">
+            ${formatMoney(request.plan_price || 0)}
+          </div>
+
+        </div>
+
+        <div class="admin-request-body">
+
+          <p>
+            <strong>Plan:</strong>
+            ${escapeHTML(request.plan_id || "—")}
+          </p>
+
+          <p>
+            <strong>Pago:</strong>
+            ${escapeHTML(request.payment_method || "—")}
+          </p>
+
+          <p>
+            <strong>WhatsApp:</strong>
+            ${escapeHTML(phone)}
+          </p>
+
+          <p>
+            ${escapeHTML(
+              request.description || "Sin descripción."
+            )}
+          </p>
+
+        </div>
+
+        <div class="admin-request-actions">
+
+          <button
+            class="secondary-button"
+            onclick="rejectFlashRequest('${request.id}')"
+          >
+            Rechazar
+          </button>
+
+          <button
+            class="secondary-button"
+            onclick="viewReceipt('${request.id}')"
+          >
+            Ver comprobante
+          </button>
+
+          <button
+            class="primary-button"
+            onclick="approveFlashRequest('${request.id}')"
+          >
+            Aceptar y publicar
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
+  }).join("");
+}
+
+
+/* ---------------------------------------------------------
+   3. HISTORIAL DE PAGOS
+   --------------------------------------------------------- */
+
+function renderAdminPayments(){
+
+  const container = document.getElementById("adminPayments");
+
+  if(!container) return;
+
+  const requests = getFlashRequests();
+
+  if(!requests.length){
+
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">💳</div>
+        <h3>No hay pagos registrados</h3>
+        <p>Los pagos aparecerán aquí cuando existan solicitudes.</p>
+      </div>
+    `;
+
+    return;
+  }
+
+  const ordered = [...requests].sort((a,b) => {
+
+    const da = new Date(a.created_at || 0).getTime();
+    const db = new Date(b.created_at || 0).getTime();
+
+    return db - da;
+
+  });
+
+  container.innerHTML = ordered.map(request => {
+
+    let statusText = "PENDIENTE";
+
+    if(request.status === "approved"){
+      statusText = "APROBADO";
+    }
+
+    if(request.status === "rejected"){
+      statusText = "RECHAZADO";
+    }
+
+    return `
+      <div class="admin-request">
+
+        <div class="admin-request-header">
+
+          <div>
+            <span class="admin-request-badge">
+              ${statusText}
+            </span>
+
+            <h3>${escapeHTML(
+              request.name || "Flash"
+            )}</h3>
+          </div>
+
+          <div class="admin-request-price">
+            ${formatMoney(request.plan_price || 0)}
+          </div>
+
+        </div>
+
+        <div class="admin-request-body">
+
+          <p>
+            <strong>Método:</strong>
+            ${escapeHTML(
+              request.payment_method || "—"
+            )}
+          </p>
+
+          <p>
+            <strong>Plan:</strong>
+            ${escapeHTML(
+              request.plan_id || "—"
+            )}
+          </p>
+
+          <p>
+            <strong>Usuario:</strong>
+            ${escapeHTML(
+              request.user_id || "—"
+            )}
+          </p>
+
+        </div>
+
+        <div class="admin-request-actions">
+
+          <button
+            class="secondary-button"
+            onclick="viewReceipt('${request.id}')"
+          >
+            Ver comprobante
+          </button>
+
+        </div>
+
+      </div>
+    `;
+
+  }).join("");
+}
+
+
+/* ---------------------------------------------------------
+   4. CONFIGURACIÓN DE LOS TRES PLANES
+   --------------------------------------------------------- */
+
+function loadAdminPlans(){
+
+  const config = getConfig();
+
+  const cheap = document.getElementById("cheapPlanPrice");
+  const normal = document.getElementById("normalPlanPrice");
+  const pro = document.getElementById("proPlanPrice");
+
+  if(cheap){
+    cheap.value = Number(
+      config.plans.cheap.price || 0
+    );
+  }
+
+  if(normal){
+    normal.value = Number(
+      config.plans.normal.price || 0
+    );
+  }
+
+  if(pro){
+    pro.value = Number(
+      config.plans.pro.price || 0
+    );
+  }
+}
+
+
+function saveAdminPlans(){
+
+  const cheap = Number(
+    document.getElementById("cheapPlanPrice")?.value || 0
+  );
+
+  const normal = Number(
+    document.getElementById("normalPlanPrice")?.value || 0
+  );
+
+  const pro = Number(
+    document.getElementById("proPlanPrice")?.value || 0
+  );
+
+  if(
+    cheap <= 0 ||
+    normal <= 0 ||
+    pro <= 0
+  ){
+
+    showToast("Todos los precios deben ser mayores que 0.");
+
+    return;
+  }
+
+  const config = getConfig();
+
+  config.plans.cheap.price = cheap;
+  config.plans.normal.price = normal;
+  config.plans.pro.price = pro;
+
+  saveConfig(config);
+
+  showToast("Precios actualizados correctamente.");
+
+  renderPlans();
+}
+
+
+/* ---------------------------------------------------------
+   5. CONFIGURACIÓN GENERAL
+   --------------------------------------------------------- */
+
+function getConfig(){
+
+  try{
+
+    const saved = localStorage.getItem(STORAGE_CONFIG);
+
+    if(!saved){
+      return DEFAULT_CONFIG;
+    }
+
+    const parsed = JSON.parse(saved);
+
+    return {
+      ...DEFAULT_CONFIG,
+      ...parsed,
+      plans:{
+        ...DEFAULT_CONFIG.plans,
+        ...(parsed.plans || {})
+      },
+      payments:{
+        ...DEFAULT_CONFIG.payments,
+        ...(parsed.payments || {})
+      }
+    };
+
+  }catch(error){
+
+    console.warn("Error leyendo configuración:", error);
+
+    return DEFAULT_CONFIG;
+  }
+}
+
+
+function saveConfig(config){
+
+  localStorage.setItem(
+    STORAGE_CONFIG,
+    JSON.stringify(config)
+  );
+}
+
+
+/* ---------------------------------------------------------
+   6. PESTAÑAS DEL ADMINISTRADOR
+   --------------------------------------------------------- */
+
+function initializeAdminTabs(){
+
+  const tabs = document.querySelectorAll(
+    "[data-admin-tab]"
+  );
+
+  tabs.forEach(tab => {
+
+    tab.addEventListener("click", async () => {
+
+      const target = tab.dataset.adminTab;
+
+      tabs.forEach(item => {
+        item.classList.remove("active");
+      });
+
+      tab.classList.add("active");
+
+      document
+        .querySelectorAll(".admin-section")
+        .forEach(section => {
+
+          section.classList.remove("active");
+
+        });
+
+      const section = document.getElementById(
+        `admin-${target}`
+      );
+
+      if(section){
+        section.classList.add("active");
+      }
+
+      if(target === "requests"){
+
+        await loadAdminRequestsFromSupabase();
+
+        renderAdminRequests();
+
+      }
+
+      if(target === "payments"){
+
+        renderAdminPayments();
+
+      }
+
+      if(target === "plans"){
+
+        loadAdminPlans();
+
+      }
+
+    });
+
+  });
+}
+
+
+/* ---------------------------------------------------------
+   7. CERRAR SESIÓN DEL ADMIN
+   --------------------------------------------------------- */
+
+function closeAdminPanel(){
+
+  adminAccessGranted = false;
+
+  closeModal("adminModal");
+
+}
+
+
+/* ---------------------------------------------------------
+   8. BOTÓN DE ADMINISTRADOR DESDE PERFIL
+   --------------------------------------------------------- */
+
+function initializeAdminButtons(){
+
+  const adminButton =
+    document.getElementById("adminButton");
+
+  if(adminButton){
+
+    adminButton.addEventListener(
+      "click",
+      openAdminPassword
+    );
+
+  }
+
+  const adminSettingsButton =
+    document.getElementById("adminSettingsButton");
+
+  if(adminSettingsButton){
+
+    adminSettingsButton.addEventListener(
+      "click",
+      () => {
+
+        closeModal("settingsModal");
+
+        setTimeout(() => {
+          openAdminPassword();
+        }, 150);
+
+      }
+    );
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   9. BUSCADOR DE PRODUCTOS
+   --------------------------------------------------------- */
+
+function initializeProductSearch(){
+
+  const searchInput =
+    document.getElementById("searchInput");
+
+  if(!searchInput) return;
+
+  searchInput.addEventListener("input", () => {
+
+    const term =
+      searchInput.value.trim().toLowerCase();
+
+    const products = getProducts();
+
+    const filtered = products.filter(product => {
+
+      const text = [
+        product.name,
+        product.description,
+        product.category,
+        product.location
+      ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+      return text.includes(term);
+
+    });
+
+    renderProducts(filtered);
+
+  });
+
+}
+
+
+/* ---------------------------------------------------------
+   10. CATEGORÍAS
+   --------------------------------------------------------- */
+
+function initializeCategories(){
+
+  const categoryButtons =
+    document.querySelectorAll(
+      "[data-category]"
+    );
+
+  categoryButtons.forEach(button => {
+
+    button.addEventListener("click", () => {
+
+      categoryButtons.forEach(item => {
+        item.classList.remove("active");
+      });
+
+      button.classList.add("active");
+
+      const category =
+        button.dataset.category;
+
+      const products = getProducts();
+
+      if(
+        !category ||
+        category === "Todos" ||
+        category === "todo"
+      ){
+
+        renderProducts(products);
+
+        return;
+      }
+
+      const filtered = products.filter(product => {
+
+        return String(
+          product.category || ""
+        ).toLowerCase() ===
+        String(category).toLowerCase();
+
+      });
+
+      renderProducts(filtered);
+
+    });
+
+  });
+
+}
+
+
+/* ---------------------------------------------------------
+   11. PRODUCTOS GUARDADOS
+   --------------------------------------------------------- */
+
+function getProducts(){
+
+  try{
+
+    const saved =
+      localStorage.getItem(STORAGE_PRODUCTS);
+
+    if(!saved){
+
+      localStorage.setItem(
+        STORAGE_PRODUCTS,
+        JSON.stringify(DEMO_PRODUCTS)
+      );
+
+      return [...DEMO_PRODUCTS];
+    }
+
+    const products = JSON.parse(saved);
+
+    return Array.isArray(products)
+      ? products
+      : [...DEMO_PRODUCTS];
+
+  }catch(error){
+
+    return [...DEMO_PRODUCTS];
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   12. NOTIFICACIONES
+   --------------------------------------------------------- */
+
+function openNotifications(){
+
+  const notifications =
+    getNotifications();
+
+  if(!notifications.length){
+
+    showToast("No tienes notificaciones nuevas.");
+
+    return;
+  }
+
+  const latest =
+    notifications
+      .slice(0,3)
+      .map(item => item.text)
+      .join(" • ");
+
+  showToast(latest);
+
+  localStorage.setItem(
+    STORAGE_NOTIFICATIONS,
+    JSON.stringify(
+      notifications.map(item => ({
+        ...item,
+        read:true
+      }))
+    )
+  );
+
+  updateNotificationBadge();
+
+}
+
+
+/* ---------------------------------------------------------
+   13. ACTUALIZAR PERFIL
+   --------------------------------------------------------- */
+
+function updateProfileUI(){
+
+  if(!currentUser) return;
+
+  const fullName = [
+    currentUser.nombre,
+    currentUser.apellido
+  ]
+  .filter(Boolean)
+  .join(" ");
+
+  const profileName =
+    document.getElementById("profileName");
+
+  const profileEmail =
+    document.getElementById("profileEmail");
+
+  if(profileName){
+
+    profileName.textContent =
+      fullName ||
+      currentUser.apodo ||
+      "Usuario Market Flash";
+
+  }
+
+  if(profileEmail){
+
+    profileEmail.textContent =
+      currentUser.correo ||
+      currentUser.email ||
+      "";
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   14. ENLACE WHATSAPP
+   --------------------------------------------------------- */
+
+function openWhatsApp(phone, message=""){
+
+  const clean =
+    cleanPhone(phone);
+
+  if(!clean){
+
+    showToast("Este usuario no tiene WhatsApp disponible.");
+
+    return;
+  }
+
+  const encoded =
+    encodeURIComponent(message);
+
+  const url =
+    `https://wa.me/${clean}${
+      encoded ? `?text=${encoded}` : ""
+    }`;
+
+  window.open(
+    url,
+    "_blank",
+    "noopener,noreferrer"
+  );
+
+}
+
+
+/* ---------------------------------------------------------
+   15. BOTÓN DE COMPARTIR
+   --------------------------------------------------------- */
+
+async function shareMarketFlash(title, text, url){
+
+  const shareData = {
+    title:
+      title || "Market Flash",
+    text:
+      text || "Mira este producto en Market Flash.",
+    url:
+      url || window.location.href
+  };
+
+  if(navigator.share){
+
+    try{
+
+      await navigator.share(shareData);
+
+    }catch(error){
+
+      if(error.name !== "AbortError"){
+        console.warn(error);
+      }
+
+    }
+
+    return;
+  }
+
+  try{
+
+    await navigator.clipboard.writeText(
+      `${shareData.text} ${shareData.url}`
+    );
+
+    showToast("Enlace copiado.");
+
+  }catch(error){
+
+    showToast("No se pudo copiar el enlace.");
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   16. BOTONES DEL PERFIL
+   --------------------------------------------------------- */
+
+function initializeProfileActions(){
+
+  const editProfile =
+    document.getElementById("editProfileButton");
+
+  if(editProfile){
+
+    editProfile.addEventListener(
+      "click",
+      () => {
+
+        showToast(
+          "La edición completa del perfil se conectará con Supabase."
+        );
+
+      }
+    );
+
+  }
+
+  const myProducts =
+    document.getElementById("myProductsButton");
+
+  if(myProducts){
+
+    myProducts.addEventListener(
+      "click",
+      () => {
+
+        showToast(
+          "Aquí aparecerán tus productos publicados."
+        );
+
+      }
+    );
+
+  }
+
+  const favorites =
+    document.getElementById("favoritesButton");
+
+  if(favorites){
+
+    favorites.addEventListener(
+      "click",
+      () => {
+
+        showToast(
+          "Aquí aparecerán tus productos guardados."
+        );
+
+      }
+    );
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   17. SESIÓN DE SUPABASE
+   --------------------------------------------------------- */
+
+async function initializeSupabaseSession(){
+
+  if(!mfSupabase){
+    return;
+  }
+
+  try{
+
+    const {
+      data: {
+        session
+      }
+    } = await mfSupabase.auth.getSession();
+
+    if(session && session.user){
+
+      const profile =
+        await loadProfileFromSupabase(
+          session.user.id
+        );
+
+      currentUser =
+        profile || {
+          id:session.user.id,
+          correo:session.user.email
+        };
+
+      saveCurrentUser();
+
+      updateProfileUI();
+
+      showScreen("mainScreen");
+
+      openPage("home");
+
+    }
+
+  }catch(error){
+
+    console.warn(
+      "No se pudo recuperar la sesión:",
+      error
+    );
+
+  }
+
+
+  mfSupabase.auth.onAuthStateChange(
+    async (event, session) => {
+
+      if(event === "SIGNED_OUT"){
+
+        currentUser = null;
+
+        localStorage.removeItem(
+          STORAGE_USER
+        );
+
+        showScreen("welcomeScreen");
+
+        return;
+      }
+
+      if(
+        session &&
+        session.user &&
+        (
+          event === "SIGNED_IN" ||
+          event === "TOKEN_REFRESHED" ||
+          event === "INITIAL_SESSION"
+        )
+      ){
+
+        try{
+
+          const profile =
+            await loadProfileFromSupabase(
+              session.user.id
+            );
+
+          currentUser =
+            profile || {
+              id:session.user.id,
+              correo:session.user.email
+            };
+
+          saveCurrentUser();
+
+          updateProfileUI();
+
+          showScreen("mainScreen");
+
+          openPage("home");
+
+        }catch(error){
+
+          console.warn(
+            "Error actualizando sesión:",
+            error
+          );
+
+        }
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ---------------------------------------------------------
+   18. CARGAR PERFIL DESDE SUPABASE
+   --------------------------------------------------------- */
+
+async function loadProfileFromSupabase(userId){
+
+  if(!mfSupabase || !userId){
+    return null;
+  }
+
+  try{
+
+    const {
+      data,
+      error
+    } = await mfSupabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if(error){
+
+      console.warn(
+        "No se pudo cargar el perfil:",
+        error
+      );
+
+      return null;
+    }
+
+    return data || null;
+
+  }catch(error){
+
+    console.warn(error);
+
+    return null;
+
+  }
+
+}
+
+
+/* ---------------------------------------------------------
+   19. EVENTOS FINALES
+   --------------------------------------------------------- */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    initializeAdminTabs();
+
+    initializeAdminButtons();
+
+    initializeProductSearch();
+
+    initializeCategories();
+
+    initializeProfileActions();
+
+    updateNotificationBadge();
+
+    updateProfileUI();
+
+    /*
+      Botón de confirmar contraseña del administrador.
+    */
+
+    const adminPasswordForm =
+      document.getElementById(
+        "adminPasswordForm"
+      );
+
+    if(adminPasswordForm){
+
+      adminPasswordForm.addEventListener(
+        "submit",
+        event => {
+
+          event.preventDefault();
+
+          loginAdmin();
+
+        }
+      );
+
+    }
+
+
+    /*
+      Algunos diseños usan directamente un botón
+      en lugar de un formulario.
+    */
+
+    const adminLoginButton =
+      document.getElementById(
+        "adminLoginButton"
+      );
+
+    if(adminLoginButton){
+
+      adminLoginButton.addEventListener(
+        "click",
+        loginAdmin
+      );
+
+    }
+
+
+    /*
+      Guardar precios.
+    */
+
+    const savePlansButton =
+      document.getElementById(
+        "savePlansButton"
+      );
+
+    if(savePlansButton){
+
+      savePlansButton.addEventListener(
+        "click",
+        saveAdminPlans
+      );
+
+    }
+
+
+    /*
+      Cerrar panel de administrador.
+    */
+
+    const closeAdminButton =
+      document.getElementById(
+        "closeAdminButton"
+      );
+
+    if(closeAdminButton){
+
+      closeAdminButton.addEventListener(
+        "click",
+        closeAdminPanel
+      );
+
+    }
+
+
+    /*
+      Si el HTML utiliza la clase close-modal
+      para cerrar el panel.
+    */
+
+    const adminModal =
+      document.getElementById(
+        "adminModal"
+      );
+
+    if(adminModal){
+
+      adminModal
+        .querySelectorAll(".close-modal")
+        .forEach(button => {
+
+          button.addEventListener(
+            "click",
+            closeAdminPanel
+          );
+
+        });
+
+    }
+
+
+    /*
+      Botón de notificaciones.
+    */
+
+    const notificationButton =
+      document.getElementById(
+        "notificationButton"
+      );
+
+    if(notificationButton){
+
+      notificationButton.addEventListener(
+        "click",
+        openNotifications
+      );
+
+    }
+
+
+    /*
+      Inicializar sesión de Supabase.
+    */
+
+    initializeSupabaseSession();
+
+  }
 );
+
+
+/* ---------------------------------------------------------
+   20. CARGA FINAL DE MARKET FLASH
+   --------------------------------------------------------- */
+
+function finalMarketFlashBoot(){
+
+  try{
+
+    const savedUser =
+      localStorage.getItem(
+        STORAGE_USER
+      );
+
+    if(savedUser){
+
+      currentUser =
+        JSON.parse(savedUser);
+
+      updateProfileUI();
+
+    }
+
+  }catch(error){
+
+    console.warn(
+      "No se pudo cargar usuario local:",
+      error
+    );
+
+  }
+
+  try{
+
+    renderProducts(
+      getProducts()
+    );
+
+  }catch(error){
+
+    console.warn(
+      "No se pudieron renderizar productos:",
+      error
+    );
+
+  }
+
+  try{
+
+    renderFlashList();
+
+  }catch(error){
+
+    console.warn(
+      "No se pudo renderizar Flash del Día:",
+      error
+    );
+
+  }
+
+  updateNotificationBadge();
+
+}
+
+
+/*
+  Ejecutar inmediatamente si el DOM ya está listo.
+*/
+
+if(document.readyState === "loading"){
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    finalMarketFlashBoot
+  );
+
+}else{
+
+  finalMarketFlashBoot();
+
+}
+
+
+/* =========================================================
+   FIN DE SCRIPT.JS — PARTE 3 DE 3
+   MARKET FLASH
+   ========================================================= */
