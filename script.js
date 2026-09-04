@@ -1,1769 +1,1306 @@
-```html
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#050b18">
-  <meta name="description" content="Market Flash - Marketplace moderno para comprar, vender y promocionar productos.">
+/* =========================================================
+   MARKET FLASH — JAVASCRIPT
+   PARTE 1 DE 3
+   ========================================================= */
 
-  <title>⚡ Market Flash</title>
+const SUPABASE_URL = "TU_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "TU_SUPABASE_ANON_KEY";
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-    rel="stylesheet"
-  >
+let mfSupabase = null;
 
-  <link rel="stylesheet" href="style.css">
-</head>
+if (
+  typeof window.supabase !== "undefined" &&
+  SUPABASE_URL !== "TU_SUPABASE_URL" &&
+  SUPABASE_ANON_KEY !== "TU_SUPABASE_ANON_KEY"
+) {
+  mfSupabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+}
 
-<body>
+/* =========================================================
+   CONFIGURACIÓN LOCAL
+   ========================================================= */
 
-  <!-- =========================================================
-       APP
-  ========================================================== -->
-  <div id="app">
+const STORAGE_USER = "mf_user";
+const STORAGE_PRODUCTS = "mf_products";
+const STORAGE_CONFIG = "mf_config";
+const STORAGE_FLASH = "mf_flash";
+const STORAGE_NOTIFICATIONS = "mf_notifications";
 
-    <!-- =======================================================
-         PANTALLA DE BIENVENIDA
-    ======================================================== -->
-    <section id="welcomeScreen" class="screen welcome-screen">
+let currentUser = null;
+let selectedPaymentMethod = null;
+let selectedPlan = null;
+let currentFlashDraft = null;
 
-      <div class="flash-background">
-        <div class="flash-light flash-light-1"></div>
-        <div class="flash-light flash-light-2"></div>
-        <div class="flash-light flash-light-3"></div>
+/* =========================================================
+   CONFIGURACIÓN INICIAL
+   ========================================================= */
+
+const defaultConfig = {
+  plans: {
+    cheap: {
+      name: "FLASH ECONÓMICO",
+      price: 299,
+      description: "Publicidad destacada básica"
+    },
+    normal: {
+      name: "FLASH NORMAL",
+      price: 599,
+      description: "Mayor visibilidad para tu publicidad"
+    },
+    pro: {
+      name: "FLASH PRO",
+      price: 999,
+      description: "Máxima exposición en Market Flash"
+    }
+  },
+  payments: {
+    bank: true,
+    paypal: true,
+    binance: true
+  }
+};
+
+function getConfig() {
+  try {
+    const saved = localStorage.getItem(STORAGE_CONFIG);
+
+    if (!saved) {
+      localStorage.setItem(
+        STORAGE_CONFIG,
+        JSON.stringify(defaultConfig)
+      );
+
+      return defaultConfig;
+    }
+
+    return {
+      ...defaultConfig,
+      ...JSON.parse(saved)
+    };
+  } catch (error) {
+    console.error("Error leyendo configuración:", error);
+    return defaultConfig;
+  }
+}
+
+function saveConfig(config) {
+  localStorage.setItem(
+    STORAGE_CONFIG,
+    JSON.stringify(config)
+  );
+}
+
+/* =========================================================
+   PRODUCTOS DE EJEMPLO
+   ========================================================= */
+
+const defaultProducts = [
+  {
+    id: "demo-1",
+    name: "iPhone 15 Pro",
+    description: "iPhone 15 Pro en excelente condición.",
+    address: "Santo Domingo",
+    price: 55000,
+    category: "technology",
+    emoji: "📱",
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "demo-2",
+    name: "Samsung Galaxy S24",
+    description: "Samsung Galaxy S24 listo para entregar.",
+    address: "Santo Domingo Este",
+    price: 42000,
+    category: "technology",
+    emoji: "📱",
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "demo-3",
+    name: "Laptop",
+    description: "Laptop para trabajo y estudios.",
+    address: "Santo Domingo",
+    price: 35000,
+    category: "technology",
+    emoji: "💻",
+    created_at: new Date().toISOString()
+  },
+  {
+    id: "demo-4",
+    name: "PlayStation 5",
+    description: "PS5 en excelente estado.",
+    address: "Santo Domingo",
+    price: 32000,
+    category: "technology",
+    emoji: "🎮",
+    created_at: new Date().toISOString()
+  }
+];
+
+function getProducts() {
+  try {
+    const saved = localStorage.getItem(STORAGE_PRODUCTS);
+
+    if (!saved) {
+      localStorage.setItem(
+        STORAGE_PRODUCTS,
+        JSON.stringify(defaultProducts)
+      );
+
+      return defaultProducts;
+    }
+
+    return JSON.parse(saved);
+  } catch (error) {
+    return defaultProducts;
+  }
+}
+
+function saveProducts(products) {
+  localStorage.setItem(
+    STORAGE_PRODUCTS,
+    JSON.stringify(products)
+  );
+}
+
+/* =========================================================
+   NOTIFICACIONES
+   ========================================================= */
+
+function getNotifications() {
+  try {
+    return JSON.parse(
+      localStorage.getItem(STORAGE_NOTIFICATIONS) || "[]"
+    );
+  } catch {
+    return [];
+  }
+}
+
+function saveNotifications(notifications) {
+  localStorage.setItem(
+    STORAGE_NOTIFICATIONS,
+    JSON.stringify(notifications)
+  );
+}
+
+function addNotification(title, message, type = "info") {
+  const notifications = getNotifications();
+
+  notifications.unshift({
+    id: Date.now(),
+    title,
+    message,
+    type,
+    read: false,
+    created_at: new Date().toISOString()
+  });
+
+  saveNotifications(notifications);
+  updateNotificationBadge();
+}
+
+function updateNotificationBadge() {
+  const badge = document.getElementById(
+    "notificationBadge"
+  );
+
+  if (!badge) return;
+
+  const unread = getNotifications().filter(
+    notification => !notification.read
+  ).length;
+
+  badge.textContent = unread > 99 ? "99+" : unread;
+  badge.style.display = unread ? "flex" : "none";
+}
+
+/* =========================================================
+   UTILIDADES
+   ========================================================= */
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("es-DO", {
+    style: "currency",
+    currency: "DOP",
+    maximumFractionDigits: 0
+  }).format(Number(value) || 0);
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+
+  if (!toast) return;
+
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  clearTimeout(window.mfToastTimer);
+
+  window.mfToastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
+}
+
+function showScreen(screenId) {
+  document.querySelectorAll(".screen").forEach(screen => {
+    screen.classList.remove("active");
+    screen.classList.add("hidden");
+  });
+
+  const screen = document.getElementById(screenId);
+
+  if (screen) {
+    screen.classList.remove("hidden");
+    screen.classList.add("active");
+  }
+}
+
+function openModal(id) {
+  const modal = document.getElementById(id);
+
+  if (modal) {
+    modal.classList.remove("hidden");
+  }
+}
+
+function closeModal(id) {
+  const modal = document.getElementById(id);
+
+  if (modal) {
+    modal.classList.add("hidden");
+  }
+}
+
+/* =========================================================
+   NAVEGACIÓN PRINCIPAL
+   ========================================================= */
+
+function openPage(pageId) {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active-page");
+    page.classList.add("hidden");
+  });
+
+  const page = document.getElementById(pageId);
+
+  if (page) {
+    page.classList.remove("hidden");
+    page.classList.add("active-page");
+  }
+
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.classList.toggle(
+      "active",
+      item.dataset.page === pageId
+    );
+  });
+
+  if (pageId === "homePage") {
+    renderProducts();
+  }
+
+  if (pageId === "flashPage") {
+    renderFlashList();
+  }
+
+  if (pageId === "profilePage") {
+    updateProfileUI();
+  }
+}
+
+/* =========================================================
+   ACTUALIZAR PERFIL
+   ========================================================= */
+
+function updateProfileUI() {
+  if (!currentUser) return;
+
+  const profileName =
+    document.getElementById("profileName");
+
+  const profileEmail =
+    document.getElementById("profileEmail");
+
+  if (profileName) {
+    profileName.textContent =
+      `${currentUser.name || ""} ${
+        currentUser.lastName || ""
+      }`.trim() ||
+      currentUser.nickname ||
+      "Usuario Market Flash";
+  }
+
+  if (profileEmail) {
+    profileEmail.textContent =
+      currentUser.email || "Sin correo";
+  }
+}
+
+/* =========================================================
+   GUARDAR USUARIO LOCAL
+   ========================================================= */
+
+function saveCurrentUser(user) {
+  currentUser = user;
+
+  localStorage.setItem(
+    STORAGE_USER,
+    JSON.stringify(user)
+  );
+}
+
+function loadCurrentUser() {
+  try {
+    const saved =
+      localStorage.getItem(STORAGE_USER);
+
+    if (!saved) {
+      currentUser = null;
+      return null;
+    }
+
+    currentUser = JSON.parse(saved);
+    return currentUser;
+  } catch {
+    currentUser = null;
+    return null;
+  }
+}
+
+/* =========================================================
+   REGISTRO
+   ========================================================= */
+
+async function registerUser(event) {
+  event.preventDefault();
+
+  const name =
+    document.getElementById("registerName").value.trim();
+
+  const lastName =
+    document.getElementById("registerLastName").value.trim();
+
+  const nickname =
+    document.getElementById("registerNickname").value.trim();
+
+  const cedula =
+    document.getElementById("registerCedula").value.trim();
+
+  const email =
+    document.getElementById("registerEmail").value.trim();
+
+  const phone =
+    document.getElementById("registerPhone").value.trim();
+
+  const password =
+    document.getElementById("registerPassword").value;
+
+  const passwordConfirm =
+    document.getElementById(
+      "registerPasswordConfirm"
+    ).value;
+
+  const address =
+    document.getElementById(
+      "registerAddress"
+    ).value.trim();
+
+  const age =
+    Number(
+      document.getElementById("registerAge").value
+    );
+
+  const message =
+    document.getElementById("registerMessage");
+
+  if (password !== passwordConfirm) {
+    message.textContent =
+      "Las contraseñas no coinciden.";
+    return;
+  }
+
+  if (password.length < 6) {
+    message.textContent =
+      "La contraseña debe tener al menos 6 caracteres.";
+    return;
+  }
+
+  if (!age || age < 13) {
+    message.textContent =
+      "La edad introducida no es válida.";
+    return;
+  }
+
+  message.textContent = "Creando tu cuenta...";
+
+  /* -------------------------------------------------------
+     REGISTRO REAL CON SUPABASE
+     ------------------------------------------------------- */
+
+  if (mfSupabase) {
+    try {
+      const {
+        data,
+        error
+      } = await mfSupabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            last_name: lastName,
+            nickname,
+            cedula,
+            phone,
+            address,
+            age
+          }
+        }
+      });
+
+      if (error) {
+        message.textContent =
+          error.message;
+        return;
+      }
+
+      const user = {
+        id: data.user?.id || Date.now(),
+        name,
+        lastName,
+        nickname,
+        cedula,
+        email,
+        phone,
+        address,
+        age
+      };
+
+      saveCurrentUser(user);
+
+      await saveProfileToSupabase(user);
+
+      message.textContent =
+        "Cuenta creada correctamente.";
+
+      setTimeout(() => {
+        showScreen("mainScreen");
+        openPage("homePage");
+        renderProducts();
+      }, 700);
+
+      return;
+
+    } catch (error) {
+      console.error(error);
+
+      message.textContent =
+        "No se pudo completar el registro.";
+      return;
+    }
+  }
+
+  /* -------------------------------------------------------
+     MODO DEMOSTRACIÓN LOCAL
+     ------------------------------------------------------- */
+
+  const user = {
+    id: `local-${Date.now()}`,
+    name,
+    lastName,
+    nickname,
+    cedula,
+    email,
+    phone,
+    address,
+    age
+  };
+
+  saveCurrentUser(user);
+
+  message.textContent =
+    "Cuenta creada correctamente.";
+
+  addNotification(
+    "Bienvenido a Market Flash",
+    "Tu cuenta fue creada correctamente."
+  );
+
+  setTimeout(() => {
+    showScreen("mainScreen");
+    openPage("homePage");
+    renderProducts();
+  }, 700);
+}
+
+/* =========================================================
+   GUARDAR PERFIL EN SUPABASE
+   ========================================================= */
+
+async function saveProfileToSupabase(user) {
+  if (!mfSupabase || !user?.id) return;
+
+  try {
+    const {
+      error
+    } = await mfSupabase
+      .from("profiles")
+      .upsert({
+        id: user.id,
+        name: user.name,
+        last_name: user.lastName,
+        nickname: user.nickname,
+        cedula: user.cedula,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        age: user.age
+      });
+
+    if (error) {
+      console.warn(
+        "No se pudo guardar profiles:",
+        error.message
+      );
+    }
+  } catch (error) {
+    console.warn(error);
+  }
+}
+
+/* =========================================================
+   INICIO DE SESIÓN
+   ========================================================= */
+
+async function loginUser(event) {
+  event.preventDefault();
+
+  const identifier =
+    document.getElementById(
+      "loginIdentifier"
+    ).value.trim();
+
+  const password =
+    document.getElementById(
+      "loginPassword"
+    ).value;
+
+  const message =
+    document.getElementById(
+      "loginMessage"
+    );
+
+  if (!identifier || !password) {
+    message.textContent =
+      "Completa todos los campos.";
+    return;
+  }
+
+  message.textContent =
+    "Iniciando sesión...";
+
+  /* -------------------------------------------------------
+     LOGIN SUPABASE POR CORREO
+     ------------------------------------------------------- */
+
+  if (mfSupabase && identifier.includes("@")) {
+    try {
+      const {
+        data,
+        error
+      } = await mfSupabase.auth.signInWithPassword({
+        email: identifier,
+        password
+      });
+
+      if (error) {
+        message.textContent =
+          error.message;
+        return;
+      }
+
+      const authUser = data.user;
+
+      let profile = null;
+
+      try {
+        const {
+          data: profileData
+        } = await mfSupabase
+          .from("profiles")
+          .select("*")
+          .eq("id", authUser.id)
+          .maybeSingle();
+
+        profile = profileData;
+      } catch {}
+
+      saveCurrentUser({
+        id: authUser.id,
+        name:
+          profile?.name ||
+          authUser.user_metadata?.name ||
+          "",
+        lastName:
+          profile?.last_name ||
+          authUser.user_metadata?.last_name ||
+          "",
+        nickname:
+          profile?.nickname ||
+          authUser.user_metadata?.nickname ||
+          "",
+        cedula:
+          profile?.cedula ||
+          authUser.user_metadata?.cedula ||
+          "",
+        email:
+          authUser.email ||
+          identifier,
+        phone:
+          profile?.phone ||
+          authUser.user_metadata?.phone ||
+          "",
+        address:
+          profile?.address ||
+          authUser.user_metadata?.address ||
+          "",
+        age:
+          profile?.age ||
+          authUser.user_metadata?.age ||
+          ""
+      });
+
+      showScreen("mainScreen");
+      openPage("homePage");
+      renderProducts();
+
+      return;
+
+    } catch (error) {
+      console.error(error);
+
+      message.textContent =
+        "Error al iniciar sesión.";
+      return;
+    }
+  }
+
+  /* -------------------------------------------------------
+     LOGIN LOCAL / CÉDULA
+     ------------------------------------------------------- */
+
+  const savedUser = loadCurrentUser();
+
+  if (
+    savedUser &&
+    (
+      savedUser.cedula === identifier ||
+      savedUser.email === identifier
+    )
+  ) {
+    saveCurrentUser(savedUser);
+
+    showScreen("mainScreen");
+    openPage("homePage");
+    renderProducts();
+
+    return;
+  }
+
+  message.textContent =
+    "Usuario o contraseña incorrectos.";
+}
+
+/* =========================================================
+   CERRAR SESIÓN
+   ========================================================= */
+
+async function logoutUser() {
+  if (mfSupabase) {
+    try {
+      await mfSupabase.auth.signOut();
+    } catch (error) {
+      console.warn(error);
+    }
+  }
+
+  currentUser = null;
+  localStorage.removeItem(STORAGE_USER);
+
+  showScreen("welcomeScreen");
+
+  document
+    .getElementById("loginForm")
+    ?.reset();
+
+  showToast("Sesión cerrada.");
+}
+
+/* =========================================================
+   RECUPERAR CONTRASEÑA
+   ========================================================= */
+
+async function recoverPassword() {
+  const identifier =
+    document.getElementById(
+      "loginIdentifier"
+    ).value.trim();
+
+  const message =
+    document.getElementById(
+      "loginMessage"
+    );
+
+  if (!identifier || !identifier.includes("@")) {
+    message.textContent =
+      "Escribe primero tu correo.";
+    return;
+  }
+
+  if (!mfSupabase) {
+    message.textContent =
+      "La recuperación estará disponible al conectar Supabase.";
+    return;
+  }
+
+  try {
+    const {
+      error
+    } = await mfSupabase.auth.resetPasswordForEmail(
+      identifier
+    );
+
+    if (error) {
+      message.textContent =
+        error.message;
+      return;
+    }
+
+    message.textContent =
+      "Te enviamos un enlace para recuperar tu contraseña.";
+
+  } catch (error) {
+    message.textContent =
+      "No se pudo enviar el enlace.";
+  }
+}
+
+/* =========================================================
+   RENDERIZAR PRODUCTOS
+   ========================================================= */
+
+function renderProducts() {
+  const grid =
+    document.getElementById(
+      "productGrid"
+    );
+
+  if (!grid) return;
+
+  const search =
+    document.getElementById(
+      "searchInput"
+    )?.value
+      .trim()
+      .toLowerCase() || "";
+
+  const activeCategory =
+    document.querySelector(
+      ".category-chip.active"
+    )?.dataset.category || "all";
+
+  let products = getProducts();
+
+  if (search) {
+    products = products.filter(product =>
+      `${product.name} ${
+        product.description || ""
+      } ${product.address || ""}`
+        .toLowerCase()
+        .includes(search)
+    );
+  }
+
+  if (activeCategory !== "all") {
+    products = products.filter(
+      product =>
+        product.category === activeCategory
+    );
+  }
+
+  if (!products.length) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1;padding:45px 10px">
+        <div class="empty-icon">🔎</div>
+        <h3>No encontramos publicaciones</h3>
+        <p>Prueba con otra búsqueda o categoría.</p>
       </div>
+    `;
 
-      <div class="welcome-content">
+    return;
+  }
 
-        <div class="flash-logo">
-          <span class="logo-bolt">⚡</span>
+  grid.innerHTML = products
+    .map(product => {
+      const image =
+        product.image ||
+        product.images?.[0] ||
+        "";
 
-          <div class="logo-text">
-            <span>MARKET</span>
-            <strong>FLASH</strong>
+      return `
+        <article class="product-card" data-id="${product.id}">
+          <div class="product-image">
+            ${
+              image
+                ? `<img src="${image}" alt="${escapeHTML(
+                    product.name
+                  )}">`
+                : `<span>${
+                    product.emoji || "⚡"
+                  }</span>`
+            }
           </div>
 
-          <span class="logo-bolt">⚡</span>
-        </div>
+          <div class="product-info">
+            <h3>${escapeHTML(
+              product.name
+            )}</h3>
 
-        <p class="welcome-slogan">
-          Compra • Vende • Publica • Conecta
-        </p>
+            <p>${escapeHTML(
+              product.description || ""
+            )}</p>
 
-        <div class="welcome-actions">
-          <button
-            id="welcomeLoginBtn"
-            class="btn btn-primary btn-large"
-            type="button"
-          >
-            Iniciar sesión
-          </button>
-
-          <button
-            id="welcomeRegisterBtn"
-            class="btn btn-outline btn-large"
-            type="button"
-          >
-            Registrarse
-          </button>
-        </div>
-
-      </div>
-    </section>
-
-
-    <!-- =======================================================
-         LOGIN
-    ======================================================== -->
-    <section id="loginScreen" class="screen auth-screen hidden">
-
-      <div class="auth-container">
-
-        <button
-          id="backFromLoginBtn"
-          class="back-button"
-          type="button"
-          aria-label="Volver"
-        >
-          ←
-        </button>
-
-        <div class="auth-brand">
-          <span>⚡</span>
-          <h1>MARKET FLASH</h1>
-        </div>
-
-        <p class="auth-subtitle">
-          Inicia sesión para entrar al marketplace
-        </p>
-
-        <form id="loginForm" class="auth-form">
-
-          <div class="input-group">
-            <label for="loginIdentifier">
-              Correo o número de cédula
-            </label>
-
-            <input
-              id="loginIdentifier"
-              name="identifier"
-              type="text"
-              placeholder="Correo o cédula"
-              autocomplete="username"
-              required
-            >
-          </div>
-
-          <div class="input-group">
-            <label for="loginPassword">
-              Contraseña
-            </label>
-
-            <input
-              id="loginPassword"
-              name="password"
-              type="password"
-              placeholder="Introduce tu contraseña"
-              autocomplete="current-password"
-              required
-            >
-          </div>
-
-          <button
-            type="submit"
-            class="btn btn-primary btn-large"
-          >
-            ⚡ Entrar a Market Flash
-          </button>
-
-        </form>
-
-        <button
-          id="forgotPasswordBtn"
-          class="text-button"
-          type="button"
-        >
-          ¿Olvidaste tu contraseña?
-        </button>
-
-        <p class="auth-switch">
-          ¿No tienes una cuenta?
-          <button id="goRegisterBtn" type="button">
-            Regístrate
-          </button>
-        </p>
-
-      </div>
-    </section>
-
-
-    <!-- =======================================================
-         REGISTRO
-    ======================================================== -->
-    <section id="registerScreen" class="screen auth-screen hidden">
-
-      <div class="auth-container">
-
-        <button
-          id="backFromRegisterBtn"
-          class="back-button"
-          type="button"
-          aria-label="Volver"
-        >
-          ←
-        </button>
-
-        <div class="auth-brand">
-          <span>⚡</span>
-          <h1>CREAR CUENTA</h1>
-        </div>
-
-        <p class="auth-subtitle">
-          Regístrate en Market Flash
-        </p>
-
-        <form id="registerForm" class="auth-form">
-
-          <div class="form-row">
-
-            <div class="input-group">
-              <label for="registerFirstName">
-                Nombre
-              </label>
-
-              <input
-                id="registerFirstName"
-                name="firstName"
-                type="text"
-                placeholder="Tu nombre"
-                autocomplete="given-name"
-                required
-              >
+            <div class="product-price">
+              ${
+                product.price
+                  ? formatMoney(product.price)
+                  : "Consultar precio"
+              }
             </div>
-
-            <div class="input-group">
-              <label for="registerLastName">
-                Apellido
-              </label>
-
-              <input
-                id="registerLastName"
-                name="lastName"
-                type="text"
-                placeholder="Tu apellido"
-                autocomplete="family-name"
-                required
-              >
-            </div>
-
           </div>
-
-
-          <div class="input-group">
-            <label for="registerNickname">
-              Apodo
-            </label>
-
-            <input
-              id="registerNickname"
-              name="nickname"
-              type="text"
-              placeholder="¿Cómo quieres aparecer?"
-              required
-            >
-          </div>
-
-
-          <div class="input-group">
-            <label for="registerCedula">
-              Número de cédula
-            </label>
-
-            <input
-              id="registerCedula"
-              name="cedula"
-              type="text"
-              placeholder="Tu número de cédula"
-              autocomplete="off"
-              required
-            >
-          </div>
-
-
-          <div class="input-group">
-            <label for="registerEmail">
-              Correo electrónico
-            </label>
-
-            <input
-              id="registerEmail"
-              name="email"
-              type="email"
-              placeholder="correo@ejemplo.com"
-              autocomplete="email"
-              required
-            >
-          </div>
-
-
-          <div class="input-group">
-            <label for="registerPassword">
-              Contraseña
-            </label>
-
-            <input
-              id="registerPassword"
-              name="password"
-              type="password"
-              placeholder="Crea una contraseña"
-              autocomplete="new-password"
-              minlength="6"
-              required
-            >
-          </div>
-
-
-          <div class="input-group">
-            <label for="registerConfirmPassword">
-              Confirmar contraseña
-            </label>
-
-            <input
-              id="registerConfirmPassword"
-              name="confirmPassword"
-              type="password"
-              placeholder="Repite tu contraseña"
-              autocomplete="new-password"
-              minlength="6"
-              required
-            >
-          </div>
-
-
-          <div class="input-group">
-            <label for="registerAddress">
-              Dirección
-            </label>
-
-            <input
-              id="registerAddress"
-              name="address"
-              type="text"
-              placeholder="Tu dirección"
-              autocomplete="street-address"
-              required
-            >
-          </div>
-
-
-          <div class="form-row">
-
-            <div class="input-group">
-              <label for="registerAge">
-                Edad
-              </label>
-
-              <input
-                id="registerAge"
-                name="age"
-                type="number"
-                min="13"
-                max="120"
-                placeholder="Edad"
-                required
-              >
-            </div>
-
-            <div class="input-group">
-              <label for="registerPhone">
-                Número telefónico
-              </label>
-
-              <input
-                id="registerPhone"
-                name="phone"
-                type="tel"
-                placeholder="829-000-0000"
-                autocomplete="tel"
-                required
-              >
-            </div>
-
-          </div>
-
-
-          <div
-            id="registerMessage"
-            class="form-message"
-            aria-live="polite"
-          ></div>
-
-
-          <button
-            type="submit"
-            class="btn btn-primary btn-large"
-          >
-            ⚡ Registrarme
-          </button>
-
-        </form>
-
-        <p class="auth-switch">
-          ¿Ya tienes una cuenta?
-          <button id="goLoginBtn" type="button">
-            Iniciar sesión
-          </button>
-        </p>
-
-      </div>
-    </section>
-
-
-    <!-- =======================================================
-         APLICACIÓN PRINCIPAL
-    ======================================================== -->
-    <section id="mainApp" class="main-app hidden">
-
-      <!-- HEADER -->
-      <header class="top-header">
-
-        <div class="mini-brand">
-          <span>⚡</span>
-
-          <div>
-            <strong>MARKET</strong>
-            <b>FLASH</b>
-          </div>
-        </div>
-
-        <div class="header-actions">
-
-          <button
-            id="settingsBtn"
-            class="icon-button"
-            type="button"
-            aria-label="Configuración"
-          >
-            ⚙️
-          </button>
-
-          <button
-            id="notificationsBtn"
-            class="icon-button notification-button"
-            type="button"
-            aria-label="Notificaciones"
-          >
-            🔔
-            <span
-              id="notificationBadge"
-              class="notification-badge hidden"
-            >
-              0
-            </span>
-          </button>
-
-        </div>
-
-      </header>
-
-
-      <!-- CONTENIDO PRINCIPAL -->
-      <main class="main-content">
-
-        <!-- BUSCADOR -->
-        <section class="search-section">
-
-          <div class="search-box">
-
-            <span class="search-icon">⌕</span>
-
-            <input
-              id="searchInput"
-              type="search"
-              placeholder="Buscar productos..."
-              autocomplete="off"
-            >
-
-            <button
-              id="searchFilterBtn"
-              class="search-filter-button"
-              type="button"
-              aria-label="Filtros"
-            >
-              ☷
-            </button>
-
-          </div>
-
-        </section>
-
-
-        <!-- CATEGORÍAS -->
-        <section class="categories-section">
-
-          <div class="section-title-row">
-
-            <h2>Categorías</h2>
-
-            <button
-              id="viewCategoriesBtn"
-              type="button"
-              class="small-link"
-            >
-              Ver todas
-            </button>
-
-          </div>
-
-          <div id="categoryList" class="category-list">
-
-            <button
-              class="category-chip active"
-              data-category="all"
-              type="button"
-            >
-              Todos
-            </button>
-
-            <button
-              class="category-chip"
-              data-category="technology"
-              type="button"
-            >
-              📱 Tecnología
-            </button>
-
-            <button
-              class="category-chip"
-              data-category="vehicles"
-              type="button"
-            >
-              🏍️ Vehículos
-            </button>
-
-            <button
-              class="category-chip"
-              data-category="home"
-              type="button"
-            >
-              🏠 Hogar
-            </button>
-
-            <button
-              class="category-chip"
-              data-category="fashion"
-              type="button"
-            >
-              👕 Moda
-            </button>
-
-            <button
-              class="category-chip"
-              data-category="services"
-              type="button"
-            >
-              🛠️ Servicios
-            </button>
-
-          </div>
-
-        </section>
-
-
-        <!-- ===================================================
-             FLASH DEL DÍA
-        ==================================================== -->
-        <section class="flash-day-section">
-
-          <div class="flash-day-header">
-
-            <div>
-              <span class="flash-label">
-                ⚡ FLASH DEL DÍA
-              </span>
-
-              <h2>Publicidad destacada</h2>
-            </div>
-
-            <span class="paid-label">
-              DESTACADO
-            </span>
-
-          </div>
-
-          <div
-            id="flashDayContainer"
-            class="flash-day-container"
-          >
-
-            <div class="flash-day-empty">
-
-              <div class="empty-flash-icon">
-                ⚡
-              </div>
-
-              <h3>El próximo Flash puede ser tuyo</h3>
-
-              <p>
-                Publica tu negocio o producto y llega a más personas.
-              </p>
-
-              <button
-                id="emptyFlashDayBtn"
-                class="btn btn-light"
-                type="button"
-              >
-                Publicar Flash del día
-              </button>
-
-            </div>
-
-          </div>
-
-        </section>
-
-
-        <!-- PRODUCTOS RECIENTES -->
-        <section class="products-section">
-
-          <div class="section-title-row">
-
-            <div>
-              <span class="section-kicker">
-                MARKETPLACE
-              </span>
-
-              <h2>Nuevos productos</h2>
-            </div>
-
-            <button
-              id="viewAllProductsBtn"
-              class="small-link"
-              type="button"
-            >
-              Ver todos
-            </button>
-
-          </div>
-
-          <div
-            id="productsGrid"
-            class="products-grid"
-          >
-            <!-- Los productos serán generados por script.js -->
-          </div>
-
-        </section>
-
-
-        <!-- ESTADÍSTICAS FLASH -->
-        <section class="stats-section">
-
-          <div class="stats-card">
-
-            <div class="stats-icon">
-              ⚡
-            </div>
-
-            <div class="stats-info">
-              <span>Flash del día</span>
-              <strong id="flashStatsText">
-                Descubre las publicaciones destacadas
-              </strong>
-            </div>
-
-            <button
-              id="flashStatsBtn"
-              class="stats-arrow"
-              type="button"
-              aria-label="Ver estadísticas"
-            >
-              →
-            </button>
-
-          </div>
-
-        </section>
-
-      </main>
-
-
-      <!-- =====================================================
-           NAVEGACIÓN INFERIOR
-      ====================================================== -->
-      <nav class="bottom-navigation">
-
-        <button
-          class="nav-item active"
-          data-section="home"
-          type="button"
-        >
-          <span class="nav-icon">⌂</span>
-          <span>Inicio</span>
-        </button>
-
-
-        <button
-          class="nav-item"
-          data-section="chat"
-          type="button"
-        >
-          <span class="nav-icon">◌</span>
-          <span>Chat</span>
-        </button>
-
-
-        <button
-          id="publishMainBtn"
-          class="publish-main-button"
-          type="button"
-          aria-label="Publicar"
-        >
-          <span>+</span>
-        </button>
-
-
-        <button
-          class="nav-item"
-          data-section="flash"
-          type="button"
-        >
-          <span class="nav-icon">⚡</span>
-          <span>Flash</span>
-        </button>
-
-
-        <button
-          class="nav-item"
-          data-section="profile"
-          type="button"
-        >
-          <span class="nav-icon">♙</span>
-          <span>Perfil</span>
-        </button>
-
-      </nav>
-
-    </section>
-
-
-    <!-- =======================================================
-         MODAL PUBLICAR PRODUCTO
-    ======================================================== -->
-    <div
-      id="publishModal"
-      class="modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="publishModalTitle"
-    >
-
-      <div class="modal-overlay"></div>
-
-      <div class="modal-card">
-
-        <div class="modal-header">
-
-          <div>
-            <span class="modal-kicker">
-              MARKETPLACE
-            </span>
-
-            <h2 id="publishModalTitle">
-              Publicar producto
-            </h2>
-          </div>
-
-          <button
-            class="modal-close"
-            data-close-modal="publishModal"
-            type="button"
-            aria-label="Cerrar"
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <form id="publishProductForm">
-
-          <!-- GALERÍA -->
-          <div class="media-upload-area">
-
-            <div class="media-upload-buttons">
-
-              <button
-                id="productGalleryBtn"
-                class="media-upload-button"
-                type="button"
-              >
-                <span>▧</span>
-                <strong>Galería</strong>
-                <small>Varias fotos</small>
-              </button>
-
-              <button
-                id="productCameraBtn"
-                class="media-upload-button"
-                type="button"
-              >
-                <span>▣</span>
-                <strong>Cámara</strong>
-                <small>Tomar foto</small>
-              </button>
-
-            </div>
-
-            <input
-              id="productGalleryInput"
-              type="file"
-              accept="image/*"
-              multiple
-              hidden
-            >
-
-            <input
-              id="productCameraInput"
-              type="file"
-              accept="image/*"
-              capture="environment"
-              hidden
-            >
-
-            <div
-              id="productPreview"
-              class="media-preview"
-            ></div>
-
-          </div>
-
-
-          <div class="input-group">
-
-            <label for="productName">
-              Nombre del producto
-            </label>
-
-            <input
-              id="productName"
-              name="productName"
-              type="text"
-              placeholder="Ej. iPhone 15 Pro"
-              required
-            >
-
-          </div>
-
-
-          <div class="input-group">
-
-            <label for="productDescription">
-              Descripción
-            </label>
-
-            <textarea
-              id="productDescription"
-              name="productDescription"
-              rows="4"
-              placeholder="Describe tu producto..."
-              required
-            ></textarea>
-
-          </div>
-
-
-          <div class="form-row">
-
-            <div class="input-group">
-
-              <label for="productPrice">
-                Precio
-              </label>
-
-              <input
-                id="productPrice"
-                name="productPrice"
-                type="number"
-                min="0"
-                step="0.01"
-                placeholder="RD$"
-              >
-
-            </div>
-
-            <div class="input-group">
-
-              <label for="productQuantity">
-                Cantidad
-              </label>
-
-              <input
-                id="productQuantity"
-                name="productQuantity"
-                type="number"
-                min="1"
-                value="1"
-              >
-
-            </div>
-
-          </div>
-
-
-          <div class="input-group">
-
-            <label for="productAddress">
-              Dirección del producto
-            </label>
-
-            <input
-              id="productAddress"
-              name="productAddress"
-              type="text"
-              placeholder="¿Dónde se encuentra?"
-              required
-            >
-
-          </div>
-
-
-          <button
-            type="submit"
-            class="btn btn-primary btn-large"
-          >
-            ⚡ Publicar anuncio
-          </button>
-
-        </form>
-
-      </div>
-    </div>
-
-
-    <!-- =======================================================
-         MODAL FLASH DEL DÍA
-    ======================================================== -->
-    <div
-      id="flashPublishModal"
-      class="modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="flashPublishTitle"
-    >
-
-      <div class="modal-overlay"></div>
-
-      <div class="modal-card flash-modal-card">
-
-        <div class="modal-header">
-
-          <div>
-            <span class="modal-kicker flash-kicker">
-              ⚡ PUBLICIDAD PREMIUM
-            </span>
-
-            <h2 id="flashPublishTitle">
-              Flash del día
-            </h2>
-          </div>
-
-          <button
-            class="modal-close"
-            data-close-modal="flashPublishModal"
-            type="button"
-            aria-label="Cerrar"
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <form id="flashPublishForm">
-
-          <!-- MULTIMEDIA -->
-          <div class="flash-media-selector">
-
-            <button
-              id="flashGalleryBtn"
-              class="media-upload-button premium"
-              type="button"
-            >
-              <span>▧</span>
-              <strong>Galería</strong>
-              <small>Seleccionar fotos</small>
-            </button>
-
-            <button
-              id="flashPhotoBtn"
-              class="media-upload-button premium"
-              type="button"
-            >
-              <span>▣</span>
-              <strong>Foto</strong>
-              <small>Tomar foto</small>
-            </button>
-
-            <button
-              id="flashVideoBtn"
-              class="media-upload-button premium"
-              type="button"
-            >
-              <span>▶</span>
-              <strong>Video</strong>
-              <small>Seleccionar video</small>
-            </button>
-
-          </div>
-
-
-          <input
-            id="flashGalleryInput"
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-          >
-
-          <input
-            id="flashPhotoInput"
-            type="file"
-            accept="image/*"
-            capture="environment"
-            hidden
-          >
-
-          <input
-            id="flashVideoInput"
-            type="file"
-            accept="video/*"
-            hidden
-          >
-
-
-          <div
-            id="flashMediaPreview"
-            class="media-preview"
-          ></div>
-
-
-          <div class="input-group">
-
-            <label for="flashName">
-              Nombre de publicidad
-            </label>
-
-            <input
-              id="flashName"
-              name="flashName"
-              type="text"
-              placeholder="Nombre de tu negocio o promoción"
-              required
-            >
-
-          </div>
-
-
-          <div class="input-group">
-
-            <label for="flashDescription">
-              Descripción
-            </label>
-
-            <textarea
-              id="flashDescription"
-              name="flashDescription"
-              rows="4"
-              placeholder="Describe tu publicidad..."
-              required
-            ></textarea>
-
-          </div>
-
-
-          <!-- WHATSAPP -->
-          <div class="whatsapp-option">
-
-            <div class="whatsapp-option-info">
-
-              <span class="whatsapp-icon">
-                WA
-              </span>
-
-              <div>
-                <strong>Mostrar WhatsApp</strong>
-                <small>
-                  Permitir que los clientes contacten directamente
-                </small>
-              </div>
-
-            </div>
-
-            <label class="switch">
-
-              <input
-                id="flashWhatsappEnabled"
-                type="checkbox"
-              >
-
-              <span class="switch-slider"></span>
-
-            </label>
-
-          </div>
-
-
-          <div
-            id="flashWhatsappField"
-            class="input-group hidden"
-          >
-
-            <label for="flashWhatsapp">
-              Número de WhatsApp
-            </label>
-
-            <input
-              id="flashWhatsapp"
-              name="flashWhatsapp"
-              type="tel"
-              placeholder="829-000-0000"
-            >
-
-          </div>
-
-
-          <button
-            type="submit"
-            class="btn btn-flash btn-large"
-          >
-            ⚡ Continuar con Flash del día
-          </button>
-
-        </form>
-
-      </div>
-    </div>
-
-
-    <!-- =======================================================
-         MODAL PLANES FLASH
-    ======================================================== -->
-    <div
-      id="flashPlansModal"
-      class="modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="flashPlansTitle"
-    >
-
-      <div class="modal-overlay"></div>
-
-      <div class="modal-card">
-
-        <div class="modal-header">
-
-          <div>
-            <span class="modal-kicker">
-              ⚡ MARKET FLASH
-            </span>
-
-            <h2 id="flashPlansTitle">
-              Elige tu plan
-            </h2>
-          </div>
-
-          <button
-            class="modal-close"
-            data-close-modal="flashPlansModal"
-            type="button"
-            aria-label="Cerrar"
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <div
-          id="flashPlansContainer"
-          class="plans-container"
-        >
-          <!-- Los planes serán cargados desde appData.js / Supabase -->
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- =======================================================
-         MODAL MÉTODOS DE PAGO
-    ======================================================== -->
-    <div
-      id="paymentModal"
-      class="modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="paymentTitle"
-    >
-
-      <div class="modal-overlay"></div>
-
-      <div class="modal-card">
-
-        <div class="modal-header">
-
-          <div>
-            <span class="modal-kicker">
-              PAGO
-            </span>
-
-            <h2 id="paymentTitle">
-              Método de pago
-            </h2>
-          </div>
-
-          <button
-            class="modal-close"
-            data-close-modal="paymentModal"
-            type="button"
-            aria-label="Cerrar"
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <div id="selectedPlanSummary" class="selected-plan-summary">
-          <!-- Plan seleccionado -->
-        </div>
-
-
-        <div id="paymentMethods" class="payment-methods">
-
-          <button
-            class="payment-method"
-            data-payment-method="bank"
-            type="button"
-          >
-            <span>🏦</span>
-            <div>
-              <strong>Transferencia bancaria</strong>
-              <small>Realiza una transferencia</small>
-            </div>
-          </button>
-
-
-          <button
-            class="payment-method"
-            data-payment-method="paypal"
-            type="button"
-          >
-            <span>💳</span>
-            <div>
-              <strong>PayPal</strong>
-              <small>Paga mediante PayPal</small>
-            </div>
-          </button>
-
-
-          <button
-            class="payment-method"
-            data-payment-method="binance"
-            type="button"
-          >
-            <span>₿</span>
-            <div>
-              <strong>Binance</strong>
-              <small>Paga mediante criptomonedas</small>
-            </div>
-          </button>
-
-        </div>
-
-
-        <div
-          id="paymentReceiptArea"
-          class="payment-receipt-area hidden"
-        >
-
-          <div class="input-group">
-
-            <label for="paymentReceipt">
-              Comprobante de pago
-            </label>
-
-            <input
-              id="paymentReceipt"
-              type="file"
-              accept="image/*,application/pdf"
-            >
-
-            <small>
-              Sube una imagen o comprobante para que el administrador pueda verificar el pago.
-            </small>
-
-          </div>
-
-
-          <button
-            id="submitPaymentBtn"
-            class="btn btn-primary btn-large"
-            type="button"
-          >
-            Enviar comprobante
-          </button>
-
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- =======================================================
-         MODAL CONFIGURACIÓN
-    ======================================================== -->
-    <div
-      id="settingsModal"
-      class="modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="settingsTitle"
-    >
-
-      <div class="modal-overlay"></div>
-
-      <div class="modal-card">
-
-        <div class="modal-header">
-
-          <div>
-            <span class="modal-kicker">
-              MARKET FLASH
-            </span>
-
-            <h2 id="settingsTitle">
-              Configuración
-            </h2>
-          </div>
-
-          <button
-            class="modal-close"
-            data-close-modal="settingsModal"
-            type="button"
-            aria-label="Cerrar"
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <div class="settings-list">
-
-          <button
-            id="adminAccessBtn"
-            class="settings-item"
-            type="button"
-          >
-            <span>🛡️</span>
-
-            <div>
-              <strong>Administración</strong>
-              <small>
-                Panel de administración de Market Flash
-              </small>
-            </div>
-
-            <span>›</span>
-          </button>
-
-
-          <button
-            id="accountSettingsBtn"
-            class="settings-item"
-            type="button"
-          >
-            <span>♙</span>
-
-            <div>
-              <strong>Mi cuenta</strong>
-              <small>
-                Editar información personal
-              </small>
-            </div>
-
-            <span>›</span>
-          </button>
-
-
-          <button
-            id="privacySettingsBtn"
-            class="settings-item"
-            type="button"
-          >
-            <span>🔐</span>
-
-            <div>
-              <strong>Privacidad y seguridad</strong>
-              <small>
-                Configuración de seguridad
-              </small>
-            </div>
-
-            <span>›</span>
-          </button>
-
-
-          <button
-            id="logoutBtn"
-            class="settings-item danger"
-            type="button"
-          >
-            <span>↪</span>
-
-            <div>
-              <strong>Cerrar sesión</strong>
-              <small>
-                Salir de Market Flash
-              </small>
-            </div>
-
-            <span>›</span>
-          </button>
-
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- =======================================================
-         MODAL CONTRASEÑA ADMINISTRADOR
-    ======================================================== -->
-    <div
-      id="adminPasswordModal"
-      class="modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="adminPasswordTitle"
-    >
-
-      <div class="modal-overlay"></div>
-
-      <div class="modal-card small-modal">
-
-        <div class="modal-header">
-
-          <div>
-            <span class="modal-kicker">
-              🔐 SEGURIDAD
-            </span>
-
-            <h2 id="adminPasswordTitle">
-              Administrador
-            </h2>
-          </div>
-
-          <button
-            class="modal-close"
-            data-close-modal="adminPasswordModal"
-            type="button"
-            aria-label="Cerrar"
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <p class="modal-description">
-          Introduce la contraseña de administrador para continuar.
-        </p>
-
-
-        <div class="input-group">
-
-          <label for="adminPassword">
-            Contraseña
-          </label>
-
-          <input
-            id="adminPassword"
-            type="password"
-            placeholder="••••••"
-            autocomplete="off"
-          >
-
-        </div>
-
-
-        <div
-          id="adminPasswordMessage"
-          class="form-message"
-          aria-live="polite"
-        ></div>
-
-
-        <button
-          id="adminPasswordSubmit"
-          class="btn btn-primary btn-large"
-          type="button"
-        >
-          Entrar al panel
-        </button>
-
-      </div>
-    </div>
-
-
-    <!-- =======================================================
-         PANEL ADMINISTRADOR
-    ======================================================== -->
-    <section
-      id="adminPanel"
-      class="admin-panel hidden"
-    >
-
-      <header class="admin-header">
-
-        <button
-          id="closeAdminPanelBtn"
-          class="back-button"
-          type="button"
-        >
-          ←
-        </button>
-
-        <div>
-          <span class="admin-kicker">
-            ⚡ MARKET FLASH
-          </span>
-
-          <h1>Panel de administrador</h1>
-        </div>
-
-      </header>
-
-
-      <main class="admin-content">
-
-        <!-- RESUMEN -->
-        <section class="admin-stats">
-
-          <div class="admin-stat-card">
-            <span>👤</span>
-            <strong id="adminUsersCount">0</strong>
-            <small>Usuarios</small>
-          </div>
-
-          <div class="admin-stat-card">
-            <span>📦</span>
-            <strong id="adminProductsCount">0</strong>
-            <small>Productos</small>
-          </div>
-
-          <div class="admin-stat-card">
-            <span>⚡</span>
-            <strong id="adminFlashCount">0</strong>
-            <small>Flash activos</small>
-          </div>
-
-          <div class="admin-stat-card">
-            <span>💳</span>
-            <strong id="adminPaymentsCount">0</strong>
-            <small>Pagos</small>
-          </div>
-
-        </section>
-
-
-        <!-- SOLICITUDES FLASH -->
-        <section class="admin-section">
-
-          <div class="admin-section-header">
-
-            <div>
-              <span>PUBLICIDAD</span>
-              <h2>Solicitudes Flash del día</h2>
-            </div>
-
-            <span
-              id="adminFlashRequestsBadge"
-              class="admin-badge"
-            >
-              0
-            </span>
-
-          </div>
-
-
-          <div
-            id="flashRequestsList"
-            class="admin-requests-list"
-          >
-            <!-- Solicitudes cargadas desde Supabase -->
-          </div>
-
-        </section>
-
-
-        <!-- PLANES -->
-        <section class="admin-section">
-
-          <div class="admin-section-header">
-
-            <div>
-              <span>PRECIOS</span>
-              <h2>Planes Flash</h2>
-            </div>
-
-            <button
-              id="adminEditPlansBtn"
-              class="admin-small-button"
-              type="button"
-            >
-              Editar
-            </button>
-
-          </div>
-
-
-          <div
-            id="adminPlansList"
-            class="admin-plans-list"
-          >
-            <!-- Planes desde Supabase -->
-          </div>
-
-        </section>
-
-
-        <!-- ESTADO DE PUBLICIDAD -->
-        <section class="admin-section">
-
-          <div class="admin-section-header">
-
-            <div>
-              <span>CONTROL</span>
-              <h2>Flash del día</h2>
-            </div>
-
-            <label class="switch">
-
-              <input
-                id="adminFlashEnabled"
-                type="checkbox"
-              >
-
-              <span class="switch-slider"></span>
-
-            </label>
-
-          </div>
-
-          <p class="admin-description">
-            Activa o desactiva temporalmente la publicación de Flash del día.
-          </p>
-
-        </section>
-
-      </main>
-
-    </section>
-
-
-    <!-- =======================================================
-         MODAL SOLICITUD FLASH ADMIN
-    ======================================================== -->
-    <div
-      id="flashRequestModal"
-      class="modal hidden"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="flashRequestTitle"
-    >
-
-      <div class="modal-overlay"></div>
-
-      <div class="modal-card">
-
-        <div class="modal-header">
-
-          <div>
-            <span class="modal-kicker">
-              SOLICITUD
-            </span>
-
-            <h2 id="flashRequestTitle">
-              Solicitud Flash
-            </h2>
-          </div>
-
-          <button
-            class="modal-close"
-            data-close-modal="flashRequestModal"
-            type="button"
-            aria-label="Cerrar"
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <div
-          id="flashRequestDetails"
-          class="flash-request-details"
-        >
-          <!-- Detalles de la solicitud -->
-        </div>
-
-
-        <div class="admin-request-actions">
-
-          <button
-            id="rejectFlashRequestBtn"
-            class="btn btn-danger"
-            type="button"
-          >
-            Rechazar
-          </button>
-
-          <button
-            id="viewFlashReceiptBtn"
-            class="btn btn-secondary"
-            type="button"
-          >
-            Ver comprobante
-          </button>
-
-          <button
-            id="approveFlashRequestBtn"
-            class="btn btn-success"
-            type="button"
-          >
-            ⚡ Aceptar y publicar
-          </button>
-
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- =======================================================
-         TOAST / MENSAJES
-    ======================================================== -->
-    <div
-      id="toastContainer"
-      class="toast-container"
-      aria-live="polite"
-      aria-atomic="true"
-    ></div>
-
-
-    <!-- =======================================================
-         LOADING
-    ======================================================== -->
-    <div
-      id="loadingOverlay"
-      class="loading-overlay hidden"
-    >
-
-      <div class="loading-card">
-
-        <div class="loading-flash">
-          ⚡
-        </div>
-
-        <p id="loadingText">
-          Cargando Market Flash...
-        </p>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- =========================================================
-       JAVASCRIPT
-       La lógica y las conexiones se agregarán en los próximos
-       archivos que iremos conectando paso por paso.
-  ========================================================== -->
-
-  <script src="appData.js"></script>
-  <script src="data.js"></script>
-  <script src="supabaseClient.js"></script>
-  <script src="script.js"></script>
-
-</body>
-</html>
-```
+        </article>
+      `;
+    })
+    .join("");
+}
+
+/* =========================================================
+   SEGURIDAD BÁSICA PARA TEXTO HTML
+   ========================================================= */
+
+function escapeHTML(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+/* =========================================================
+   PUBLICACIÓN NORMAL
+   ========================================================= */
+
+async function publishProduct(event) {
+  event.preventDefault();
+
+  if (!currentUser) {
+    showToast(
+      "Debes iniciar sesión para publicar."
+    );
+    return;
+  }
+
+  const name =
+    document.getElementById(
+      "productName"
+    ).value.trim();
+
+  const description =
+    document.getElementById(
+      "productDescription"
+    ).value.trim();
+
+  const address =
+    document.getElementById(
+      "productAddress"
+    ).value.trim();
+
+  const imageInput =
+    document.getElementById(
+      "productImages"
+    );
+
+  const cameraInput =
+    document.getElementById(
+      "productCamera"
+    );
+
+  const files = [
+    ...(imageInput?.files || []),
+    ...(cameraInput?.files || [])
+  ];
+
+  if (!name || !description || !address) {
+    showToast(
+      "Completa los datos de la publicación."
+    );
+    return;
+  }
+
+  const images =
+    await filesToDataURLs(files);
+
+  const product = {
+    id: `product-${Date.now()}`,
+    user_id: currentUser.id,
+    name,
+    description,
+    address,
+    images,
+    image: images[0] || "",
+    category: "other",
+    created_at:
+      new Date().toISOString()
+  };
+
+  const products = getProducts();
+
+  products.unshift(product);
+
+  saveProducts(products);
+
+  /* Guardado en Supabase */
+  if (mfSupabase) {
+    try {
+      await mfSupabase
+        .from("product")
+        .insert({
+          name,
+          description,
+          image:
+            images[0] || "",
+          quantity: 1
+        });
+    } catch (error) {
+      console.warn(
+        "No se pudo guardar producto en Supabase:",
+        error
+      );
+    }
+  }
+
+  addNotification(
+    "Publicación creada",
+    `${name} fue publicada correctamente.`
+  );
+
+  document
+    .getElementById("publishForm")
+    ?.reset();
+
+  closeModal("publishModal");
+
+  renderProducts();
+
+  showToast(
+    "⚡ ¡Tu anuncio fue publicado!"
+  );
+}
+
+/* =========================================================
+   CONVERTIR ARCHIVOS A DATA URL
+   ========================================================= */
+
+function filesToDataURLs(files) {
+  return Promise.all(
+    files.map(
+      file =>
+        new Promise(resolve => {
+          const reader =
+            new FileReader();
+
+          reader.onload = () =>
+            resolve(reader.result);
+
+          reader.onerror = () =>
+            resolve("");
+
+          reader.readAsDataURL(file);
+        })
+    )
+  );
+}
+
+/* =========================================================
+   INICIALIZACIÓN
+   ========================================================= */
+
+function initializeMarketFlash() {
+  loadCurrentUser();
+
+  getProducts();
+  getConfig();
+
+  updateNotificationBadge();
+
+  if (currentUser) {
+    showScreen("mainScreen");
+    openPage("homePage");
+    updateProfileUI();
+    renderProducts();
+  } else {
+    showScreen("welcomeScreen");
+  }
+}
+
+/* =========================================================
+   EVENTOS
+   ========================================================= */
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    /* Bienvenida */
+
+    document
+      .getElementById("loginButton")
+      ?.addEventListener(
+        "click",
+        () => showScreen("loginScreen")
+      );
+
+    document
+      .getElementById("registerButton")
+      ?.addEventListener(
+        "click",
+        () => showScreen("registerScreen")
+      );
+
+    /* Formularios */
+
+    document
+      .getElementById("loginForm")
+      ?.addEventListener(
+        "submit",
+        loginUser
+      );
+
+    document
+      .getElementById("registerForm")
+      ?.addEventListener(
+        "submit",
+        registerUser
+      );
+
+    document
+      .getElementById("forgotPasswordButton")
+      ?.addEventListener(
+        "click",
+        recoverPassword
+      );
+
+    document
+      .getElementById("publishForm")
+      ?.addEventListener(
+        "submit",
+        publishProduct
+      );
+
+    /* Volver */
+
+    document
+      .querySelectorAll(
+        ".back-button"
+      )
+      .forEach(button => {
+        button.addEventListener(
+          "click",
+          () => {
+            showScreen(
+              button.dataset.back ||
+                "welcomeScreen"
+            );
+          }
+        );
+      });
+
+    /* Navegación inferior */
+
+    document
+      .querySelectorAll(".nav-item")
+      .forEach(item => {
+        item.addEventListener(
+          "click",
+          () => {
+            openPage(
+              item.dataset.page
+            );
+          }
+        );
+      });
+
+    /* Botón publicar */
+
+    document
+      .getElementById("publishButton")
+      ?.addEventListener(
+        "click",
+        () => openModal("publishModal")
+      );
+
+    /* Configuración */
+
+    document
+      .getElementById("settingsButton")
+      ?.addEventListener(
+        "click",
+        () => openModal("settingsModal")
+      );
+
+    /* Flash del día */
+
+    document
+      .getElementById("dailyFlashButton")
+      ?.addEventListener(
+        "click",
+        () => openModal("dailyFlashModal")
+      );
+
+    /* Notificaciones */
+
+    document
+      .getElementById("notificationsButton")
+      ?.addEventListener(
+        "click",
+        () => {
+          const notifications =
+            getNotifications();
+
+          notifications.forEach(
+            notification =>
+              notification.read = true
+          );
+
+          saveNotifications(
+            notifications
+          );
+
+          updateNotificationBadge();
+
+          showToast(
+            notifications.length
+              ? "No tienes notificaciones nuevas."
+              : "No tienes notificaciones."
+          );
+        }
+      );
+
+    /* Cerrar sesión */
+
+    document
+      .getElementById("logoutButton")
+      ?.addEventListener(
+        "click",
+        logoutUser
+      );
+
+    /* Buscar */
+
+    document
+      .getElementById("searchInput")
+      ?.addEventListener(
+        "input",
+        renderProducts
+      );
+
+    /* Categorías */
+
+    document
+      .querySelectorAll(
+        ".category-chip"
+      )
+      .forEach(chip => {
+        chip.addEventListener(
+          "click",
+          () => {
+
+            document
+              .querySelectorAll(
+                ".category-chip"
+              )
+              .forEach(item =>
+                item.classList.remove(
+                  "active"
+                )
+              );
+
+            chip.classList.add("active");
+
+            renderProducts();
+          }
+        );
+      });
+
+    /* Cerrar modales */
+
+    document
+      .querySelectorAll(
+        ".close-modal,.modal-backdrop"
+      )
+      .forEach(element => {
+        element.addEventListener(
+          "click",
+          event => {
+
+            const modal =
+              event.target.closest(
+                ".modal"
+              );
+
+            if (modal) {
+              modal.classList.add(
+                "hidden"
+              );
+            }
+          }
+        );
+      });
+
+    /* WhatsApp Flash */
+
+    document
+      .getElementById(
+        "flashWhatsappEnabled"
+      )
+      ?.addEventListener(
+        "change",
+        event => {
+
+          const field =
+            document.getElementById(
+              "flashWhatsappField"
+            );
+
+          if (event.target.checked) {
+            field?.classList.remove(
+              "hidden-field"
+            );
+          } else {
+            field?.classList.add(
+              "hidden-field"
+            );
+          }
+        }
+      );
+
+    /* Inicializar */
+
+    initializeMarketFlash();
+  }
+);
