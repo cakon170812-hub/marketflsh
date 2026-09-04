@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acceso - MARKET FLASH ⚡</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+<div class="container">
+<header class="navbar">
+<div class="container">
+<div class="logo" onclick="irA('index.html')">⚡ MARKET <span>FLASH</span></div>
+</div>
+</header>
+
+<main class="form-container mt-20">
+<div class="auth-tabs">
+<button class="auth-tab active" onclick="mostrarTab('login')">Iniciar sesión</button>
+<button class="auth-tab" onclick="mostrarTab('registro')">Crear cuenta</button>
+<button class="auth-tab" onclick="mostrarTab('recuperar')">¿Olvidaste?</button>
+</div>
+
+<!-- TAB LOGIN -->
+<div id="login" class="tab-content active">
+<h2>Bienvenido de vuelta</h2>
+<div class="form-group">
+<label>Correo electrónico</label>
+<input type="email" id="login-email" placeholder="tu@email.com">
+</div>
+<div class="form-group">
+<label>Contraseña</label>
+<input type="password" id="login-password" placeholder="••••••••">
+</div>
+<div class="checkbox-group">
+<input type="checkbox" id="recordar">
+<label for="recordar">Recordarme</label>
+</div>
+<button class="btn-primary" onclick="iniciarSesion()">Entrar</button>
+
+<div class="social-login">
+<p class="divider text-center">o continúa con</p>
+<button class="btn-social" onclick="loginSocial('google')">G Google</button>
+<button class="btn-social" onclick="loginSocial('apple')"> Apple</button>
+</div>
+</div>
+
+<!-- TAB REGISTRO -->
+<div id="registro" class="tab-content">
+<h2>Crear cuenta nueva</h2>
+<div class="grid-2">
+<div class="form-group">
+<label>Nombre completo *</label>
+<input type="text" id="reg-nombre" placeholder="Julio Alcántara">
+</div>
+<div class="form-group">
+<label>WhatsApp *</label>
+<input type="tel" id="reg-whatsapp" placeholder="829-000-0000">
+</div>
+</div>
+<div class="form-group">
+<label>Correo electrónico *</label>
+<input type="email" id="reg-email" placeholder="tu@email.com">
+</div>
+<div class="grid-2">
+<div class="form-group">
+<label>Contraseña *</label>
+<input type="password" id="reg-password">
+</div>
+<div class="form-group">
+<label>Confirmar *</label>
+<input type="password" id="reg-confirm">
+</div>
+</div>
+
+<h3 class="mt-20">Preguntas de seguridad *</h3>
+<div class="form-group">
+<label>1. ¿Nombre de tu primera mascota?</label>
+<input type="text" id="preg1">
+<input type="text" id="resp1" placeholder="Respuesta">
+</div>
+<div class="form-group">
+<label>2. ¿Ciudad donde naciste?</label>
+<input type="text" id="preg2">
+<input type="text" id="resp2" placeholder="Respuesta">
+</div>
+<div class="form-group">
+<label>3. ¿Nombre de tu escuela primaria?</label>
+<input type="text" id="preg3">
+<input type="text" id="resp3" placeholder="Respuesta">
+</div>
+
+<div class="checkbox-group">
+<input type="checkbox" id="reg-terminos">
+<label for="reg-terminos">Acepto términos y política de privacidad</label>
+</div>
+<button class="btn-primary" onclick="registrarUsuario()">Crear cuenta</button>
+</div>
+
+<!-- TAB RECUPERAR -->
+<div id="recuperar" class="tab-content">
+<h2>Recuperar acceso</h2>
+<div class="form-group">
+<label>Ingresa tu correo</label>
+<input type="email" id="rec-email" placeholder="tu@email.com">
+</div>
+<button class="btn-primary" onclick="iniciarRecuperacion()">Continuar</button>
+
+<div id="preguntas-rec" class="mt-20"></div>
+</div>
+</main>
+</div>
+
+<script src="supabase.js"></script>
+<script src="script.js"></script>
+<script>
+// Leer ?tab= de la URL
+const params = new URLSearchParams(window.location.search);
+const tab = params.get('tab');
+if (tab) mostrarTab(tab);
+</script>
+</body>
+</html>
