@@ -1,4 +1,4 @@
-// CONFIG SUPABASE - PEGA TUS CLAVES AQUI
+// CONFIG SUPABASE - PEGA TUS CLAVES AQUI CUANDO LAS TENGAS
 const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
 const SUPABASE_KEY = 'TU_CLAVE_PUBLICA_ANON_KEY_AQUI';
 
@@ -34,9 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function cargarCategorias() {
   const cont = document.getElementById('contenedor-categorias');
+  const select = document.getElementById('prod-categoria');
   cont.innerHTML = CATEGORIAS.map(cat => 
     `<div class="categoria-chip ${cat==='Todos'?'active':''}" data-cat="${cat}">${cat}</div>`
   ).join('');
+  select.innerHTML = CATEGORIAS.filter(c=>c!=='Todos').map(c=>`<option value="${c}">${c}</option>`).join('');
 }
 
 function cargarProductos() {
@@ -128,5 +130,5 @@ function setupEventos() {
 
 function compartirProducto(id) {
   if(navigator.share) navigator.share({title:'MARKET FLASH', url: window.location.href});
-  else alert('Enlace copiado');
+  else { navigator.clipboard.writeText(window.location.href); alert('Enlace copiado'); }
 }
