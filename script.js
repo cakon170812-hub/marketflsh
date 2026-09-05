@@ -1,180 +1,132 @@
-/* ========================================
-   MARKET FLASH ⚡ - SCRIPT.JS
-   Propietario: Julio Alcántara Gómera
-   ======================================== */
+// CONFIG SUPABASE - PEGA TUS CLAVES AQUI
+const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
+const SUPABASE_KEY = 'TU_CLAVE_PUBLICA_ANON_KEY_AQUI';
 
-// 1. CONFIGURACION GLOBAL
-const APP_NAME = "MARKET FLASH ⚡";
-const VERSION = "1.0.0";
-
-// 2. NAVEGACION Y TRANSICIONES
-function irA(pagina) {
-  document.body.classList.add('fade-out');
-  setTimeout(() => {
-    window.location.href = pagina;
-  }, 300);
+// INICIALIZAR SUPABASE 1 SOLA VEZ
+let supabaseClient = null;
+try {
+  if (SUPABASE_URL.includes('TU-PROYECTO')) throw new Error('Modo Demo');
+  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  console.log('Supabase Conectado');
+} catch (e) {
+  console.log('Modo DEMO con localStorage');
 }
 
-function volver() {
-  window.history.back();
-}
+// DATOS DEMO
+const CATEGORIAS = ['Todos','Tecnologia','Celulares','Computadoras','Vehiculos','Hogar','Ropa','Servicios','Electronica','Otros'];
+const PRODUCTOS_DEMO = [
+  {id:1, nombre:'iPhone 15 Pro', precio:85000, categoria:'Celulares', ubicacion:'Santo Domingo', imagen:'https://via.placeholder.com/300/FF6B00', destacado:true, vistas:120, likes:15, whatsapp:'18091234567'},
+  {id:2, nombre:'Samsung S24 Ultra', precio:95000, categoria:'Celulares', ubicacion:'Santiago', imagen:'https://via.placeholder.com/300/00A3FF', destacado:true, vistas:200, likes:32, whatsapp:'18097654321'},
+  {id:3, nombre:'Laptop Gamer', precio:65000, categoria:'Computadoras', ubicacion:'La Vega', imagen:'https://via.placeholder.com/300', destacado:false, vistas:80, likes:8, whatsapp:'18091112233'},
+  {id:4, nombre:'PS5', precio:45000, categoria:'Electronica', ubicacion:'Santo Domingo', imagen:'https://via.placeholder.com/300', destacado:false, vistas:150, likes:25, whatsapp:'18094445566'}
+];
 
-// 3. MOSTRAR/OCULTAR CONTRASEÑA
-function togglePassword(inputId) {
-  const input = document.getElementById(inputId);
-  const icon = document.getElementById(inputId + '-icon');
-  
-  if (input.type === 'password') {
-    input.type = 'text';
-    if(icon) icon.textContent = '🙈';
-  } else {
-    input.type = 'password';
-    if(icon) icon.textContent = '👁️';
-  }
-}
+// ESTADO
+let productos = [];
+let categoriaActiva = 'Todos';
 
-// 4. VALIDACIONES BASICAS
-function validarEmail(email) {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return re.test(email);
-}
-
-function validarWhatsApp(whatsapp) {
-  // Acepta formato DO: 809-XXX-XXXX
-  const re = /^[0-9]{10}$/;
-  return re.test(whatsapp.replace(/[^0-9]/g, ''));
-}
-
-function mostrarError(mensaje) {
-  alert('⚠️ ' + mensaje);
-}
-
-function mostrarExito(mensaje) {
-  alert('✅ ' + mensaje);
-}
-
-// 5. LOGIN SOCIAL - PLACEHOLDERS FASE 4
-async function loginGoogle() {
-  console.log('Login Google - Conectar con Supabase Auth');
-  mostrarError('Login con Google se activará en Fase 4 con Supabase');
-}
-
-async function loginApple() {
-  console.log('Login Apple - Conectar con Supabase Auth');
-  mostrarError('Login con Apple se activará en Fase 4 con Supabase');
-}
-
-// 6. GESTION DE SESION LOCAL TEMPORAL
-function guardarSesion(usuario) {
-  localStorage.setItem('mf_usuario', JSON.stringify(usuario));
-}
-
-function obtenerSesion() {
-  const data = localStorage.getItem('mf_usuario');
-  return data ? JSON.parse(data) : null;
-}
-
-function cerrarSesion() {
-  localStorage.removeItem('mf_usuario');
-  irA('index.html');
-}
-
-// 7. DETECTAR DISPOSITIVO
-function esMovil() {
-  return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-// 8. INICIALIZACION AL CARGAR
+// INICIALIZAR
 document.addEventListener('DOMContentLoaded', () => {
-  console.log(`${APP_NAME} v${VERSION} Iniciado`);
+  cargarCategorias();
+  cargarProductos();
+  setupEventos();
+});
+
+function cargarCategorias() {
+  const cont = document.getElementById('contenedor-categorias');
+  cont.innerHTML = CATEGORIAS.map(cat => 
+    `<div class="categoria-chip ${cat==='Todos'?'active':''}" data-cat="${cat}">${cat}</div>`
+  ).join('');
+}
+
+function cargarProductos() {
+  productos = JSON.parse(localStorage.getItem('mf_products')) || PRODUCTOS_DEMO;
+  renderizarProductos();
+}
+
+function renderizarProductos(filtro='') {
+  let filtrados = productos.filter(p => 
+    (categoriaActiva === 'Todos' || p.categoria === categoriaActiva) &&
+    p.nombre.toLowerCase().includes(filtro.toLowerCase())
+  );
   
-  // Animacion logo si existe
-  const logo = document.querySelector('.logo-flash');
-  if(logo) {
-    setTimeout(() => logo.classList.add('animate-flash'), 100);
-  }
-});// 9. FUNCIONES PARA PRODUCTOS - PLACEHOLDERS FASE 6
-function publicarProducto() {
-  console.log('Abrir formulario de publicación');
-  irA('publicar.html');
+  const destacados = filtrados.filter(p => p.destacado);
+  const normales = filtrados.filter(p => !p.destacado);
+
+  document.getElementById('contenedor-destacados').innerHTML = destacados.map(cardHTML).join('');
+  document.getElementById('contenedor-productos').innerHTML = normales.map(cardHTML).join('');
 }
 
-function verProducto(id) {
-  console.log('Ver producto:', id);
-  irA(`producto.html?id=${id}`);
+function cardHTML(p) {
+  return `
+    <div class="card-producto ${p.destacado?'flash':''}" onclick="abrirDetalle(${p.id})">
+      <img src="${p.imagen}">
+      <h3>${p.nombre}</h3>
+      <div class="precio">RD$ ${p.precio.toLocaleString('es-DO')}</div>
+      <div style="font-size:11px; color:var(--text-gray)">📍 ${p.ubicacion} | 👁️ ${p.vistas}</div>
+    </div>
+  `;
 }
 
-// 10. LIKES Y GUARDADOS - PLACEHOLDERS FASE 7
-function toggleLike(productoId) {
-  const btn = document.getElementById(`like-${productoId}`);
-  if(btn) {
-    btn.classList.toggle('liked');
-    console.log('Like toggle:', productoId);
-  }
+function abrirDetalle(id) {
+  const p = productos.find(x => x.id === id);
+  document.getElementById('detalle-producto').innerHTML = `
+    <img src="${p.imagen}" style="width:100%; border-radius:12px;">
+    <h2>${p.nombre}</h2>
+    <h3 style="color:var(--naranja)">RD$ ${p.precio.toLocaleString('es-DO')}</h3>
+    <p>${p.ubicacion}</p>
+    <button class="btn btn-naranja" onclick="contactarWhatsApp('${p.whatsapp}')">💬 WhatsApp</button>
+    <button class="btn btn-azul" onclick="compartirProducto(${p.id})">📤 Compartir</button>
+  `;
+  document.getElementById('modal-detalle').style.display = 'block';
 }
 
-function toggleGuardar(productoId) {
-  const btn = document.getElementById(`save-${productoId}`);
-  if(btn) {
-    btn.classList.toggle('saved');
-    console.log('Guardar toggle:', productoId);
-  }
+function contactarWhatsApp(num) {
+  window.open(`https://wa.me/1${num}?text=Hola, vi tu producto en MARKET FLASH`);
 }
 
-// 11. NOTIFICACIONES - PLACEHOLDERS FASE 7
-function actualizarContadorNotificaciones(cantidad) {
-  const badge = document.getElementById('notif-badge');
-  if(badge) {
-    badge.textContent = cantidad;
-    badge.style.display = cantidad > 0 ? 'block' : 'none';
-  }
-}
-
-// 12. NAVEGACION INFERIOR
-function navegar(seccion) {
-  const secciones = ['inicio', 'buscar', 'publicar', 'notificaciones', 'perfil'];
-  
-  if(seccion === 'publicar') {
-    publicarProducto();
-    return;
-  }
-  
-  // Quitar active de todos
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.classList.remove('active');
+// EVENTOS
+function setupEventos() {
+  document.getElementById('contenedor-categorias').addEventListener('click', e => {
+    if(e.target.classList.contains('categoria-chip')) {
+      document.querySelectorAll('.categoria-chip').forEach(c=>c.classList.remove('active'));
+      e.target.classList.add('active');
+      categoriaActiva = e.target.dataset.cat;
+      renderizarProductos();
+    }
   });
+
+  document.getElementById('input-busqueda').addEventListener('input', e => renderizarProductos(e.target.value));
   
-  // Agregar active al actual
-  const activo = document.getElementById(`nav-${seccion}`);
-  if(activo) activo.classList.add('active');
-  
-  console.log('Navegando a:', seccion);
+  document.getElementById('btn-publicar-nav').onclick = () => document.getElementById('modal-publicar').style.display = 'block';
+  document.getElementById('btn-filtros').onclick = () => document.getElementById('modal-filtros').style.display = 'block';
+  document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = () => btn.closest('.modal').style.display = 'none');
+
+  // PUBLICAR
+  document.getElementById('form-publicar').onsubmit = e => {
+    e.preventDefault();
+    const nuevo = {
+      id: Date.now(),
+      nombre: document.getElementById('prod-nombre').value,
+      precio: Number(document.getElementById('prod-precio').value),
+      categoria: document.getElementById('prod-categoria').value,
+      descripcion: document.getElementById('prod-descripcion').value,
+      ubicacion: document.getElementById('prod-ubicacion').value,
+      imagen: 'https://via.placeholder.com/300',
+      destacado: false,
+      vistas: 0,
+      likes: 0,
+      whatsapp: '18090000000'
+    };
+    productos.unshift(nuevo);
+    localStorage.setItem('mf_products', JSON.stringify(productos));
+    renderizarProductos();
+    document.getElementById('modal-publicar').style.display = 'none';
+    alert('Producto publicado en DEMO ⚡');
+  };
 }
 
-// 13. BUSQUEDA Y FILTROS - PLACEHOLDERS FASE 6
-function buscar(query) {
-  console.log('Buscar:', query);
-  irA(`buscar.html?q=${encodeURIComponent(query)}`);
+function compartirProducto(id) {
+  if(navigator.share) navigator.share({title:'MARKET FLASH', url: window.location.href});
+  else alert('Enlace copiado');
 }
-
-function limpiarFiltros() {
-  console.log('Limpiar filtros');
-}
-
-// 14. UTILIDADES UI
-function mostrarLoader() {
-  document.getElementById('loader')?.classList.remove('hidden');
-}
-
-function ocultarLoader() {
-  document.getElementById('loader')?.classList.add('hidden');
-}
-
-// 15. PROXIMAS FASES
-// FASE 4: Integración Supabase Auth
-// FASE 5: Sesiones reales
-// FASE 6: CRUD Productos + Storage
-// FASE 7: Likes, Guardados, Notificaciones reales
-// FASE 8: Publicidad y Pagos
-
-console.log('Market Flash ⚡ Script cargado correctamente');
