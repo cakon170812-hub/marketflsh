@@ -1,329 +1,62 @@
-/* ========================================
-   MARKET FLASH ⚡ - STYLE.CSS
-   Propietario: Julio Alcántara Gómera
-   ======================================== */
-
-/* 1. VARIABLES GLOBALES - IDENTIDAD VISUAL */
 :root {
-  --primary: #00F5FF;        /* Azul brillante Flash */
-  --primary-dark: #00D4E0;
-  --secondary: #FF6B00;      /* Naranja energía */
-  --bg-dark: #0A0A0A;        /* Fondo negro */
-  --bg-light: #FFFFFF;       /* Fondo claro */
-  --card-bg: #1A1A1A;        /* Fondo tarjetas */
+  --naranja: #FF6B00;
+  --azul: #00A3FF;
+  --bg: #0A0F1E;
+  --card: #121A2E;
   --text: #FFFFFF;
-  --text-dark: #0A0A0A;
-  --text-gray: #888;
-  --success: #00FF88;
-  --danger: #FF3B30;
-  --shadow: 0 4px 20px rgba(0, 245, 255, 0.15);
-  --glow: 0 0 30px rgba(0, 245, 255, 0.5);
+  --text-gray: #8A94A6;
+  --glow-naranja: 0 0 15px rgba(255, 107, 0, 0.6);
+  --glow-azul: 0 0 15px rgba(0, 163, 255, 0.6);
 }
 
-/* 2. RESET Y BASE */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+body { background: var(--bg); color: var(--text); padding-bottom: 80px; }
+
+.header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; position: sticky; top: 0; background: rgba(10,15,30,0.9); backdrop-filter: blur(10px); z-index: 100; }
+.logo { font-size: 22px; font-weight: 900; }
+.logo span { color: var(--naranja); text-shadow: var(--glow-naranja); }
+.icon-btn { background: var(--card); border: 1px solid var(--azul); color: var(--azul); width: 40px; height: 40px; border-radius: 12px; cursor: pointer; transition: 0.3s; }
+.icon-btn:hover { box-shadow: var(--glow-azul); transform: scale(1.05); }
+
+.search-section { display: flex; gap: 10px; padding: 15px 20px; }
+#input-busqueda { flex: 1; padding: 14px; border-radius: 12px; border: 2px solid var(--card); background: var(--card); color: var(--text); outline: none; }
+#input-busqueda:focus { border-color: var(--azul); box-shadow: var(--glow-azul); }
+
+.categorias { padding: 0 20px; overflow-x: auto; white-space: nowrap; }
+.categoria-chip { display: inline-block; padding: 10px 18px; margin: 5px; background: var(--card); border: 1px solid var(--card); border-radius: 20px; cursor: pointer; transition: 0.3s; }
+.categoria-chip.active, .categoria-chip:hover { background: var(--naranja); border-color: var(--naranja); box-shadow: var(--glow-naranja); }
+
+.banner-ad { margin: 15px 20px; padding: 20px; background: linear-gradient(90deg, var(--naranja), var(--azul)); border-radius: 12px; text-align: center; font-weight: 800; animation: brillo 2s infinite; }
+@keyframes brillo { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+.section-title { padding: 20px 20px 10px; font-size: 18px; }
+.grid-productos { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 0 20px; }
+.card-producto { background: var(--card); border-radius: 16px; padding: 10px; cursor: pointer; transition: 0.3s; border: 1px solid transparent; }
+.card-producto:hover { transform: translateY(-5px); border-color: var(--azul); box-shadow: var(--glow-azul); }
+.card-producto.flash { background: linear-gradient(135deg, rgba(255,107,0,0.2), rgba(0,163,255,0.2)); border: 2px solid var(--naranja); }
+.card-producto img { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; }
+.card-producto h3 { font-size: 14px; margin: 8px 0; }
+.card-producto .precio { color: var(--naranja); font-weight: 900; font-size: 16px; }
+
+.bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-around; background: rgba(18,26,46,0.95); backdrop-filter: blur(10px); padding: 8px 0; border-top: 1px solid var(--card); z-index: 1000; }
+.nav-item { background: none; border: none; color: var(--text-gray); display: flex; flex-direction: column; align-items: center; font-size: 10px; cursor: pointer; }
+.nav-item.active { color: var(--azul); }
+.nav-publicar { background: var(--azul); color: #fff; width: 55px; height: 55px; border-radius: 50%; font-size: 24px; margin-top: -15px; box-shadow: var(--glow-azul); }
+
+.modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+.modal-content { background: var(--card); margin: 5% auto; padding: 20px; border-radius: 16px; width: 90%; max-width: 500px; border: 1px solid var(--azul); }
+.modal-lg { max-width: 800px; }
+.close-modal { float: right; font-size: 28px; cursor: pointer; color: var(--naranja); }
+
+.btn { padding: 14px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; margin-top: 10px; }
+.btn-azul { background: var(--azul); color: #fff; box-shadow: var(--glow-azul); }
+.btn-naranja { background: var(--naranja); color: #fff; box-shadow: var(--glow-naranja); }
+.btn-grande { font-size: 16px; padding: 18px; }
+
+.propietario { position: fixed; bottom: 85px; right: 10px; font-size: 10px; color: var(--text-gray); opacity: 0.6; }
+
+@media (min-width: 768px) {
+  .grid-productos { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  body { padding-bottom: 0; }
+  .bottom-nav { display: none; }
 }
-
-body {
-  background: var(--bg-dark);
-  color: var(--text);
-  overflow-x: hidden;
-}
-
-/* 3. PANTALLA BIENVENIDA */
-.welcome-body {
-  background: linear-gradient(180deg, #0A0A0A 0%, #1A1A2E 100%);
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.welcome-container {
-  text-align: center;
-  padding: 20px;
-  width: 100%;
-  max-width: 400px;
-  z-index: 2;
-}
-
-/* 4. LOGO FLASH ANIMADO */
-.logo-flash-container {
-  margin-bottom: 50px;
-}
-
-.logo-flash {
-  font-size: 100px;
-  display: inline-block;
-  filter: drop-shadow(var(--glow));
-  opacity: 0;
-  transform: scale(0.5);
-}
-
-.logo-flash.animate-flash {
-  animation: flashPulse 1.5s ease-out forwards;
-}
-
-@keyframes flashPulse {
-  0% { opacity: 0; transform: scale(0.5) rotate(-20deg); }
- 50% { opacity: 1; transform: scale(1.2) rotate(10deg); }
-  100% { opacity: 1; transform: scale(1) rotate(0deg); }
-}
-
-.logo-text {
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: 2px;
-  margin-top: 10px;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  opacity: 0;
-}
-
-.logo-text.animate-fade-in {
-  animation: fadeInUp 1s ease-out 0.5s forwards;
-}
-
-.logo-slogan {
-  color: var(--text-gray);
-  font-size: 14px;
-  margin-top: 5px;
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}/* 5. BOTONES PRINCIPALES */
-.btn-primary, .btn-secondary {
-  width: 100%;
-  padding: 16px 24px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  margin-bottom: 12px;
-}
-
-.btn-large {
-  padding: 18px 24px;
-  font-size: 18px;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  color: var(--text-dark);
-  box-shadow: var(--shadow);
-}
-
-.btn-primary:active {
-  transform: scale(0.97);
-  box-shadow: var(--glow);
-}
-
-.btn-secondary {
-  background: transparent;
-  color: var(--primary);
-  border: 2px solid var(--primary);
-}
-
-.btn-secondary:active {
-  background: rgba(0, 245, 255, 0.1);
-}
-
-/* 6. BOTON + PUBLICAR - REGLA ESPECIAL */
-.btn-publicar {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-  color: var(--text-dark);
-  font-size: 24px;
-  font-weight: 900;
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  box-shadow: var(--glow);
-  z-index: 100;
-}
-
-/* 7. LOGIN SOCIAL */
-.social-login {
-  margin-top: 30px;
-}
-
-.social-login p {
-  color: var(--text-gray);
-  font-size: 14px;
-  margin-bottom: 15px;
-}
-
-.social-buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-}
-
-.btn-social {
-  flex: 1;
-  padding: 12px;
-  background: var(--card-bg);
-  border: 1px solid #333;
-  border-radius: 10px;
-  color: var(--text);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-social span {
-  font-weight: 900;
-  margin-right: 5px;
-}
-
-/* 8. EFECTOS DE FONDO FLASH */
-.flash-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at 50% 30%, rgba(0, 245, 255, 0.1) 0%, transparent 50%);
-  animation: bgPulse 4s ease-in-out infinite;
-}
-
-@keyframes bgPulse {
-  0%, 100% { opacity: 0.3; }
-  50% { opacity: 0.6; }
-}
-
-/* 9. PARTICULAS */
-.particles {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.particle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: var(--primary);
-  border-radius: 50%;
-  box-shadow: 0 0 10px var(--primary);
-  animation: float 6s infinite ease-in-out;
-}
-
-.particle:nth-child(1) { left: 10%; animation-delay: 0s; }
-.particle:nth-child(2) { left: 30%; animation-delay: 1s; }
-.particle:nth-child(3) { left: 50%; animation-delay: 2s; }
-.particle:nth-child(4) { left: 70%; animation-delay: 1.5s; }
-.particle:nth-child(5) { left: 90%; animation-delay: 0.5s; }
-
-@keyframes float {
-  0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
- 50% { opacity: 1; }
-}
-
-/* 10. TRANSICION */
-.fade-out {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}/* 11. FOOTER BIENVENIDA */
-.welcome-footer {
-  position: fixed;
-  bottom: 20px;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  font-size: 12px;
-  color: var(--text-gray);
-  z-index: 2;
-}
-
-.welcome-footer p {
-  margin: 3px 0;
-}
-
-.footer-links {
-  margin-top: 8px;
-  display: flex;
-  gap: 15px;
-  justify-content: center;
-}
-
-.footer-links a {
-  color: var(--primary);
-  text-decoration: none;
-  font-size: 12px;
-}
-
-.footer-links a:active {
-  opacity: 0.7;
-}
-
-/* 12. RESPONSIVE DESIGN - MOBILE FIRST */
-@media (max-width: 768px) {
-  .welcome-container {
-    max-width: 90%;
-    padding: 15px;
-  }
-  
-  .logo-flash {
-    font-size: 80px;
-  }
-  
-  .logo-text {
-    font-size: 28px;
-  }
-  
-  .btn-large {
-    padding: 16px 20px;
-    font-size: 16px;
-  }
-}
-
-/* TABLETS */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .welcome-container {
-    max-width: 500px;
-  }
-  
-  .logo-flash {
-    font-size: 120px;
-  }
-  
-  .logo-text {
-    font-size: 40px;
-  }
-}
-
-/* DESKTOP */
-@media (min-width: 1025px) {
-  .welcome-container {
-    max-width: 600px;
-  }
-  
-  .btn-primary:hover, .btn-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--glow);
-  }
-  
-  .btn-social:hover {
-    background: #2A2A2A;
-  }
-}
-
-/* 13. UTILIDADES */
-.text-center { text-align: center; }
-.mt-20 { margin-top: 20px; }
-.mb-20 { margin-bottom: 20px; }
-.hidden { display: none; }
