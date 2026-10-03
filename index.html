@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- MAIKET FLASH BASE 07: registro corregido + ID automático válido + BASE 06 completa -->
+<!-- MAIKET FLASH BASE 08: Auth reparado + perfil autocurable + BASE 07 completa -->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -117,23 +117,20 @@ function showAuth(){document.getElementById("authScreen").style.display="grid";d
 function showApp(){document.getElementById("authScreen").style.display="none";document.getElementById("mainApp").style.display="block"}
 async function authFetch(path,body,token=""){
  let h={apikey:API_KEY,"Content-Type":"application/json"};if(token)h.Authorization="Bearer "+token;
- let r=await fetch(SUPABASE_URL+path,{method:"POST",headers:h,body:JSON.stringify(body)}),j=await r.json();
- if(!r.ok)throw Error(j.msg||j.message||j.error_description||"Error de autenticación.");return j
+ let r=await fetch(SUPABASE_URL+path,{method:"POST",headers:h,body:JSON.stringify(body)});
+ let raw=await r.text(),j={};try{j=raw?JSON.parse(raw):{}}catch{j={message:raw}}
+ if(!r.ok)throw Error(j.msg||j.message||j.error_description||j.error||("Error de autenticación ("+r.status+")."));return j
 }
 async function generateID(){
  try{
-  const b=document.querySelector('button[onclick="generateID()"]'); if(b){b.disabled=true;b.textContent="Generando..."}
+  const b=(typeof event!=="undefined"&&event)?event.currentTarget:null;if(b){b.disabled=true;b.textContent="Generando..."}
   let r=await fetch(SUPABASE_URL+"/rest/v1/rpc/generate_public_maiket_id",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:"{}"});
-  let j=await r.json();
-  if(!r.ok)throw Error(j.message||"No se pudo generar el ID.");
+  let j=await r.json(); if(!r.ok)throw Error(j.message||"No se pudo generar el ID.");
   let id=String(j??"").replace(/\D/g,"").padStart(6,"0").slice(-6);
-  if(!/^\d{6}$/.test(id))throw Error("Supabase no devolvió un ID válido.");
-  let vr=await fetch(SUPABASE_URL+"/rest/v1/rpc/check_maiket_id_available",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_user_id:id})});
-  let available=await vr.json();
-  if(!vr.ok||!available)throw Error("No se pudo reservar un ID disponible. Toca Generar ID nuevamente.");
-  $("#regID").value=id; $("#regID").dispatchEvent(new Event("input")); toast("ID MAIKET FLASH generado: "+id);
+  if(!/^\d{6}$/.test(id))throw Error("No se pudo generar un ID válido.");
+  $("#regID").value=id; $("#regID").dispatchEvent(new Event("input",{bubbles:true})); toast("ID MAIKET FLASH generado: "+id);
  }catch(e){toast(e.message)}
- finally{const b=document.querySelector('button[onclick="generateID()"]');if(b){b.disabled=false;b.textContent="Generar ID MAIKET FLASH"}}
+ finally{const b=document.querySelector('#registerForm button[onclick="generateID()"]');if(b){b.disabled=false;b.textContent="Generar ID MAIKET FLASH"}}
 }
 async function login(){
  try{
@@ -158,13 +155,13 @@ async function register(){
   const p2=$("#regPassword2").value;
 
   if(!full_name)throw Error("Escribe tu nombre completo.");
-  if(!user_id)throw Error("Escribe tu ID o toca Generar ID MAIKET FLASH.");
+  if(!user_id)throw Error("Escribe tu ID de MAIKET FLASH o toca Generar ID MAIKET FLASH.");
   if(!/^\d{6}$/.test(user_id))throw Error("El ID de MAIKET FLASH debe tener exactamente 6 dígitos.");
   if(!phone)throw Error("Escribe tu número de teléfono.");
   if(!email)throw Error("Escribe tu correo electrónico.");
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error("Escribe un correo electrónico válido.");
   if(!password)throw Error("Escribe una contraseña.");
-  if(password.length<6)throw Error("La contraseña debe tener al menos 6 caracteres.");
+  if(password.length<6)throw Error("La contraseña debe tener por lo menos 6 caracteres.");
   if(!p2)throw Error("Confirma tu contraseña.");
   if(password!==p2)throw Error("Las contraseñas no coinciden.");
 
@@ -174,35 +171,32 @@ async function register(){
   if(!vj)throw Error("Ese ID de MAIKET FLASH ya está en uso. Escribe otro o genera uno automáticamente.");
 
   let a=await authFetch("/auth/v1/signup",{email,password,data:{full_name,phone,user_id}});
-  let token=a.access_token||a.session?.access_token||"";
-
-  // Con Confirm email desactivado Supabase entrega la sesión de inmediato.
-  // Si por versión de Auth signup no la incluye, intentamos iniciar sesión automáticamente.
-  if(!token){
-   try{
-    const s=await authFetch("/auth/v1/token?grant_type=password",{email,password});
-    token=s.access_token||"";
-   }catch(_){}
+  if(!a.access_token){
+    try{a=await authFetch("/auth/v1/token?grant_type=password",{email,password})}
+    catch(_){throw Error("La cuenta fue creada, pero Supabase está exigiendo confirmar el correo. En Authentication > Providers > Email desactiva Confirm email para entrar directamente.")}
   }
-  if(!token)throw Error("La cuenta fue creada, pero Supabase está pidiendo confirmar el correo. Desactiva Confirm email en Authentication para entrar directamente.");
 
-  access=token;
+  access=a.access_token;
   localStorage.setItem("mf_access",access);
 
-  // El trigger crea perfil y cartera; hacemos varios intentos breves por si PostgREST tarda en verlo.
-  let lastErr=null;
-  for(let i=0;i<4;i++){
-   try{await hydrateProfile();lastErr=null;break}catch(e){lastErr=e;await new Promise(r=>setTimeout(r,350))}
+  let ok=false,lastError=null;
+  for(let i=0;i<12;i++){
+    try{await hydrateProfile();ok=true;break}catch(e){lastError=e;await new Promise(r=>setTimeout(r,250))}
   }
-  if(lastErr)throw lastErr;
+  if(!ok)throw Error(lastError?.message||"La cuenta se creó, pero el perfil todavía no está disponible.");
 
-  showApp();
-  go("home");
-  await loadPublic();
-  toast("Cuenta creada correctamente.");
+  showApp();go("home");await loadPublic();toast("Cuenta creada. Bienvenido a MAIKET FLASH.");
  }catch(e){toast(e.message)}
 }
+
+async function ensureMyProfile(){
+ if(!access)throw Error("No hay sesión activa.");
+ let r=await fetch(SUPABASE_URL+"/rest/v1/rpc/ensure_my_profile",{method:"POST",headers:{apikey:API_KEY,Authorization:"Bearer "+access,"Content-Type":"application/json"},body:"{}"});
+ let j=await r.json();if(!r.ok)throw Error(j.message||j.error_description||"No se pudo preparar el perfil.");return j
+}
+
 async function hydrateProfile(){
+ await ensureMyProfile();
  let r=await rpc("profile");
  profile=r;localStorage.setItem("mf_profile",JSON.stringify(profile));renderProfile();setBalance(profile.balance||0)
 }
