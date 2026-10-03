@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 0.3</title>
+<title>Ruleta Flash Coin — HTML 0.4</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -31,6 +31,10 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.84);padding:18px;overflow:auto}.overlay.active{display:block}.panel{margin:20px auto}.close{float:right;border:0;border-radius:10px;background:#273244;color:#fff;padding:8px 11px}.panel h2{margin-bottom:14px}.panel h3{margin:17px 0 8px}.card{background:#080d15;border:1px solid #28364a;border-radius:14px;padding:12px;margin:8px 0}.card strong{display:block;margin-bottom:4px}.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}.notice{white-space:pre-wrap;background:#302607;border:1px solid #8d7315;border-radius:13px;padding:12px;margin:9px 0}.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#080d15;border:1px solid #2c394d;border-radius:14px;padding:12px;text-align:center}.stat b{display:block;font-size:24px;color:#ffd55d}.tag{display:inline-block;border-radius:999px;background:#253146;padding:4px 8px;font-size:11px;margin-top:5px}.section{border-top:1px solid #263244;margin-top:13px;padding-top:13px}.wa{background:#159447!important;color:#fff!important}.danger{color:#ff8c96}.success{color:#72f39b}.msg{margin-top:8px;font-size:13px;color:#ffde77;min-height:18px}
 .online-chip{display:flex;align-items:center;gap:5px;border:1px solid rgba(92,255,145,.34);background:rgba(5,24,14,.90);color:#b8ffd0;border-radius:12px;min-height:42px;padding:8px 10px;font-weight:850;font-size:11px;white-space:nowrap}.online-dot{width:8px;height:8px;border-radius:50%;background:#42e77c;box-shadow:0 0 8px #42e77c}.info-chip{background:linear-gradient(135deg,#24395c,#0c1728);border-color:#5d89c7;color:#fff;white-space:nowrap}.invite-btn{font-size:11px}.game-layout{width:min(100%,900px);margin:8px auto 0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.public-notice-side{display:none;background:rgba(34,28,7,.94);border:1px solid #927617;border-radius:15px;padding:12px;white-space:pre-wrap;color:#ffeaa0;font-size:13px}.public-notice-side:not(.hidden){display:block}.copy-btn{border:1px solid #41506a;background:#182234;color:#fff;border-radius:8px;padding:4px 7px;font-size:10px;margin-left:5px;vertical-align:middle}.copy-toast{position:fixed;z-index:500;left:50%;bottom:24px;transform:translateX(-50%);background:#111a27;border:1px solid #52627c;color:#fff;border-radius:999px;padding:9px 14px;font-size:12px;opacity:0;pointer-events:none;transition:.2s}.copy-toast.show{opacity:1}.switch-line{display:flex;align-items:center;gap:10px;margin:7px 0;padding:9px;border:1px solid #344154;border-radius:12px;background:#0b111b}.whatsapp-preview{font-size:12px;color:#8df2ad;margin-top:5px;min-height:18px}.ref-card{background:#0b1422;border:1px solid #2f4e78;border-radius:14px;padding:12px;margin-top:8px}.ref-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.ref-stats div{background:#080d15;border:1px solid #26344a;border-radius:10px;padding:8px;text-align:center}.ref-stats b{display:block;color:#ffd55d;font-size:17px}@media(min-width:820px){.game-layout{grid-template-columns:220px minmax(0,620px);align-items:start;justify-content:center}.public-notice-side{position:sticky;top:12px}.machine{margin-top:0}}
 @media(max-width:390px){.numbers{grid-template-columns:repeat(7,1fr);gap:4px}.num{min-height:50px;font-size:14px}.wn{font-size:15px;transform:rotate(var(--a)) translateY(calc(-1 * min(24vw,90px))) rotate(calc(-1 * var(--a)))}.topbar,.top-tools,.wallet-row{gap:4px}.icon-btn,.balance-chip{padding:7px;font-size:11px}.promoter-chip{font-size:10px}.brand-mini{font-size:14px}}
+
+/* ===== HTML 0.4 ===== */
+.stake-label-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}.mini-toggle{display:flex;align-items:center;gap:5px;font-size:10px;color:#d6dce6}.mini-toggle .switch{transform:scale(.82);transform-origin:right center}.control-stack{display:grid;gap:6px}.sound-box{min-height:40px}.search-mini{flex:0 0 48px!important;width:48px;min-width:48px;margin:6px 0;padding:10px 8px;border:1px solid #41608c;border-radius:12px;background:#15375f;color:#fff;font-weight:900}.receipt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.receipt-item{background:#080d15;border:1px solid #2b394e;border-radius:12px;padding:10px}.receipt-item span{display:block;color:var(--muted);font-size:10px;margin-bottom:3px}.receipt-item b{font-size:13px;word-break:break-word}.save-confirm{position:fixed;z-index:650;inset:0;display:none;place-items:center;background:rgba(0,0,0,.58);pointer-events:none}.save-confirm.show{display:grid}.save-confirm-card{min-width:220px;text-align:center;background:#0c1712;border:1px solid #3bdd78;border-radius:20px;padding:22px;box-shadow:0 20px 70px #000}.save-check{width:62px;height:62px;margin:0 auto 9px;border-radius:50%;display:grid;place-items:center;background:#15954d;color:#fff;font-size:38px;font-weight:950}.win-flash{position:fixed;z-index:700;inset:0;display:none;place-items:center;background:radial-gradient(circle,rgba(255,230,94,.50),rgba(255,164,0,.22) 38%,rgba(0,0,0,.78) 78%);animation:winPulse .42s ease-in-out infinite alternate}.win-flash.show{display:grid}.win-card{text-align:center;background:rgba(7,10,16,.92);border:2px solid #ffe16e;border-radius:24px;padding:24px 28px;box-shadow:0 0 35px #ffb000}.win-card h2{font-size:30px;color:#ffe478}.win-prize{font-size:38px;font-weight:950;color:#6cff94;margin-top:7px}@keyframes winPulse{from{filter:brightness(1)}to{filter:brightness(1.45)}}
+@media(max-width:420px){.receipt-grid{grid-template-columns:1fr}.bet-controls{grid-template-columns:minmax(0,1fr) 118px}.switch-box{padding:7px 8px}}
 </style>
 </head>
 <body>
@@ -38,7 +42,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <section id="authView" class="auth">
   <div class="auth-card">
     <div class="brand">⚡ RULETA FLASH COIN</div>
-    <div class="sub">HTML 0.3 · Supabase conectado</div>
+    <div class="sub">HTML 0.4 · Supabase conectado</div>
     <div class="tabs"><button id="tabRegister" class="tab active">Registrarse</button><button id="tabLogin" class="tab">Iniciar sesión</button></div>
     <form id="registerForm">
       <input id="regFirst" class="field" placeholder="Nombre" autocomplete="given-name" required>
@@ -89,14 +93,19 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
     </div>
 
     <div id="resultText" class="result">Cargando ronda...</div>
-    <div id="rulesText" class="rules">Pago ×12 · Apuesta mínima 0.010 FC</div>
 
     <div class="bet-controls">
       <div>
-        <label>Monto por toque</label>
+        <div class="stake-label-row">
+          <label>Monto por toque</label>
+          <label class="mini-toggle"><span>Fijar monto</span><input id="fixedStakeSwitch" class="switch" type="checkbox"></label>
+        </div>
         <div class="stake-row"><button id="stakeDown" type="button">−</button><input id="stakeInput" class="field stake" type="number" step="0.01" value="0.01"><button id="stakeUp" type="button">+</button></div>
       </div>
-      <label class="switch-box"><input id="repeatSwitch" class="switch" type="checkbox"><span>Guardar<br>jugadas</span></label>
+      <div class="control-stack">
+        <label class="switch-box"><input id="repeatSwitch" class="switch" type="checkbox"><span>Guardar<br>jugadas</span></label>
+        <label class="switch-box sound-box"><input id="soundSwitch" class="switch" type="checkbox" checked><span>🔊 Sonido</span></label>
+      </div>
     </div>
 
     <div id="numbers" class="numbers"></div>
@@ -120,10 +129,16 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 <div id="leaderPanel" class="overlay"><div class="panel"><button class="close" data-close="leaderPanel">✕</button><h2>👑 Administrador Líder</h2><div class="stat-grid"><div class="stat"><b id="adminRegistered">0</b><span class="tiny">Registrados</span></div><div class="stat"><b id="adminOnline">0</b><span class="tiny">Jugando ahora</span></div></div>
 <div class="section"><h3>Asignar promotores</h3><div class="row"><input id="adminPromId" class="field" inputmode="numeric" maxlength="6" placeholder="ID usuario"><button id="adminFindPromBtn" class="action blue">Buscar</button></div><div id="adminPromResult"></div></div>
-<div class="section"><h3>Comunicado</h3><label class="switch-line"><input id="adminNoticeEnabled" class="switch" type="checkbox"><span>Mostrar comunicado a los usuarios</span></label><textarea id="adminNotice" class="field" rows="3" placeholder="Escribe el comunicado..."></textarea></div>
-<div class="section"><h3>Recarga por ID</h3><input id="adminRechargeId" class="field" inputmode="numeric" maxlength="6" placeholder="ID"><input id="adminRechargeAmount" class="field" type="number" step="0.001" placeholder="Monto FC"><button id="adminRechargeBtn" class="action green">Acreditar recarga</button></div>
-<div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Porcentaje global de pago (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración y comunicado</button></div>
+<div class="section"><h3>Comunicado</h3><label class="switch-line"><input id="adminNoticeEnabled" class="switch" type="checkbox"><span>Mostrar comunicado a los usuarios</span></label><textarea id="adminNotice" class="field" rows="3" placeholder="Escribe el comunicado..."></textarea><div class="row"><div><label class="tiny">Visible durante (segundos)</label><input id="adminNoticeVisible" class="field" type="number" min="1" max="3600" value="10"></div><div><label class="tiny">Reaparece cada (segundos)</label><input id="adminNoticeRepeat" class="field" type="number" min="1" max="86400" value="300"></div></div><button id="adminSaveNoticeBtn" class="action green">Guardar comunicado</button></div>
+<div class="section"><h3>Recarga por ID</h3><div class="row"><input id="adminRechargeId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminFindRechargeBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="adminRechargeUserResult"></div><input id="adminRechargeAmount" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="adminRechargeBtn" class="action green">Acreditar recarga</button></div>
+<div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Porcentaje global de pago (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración</button></div>
 <div class="section"><h3>Cambiar contraseña del panel</h3><input id="oldLeaderPass" class="field" type="password" placeholder="Contraseña actual"><input id="newLeaderPass" class="field" type="password" placeholder="Nueva contraseña"><button id="changeLeaderPassBtn" class="action dark">Cambiar contraseña</button></div><div id="adminMsg" class="msg"></div></div></div>
+
+<div id="receiptPanel" class="overlay"><div class="panel"><button class="close" data-close="receiptPanel">✕</button><h2 id="receiptTitle">Comprobante</h2><div id="receiptContent"></div></div></div>
+
+<div id="saveConfirm" class="save-confirm"><div class="save-confirm-card"><div class="save-check">✓</div><b id="saveConfirmText">Guardado correctamente</b></div></div>
+
+<div id="winFlash" class="win-flash"><div class="win-card"><h2>🎉 ¡GANASTE!</h2><div id="winNumber" class="tiny"></div><div id="winPrize" class="win-prize">+0.000 FC</div><div class="tiny">Premio acreditado automáticamente a tu saldo</div></div></div>
 
 <div id="copyToast" class="copy-toast">Copiado</div>
 
@@ -137,8 +152,8 @@ const AWAY_LIMIT_MS=10*60*1000;
 const REF_KEY='rf_referrer_public_id';
 const refFromUrl=(new URLSearchParams(location.search).get('ref')||'').trim();
 if(/^\d{6}$/.test(refFromUrl))localStorage.setItem(REF_KEY,refFromUrl);
-let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,onlineCount=0,presenceChannel=null,clockOffset=0,tickBusy=false;
-let loopStarted=false,manualLogout=false;
+let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedAdminRechargeUser=null,onlineCount=0,presenceChannel=null,clockOffset=0,tickBusy=false;
+let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,stakeSaveTimer=null;
 const betQueues={};
 const $=id=>document.getElementById(id);
 const money=v=>Number(v||0).toFixed(3);
@@ -290,6 +305,9 @@ function renderMe(){
   $('myPublicId').textContent=me.public_id;
   $('balancePublicId').textContent=me.public_id;
   $('repeatSwitch').checked=!!me.auto_repeat;
+  $('fixedStakeSwitch').checked=!!me.fixed_stake_enabled;
+  $('soundSwitch').checked=me.sound_enabled!==false;
+  if(me.fixed_stake_enabled&&Number(me.fixed_stake_amount)>0&&document.activeElement!==$('stakeInput'))$('stakeInput').value=money(Math.max(Number(me.fixed_stake_amount),Number(settings?.min_bet||0)));
   $('promoterBtn').classList.toggle('hidden',me.role!=='promoter');
   $('leaderBtn').classList.toggle('hidden',me.role!=='leader');
   $('editFirst').value=me.first_name||'';
@@ -300,14 +318,12 @@ function renderMe(){
 
 function renderSettings(){
   if(!settings)return;
-  $('rulesText').textContent=`Pago ×${Number(settings.payout_multiplier).toFixed(0)} · Apuesta mínima ${money(settings.min_bet)} FC · Pago global ${Number(settings.payout_probability).toFixed(0)}%`;
   $('stakeInput').min=settings.min_bet;
   $('stakeInput').step=settings.min_bet;
   if(!Number.isFinite(Number($('stakeInput').value))||Number($('stakeInput').value)<Number(settings.min_bet))$('stakeInput').value=Number(settings.min_bet).toFixed(3);
-  const noticeOn=!!settings.public_notice_enabled;
-  $('publicNoticeSide').textContent=settings.public_notice||'Información de Flash Coin.';
-  $('publicNoticeSide').classList.toggle('hidden',!noticeOn);
-  $('adminNoticeEnabled').checked=noticeOn;
+  $('adminNoticeEnabled').checked=!!settings.public_notice_enabled;
+  $('adminNoticeVisible').value=Number(settings.public_notice_visible_seconds||10);
+  $('adminNoticeRepeat').value=Number(settings.public_notice_repeat_seconds||300);
   $('groupBtn').disabled=!settings.whatsapp_group_url;
   $('groupBtn').textContent=settings.whatsapp_group_url?'Grupo WhatsApp':'Grupo no disponible';
   $('adminSeconds').value=settings.round_seconds;
@@ -315,7 +331,63 @@ function renderSettings(){
   $('adminPayoutPct').value=settings.payout_probability;
   $('adminGroupUrl').value=settings.whatsapp_group_url||'';
   $('adminNotice').value=settings.public_notice||'';
+  schedulePublicNotice();
 }
+
+function schedulePublicNotice(forceShow=false){
+  clearTimeout(noticeHideTimer);clearInterval(noticeCycleTimer);
+  const el=$('publicNoticeSide');
+  if(!settings?.public_notice_enabled){el.classList.add('hidden');return;}
+  const visible=Math.max(1,Number(settings.public_notice_visible_seconds||10));
+  const repeat=Math.max(visible,Number(settings.public_notice_repeat_seconds||300));
+  const reveal=()=>{
+    el.textContent=settings.public_notice||'Información de Flash Coin.';
+    el.classList.remove('hidden');
+    clearTimeout(noticeHideTimer);
+    noticeHideTimer=setTimeout(()=>el.classList.add('hidden'),visible*1000);
+  };
+  reveal();
+  noticeCycleTimer=setInterval(reveal,repeat*1000);
+}
+
+function showSaved(text,after){
+  $('saveConfirmText').textContent=text||'Guardado correctamente';
+  $('saveConfirm').classList.add('show');
+  setTimeout(()=>{ $('saveConfirm').classList.remove('show'); if(after)after(); },900);
+}
+
+function receiptRow(label,value){return `<div class="receipt-item"><span>${esc(label)}</span><b>${esc(value)}</b></div>`}
+function showReceipt(title,r){
+  if(!r)return;
+  const dt=r.created_at?new Date(r.created_at):new Date();
+  $('receiptTitle').textContent=title||'Comprobante';
+  $('receiptContent').innerHTML=`<div class="receipt-grid">${receiptRow('Fecha',dt.toLocaleDateString('es-DO'))}${receiptRow('Hora',dt.toLocaleTimeString('es-DO'))}${receiptRow('Usuario',r.recipient_name||'Usuario')}${receiptRow('ID',r.recipient_public_id||'—')}${receiptRow('Monto',money(r.amount)+' FC')}${receiptRow('Nuevo saldo',money(r.balance_after)+' FC')}${receiptRow('Referencia','#'+String(r.receipt_id||'—'))}${receiptRow('Estado',r.status||'Completada')}</div>`;
+  show('receiptPanel');
+}
+
+function ensureAudio(){
+  if(!audioCtx){const C=window.AudioContext||window.webkitAudioContext;if(C)audioCtx=new C();}
+  if(audioCtx?.state==='suspended')audioCtx.resume().catch(()=>{});
+}
+function rouletteClick(){
+  if(!audioCtx||me?.sound_enabled===false)return;
+  const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type='triangle';o.frequency.setValueAtTime(720,t);o.frequency.exponentialRampToValueAtTime(260,t+.055);
+  g.gain.setValueAtTime(.045,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);
+  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.065);
+}
+function playRouletteSound(){
+  if(me?.sound_enabled===false)return;ensureAudio();clearTimeout(audioTickTimer);let i=0;
+  const tick=()=>{if(i>=34||me?.sound_enabled===false)return;rouletteClick();i++;audioTickTimer=setTimeout(tick,70+i*4);};tick();
+}
+function showWinnerCelebration(winner,prize){
+  $('winNumber').textContent='Número ganador: '+winner;
+  $('winPrize').textContent='+'+money(prize)+' FC';
+  $('winFlash').classList.add('show');
+  setTimeout(()=>$('winFlash').classList.remove('show'),2600);
+}
+
+document.addEventListener('pointerdown',ensureAudio,{once:true});
 
 async function copyText(text,label='Copiado'){
   const value=String(text||'');
@@ -390,11 +462,21 @@ async function showLatestResult(){
   if(error||!data||!data.id||Number(data.id)===Number(lastSettledId))return;
   lastSettledId=data.id;
   const winner=Number(data.winning_number);
-  spinTo(winner);
-  $('centerNumber').textContent=winner;
-  $('resultText').textContent=data.payout_enabled?`Resultado global: ${winner} · Pago habilitado`:`Resultado global: ${winner} · Ronda sin pago`;
-  await Promise.all([loadMe(),loadLedger()]);
-  renderMe();
+  const {data:winningBet}=await sb.from('rf_bets').select('amount').eq('round_id',data.id).eq('number',winner).maybeSingle();
+  const myWinningAmount=Number(winningBet?.amount||0);
+  const prize=myWinningAmount*Number(settings?.payout_multiplier||12);
+  $('resultText').textContent='La ruleta está girando...';
+  spinTo(winner);playRouletteSound();
+  setTimeout(async()=>{
+    $('centerNumber').textContent=winner;
+    await Promise.all([loadMe(),loadLedger()]);renderMe();
+    if(data.payout_enabled&&myWinningAmount>0){
+      $('resultText').textContent=`🎉 ¡Ganaste ${money(prize)} FC! Salió el ${winner}.`;
+      showWinnerCelebration(winner,prize);
+    }else{
+      $('resultText').textContent=`Resultado global: ${winner}`;
+    }
+  },4700);
 }
 
 function spinTo(winner){
@@ -459,17 +541,39 @@ async function cancelNumber(n){
   }
 }
 
+async function saveStakePreference(enabled){
+  const min=Number(settings?.min_bet||.01),v=Number($('stakeInput').value);
+  const amount=(!Number.isFinite(v)||v<min)?min:v;
+  $('stakeInput').value=amount.toFixed(3);
+  const {error}=await sb.rpc('rf_set_stake_preferences',{p_enabled:enabled,p_amount:amount});
+  if(error)throw error;
+  await loadMe();renderMe();
+}
+function persistFixedStakeIfNeeded(){
+  if(!$('fixedStakeSwitch').checked)return;clearTimeout(stakeSaveTimer);
+  stakeSaveTimer=setTimeout(()=>saveStakePreference(true).catch(e=>alert(errText(e))),250);
+}
 $('stakeDown').onclick=()=>{
   const min=Number(settings?.min_bet||.01),cur=Number($('stakeInput').value||min),next=Math.max(min,cur-min);
-  $('stakeInput').value=next.toFixed(3);
+  $('stakeInput').value=next.toFixed(3);persistFixedStakeIfNeeded();
 };
 $('stakeUp').onclick=()=>{
   const step=Number(settings?.min_bet||.01),cur=Number($('stakeInput').value||step);
-  $('stakeInput').value=(cur+step).toFixed(3);
+  $('stakeInput').value=(cur+step).toFixed(3);persistFixedStakeIfNeeded();
 };
 $('stakeInput').addEventListener('blur',()=>{
   const min=Number(settings?.min_bet||.01),v=Number($('stakeInput').value);
-  $('stakeInput').value=(!Number.isFinite(v)||v<min?min:v).toFixed(3);
+  $('stakeInput').value=(!Number.isFinite(v)||v<min?min:v).toFixed(3);persistFixedStakeIfNeeded();
+});
+$('fixedStakeSwitch').addEventListener('change',async()=>{
+  const enabled=$('fixedStakeSwitch').checked;
+  try{await saveStakePreference(enabled);if(!enabled)$('stakeInput').value=money(settings?.min_bet||.01);}catch(e){$('fixedStakeSwitch').checked=!enabled;alert(errText(e));}
+});
+$('soundSwitch').addEventListener('change',async()=>{
+  const enabled=$('soundSwitch').checked;if(enabled)ensureAudio();
+  const {error}=await sb.rpc('rf_set_sound_enabled',{p_enabled:enabled});
+  if(error){$('soundSwitch').checked=!enabled;return alert(errText(error));}
+  if(me)me.sound_enabled=enabled;
 });
 
 $('repeatSwitch').addEventListener('change',async()=>{
@@ -576,14 +680,19 @@ $('promSendBtn').onclick=async()=>promAction('send');
 $('promRequestBtn').onclick=async()=>promAction('request');
 async function promAction(kind){
   if(me?.role!=='promoter')return msg('promUserMsg','Ya no tienes permiso de promotor.');
-  if(!selectedPromUser)return;
+  if(!selectedPromUser)return msg('promUserMsg','Busca y abre primero el usuario.');
   const amount=Number($('promAmount').value);
   if(!(amount>0))return msg('promUserMsg','Monto inválido.');
-  const fn=kind==='send'?'rf_promoter_send_fc':'rf_promoter_request_fc';
-  const {error}=await sb.rpc(fn,{p_public_id:selectedPromUser.public_id,p_amount:amount});
+  const fn=kind==='send'?'rf_promoter_send_fc_v04':'rf_promoter_request_fc';
+  const {data,error}=await sb.rpc(fn,{p_public_id:selectedPromUser.public_id,p_amount:amount});
   if(error)return msg('promUserMsg',errText(error));
-  msg('promUserMsg',kind==='send'?'Flash Coin enviadas.':'Solicitud enviada al usuario.');
-  await loadMe();renderMe();
+  if(kind==='send'){
+    const receipt=Array.isArray(data)?data[0]:data;
+    $('promSearchId').value='';$('promAmount').value='';$('promSearchResult').innerHTML='';$('promUserCard').innerHTML='';selectedPromUser=null;
+    hide('promUserPanel');await loadMe();renderMe();showReceipt('Comprobante de recarga del promotor',receipt);
+  }else{
+    msg('promUserMsg','Solicitud enviada al usuario.');
+  }
 }
 
 $('leaderBtn').onclick=async()=>{
@@ -620,18 +729,38 @@ $('adminFindPromBtn').onclick=async()=>{
     $('adminFindPromBtn').click();
   };
 };
+$('adminRechargeId').addEventListener('input',()=>{selectedAdminRechargeUser=null;$('adminRechargeUserResult').innerHTML='';});
+$('adminFindRechargeBtn').onclick=async()=>{
+  const id=$('adminRechargeId').value.trim();
+  if(!/^\d{6}$/.test(id))return msg('adminMsg','Escribe un ID válido de 6 dígitos.');
+  const {data,error}=await sb.rpc('rf_search_user_by_public_id',{p_public_id:id});
+  if(error)return msg('adminMsg',errText(error));
+  const u=Array.isArray(data)?data[0]:data;selectedAdminRechargeUser=u||null;
+  $('adminRechargeUserResult').innerHTML=u?`<div class="card"><strong>${esc(u.full_name)}</strong><span class="tiny">ID ${esc(u.public_id)} <button type="button" class="copy-btn" data-copy-id="${esc(u.public_id)}">Copiar</button> · Saldo ${money(u.balance)} FC</span></div>`:'<div class="card">ID no encontrado.</div>';
+};
 $('adminRechargeBtn').onclick=async()=>{
   const id=$('adminRechargeId').value.trim(),amount=Number($('adminRechargeAmount').value);
-  const {data,error}=await sb.rpc('rf_admin_recharge',{p_public_id:id,p_amount:amount});
+  if(!selectedAdminRechargeUser||selectedAdminRechargeUser.public_id!==id)return msg('adminMsg','Busca y confirma primero el ID del usuario.');
+  if(!(amount>0))return msg('adminMsg','Monto inválido.');
+  const {data,error}=await sb.rpc('rf_admin_recharge_v04',{p_public_id:id,p_amount:amount});
   if(error)return msg('adminMsg',errText(error));
-  msg('adminMsg',`Recarga realizada. Nuevo saldo: ${money(data)} FC`);
+  const receipt=Array.isArray(data)?data[0]:data;
+  $('adminRechargeId').value='';$('adminRechargeAmount').value='';$('adminRechargeUserResult').innerHTML='';selectedAdminRechargeUser=null;msg('adminMsg','');
+  showReceipt('Comprobante de recarga',receipt);
 };
 $('adminSaveSettingsBtn').onclick=async()=>{
-  const payload={p_round_seconds:Number($('adminSeconds').value),p_min_bet:Number($('adminMinBet').value),p_payout_probability:Number($('adminPayoutPct').value),p_whatsapp_group_url:$('adminGroupUrl').value.trim(),p_public_notice:$('adminNotice').value.trim(),p_public_notice_enabled:$('adminNoticeEnabled').checked};
-  const {data,error}=await sb.rpc('rf_admin_update_settings',payload);
+  const payload={p_round_seconds:Number($('adminSeconds').value),p_min_bet:Number($('adminMinBet').value),p_payout_probability:Number($('adminPayoutPct').value),p_whatsapp_group_url:$('adminGroupUrl').value.trim()};
+  const {data,error}=await sb.rpc('rf_admin_update_roulette_settings',payload);
   if(error)return msg('adminMsg',errText(error));
-  settings=Array.isArray(data)?data[0]:data;
-  renderSettings();msg('adminMsg','Configuración guardada.');
+  settings=Array.isArray(data)?data[0]:data;renderSettings();msg('adminMsg','');
+  showSaved('Guardado correctamente',()=>hide('leaderPanel'));
+};
+$('adminSaveNoticeBtn').onclick=async()=>{
+  const payload={p_public_notice:$('adminNotice').value.trim(),p_public_notice_enabled:$('adminNoticeEnabled').checked,p_visible_seconds:Number($('adminNoticeVisible').value),p_repeat_seconds:Number($('adminNoticeRepeat').value)};
+  const {data,error}=await sb.rpc('rf_admin_update_notice',payload);
+  if(error)return msg('adminMsg',errText(error));
+  settings=Array.isArray(data)?data[0]:data;renderSettings();schedulePublicNotice(true);msg('adminMsg','');
+  showSaved('Comunicado guardado',()=>hide('leaderPanel'));
 };
 $('changeLeaderPassBtn').onclick=async()=>{
   const {error}=await sb.rpc('rf_leader_change_password',{p_old_password:$('oldLeaderPass').value,p_new_password:$('newLeaderPass').value});
@@ -657,4 +786,4 @@ buildWheel();
 </body>
 </html>
 
-<!-- HTML 0.3: la actualización no ejecuta signOut salvo cierre manual o 10 minutos fuera del juego. -->
+<!-- HTML 0.4: conserva sesión y datos; solo cierra sesión manualmente o tras 10 minutos fuera del juego. -->
