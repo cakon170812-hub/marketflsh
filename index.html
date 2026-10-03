@@ -68,8 +68,8 @@ main{padding:16px 16px 90px}.card{border:1px solid var(--line);border-radius:17p
 <div class="list"><button onclick="adminSection('roulette_general')">Temporizador, mínimos y sonidos</button><button onclick="adminSection('roulette_prizes')">Premios, porcentajes y reglas</button><button onclick="adminSection('roulette_pot')">Saldo de ruleta y pozo acumulado</button><button onclick="adminSection('roulette_free')">Tiro gratis y frecuencia</button><button onclick="adminSection('roulette_referrals')">Referidos</button><button onclick="adminSection('roulette_users')">Usuarios registrados y en línea</button><button onclick="adminSection('roulette_whatsapp')">WhatsApp e información</button><button onclick="adminSection('roulette_history')">Historial de rondas y ganadores</button></div></dialog>
 
 <script>
-const SUPABASE_URL="https://dkfnrrgwbkvygsrbttnr.supabase.co";
-const KEY="sb_publishable_4-jrm0JaXhr92ao-mbbUpQ_rWNXIVxR";
+const SUPABASE_URL="https://wsqqdnlbifwjrjorwoni.supabase.co";
+const KEY="sb_publishable_vGin7CNMq_lgrTPL3sfM_A_VNkCALsf";
 let access=localStorage.getItem("mf_access")||"", profile=JSON.parse(localStorage.getItem("mf_profile")||"null"), snap=null, counts={}, dirty=false, offset=0;
 const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
 function notice(x){let t=$("#toast");t.textContent=x;t.style.display="block";setTimeout(()=>t.style.display="none",2600)}
@@ -99,4 +99,11 @@ function openAdmin(){if(!profile?.is_admin)return notice("Esta cuenta no tiene p
 async function adminSection(section){try{let f=await rpc("admin_settings_get",{section});let lines=(f.fields||[]).map(x=>`${x.label}: ${x.value}`).join("\n");alert((f.title||"Administración")+"\n\n"+lines)}catch(e){notice(e.message)}}
 function logout(){localStorage.removeItem("mf_access");localStorage.removeItem("mf_profile");access="";profile=null;notice("Sesión cerrada")}
 buildWheel();loadProfile();balances(profile?.balance||0);
-</script></body></html>
+</script>
+<!-- ACTUALIZACIÓN ACORDADA:
+Ruleta en vivo 0-12; bombillos multicolor secuenciales; selección solo con FC;
+Perfil con Administrador líder; promotores autorizados; precios oficiales;
+WhatsApp/grupo configurable; contador en línea; saldo de promotor;
+búsqueda por ID; transferencias; historiales; permisos y comprobantes.
+Las operaciones económicas deben confirmarse en Supabase antes de mostrar éxito. -->
+</body></html>
