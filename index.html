@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- MAIKET FLASH BASE 09: registro sin dependencia de check RPC + BASE 08 completa -->
+<!-- MAIKET FLASH BASE 10: login corregido + registro amigable + ID 6 dígitos -->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -12,7 +12,7 @@
 
 .authShell{min-height:100vh;display:grid;place-items:center;padding:22px;background:linear-gradient(160deg,#eef6ff,#fff)}
 .authBox{width:min(450px,100%);background:#fff;border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 18px 50px #0877ff18}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;background:#f2f6fc;padding:5px;border-radius:14px;margin:15px 0}.tabs button{border:0;border-radius:10px;padding:10px;font-weight:850}.tabs .on{background:#fff;color:var(--b);box-shadow:0 2px 8px #001a4014}.authForm{display:grid;gap:10px}.authForm label{font-size:12px;font-weight:800;color:var(--mut)}.idBox{display:flex;gap:8px}.idBox .field{flex:1}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;background:#f2f6fc;padding:5px;border-radius:14px;margin:15px 0}.tabs button{border:0;border-radius:10px;padding:10px;font-weight:850}.tabs .on{background:#fff;color:var(--b);box-shadow:0 2px 8px #001a4014}.authForm{display:grid;gap:10px}.authForm label{font-size:12px;font-weight:800;color:var(--mut)}.idBox{display:flex;gap:8px}.idBox .field{flex:1;min-width:130px}
 </style>
 </head>
 <body>
@@ -184,17 +184,18 @@ async function register(){
   if(!ok)throw Error(lastError?.message||"La cuenta se creó, pero el perfil todavía no está disponible.");
 
   showApp();go("home");await loadPublic();toast("Cuenta creada. Bienvenido a MAIKET FLASH.");
- }catch(e){toast(e.message)}
+  }catch(e){
+  let m=e.message||"No se pudo crear la cuenta.";
+  if(/already registered|already been registered|user already/i.test(m)){
+   authTab("login");$("#loginIdentifier").value=$("#regEmail").value.trim();
+   m="Esta cuenta ya existe. Inicia sesión con tu correo y contraseña.";
+  }
+  toast(m)
+ }
 }
 
-async function ensureMyProfile(){
- if(!access)throw Error("No hay sesión activa.");
- let r=await fetch(SUPABASE_URL+"/rest/v1/rpc/ensure_my_profile",{method:"POST",headers:{apikey:API_KEY,Authorization:"Bearer "+access,"Content-Type":"application/json"},body:"{}"});
- let j=await r.json();if(!r.ok)throw Error(j.message||j.error_description||"No se pudo preparar el perfil.");return j
-}
 
 async function hydrateProfile(){
- await ensureMyProfile();
  let r=await rpc("profile");
  profile=r;localStorage.setItem("mf_profile",JSON.stringify(profile));renderProfile();setBalance(profile.balance||0)
 }
