@@ -33,7 +33,17 @@
 <body><main class="app">
 <section id="auth" class="screen on auth"><div class="authBox"><div class="bolt">⚡</div><h1>MAIKET FLASH</h1><p class="authSub">Compra, vende y juega con Flash Coin</p><input id="identifier" class="field" placeholder="Correo, ID de 6 dígitos o teléfono"><input id="pass" class="field" placeholder="Contraseña" type="password"><button class="btn white" onclick="login()">Iniciar sesión</button><button class="btn ghost" onclick="show('register')">Crear una cuenta</button><p id="authMsg" class="notice"></p></div></section>
 
-<section id="register" class="screen auth"><div class="authBox" style="justify-content:flex-start;padding-top:18px"><div class="row"><button class="btn ghost" onclick="show('auth')">‹ Volver</button><b>Crear cuenta</b><span></span></div><input id="name" class="field" placeholder="Nombre completo"><input id="phone" class="field" placeholder="Teléfono / WhatsApp"><input id="email" class="field" placeholder="Correo electrónico" type="email"><input id="newPass" class="field" placeholder="Contraseña · mínimo 8 caracteres" type="password"><input id="confirmPass" class="field" placeholder="Confirmar contraseña" type="password"><button class="btn white" onclick="signup()">REGISTRARME</button><p id="regMsg" class="notice"></p></div></section>
+<section id="register" class="screen auth"><div class="authBox" style="justify-content:flex-start;padding-top:18px">
+<div class="row"><button class="btn ghost" onclick="show('auth')">‹ Volver al inicio</button><b>Crear cuenta</b><span></span></div>
+<input id="name" class="field" placeholder="Nombre completo">
+<div class="row"><input id="customId" class="field" maxlength="6" inputmode="numeric" placeholder="ID de 6 dígitos"><button class="btn white" type="button" onclick="generateMaiketId()">Generar ID</button></div>
+<div id="idStatus" class="notice"></div>
+<input id="phone" class="field" inputmode="tel" placeholder="Número de teléfono">
+<input id="email" class="field" placeholder="Correo electrónico" type="email">
+<input id="newPass" class="field" placeholder="Contraseña · mínimo 8 caracteres" type="password">
+<input id="confirmPass" class="field" placeholder="Confirmar contraseña" type="password">
+<button id="registerBtn" class="btn white" onclick="signup()">REGISTRARSE</button>
+<p id="regMsg" class="notice"></p></div></section>
 
 <section id="home" class="screen"><div class="top"><div class="brand">⚡ MAIKET <em>FLASH</em></div><div class="spacer"></div><button class="roundIcon" onclick="openProfile()">👤</button><button class="roundIcon" onclick="dev()">🔔</button></div><div class="content"><div class="search">🔎 <input placeholder="Buscar en Maiket Flash" readonly onclick="dev()"><span>☰</span></div><div class="wallet" onclick="openBalance()"><div class="coin">🔵</div><div class="walletMain"><small>Saldo principal Flash Coin</small><b id="homeBalance">0.000 FC</b><div id="profileLine" class="profileLine"></div></div><span>›</span></div><div class="gamesBanner"><div class="rouletteEmoji">🎰</div><div><h3>Juegos</h3><p>Ruleta · saldo único Flash Coin</p></div><button class="btn white" onclick="show('roulette')">Jugar</button></div><div class="sectionTitle"><b>🔥 Flash del día</b><button class="mini" onclick="dev()">Publicar</button></div><div class="devCard" onclick="dev()">📣 <b>Destaca tu publicación</b><div class="mut">Aplicación en desarrollo</div></div><div class="sectionTitle"><b>🏪 Publicaciones</b></div><div class="empty"><b>🖼️ Todavía no hay publicaciones</b><p class="mut">Aplicación en desarrollo</p></div></div><nav class="bottom"><button class="tab" onclick="show('roulette')"><span>🎮</span>Juegos</button><button class="tab" onclick="dev()"><span>💬</span>Chats</button><div style="text-align:center"><button class="plus" onclick="dev()">＋</button></div><button class="tab" onclick="openBalance()"><span>👛</span>Saldo</button><button class="tab" onclick="openProfile()"><span>👤</span>Perfil</button></nav></section>
 
@@ -59,8 +69,69 @@ function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.re
 function openModal(t,b){q('modalTitle').textContent=t;q('modalBody').innerHTML=b;q('modal').classList.add('on')} function closeModal(){q('modal').classList.remove('on')}
 async function rpc(action,data={}){const {data:r,error}=await sb.rpc('mf901_command',{p_action:action,p_data:JSON.stringify(data)});if(error)throw error;return r}
 async function waitForProfile(){for(let i=0;i<12;i++){let {data:{user}}=await sb.auth.getUser();if(!user)throw Error('No se pudo abrir la sesión.');let {data,error}=await sb.from('mf08_profiles').select('user_id,full_name,phone,is_promoter,promoter_active').eq('id',user.id).maybeSingle();if(data)return data;if(error)throw error;await new Promise(r=>setTimeout(r,250))}throw Error('La cuenta se creó, pero el perfil todavía no está disponible. Intenta iniciar sesión nuevamente.');}
-async function signup(){q('regMsg').textContent='Creando cuenta…';try{let full_name=q('name').value.trim(),phone=q('phone').value.replace(/\D/g,''),email=q('email').value.trim().toLowerCase(),password=q('newPass').value;if(!full_name||phone.length<10||!email.includes('@')||password.length<8||password!==q('confirmPass').value)throw Error('Completa correctamente todos los campos.');let {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name,phone}}});if(error)throw error;if(!data.session){let signed=await sb.auth.signInWithPassword({email,password});if(signed.error)throw Error('La cuenta fue creada, pero Supabase exige confirmar el correo. Desactiva Confirm email en Authentication > Providers > Email para entrar automáticamente.');}await enter();q('regMsg').textContent=''}catch(e){q('regMsg').textContent=e.message}}
-async function login(){q('authMsg').textContent='Iniciando sesión…';try{let id=q('identifier').value.trim(),password=q('pass').value;if(!id||!password)throw Error('Escribe tu correo, ID o teléfono y contraseña.');let email=id.toLowerCase();if(!id.includes('@')){let {data,error}=await sb.rpc('mfweb_login_email',{p_identifier:id});if(error)throw error;if(!data)throw Error('Usuario no encontrado.');email=data}let {data,error}=await sb.auth.signInWithPassword({email,password});if(error)throw error;if(!data.session)throw Error('Supabase no devolvió una sesión válida.');await enter();q('authMsg').textContent=''}catch(e){q('authMsg').textContent=e.message}}
+async function generateMaiketId(){
+ try{
+   const r=await sb.rpc('mfweb_generate_id');
+   if(r.error)throw r.error;
+   q('customId').value=r.data;
+   q('idStatus').textContent='ID disponible: '+r.data;
+ }catch(e){q('idStatus').textContent=e.message}
+}
+async function signup(){
+ const btn=q('registerBtn'); btn.disabled=true; q('regMsg').textContent='Creando cuenta…';
+ try{
+   const full_name=q('name').value.trim();
+   const user_id=q('customId').value.replace(/\D/g,'');
+   const phone=q('phone').value.replace(/\D/g,'');
+   const email=q('email').value.trim().toLowerCase();
+   const password=q('newPass').value;
+   if(!full_name)throw Error('Escribe tu nombre completo.');
+   if(!/^\d{6}$/.test(user_id))throw Error('El ID debe tener exactamente 6 dígitos.');
+   if(phone.length<10)throw Error('Escribe un número de teléfono válido.');
+   if(!email.includes('@'))throw Error('Escribe un correo válido.');
+   if(password.length<8)throw Error('La contraseña debe tener al menos 8 caracteres.');
+   if(password!==q('confirmPass').value)throw Error('Las contraseñas no coinciden.');
+   const ck=await sb.rpc('mfweb_id_available',{p_user_id:user_id});
+   if(ck.error)throw ck.error;
+   if(!ck.data)throw Error('Este ID ya está en uso.');
+   const {data,error}=await sb.auth.signUp({email,password,options:{data:{full_name,phone,user_id}}});
+   if(error)throw error;
+   if(!data.session)throw Error('La cuenta se creó, pero Supabase exige confirmar el correo. Desactiva Confirm email para entrar automáticamente.');
+   await waitForProfile();
+   await enter();
+ }catch(e){q('regMsg').textContent=e.message}
+ finally{btn.disabled=false}
+}
+async function login(){
+ try{
+   q('authMsg').textContent='Iniciando sesión…';
+   let identifier=q('identifier').value.trim(),password=q('pass').value;
+   if(!identifier||!password)throw Error('Escribe tu correo, teléfono o ID y contraseña.');
+   let email=identifier.toLowerCase();
+   if(!identifier.includes('@')){
+     const r=await sb.rpc('mfweb_login_email',{p_identifier:identifier});
+     if(r.error)throw r.error;
+     if(!r.data)throw Error('Cuenta no encontrada.');
+     email=r.data;
+   }
+   const {data,error}=await sb.auth.signInWithPassword({email,password});
+   if(error)throw error;
+   if(!data.session)throw Error('No se pudo abrir la sesión.');
+   await waitForProfile();
+   await enter();
+ }catch(e){q('authMsg').textContent=e.message}
+}
+async function waitForProfile(){
+ for(let i=0;i<20;i++){
+   const {data:{user}}=await sb.auth.getUser();
+   if(user){
+     const {data}=await sb.from('mf08_profiles').select('id').eq('id',user.id).maybeSingle();
+     if(data)return true;
+   }
+   await new Promise(r=>setTimeout(r,150));
+ }
+ throw Error('La cuenta se creó, pero el perfil no terminó de guardarse. Intenta iniciar sesión nuevamente.');
+}
 async function enter(){let p=await waitForProfile();profile=p;q('profileLine').textContent=`${p.full_name} · ID ${p.user_id}`;q('profileName').textContent=p.full_name;q('profileId').textContent='ID: '+p.user_id;q('profilePhone').textContent='Teléfono: '+p.phone;q('promoterPanelBtn').style.display=(p.is_promoter&&p.promoter_active)?'block':'none';show('home');await refresh()} async function logout(){await sb.auth.signOut();profile=null;show('auth')}
 async function loadProfile(){let {data:{user}}=await sb.auth.getUser();if(!user)return;let {data,error}=await sb.from('mf08_profiles').select('user_id,full_name,phone,is_promoter,promoter_active').eq('id',user.id).single();if(error)throw error;profile=data;q('profileLine').textContent=`${data.full_name} · ID ${data.user_id}`;q('profileName').textContent=data.full_name;q('profileId').textContent='ID: '+data.user_id;q('profilePhone').textContent='Teléfono: '+data.phone;q('promoterPanelBtn').style.display=(data.is_promoter&&data.promoter_active)?'block':'none'}
 function openProfile(){loadProfile().then(()=>show('profile')).catch(e=>alert(e.message))}
