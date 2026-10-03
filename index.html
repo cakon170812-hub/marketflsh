@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 0.1</title>
+<title>Ruleta Flash Coin — HTML 0.2</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -17,19 +17,19 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .brand{text-align:center;font-weight:950;letter-spacing:2px;font-size:26px;color:#ffe28a;text-shadow:0 0 18px rgba(255,168,0,.5)}
 .sub{text-align:center;color:var(--muted);font-size:13px;margin:6px 0 16px}.tabs{display:flex;gap:8px;margin-bottom:12px}.tab{flex:1;border:1px solid #344055;border-radius:12px;padding:11px;background:#111722;color:#fff;font-weight:800}.tab.active{background:linear-gradient(135deg,#ffe273,#c98800);color:#1b1200;border-color:#ffda58}
 .field{width:100%;border:1px solid #354157;border-radius:12px;padding:12px;margin:6px 0;background:#070c14;color:#fff;outline:none;font-size:16px}.field:focus{border-color:#ffd45a}.primary,.action{width:100%;border:0;border-radius:13px;padding:13px;margin-top:8px;font-weight:900;background:linear-gradient(135deg,#ffe272,#c98a00);color:#1b1200}.action.blue{background:#1675e8;color:#fff}.action.green{background:#16894b;color:#fff}.action.red{background:#a92835;color:#fff}.action.dark{background:#202a3a;color:#fff;border:1px solid #3a4659}.tiny{font-size:12px;color:var(--muted)}
-.topbar{width:min(100%,620px);margin:0 auto;display:flex;align-items:center;gap:7px;padding:10px 0 3px}.brand-mini{font-weight:950;color:#ffe182;letter-spacing:1px;margin-right:auto;font-size:16px;text-shadow:0 2px 8px #000}.icon-btn,.balance-chip{border:1px solid rgba(255,215,90,.35);background:rgba(5,10,18,.88);color:#fff;border-radius:12px;min-height:42px;padding:8px 10px;font-weight:850}.balance-chip{display:flex;align-items:center;gap:7px;font-size:13px}.balance-chip strong{color:#6cff94}.icon-btn{min-width:42px}.group-btn{font-size:11px}
+.topbar{width:min(100%,620px);margin:0 auto;display:flex;align-items:center;gap:7px;padding:10px 0 3px}.top-tools{display:flex;align-items:center;gap:7px}.wallet-row{width:min(100%,620px);margin:5px auto 0;display:flex;align-items:center;gap:7px}.wallet-row .balance-chip{flex:1}.promoter-chip{white-space:nowrap;background:linear-gradient(135deg,#135a91,#0a263d);border-color:#42b8ff;color:#fff}.brand-mini{font-weight:950;color:#ffe182;letter-spacing:1px;margin-right:auto;font-size:16px;text-shadow:0 2px 8px #000}.icon-btn,.balance-chip{border:1px solid rgba(255,215,90,.35);background:rgba(5,10,18,.88);color:#fff;border-radius:12px;min-height:42px;padding:8px 10px;font-weight:850}.balance-chip{display:flex;align-items:center;gap:7px;font-size:13px}.balance-chip strong{color:#6cff94}.icon-btn{min-width:42px}.group-btn{font-size:11px}
 .machine{width:min(100%,620px);margin:8px auto 0;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.13);border-radius:25px;padding:13px 10px 14px;backdrop-filter:blur(4px)}
 .roundbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:8px}.round-meta{font-size:11px;color:#d1d7e0}.round-meta.right{text-align:right}.timer{min-width:80px;text-align:center;border-radius:14px;padding:8px;background:#070b11;border:1px solid #5e4b20;color:#ffd65b;font-size:24px;font-weight:950;box-shadow:0 0 16px rgba(255,166,0,.18)}
 .wheel-wrap{position:relative;width:min(82vw,360px);aspect-ratio:1;margin:5px auto 9px}.pointer{position:absolute;z-index:30;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:35px solid #ffe168;filter:drop-shadow(0 0 7px #ff9800)}
 .wheel-shell{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(#ffdc72 0deg 3deg,#765000 3deg 6deg);box-shadow:0 0 0 4px #382200,0 0 25px rgba(255,160,0,.75),0 0 55px rgba(20,111,255,.25)}.wheel-shell:after{content:"";position:absolute;inset:7%;border-radius:50%;background:#05070c;box-shadow:inset 0 0 22px #000}
-.wheel{position:absolute;z-index:5;inset:8.5%;border-radius:50%;border:3px solid #e3ad3b;background:conic-gradient(from -13.846deg,#0c9345 0deg 27.692deg,#b91e29 27.692deg 55.384deg,#11151d 55.384deg 83.076deg,#b91e29 83.076deg 110.768deg,#11151d 110.768deg 138.46deg,#b91e29 138.46deg 166.152deg,#11151d 166.152deg 193.844deg,#b91e29 193.844deg 221.536deg,#11151d 221.536deg 249.228deg,#b91e29 249.228deg 276.92deg,#11151d 276.92deg 304.612deg,#b91e29 304.612deg 332.304deg,#11151d 332.304deg 360deg);box-shadow:inset 0 0 25px #000;transition:transform 4.7s cubic-bezier(.11,.7,.1,1);will-change:transform}.wheel:after{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(transparent 0 26.7deg,rgba(255,224,140,.95) 26.7deg 27.692deg);pointer-events:none}
-.wn{position:absolute;left:50%;top:50%;width:38px;height:38px;margin:-19px;display:grid;place-items:center;font-weight:950;font-size:18px;text-shadow:0 2px 4px #000;z-index:7;transform:rotate(var(--a)) translateY(calc(-1 * min(30vw,126px))) rotate(calc(-1 * var(--a)))}
+.wheel{position:absolute;z-index:5;inset:8.5%;border-radius:50%;border:3px solid #e3ad3b;background:conic-gradient(from -13.846deg,#0c9345 0deg 27.692deg,#b91e29 27.692deg 55.384deg,#11151d 55.384deg 83.076deg,#b91e29 83.076deg 110.768deg,#11151d 110.768deg 138.46deg,#b91e29 138.46deg 166.152deg,#11151d 166.152deg 193.844deg,#b91e29 193.844deg 221.536deg,#11151d 221.536deg 249.228deg,#b91e29 249.228deg 276.92deg,#11151d 276.92deg 304.612deg,#b91e29 304.612deg 332.304deg,#11151d 332.304deg 360deg);box-shadow:inset 0 0 25px #000;transition:transform 4.7s cubic-bezier(.11,.7,.1,1);will-change:transform}.wheel:after{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(from -13.846deg,transparent 0 26.7deg,rgba(255,224,140,.95) 26.7deg 27.692deg);pointer-events:none}
+.wn{position:absolute;left:50%;top:50%;width:38px;height:38px;margin:-19px;display:grid;place-items:center;font-weight:950;font-size:18px;text-shadow:0 2px 4px #000;z-index:7;transform:rotate(var(--a)) translateY(calc(-1 * min(24vw,104px))) rotate(calc(-1 * var(--a)))}
 .center{position:absolute;z-index:15;left:50%;top:50%;transform:translate(-50%,-50%);width:31%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff1a4,#c78113 28%,#5b3300 62%,#130900);border:3px solid #ffd45b;display:grid;place-items:center;box-shadow:0 0 18px #f29a00}.center b{width:60%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:#08090c;border:2px solid #c58c21;color:#ffdb67;font-size:29px}
 .result{text-align:center;min-height:42px;display:grid;place-items:center;border:1px solid #5f4c23;border-radius:12px;background:rgba(5,8,13,.92);color:#ffd76b;font-weight:900;margin:4px 0 9px;padding:7px}.rules{text-align:center;color:#d3d8e1;font-size:11px;margin-bottom:8px}
 .bet-controls{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px}.bet-controls label{font-size:11px;color:var(--muted)}.stake-row{display:flex;gap:6px}.stake-row button{width:42px;border:1px solid #3c4758;background:#1c2533;color:#fff;border-radius:10px;font-size:20px}.stake{margin:0}.switch-box{display:flex;align-items:center;gap:8px;background:#0b111b;border:1px solid #344154;border-radius:12px;padding:8px 10px;min-height:47px;font-size:12px}.switch{appearance:none;width:42px;height:24px;border-radius:20px;background:#394353;position:relative;transition:.2s}.switch:before{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s}.switch:checked{background:#16a15a}.switch:checked:before{left:21px}
-.numbers{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.num{position:relative;min-width:0;min-height:52px;border-radius:11px;border:1px solid #4c5668;background:linear-gradient(#242b36,#0c1017);color:#fff;font-weight:950;font-size:16px}.num.zero{border-color:#19955a}.num.selected{outline:2px solid #ffd34f;box-shadow:0 0 10px rgba(255,178,0,.48)}.num .amt{display:block;color:#ffd45f;font-size:9px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cancel-num{position:absolute;right:-5px;top:-7px;width:22px;height:22px;border-radius:50%;border:1px solid #fff;background:#a51e2a;color:#fff;font-size:12px;font-weight:900;display:grid;place-items:center}
+.numbers{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.num{position:relative;min-width:0;min-height:52px;border-radius:11px;border:1px solid #4c5668;background:linear-gradient(#242b36,#0c1017);color:#fff;font-weight:950;font-size:16px}.num.zero{border-color:#19955a}.num.selected{outline:2px solid #ffd34f;box-shadow:0 0 10px rgba(255,178,0,.48)}.num .tap-count{display:block;color:#fff3b0;font-size:10px;line-height:1.1;margin-top:1px}.num .amt{display:block;color:#ffd45f;font-size:9px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cancel-num{position:absolute;right:-5px;top:-7px;width:22px;height:22px;border-radius:50%;border:1px solid #fff;background:#a51e2a;color:#fff;font-size:12px;font-weight:900;display:grid;place-items:center}
 .overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.84);padding:18px;overflow:auto}.overlay.active{display:block}.panel{margin:20px auto}.close{float:right;border:0;border-radius:10px;background:#273244;color:#fff;padding:8px 11px}.panel h2{margin-bottom:14px}.panel h3{margin:17px 0 8px}.card{background:#080d15;border:1px solid #28364a;border-radius:14px;padding:12px;margin:8px 0}.card strong{display:block;margin-bottom:4px}.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}.notice{white-space:pre-wrap;background:#302607;border:1px solid #8d7315;border-radius:13px;padding:12px;margin:9px 0}.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#080d15;border:1px solid #2c394d;border-radius:14px;padding:12px;text-align:center}.stat b{display:block;font-size:24px;color:#ffd55d}.tag{display:inline-block;border-radius:999px;background:#253146;padding:4px 8px;font-size:11px;margin-top:5px}.section{border-top:1px solid #263244;margin-top:13px;padding-top:13px}.wa{background:#159447!important;color:#fff!important}.danger{color:#ff8c96}.success{color:#72f39b}.msg{margin-top:8px;font-size:13px;color:#ffde77;min-height:18px}
-@media(max-width:390px){.numbers{grid-template-columns:repeat(7,1fr);gap:4px}.num{min-height:47px;font-size:14px}.wn{font-size:15px;transform:rotate(var(--a)) translateY(calc(-1 * min(29vw,111px))) rotate(calc(-1 * var(--a)))}.topbar{gap:4px}.icon-btn,.balance-chip{padding:7px;font-size:11px}.brand-mini{font-size:14px}}
+@media(max-width:390px){.numbers{grid-template-columns:repeat(7,1fr);gap:4px}.num{min-height:50px;font-size:14px}.wn{font-size:15px;transform:rotate(var(--a)) translateY(calc(-1 * min(24vw,90px))) rotate(calc(-1 * var(--a)))}.topbar,.top-tools,.wallet-row{gap:4px}.icon-btn,.balance-chip{padding:7px;font-size:11px}.promoter-chip{font-size:10px}.brand-mini{font-size:14px}}
 </style>
 </head>
 <body>
@@ -37,7 +37,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <section id="authView" class="auth">
   <div class="auth-card">
     <div class="brand">⚡ RULETA FLASH COIN</div>
-    <div class="sub">HTML 0.1 · Supabase conectado</div>
+    <div class="sub">HTML 0.2 · Supabase conectado</div>
     <div class="tabs"><button id="tabRegister" class="tab active">Registrarse</button><button id="tabLogin" class="tab">Iniciar sesión</button></div>
     <form id="registerForm">
       <input id="regFirst" class="field" placeholder="Nombre" autocomplete="given-name" required>
@@ -59,10 +59,14 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <main id="appView" class="bg hidden">
   <div class="topbar">
     <div class="brand-mini">⚡ FC</div>
+    <div class="top-tools">
+      <button id="groupBtn" class="icon-btn group-btn">Grupo WhatsApp</button>
+      <button id="settingsBtn" class="icon-btn">⚙️</button>
+    </div>
+  </div>
+  <div class="wallet-row">
     <button id="balanceBtn" class="balance-chip">💰 <strong id="balanceTop">0.000 FC</strong></button>
-    <button id="groupBtn" class="icon-btn group-btn">Grupo WhatsApp</button>
-    <button id="promoterBtn" class="icon-btn hidden">💼</button>
-    <button id="settingsBtn" class="icon-btn">⚙️</button>
+    <button id="promoterBtn" class="icon-btn promoter-chip hidden">💼 Panel Promotor</button>
   </div>
 
   <section class="machine">
@@ -119,66 +123,470 @@ const SUPABASE_URL='https://mvwpbhhhspcaurjgsegz.supabase.co';
 const SUPABASE_KEY='sb_publishable_nO8z0atB5iB5Bri2iRXwdw_PJUOQvCx';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const WHEEL_ORDER=[0,7,2,11,4,9,1,12,5,8,3,10,6];
+const AWAY_KEY='rf_away_since_v02';
+const AWAY_LIMIT_MS=10*60*1000;
 let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,onlineCount=0,presenceChannel=null,clockOffset=0,tickBusy=false;
-const $=id=>document.getElementById(id); const money=v=>Number(v||0).toFixed(3); const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-function show(id){$(id).classList.add('active')} function hide(id){$(id).classList.remove('active')} function msg(id,t){$(id).textContent=t||''}
+let loopStarted=false,manualLogout=false;
+const betQueues={};
+const $=id=>document.getElementById(id);
+const money=v=>Number(v||0).toFixed(3);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function show(id){$(id).classList.add('active')}
+function hide(id){$(id).classList.remove('active')}
+function msg(id,t){$(id).textContent=t||''}
 function errText(e){return e?.message||String(e||'Error')}
 
-function buildWheel(){const wheel=$('wheel'); wheel.innerHTML=''; const seg=360/13; WHEEL_ORDER.forEach((n,i)=>{const d=document.createElement('div');d.className='wn';d.textContent=n;d.style.setProperty('--a',(i*seg)+'deg');wheel.appendChild(d)}); buildNumbers()}
-function buildNumbers(){const c=$('numbers');c.innerHTML='';for(let n=0;n<=12;n++){const b=document.createElement('button');b.type='button';b.className='num'+(n===0?' zero':'')+(myBets[n]?' selected':'');b.innerHTML=`${n}<span class="amt">${myBets[n]?money(myBets[n])+' FC':''}</span>`;b.addEventListener('click',()=>placeBet(n));if(myBets[n]){const x=document.createElement('span');x.className='cancel-num';x.textContent='×';x.title='Cancelar apuesta de este número';x.addEventListener('click',e=>{e.stopPropagation();cancelNumber(n)});b.appendChild(x)}c.appendChild(b)}}
-function setAuthMode(mode){const reg=mode==='register';$('registerForm').classList.toggle('hidden',!reg);$('loginForm').classList.toggle('hidden',reg);$('tabRegister').classList.toggle('active',reg);$('tabLogin').classList.toggle('active',!reg);msg('authMsg','')}
-$('tabRegister').onclick=()=>setAuthMode('register');$('tabLogin').onclick=()=>setAuthMode('login');
+function buildWheel(){
+  const wheel=$('wheel');
+  wheel.innerHTML='';
+  const seg=360/13;
+  WHEEL_ORDER.forEach((n,i)=>{
+    const d=document.createElement('div');
+    d.className='wn';
+    d.textContent=n;
+    d.style.setProperty('--a',(i*seg)+'deg');
+    wheel.appendChild(d);
+  });
+  buildNumbers();
+}
 
-$('registerForm').addEventListener('submit',async e=>{e.preventDefault();msg('authMsg','Creando cuenta...');const first=$('regFirst').value.trim(),last=$('regLast').value.trim(),email=$('regEmail').value.trim(),pass=$('regPass').value,pass2=$('regPass2').value;if(pass!==pass2)return msg('authMsg','Las contraseñas no coinciden.');const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{first_name:first,last_name:last}}});if(error)return msg('authMsg',errText(error));if(!data.session){const s=await sb.auth.signInWithPassword({email,password:pass});if(s.error)return msg('authMsg','Cuenta creada, pero falta desactivar “Confirm email” en Supabase para entrar inmediatamente.');}await enterApp()});
-$('loginForm').addEventListener('submit',async e=>{e.preventDefault();msg('authMsg','Entrando...');const {error}=await sb.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPass').value});if(error)return msg('authMsg',errText(error));await enterApp()});
+function buildNumbers(){
+  const c=$('numbers');
+  c.innerHTML='';
+  for(let n=0;n<=12;n++){
+    const bet=myBets[n];
+    const b=document.createElement('button');
+    b.type='button';
+    b.className='num'+(n===0?' zero':'')+(bet?' selected':'');
+    b.innerHTML=`${n}${bet?`<span class="tap-count">×${Number(bet.taps||1)}</span><span class="amt">${money(bet.amount)} FC</span>`:'<span class="tap-count">Tocar</span><span class="amt">&nbsp;</span>'}`;
+    b.addEventListener('click',()=>queueBet(n));
+    if(bet){
+      const x=document.createElement('span');
+      x.className='cancel-num';
+      x.textContent='↩';
+      x.title='Cancelar toda la apuesta de este número y devolver las Flash Coin';
+      x.setAttribute('aria-label','Cancelar apuesta del número '+n);
+      x.addEventListener('click',e=>{e.stopPropagation();cancelNumber(n)});
+      b.appendChild(x);
+    }
+    c.appendChild(b);
+  }
+  updateCountdown();
+}
 
-async function enterApp(){const {data:{session}}=await sb.auth.getSession();if(!session)return; $('authView').classList.add('hidden');$('appView').classList.remove('hidden');await refreshEverything();startPresence(session.user.id);startLoop()}
-async function refreshEverything(){await Promise.all([loadMe(),loadSettings()]);await tickRoulette();await Promise.all([loadBets(),loadRequests(),loadLedger()]);renderMe();renderSettings();buildNumbers()}
+function setAuthMode(mode){
+  const reg=mode==='register';
+  $('registerForm').classList.toggle('hidden',!reg);
+  $('loginForm').classList.toggle('hidden',reg);
+  $('tabRegister').classList.toggle('active',reg);
+  $('tabLogin').classList.toggle('active',!reg);
+  msg('authMsg','');
+}
+$('tabRegister').onclick=()=>setAuthMode('register');
+$('tabLogin').onclick=()=>setAuthMode('login');
+
+$('registerForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  msg('authMsg','Creando cuenta...');
+  const first=$('regFirst').value.trim(),last=$('regLast').value.trim(),email=$('regEmail').value.trim(),pass=$('regPass').value,pass2=$('regPass2').value;
+  if(!first||!last)return msg('authMsg','Escribe nombre y apellido.');
+  if(pass!==pass2)return msg('authMsg','Las contraseñas no coinciden.');
+  const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:{first_name:first,last_name:last}}});
+  if(error)return msg('authMsg',errText(error));
+  if(!data.session){
+    const s=await sb.auth.signInWithPassword({email,password:pass});
+    if(s.error)return msg('authMsg','Cuenta creada, pero falta desactivar “Confirm email” en Supabase para entrar inmediatamente.');
+  }
+  localStorage.removeItem(AWAY_KEY);
+  await enterApp();
+});
+
+$('loginForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  msg('authMsg','Entrando...');
+  const {error}=await sb.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPass').value});
+  if(error)return msg('authMsg',errText(error));
+  localStorage.removeItem(AWAY_KEY);
+  await enterApp();
+});
+
+async function sessionExpiredByAway(){
+  const raw=localStorage.getItem(AWAY_KEY);
+  if(!raw)return false;
+  const awaySince=Number(raw);
+  if(!Number.isFinite(awaySince)){localStorage.removeItem(AWAY_KEY);return false;}
+  if(Date.now()-awaySince<AWAY_LIMIT_MS){localStorage.removeItem(AWAY_KEY);return false;}
+  localStorage.removeItem(AWAY_KEY);
+  await sb.auth.signOut();
+  return true;
+}
+
+function markAway(){
+  if(!me||manualLogout)return;
+  if(!localStorage.getItem(AWAY_KEY))localStorage.setItem(AWAY_KEY,String(Date.now()));
+  if(presenceChannel){presenceChannel.untrack().catch(()=>{});}
+}
+
+async function handleReturnFromAway(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session){localStorage.removeItem(AWAY_KEY);return;}
+  if(await sessionExpiredByAway()){
+    alert('Tu sesión se cerró porque estuviste más de 10 minutos fuera del juego.');
+    location.reload();
+    return;
+  }
+  if(me){await trackPresence();await refreshEverything();}
+}
+
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)markAway();
+  else handleReturnFromAway().catch(()=>{});
+});
+window.addEventListener('pagehide',markAway);
+window.addEventListener('pageshow',()=>{if(!document.hidden)handleReturnFromAway().catch(()=>{});});
+
+async function enterApp(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return;
+  if(await sessionExpiredByAway()){location.reload();return;}
+  $('authView').classList.add('hidden');
+  $('appView').classList.remove('hidden');
+  await refreshEverything();
+  startPresence(session.user.id);
+  startLoop();
+}
+
+async function refreshEverything(){
+  await Promise.all([loadMe(),loadSettings()]);
+  await tickRoulette();
+  await Promise.all([loadBets(),loadRequests(),loadLedger()]);
+  renderMe();
+  renderSettings();
+  buildNumbers();
+}
 async function loadMe(){const {data,error}=await sb.from('rf_profiles').select('*').single();if(error)throw error;me=data}
 async function loadSettings(){const {data,error}=await sb.from('rf_app_settings').select('*').eq('id',1).single();if(error)throw error;settings=data}
-function renderMe(){if(!me)return;$('balanceTop').textContent=money(me.balance)+' FC';$('balancePanelValue').textContent=money(me.balance)+' FC';$('myPublicId').textContent=me.public_id;$('balancePublicId').textContent=me.public_id;$('repeatSwitch').checked=!!me.auto_repeat;$('promoterBtn').classList.toggle('hidden',me.role!=='promoter');$('leaderBtn').classList.toggle('hidden',me.role!=='leader');$('editFirst').value=me.first_name||'';$('editLast').value=me.last_name||'';$('promWhatsApp').value=me.whatsapp||''}
-function renderSettings(){if(!settings)return;$('rulesText').textContent=`Pago ×${Number(settings.payout_multiplier).toFixed(0)} · Apuesta mínima ${money(settings.min_bet)} FC · Pago global ${Number(settings.payout_probability).toFixed(0)}%`;$('stakeInput').min=settings.min_bet;if(Number($('stakeInput').value)<Number(settings.min_bet))$('stakeInput').value=Number(settings.min_bet).toFixed(3);$('publicNotice').textContent=settings.public_notice||'Información de Flash Coin.';$('groupBtn').disabled=!settings.whatsapp_group_url;$('groupBtn').textContent=settings.whatsapp_group_url?'Grupo WhatsApp':'Grupo no disponible';$('adminSeconds').value=settings.round_seconds;$('adminMinBet').value=settings.min_bet;$('adminPayoutPct').value=settings.payout_probability;$('adminGroupUrl').value=settings.whatsapp_group_url||'';$('adminNotice').value=settings.public_notice||''}
 
-async function tickRoulette(){if(tickBusy)return;tickBusy=true;try{const {data,error}=await sb.rpc('rf_tick_roulette');if(error)throw error;const r=Array.isArray(data)?data[0]:data;if(!r)return;clockOffset=new Date(r.server_now).getTime()-Date.now();const changed=!currentRound||Number(currentRound.id)!==Number(r.round_id);currentRound={id:r.round_id,status:r.round_status,starts_at:r.starts_at,ends_at:r.ends_at,winning_number:r.winning_number};$('roundId').textContent=currentRound.id;if(changed){const auto=await sb.rpc('rf_apply_saved_plays',{p_round_id:currentRound.id});await loadMe();await loadBets();renderMe();buildNumbers();if(auto.data===false&&me.auto_repeat)$('resultText').textContent='Nueva ronda · jugadas guardadas no aplicadas (revisa saldo o mínimo).';else $('resultText').textContent='Nueva ronda · elige tus números.'}await showLatestResult();}catch(e){$('resultText').textContent='Conexión: '+errText(e)}finally{tickBusy=false}}
-async function showLatestResult(){const {data}=await sb.rpc('rf_get_latest_result');const r=Array.isArray(data)?data[0]:data;if(!r||!r.round_id||Number(r.round_id)===Number(lastSettledId))return;lastSettledId=r.round_id;const winner=Number(r.winning_number);spinTo(winner);$('centerNumber').textContent=winner;$('resultText').textContent=`Resultado global: ${winner}`;await loadMe();renderMe();await loadLedger()}
-function spinTo(winner){const idx=WHEEL_ORDER.indexOf(winner),seg=360/13,current=((rotation%360)+360)%360,target=((360-idx*seg-current)%360+360)%360;rotation+=360*5+target;$('wheel').style.transform=`rotate(${rotation}deg)`}
-function updateCountdown(){if(!currentRound)return;const left=Math.max(0,Math.ceil((new Date(currentRound.ends_at).getTime()-(Date.now()+clockOffset))/1000));$('countdown').textContent=left;const locked=left<=0;document.querySelectorAll('.num').forEach(b=>b.disabled=locked)}
-let loopStarted=false;function startLoop(){if(loopStarted)return;loopStarted=true;setInterval(updateCountdown,250);setInterval(tickRoulette,1000);setInterval(async()=>{await loadMe();renderMe()},3500)}
+function renderMe(){
+  if(!me)return;
+  $('balanceTop').textContent=money(me.balance)+' FC';
+  $('balancePanelValue').textContent=money(me.balance)+' FC';
+  $('myPublicId').textContent=me.public_id;
+  $('balancePublicId').textContent=me.public_id;
+  $('repeatSwitch').checked=!!me.auto_repeat;
+  $('promoterBtn').classList.toggle('hidden',me.role!=='promoter');
+  $('leaderBtn').classList.toggle('hidden',me.role!=='leader');
+  $('editFirst').value=me.first_name||'';
+  $('editLast').value=me.last_name||'';
+  $('promWhatsApp').value=me.whatsapp||'';
+}
 
-async function loadBets(){if(!currentRound)return;const {data}=await sb.from('rf_bets').select('number,amount').eq('round_id',currentRound.id);myBets={};(data||[]).forEach(x=>myBets[x.number]=Number(x.amount));buildNumbers()}
-async function placeBet(n){if(!currentRound)return;const amount=Number($('stakeInput').value);if(!Number.isFinite(amount)||amount<Number(settings.min_bet))return alert(`Mínimo ${money(settings.min_bet)} FC`);const {error}=await sb.rpc('rf_place_bet',{p_number:n,p_amount:amount});if(error)return alert(errText(error));await Promise.all([loadMe(),loadBets()]);renderMe()}
-async function cancelNumber(n){const {data,error}=await sb.rpc('rf_cancel_bet_number',{p_number:n});if(error)return alert(errText(error));if(Number(data)>0){await Promise.all([loadMe(),loadBets()]);renderMe()}}
-$('stakeDown').onclick=()=>{const min=Number(settings?.min_bet||.01),cur=Number($('stakeInput').value||min),next=Math.max(min,cur-min);$('stakeInput').value=next.toFixed(3)};$('stakeUp').onclick=()=>{const step=Number(settings?.min_bet||.01),cur=Number($('stakeInput').value||step);$('stakeInput').value=(cur+step).toFixed(3)};
-$('repeatSwitch').addEventListener('change',async()=>{const enabled=$('repeatSwitch').checked;const {error}=await sb.rpc('rf_set_auto_repeat',{p_enabled:enabled});if(error){$('repeatSwitch').checked=!enabled;return alert(errText(error))}await loadMe();renderMe()});
+function renderSettings(){
+  if(!settings)return;
+  $('rulesText').textContent=`Pago ×${Number(settings.payout_multiplier).toFixed(0)} · Apuesta mínima ${money(settings.min_bet)} FC · Pago global ${Number(settings.payout_probability).toFixed(0)}%`;
+  $('stakeInput').min=settings.min_bet;
+  $('stakeInput').step=settings.min_bet;
+  if(!Number.isFinite(Number($('stakeInput').value))||Number($('stakeInput').value)<Number(settings.min_bet))$('stakeInput').value=Number(settings.min_bet).toFixed(3);
+  $('publicNotice').textContent=settings.public_notice||'Información de Flash Coin.';
+  $('groupBtn').disabled=!settings.whatsapp_group_url;
+  $('groupBtn').textContent=settings.whatsapp_group_url?'Grupo WhatsApp':'Grupo no disponible';
+  $('adminSeconds').value=settings.round_seconds;
+  $('adminMinBet').value=settings.min_bet;
+  $('adminPayoutPct').value=settings.payout_probability;
+  $('adminGroupUrl').value=settings.whatsapp_group_url||'';
+  $('adminNotice').value=settings.public_notice||'';
+}
 
-$('balanceBtn').onclick=async()=>{await Promise.all([loadMe(),loadRequests(),loadLedger()]);renderMe();show('balancePanel')};$('settingsBtn').onclick=()=>show('settingsPanel');$('editProfileBtn').onclick=()=>{hide('settingsPanel');show('editProfilePanel')};$('promotersInfoBtn').onclick=async()=>{hide('settingsPanel');await loadPromoters();show('promotersPanel')};$('promoterBtn').onclick=async()=>{await loadStats();show('promoterPanel')};$('groupBtn').onclick=()=>{if(settings?.whatsapp_group_url)window.open(settings.whatsapp_group_url,'_blank')};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>hide(b.dataset.close));
-$('saveProfileBtn').onclick=async()=>{const {error}=await sb.rpc('rf_update_my_name',{p_first_name:$('editFirst').value.trim(),p_last_name:$('editLast').value.trim()});if(error)return msg('profileMsg',errText(error));await loadMe();renderMe();msg('profileMsg','Nombre actualizado.')};
-$('logoutBtn').onclick=async()=>{if(presenceChannel)await presenceChannel.untrack();await sb.auth.signOut();location.reload()};
+async function tickRoulette(){
+  if(tickBusy||document.hidden)return;
+  tickBusy=true;
+  try{
+    const {data,error}=await sb.rpc('rf_tick_roulette');
+    if(error)throw error;
+    const r=Array.isArray(data)?data[0]:data;
+    if(!r)return;
+    clockOffset=new Date(r.server_now).getTime()-Date.now();
+    const changed=!currentRound||Number(currentRound.id)!==Number(r.round_id);
+    currentRound={id:r.round_id,status:r.round_status,starts_at:r.starts_at,ends_at:r.ends_at,winning_number:r.winning_number,payout_enabled:r.payout_enabled};
+    $('roundId').textContent=currentRound.id;
+    if(changed){
+      const auto=await sb.rpc('rf_apply_saved_plays',{p_round_id:currentRound.id});
+      await Promise.all([loadMe(),loadBets()]);
+      renderMe();
+      if(auto.error)console.warn(auto.error);
+      if(auto.data===false&&me.auto_repeat)$('resultText').textContent='Nueva ronda · jugadas guardadas no aplicadas (revisa saldo o mínimo).';
+      else $('resultText').textContent='Nueva ronda · toca cada número las veces que quieras apostar.';
+    }
+    await showLatestResult();
+  }catch(e){
+    $('resultText').textContent='Conexión: '+errText(e);
+  }finally{tickBusy=false;}
+}
 
-async function loadPromoters(){const {data,error}=await sb.rpc('rf_list_promoters');if(error)return;$('promotersList').innerHTML=(data||[]).length?(data||[]).map(p=>`<div class="card"><strong>🟢 ${esc(p.full_name)}</strong><span class="tiny">ID: ${esc(p.public_id)}</span>${p.whatsapp?`<button class="action wa" onclick="window.open('https://wa.me/${String(p.whatsapp).replace(/\D/g,'')}','_blank')">Contactar por WhatsApp</button>`:'<div class="tiny">Sin WhatsApp configurado</div>'}</div>`).join(''):'<div class="card">No hay promotores disponibles.</div>'}
-async function loadRequests(){const {data}=await sb.from('rf_transfer_requests').select('id,promoter_id,amount,status,created_at').eq('user_id',me?.id||'').order('created_at',{ascending:false}).limit(30);$('requestsList').innerHTML=(data||[]).length?(data||[]).map(r=>`<div class="card"><strong>${money(r.amount)} FC</strong><span class="tiny">Solicitud de promotor · ${esc(r.status)}</span>${r.status==='pending'?`<div class="row"><button class="action green" onclick="respondReq('${r.id}',true)">Aceptar</button><button class="action red" onclick="respondReq('${r.id}',false)">Rechazar</button></div>`:''}</div>`).join(''):'<div class="card">No tienes solicitudes.</div>'}
-window.respondReq=async(id,accept)=>{const {error}=await sb.rpc('rf_respond_transfer_request',{p_request_id:id,p_accept:accept});if(error)return alert(errText(error));await Promise.all([loadMe(),loadRequests(),loadLedger()]);renderMe()};
-async function loadLedger(){if(!me)return;const {data}=await sb.from('rf_wallet_ledger').select('delta,balance_after,movement_type,reference,created_at').order('created_at',{ascending:false}).limit(40);$('ledgerList').innerHTML=(data||[]).length?(data||[]).map(x=>`<div class="card"><strong class="${Number(x.delta)>=0?'success':'danger'}">${Number(x.delta)>=0?'+':''}${money(x.delta)} FC</strong><span class="tiny">${esc(x.movement_type)} · Saldo ${money(x.balance_after)} FC</span><div class="tiny">${esc(x.reference||'')}</div></div>`).join(''):'<div class="card">Sin movimientos todavía.</div>'}
+async function showLatestResult(){
+  const {data,error}=await sb.from('rf_rounds').select('id,winning_number,settled_at,payout_enabled').eq('status','settled').order('id',{ascending:false}).limit(1).maybeSingle();
+  if(error||!data||!data.id||Number(data.id)===Number(lastSettledId))return;
+  lastSettledId=data.id;
+  const winner=Number(data.winning_number);
+  spinTo(winner);
+  $('centerNumber').textContent=winner;
+  $('resultText').textContent=data.payout_enabled?`Resultado global: ${winner} · Pago habilitado`:`Resultado global: ${winner} · Ronda sin pago`;
+  await Promise.all([loadMe(),loadLedger()]);
+  renderMe();
+}
 
-async function startPresence(uid){presenceChannel=sb.channel('roulette-online',{config:{presence:{key:uid}}});presenceChannel.on('presence',{event:'sync'},()=>{const st=presenceChannel.presenceState();onlineCount=Object.keys(st).length;renderOnline()});presenceChannel.subscribe(async status=>{if(status==='SUBSCRIBED')await presenceChannel.track({user_id:uid,playing:true,at:new Date().toISOString()})})}
+function spinTo(winner){
+  const idx=WHEEL_ORDER.indexOf(winner),seg=360/13,current=((rotation%360)+360)%360,target=((360-idx*seg-current)%360+360)%360;
+  rotation+=360*5+target;
+  $('wheel').style.transform=`rotate(${rotation}deg)`;
+}
+
+function roundSecondsLeft(){
+  if(!currentRound)return 0;
+  return Math.max(0,Math.ceil((new Date(currentRound.ends_at).getTime()-(Date.now()+clockOffset))/1000));
+}
+function updateCountdown(){
+  if(!currentRound)return;
+  const left=roundSecondsLeft();
+  $('countdown').textContent=left;
+  const locked=left<=0;
+  document.querySelectorAll('.num').forEach(b=>b.disabled=locked);
+}
+function startLoop(){
+  if(loopStarted)return;
+  loopStarted=true;
+  setInterval(updateCountdown,250);
+  setInterval(()=>{if(!document.hidden)tickRoulette()},1000);
+  setInterval(async()=>{if(document.hidden)return;try{await loadMe();renderMe()}catch{}},3500);
+}
+
+async function loadBets(){
+  if(!currentRound)return;
+  const {data,error}=await sb.from('rf_bets').select('number,amount,tap_count').eq('round_id',currentRound.id);
+  if(error)throw error;
+  myBets={};
+  (data||[]).forEach(x=>myBets[x.number]={amount:Number(x.amount),taps:Number(x.tap_count||1)});
+  buildNumbers();
+}
+
+function queueBet(n){
+  if(!currentRound||roundSecondsLeft()<=0)return;
+  betQueues[n]=(betQueues[n]||Promise.resolve()).then(()=>placeBetOnce(n)).catch(e=>alert(errText(e)));
+}
+
+async function placeBetOnce(n){
+  const amount=Number($('stakeInput').value);
+  const minimum=Number(settings?.min_bet||0.01);
+  if(!Number.isFinite(amount)||amount<minimum){alert(`Mínimo ${money(minimum)} FC`);return;}
+  if(!me||Number(me.balance)<amount){alert('Saldo Flash Coin insuficiente.');return;}
+  if(roundSecondsLeft()<=0){alert('La ronda está cerrando. Espera la próxima.');return;}
+  const {error}=await sb.rpc('rf_place_bet',{p_number:n,p_amount:amount});
+  if(error){alert(errText(error));return;}
+  await Promise.all([loadMe(),loadBets()]);
+  renderMe();
+}
+
+async function cancelNumber(n){
+  if(roundSecondsLeft()<=0)return alert('La ronda está cerrando.');
+  const {data,error}=await sb.rpc('rf_cancel_bet_number',{p_number:n});
+  if(error)return alert(errText(error));
+  if(Number(data)>0){
+    await Promise.all([loadMe(),loadBets()]);
+    renderMe();
+    $('resultText').textContent=`Apuesta del ${n} cancelada · ${money(data)} FC devueltos al saldo.`;
+  }
+}
+
+$('stakeDown').onclick=()=>{
+  const min=Number(settings?.min_bet||.01),cur=Number($('stakeInput').value||min),next=Math.max(min,cur-min);
+  $('stakeInput').value=next.toFixed(3);
+};
+$('stakeUp').onclick=()=>{
+  const step=Number(settings?.min_bet||.01),cur=Number($('stakeInput').value||step);
+  $('stakeInput').value=(cur+step).toFixed(3);
+};
+$('stakeInput').addEventListener('blur',()=>{
+  const min=Number(settings?.min_bet||.01),v=Number($('stakeInput').value);
+  $('stakeInput').value=(!Number.isFinite(v)||v<min?min:v).toFixed(3);
+});
+
+$('repeatSwitch').addEventListener('change',async()=>{
+  const enabled=$('repeatSwitch').checked;
+  const {error}=await sb.rpc('rf_set_auto_repeat',{p_enabled:enabled});
+  if(error){$('repeatSwitch').checked=!enabled;return alert(errText(error));}
+  await loadMe();renderMe();
+});
+
+$('balanceBtn').onclick=async()=>{await Promise.all([loadMe(),loadRequests(),loadLedger()]);renderMe();show('balancePanel')};
+$('settingsBtn').onclick=()=>show('settingsPanel');
+$('editProfileBtn').onclick=()=>{hide('settingsPanel');show('editProfilePanel')};
+$('promotersInfoBtn').onclick=async()=>{hide('settingsPanel');await loadPromoters();show('promotersPanel')};
+$('promoterBtn').onclick=async()=>{
+  if(me?.role!=='promoter')return alert('Este panel solo está disponible para promotores asignados.');
+  await loadStats();show('promoterPanel');
+};
+$('groupBtn').onclick=()=>{if(settings?.whatsapp_group_url)window.open(settings.whatsapp_group_url,'_blank')};
+document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>hide(b.dataset.close));
+
+$('saveProfileBtn').onclick=async()=>{
+  const {error}=await sb.rpc('rf_update_my_name',{p_first_name:$('editFirst').value.trim(),p_last_name:$('editLast').value.trim()});
+  if(error)return msg('profileMsg',errText(error));
+  await loadMe();renderMe();msg('profileMsg','Nombre actualizado.');
+};
+
+$('logoutBtn').onclick=async()=>{
+  manualLogout=true;
+  localStorage.removeItem(AWAY_KEY);
+  if(presenceChannel)await presenceChannel.untrack().catch(()=>{});
+  await sb.auth.signOut();
+  location.reload();
+};
+
+async function loadPromoters(){
+  const {data,error}=await sb.rpc('rf_list_promoters');
+  if(error)return;
+  $('promotersList').innerHTML=(data||[]).length?(data||[]).map(p=>`<div class="card"><strong>🟢 ${esc(p.full_name)}</strong><span class="tiny">ID: ${esc(p.public_id)}</span>${p.whatsapp?`<button class="action wa" onclick="window.open('https://wa.me/${String(p.whatsapp).replace(/\D/g,'')}','_blank')">Contactar por WhatsApp</button>`:'<div class="tiny">Sin WhatsApp configurado</div>'}</div>`).join(''):'<div class="card">No hay promotores disponibles.</div>';
+}
+
+async function loadRequests(){
+  const {data}=await sb.from('rf_transfer_requests').select('id,promoter_id,amount,status,created_at').eq('user_id',me?.id||'').order('created_at',{ascending:false}).limit(30);
+  $('requestsList').innerHTML=(data||[]).length?(data||[]).map(r=>`<div class="card"><strong>${money(r.amount)} FC</strong><span class="tiny">Solicitud de promotor · ${esc(r.status)}</span>${r.status==='pending'?`<div class="row"><button class="action green" onclick="respondReq('${r.id}',true)">Aceptar</button><button class="action red" onclick="respondReq('${r.id}',false)">Rechazar</button></div>`:''}</div>`).join(''):'<div class="card">No tienes solicitudes.</div>';
+}
+window.respondReq=async(id,accept)=>{
+  const {error}=await sb.rpc('rf_respond_transfer_request',{p_request_id:id,p_accept:accept});
+  if(error)return alert(errText(error));
+  await Promise.all([loadMe(),loadRequests(),loadLedger()]);renderMe();
+};
+
+async function loadLedger(){
+  if(!me)return;
+  const {data}=await sb.from('rf_wallet_ledger').select('delta,balance_after,movement_type,reference,created_at').order('created_at',{ascending:false}).limit(40);
+  $('ledgerList').innerHTML=(data||[]).length?(data||[]).map(x=>`<div class="card"><strong class="${Number(x.delta)>=0?'success':'danger'}">${Number(x.delta)>=0?'+':''}${money(x.delta)} FC</strong><span class="tiny">${esc(x.movement_type)} · Saldo ${money(x.balance_after)} FC</span><div class="tiny">${esc(x.reference||'')}</div></div>`).join(''):'<div class="card">Sin movimientos todavía.</div>';
+}
+
+async function startPresence(uid){
+  if(presenceChannel){await trackPresence();return;}
+  presenceChannel=sb.channel('roulette-online',{config:{presence:{key:uid}}});
+  presenceChannel.on('presence',{event:'sync'},()=>{
+    const st=presenceChannel.presenceState();
+    onlineCount=Object.keys(st).length;
+    renderOnline();
+  });
+  presenceChannel.subscribe(status=>{
+    if(status==='SUBSCRIBED')trackPresence();
+  });
+}
+async function trackPresence(){
+  if(!presenceChannel||document.hidden||!me)return;
+  try{await presenceChannel.track({user_id:me.id,playing:true,at:new Date().toISOString()});}catch{}
+}
 function renderOnline(){$('promOnline').textContent=onlineCount;$('adminOnline').textContent=onlineCount}
-async function loadStats(){const {data,error}=await sb.rpc('rf_get_dashboard_stats');if(error)return;const n=(Array.isArray(data)?data[0]?.registered_users:data?.registered_users)||0;$('promRegistered').textContent=n;$('adminRegistered').textContent=n;renderOnline()}
+async function loadStats(){
+  const {data,error}=await sb.rpc('rf_get_dashboard_stats');
+  if(error)return;
+  const n=(Array.isArray(data)?data[0]?.registered_users:data?.registered_users)||0;
+  $('promRegistered').textContent=n;$('adminRegistered').textContent=n;renderOnline();
+}
 
-$('saveWhatsAppBtn').onclick=async()=>{const {error}=await sb.rpc('rf_update_my_whatsapp',{p_whatsapp:$('promWhatsApp').value.trim()});if(error)return alert(errText(error));await loadMe();renderMe();alert('WhatsApp actualizado.')};
-$('promSearchBtn').onclick=async()=>{const id=$('promSearchId').value.trim();const {data,error}=await sb.rpc('rf_search_user_by_public_id',{p_public_id:id});if(error)return alert(errText(error));const u=Array.isArray(data)?data[0]:data;selectedPromUser=u||null;$('promSearchResult').innerHTML=u?`<div class="card"><strong>${esc(u.full_name)}</strong><span class="tiny">ID ${esc(u.public_id)} · Saldo ${money(u.balance)} FC</span><button class="action blue" id="openPromUser">Abrir usuario</button></div>`:'<div class="card">ID no encontrado.</div>';if(u)$('openPromUser').onclick=()=>{$('promUserCard').innerHTML=`<strong>${esc(u.full_name)}</strong><span class="tiny">ID: ${esc(u.public_id)} · Saldo: ${money(u.balance)} FC</span>`;show('promUserPanel')}};
-$('promSendBtn').onclick=async()=>promAction('send');$('promRequestBtn').onclick=async()=>promAction('request');async function promAction(kind){if(!selectedPromUser)return;const amount=Number($('promAmount').value);if(!(amount>0))return msg('promUserMsg','Monto inválido.');const fn=kind==='send'?'rf_promoter_send_fc':'rf_promoter_request_fc';const {error}=await sb.rpc(fn,{p_public_id:selectedPromUser.public_id,p_amount:amount});if(error)return msg('promUserMsg',errText(error));msg('promUserMsg',kind==='send'?'Flash Coin enviadas.':'Solicitud enviada al usuario.');await loadMe();renderMe()}
+$('saveWhatsAppBtn').onclick=async()=>{
+  const {error}=await sb.rpc('rf_update_my_whatsapp',{p_whatsapp:$('promWhatsApp').value.trim()});
+  if(error)return alert(errText(error));
+  await loadMe();renderMe();alert('WhatsApp actualizado.');
+};
 
-$('leaderBtn').onclick=async()=>{hide('settingsPanel');msg('leaderGateMsg','');const {data,error}=await sb.rpc('rf_leader_has_password');if(error)return alert(errText(error));$('leaderFirstSetup').classList.toggle('hidden',!!data);$('leaderLoginBox').classList.toggle('hidden',!data);show('leaderGatePanel')};
-$('leaderCreatePassBtn').onclick=async()=>{const a=$('leaderNewPass').value,b=$('leaderNewPass2').value;if(a!==b)return msg('leaderGateMsg','Las contraseñas no coinciden.');const {error}=await sb.rpc('rf_leader_set_initial_password',{p_password:a});if(error)return msg('leaderGateMsg',errText(error));hide('leaderGatePanel');await openLeaderPanel()};
-$('leaderUnlockBtn').onclick=async()=>{const {data,error}=await sb.rpc('rf_leader_verify_password',{p_password:$('leaderPass').value});if(error)return msg('leaderGateMsg',errText(error));if(!data)return msg('leaderGateMsg','Contraseña incorrecta.');hide('leaderGatePanel');await openLeaderPanel()};
+$('promSearchBtn').onclick=async()=>{
+  const id=$('promSearchId').value.trim();
+  const {data,error}=await sb.rpc('rf_search_user_by_public_id',{p_public_id:id});
+  if(error)return alert(errText(error));
+  const u=Array.isArray(data)?data[0]:data;
+  selectedPromUser=u||null;
+  $('promSearchResult').innerHTML=u?`<div class="card"><strong>${esc(u.full_name)}</strong><span class="tiny">ID ${esc(u.public_id)} · Saldo ${money(u.balance)} FC</span><button class="action blue" id="openPromUser">Abrir usuario</button></div>`:'<div class="card">ID no encontrado.</div>';
+  if(u)$('openPromUser').onclick=()=>{
+    $('promUserCard').innerHTML=`<strong>${esc(u.full_name)}</strong><span class="tiny">ID: ${esc(u.public_id)} · Saldo: ${money(u.balance)} FC</span>`;
+    show('promUserPanel');
+  };
+};
+$('promSendBtn').onclick=async()=>promAction('send');
+$('promRequestBtn').onclick=async()=>promAction('request');
+async function promAction(kind){
+  if(me?.role!=='promoter')return msg('promUserMsg','Ya no tienes permiso de promotor.');
+  if(!selectedPromUser)return;
+  const amount=Number($('promAmount').value);
+  if(!(amount>0))return msg('promUserMsg','Monto inválido.');
+  const fn=kind==='send'?'rf_promoter_send_fc':'rf_promoter_request_fc';
+  const {error}=await sb.rpc(fn,{p_public_id:selectedPromUser.public_id,p_amount:amount});
+  if(error)return msg('promUserMsg',errText(error));
+  msg('promUserMsg',kind==='send'?'Flash Coin enviadas.':'Solicitud enviada al usuario.');
+  await loadMe();renderMe();
+}
+
+$('leaderBtn').onclick=async()=>{
+  hide('settingsPanel');msg('leaderGateMsg','');
+  const {data,error}=await sb.rpc('rf_leader_has_password');
+  if(error)return alert(errText(error));
+  $('leaderFirstSetup').classList.toggle('hidden',!!data);
+  $('leaderLoginBox').classList.toggle('hidden',!data);
+  show('leaderGatePanel');
+};
+$('leaderCreatePassBtn').onclick=async()=>{
+  const a=$('leaderNewPass').value,b=$('leaderNewPass2').value;
+  if(a!==b)return msg('leaderGateMsg','Las contraseñas no coinciden.');
+  const {error}=await sb.rpc('rf_leader_set_initial_password',{p_password:a});
+  if(error)return msg('leaderGateMsg',errText(error));
+  hide('leaderGatePanel');await openLeaderPanel();
+};
+$('leaderUnlockBtn').onclick=async()=>{
+  const {data,error}=await sb.rpc('rf_leader_verify_password',{p_password:$('leaderPass').value});
+  if(error)return msg('leaderGateMsg',errText(error));
+  if(!data)return msg('leaderGateMsg','Contraseña incorrecta.');
+  hide('leaderGatePanel');await openLeaderPanel();
+};
 async function openLeaderPanel(){await Promise.all([loadSettings(),loadStats()]);renderSettings();show('leaderPanel')}
-$('adminFindPromBtn').onclick=async()=>{const id=$('adminPromId').value.trim();const {data,error}=await sb.rpc('rf_search_user_by_public_id',{p_public_id:id});if(error)return alert(errText(error));const u=Array.isArray(data)?data[0]:data;$('adminPromResult').innerHTML=u?`<div class="card"><strong>${esc(u.full_name)}</strong><span class="tiny">ID ${esc(u.public_id)} · Rol ${esc(u.role)}</span><button id="togglePromRole" class="action ${u.role==='promoter'?'red':'green'}">${u.role==='promoter'?'Quitar promotor':'Asignar como promotor'}</button></div>`:'<div class="card">ID no encontrado.</div>';if(u)$('togglePromRole').onclick=async()=>{const {error}=await sb.rpc('rf_admin_set_promoter',{p_public_id:u.public_id,p_enabled:u.role!=='promoter'});if(error)return alert(errText(error));$('adminFindPromBtn').click()}};
-$('adminRechargeBtn').onclick=async()=>{const id=$('adminRechargeId').value.trim(),amount=Number($('adminRechargeAmount').value);const {data,error}=await sb.rpc('rf_admin_recharge',{p_public_id:id,p_amount:amount});if(error)return msg('adminMsg',errText(error));msg('adminMsg',`Recarga realizada. Nuevo saldo: ${money(data)} FC`)};
-$('adminSaveSettingsBtn').onclick=async()=>{const payload={p_round_seconds:Number($('adminSeconds').value),p_min_bet:Number($('adminMinBet').value),p_payout_probability:Number($('adminPayoutPct').value),p_whatsapp_group_url:$('adminGroupUrl').value.trim(),p_public_notice:$('adminNotice').value.trim()};const {data,error}=await sb.rpc('rf_admin_update_settings',payload);if(error)return msg('adminMsg',errText(error));settings=Array.isArray(data)?data[0]:data;renderSettings();msg('adminMsg','Configuración guardada.')};
-$('changeLeaderPassBtn').onclick=async()=>{const {error}=await sb.rpc('rf_leader_change_password',{p_old_password:$('oldLeaderPass').value,p_new_password:$('newLeaderPass').value});if(error)return msg('adminMsg',errText(error));$('oldLeaderPass').value='';$('newLeaderPass').value='';msg('adminMsg','Contraseña actualizada.')};
+$('adminFindPromBtn').onclick=async()=>{
+  const id=$('adminPromId').value.trim();
+  const {data,error}=await sb.rpc('rf_search_user_by_public_id',{p_public_id:id});
+  if(error)return alert(errText(error));
+  const u=Array.isArray(data)?data[0]:data;
+  $('adminPromResult').innerHTML=u?`<div class="card"><strong>${esc(u.full_name)}</strong><span class="tiny">ID ${esc(u.public_id)} · Rol ${esc(u.role)}</span><button id="togglePromRole" class="action ${u.role==='promoter'?'red':'green'}">${u.role==='promoter'?'Quitar promotor':'Asignar como promotor'}</button></div>`:'<div class="card">ID no encontrado.</div>';
+  if(u)$('togglePromRole').onclick=async()=>{
+    const {error}=await sb.rpc('rf_admin_set_promoter',{p_public_id:u.public_id,p_enabled:u.role!=='promoter'});
+    if(error)return alert(errText(error));
+    $('adminFindPromBtn').click();
+  };
+};
+$('adminRechargeBtn').onclick=async()=>{
+  const id=$('adminRechargeId').value.trim(),amount=Number($('adminRechargeAmount').value);
+  const {data,error}=await sb.rpc('rf_admin_recharge',{p_public_id:id,p_amount:amount});
+  if(error)return msg('adminMsg',errText(error));
+  msg('adminMsg',`Recarga realizada. Nuevo saldo: ${money(data)} FC`);
+};
+$('adminSaveSettingsBtn').onclick=async()=>{
+  const payload={p_round_seconds:Number($('adminSeconds').value),p_min_bet:Number($('adminMinBet').value),p_payout_probability:Number($('adminPayoutPct').value),p_whatsapp_group_url:$('adminGroupUrl').value.trim(),p_public_notice:$('adminNotice').value.trim()};
+  const {data,error}=await sb.rpc('rf_admin_update_settings',payload);
+  if(error)return msg('adminMsg',errText(error));
+  settings=Array.isArray(data)?data[0]:data;
+  renderSettings();msg('adminMsg','Configuración guardada.');
+};
+$('changeLeaderPassBtn').onclick=async()=>{
+  const {error}=await sb.rpc('rf_leader_change_password',{p_old_password:$('oldLeaderPass').value,p_new_password:$('newLeaderPass').value});
+  if(error)return msg('adminMsg',errText(error));
+  $('oldLeaderPass').value='';$('newLeaderPass').value='';msg('adminMsg','Contraseña actualizada.');
+};
 
 buildWheel();
-(async()=>{const {data:{session}}=await sb.auth.getSession();if(session)await enterApp();sb.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_IN'&&session&&$('appView').classList.contains('hidden'))await enterApp()})})().catch(e=>msg('authMsg',errText(e)));
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    if(!(await sessionExpiredByAway()))await enterApp();
+  }
+  sb.auth.onAuthStateChange(async(event,sessionNow)=>{
+    if(event==='SIGNED_IN'&&sessionNow&&$('appView').classList.contains('hidden'))await enterApp();
+    if(event==='SIGNED_OUT'){
+      me=null;currentRound=null;myBets={};
+      $('appView').classList.add('hidden');$('authView').classList.remove('hidden');
+    }
+  });
+})().catch(e=>msg('authMsg',errText(e)));
 </script>
 </body>
 </html>
