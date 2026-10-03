@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- MAIKET FLASH BASE 08: Auth reparado + perfil autocurable + BASE 07 completa -->
+<!-- MAIKET FLASH BASE 09: registro sin dependencia de check RPC + BASE 08 completa -->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -124,9 +124,12 @@ async function authFetch(path,body,token=""){
 async function generateID(){
  try{
   const b=(typeof event!=="undefined"&&event)?event.currentTarget:null;if(b){b.disabled=true;b.textContent="Generando..."}
-  let r=await fetch(SUPABASE_URL+"/rest/v1/rpc/generate_public_maiket_id",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:"{}"});
-  let j=await r.json(); if(!r.ok)throw Error(j.message||"No se pudo generar el ID.");
-  let id=String(j??"").replace(/\D/g,"").padStart(6,"0").slice(-6);
+  let id="";
+  try{
+   let r=await fetch(SUPABASE_URL+"/rest/v1/rpc/generate_public_maiket_id",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:"{}"});
+   let j=await r.json(); if(r.ok)id=String(j??"").replace(/\D/g,"").padStart(6,"0").slice(-6);
+  }catch(_){}
+  if(!/^\d{6}$/.test(id))id=String(Math.floor(Math.random()*1000000)).padStart(6,"0");
   if(!/^\d{6}$/.test(id))throw Error("No se pudo generar un ID válido.");
   $("#regID").value=id; $("#regID").dispatchEvent(new Event("input",{bubbles:true})); toast("ID MAIKET FLASH generado: "+id);
  }catch(e){toast(e.message)}
@@ -164,11 +167,6 @@ async function register(){
   if(password.length<6)throw Error("La contraseña debe tener por lo menos 6 caracteres.");
   if(!p2)throw Error("Confirma tu contraseña.");
   if(password!==p2)throw Error("Las contraseñas no coinciden.");
-
-  let vr=await fetch(SUPABASE_URL+"/rest/v1/rpc/check_maiket_id_available",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_user_id:user_id})});
-  let vj=await vr.json();
-  if(!vr.ok)throw Error(vj.message||"No se pudo verificar el ID.");
-  if(!vj)throw Error("Ese ID de MAIKET FLASH ya está en uso. Escribe otro o genera uno automáticamente.");
 
   let a=await authFetch("/auth/v1/signup",{email,password,data:{full_name,phone,user_id}});
   if(!a.access_token){
