@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 0.4</title>
+<title>Ruleta Flash Coin — HTML 0.5</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -32,8 +32,10 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .online-chip{display:flex;align-items:center;gap:5px;border:1px solid rgba(92,255,145,.34);background:rgba(5,24,14,.90);color:#b8ffd0;border-radius:12px;min-height:42px;padding:8px 10px;font-weight:850;font-size:11px;white-space:nowrap}.online-dot{width:8px;height:8px;border-radius:50%;background:#42e77c;box-shadow:0 0 8px #42e77c}.info-chip{background:linear-gradient(135deg,#24395c,#0c1728);border-color:#5d89c7;color:#fff;white-space:nowrap}.invite-btn{font-size:11px}.game-layout{width:min(100%,900px);margin:8px auto 0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.public-notice-side{display:none;background:rgba(34,28,7,.94);border:1px solid #927617;border-radius:15px;padding:12px;white-space:pre-wrap;color:#ffeaa0;font-size:13px}.public-notice-side:not(.hidden){display:block}.copy-btn{border:1px solid #41506a;background:#182234;color:#fff;border-radius:8px;padding:4px 7px;font-size:10px;margin-left:5px;vertical-align:middle}.copy-toast{position:fixed;z-index:500;left:50%;bottom:24px;transform:translateX(-50%);background:#111a27;border:1px solid #52627c;color:#fff;border-radius:999px;padding:9px 14px;font-size:12px;opacity:0;pointer-events:none;transition:.2s}.copy-toast.show{opacity:1}.switch-line{display:flex;align-items:center;gap:10px;margin:7px 0;padding:9px;border:1px solid #344154;border-radius:12px;background:#0b111b}.whatsapp-preview{font-size:12px;color:#8df2ad;margin-top:5px;min-height:18px}.ref-card{background:#0b1422;border:1px solid #2f4e78;border-radius:14px;padding:12px;margin-top:8px}.ref-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.ref-stats div{background:#080d15;border:1px solid #26344a;border-radius:10px;padding:8px;text-align:center}.ref-stats b{display:block;color:#ffd55d;font-size:17px}@media(min-width:820px){.game-layout{grid-template-columns:220px minmax(0,620px);align-items:start;justify-content:center}.public-notice-side{position:sticky;top:12px}.machine{margin-top:0}}
 @media(max-width:390px){.numbers{grid-template-columns:repeat(7,1fr);gap:4px}.num{min-height:50px;font-size:14px}.wn{font-size:15px;transform:rotate(var(--a)) translateY(calc(-1 * min(24vw,90px))) rotate(calc(-1 * var(--a)))}.topbar,.top-tools,.wallet-row{gap:4px}.icon-btn,.balance-chip{padding:7px;font-size:11px}.promoter-chip{font-size:10px}.brand-mini{font-size:14px}}
 
-/* ===== HTML 0.4 ===== */
-.stake-label-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}.mini-toggle{display:flex;align-items:center;gap:5px;font-size:10px;color:#d6dce6}.mini-toggle .switch{transform:scale(.82);transform-origin:right center}.control-stack{display:grid;gap:6px}.sound-box{min-height:40px}.search-mini{flex:0 0 48px!important;width:48px;min-width:48px;margin:6px 0;padding:10px 8px;border:1px solid #41608c;border-radius:12px;background:#15375f;color:#fff;font-weight:900}.receipt-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.receipt-item{background:#080d15;border:1px solid #2b394e;border-radius:12px;padding:10px}.receipt-item span{display:block;color:var(--muted);font-size:10px;margin-bottom:3px}.receipt-item b{font-size:13px;word-break:break-word}.save-confirm{position:fixed;z-index:650;inset:0;display:none;place-items:center;background:rgba(0,0,0,.58);pointer-events:none}.save-confirm.show{display:grid}.save-confirm-card{min-width:220px;text-align:center;background:#0c1712;border:1px solid #3bdd78;border-radius:20px;padding:22px;box-shadow:0 20px 70px #000}.save-check{width:62px;height:62px;margin:0 auto 9px;border-radius:50%;display:grid;place-items:center;background:#15954d;color:#fff;font-size:38px;font-weight:950}.win-flash{position:fixed;z-index:700;inset:0;display:none;place-items:center;background:radial-gradient(circle,rgba(255,230,94,.50),rgba(255,164,0,.22) 38%,rgba(0,0,0,.78) 78%);animation:winPulse .42s ease-in-out infinite alternate}.win-flash.show{display:grid}.win-card{text-align:center;background:rgba(7,10,16,.92);border:2px solid #ffe16e;border-radius:24px;padding:24px 28px;box-shadow:0 0 35px #ffb000}.win-card h2{font-size:30px;color:#ffe478}.win-prize{font-size:38px;font-weight:950;color:#6cff94;margin-top:7px}@keyframes winPulse{from{filter:brightness(1)}to{filter:brightness(1.45)}}
+/* ===== HTML 0.5 ===== */
+.stake-label-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}.mini-toggle{display:flex;align-items:center;gap:5px;font-size:10px;color:#d6dce6}.mini-toggle .switch{transform:scale(.82);transform-origin:right center}.control-stack{display:grid;gap:6px}.sound-box{min-height:40px}.search-mini{flex:0 0 48px!important;width:48px;min-width:48px;margin:6px 0;padding:10px 8px;border:1px solid #41608c;border-radius:12px;background:#15375f;color:#fff;font-weight:900}
+/* Comprobante oficial Flash Coin — negro/dorado premium */
+.receipt-panel-wrap{max-width:470px!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}.receipt-panel-wrap>.close{position:relative;z-index:3;margin:9px 9px -48px 0;background:rgba(255,255,255,.08);border:1px solid rgba(255,216,107,.28)}.receipt-panel-wrap>h2{position:absolute;left:-9999px}.premium-receipt{position:relative;overflow:hidden;background:linear-gradient(155deg,#17130b 0%,#08090c 34%,#050608 100%);border:1px solid rgba(238,193,86,.68);border-radius:28px;padding:22px;box-shadow:0 26px 80px rgba(0,0,0,.72),inset 0 1px 0 rgba(255,235,169,.18);color:#f8f2df}.premium-receipt:before{content:"";position:absolute;inset:-30% 30% 52% -20%;background:radial-gradient(circle,rgba(241,188,57,.18),transparent 67%);pointer-events:none}.premium-receipt:after{content:"";position:absolute;right:-65px;top:-55px;width:170px;height:170px;border:1px solid rgba(255,214,105,.13);border-radius:50%;box-shadow:0 0 0 18px rgba(255,214,105,.025),0 0 0 36px rgba(255,214,105,.018);pointer-events:none}.receipt-head{position:relative;z-index:1;text-align:center;padding:10px 4px 18px;border-bottom:1px solid rgba(235,196,91,.20)}.receipt-brand{font-size:12px;letter-spacing:2.4px;font-weight:950;color:#e7bc54;text-transform:uppercase}.receipt-subbrand{font-size:9px;letter-spacing:1.8px;color:#827862;margin-top:3px}.receipt-check{width:58px;height:58px;margin:16px auto 10px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff0a4,#d9a326 48%,#765000 100%);color:#161006;font-size:34px;font-weight:950;box-shadow:0 0 0 5px rgba(224,176,57,.10),0 0 26px rgba(238,188,53,.28)}.receipt-success{font-size:18px;font-weight:950;color:#fff8df}.receipt-kicker{font-size:10px;color:#a79b80;margin-top:5px;letter-spacing:.25px}.receipt-amount{position:relative;z-index:1;text-align:center;padding:19px 8px 17px}.receipt-amount .label{font-size:10px;color:#948972;text-transform:uppercase;letter-spacing:1.2px}.receipt-amount strong{display:block;font-size:37px;line-height:1.1;color:#f5cb63;margin-top:5px;text-shadow:0 0 20px rgba(237,189,65,.16)}.receipt-status{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:6px 11px;border-radius:999px;border:1px solid rgba(111,237,154,.22);background:rgba(29,118,66,.14);color:#86efaa;font-size:10px;font-weight:900}.receipt-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#50db84;box-shadow:0 0 8px #50db84}.receipt-details{position:relative;z-index:1;border-top:1px solid rgba(235,196,91,.15);border-bottom:1px solid rgba(235,196,91,.15);padding:8px 0}.receipt-line{display:flex;justify-content:space-between;gap:18px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.055)}.receipt-line:last-child{border-bottom:0}.receipt-line span{font-size:10px;color:#8e8a82}.receipt-line b{max-width:62%;text-align:right;font-size:11px;color:#eee5d2;word-break:break-word}.receipt-balance{position:relative;z-index:1;margin-top:15px;padding:14px;border-radius:15px;border:1px solid rgba(230,186,72,.22);background:linear-gradient(135deg,rgba(218,165,43,.11),rgba(255,255,255,.025));text-align:center}.receipt-balance span{display:block;font-size:10px;color:#a69a80}.receipt-balance b{display:block;color:#f5cf6b;font-size:20px;margin-top:3px}.receipt-foot{position:relative;z-index:1;text-align:center;padding-top:15px;color:#6e6a61;font-size:9px;letter-spacing:.45px}.receipt-ref{margin-top:4px;color:#998d72}.save-confirm{position:fixed;z-index:650;inset:0;display:none;place-items:center;background:rgba(0,0,0,.58);pointer-events:none}.save-confirm.show{display:grid}.save-confirm-card{min-width:220px;text-align:center;background:#0c1712;border:1px solid #3bdd78;border-radius:20px;padding:22px;box-shadow:0 20px 70px #000}.save-check{width:62px;height:62px;margin:0 auto 9px;border-radius:50%;display:grid;place-items:center;background:#15954d;color:#fff;font-size:38px;font-weight:950}.win-flash{position:fixed;z-index:700;inset:0;display:none;place-items:center;background:radial-gradient(circle,rgba(255,230,94,.50),rgba(255,164,0,.22) 38%,rgba(0,0,0,.78) 78%);animation:winPulse .42s ease-in-out infinite alternate}.win-flash.show{display:grid}.win-flash.no-flash{animation:none;background:rgba(0,0,0,.76)}.win-flash.no-flash .win-card{box-shadow:0 18px 60px rgba(0,0,0,.72)}.win-card{text-align:center;background:rgba(7,10,16,.95);border:2px solid #ffe16e;border-radius:24px;padding:24px 28px;box-shadow:0 0 35px #ffb000}.win-card h2{font-size:30px;color:#ffe478}.win-prize{font-size:38px;font-weight:950;color:#6cff94;margin-top:7px}@keyframes winPulse{from{filter:brightness(1)}to{filter:brightness(1.45)}}
 @media(max-width:420px){.receipt-grid{grid-template-columns:1fr}.bet-controls{grid-template-columns:minmax(0,1fr) 118px}.switch-box{padding:7px 8px}}
 </style>
 </head>
@@ -105,6 +107,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
       <div class="control-stack">
         <label class="switch-box"><input id="repeatSwitch" class="switch" type="checkbox"><span>Guardar<br>jugadas</span></label>
         <label class="switch-box sound-box"><input id="soundSwitch" class="switch" type="checkbox" checked><span>🔊 Sonido</span></label>
+        <label class="switch-box sound-box"><input id="flashSwitch" class="switch" type="checkbox" checked><span>✨ Destello</span></label>
       </div>
     </div>
 
@@ -134,7 +137,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Porcentaje global de pago (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración</button></div>
 <div class="section"><h3>Cambiar contraseña del panel</h3><input id="oldLeaderPass" class="field" type="password" placeholder="Contraseña actual"><input id="newLeaderPass" class="field" type="password" placeholder="Nueva contraseña"><button id="changeLeaderPassBtn" class="action dark">Cambiar contraseña</button></div><div id="adminMsg" class="msg"></div></div></div>
 
-<div id="receiptPanel" class="overlay"><div class="panel"><button class="close" data-close="receiptPanel">✕</button><h2 id="receiptTitle">Comprobante</h2><div id="receiptContent"></div></div></div>
+<div id="receiptPanel" class="overlay"><div class="panel receipt-panel-wrap"><button class="close" data-close="receiptPanel">✕</button><h2 id="receiptTitle">Comprobante</h2><div id="receiptContent"></div></div></div>
 
 <div id="saveConfirm" class="save-confirm"><div class="save-confirm-card"><div class="save-check">✓</div><b id="saveConfirmText">Guardado correctamente</b></div></div>
 
@@ -307,6 +310,7 @@ function renderMe(){
   $('repeatSwitch').checked=!!me.auto_repeat;
   $('fixedStakeSwitch').checked=!!me.fixed_stake_enabled;
   $('soundSwitch').checked=me.sound_enabled!==false;
+  $('flashSwitch').checked=me.flash_enabled!==false;
   if(me.fixed_stake_enabled&&Number(me.fixed_stake_amount)>0&&document.activeElement!==$('stakeInput'))$('stakeInput').value=money(Math.max(Number(me.fixed_stake_amount),Number(settings?.min_bet||0)));
   $('promoterBtn').classList.toggle('hidden',me.role!=='promoter');
   $('leaderBtn').classList.toggle('hidden',me.role!=='leader');
@@ -356,12 +360,44 @@ function showSaved(text,after){
   setTimeout(()=>{ $('saveConfirm').classList.remove('show'); if(after)after(); },900);
 }
 
-function receiptRow(label,value){return `<div class="receipt-item"><span>${esc(label)}</span><b>${esc(value)}</b></div>`}
+function receiptLine(label,value){return `<div class="receipt-line"><span>${esc(label)}</span><b>${esc(value)}</b></div>`}
 function showReceipt(title,r){
   if(!r)return;
   const dt=r.created_at?new Date(r.created_at):new Date();
+  const isPromoter=/promotor/i.test(String(title||''));
+  const operation=isPromoter?'Recarga por promotor':'Recarga de saldo';
+  const issuer=isPromoter?(me?.first_name||'Promotor')+' '+(me?.last_name||''):'Administrador Líder';
+  const issuerId=me?.public_id?('ID '+me.public_id):'Sistema Flash Coin';
+  const ref='FC'+String(r.receipt_id||Date.now()).padStart(10,'0');
+  const state=r.status||'Completada';
   $('receiptTitle').textContent=title||'Comprobante';
-  $('receiptContent').innerHTML=`<div class="receipt-grid">${receiptRow('Fecha',dt.toLocaleDateString('es-DO'))}${receiptRow('Hora',dt.toLocaleTimeString('es-DO'))}${receiptRow('Usuario',r.recipient_name||'Usuario')}${receiptRow('ID',r.recipient_public_id||'—')}${receiptRow('Monto',money(r.amount)+' FC')}${receiptRow('Nuevo saldo',money(r.balance_after)+' FC')}${receiptRow('Referencia','#'+String(r.receipt_id||'—'))}${receiptRow('Estado',r.status||'Completada')}</div>`;
+  $('receiptContent').innerHTML=`
+    <article class="premium-receipt" aria-label="Comprobante interno Flash Coin">
+      <header class="receipt-head">
+        <div class="receipt-brand">⚡ FLASH COIN</div>
+        <div class="receipt-subbrand">COMPROBANTE INTERNO · CASINO ONLINE</div>
+        <div class="receipt-check">✓</div>
+        <div class="receipt-success">Transferencia exitosa</div>
+        <div class="receipt-kicker">La operación fue procesada correctamente</div>
+      </header>
+      <section class="receipt-amount">
+        <div class="label">Monto acreditado</div>
+        <strong>+ ${money(r.amount)} FC</strong>
+        <div class="receipt-status">${esc(state)}</div>
+      </section>
+      <section class="receipt-details">
+        ${receiptLine('Operación',operation)}
+        ${receiptLine('Destinatario',r.recipient_name||'Usuario')}
+        ${receiptLine('ID destinatario',r.recipient_public_id||'—')}
+        ${receiptLine('Emisor',issuer.trim())}
+        ${receiptLine('ID emisor',issuerId)}
+        ${receiptLine('Fecha',dt.toLocaleDateString('es-DO',{day:'2-digit',month:'short',year:'numeric'}))}
+        ${receiptLine('Hora',dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',second:'2-digit'}))}
+        ${receiptLine('Referencia',ref)}
+      </section>
+      <div class="receipt-balance"><span>Nuevo saldo del usuario</span><b>${money(r.balance_after)} FC</b></div>
+      <footer class="receipt-foot">FLASH COIN · JUEGA · RECARGA · GANA<div class="receipt-ref">Documento interno · ${esc(ref)}</div></footer>
+    </article>`;
   show('receiptPanel');
 }
 
@@ -380,11 +416,31 @@ function playRouletteSound(){
   if(me?.sound_enabled===false)return;ensureAudio();clearTimeout(audioTickTimer);let i=0;
   const tick=()=>{if(i>=34||me?.sound_enabled===false)return;rouletteClick();i++;audioTickTimer=setTimeout(tick,70+i*4);};tick();
 }
+function coinChime(delay=0,freq=1300,volume=.055){
+  if(!audioCtx||me?.sound_enabled===false)return;
+  const t=audioCtx.currentTime+delay;
+  const o=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();
+  o.type='sine';o2.type='triangle';
+  o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(freq*1.55,t+.16);
+  o2.frequency.setValueAtTime(freq*2.03,t);o2.frequency.exponentialRampToValueAtTime(freq*1.35,t+.20);
+  g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(volume,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+.28);
+  o.connect(g);o2.connect(g);g.connect(audioCtx.destination);o.start(t);o2.start(t);o.stop(t+.30);o2.stop(t+.30);
+}
+function playWinnerSound(){
+  if(me?.sound_enabled===false)return;
+  ensureAudio();if(!audioCtx)return;
+  const notes=[1046,1318,1568,2093,1568,2349,2093,2637];
+  notes.forEach((f,i)=>coinChime(i*.075,f,.045+(i%3)*.006));
+  setTimeout(()=>{[1760,2093,2637,3136].forEach((f,i)=>coinChime(i*.055,f,.05));},620);
+}
 function showWinnerCelebration(winner,prize){
   $('winNumber').textContent='Número ganador: '+winner;
   $('winPrize').textContent='+'+money(prize)+' FC';
-  $('winFlash').classList.add('show');
-  setTimeout(()=>$('winFlash').classList.remove('show'),2600);
+  const layer=$('winFlash');
+  layer.classList.toggle('no-flash',me?.flash_enabled===false);
+  layer.classList.add('show');
+  playWinnerSound();
+  setTimeout(()=>layer.classList.remove('show'),3000);
 }
 
 document.addEventListener('pointerdown',ensureAudio,{once:true});
@@ -574,6 +630,12 @@ $('soundSwitch').addEventListener('change',async()=>{
   const {error}=await sb.rpc('rf_set_sound_enabled',{p_enabled:enabled});
   if(error){$('soundSwitch').checked=!enabled;return alert(errText(error));}
   if(me)me.sound_enabled=enabled;
+});
+$('flashSwitch').addEventListener('change',async()=>{
+  const enabled=$('flashSwitch').checked;
+  const {error}=await sb.rpc('rf_set_flash_enabled',{p_enabled:enabled});
+  if(error){$('flashSwitch').checked=!enabled;return alert(errText(error));}
+  if(me)me.flash_enabled=enabled;
 });
 
 $('repeatSwitch').addEventListener('change',async()=>{
@@ -786,4 +848,4 @@ buildWheel();
 </body>
 </html>
 
-<!-- HTML 0.4: conserva sesión y datos; solo cierra sesión manualmente o tras 10 minutos fuera del juego. -->
+<!-- HTML 0.5: actualización acumulativa; conserva sesión y datos, comprobante premium, sonido ganador y destello configurable. -->
