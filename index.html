@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- MAIKET FLASH BASE 06: ID manual o generado + BASE 05 completa -->
+<!-- MAIKET FLASH BASE 07: registro corregido + ID automático válido + BASE 06 completa -->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -120,7 +120,21 @@ async function authFetch(path,body,token=""){
  let r=await fetch(SUPABASE_URL+path,{method:"POST",headers:h,body:JSON.stringify(body)}),j=await r.json();
  if(!r.ok)throw Error(j.msg||j.message||j.error_description||"Error de autenticación.");return j
 }
-async function generateID(){try{let r=await fetch(SUPABASE_URL+"/rest/v1/rpc/generate_public_maiket_id",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:"{}"}),j=await r.json();if(!r.ok)throw Error(j.message||"No se pudo generar ID.");$("#regID").value=j}catch(e){toast(e.message)}}
+async function generateID(){
+ try{
+  const b=document.querySelector('button[onclick="generateID()"]'); if(b){b.disabled=true;b.textContent="Generando..."}
+  let r=await fetch(SUPABASE_URL+"/rest/v1/rpc/generate_public_maiket_id",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:"{}"});
+  let j=await r.json();
+  if(!r.ok)throw Error(j.message||"No se pudo generar el ID.");
+  let id=String(j??"").replace(/\D/g,"").padStart(6,"0").slice(-6);
+  if(!/^\d{6}$/.test(id))throw Error("Supabase no devolvió un ID válido.");
+  let vr=await fetch(SUPABASE_URL+"/rest/v1/rpc/check_maiket_id_available",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_user_id:id})});
+  let available=await vr.json();
+  if(!vr.ok||!available)throw Error("No se pudo reservar un ID disponible. Toca Generar ID nuevamente.");
+  $("#regID").value=id; $("#regID").dispatchEvent(new Event("input")); toast("ID MAIKET FLASH generado: "+id);
+ }catch(e){toast(e.message)}
+ finally{const b=document.querySelector('button[onclick="generateID()"]');if(b){b.disabled=false;b.textContent="Generar ID MAIKET FLASH"}}
+}
 async function login(){
  try{
   let identifier=$("#loginIdentifier").value.trim(),password=$("#loginPassword").value;
@@ -136,15 +150,56 @@ async function login(){
 }
 async function register(){
  try{
-  let full_name=$("#regName").value.trim(),user_id=$("#regID").value.trim(),phone=$("#regPhone").value.trim(),email=$("#regEmail").value.trim().toLowerCase(),password=$("#regPassword").value,p2=$("#regPassword2").value;
-  if(!full_name||!phone||!email||!password||!/^\d{6}$/.test(user_id))throw Error("Completa todos los campos.");
+  const full_name=$("#regName").value.trim();
+  const user_id=$("#regID").value.replace(/\D/g,"").trim();
+  const phone=$("#regPhone").value.trim();
+  const email=$("#regEmail").value.trim().toLowerCase();
+  const password=$("#regPassword").value;
+  const p2=$("#regPassword2").value;
+
+  if(!full_name)throw Error("Escribe tu nombre completo.");
+  if(!user_id)throw Error("Escribe tu ID o toca Generar ID MAIKET FLASH.");
+  if(!/^\d{6}$/.test(user_id))throw Error("El ID de MAIKET FLASH debe tener exactamente 6 dígitos.");
+  if(!phone)throw Error("Escribe tu número de teléfono.");
+  if(!email)throw Error("Escribe tu correo electrónico.");
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error("Escribe un correo electrónico válido.");
+  if(!password)throw Error("Escribe una contraseña.");
+  if(password.length<6)throw Error("La contraseña debe tener al menos 6 caracteres.");
+  if(!p2)throw Error("Confirma tu contraseña.");
   if(password!==p2)throw Error("Las contraseñas no coinciden.");
-  let vr=await fetch(SUPABASE_URL+"/rest/v1/rpc/check_maiket_id_available",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_user_id:user_id})}),vj=await vr.json();
+
+  let vr=await fetch(SUPABASE_URL+"/rest/v1/rpc/check_maiket_id_available",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_user_id:user_id})});
+  let vj=await vr.json();
   if(!vr.ok)throw Error(vj.message||"No se pudo verificar el ID.");
   if(!vj)throw Error("Ese ID de MAIKET FLASH ya está en uso. Escribe otro o genera uno automáticamente.");
+
   let a=await authFetch("/auth/v1/signup",{email,password,data:{full_name,phone,user_id}});
-  if(!a.access_token)throw Error("La cuenta fue creada, pero Supabase exige confirmar el correo. Desactiva Confirm email para entrar inmediatamente.");
-  access=a.access_token;localStorage.setItem("mf_access",access);await hydrateProfile();showApp();go("home");loadPublic()
+  let token=a.access_token||a.session?.access_token||"";
+
+  // Con Confirm email desactivado Supabase entrega la sesión de inmediato.
+  // Si por versión de Auth signup no la incluye, intentamos iniciar sesión automáticamente.
+  if(!token){
+   try{
+    const s=await authFetch("/auth/v1/token?grant_type=password",{email,password});
+    token=s.access_token||"";
+   }catch(_){}
+  }
+  if(!token)throw Error("La cuenta fue creada, pero Supabase está pidiendo confirmar el correo. Desactiva Confirm email en Authentication para entrar directamente.");
+
+  access=token;
+  localStorage.setItem("mf_access",access);
+
+  // El trigger crea perfil y cartera; hacemos varios intentos breves por si PostgREST tarda en verlo.
+  let lastErr=null;
+  for(let i=0;i<4;i++){
+   try{await hydrateProfile();lastErr=null;break}catch(e){lastErr=e;await new Promise(r=>setTimeout(r,350))}
+  }
+  if(lastErr)throw lastErr;
+
+  showApp();
+  go("home");
+  await loadPublic();
+  toast("Cuenta creada correctamente.");
  }catch(e){toast(e.message)}
 }
 async function hydrateProfile(){
