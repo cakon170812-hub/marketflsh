@@ -1,6 +1,6 @@
-<!-- HTML 0.1 — MAIKET FLASH: usar con SQL 0.1 -->
 <!doctype html>
-<!-- MAIKET FLASH HTML 0.01: base revisada -->
+<!-- MAIKET FLASH — BASE LIMPIA 0.0. Solo interfaz y navegación. -->
+
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -23,49 +23,51 @@
 .authShell{min-height:100vh;display:grid;place-items:center;padding:22px;background:linear-gradient(160deg,#eef6ff,#fff)}
 .authBox{width:min(450px,100%);background:#fff;border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:0 18px 50px #0877ff18}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;background:#f2f6fc;padding:5px;border-radius:14px;margin:15px 0}.tabs button{border:0;border-radius:10px;padding:10px;font-weight:850}.tabs .on{background:#fff;color:var(--b);box-shadow:0 2px 8px #001a4014}.authForm{display:grid;gap:10px}.authForm label{font-size:12px;font-weight:800;color:var(--mut)}.idBox{display:flex;gap:8px}.idBox .field{flex:1;min-width:130px}
-@media(max-width:380px){.roulette{transform:scale(.85);transform-origin:center;margin-left:calc(50% - 165px);margin-right:0}.row{flex-wrap:wrap}}
+@media(max-width:380px){.roulette{zoom:.84}.row{flex-wrap:wrap}.field{min-width:0}.idBox{flex-wrap:wrap}}
 </style>
 </head>
 <body>
-<div id="toast" class="toast"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <section id="authScreen" class="authShell" style="display:none">
  <div class="authBox">
   <div class="logo" style="text-align:center;font-size:27px">⚡ MAIKET <i>FLASH</i></div>
-  <p class="muted" style="text-align:center">Inicia sesión o crea tu cuenta.</p>
+  <p class="muted" style="text-align:center">Vista de acceso en desarrollo. No crea ni consulta cuentas.</p>
   <div class="tabs"><button id="loginTab" class="on" onclick="authTab('login')">Iniciar sesión</button><button id="registerTab" onclick="authTab('register')">Crear cuenta</button></div>
   <div id="loginForm" class="authForm">
    <label>Correo, teléfono o ID</label><input id="loginIdentifier" class="field" autocomplete="username" placeholder="Correo, teléfono o ID de 6 dígitos">
    <label>Contraseña</label><input id="loginPassword" class="field" type="password" autocomplete="current-password" placeholder="Contraseña">
-   <button class="btn primary" onclick="login()">Iniciar sesión</button>
+   <button class="btn primary" onclick="pending()">Iniciar sesión</button>
   </div>
   <div id="registerForm" class="authForm" style="display:none">
    <label>Nombre completo</label><input id="regName" class="field" autocomplete="name" placeholder="Nombre completo">
-   <label>ID de MAIKET FLASH</label><div class="idBox"><input id="regID" class="field" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="Escribe 6 dígitos"><button class="btn" onclick="generateID()">Generar ID MAIKET FLASH</button></div>
+   <label>ID de MAIKET FLASH</label><div class="idBox"><input id="regID" class="field" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="Escribe 6 dígitos"><button class="btn" onclick="pending()">Generar ID MAIKET FLASH</button></div>
    <label>Número de teléfono</label><input id="regPhone" class="field" inputmode="tel" autocomplete="tel" placeholder="Número de teléfono">
    <label>Correo electrónico</label><input id="regEmail" class="field" type="email" autocomplete="email" placeholder="correo@ejemplo.com">
    <label>Contraseña</label><input id="regPassword" class="field" type="password" autocomplete="new-password" placeholder="Contraseña">
    <label>Confirmar contraseña</label><input id="regPassword2" class="field" type="password" autocomplete="new-password" placeholder="Confirma la contraseña">
-   <button class="btn primary" onclick="register()">Crear cuenta y entrar</button>
+   <button class="btn primary" onclick="pending()">Crear cuenta y entrar</button>
   </div>
+ <button class="btn" style="margin-top:12px;width:100%" onclick="go('home')">Volver a la vista previa</button>
  </div>
 </section>
 
-<div class="app" id="mainApp" style="display:none">
-<header class="top"><div class="logo">⚡ MAIKET <i>FLASH</i></div><div class="grow"></div><button class="icon" onclick="openGroup()">ℹ️ Grupo WhatsApp</button></header>
+<div class="app" id="mainApp">
+<div class="muted" style="text-align:center;padding:7px;background:#fff9e7">Base visual · En desarrollo · Sin cuentas ni conexión</div>
+<header class="top"><div class="logo">⚡ MAIKET <i>FLASH</i></div><div class="grow"></div><button class="icon" onclick="pending()">ℹ️ Grupo WhatsApp</button></header>
 
 <section id="home" class="screen active"><main>
-<div class="card wallet" onclick="go('balance');loadPublic()"><div style="font-size:38px;color:#0877ff">ⓕ</div><div><div class="muted">Flash Coin</div><div class="money"><span data-bal>0.000</span> FC</div></div><div class="grow"></div>›</div>
-<div class="card" style="text-align:center"><div class="title">Ruleta en vivo</div><p class="muted">Ruleta 0–12 sincronizada para todos los jugadores.</p><button class="btn primary" onclick="go('roulette');refreshRoulette()">Jugar a la ruleta</button></div>
+<div class="card wallet" onclick="go('balance')"><div style="font-size:38px;color:#0877ff">ⓕ</div><div><div class="muted">Flash Coin</div><div class="money"><span data-bal>0.000</span> FC</div></div><div class="grow"></div>›</div>
+<div class="card" style="text-align:center"><div class="title">Ruleta en vivo</div><p class="muted">Interfaz de ruleta 0–12. En desarrollo.</p><button class="btn primary" onclick="go('roulette')">Jugar a la ruleta</button></div>
 </main></section>
 
 <section id="roulette" class="screen"><main>
 <div class="bar" style="margin:-16px -16px 14px"><button class="icon" onclick="go('home')">‹ Volver</button><b>Ruleta en vivo</b><div class="grow"></div><span class="online">● <span id="online">0</span> jugando</span></div>
 <div class="card wallet"><b>Saldo</b><div class="grow"></div><b><span data-bal>0.000</span> FC</b></div>
-<div id="phase" class="muted" style="text-align:center">Consultando ronda…</div><div id="timer" class="timer">—</div>
-<div class="roulette"><div id="wheelNums"></div><div class="center"><div>MAIKET FLASH<br><span id="centerText" style="font-size:12px">RULETA 0–12</span></div></div></div><div class="card bonusBox"><div class="row"><b>🎁 Bono</b><div class="grow"></div><b><span id="bonusBalance">0.000</span> FC</b></div><div class="muted" style="color:#ead8b0;margin-top:7px"><span id="freeLamp1" class="freeLamp">💡</span> Tiro libre 1: <b id="freeResult1">—</b> &nbsp; <span id="freeLamp2" class="freeLamp">💡</span> Tiro libre 2: <b id="freeResult2">—</b></div></div>
-<div class="card"><div class="title">Selecciona tus números</div><p class="muted">Solo puedes seleccionar si tienes Flash Coin suficiente. Máximo 12 pulsaciones por número.</p><div id="betNums" class="grid"></div><div class="row" style="margin-top:12px"><span>FC por apuesta</span><input id="amount" class="field" style="width:130px;margin-left:auto" inputmode="decimal" value="0.010"></div><div id="total" class="muted">Total: 0.000 FC</div><br><button class="btn primary" style="width:100%" onclick="saveBets()">Guardar apuestas</button></div>
-<div class="card"><div class="title">Último resultado</div><div id="result" class="muted">Esperando resultado.</div></div>
+<div id="phase" class="muted" style="text-align:center">En desarrollo</div><div id="timer" class="timer">—</div>
+<div class="roulette"><div id="wheelNums"><div class="rnum" style="--i:0">0</div><div class="rnum" style="--i:1">7</div><div class="rnum" style="--i:2">2</div><div class="rnum" style="--i:3">11</div><div class="rnum" style="--i:4">4</div><div class="rnum" style="--i:5">9</div><div class="rnum" style="--i:6">1</div><div class="rnum" style="--i:7">12</div><div class="rnum" style="--i:8">5</div><div class="rnum" style="--i:9">8</div><div class="rnum" style="--i:10">3</div><div class="rnum" style="--i:11">10</div><div class="rnum" style="--i:12">6</div></div><div class="center"><div>MAIKET FLASH<br><span id="centerText" style="font-size:12px">RULETA 0–12</span></div></div></div><div class="card bonusBox"><div class="row"><b>🎁 Bono</b><div class="grow"></div><b><span id="bonusBalance">0.000</span> FC</b></div><div class="muted" style="color:#ead8b0;margin-top:7px"><span id="freeLamp1" class="freeLamp">💡</span> Tiro libre 1: <b id="freeResult1">—</b> &nbsp; <span id="freeLamp2" class="freeLamp">💡</span> Tiro libre 2: <b id="freeResult2">—</b></div></div>
+<div class="card"><div class="title">Selecciona tus números</div><p class="muted">En desarrollo. Las reglas se definirán nuevamente.</p><div id="betNums" class="grid"><button type="button" class="bet" onclick="pending()">0<small></small></button><button type="button" class="bet" onclick="pending()">1<small></small></button><button type="button" class="bet" onclick="pending()">2<small></small></button><button type="button" class="bet" onclick="pending()">3<small></small></button><button type="button" class="bet" onclick="pending()">4<small></small></button><button type="button" class="bet" onclick="pending()">5<small></small></button><button type="button" class="bet" onclick="pending()">6<small></small></button><button type="button" class="bet" onclick="pending()">7<small></small></button><button type="button" class="bet" onclick="pending()">8<small></small></button><button type="button" class="bet" onclick="pending()">9<small></small></button><button type="button" class="bet" onclick="pending()">10<small></small></button><button type="button" class="bet" onclick="pending()">11<small></small></button><button type="button" class="bet" onclick="pending()">12<small></small></button></div><div class="row" style="margin-top:12px"><span>FC por apuesta</span><input id="amount" class="field" style="width:130px;margin-left:auto" inputmode="decimal" placeholder="—"></div><div id="total" class="muted">Total: 0.000 FC</div><br><button class="btn primary" style="width:100%" onclick="pending()">Guardar apuestas</button></div>
+<div class="card"><div class="title">Último resultado</div><div id="result" class="muted">Sin resultados.</div></div>
 </main></section>
 
 <section id="balance" class="screen"><main>
@@ -73,206 +75,85 @@
 <div class="card"><div class="muted">Saldo disponible</div><div class="money"><span data-bal>0.000</span> FC</div></div>
 <div class="card"><div class="title">Precio oficial Flash Coin</div><p class="muted">Fijado exclusivamente por el Administrador líder.</p><div class="price"><div><span class="muted">Compra</span><br><b>RD$ <span id="buyPrice">0.00</span></b></div><div><span class="muted">Venta</span><br><b>RD$ <span id="sellPrice">0.00</span></b></div></div></div>
 <div class="notice"><b>Todos los promotores usan el mismo precio.</b><br><span class="muted">Si un promotor cobra o paga un valor diferente, puedes reportarlo directamente al Administrador líder.</span></div>
-<div class="row"><div class="title">Usuarios promotores</div><div class="grow"></div><button class="icon" onclick="reportPromoter()">Reportar</button></div><div id="promoters"></div>
+<div class="row"><div class="title">Usuarios promotores</div><div class="grow"></div><button class="icon" onclick="pending()">Reportar</button></div><div id="promoters"><div class="card promoter"><div class="avatar">👤</div><div><b>Promotor —</b><div class="muted">ID —</div><span class="tag">En desarrollo</span></div><div class="grow"></div><button class="btn green" onclick="pending()">WhatsApp</button></div></div>
 </main></section>
 
 <section id="profile" class="screen"><main>
 <div class="bar" style="margin:-16px -16px 14px"><button class="icon" onclick="go('home')">‹ Volver</button><b>Perfil</b></div>
 <div class="card promoter"><div class="avatar">👤</div><div><div id="pname" class="title">Usuario</div><div id="pid" class="muted">ID: —</div><div id="pemail" class="muted"></div></div></div>
-<div class="list"><button onclick="loadRequests()">Solicitudes de Flash Coin</button><button onclick="editProfile()">Editar perfil</button><button id="leaderBtn" style="display:none" onclick="openLeader()">👑 Administración líder</button><button id="promoterBtn" style="display:none" onclick="go('promoter');loadPromoter()">🏠 Panel de promotor</button><button class="danger" onclick="logout()">Cerrar sesión</button></div>
+<div class="list"><button onclick="pending()">Editar perfil</button><button id="leaderBtn" onclick="openDialog('leaderDialog')">👑 Administración líder</button><button id="promoterBtn" onclick="go('promoter')">🏠 Panel de promotor</button><button class="danger" onclick="showAuth()">Cerrar sesión</button></div>
 </main></section>
 
 <section id="promoter" class="screen"><main>
 <div class="bar" style="margin:-16px -16px 14px"><button class="icon" onclick="go('profile')">‹ Volver</button><b>Panel de promotor</b></div>
 <div class="card"><div class="muted">Saldo principal</div><div class="money"><span data-bal>0.000</span> FC</div><p class="muted">Este saldo se usa para enviar Flash Coin a los usuarios.</p></div>
-<div id="sendModule" class="card"><div class="title">Buscar usuario por ID</div><div class="row"><input id="userSearch" maxlength="6" inputmode="numeric" class="field" placeholder="ID de 6 dígitos"><button class="btn primary" onclick="findUser()">Buscar</button></div><div id="searchResult"></div></div>
-<div id="requestModule" class="card"><div class="title">Solicitar Flash Coin a usuario</div><p class="muted">Busca primero el usuario por ID y luego podrás crear la solicitud.</p><button class="btn" onclick="openRequest()">Crear solicitud al usuario seleccionado</button></div>
+<div id="sendModule" class="card"><div class="title">Buscar usuario por ID</div><div class="row"><input id="userSearch" maxlength="6" inputmode="numeric" class="field" placeholder="ID de 6 dígitos"><button class="btn primary" onclick="pending()">Buscar</button></div><div id="searchResult"><div class="card promoter" onclick="openDialog('transferDialog')"><div class="avatar">👤</div><div><b>Usuario —</b><div class="muted">ID — · Vista en desarrollo</div></div><div class="grow"></div>›</div></div></div>
+<div id="requestModule" class="card"><div class="title">Solicitar Flash Coin a usuario</div><p class="muted">Busca primero el usuario por ID y luego podrás crear la solicitud.</p><button class="btn" onclick="openDialog('requestDialog')">Crear solicitud al usuario seleccionado</button></div>
 <div class="card"><div class="title">Precio oficial</div><p>Venta: RD$ <b id="promoterSell">0.00</b> por FC</p><p>Compra: RD$ <b id="promoterBuy">0.00</b> por FC</p></div>
-<div class="list"><button onclick="history('leader')">Historial con Administrador líder</button><button onclick="history('users')">Historial de operaciones con usuarios</button></div>
+<div class="list"><button onclick="pending()">Historial con Administrador líder</button><button onclick="pending()">Historial de operaciones con usuarios</button></div>
 </main></section>
 
-<nav class="nav"><button onclick="go('roulette');refreshRoulette()">🎯<br>Ruleta</button><button onclick="go('balance');loadPublic()">💳<br>Saldo</button><button onclick="go('profile')">👤<br>Perfil</button></nav>
+<nav class="nav"><button onclick="go('roulette')">🎯<br>Ruleta</button><button onclick="go('balance')">💳<br>Saldo</button><button onclick="go('profile')">👤<br>Perfil</button></nav>
 </div>
 
-<dialog id="leaderDialog"><div class="row"><div class="title">👑 Administrador líder</div><div class="grow"></div><button class="icon" onclick="leaderDialog.close()">✕</button></div>
-<div class="card"><div class="title">Precio oficial</div><div class="row"><span>Compra RD$</span><input id="adminBuy" class="field" style="width:135px"></div><div class="row"><span>Venta RD$</span><input id="adminSell" class="field" style="width:135px"></div><button class="btn primary" onclick="savePrices()">Guardar precios</button></div>
-<div class="card"><div class="title">Grupo oficial de WhatsApp</div><input id="groupURL" class="field" placeholder="https://chat.whatsapp.com/..."><br><br><button class="btn primary" onclick="saveGroup()">Guardar enlace</button></div>
-<div class="card"><div class="title">Promotores</div><div class="row"><input id="adminPromoterID" maxlength="6" class="field" placeholder="ID de usuario"><button class="btn" onclick="loadPromoterAdmin()">Buscar</button></div><div id="adminPromoterBox"></div></div>
+<dialog id="leaderDialog"><div class="row"><div class="title">👑 Administrador líder</div><div class="grow"></div><button class="icon" onclick="closeDialog('leaderDialog')">✕</button></div>
+<div class="card"><div class="title">Precio oficial</div><div class="row"><span>Compra RD$</span><input id="adminBuy" class="field" style="width:135px"></div><div class="row"><span>Venta RD$</span><input id="adminSell" class="field" style="width:135px"></div><button class="btn primary" onclick="pending()">Guardar precios</button></div>
+<div class="card"><div class="title">Grupo oficial de WhatsApp</div><input id="groupURL" class="field" placeholder="https://chat.whatsapp.com/..."><br><br><button class="btn primary" onclick="pending()">Guardar enlace</button></div>
+<div class="card"><div class="title">Promotores</div><div class="row"><input id="adminPromoterID" maxlength="6" class="field" placeholder="ID de usuario"><button class="btn" onclick="pending()">Buscar</button></div><div id="adminPromoterBox"><div class="card"><b>Usuario —</b><div class="muted">ID </div><div class="row"><label><input id="pa" type="checkbox" > Promotor activo</label></div><input id="pwa" class="field" value="" placeholder="WhatsApp"><div class="perm"><span>Enviar FC</span><input id="psend" type="checkbox" ></div><div class="perm"><span>Solicitar FC</span><input id="preq" type="checkbox" ></div><div class="row"><input id="padj" class="field" placeholder="Cantidad FC (+ recarga / - retiro)"><button class="btn" onclick="pending()">Aplicar saldo</button></div><button class="btn primary" onclick="pending()">Guardar promotor</button></div></div></div>
 <div class="card"><div class="title">Saldo principal del Administrador líder</div>
 <div class="money"><span id="leaderBalance">0.000</span> FC</div>
 <p class="muted">Desde este saldo puedes enviar, retirar o solicitar FC a usuarios y promotores.</p>
 <div class="row"><input id="leaderTarget" maxlength="6" class="field" placeholder="ID de usuario/promotor"><input id="leaderAmount" class="field" inputmode="decimal" placeholder="Cantidad FC"></div>
-<div class="row"><button class="btn primary" onclick="leaderSend()">Enviar</button><button class="btn" onclick="leaderWithdraw()">Retirar</button><button class="btn" onclick="leaderRequest()">Solicitar</button></div></div>
+<div class="row"><button class="btn primary" onclick="pending()">Enviar</button><button class="btn" onclick="pending()">Retirar</button><button class="btn" onclick="pending()">Solicitar</button></div></div>
 <div class="card"><div class="title">Fondo maestro</div>
-<div class="money"><span id="masterFund">∞</span></div>
+<div class="money"><span id="masterFund">—</span></div>
 <p class="muted">Solo el Administrador líder puede usar este fondo manualmente para recargar su saldo principal.</p>
-<div class="row"><input id="masterAmount" class="field" inputmode="decimal" placeholder="Cantidad FC"><button class="btn primary" onclick="masterTopup()">Recargar mi saldo</button></div></div>
-<div class="card"><div class="title">Configuración de ruleta</div><div class="row"><span>Segundos</span><input id="roundSeconds" class="field" style="width:120px" inputmode="numeric"></div><div class="row"><span>Apuesta mínima</span><input id="minBet" class="field" style="width:120px" inputmode="decimal"></div><div class="row"><span>% destinado a premios</span><input id="payoutPercent" class="field" style="width:120px" inputmode="decimal"></div><div class="perm"><span>💡 Tiro libre 1</span><input id="freeShot1" type="checkbox"></div><div class="perm"><span>💡 Tiro libre 2</span><input id="freeShot2" type="checkbox"></div><div class="row"><span>Tiro libre cada</span><input id="freeShotEvery" class="field" style="width:120px" inputmode="numeric" value="100"><span>giros</span></div><p class="muted">El Bono acumula la parte no pagada de cada ronda. Si un tiro libre cae en un número con exactamente un usuario, ese usuario clasifica para el Bono. Si ambos tiros clasifican usuarios distintos, se divide entre ambos.</p><button class="btn primary" onclick="saveRouletteSettings()">Guardar ruleta</button></div>
-<div class="list"><button onclick="loadReports()">Reportes de promotores</button></div></dialog>
+<div class="row"><input id="masterAmount" class="field" inputmode="decimal" placeholder="Cantidad FC"><button class="btn primary" onclick="pending()">Recargar mi saldo</button></div></div>
+<div class="card"><div class="title">Configuración de ruleta</div><div class="row"><span>Segundos</span><input id="roundSeconds" class="field" style="width:120px" inputmode="numeric"></div><div class="row"><span>Apuesta mínima</span><input id="minBet" class="field" style="width:120px" inputmode="decimal"></div><div class="row"><span>% destinado a premios</span><input id="payoutPercent" class="field" style="width:120px" inputmode="decimal"></div><div class="perm"><span>💡 Tiro libre 1</span><input id="freeShot1" type="checkbox"></div><div class="perm"><span>💡 Tiro libre 2</span><input id="freeShot2" type="checkbox"></div><div class="row"><span>Tiro libre cada</span><input id="freeShotEvery" class="field" style="width:120px" inputmode="numeric" placeholder="—"><span>giros</span></div><p class="muted">Configuración en desarrollo. Sin reglas ni premios activos.</p><button class="btn primary" onclick="pending()">Guardar ruleta</button></div>
+<div class="list"><button onclick="pending()">Reportes de promotores</button></div></dialog>
 
-<dialog id="transferDialog"><div class="row"><b>Enviar Flash Coin</b><div class="grow"></div><button class="icon" onclick="transferDialog.close()">✕</button></div><div id="transferWho"></div><div class="row"><span>Cantidad FC</span><input id="transferFC" class="field" style="width:140px" inputmode="decimal" oninput="calcTransfer()"></div><div class="card"><span class="muted">Dinero a recibir</span><div class="money">RD$ <span id="transferRD">0.00</span></div></div><button class="btn green" style="width:100%" onclick="sendFC()">Confirmar envío</button></dialog>
+<dialog id="transferDialog"><div class="row"><b>Enviar Flash Coin</b><div class="grow"></div><button class="icon" onclick="closeDialog('transferDialog')">✕</button></div><div id="transferWho"></div><div class="row"><span>Cantidad FC</span><input id="transferFC" class="field" style="width:140px" inputmode="decimal"></div><div class="card"><span class="muted">Dinero a recibir</span><div class="money">RD$ <span id="transferRD">0.00</span></div></div><button class="btn green" style="width:100%" onclick="pending()">Confirmar envío</button></dialog>
 
-<dialog id="requestDialog"><div class="row"><b>Solicitar Flash Coin</b><div class="grow"></div><button class="icon" onclick="requestDialog.close()">✕</button></div><div id="requestWho"></div><div class="row"><span>Cantidad FC</span><input id="requestFC" class="field" style="width:140px" inputmode="decimal"></div><button class="btn primary" style="width:100%" onclick="createRequest()">Enviar solicitud</button></dialog>
+<dialog id="requestDialog"><div class="row"><b>Solicitar Flash Coin</b><div class="grow"></div><button class="icon" onclick="closeDialog('requestDialog')">✕</button></div><div id="requestWho"></div><div class="row"><span>Cantidad FC</span><input id="requestFC" class="field" style="width:140px" inputmode="decimal"></div><button class="btn primary" style="width:100%" onclick="pending()">Enviar solicitud</button></dialog>
 
-<dialog id="receiptDialog"><div class="receipt"><div class="check">✓</div><div id="receiptTitle" class="title">Pago realizado correctamente</div><p id="receiptSub" class="muted"></p><hr><div id="receiptBody"></div><hr><div class="row"><button class="btn" onclick="copyReceipt()">Copiar</button><button class="btn primary" onclick="shareReceipt()">Compartir / Captura</button></div><button class="btn" onclick="receiptDialog.close()">Cerrar</button></div></dialog>
+<dialog id="receiptDialog"><div class="receipt"><div class="check">—</div><div id="receiptTitle" class="title">Comprobante — En desarrollo</div><p id="receiptSub" class="muted"></p><hr><div id="receiptBody"></div><hr><div class="row"><button class="btn" onclick="pending()">Copiar</button><button class="btn primary" onclick="pending()">Compartir / Captura</button></div><button class="btn" onclick="closeDialog('receiptDialog')">Cerrar</button></div></dialog>
 
-<dialog id="requestsDialog"><button class="btn" onclick="requestsDialog.close()">Cerrar</button><h3>Solicitudes de Flash Coin</h3><div id="requestsList"></div></dialog>
 <script>
-const SUPABASE_URL="https://wsqqdnlbifwjrjorwoni.supabase.co";
-const API_KEY="sb_publishable_vGin7CNMq_lgrTPL3sfM_A_VNkCALsf";
-let access=localStorage.getItem("mf_access")||"",profile=null,state=null,counts={},prices={buy:0,sell:0},selectedUser=null,lastRound=null,spinHandle=null,receiptText="";
-
-let refreshTask=null,refreshBusy=false,draftDirty=false,serverOffset=0;
-const LEADER_EMAIL="julioangel170812@gmail.com";
-function cleanRegID(){let e=$("#regID");e.value=e.value.replace(/\D/g,"").slice(0,6)}
-function authTab(t){$("#loginForm").style.display=t==="login"?"grid":"none";$("#registerForm").style.display=t==="register"?"grid":"none";$("#loginTab").classList.toggle("on",t==="login");$("#registerTab").classList.toggle("on",t==="register");if(t==="register"&&!$("#regID").value)generateID()}
-function showAuth(){document.getElementById("authScreen").style.display="grid";document.getElementById("mainApp").style.display="none"}
-function showApp(){document.getElementById("authScreen").style.display="none";document.getElementById("mainApp").style.display="block"}
-async function authFetch(path,body,token=""){
- let h={apikey:API_KEY,"Content-Type":"application/json"};if(token)h.Authorization="Bearer "+token;
- let r=await fetch(SUPABASE_URL+path,{method:"POST",headers:h,body:JSON.stringify(body)});
- let raw=await r.text(),j={};try{j=raw?JSON.parse(raw):{}}catch{j={message:raw}}
- if(!r.ok)throw Error(j.msg||j.message||j.error_description||j.error||("Error de autenticación ("+r.status+")."));return j
+'use strict';
+// Only presentation, navigation and an informational message. No application state.
+const byId = id => document.getElementById(id);
+let noticeTimer;
+function pending() {
+  const box=byId('toast');
+  box.textContent='Aplicación en desarrollo';
+  box.style.display='block';
+  clearTimeout(noticeTimer);
+  noticeTimer=setTimeout(()=>{box.style.display='none';},2400);
 }
-async function generateID(){
- try{
-  const b=(typeof event!=="undefined"&&event)?event.currentTarget:null;if(b){b.disabled=true;b.textContent="Generando..."}
-  let id="";
-  try{
-   let r=await fetch(SUPABASE_URL+"/rest/v1/rpc/generate_public_maiket_id",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:"{}"});
-   let j=await r.json(); if(r.ok)id=String(j??"").replace(/\D/g,"").padStart(6,"0").slice(-6);
-  }catch(_){}
-  if(!/^\d{6}$/.test(id))id=String(Math.floor(Math.random()*1000000)).padStart(6,"0");
-  if(!/^\d{6}$/.test(id))throw Error("No se pudo generar un ID válido.");
-  $("#regID").value=id; $("#regID").dispatchEvent(new Event("input",{bubbles:true})); toast("ID MAIKET FLASH generado: "+id);
- }catch(e){toast(e.message)}
- finally{const b=document.querySelector('#registerForm button[onclick="generateID()"]');if(b){b.disabled=false;b.textContent="Generar ID MAIKET FLASH"}}
+function go(id) {
+  const target=byId(id);
+  if (!target || !target.classList.contains('screen')) return;
+  byId('authScreen').style.display='none';
+  byId('mainApp').style.display='block';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s===target));
+  window.scrollTo(0,0);
 }
-async function login(){
- try{
-  let identifier=$("#loginIdentifier").value.trim(),password=$("#loginPassword").value;
-  if(!identifier||!password)throw Error("Completa usuario y contraseña.");
-  let email=identifier;
-  if(!identifier.includes("@")){
-   let r=await fetch(SUPABASE_URL+"/rest/v1/rpc/resolve_login_email",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_identifier:identifier})}),j=await r.json();
-   if(!r.ok)throw Error(j.message||"Cuenta no encontrada.");email=j;
-  }
-  let a=await authFetch("/auth/v1/token?grant_type=password",{email,password});
-  saveSession(a);await hydrateProfile();showApp();go("home");loadPublic()
- }catch(e){toast(e.message)}
+function showAuth() {
+  byId('mainApp').style.display='none';
+  byId('authScreen').style.display='grid';
+  authTab('login');
+  window.scrollTo(0,0);
 }
-async function register(){
- try{
-  const full_name=$("#regName").value.trim();
-  const user_id=$("#regID").value.replace(/\D/g,"").trim();
-  const phone=$("#regPhone").value.trim();
-  const email=$("#regEmail").value.trim().toLowerCase();
-  const password=$("#regPassword").value;
-  const p2=$("#regPassword2").value;
-
-  if(!full_name)throw Error("Escribe tu nombre completo.");
-  if(!user_id)throw Error("Escribe tu ID de MAIKET FLASH o toca Generar ID MAIKET FLASH.");
-  if(!/^\d{6}$/.test(user_id))throw Error("El ID de MAIKET FLASH debe tener exactamente 6 dígitos.");
-  if(!phone)throw Error("Escribe tu número de teléfono.");
-  if(!email)throw Error("Escribe tu correo electrónico.");
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))throw Error("Escribe un correo electrónico válido.");
-  if(!password)throw Error("Escribe una contraseña.");
-  if(password.length<6)throw Error("La contraseña debe tener por lo menos 6 caracteres.");
-  if(!p2)throw Error("Confirma tu contraseña.");
-  if(password!==p2)throw Error("Las contraseñas no coinciden.");
-
-  let a=await authFetch("/auth/v1/signup",{email,password,data:{full_name,phone,user_id}});
-  if(!a.access_token){
-    try{a=await authFetch("/auth/v1/token?grant_type=password",{email,password})}
-    catch(_){throw Error("La cuenta fue creada, pero Supabase está exigiendo confirmar el correo. En Authentication > Providers > Email desactiva Confirm email para entrar directamente.")}
-  }
-
-  saveSession(a);
-
-  let ok=false,lastError=null;
-  for(let i=0;i<12;i++){
-    try{await hydrateProfile();ok=true;break}catch(e){lastError=e;await new Promise(r=>setTimeout(r,250))}
-  }
-  if(!ok)throw Error(lastError?.message||"La cuenta se creó, pero el perfil todavía no está disponible.");
-
-  showApp();go("home");await loadPublic();toast("Cuenta creada. Bienvenido a MAIKET FLASH.");
-  }catch(e){
-  let m=e.message||"No se pudo crear la cuenta.";
-  if(/already registered|already been registered|user already/i.test(m)){
-   authTab("login");$("#loginIdentifier").value=$("#regEmail").value.trim();
-   m="Esta cuenta ya existe. Inicia sesión con tu correo y contraseña.";
-  }
-  toast(m)
- }
+function authTab(tab) {
+  const login=tab==='login';
+  byId('loginForm').style.display=login?'grid':'none';
+  byId('registerForm').style.display=login?'none':'grid';
+  byId('loginTab').classList.toggle('on',login);
+  byId('registerTab').classList.toggle('on',!login);
 }
-
-
-async function hydrateProfile(){
- let r=await rpc("profile");
- profile=r;localStorage.setItem("mf_profile",JSON.stringify(profile));renderProfile();setBalance(profile.balance||0)
-}
-async function boot(){
- if(!access){showAuth();return}
- try{await hydrateProfile();showApp();loadPublic()}catch(e){localStorage.removeItem("mf_access");access="";showAuth()}
-}
-
-const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function toast(m){let t=$("#toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",2600)}function go(id){$$(".screen").forEach(x=>x.classList.remove("active"));$("#"+id).classList.add("active");scrollTo(0,0)}function money(v){return Number(v||0).toFixed(3)}function setBalance(v){$$("[data-bal]").forEach(x=>x.textContent=money(v))}
-async function rpc(a,d={},retry=true){if(!access)throw Error("Inicia sesión primero.");let r=await fetch(SUPABASE_URL+"/rest/v1/rpc/mf901_command",{method:"POST",headers:{apikey:API_KEY,Authorization:"Bearer "+access,"Content-Type":"application/json"},body:JSON.stringify({p_action:a,p_data:d})});let j=await r.json();if(r.status===401&&retry&&localStorage.getItem("mf_refresh")){await renewSession();return rpc(a,d,false)}if(!r.ok)throw Error(j.message||"Error de Supabase");return j}
-const lamps=["#00e5ff","#ff3cac","#ffe600","#31ff75","#ff7a00","#a85cff"];
-const wheelOrder=[0,7,2,11,4,9,1,12,5,8,3,10,6];
-function build(){wheelOrder.forEach((value,pos)=>{let n=document.createElement("div");n.className="rnum";n.dataset.n=value;n.dataset.pos=pos;n.style="--i:"+pos;n.textContent=value;$("#wheelNums").appendChild(n)});for(let i=0;i<=12;i++){let b=document.createElement("button");b.className="bet";b.dataset.n=i;b.innerHTML=i+"<small></small>";b.onclick=()=>choose(i);$("#betNums").appendChild(b)}}
-function choose(n){if(!state?.round||state.round.status!=="betting"||new Date(state.round.closes_at)<=Date.now()+serverOffset)return toast("Las apuestas están cerradas.");let unit=Number($("#amount").value)||0,old=Number(state.my_bets?.total_amount||0),total=Object.values(counts).reduce((a,b)=>a+b,0)*unit;if(total+unit>Number(state.balance||0)+old)return toast("Saldo Flash Coin insuficiente.");let k=""+n;if((counts[k]||0)>=12)return toast("Máximo 12 por número.");counts[k]=(counts[k]||0)+1;draftDirty=true;paint()}
-function paint(){for(let b of $$(".bet")){let c=counts[b.dataset.n]||0;b.classList.toggle("on",c>0);b.querySelector("small").textContent=c?"×"+c:""}let u=Number($("#amount").value)||0;$("#total").textContent="Total: "+money(Object.values(counts).reduce((a,b)=>a+b,0)*u)+" FC"}$("#amount").oninput=()=>{draftDirty=true;paint()};
-function animateWinner(w){return new Promise(resolve=>{clearTimeout(spinHandle);let step=0,els=[...$$(".rnum")];function tick(){els.forEach(e=>{e.classList.remove("lit","win");e.style.removeProperty("--lamp")});let idx=step%13,e=els[idx];e.classList.add("lit");e.style.setProperty("--lamp",lamps[step%lamps.length]);step++;if(step>45&&Number(e.dataset.n)===Number(w)){e.classList.remove("lit");e.classList.add("win");$("#centerText").textContent="GANADOR "+w;resolve();return}let delay=step<25?55:Math.min(320,55+(step-24)*13);spinHandle=setTimeout(tick,delay)}tick()})}
-async function refreshRoulette(){if(refreshBusy||!access)return;refreshBusy=true;try{let s=await rpc("roulette_state");const newRound=state?.round?.id!==s.round?.id;state=s;serverOffset=new Date(s.server_time).getTime()-Date.now();setBalance(s.balance);if(newRound)draftDirty=false;if(!draftDirty)counts={...(s.my_bets?.counts||{})};$("#online").textContent=s.online_count||0;if(!draftDirty&&s.minimum_bet)$("#amount").value=Number(s.my_bets?.unit_amount||s.minimum_bet).toFixed(3);paint();let lr=s.last_round;if(lr?.id&&lr.id!==lastRound){lastRound=lr.id;let w=lr.result;if(w!==null&&w!==undefined){$$(".rnum").forEach(e=>e.classList.remove("primaryWin"));void (async()=>{await animateWinner(w);let pe=[...$$(".rnum")].find(e=>Number(e.dataset.n)===Number(w));if(pe)pe.classList.add("primaryWin");if(lr.free_shot_event&&lr.free_result_1!=null)await animateWinner(lr.free_result_1);if(lr.free_shot_event&&lr.free_result_2!=null)await animateWinner(lr.free_result_2)})()}}$("#bonusBalance").textContent=money(s.bonus_balance||0);$("#freeResult1").textContent=lr?.free_result_1??"—";$("#freeResult2").textContent=lr?.free_result_2??"—";$("#freeLamp1").classList.toggle("on",lr?.free_result_1!==null&&lr?.free_result_1!==undefined);$("#freeLamp2").classList.toggle("on",lr?.free_result_2!==null&&lr?.free_result_2!==undefined);$("#result").innerHTML=lr?`Número ganador: <b>${lr.result}</b>${Number(lr.my_prize||0)>0?` · Premio: <b>${money(lr.my_prize)} FC</b>`:""}${Number(lr.my_bonus||0)>0?` · Bono: <b>${money(lr.my_bonus)} FC</b>`:""}`:"Esperando resultado."}catch(e){toast(e.message)}finally{refreshBusy=false}}
-async function saveBets(){try{if(!Object.keys(counts).length)throw Error("Selecciona un número.");let r=await rpc("roulette_bets",{round:state.round.id,counts,amount:Number($("#amount").value),operation:crypto.randomUUID()});draftDirty=false;toast(r.message||"Apuestas guardadas");await refreshRoulette()}catch(e){toast(e.message)}}
-setInterval(()=>{if(!state?.round)return;let sec=Math.max(0,Math.ceil((new Date(state.round.closes_at)-Date.now()-serverOffset)/1000));$("#phase").textContent=state.round.status==="betting"?"Selecciona tus números":"Girando…";$("#timer").textContent=state.round.status==="betting"?sec+" s":"Apuestas cerradas"},300);setInterval(()=>{if(access&&$("#roulette").classList.contains("active"))refreshRoulette()},1500);
-async function loadPublic(){try{let r=await rpc("public_config");prices={buy:Number(r.buy_price||0),sell:Number(r.sell_price||0)};$("#buyPrice").textContent=prices.buy.toFixed(2);$("#sellPrice").textContent=prices.sell.toFixed(2);$("#promoterBuy").textContent=prices.buy.toFixed(2);$("#promoterSell").textContent=prices.sell.toFixed(2);localStorage.setItem("mf_group",r.group_url||"");$("#promoters").innerHTML=(r.promoters||[]).map(p=>`<div class="card promoter"><div class="avatar">👤</div><div><b>${esc(p.full_name||"Promotor")}</b><div class="muted">ID ${esc(p.user_id)}</div><span class="tag">Promotor autorizado</span></div><div class="grow"></div><button class="btn green" onclick="wa('${String(p.whatsapp||'').replace(/\D/g,'')}')">WhatsApp</button></div>`).join("")||'<div class="card muted">No hay promotores activos.</div>'}catch(e){toast(e.message)}}
-function wa(n){let d=n.replace(/\D/g,"");if(!d)return toast("WhatsApp no configurado.");location.href="https://wa.me/"+d}function openGroup(){let u=localStorage.getItem("mf_group");if(u&&/^https:\/\/(chat\.whatsapp\.com|wa\.me)\//i.test(u))location.href=u;else toast("Grupo no configurado.")}
-async function reportPromoter(){let id=prompt("ID del promotor");if(!id)return;let reason=prompt("Motivo del reporte");if(!reason)return;try{await rpc("report_promoter",{promoter_id:id,reason});toast("Reporte enviado al Administrador líder.")}catch(e){toast(e.message)}}
-function renderProfile(){if(!profile)return;$("#pname").textContent=profile.full_name||"Usuario";$("#pid").textContent="ID: "+(profile.user_id||"—");$("#pemail").textContent=profile.email||"";$("#leaderBtn").style.display=profile.is_admin?"block":"none";$("#promoterBtn").style.display=profile.is_promoter?"block":"none";setBalance(profile.balance||0)}async function editProfile(){try{let name=prompt("Nombre completo:",profile?.full_name||"");if(name===null)return;name=name.trim();if(!name)throw Error("Escribe tu nombre completo.");let phone=prompt("Número de teléfono:",profile?.phone||"");if(phone===null)return;let r=await rpc("update_profile",{full_name:name,phone:phone.trim()});profile.full_name=r.full_name;profile.phone=r.phone;localStorage.setItem("mf_profile",JSON.stringify(profile));renderProfile();toast("Perfil actualizado.")}catch(e){toast(e.message)}}function logout(){localStorage.removeItem("mf_refresh");state=null;counts={};lastRound=null;draftDirty=false;document.querySelectorAll("dialog[open]").forEach(d=>d.close());go("home");localStorage.removeItem("mf_access");localStorage.removeItem("mf_profile");access="";profile=null;showAuth()}
-async function openLeader(){try{let r=await rpc("admin_dashboard");$("#adminBuy").value=r.buy_price||0;$("#adminSell").value=r.sell_price||0;$("#groupURL").value=r.group_url||"";$("#roundSeconds").value=r.betting_seconds||15;$("#minBet").value=r.minimum_bet||0.01;$("#payoutPercent").value=r.payout_percent??50;$("#freeShot1").checked=!!r.free_shot_1_enabled;$("#freeShot2").checked=!!r.free_shot_2_enabled;$("#freeShotEvery").value=r.free_shot_every||100;$("#leaderBalance").textContent=money(r.leader_balance||0);leaderDialog.showModal()}catch(e){toast(e.message)}}
-async function savePrices(){try{await rpc("admin_prices",{buy_price:Number($("#adminBuy").value),sell_price:Number($("#adminSell").value)});toast("Precios actualizados.");leaderDialog.close();loadPublic()}catch(e){toast(e.message)}}async function saveGroup(){try{await rpc("admin_group",{group_url:$("#groupURL").value.trim()});toast("Grupo actualizado.");leaderDialog.close();localStorage.setItem("mf_group",$("#groupURL").value.trim())}catch(e){toast(e.message)}}async function saveRouletteSettings(){try{await rpc("admin_roulette",{betting_seconds:Number($("#roundSeconds").value),minimum_bet:Number($("#minBet").value),payout_percent:Number($("#payoutPercent").value),free_shot_1_enabled:$("#freeShot1").checked,free_shot_2_enabled:$("#freeShot2").checked,free_shot_every:Math.max(1,Number($("#freeShotEvery").value)||100)});toast("Ruleta actualizada.");leaderDialog.close()}catch(e){toast(e.message)}}
-async function loadPromoterAdmin(){try{let r=await rpc("admin_find_user",{user_id:$("#adminPromoterID").value.trim()});$("#adminPromoterBox").innerHTML=`<div class="card"><b>${esc(r.full_name)}</b><div class="muted">ID ${esc(r.user_id)}</div><div class="row"><label><input id="pa" type="checkbox" ${r.is_promoter?"checked":""}> Promotor activo</label></div><input id="pwa" class="field" value="${esc(r.whatsapp||"")}" placeholder="WhatsApp"><div class="perm"><span>Enviar FC</span><input id="psend" type="checkbox" ${r.can_send?"checked":""}></div><div class="perm"><span>Solicitar FC</span><input id="preq" type="checkbox" ${r.can_request?"checked":""}></div><div class="row"><input id="padj" class="field" placeholder="Cantidad FC (+ recarga / - retiro)"><button class="btn" onclick="adjustPromoter('${esc(r.user_id)}')">Aplicar saldo</button></div><button class="btn primary" onclick="savePromoter('${esc(r.user_id)}')">Guardar promotor</button></div>`}catch(e){toast(e.message)}}
-async function savePromoter(id){try{await rpc("admin_promoter_save",{user_id:id,active:$("#pa").checked,whatsapp:$("#pwa").value.trim(),can_send:$("#psend").checked,can_request:$("#preq").checked});toast("Promotor actualizado.");leaderDialog.close()}catch(e){toast(e.message)}}async function adjustPromoter(id){try{let a=Number($("#padj").value);if(!a)throw Error("Escribe una cantidad.");await rpc("admin_promoter_balance",{user_id:id,amount:a,operation:crypto.randomUUID()});toast("Saldo del promotor actualizado.")}catch(e){toast(e.message)}}async function loadReports(){try{let r=await rpc("admin_reports");alert((r.items||[]).map(x=>`${x.created_at} · Promotor ${x.promoter_user_id} · ${x.reason}`).join("\n")||"No hay reportes.")}catch(e){toast(e.message)}}
-async function loadPromoter(){try{let r=await rpc("promoter_dashboard");setBalance(r.balance);$("#sendModule").style.display=r.can_send?"block":"none";$("#requestModule").style.display=r.can_request?"block":"none";await loadPublic()}catch(e){toast(e.message)}}async function findUser(){try{selectedUser=await rpc("promoter_find_user",{user_id:$("#userSearch").value.trim()});$("#searchResult").innerHTML=`<div class="card promoter" onclick="openTransfer()"><div class="avatar">👤</div><div><b>${esc(selectedUser.full_name)}</b><div class="muted">ID ${esc(selectedUser.user_id)}</div></div><div class="grow"></div>›</div>`}catch(e){toast(e.message)}}function openTransfer(){if(!selectedUser)return;$("#transferWho").innerHTML=`<div class="card"><b>${esc(selectedUser.full_name)}</b><div class="muted">ID ${esc(selectedUser.user_id)}</div></div>`;$("#transferFC").value="";calcTransfer();transferDialog.showModal()}function calcTransfer(){$("#transferRD").textContent=((Number($("#transferFC").value)||0)*prices.sell).toFixed(2)}
-async function sendFC(){try{let a=Number($("#transferFC").value);let r=await rpc("promoter_send_fc",{receiver_id:selectedUser.user_id,amount:a,operation:crypto.randomUUID()});transferDialog.close();setBalance(r.balance);showReceipt("Pago realizado correctamente","Flash Coin enviada al usuario",a,selectedUser.full_name,selectedUser.user_id,r.operation)}catch(e){toast(e.message)}}
-function openRequest(){if(!selectedUser)return toast("Busca y selecciona primero un usuario.");$("#requestWho").innerHTML=`<div class="card"><b>${esc(selectedUser.full_name)}</b><div class="muted">ID ${esc(selectedUser.user_id)}</div></div>`;$("#requestFC").value="";requestDialog.showModal()}async function createRequest(){try{let a=Number($("#requestFC").value);await rpc("promoter_request_fc",{user_id:selectedUser.user_id,amount:a});requestDialog.close();toast("Solicitud enviada al usuario.")}catch(e){toast(e.message)}}
-async function history(type){try{let r=await rpc("promoter_history",{type});alert((r.items||[]).map(x=>`${x.created_at} · ${x.kind} · ${money(x.amount)} FC · ${x.status}`).join("\n")||"Sin movimientos.")}catch(e){toast(e.message)}}
-function showReceipt(title,sub,a,name,id,op){let d=new Date();$("#receiptTitle").textContent=title;$("#receiptSub").textContent=sub;$("#receiptBody").innerHTML=`<div class="money">${money(a)} FC</div><p>${esc(name)} · ID ${esc(id)}</p><p>${d.toLocaleString()}</p><p class="muted">Operación ${esc(op||"—")}</p>`;receiptText=`${title}\n${sub}\n${money(a)} FC\n${name} · ID ${id}\n${d.toLocaleString()}\nOperación ${op||"—"}`;receiptDialog.showModal()}function copyReceipt(){navigator.clipboard.writeText(receiptText).then(()=>toast("Comprobante copiado."))}async function shareReceipt(){if(navigator.share){try{await navigator.share({title:"Comprobante MAIKET FLASH",text:receiptText})}catch{}}else toast("Toma una captura de este comprobante para WhatsApp.")}
-
-async function leaderMoneyAction(action){
- try{
-  let id=$("#leaderTarget").value.trim(),a=Number($("#leaderAmount").value);
-  if(!/^\d{6}$/.test(id))throw Error("Escribe un ID válido de 6 dígitos.");
-  if(!(a>0))throw Error("Cantidad inválida.");
-  let r=await rpc(action,{user_id:id,amount:a,operation:crypto.randomUUID()});
-  $("#leaderBalance").textContent=money(r.leader_balance||0);
-  await hydrateProfile();toast(r.message||"Operación realizada.");
- }catch(e){toast(e.message)}
-}
-function leaderSend(){leaderMoneyAction("admin_leader_send")}
-function leaderWithdraw(){leaderMoneyAction("admin_leader_withdraw")}
-function leaderRequest(){leaderMoneyAction("admin_leader_request")}
-async function masterTopup(){
- try{
-  let a=Number($("#masterAmount").value);
-  if(!(a>0))throw Error("Cantidad inválida.");
-  let r=await rpc("admin_master_topup",{amount:a,operation:crypto.randomUUID()});
-  $("#leaderBalance").textContent=money(r.leader_balance||0);
-  await hydrateProfile();toast("Saldo principal recargado desde el Fondo maestro.");
- }catch(e){toast(e.message)}
-}
-
-
-function saveSession(a){access=a.access_token;localStorage.setItem('mf_access',access);if(a.refresh_token)localStorage.setItem('mf_refresh',a.refresh_token)}
-async function renewSession(){if(!refreshTask)refreshTask=authFetch('/auth/v1/token?grant_type=refresh_token',{refresh_token:localStorage.getItem('mf_refresh')}).then(saveSession).finally(()=>refreshTask=null);return refreshTask}
-async function loadRequests(){try{const a=await rpc('user_requests'),b=await rpc('leader_user_requests');let rows=[...(a.items||[]).map(x=>({...x,leader:false})),...(b.items||[]).map(x=>({...x,leader:true}))].filter(x=>x.status==='pending');$('#requestsList').innerHTML=rows.map(x=>`<div class="card"><b>${esc(x.promoter_name)}</b> · ID ${esc(x.promoter_user_id)}<p>Solicita ${money(x.amount)} FC de tu saldo.</p><button class="btn green" onclick="answerRequest('${esc(x.id)}',${x.leader},true)">Aceptar</button> <button class="btn danger" onclick="answerRequest('${esc(x.id)}',${x.leader},false)">Rechazar</button></div>`).join('')||'No hay solicitudes pendientes.';if(!requestsDialog.open)requestsDialog.showModal()}catch(e){toast(e.message)}}
-async function answerRequest(id,leader,accept){if(accept&&!confirm('¿Autorizar el descuento de esta solicitud de tu saldo?'))return;try{await rpc((accept?'accept':'reject')+(leader?'_leader':'')+'_request',{request_id:id});await hydrateProfile();await loadRequests();toast('Solicitud respondida.')}catch(e){toast(e.message)}}
-// Evita doble envío mientras una operación está pendiente.
-for(const name of ['login','register','saveBets','sendFC','createRequest','masterTopup','leaderMoneyAction','adjustPromoter','answerRequest']){const original=window[name];let busy=false;window[name]=async function(...args){if(busy)return;busy=true;try{return await original(...args)}finally{busy=false}}}
-
-$("#regID").addEventListener("input",cleanRegID);build();renderProfile();boot();
+function openDialog(id) { const dialog=byId(id); if(dialog && !dialog.open) dialog.showModal(); }
+function closeDialog(id) { const dialog=byId(id); if(dialog && dialog.open) dialog.close(); }
+go('home');
 </script>
-</body></html>
+</body>
+</html>
