@@ -1,880 +1,2271 @@
+```html
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-
-<title>Ruleta 0 - 12</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ruleta Flash Coin</title>
 
 <style>
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-    -webkit-tap-highlight-color:transparent;
-}
-
-html,body{
-    width:100%;
-    min-height:100%;
-    background:#02050b;
-    font-family:Arial,Helvetica,sans-serif;
-    color:white;
-}
+*{box-sizing:border-box;margin:0;padding:0}
 
 body{
-    overflow-x:hidden;
+    font-family:Arial,Helvetica,sans-serif;
+    background:#05070c;
+    color:#fff;
+    min-height:100vh;
 }
+
+button,input,textarea{font:inherit}
+button{cursor:pointer}
 
 .app{
-    position:relative;
+    min-height:100vh;
+    background:
+        linear-gradient(rgba(0,0,0,.18),rgba(0,0,0,.65)),
+        url("ruleta-maquina.png") center top/cover no-repeat fixed;
+    padding:16px;
+}
+
+.topbar{
+    max-width:520px;
+    margin:auto;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+}
+
+.logo{
+    font-size:22px;
+    font-weight:900;
+    text-shadow:0 2px 10px #000;
+}
+
+.top-actions{display:flex;gap:7px}
+
+.top-btn{
+    border:1px solid rgba(255,255,255,.3);
+    background:rgba(5,10,20,.82);
+    color:#fff;
+    border-radius:12px;
+    padding:9px 11px;
+    font-size:12px;
+    font-weight:800;
+}
+
+.balance-card{
+    max-width:520px;
+    margin:14px auto;
+    background:rgba(5,10,20,.86);
+    border:1px solid rgba(255,215,0,.45);
+    border-radius:18px;
+    padding:13px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+
+.balance-button{
     width:100%;
-    min-height:100dvh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:flex-start;
-    padding:
-        calc(env(safe-area-inset-top) + 18px)
-        14px
-        calc(env(safe-area-inset-bottom) + 25px);
-
-    overflow:hidden;
-
-    background:
-        radial-gradient(circle at 50% 25%,
-            rgba(255,190,40,.22),
-            transparent 28%),
-        radial-gradient(circle at 50% 55%,
-            rgba(0,120,255,.14),
-            transparent 45%),
-        linear-gradient(180deg,
-            #07101b 0%,
-            #02050b 55%,
-            #000 100%);
+    border:none;
+    border-radius:14px;
+    padding:13px;
+    background:linear-gradient(135deg,#ffda37,#c89100);
+    color:#161000;
+    font-weight:900;
+    font-size:16px;
 }
 
-/* luces de fondo */
-
-.app::before{
-    content:"";
-    position:absolute;
-    width:500px;
-    height:500px;
-    top:-230px;
-    left:50%;
-    transform:translateX(-50%);
-    border-radius:50%;
-    background:
-        radial-gradient(circle,
-        rgba(255,202,67,.22),
-        rgba(255,160,0,.05) 45%,
-        transparent 70%);
-    filter:blur(8px);
-    pointer-events:none;
+.promoter-info-btn{
+    width:100%;
+    margin-top:8px;
+    border:1px solid #50c8ff;
+    background:#092337;
+    color:#fff;
+    border-radius:12px;
+    padding:11px;
+    font-weight:800;
 }
 
-.title{
+.machine{
+    max-width:520px;
+    margin:15px auto;
+    background:rgba(0,0,0,.48);
+    border:1px solid rgba(255,255,255,.15);
+    border-radius:28px;
+    padding:18px 12px;
+    backdrop-filter:blur(3px);
+}
+
+.wheel-wrap{
+    width:300px;
+    height:300px;
+    margin:5px auto 20px;
     position:relative;
-    z-index:5;
-    text-align:center;
-    margin-top:4px;
 }
-
-.title h1{
-    font-size:clamp(23px,7vw,34px);
-    letter-spacing:3px;
-    color:#ffd76a;
-    text-shadow:
-        0 0 8px #d88b00,
-        0 0 25px rgba(255,173,0,.5);
-}
-
-.title p{
-    margin-top:6px;
-    color:#aeb9c9;
-    font-size:13px;
-}
-
-/* =========================
-   RULETA
-========================= */
-
-.roulette-area{
-    position:relative;
-    z-index:3;
-    width:min(88vw,430px);
-    aspect-ratio:1/1;
-    margin-top:22px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-}
-
-.glow{
-    position:absolute;
-    width:96%;
-    height:96%;
-    border-radius:50%;
-    background:rgba(255,174,0,.10);
-    box-shadow:
-        0 0 30px rgba(255,178,0,.4),
-        0 0 80px rgba(255,136,0,.18);
-}
-
-/* indicador superior */
 
 .pointer{
     position:absolute;
-    z-index:20;
-    top:-4px;
+    z-index:10;
+    top:-8px;
     left:50%;
     transform:translateX(-50%);
     width:0;
     height:0;
-
-    border-left:17px solid transparent;
-    border-right:17px solid transparent;
-    border-top:34px solid #ffd54f;
-
-    filter:
-        drop-shadow(0 0 4px #ff9d00)
-        drop-shadow(0 0 9px #ff7b00);
+    border-left:15px solid transparent;
+    border-right:15px solid transparent;
+    border-top:32px solid #ffd632;
+    filter:drop-shadow(0 2px 4px #000);
 }
 
-/* borde exterior */
-
-.outer-ring{
-    position:absolute;
+.wheel{
     width:100%;
     height:100%;
     border-radius:50%;
-
+    position:relative;
+    border:9px solid #d3a51e;
     background:
-        repeating-conic-gradient(
-            #ffd766 0deg 4deg,
-            #8e5700 4deg 8deg
+        radial-gradient(circle at center,#111 0 19%,transparent 20%),
+        conic-gradient(
+            #126f3a 0deg 27.69deg,
+            #b51626 27.69deg 55.38deg,
+            #111 55.38deg 83.07deg,
+            #b51626 83.07deg 110.76deg,
+            #111 110.76deg 138.45deg,
+            #b51626 138.45deg 166.14deg,
+            #111 166.14deg 193.83deg,
+            #b51626 193.83deg 221.52deg,
+            #111 221.52deg 249.21deg,
+            #b51626 249.21deg 276.90deg,
+            #111 276.90deg 304.59deg,
+            #b51626 304.59deg 332.28deg,
+            #111 332.28deg 360deg
         );
-
-    box-shadow:
-        0 0 0 4px #4a2a00,
-        0 0 20px #ffae00,
-        0 0 45px rgba(255,154,0,.45);
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    box-shadow:0 0 0 5px #5b4211,0 0 35px rgba(255,200,0,.45);
+    transition:transform 5.4s cubic-bezier(.12,.72,.12,1);
 }
-
-.outer-ring::after{
-    content:"";
-    position:absolute;
-    width:91%;
-    height:91%;
-    border-radius:50%;
-    background:#080b10;
-    box-shadow:
-        inset 0 0 20px #000,
-        0 0 0 3px #d69722;
-}
-
-/* rueda que gira */
-
-.wheel{
-    position:absolute;
-    z-index:4;
-    width:84%;
-    height:84%;
-    border-radius:50%;
-
-    border:4px solid #c99125;
-
-    background:
-        repeating-conic-gradient(
-            from -13.846deg,
-            #8f1010 0deg 27.692deg,
-            #101318 27.692deg 55.384deg
-        );
-
-    box-shadow:
-        inset 0 0 28px #000,
-        0 0 15px rgba(255,185,45,.45);
-
-    transition:
-        transform 5.2s cubic-bezier(.12,.68,.12,1);
-
-    will-change:transform;
-}
-
-/* líneas de separación */
-
-.wheel::before{
-    content:"";
-    position:absolute;
-    inset:0;
-    border-radius:50%;
-
-    background:
-        repeating-conic-gradient(
-            transparent 0deg 26.7deg,
-            rgba(255,218,111,.85) 26.7deg 27.692deg
-        );
-
-    pointer-events:none;
-}
-
-/* centro */
-
-.center{
-    position:absolute;
-    z-index:10;
-    width:34%;
-    height:34%;
-    border-radius:50%;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    background:
-        radial-gradient(circle at 40% 35%,
-            #fff3a4 0%,
-            #e8a72b 16%,
-            #8e5200 45%,
-            #251300 75%,
-            #080400 100%);
-
-    border:3px solid #f4c34d;
-
-    box-shadow:
-        inset 0 0 15px #fff2a0,
-        0 0 20px rgba(255,173,0,.8);
-}
-
-.center-inner{
-    width:57%;
-    height:57%;
-    border-radius:50%;
-
-    display:flex;
-    align-items:center;
-    justify-content:center;
-
-    background:
-        radial-gradient(circle,
-            #222 0%,
-            #080808 65%,
-            #000 100%);
-
-    border:2px solid #d59b28;
-
-    font-size:clamp(23px,7vw,34px);
-    font-weight:900;
-    color:#ffd65c;
-
-    text-shadow:0 0 8px #ff9d00;
-}
-
-/* números físicos de la rueda */
 
 .wheel-number{
     position:absolute;
-    z-index:5;
-
     left:50%;
     top:50%;
-
     width:32px;
     height:32px;
-
-    margin-left:-16px;
-    margin-top:-16px;
-
+    margin:-16px;
     display:flex;
     align-items:center;
     justify-content:center;
-
-    font-size:clamp(14px,4vw,19px);
     font-weight:900;
-    color:white;
-
-    text-shadow:
-        0 2px 2px #000,
-        0 0 4px #000;
-
-    transform:
-        rotate(var(--angle))
-        translateY(-135px)
-        rotate(calc(-1 * var(--angle)));
+    font-size:16px;
+    text-shadow:0 2px 4px #000;
 }
 
-/* =========================
-   RESULTADO
-========================= */
-
-.result-box{
-    position:relative;
+.wheel-center{
+    position:absolute;
     z-index:5;
-    margin-top:16px;
-
-    width:min(92vw,430px);
-    min-height:62px;
-
-    border:1px solid rgba(255,210,91,.45);
-    border-radius:18px;
-
-    background:rgba(5,10,18,.82);
-    backdrop-filter:blur(12px);
-
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    width:88px;
+    height:88px;
+    border-radius:50%;
+    background:radial-gradient(circle,#ffe579,#b77b00);
+    border:5px solid #6c4900;
+    color:#171000;
     display:flex;
     align-items:center;
     justify-content:center;
-    flex-direction:column;
-
-    box-shadow:
-        inset 0 0 20px rgba(255,170,0,.05),
-        0 8px 30px rgba(0,0,0,.35);
-}
-
-.result-label{
-    font-size:11px;
-    letter-spacing:2px;
-    color:#8894a5;
+    font-size:34px;
+    font-weight:900;
+    box-shadow:0 5px 15px #000;
 }
 
 .result{
-    margin-top:3px;
-    font-size:24px;
-    font-weight:900;
-    color:#ffd866;
+    text-align:center;
+    font-size:16px;
+    font-weight:800;
+    margin-bottom:12px;
 }
 
-/* =========================
-   BOTONES 0 - 12
-========================= */
-
-.choose-title{
-    position:relative;
-    z-index:5;
-    margin-top:20px;
+.bet-help{
+    text-align:center;
+    font-size:12px;
+    color:#ddd;
     margin-bottom:10px;
-    font-size:14px;
-    color:#d9e0e8;
 }
 
 .numbers{
-    position:relative;
-    z-index:5;
-
-    width:min(94vw,460px);
-
     display:grid;
-    grid-template-columns:repeat(7,1fr);
+    grid-template-columns:repeat(5,1fr);
     gap:7px;
 }
 
 .number-btn{
-    min-width:0;
-    aspect-ratio:1/1;
-
+    min-height:52px;
+    border:none;
     border-radius:12px;
-
-    border:1px solid #59616d;
-
-    color:white;
-
-    background:
-        linear-gradient(180deg,#20252d,#090c11);
-
-    font-size:16px;
+    background:#181d27;
+    color:#fff;
+    font-size:18px;
     font-weight:900;
-
-    cursor:pointer;
-
-    box-shadow:
-        inset 0 1px rgba(255,255,255,.1),
-        0 4px 8px rgba(0,0,0,.35);
-
-    transition:.15s;
+    border:1px solid #394150;
+    position:relative;
 }
 
-.number-btn:active{
-    transform:scale(.92);
-}
+.number-btn.zero{background:#126f3a}
 
 .number-btn.selected{
-    color:#1b1000;
-
-    border-color:#ffe58b;
-
-    background:
-        linear-gradient(180deg,
-            #fff0a1,
-            #ffbd29);
-
-    box-shadow:
-        0 0 10px #ffad00,
-        0 0 20px rgba(255,145,0,.55);
+    outline:3px solid #ffd42a;
+    transform:translateY(-2px);
 }
 
-/* cero destacado */
-
-.number-btn.zero{
-    border-color:#258a55;
+.bet-count{
+    display:block;
+    font-size:10px;
+    color:#ffd42a;
+    margin-top:2px;
 }
-
-/* =========================
-   PLAY
-========================= */
 
 .play{
-    position:relative;
-    z-index:5;
-
-    width:min(92vw,430px);
-    height:62px;
-
-    margin-top:18px;
-
+    width:100%;
+    margin-top:12px;
     border:none;
-    border-radius:18px;
-
-    font-size:21px;
+    border-radius:15px;
+    padding:15px;
+    background:linear-gradient(135deg,#ffdc3d,#c88c00);
+    color:#171000;
+    font-size:18px;
     font-weight:900;
-    letter-spacing:2px;
-
-    color:#241400;
-
-    background:
-        linear-gradient(
-            180deg,
-            #fff2a2,
-            #ffc32e 45%,
-            #d68700
-        );
-
-    box-shadow:
-        inset 0 2px rgba(255,255,255,.65),
-        0 6px 0 #704000,
-        0 10px 25px rgba(255,153,0,.35);
-
-    cursor:pointer;
 }
 
-.play:active{
-    transform:translateY(4px);
-    box-shadow:
-        inset 0 2px rgba(255,255,255,.4),
-        0 2px 0 #704000,
-        0 5px 15px rgba(255,153,0,.25);
+.play:disabled{opacity:.5}
+
+.total-bet{
+    margin-top:10px;
+    text-align:center;
+    font-weight:800;
 }
 
-.play:disabled{
-    opacity:.55;
-    cursor:not-allowed;
+.overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:100;
+    background:rgba(0,0,0,.82);
+    padding:18px;
+    overflow:auto;
 }
 
-/* móvil pequeño */
+.overlay.active{display:block}
+
+.panel{
+    width:min(100%,520px);
+    margin:20px auto;
+    background:#101722;
+    border:1px solid #2d3a4d;
+    border-radius:22px;
+    padding:18px;
+    box-shadow:0 20px 60px #000;
+}
+
+.panel h2{margin-bottom:15px}
+.panel h3{margin:18px 0 10px}
+
+.close{
+    float:right;
+    border:none;
+    background:#273244;
+    color:#fff;
+    border-radius:10px;
+    padding:8px 11px;
+}
+
+.field{
+    width:100%;
+    margin:6px 0;
+    border:1px solid #39475c;
+    border-radius:12px;
+    padding:12px;
+    background:#080d14;
+    color:#fff;
+    outline:none;
+}
+
+.action{
+    width:100%;
+    margin-top:8px;
+    padding:12px;
+    border:none;
+    border-radius:12px;
+    background:#1677ff;
+    color:#fff;
+    font-weight:900;
+}
+
+.action.green{background:#16884a}
+.action.red{background:#a82631}
+.action.gold{background:#d29b13;color:#171000}
+
+.card{
+    background:#080d14;
+    border:1px solid #263245;
+    border-radius:14px;
+    padding:13px;
+    margin-top:9px;
+}
+
+.card strong{
+    display:block;
+    margin-bottom:4px;
+}
+
+.muted{
+    color:#aeb8c7;
+    font-size:13px;
+}
+
+.notice{
+    background:#2b2207;
+    border:1px solid #8e7417;
+    padding:12px;
+    border-radius:12px;
+    margin:10px 0;
+    white-space:pre-wrap;
+}
+
+.status{
+    display:inline-block;
+    margin-top:6px;
+    padding:4px 8px;
+    border-radius:20px;
+    background:#263245;
+    font-size:11px;
+}
+
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+.hidden{display:none!important}
+.history{max-height:300px;overflow:auto}
+.promoter-only{display:none}
 
 @media(max-width:390px){
-
-    .roulette-area{
-        width:86vw;
+    .wheel-wrap{
+        width:270px;
+        height:270px;
     }
 
     .numbers{
-        grid-template-columns:repeat(7,1fr);
-        gap:5px;
+        grid-template-columns:repeat(4,1fr);
     }
 
-    .number-btn{
-        border-radius:10px;
-        font-size:14px;
-    }
-
-    .wheel-number{
-        transform:
-            rotate(var(--angle))
-            translateY(-31vw)
-            rotate(calc(-1 * var(--angle)));
-    }
-}
-
-/* pantallas más grandes */
-
-@media(min-width:500px){
-
-    .wheel-number{
-        transform:
-            rotate(var(--angle))
-            translateY(-155px)
-            rotate(calc(-1 * var(--angle)));
-    }
+    .logo{font-size:18px}
+    .top-btn{padding:8px}
 }
 </style>
 </head>
 
 <body>
 
-<main class="app">
+<div class="app">
 
-    <div class="title">
-        <h1>RULETA</h1>
-        <p>Selecciona un número del 0 al 12</p>
+    <div class="topbar">
+        <div class="logo">⚡ RULETA FC</div>
+
+        <div class="top-actions">
+            <button class="top-btn promoter-only"
+                    onclick="openPanel('promoterPanel')">
+                Panel Promotor
+            </button>
+
+            <button class="top-btn"
+                    onclick="openPanel('settingsPanel')">
+                ⚙️
+            </button>
+        </div>
     </div>
 
-    <section class="roulette-area">
+    <div class="balance-card">
 
-        <div class="glow"></div>
+        <button class="balance-button"
+                onclick="openBalance()">
+            💰 Saldo:
+            <span id="balanceTop">0.000</span> FC
+        </button>
 
-        <div class="pointer"></div>
+        <button class="promoter-info-btn"
+                onclick="openPromotersInfo()">
+            👥 Promotores Info
+        </button>
 
-        <div class="outer-ring"></div>
-
-        <div
-            class="wheel"
-            id="wheel">
-        </div>
-
-        <div class="center">
-            <div
-                class="center-inner"
-                id="centerNumber">
-                0
-            </div>
-        </div>
-
-    </section>
-
-    <section class="result-box">
-
-        <div class="result-label">
-            RESULTADO
-        </div>
-
-        <div
-            class="result"
-            id="result">
-            LISTO
-        </div>
-
-    </section>
-
-    <div class="choose-title">
-        ELIGE TU NÚMERO
     </div>
 
-    <section
-        class="numbers"
-        id="numberButtons">
-    </section>
+    <div class="machine">
 
-    <button
-        class="play"
-        id="playButton">
-        ▶ PLAY
+        <div class="wheel-wrap">
+            <div class="pointer"></div>
+            <div id="wheel" class="wheel"></div>
+            <div id="wheelCenter" class="wheel-center">—</div>
+        </div>
+
+        <div id="resultText" class="result">
+            Selecciona uno o varios números
+        </div>
+
+        <div class="bet-help">
+            Cada toque agrega 1 FC al número.
+            Todos los números pagan ×12.
+        </div>
+
+        <div id="numbers" class="numbers"></div>
+
+        <div class="total-bet">
+            Apuesta total:
+            <span id="totalBet">0.000</span> FC
+        </div>
+
+        <button id="playBtn"
+                class="play"
+                onclick="playRoulette()">
+            ▶ JUGAR
+        </button>
+
+    </div>
+</div>
+
+
+<!-- SALDO -->
+
+<div id="balancePanel" class="overlay">
+<div class="panel">
+
+    <button class="close"
+            onclick="closePanel('balancePanel')">✕</button>
+
+    <h2>💰 Flash Coin</h2>
+
+    <div class="card">
+        <span class="muted">Saldo disponible</span>
+
+        <strong style="font-size:30px">
+            <span id="balancePanelValue">0.000</span> FC
+        </strong>
+    </div>
+
+    <h3>Solicitudes recibidas</h3>
+    <div id="userRequests"></div>
+
+    <h3>Historial</h3>
+    <div id="historyList" class="history"></div>
+
+</div>
+</div>
+
+
+<!-- PROMOTORES INFO -->
+
+<div id="promotersInfoPanel" class="overlay">
+<div class="panel">
+
+    <button class="close"
+            onclick="closePanel('promotersInfoPanel')">✕</button>
+
+    <h2>👥 Promotores disponibles</h2>
+
+    <div id="publicNotice" class="notice">
+        Información de Flash Coin.
+    </div>
+
+    <div id="promotersPublicList"></div>
+
+</div>
+</div>
+
+
+<!-- CONFIGURACIÓN -->
+
+<div id="settingsPanel" class="overlay">
+<div class="panel">
+
+    <button class="close"
+            onclick="closePanel('settingsPanel')">✕</button>
+
+    <h2>⚙️ Configuración</h2>
+
+    <button class="action"
+            onclick="openEditProfile()">
+        Editar perfil
     </button>
 
-</main>
+    <button class="action gold"
+            onclick="openLeaderAdmin()">
+        👑 Administrador Líder
+    </button>
+
+</div>
+</div>
+
+
+<!-- EDITAR PERFIL -->
+
+<div id="editProfilePanel" class="overlay">
+<div class="panel">
+
+    <button class="close"
+            onclick="closePanel('editProfilePanel')">✕</button>
+
+    <h2>Editar perfil</h2>
+
+    <label>Nombre</label>
+
+    <input id="editName"
+           class="field"
+           type="text">
+
+    <div class="card">
+        <span class="muted">ID de usuario</span>
+        <strong id="profileId"></strong>
+    </div>
+
+    <button class="action green"
+            onclick="saveProfileName()">
+        Guardar nombre
+    </button>
+
+</div>
+</div>
+
+
+<!-- ADMINISTRADOR LÍDER -->
+
+<div id="leaderPanel" class="overlay">
+<div class="panel">
+
+    <button class="close"
+            onclick="closePanel('leaderPanel')">✕</button>
+
+    <h2>👑 Administrador Líder</h2>
+
+    <button class="action"
+            onclick="toggleAdminSection('assignPromoterSection')">
+        👥 Promotores
+    </button>
+
+    <div id="assignPromoterSection" class="hidden">
+
+        <h3>Asignar promotor</h3>
+
+        <input id="adminSearchPromoter"
+               class="field"
+               type="text"
+               inputmode="numeric"
+               placeholder="ID del usuario">
+
+        <button class="action"
+                onclick="adminFindUserForPromoter()">
+            Buscar ID
+        </button>
+
+        <div id="adminPromoterSearchResult"></div>
+
+    </div>
+
+    <h3>Comunicado</h3>
+
+    <textarea id="noticeInput"
+              class="field"
+              rows="4"
+              placeholder="Escribe aquí el comunicado..."></textarea>
+
+    <button class="action green"
+            onclick="saveNotice()">
+        Guardar comunicado
+    </button>
+
+    <button class="action gold"
+            onclick="toggleAdminSection('adminRechargeSection')">
+        💰 Enviar recarga
+    </button>
+
+    <div id="adminRechargeSection" class="hidden">
+
+        <h3>Recargar Flash Coin</h3>
+
+        <input id="adminRechargeId"
+               class="field"
+               type="text"
+               inputmode="numeric"
+               placeholder="ID del usuario o promotor">
+
+        <input id="adminRechargeAmount"
+               class="field"
+               type="number"
+               min="0.001"
+               step="0.001"
+               placeholder="Monto FC">
+
+        <button class="action green"
+                onclick="adminRecharge()">
+            Acreditar recarga
+        </button>
+
+    </div>
+
+    <h3>Promotores asignados</h3>
+    <div id="adminPromoterList"></div>
+
+</div>
+</div>
+
+
+<!-- PANEL PROMOTOR -->
+
+<div id="promoterPanel" class="overlay">
+<div class="panel">
+
+    <button class="close"
+            onclick="closePanel('promoterPanel')">✕</button>
+
+    <h2>💼 Panel de Promotor</h2>
+
+    <div class="card">
+        <span class="muted">Mi saldo</span>
+
+        <strong>
+            <span id="promoterBalance">0.000</span> FC
+        </strong>
+    </div>
+
+    <h3>Buscar usuario</h3>
+
+    <input id="promoterSearchId"
+           class="field"
+           type="text"
+           inputmode="numeric"
+           placeholder="ID del usuario">
+
+    <button class="action"
+            onclick="promoterFindUser()">
+        Buscar
+    </button>
+
+    <div id="promoterSearchResult"></div>
+
+</div>
+</div>
+
+
+<!-- OPERACIÓN PROMOTOR -->
+
+<div id="promoterUserPanel" class="overlay">
+<div class="panel">
+
+    <button class="close"
+            onclick="closePanel('promoterUserPanel')">✕</button>
+
+    <h2>Usuario</h2>
+
+    <div class="card">
+
+        <strong id="selectedUserName"></strong>
+
+        <span class="muted">
+            ID:
+            <span id="selectedUserId"></span>
+        </span>
+
+        <br>
+
+        <span class="muted">
+            Saldo:
+            <span id="selectedUserBalance"></span> FC
+        </span>
+
+    </div>
+
+    <input id="promoterAmount"
+           class="field"
+           type="number"
+           min="0.001"
+           step="0.001"
+           placeholder="Monto de Flash Coin">
+
+    <button class="action green"
+            onclick="promoterSendFC()">
+        Enviar Flash Coin
+    </button>
+
+    <button class="action gold"
+            onclick="promoterRequestFC()">
+        Solicitar Flash Coin
+    </button>
+
+</div>
+</div>
+
 
 <script>
 
-/* ==========================================
-   CONFIGURACIÓN
-========================================== */
+/* =====================================================
+   ALMACENAMIENTO LOCAL
+===================================================== */
 
-const TOTAL_NUMBERS = 13;
+const STORAGE_KEY = "ruleta_flash_coin_v1";
 
-/*
- Orden visual salteado.
+const defaultState = {
 
- Todos los números aparecen exactamente
- una vez del 0 al 12.
-*/
+    currentUserId:"100001",
+
+    users:{
+
+        "100001":{
+            id:"100001",
+            name:"Usuario Principal",
+            balance:100,
+            role:"leader"
+        },
+
+        "100002":{
+            id:"100002",
+            name:"Usuario Prueba",
+            balance:50,
+            role:"user"
+        },
+
+        "100003":{
+            id:"100003",
+            name:"Usuario Demo",
+            balance:30,
+            role:"user"
+        }
+
+    },
+
+    notice:"Información de Flash Coin.",
+
+    requests:[],
+
+    transactions:[]
+};
+
+
+function loadState(){
+
+    try{
+
+        const saved =
+            localStorage.getItem(STORAGE_KEY);
+
+        if(saved){
+            return JSON.parse(saved);
+        }
+
+    }catch(error){}
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(defaultState)
+    );
+
+    return JSON.parse(
+        JSON.stringify(defaultState)
+    );
+}
+
+
+let state = loadState();
+
+
+function saveState(){
+
+    localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(state)
+    );
+
+    renderAll();
+}
+
+
+function currentUser(){
+    return state.users[state.currentUserId];
+}
+
+
+function formatFC(value){
+    return Number(value || 0).toFixed(3);
+}
+
+
+/* =====================================================
+   RULETA
+===================================================== */
 
 const wheelOrder = [
-    0,
-    7,
-    2,
-    11,
-    4,
-    9,
-    1,
-    12,
-    5,
-    8,
-    3,
-    10,
-    6
+    0,7,2,11,4,9,1,12,5,8,3,10,6
 ];
 
-const segmentAngle = 360 / TOTAL_NUMBERS;
-
-
-/* ==========================================
-   ELEMENTOS
-========================================== */
-
-const wheel =
-    document.getElementById("wheel");
-
-const buttonsContainer =
-    document.getElementById("numberButtons");
-
-const playButton =
-    document.getElementById("playButton");
-
-const resultElement =
-    document.getElementById("result");
-
-const centerNumber =
-    document.getElementById("centerNumber");
-
-
-/* ==========================================
-   ESTADO
-========================================== */
-
-let selectedNumber = null;
-
+let bets = {};
 let spinning = false;
-
-let currentRotation = 0;
-
-
-/* ==========================================
-   CREAR NÚMEROS EN LA RULETA
-========================================== */
-
-wheelOrder.forEach((number,index)=>{
-
-    const element =
-        document.createElement("div");
-
-    element.className =
-        "wheel-number";
-
-    element.textContent =
-        number;
-
-    const angle =
-        index * segmentAngle;
-
-    element.style.setProperty(
-        "--angle",
-        angle + "deg"
-    );
-
-    wheel.appendChild(element);
-
-});
+let rotation = 0;
 
 
-/* ==========================================
-   CREAR BOTONES 0 - 12
-========================================== */
+function secureRandom(max){
 
-for(let number = 0;
-    number <= 12;
-    number++){
+    const array =
+        new Uint32Array(1);
 
-    const button =
-        document.createElement("button");
+    crypto.getRandomValues(array);
 
-    button.className =
-        "number-btn";
-
-    if(number === 0){
-        button.classList.add("zero");
-    }
-
-    button.textContent =
-        number;
-
-    button.dataset.number =
-        number;
-
-    button.addEventListener(
-        "click",
-        ()=>selectNumber(number,button)
-    );
-
-    buttonsContainer.appendChild(button);
+    return array[0] % max;
 }
 
 
-/* ==========================================
-   SELECCIONAR NÚMERO
-========================================== */
+function createWheelNumbers(){
 
-function selectNumber(number,button){
+    const wheel =
+        document.getElementById("wheel");
 
-    if(spinning){
+    wheel
+        .querySelectorAll(".wheel-number")
+        .forEach(el=>el.remove());
+
+    const radius = 116;
+
+    wheelOrder.forEach((number,index)=>{
+
+        const angle =
+            index * (360 / wheelOrder.length);
+
+        const el =
+            document.createElement("div");
+
+        el.className = "wheel-number";
+
+        el.textContent = number;
+
+        el.style.transform =
+            `rotate(${angle}deg)
+             translateY(-${radius}px)
+             rotate(${-angle}deg)`;
+
+        wheel.appendChild(el);
+    });
+}
+
+
+function createBetButtons(){
+
+    const container =
+        document.getElementById("numbers");
+
+    container.innerHTML = "";
+
+    for(let n=0;n<=12;n++){
+
+        const btn =
+            document.createElement("button");
+
+        btn.className =
+            "number-btn" +
+            (n === 0 ? " zero" : "") +
+            ((bets[n] || 0) > 0 ? " selected" : "");
+
+        btn.onclick = ()=>addBet(n);
+
+        btn.innerHTML = `
+            ${n}
+            <span class="bet-count">
+                ${
+                    (bets[n] || 0) > 0
+                    ? formatFC(bets[n])+" FC"
+                    : ""
+                }
+            </span>
+        `;
+
+        container.appendChild(btn);
+    }
+
+    updateTotalBet();
+}
+
+
+function addBet(number){
+
+    if(spinning) return;
+
+    const user = currentUser();
+
+    const alreadyBet = totalBet();
+
+    if(user.balance < alreadyBet + 1){
+
+        alert("Saldo Flash Coin insuficiente.");
+
         return;
     }
 
-    selectedNumber =
-        number;
+    bets[number] =
+        Number(bets[number] || 0) + 1;
+
+    createBetButtons();
+}
+
+
+function totalBet(){
+
+    return Object.values(bets)
+        .reduce(
+            (sum,value)=>
+                sum + Number(value),
+            0
+        );
+}
+
+
+function updateTotalBet(){
 
     document
-        .querySelectorAll(".number-btn")
-        .forEach(btn=>{
-            btn.classList.remove(
-                "selected"
-            );
-        });
-
-    button.classList.add(
-        "selected"
-    );
-
-    resultElement.textContent =
-        "Elegiste " + number;
+        .getElementById("totalBet")
+        .textContent =
+        formatFC(totalBet());
 }
 
 
-/* ==========================================
-   PLAY
-========================================== */
+function playRoulette(){
 
-playButton.addEventListener(
-    "click",
-    spinRoulette
-);
+    if(spinning) return;
 
+    const wager = totalBet();
 
-/* ==========================================
-   GIRAR RULETA
-========================================== */
+    if(wager <= 0){
 
-function spinRoulette(){
+        alert(
+            "Selecciona al menos un número."
+        );
 
-    if(spinning){
         return;
     }
 
-    if(selectedNumber === null){
+    const user = currentUser();
 
-        resultElement.textContent =
-            "ELIGE UN NÚMERO";
+    if(user.balance < wager){
 
+        alert(
+            "No tienes suficientes Flash Coin."
+        );
+
+        return;
+    }
+
+    if(!confirm(
+        "¿Confirmas la apuesta de " +
+        formatFC(wager) +
+        " FC?"
+    )){
         return;
     }
 
     spinning = true;
 
-    playButton.disabled = true;
+    user.balance -= wager;
 
-    resultElement.textContent =
-        "GIRANDO...";
+    addTransaction({
 
-    /*
-      Resultado aleatorio seguro para
-      esta simulación del navegador.
-    */
+        type:"APUESTA",
 
-    const randomArray =
-        new Uint32Array(1);
+        from:user.id,
 
-    crypto.getRandomValues(
-        randomArray
-    );
+        to:"RULETA",
 
-    const resultNumber =
-        randomArray[0] %
-        TOTAL_NUMBERS;
+        amount:wager,
 
+        status:"Completada"
 
-    /*
-      Buscar dónde está físicamente
-      ese número dentro de la rueda.
-    */
+    });
 
-    const resultIndex =
-        wheelOrder.indexOf(
-            resultNumber
-        );
+    document
+        .getElementById("playBtn")
+        .disabled = true;
+
+    document
+        .getElementById("resultText")
+        .textContent =
+        "La ruleta está girando...";
 
 
-    /*
-      Queremos llevar el segmento
-      ganador hasta el indicador superior.
-    */
+    const winnerIndex =
+        secureRandom(wheelOrder.length);
 
-    const targetAngle =
-        resultIndex *
-        segmentAngle;
+    const winner =
+        wheelOrder[winnerIndex];
 
+    const segment =
+        360 / wheelOrder.length;
 
-    /*
-      Varias vueltas completas.
-    */
+    rotation +=
+        360 * 6 +
+        (360 - winnerIndex * segment);
 
-    const extraTurns =
-        6 * 360;
+    document
+        .getElementById("wheel")
+        .style.transform =
+        `rotate(${rotation}deg)`;
 
-
-    /*
-      Normalizar rotación actual.
-    */
-
-    const normalized =
-        currentRotation % 360;
-
-
-    let correction =
-        360 -
-        targetAngle -
-        normalized;
-
-
-    correction =
-        ((correction % 360) + 360)
-        % 360;
-
-
-    currentRotation +=
-        extraTurns +
-        correction;
-
-
-    wheel.style.transform =
-        `rotate(${currentRotation}deg)`;
-
-
-    /*
-      Mostrar resultado al terminar.
-    */
 
     setTimeout(()=>{
 
-        centerNumber.textContent =
-            resultNumber;
+        finishRound(winner);
 
-        if(resultNumber ===
-           selectedNumber){
+    },5500);
 
-            resultElement.textContent =
-                "🎉 GANASTE · " +
-                resultNumber;
-
-        }else{
-
-            resultElement.textContent =
-                "SALIÓ " +
-                resultNumber;
-        }
-
-        spinning = false;
-
-        playButton.disabled =
-            false;
-
-    },5200);
+    saveState();
 }
+
+
+function finishRound(winner){
+
+    const user = currentUser();
+
+    const winningBet =
+        Number(bets[winner] || 0);
+
+    let payout = 0;
+
+    if(winningBet > 0){
+
+        payout = winningBet * 12;
+
+        user.balance += payout;
+
+        addTransaction({
+
+            type:"PREMIO RULETA",
+
+            from:"RULETA",
+
+            to:user.id,
+
+            amount:payout,
+
+            status:"Completada"
+
+        });
+
+        document
+            .getElementById("resultText")
+            .textContent =
+            `🎉 Número ${winner}. Ganaste ${formatFC(payout)} FC`;
+
+    }else{
+
+        document
+            .getElementById("resultText")
+            .textContent =
+            `Resultado: ${winner}. Sin premio.`;
+    }
+
+    document
+        .getElementById("wheelCenter")
+        .textContent = winner;
+
+    bets = {};
+
+    spinning = false;
+
+    document
+        .getElementById("playBtn")
+        .disabled = false;
+
+    saveState();
+
+    createBetButtons();
+}
+
+
+/* =====================================================
+   PANELES
+===================================================== */
+
+function openPanel(id){
+
+    document
+        .getElementById(id)
+        .classList.add("active");
+
+    renderAll();
+}
+
+
+function closePanel(id){
+
+    document
+        .getElementById(id)
+        .classList.remove("active");
+}
+
+
+function openBalance(){
+    openPanel("balancePanel");
+}
+
+
+function openPromotersInfo(){
+    openPanel("promotersInfoPanel");
+}
+
+
+function openEditProfile(){
+
+    closePanel("settingsPanel");
+
+    document
+        .getElementById("editName")
+        .value =
+        currentUser().name;
+
+    document
+        .getElementById("profileId")
+        .textContent =
+        currentUser().id;
+
+    openPanel("editProfilePanel");
+}
+
+
+function openLeaderAdmin(){
+
+    const user = currentUser();
+
+    if(user.role !== "leader"){
+
+        alert(
+            "Este acceso es exclusivo del Administrador Líder."
+        );
+
+        return;
+    }
+
+    closePanel("settingsPanel");
+
+    document
+        .getElementById("noticeInput")
+        .value =
+        state.notice || "";
+
+    openPanel("leaderPanel");
+}
+
+
+function toggleAdminSection(id){
+
+    document
+        .getElementById(id)
+        .classList.toggle("hidden");
+}
+
+
+/* =====================================================
+   PERFIL
+===================================================== */
+
+function saveProfileName(){
+
+    const name =
+        document
+        .getElementById("editName")
+        .value
+        .trim();
+
+    if(name.length < 2){
+
+        alert("Escribe un nombre válido.");
+
+        return;
+    }
+
+    currentUser().name = name;
+
+    saveState();
+
+    alert(
+        "Nombre actualizado correctamente."
+    );
+}
+
+
+/* =====================================================
+   COMUNICADO
+===================================================== */
+
+function saveNotice(){
+
+    const text =
+        document
+        .getElementById("noticeInput")
+        .value
+        .trim();
+
+    state.notice =
+        text ||
+        "Información de Flash Coin.";
+
+    saveState();
+
+    alert("Comunicado actualizado.");
+}
+
+
+/* =====================================================
+   ADMINISTRADOR LÍDER
+===================================================== */
+
+function findUserById(id){
+
+    return state.users[String(id)] || null;
+}
+
+
+function adminFindUserForPromoter(){
+
+    const id =
+        document
+        .getElementById("adminSearchPromoter")
+        .value
+        .trim();
+
+    const user =
+        findUserById(id);
+
+    const result =
+        document
+        .getElementById(
+            "adminPromoterSearchResult"
+        );
+
+    if(!user){
+
+        result.innerHTML = `
+            <div class="card">
+                Usuario no encontrado.
+            </div>
+        `;
+
+        return;
+    }
+
+    result.innerHTML = `
+        <div class="card">
+
+            <strong>
+                ${escapeHTML(user.name)}
+            </strong>
+
+            <span class="muted">
+                ID: ${user.id}
+            </span>
+
+            <br>
+
+            <span class="muted">
+                Rol actual:
+                ${escapeHTML(user.role)}
+            </span>
+
+            ${
+                user.role === "promoter"
+
+                ? `
+                <button
+                    class="action red"
+                    onclick="removePromoter('${user.id}')">
+
+                    Quitar promotor
+
+                </button>
+                `
+
+                : `
+                <button
+                    class="action green"
+                    onclick="assignPromoter('${user.id}')">
+
+                    Asignar como promotor
+
+                </button>
+                `
+            }
+
+        </div>
+    `;
+}
+
+
+function assignPromoter(id){
+
+    const user =
+        findUserById(id);
+
+    if(!user) return;
+
+    if(user.role === "leader"){
+
+        alert(
+            "El Administrador Líder no puede cambiarse a promotor."
+        );
+
+        return;
+    }
+
+    if(!confirm(
+        `¿Asignar a ${user.name} como promotor?`
+    )){
+        return;
+    }
+
+    user.role = "promoter";
+
+    saveState();
+
+    adminFindUserForPromoter();
+
+    alert(
+        "Promotor asignado correctamente."
+    );
+}
+
+
+function removePromoter(id){
+
+    const user =
+        findUserById(id);
+
+    if(!user) return;
+
+    if(!confirm(
+        `¿Quitar a ${user.name} del rol de promotor?`
+    )){
+        return;
+    }
+
+    user.role = "user";
+
+    saveState();
+
+    adminFindUserForPromoter();
+}
+
+
+/* =====================================================
+   RECARGAS ADMIN
+===================================================== */
+
+function adminRecharge(){
+
+    const id =
+        document
+        .getElementById("adminRechargeId")
+        .value
+        .trim();
+
+    const amount =
+        Number(
+            document
+            .getElementById("adminRechargeAmount")
+            .value
+        );
+
+    const user =
+        findUserById(id);
+
+    if(!user){
+
+        alert(
+            "ID de usuario no encontrado."
+        );
+
+        return;
+    }
+
+    if(
+        !Number.isFinite(amount) ||
+        amount <= 0
+    ){
+
+        alert(
+            "Escribe un monto válido."
+        );
+
+        return;
+    }
+
+    if(!confirm(
+        `¿Acreditar ${formatFC(amount)} FC a ${user.name} (${user.id})?`
+    )){
+        return;
+    }
+
+    user.balance += amount;
+
+    addTransaction({
+
+        type:"RECARGA ADMIN",
+
+        from:currentUser().id,
+
+        to:user.id,
+
+        amount:amount,
+
+        status:"Completada"
+
+    });
+
+    saveState();
+
+    document
+        .getElementById("adminRechargeAmount")
+        .value = "";
+
+    alert(
+        "Recarga acreditada correctamente."
+    );
+}
+
+
+/* =====================================================
+   PANEL PROMOTOR
+===================================================== */
+
+let selectedPromoterUserId = null;
+
+
+function promoterFindUser(){
+
+    const promoter =
+        currentUser();
+
+    if(promoter.role !== "promoter"){
+
+        alert(
+            "No tienes permisos de promotor."
+        );
+
+        return;
+    }
+
+    const id =
+        document
+        .getElementById("promoterSearchId")
+        .value
+        .trim();
+
+    const user =
+        findUserById(id);
+
+    const result =
+        document
+        .getElementById(
+            "promoterSearchResult"
+        );
+
+    if(!user){
+
+        result.innerHTML = `
+            <div class="card">
+                Usuario no encontrado.
+            </div>
+        `;
+
+        return;
+    }
+
+    if(user.id === promoter.id){
+
+        result.innerHTML = `
+            <div class="card">
+                No puedes realizar esta operación contigo mismo.
+            </div>
+        `;
+
+        return;
+    }
+
+    result.innerHTML = `
+        <div class="card">
+
+            <strong>
+                ${escapeHTML(user.name)}
+            </strong>
+
+            <span class="muted">
+                ID: ${user.id}
+            </span>
+
+            <br>
+
+            <span class="muted">
+                Saldo:
+                ${formatFC(user.balance)} FC
+            </span>
+
+            <button
+                class="action"
+                onclick="openPromoterUser('${user.id}')">
+
+                Abrir usuario
+
+            </button>
+
+        </div>
+    `;
+}
+
+
+function openPromoterUser(id){
+
+    const user =
+        findUserById(id);
+
+    if(!user) return;
+
+    selectedPromoterUserId = id;
+
+    document
+        .getElementById("selectedUserName")
+        .textContent =
+        user.name;
+
+    document
+        .getElementById("selectedUserId")
+        .textContent =
+        user.id;
+
+    document
+        .getElementById("selectedUserBalance")
+        .textContent =
+        formatFC(user.balance);
+
+    document
+        .getElementById("promoterAmount")
+        .value = "";
+
+    openPanel("promoterUserPanel");
+}
+
+
+function promoterSendFC(){
+
+    const promoter =
+        currentUser();
+
+    const user =
+        findUserById(
+            selectedPromoterUserId
+        );
+
+    const amount =
+        Number(
+            document
+            .getElementById("promoterAmount")
+            .value
+        );
+
+    if(!user) return;
+
+    if(
+        !Number.isFinite(amount) ||
+        amount <= 0
+    ){
+
+        alert(
+            "Escribe un monto válido."
+        );
+
+        return;
+    }
+
+    if(promoter.balance < amount){
+
+        alert(
+            "No tienes suficientes Flash Coin."
+        );
+
+        return;
+    }
+
+    if(!confirm(
+        `¿Enviar ${formatFC(amount)} FC a ${user.name}?`
+    )){
+        return;
+    }
+
+    promoter.balance -= amount;
+
+    user.balance += amount;
+
+    addTransaction({
+
+        type:"ENVÍO PROMOTOR",
+
+        from:promoter.id,
+
+        to:user.id,
+
+        amount:amount,
+
+        status:"Completada"
+
+    });
+
+    saveState();
+
+    openPromoterUser(user.id);
+
+    alert(
+        "Flash Coin enviadas correctamente."
+    );
+}
+
+
+function promoterRequestFC(){
+
+    const promoter =
+        currentUser();
+
+    const user =
+        findUserById(
+            selectedPromoterUserId
+        );
+
+    const amount =
+        Number(
+            document
+            .getElementById("promoterAmount")
+            .value
+        );
+
+    if(!user) return;
+
+    if(
+        !Number.isFinite(amount) ||
+        amount <= 0
+    ){
+
+        alert(
+            "Escribe un monto válido."
+        );
+
+        return;
+    }
+
+    if(user.balance < amount){
+
+        alert(
+            "El usuario no tiene saldo suficiente."
+        );
+
+        return;
+    }
+
+    if(!confirm(
+        `¿Solicitar ${formatFC(amount)} FC a ${user.name}?`
+    )){
+        return;
+    }
+
+    state.requests.push({
+
+        id:createId(),
+
+        promoterId:promoter.id,
+
+        userId:user.id,
+
+        amount:amount,
+
+        status:"Pendiente",
+
+        createdAt:
+            new Date().toISOString()
+
+    });
+
+    saveState();
+
+    alert(
+        "Solicitud enviada al usuario."
+    );
+}
+
+
+/* =====================================================
+   ACEPTAR / RECHAZAR SOLICITUD
+===================================================== */
+
+function acceptRequest(requestId){
+
+    const request =
+        state.requests.find(
+            r=>r.id === requestId
+        );
+
+    if(
+        !request ||
+        request.status !== "Pendiente"
+    ){
+        return;
+    }
+
+    const user =
+        findUserById(
+            request.userId
+        );
+
+    const promoter =
+        findUserById(
+            request.promoterId
+        );
+
+    if(!user || !promoter){
+
+        alert(
+            "No se pudo procesar la solicitud."
+        );
+
+        return;
+    }
+
+    if(user.id !== currentUser().id){
+
+        alert(
+            "Esta solicitud pertenece a otro usuario."
+        );
+
+        return;
+    }
+
+    if(user.balance < request.amount){
+
+        alert(
+            "Saldo insuficiente para aceptar la solicitud."
+        );
+
+        return;
+    }
+
+    if(!confirm(
+        `¿Aceptar la solicitud de ${formatFC(request.amount)} FC?`
+    )){
+        return;
+    }
+
+    user.balance -= request.amount;
+
+    promoter.balance += request.amount;
+
+    request.status = "Aceptada";
+
+    request.respondedAt =
+        new Date().toISOString();
+
+    addTransaction({
+
+        type:"SOLICITUD PROMOTOR",
+
+        from:user.id,
+
+        to:promoter.id,
+
+        amount:request.amount,
+
+        status:"Aceptada"
+
+    });
+
+    saveState();
+
+    alert(
+        "Solicitud aceptada. Las Flash Coin fueron transferidas."
+    );
+}
+
+
+function rejectRequest(requestId){
+
+    const request =
+        state.requests.find(
+            r=>r.id === requestId
+        );
+
+    if(
+        !request ||
+        request.status !== "Pendiente"
+    ){
+        return;
+    }
+
+    if(
+        request.userId !==
+        currentUser().id
+    ){
+        return;
+    }
+
+    if(!confirm(
+        "¿Rechazar esta solicitud?"
+    )){
+        return;
+    }
+
+    request.status =
+        "Rechazada";
+
+    request.respondedAt =
+        new Date().toISOString();
+
+    addTransaction({
+
+        type:"SOLICITUD PROMOTOR",
+
+        from:request.userId,
+
+        to:request.promoterId,
+
+        amount:request.amount,
+
+        status:"Rechazada"
+
+    });
+
+    saveState();
+}
+
+
+/* =====================================================
+   HISTORIAL
+===================================================== */
+
+function addTransaction(data){
+
+    state.transactions.unshift({
+
+        id:createId(),
+
+        ...data,
+
+        createdAt:
+            new Date().toISOString()
+
+    });
+}
+
+
+function createId(){
+
+    if(
+        window.crypto &&
+        crypto.randomUUID
+    ){
+        return crypto.randomUUID();
+    }
+
+    return (
+        Date.now().toString(36) +
+        Math.random()
+            .toString(36)
+            .slice(2)
+    );
+}
+
+
+/* =====================================================
+   RENDER GENERAL
+===================================================== */
+
+function renderAll(){
+
+    const user =
+        currentUser();
+
+    if(!user) return;
+
+    document
+        .getElementById("balanceTop")
+        .textContent =
+        formatFC(user.balance);
+
+    document
+        .getElementById("balancePanelValue")
+        .textContent =
+        formatFC(user.balance);
+
+    document
+        .getElementById("promoterBalance")
+        .textContent =
+        formatFC(user.balance);
+
+    document
+        .getElementById("publicNotice")
+        .textContent =
+        state.notice ||
+        "Información de Flash Coin.";
+
+    renderRoleButtons();
+
+    renderPromoters();
+
+    renderRequests();
+
+    renderHistory();
+}
+
+
+/* =====================================================
+   BOTÓN PANEL PROMOTOR
+===================================================== */
+
+function renderRoleButtons(){
+
+    const role =
+        currentUser().role;
+
+    document
+        .querySelectorAll(".promoter-only")
+        .forEach(el=>{
+
+            el.style.display =
+                role === "promoter"
+                ? "block"
+                : "none";
+
+        });
+}
+
+
+/* =====================================================
+   LISTA PROMOTORES
+===================================================== */
+
+function renderPromoters(){
+
+    const promoters =
+        Object.values(state.users)
+        .filter(
+            user=>
+                user.role === "promoter"
+        );
+
+    const publicList =
+        document
+        .getElementById(
+            "promotersPublicList"
+        );
+
+    const adminList =
+        document
+        .getElementById(
+            "adminPromoterList"
+        );
+
+    if(promoters.length === 0){
+
+        publicList.innerHTML = `
+            <div class="card">
+                No hay promotores disponibles actualmente.
+            </div>
+        `;
+
+        adminList.innerHTML = `
+            <div class="card">
+                Todavía no hay promotores asignados.
+            </div>
+        `;
+
+        return;
+    }
+
+    publicList.innerHTML =
+        promoters
+        .map(user=>`
+
+            <div class="card">
+
+                <strong>
+                    🟢 ${escapeHTML(user.name)}
+                </strong>
+
+                <span class="muted">
+                    ID: ${user.id}
+                </span>
+
+            </div>
+
+        `)
+        .join("");
+
+
+    adminList.innerHTML =
+        promoters
+        .map(user=>`
+
+            <div class="card">
+
+                <strong>
+                    ${escapeHTML(user.name)}
+                </strong>
+
+                <span class="muted">
+                    ID: ${user.id}
+                </span>
+
+                <button
+                    class="action red"
+                    onclick="removePromoter('${user.id}')">
+
+                    Quitar promotor
+
+                </button>
+
+            </div>
+
+        `)
+        .join("");
+}
+
+
+/* =====================================================
+   SOLICITUDES
+===================================================== */
+
+function renderRequests(){
+
+    const container =
+        document
+        .getElementById(
+            "userRequests"
+        );
+
+    const requests =
+        state.requests
+        .filter(
+            r=>
+                r.userId ===
+                currentUser().id
+        )
+        .slice()
+        .reverse();
+
+    if(requests.length === 0){
+
+        container.innerHTML = `
+            <div class="card">
+                No tienes solicitudes.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        requests
+        .map(request=>{
+
+            const promoter =
+                findUserById(
+                    request.promoterId
+                );
+
+            return `
+
+                <div class="card">
+
+                    <strong>
+                        ${
+                            promoter
+                            ? escapeHTML(
+                                promoter.name
+                              )
+                            : "Promotor"
+                        }
+                    </strong>
+
+                    <span class="muted">
+                        ID promotor:
+                        ${request.promoterId}
+                    </span>
+
+                    <br><br>
+
+                    Solicita:
+
+                    <strong>
+                        ${formatFC(request.amount)} FC
+                    </strong>
+
+                    <span class="status">
+                        ${escapeHTML(request.status)}
+                    </span>
+
+                    ${
+                        request.status ===
+                        "Pendiente"
+
+                        ? `
+
+                        <div class="row">
+
+                            <button
+                                class="action green"
+                                onclick="acceptRequest('${request.id}')">
+
+                                Aceptar
+
+                            </button>
+
+                            <button
+                                class="action red"
+                                onclick="rejectRequest('${request.id}')">
+
+                                Rechazar
+
+                            </button>
+
+                        </div>
+
+                        `
+
+                        : ""
+                    }
+
+                </div>
+
+            `;
+
+        })
+        .join("");
+}
+
+
+/* =====================================================
+   HISTORIAL
+===================================================== */
+
+function renderHistory(){
+
+    const container =
+        document
+        .getElementById(
+            "historyList"
+        );
+
+    const id =
+        currentUser().id;
+
+    const transactions =
+        state.transactions
+        .filter(
+            t=>
+                t.from === id ||
+                t.to === id
+        );
+
+    if(
+        transactions.length === 0
+    ){
+
+        container.innerHTML = `
+            <div class="card">
+                No hay movimientos todavía.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML =
+        transactions
+        .map(t=>`
+
+            <div class="card">
+
+                <strong>
+                    ${escapeHTML(t.type)}
+                </strong>
+
+                <span class="muted">
+                    ${formatFC(t.amount)} FC
+                </span>
+
+                <br>
+
+                <span class="muted">
+                    De:
+                    ${escapeHTML(String(t.from))}
+                    ·
+                    Para:
+                    ${escapeHTML(String(t.to))}
+                </span>
+
+                <br>
+
+                <span class="status">
+                    ${escapeHTML(t.status)}
+                </span>
+
+            </div>
+
+        `)
+        .join("");
+}
+
+
+/* =====================================================
+   SEGURIDAD TEXTO
+===================================================== */
+
+function escapeHTML(value){
+
+    return String(value)
+
+        .replaceAll(
+            "&",
+            "&amp;"
+        )
+
+        .replaceAll(
+            "<",
+            "&lt;"
+        )
+
+        .replaceAll(
+            ">",
+            "&gt;"
+        )
+
+        .replaceAll(
+            '"',
+            "&quot;"
+        )
+
+        .replaceAll(
+            "'",
+            "&#039;"
+        );
+}
+
+
+/* =====================================================
+   INICIAR
+===================================================== */
+
+createWheelNumbers();
+
+createBetButtons();
+
+renderAll();
 
 </script>
 
 </body>
 </html>
+```
