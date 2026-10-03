@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- MAIKET FLASH BASE 05: Registro/Login + líder autorizado + BASE 04 completa -->
+<!-- MAIKET FLASH BASE 06: ID manual o generado + BASE 05 completa -->
 <html lang="es">
 <head>
 <meta charset="utf-8">
@@ -30,7 +30,7 @@
   </div>
   <div id="registerForm" class="authForm" style="display:none">
    <label>Nombre completo</label><input id="regName" class="field" autocomplete="name" placeholder="Nombre completo">
-   <label>ID de MAIKET FLASH</label><div class="idBox"><input id="regID" class="field" maxlength="6" inputmode="numeric" readonly placeholder="6 dígitos"><button class="btn" onclick="generateID()">Generar ID</button></div>
+   <label>ID de MAIKET FLASH</label><div class="idBox"><input id="regID" class="field" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" placeholder="Escribe 6 dígitos"><button class="btn" onclick="generateID()">Generar ID MAIKET FLASH</button></div>
    <label>Número de teléfono</label><input id="regPhone" class="field" inputmode="tel" autocomplete="tel" placeholder="Número de teléfono">
    <label>Correo electrónico</label><input id="regEmail" class="field" type="email" autocomplete="email" placeholder="correo@ejemplo.com">
    <label>Contraseña</label><input id="regPassword" class="field" type="password" autocomplete="new-password" placeholder="Contraseña">
@@ -111,6 +111,7 @@ const API_KEY="sb_publishable_vGin7CNMq_lgrTPL3sfM_A_VNkCALsf";
 let access=localStorage.getItem("mf_access")||"",profile=JSON.parse(localStorage.getItem("mf_profile")||"null"),state=null,counts={},prices={buy:0,sell:0},selectedUser=null,lastRound=null,spinHandle=null,receiptText="";
 
 const LEADER_EMAIL="julioangel170812@gmail.com";
+function cleanRegID(){let e=$("#regID");e.value=e.value.replace(/\D/g,"").slice(0,6)}
 function authTab(t){$("#loginForm").style.display=t==="login"?"grid":"none";$("#registerForm").style.display=t==="register"?"grid":"none";$("#loginTab").classList.toggle("on",t==="login");$("#registerTab").classList.toggle("on",t==="register");if(t==="register"&&!$("#regID").value)generateID()}
 function showAuth(){document.getElementById("authScreen").style.display="grid";document.getElementById("mainApp").style.display="none"}
 function showApp(){document.getElementById("authScreen").style.display="none";document.getElementById("mainApp").style.display="block"}
@@ -138,6 +139,9 @@ async function register(){
   let full_name=$("#regName").value.trim(),user_id=$("#regID").value.trim(),phone=$("#regPhone").value.trim(),email=$("#regEmail").value.trim().toLowerCase(),password=$("#regPassword").value,p2=$("#regPassword2").value;
   if(!full_name||!phone||!email||!password||!/^\d{6}$/.test(user_id))throw Error("Completa todos los campos.");
   if(password!==p2)throw Error("Las contraseñas no coinciden.");
+  let vr=await fetch(SUPABASE_URL+"/rest/v1/rpc/check_maiket_id_available",{method:"POST",headers:{apikey:API_KEY,"Content-Type":"application/json"},body:JSON.stringify({p_user_id:user_id})}),vj=await vr.json();
+  if(!vr.ok)throw Error(vj.message||"No se pudo verificar el ID.");
+  if(!vj)throw Error("Ese ID de MAIKET FLASH ya está en uso. Escribe otro o genera uno automáticamente.");
   let a=await authFetch("/auth/v1/signup",{email,password,data:{full_name,phone,user_id}});
   if(!a.access_token)throw Error("La cuenta fue creada, pero Supabase exige confirmar el correo. Desactiva Confirm email para entrar inmediatamente.");
   access=a.access_token;localStorage.setItem("mf_access",access);await hydrateProfile();showApp();go("home");loadPublic()
@@ -201,6 +205,6 @@ async function masterTopup(){
  }catch(e){toast(e.message)}
 }
 
-build();renderProfile();boot();
+$("#regID").addEventListener("input",cleanRegID);build();renderProfile();boot();
 </script>
 </body></html>
