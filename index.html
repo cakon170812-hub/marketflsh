@@ -37,6 +37,8 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 /* ===== 0.6 CORREGIDO: solo ajustes acordados sobre 0.5 ===== */
 .wallet-row .balance-chip{flex:0 0 auto;min-width:126px;max-width:156px;justify-content:center;padding-left:8px;padding-right:8px}
 .repeat-left{width:max-content;max-width:100%;margin:0 0 6px 0;padding:7px 10px;min-height:40px}
+.bet-total-mini{margin:0 0 5px auto;width:max-content;max-width:100%;display:flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid rgba(255,211,79,.34);border-radius:10px;background:linear-gradient(135deg,rgba(26,34,48,.96),rgba(8,13,21,.96));color:#9faabc;font-size:10px;font-weight:800;box-shadow:0 4px 15px rgba(0,0,0,.22);transition:opacity .18s,transform .18s}.bet-total-mini b{color:#ffd86b;font-size:11px}.bet-total-mini.hidden-total{opacity:0;transform:translateY(3px);pointer-events:none}
+.auth-link{width:100%;border:0;background:transparent;color:#9ecbff;font-size:12px;font-weight:800;padding:10px 4px 2px;cursor:pointer}.auth-link:hover{text-decoration:underline}
 .online-chip{appearance:none;-webkit-appearance:none;cursor:pointer}
 .online-user-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:#080d15;border:1px solid #2c394d;border-radius:13px;padding:11px;margin:7px 0}.online-user-row .who{min-width:0}.online-user-row .who b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.online-user-row .won{text-align:right;color:#73f49c;font-weight:950;white-space:nowrap}.online-user-row .won.zero{color:#9ba5b5}.online-round-note{padding:9px 10px;border-radius:11px;background:#101827;border:1px solid #2d405e;margin:8px 0;color:#d8e1ef;font-size:12px}
 .balance-coin{position:fixed;z-index:690;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 28%,#fff5b3,#f2bd3d 43%,#9b6200 72%,#3a2100);border:1px solid #ffe27d;color:#5b3700;font-weight:950;box-shadow:0 0 14px rgba(255,199,61,.65);pointer-events:none}.balance-credit-pulse{animation:balancePulse .68s ease}.transfer-confirm-card{background:linear-gradient(155deg,#17130b,#08090c 38%,#050608);border:1px solid rgba(238,193,86,.68);border-radius:22px;padding:18px;box-shadow:0 22px 70px rgba(0,0,0,.70)}.transfer-confirm-card h3{text-align:center;color:#ffe07a;margin:2px 0 4px}.transfer-confirm-card .transfer-amount{text-align:center;font-size:35px;font-weight:950;color:#73f49c;margin:12px 0}.transfer-confirm-card .transfer-line{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}.transfer-confirm-card .transfer-line span{font-size:11px;color:#999faa}.transfer-confirm-card .transfer-line b{text-align:right;font-size:12px;color:#fff;word-break:break-word}@keyframes balancePulse{0%{transform:scale(1)}45%{transform:scale(1.08);box-shadow:0 0 24px rgba(112,255,151,.85)}100%{transform:scale(1)}}
@@ -50,7 +52,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <section id="authView" class="auth">
   <div class="auth-card">
     <div class="brand">⚡ RULETA FLASH COIN</div>
-    <div class="sub">HTML 0.4 · Supabase conectado</div>
+    <div class="sub">HTML actualizado · Supabase conectado</div>
     <div class="tabs"><button id="tabRegister" class="tab active">Registrarse</button><button id="tabLogin" class="tab">Iniciar sesión</button></div>
     <form id="registerForm">
       <input id="regFirst" class="field" placeholder="Nombre" autocomplete="given-name" required>
@@ -64,6 +66,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
       <input id="loginEmail" class="field" type="email" placeholder="Correo" autocomplete="email" required>
       <input id="loginPass" class="field" type="password" placeholder="Contraseña" autocomplete="current-password" required>
       <button class="primary" type="submit">INICIAR SESIÓN</button>
+      <button id="forgotPasswordBtn" class="auth-link" type="button">¿Olvidaste tu contraseña?</button>
     </form>
     <div id="authMsg" class="msg"></div>
   </div>
@@ -105,6 +108,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
     <div class="bet-controls">
       <div>
         <label class="switch-box repeat-left"><input id="repeatSwitch" class="switch" type="checkbox"><span>Guardar<br>jugadas</span></label>
+        <div id="roundBetTotal" class="bet-total-mini">Apostado <b>0.000 FC</b></div>
         <div class="stake-label-row">
           <label>Monto por toque</label>
           <label class="mini-toggle"><span>Fijar monto</span><input id="fixedStakeSwitch" class="switch" type="checkbox"></label>
@@ -147,6 +151,8 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 <div id="receiptPanel" class="overlay"><div class="panel receipt-panel-wrap"><button class="close" data-close="receiptPanel">✕</button><h2 id="receiptTitle">Comprobante</h2><div id="receiptContent"></div></div></div>
 
+<div id="passwordResetPanel" class="overlay"><div class="panel"><button class="close" data-close="passwordResetPanel">✕</button><h2>🔐 Recuperar contraseña</h2><div id="resetRequestBox"><div class="tiny">Escribe el mismo correo de tu cuenta. Recibirás un enlace para crear una contraseña nueva sin perder tus datos.</div><input id="resetEmail" class="field" type="email" placeholder="Correo de tu cuenta" autocomplete="email"><button id="resetRequestBtn" class="action blue" type="button">ENVIAR ENLACE DE RECUPERACIÓN</button></div><div id="resetNewPasswordBox" class="hidden"><div class="tiny">Escribe tu nueva contraseña. Seguirás entrando a la misma cuenta y conservarás tu saldo, ID e historial.</div><input id="resetNewPass" class="field" type="password" minlength="6" placeholder="Nueva contraseña" autocomplete="new-password"><input id="resetNewPass2" class="field" type="password" minlength="6" placeholder="Confirmar nueva contraseña" autocomplete="new-password"><button id="resetSaveBtn" class="action green" type="button">GUARDAR NUEVA CONTRASEÑA</button></div><div id="resetMsg" class="msg"></div></div></div>
+
 <div id="incomingTransferPanel" class="overlay"><div class="panel"><button class="close" data-close="incomingTransferPanel">✕</button><h2>⚡ Flash Coin recibidas</h2><div id="incomingTransferContent"></div></div></div>
 
 <div id="saveConfirm" class="save-confirm"><div class="save-confirm-card"><div class="save-check">✓</div><b id="saveConfirmText">Guardado correctamente</b></div></div>
@@ -166,7 +172,7 @@ const REF_KEY='rf_referrer_public_id';
 const refFromUrl=(new URLSearchParams(location.search).get('ref')||'').trim();
 if(/^\d{6}$/.test(refFromUrl))localStorage.setItem(REF_KEY,refFromUrl);
 let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedAdminRechargeUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
-let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false;
+let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true;
 const transferQueue=[];const seenTransferNotifications=new Set();
 const betQueues={};
 const $=id=>document.getElementById(id);
@@ -176,6 +182,43 @@ function show(id){$(id).classList.add('active')}
 function hide(id){$(id).classList.remove('active')}
 function msg(id,t){$(id).textContent=t||''}
 function errText(e){return e?.message||String(e||'Error')}
+function normalizeEmail(v){return String(v||'').trim().toLowerCase()}
+function authErrorText(e){
+  const t=errText(e);
+  if(/invalid login credentials/i.test(t))return 'Correo o contraseña incorrectos. Si olvidaste la contraseña, usa “¿Olvidaste tu contraseña?”.';
+  if(/user already registered/i.test(t))return 'Ese correo ya tiene una cuenta. Usa Iniciar sesión o recupera tu contraseña.';
+  return t;
+}
+function setBalanceDisplay(v){
+  const value=money(v)+' FC';
+  if($('balanceTop'))$('balanceTop').textContent=value;
+  if($('balancePanelValue'))$('balancePanelValue').textContent=value;
+}
+function animateBalanceIncrease(fromValue,toValue,duration=1250){
+  const from=Number(fromValue),to=Number(toValue);
+  if(!Number.isFinite(to)){return Promise.resolve()}
+  const start=Number.isFinite(from)?from:to;
+  if(to<=start){setBalanceDisplay(to);return Promise.resolve()}
+  balanceAnimating=true;
+  return new Promise(resolve=>{
+    const t0=performance.now();
+    const frame=now=>{
+      const p=Math.min(1,(now-t0)/duration);
+      const eased=1-Math.pow(1-p,3);
+      setBalanceDisplay(start+(to-start)*eased);
+      if(p<1)requestAnimationFrame(frame);
+      else{setBalanceDisplay(to);balanceAnimating=false;resolve()}
+    };
+    requestAnimationFrame(frame);
+  });
+}
+function updateBetTotal(){
+  const el=$('roundBetTotal');if(!el)return;
+  const total=Object.values(myBets||{}).reduce((sum,b)=>sum+Number(b?.amount||0),0);
+  el.innerHTML=`Apostado <b>${money(total)} FC</b>`;
+  el.classList.toggle('hidden-total',!betTotalVisible);
+}
+function setBetTotalVisible(v){betTotalVisible=!!v;updateBetTotal()}
 
 function buildWheel(){
   const wheel=$('wheel');
@@ -212,6 +255,7 @@ function buildNumbers(){
     }
     c.appendChild(b);
   }
+  updateBetTotal();
   updateCountdown();
 }
 
@@ -229,17 +273,18 @@ $('tabLogin').onclick=()=>setAuthMode('login');
 $('registerForm').addEventListener('submit',async e=>{
   e.preventDefault();
   msg('authMsg','Creando cuenta...');
-  const first=$('regFirst').value.trim(),last=$('regLast').value.trim(),email=$('regEmail').value.trim(),pass=$('regPass').value,pass2=$('regPass2').value;
+  const first=$('regFirst').value.trim(),last=$('regLast').value.trim(),email=normalizeEmail($('regEmail').value),pass=$('regPass').value,pass2=$('regPass2').value;
   if(!first||!last)return msg('authMsg','Escribe nombre y apellido.');
+  if(!email)return msg('authMsg','Escribe un correo válido.');
   if(pass!==pass2)return msg('authMsg','Las contraseñas no coinciden.');
   const referrer=(localStorage.getItem(REF_KEY)||'').trim();
   const metadata={first_name:first,last_name:last};
   if(/^\d{6}$/.test(referrer))metadata.referrer_public_id=referrer;
   const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:metadata}});
-  if(error)return msg('authMsg',errText(error));
+  if(error)return msg('authMsg',authErrorText(error));
   if(!data.session){
     const s=await sb.auth.signInWithPassword({email,password:pass});
-    if(s.error)return msg('authMsg','Cuenta creada, pero falta desactivar “Confirm email” en Supabase para entrar inmediatamente.');
+    if(s.error)return msg('authMsg',authErrorText(s.error));
   }
   localStorage.removeItem(AWAY_KEY);
   localStorage.removeItem(REF_KEY);
@@ -249,11 +294,40 @@ $('registerForm').addEventListener('submit',async e=>{
 $('loginForm').addEventListener('submit',async e=>{
   e.preventDefault();
   msg('authMsg','Entrando...');
-  const {error}=await sb.auth.signInWithPassword({email:$('loginEmail').value.trim(),password:$('loginPass').value});
-  if(error)return msg('authMsg',errText(error));
+  const email=normalizeEmail($('loginEmail').value),password=$('loginPass').value;
+  const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error)return msg('authMsg',authErrorText(error));
   localStorage.removeItem(AWAY_KEY);
   await enterApp();
 });
+
+$('forgotPasswordBtn').onclick=()=>{
+  $('resetEmail').value=normalizeEmail($('loginEmail').value||$('regEmail').value);
+  $('resetRequestBox').classList.remove('hidden');
+  $('resetNewPasswordBox').classList.add('hidden');
+  msg('resetMsg','');
+  show('passwordResetPanel');
+};
+$('resetRequestBtn').onclick=async()=>{
+  const email=normalizeEmail($('resetEmail').value);
+  if(!email)return msg('resetMsg','Escribe el correo de tu cuenta.');
+  msg('resetMsg','Enviando enlace...');
+  const redirectTo=location.origin+location.pathname;
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
+  if(error)return msg('resetMsg',errText(error));
+  msg('resetMsg','Enlace enviado. Revisa tu correo y abre el enlace para crear una contraseña nueva.');
+};
+$('resetSaveBtn').onclick=async()=>{
+  const p1=$('resetNewPass').value,p2=$('resetNewPass2').value;
+  if(p1.length<6)return msg('resetMsg','La contraseña debe tener al menos 6 caracteres.');
+  if(p1!==p2)return msg('resetMsg','Las contraseñas no coinciden.');
+  msg('resetMsg','Guardando contraseña...');
+  const {error}=await sb.auth.updateUser({password:p1});
+  if(error)return msg('resetMsg',errText(error));
+  $('resetNewPass').value='';$('resetNewPass2').value='';
+  msg('resetMsg','Contraseña actualizada. Ya puedes seguir usando la misma cuenta.');
+  setTimeout(()=>{hide('passwordResetPanel');enterApp().catch(()=>{})},700);
+};
 
 async function sessionExpiredByAway(){
   const raw=localStorage.getItem(AWAY_KEY);
@@ -294,6 +368,8 @@ async function enterApp(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return;
   if(await sessionExpiredByAway()){location.reload();return;}
+  const ensured=await sb.rpc('rf_ensure_my_profile');
+  if(ensured.error){msg('authMsg','No se pudo cargar tu perfil: '+errText(ensured.error));return;}
   $('authView').classList.add('hidden');
   $('appView').classList.remove('hidden');
   await refreshEverything();
@@ -315,8 +391,7 @@ async function loadSettings(){const {data,error}=await sb.from('rf_app_settings'
 
 function renderMe(){
   if(!me)return;
-  $('balanceTop').textContent=money(me.balance)+' FC';
-  $('balancePanelValue').textContent=money(me.balance)+' FC';
+  if(!balanceAnimating)setBalanceDisplay(me.balance);
   $('myPublicId').textContent=me.public_id;
   $('balancePublicId').textContent=me.public_id;
   $('repeatSwitch').checked=!!me.auto_repeat;
@@ -451,7 +526,6 @@ function playBalanceCreditSound(){
   [1180,1360,1580,1830,2140,2480].forEach((f,i)=>coinChime(i*.065,f,.042+(i%2)*.006));
 }
 function animateCoinsToBalance(){
-  if(me?.flash_enabled===false)return;
   const target=$('balanceBtn');if(!target)return;
   const rect=target.getBoundingClientRect();
   const tx=rect.left+rect.width/2,ty=rect.top+rect.height/2;
@@ -566,6 +640,7 @@ async function showLatestResult(){
   const mine=winners.find(w=>w.is_me===true);
 
   $('resultText').textContent='La ruleta está girando...';
+  setBetTotalVisible(false);
   spinTo(winner);playRouletteSound();
   setTimeout(async()=>{
     $('centerNumber').textContent=winner;
@@ -584,6 +659,7 @@ async function showLatestResult(){
       setTimeout(()=>{playBalanceCreditSound();animateCoinsToBalance();},250);
     }
 
+    setBetTotalVisible(true);
     if($('onlineUsersPanel').classList.contains('active'))loadOnlinePanel().catch(()=>{});
   },4700);
 }
@@ -819,13 +895,18 @@ async function processTransferQueue(){
   try{
     while(transferQueue.length){
       const n=transferQueue.shift();
-      await loadMe().catch(()=>{});renderMe();
+      const targetBalance=Number(n.balance_after||0);
+      const amount=Number(n.amount||0);
+      const remembered=Number(me?.balance);
+      const startBalance=Number.isFinite(remembered)&&remembered<targetBalance?remembered:Math.max(0,targetBalance-amount);
       const dt=new Date(n.created_at||Date.now());
       $('incomingTransferContent').innerHTML=`<div class="transfer-confirm-card"><h3>Transferencia confirmada</h3><div class="tiny" style="text-align:center">El dinero ya entró a tu saldo Flash Coin</div><div class="transfer-amount">+${money(n.amount)} FC</div><div class="transfer-line"><span>Promotor</span><b>${esc(n.promoter_name||'Promotor')}</b></div><div class="transfer-line"><span>ID del promotor</span><b>${esc(n.promoter_public_id||'—')}</b></div><div class="transfer-line"><span>WhatsApp del promotor</span><b>${esc(n.promoter_whatsapp||'No configurado')}</b></div><div class="transfer-line"><span>Comprobante</span><b>FC${String(n.receipt_id||'').padStart(10,'0')}</b></div><div class="transfer-line"><span>Fecha</span><b>${esc(dt.toLocaleDateString('es-DO'))} ${esc(dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}))}</b></div><div class="transfer-line"><span>Saldo resultante</span><b>${money(n.balance_after)} FC</b></div></div>`;
       show('incomingTransferPanel');
       playBalanceCreditSound();animateCoinsToBalance();
+      await animateBalanceIncrease(startBalance,targetBalance,1350);
+      await loadMe().catch(()=>{});renderMe();
       await sb.rpc('rf_mark_promoter_transfer_read',{p_notification_id:Number(n.notification_id)}).catch(()=>{});
-      await new Promise(resolve=>setTimeout(resolve,3000));
+      await new Promise(resolve=>setTimeout(resolve,1650));
     }
   }finally{transferQueueBusy=false;}
 }
@@ -957,6 +1038,13 @@ buildWheel();
     if(!(await sessionExpiredByAway()))await enterApp();
   }
   sb.auth.onAuthStateChange(async(event,sessionNow)=>{
+    if(event==='PASSWORD_RECOVERY'){
+      $('resetRequestBox').classList.add('hidden');
+      $('resetNewPasswordBox').classList.remove('hidden');
+      msg('resetMsg','Enlace confirmado. Escribe tu contraseña nueva.');
+      show('passwordResetPanel');
+      return;
+    }
     if(event==='SIGNED_IN'&&sessionNow&&$('appView').classList.contains('hidden'))await enterApp();
     if(event==='SIGNED_OUT'){
       me=null;currentRound=null;myBets={};
@@ -968,4 +1056,4 @@ buildWheel();
 </body>
 </html>
 
-<!-- HTML 0.6 CORREGIDO: base 0.5 intacta + saldo ganador, bono registro, panel en línea, aviso promotor y ajustes visuales acordados. -->
+<!-- HTML ACTUALIZADO: conserva la base funcional e integra recuperación de contraseña, reparación de perfil al entrar, contador total apostado y animación de saldo recibido. -->
