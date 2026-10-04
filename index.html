@@ -172,7 +172,7 @@ const REF_KEY='rf_referrer_public_id';
 const refFromUrl=(new URLSearchParams(location.search).get('ref')||'').trim();
 if(/^\d{6}$/.test(refFromUrl))localStorage.setItem(REF_KEY,refFromUrl);
 let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedAdminRechargeUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
-let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true;
+let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0;
 const transferQueue=[];const seenTransferNotifications=new Set();
 const betQueues={};
 const $=id=>document.getElementById(id);
@@ -190,9 +190,21 @@ function authErrorText(e){
   return t;
 }
 function setBalanceDisplay(v){
-  const value=money(v)+' FC';
+  const n=Number(v||0);
+  displayedBalanceValue=Number.isFinite(n)?n:0;
+  const value=money(displayedBalanceValue)+' FC';
   if($('balanceTop'))$('balanceTop').textContent=value;
   if($('balancePanelValue'))$('balancePanelValue').textContent=value;
+}
+function holdBalanceDisplay(){
+  if(balanceHoldActive)return;
+  heldBalance=displayedBalanceValue;
+  balanceHoldActive=true;
+}
+function releaseBalanceDisplay(sync=true){
+  balanceHoldActive=false;
+  heldBalance=null;
+  if(sync&&me&&!balanceAnimating)setBalanceDisplay(me.balance);
 }
 function animateBalanceIncrease(fromValue,toValue,duration=1250){
   const from=Number(fromValue),to=Number(toValue);
@@ -391,7 +403,7 @@ async function loadSettings(){const {data,error}=await sb.from('rf_app_settings'
 
 function renderMe(){
   if(!me)return;
-  if(!balanceAnimating)setBalanceDisplay(me.balance);
+  if(!balanceAnimating&&!balanceHoldActive)setBalanceDisplay(me.balance);
   $('myPublicId').textContent=me.public_id;
   $('balancePublicId').textContent=me.public_id;
   $('repeatSwitch').checked=!!me.auto_repeat;
@@ -525,11 +537,13 @@ function playBalanceCreditSound(){
   ensureAudio();if(!audioCtx)return;
   [1180,1360,1580,1830,2140,2480].forEach((f,i)=>coinChime(i*.065,f,.042+(i%2)*.006));
 }
-function animateCoinsToBalance(){
+function animateCoinsToBalance(sourceEl=null){
   const target=$('balanceBtn');if(!target)return;
   const rect=target.getBoundingClientRect();
   const tx=rect.left+rect.width/2,ty=rect.top+rect.height/2;
-  const sx=window.innerWidth/2,sy=Math.min(window.innerHeight*.62,window.innerHeight-110);
+  const sourceRect=sourceEl?.getBoundingClientRect?.();
+  const sx=sourceRect?(sourceRect.left+sourceRect.width/2):(window.innerWidth/2);
+  const sy=sourceRect?(sourceRect.top+sourceRect.height/2):Math.min(window.innerHeight*.62,window.innerHeight-110);
   for(let i=0;i<14;i++){
     const coin=document.createElement('div');coin.className='balance-coin';coin.textContent='⚡';
     const x=sx+(i-6.5)*7+(Math.random()*18-9),y=sy+(Math.random()*42-21);
@@ -606,6 +620,8 @@ async function tickRoulette(){
   if(tickBusy||document.hidden)return;
   tickBusy=true;
   try{
+    const hadRound=!!currentRound;
+    const visibleBeforeTick=displayedBalanceValue;
     const {data,error}=await sb.rpc('rf_tick_roulette');
     if(error)throw error;
     const r=Array.isArray(data)?data[0]:data;
@@ -614,6 +630,15 @@ async function tickRoulette(){
     const changed=!currentRound||Number(currentRound.id)!==Number(r.round_id);
     currentRound={id:r.round_id,status:r.round_status,starts_at:r.starts_at,ends_at:r.ends_at,winning_number:r.winning_number,payout_enabled:r.payout_enabled};
     $('roundId').textContent=currentRound.id;
+
+    // Si acabó una ronda mientras el usuario estaba jugando, congelamos SOLO
+    // la cifra visible del saldo. El premio puede quedar registrado en SQL,
+    // pero no se enseña en pantalla hasta revelar el número ganador y GANASTE.
+    if(changed&&hadRound){
+      displayedBalanceValue=visibleBeforeTick;
+      holdBalanceDisplay();
+    }
+
     if(changed){
       const auto=await sb.rpc('rf_apply_saved_plays',{p_round_id:currentRound.id});
       await Promise.all([loadMe(),loadBets()]);
@@ -624,13 +649,17 @@ async function tickRoulette(){
     }
     await showLatestResult();
   }catch(e){
+    releaseBalanceDisplay(false);
     $('resultText').textContent='Conexión: '+errText(e);
   }finally{tickBusy=false;}
 }
 
 async function showLatestResult(){
   const {data,error}=await sb.from('rf_rounds').select('id,winning_number,settled_at,payout_enabled').eq('status','settled').order('id',{ascending:false}).limit(1).maybeSingle();
-  if(error||!data||!data.id||Number(data.id)===Number(lastSettledId))return;
+  if(error||!data||!data.id||Number(data.id)===Number(lastSettledId)){
+    if(balanceHoldActive&&(!data||Number(data?.id)===Number(lastSettledId)))releaseBalanceDisplay(true);
+    return;
+  }
   lastSettledId=data.id;
   const winner=Number(data.winning_number);
 
@@ -642,26 +671,47 @@ async function showLatestResult(){
   $('resultText').textContent='La ruleta está girando...';
   setBetTotalVisible(false);
   spinTo(winner);playRouletteSound();
-  setTimeout(async()=>{
-    $('centerNumber').textContent=winner;
-    await Promise.all([loadMe(),loadLedger()]);renderMe();
 
-    if(winners.length){
-      const winnerText=winners.map(w=>`${w.full_name||w.public_id} ganó ${money(w.prize_amount)} FC`).join(' · ');
-      $('resultText').textContent=`🎉 ${winnerText} · Número ${winner}`;
-    }else{
-      $('resultText').textContent=`Resultado global: ${winner}`;
-    }
+  await new Promise(resolve=>setTimeout(resolve,4700));
+  $('centerNumber').textContent=winner;
 
-    if(mine){
-      const prize=Number(mine.prize_amount||0);
-      showWinnerCelebration(winner,prize);
-      setTimeout(()=>{playBalanceCreditSound();animateCoinsToBalance();},250);
-    }
+  // Actualizamos los datos reales en memoria, pero mientras haya un premio
+  // pendiente mantenemos congelada la cifra visible anterior.
+  await Promise.all([loadMe(),loadLedger()]);
+  renderMe();
 
-    setBetTotalVisible(true);
-    if($('onlineUsersPanel').classList.contains('active'))loadOnlinePanel().catch(()=>{});
-  },4700);
+  if(winners.length){
+    const winnerText=winners.map(w=>`${w.full_name||w.public_id} ganó ${money(w.prize_amount)} FC`).join(' · ');
+    $('resultText').textContent=`🎉 ${winnerText} · Número ${winner}`;
+  }else{
+    $('resultText').textContent=`Resultado global: ${winner}`;
+  }
+
+  if(mine){
+    const prize=Number(mine.prize_amount||0);
+    const startBalance=Number.isFinite(Number(heldBalance))?Number(heldBalance):Math.max(0,Number(me?.balance||0)-prize);
+    const targetForPrize=startBalance+prize;
+    showWinnerCelebration(winner,prize);
+
+    // Primero aparece GANASTE. Después las monedas salen de esa tarjeta y
+    // el saldo principal sube visualmente hasta reflejar el premio.
+    await new Promise(resolve=>setTimeout(resolve,320));
+    playBalanceCreditSound();
+    animateCoinsToBalance(document.querySelector('#winFlash .win-card'));
+    await animateBalanceIncrease(startBalance,targetForPrize,1450);
+
+    // El servidor sigue siendo la única fuente real del saldo. Si en la nueva
+    // ronda ya se aplicaron jugadas guardadas, al terminar la animación se
+    // sincroniza con ese saldo real sin volver a acreditar el premio.
+    balanceHoldActive=false;
+    heldBalance=null;
+    if(me)setBalanceDisplay(me.balance);
+  }else{
+    releaseBalanceDisplay(true);
+  }
+
+  setBetTotalVisible(true);
+  if($('onlineUsersPanel').classList.contains('active'))loadOnlinePanel().catch(()=>{});
 }
 
 function spinTo(winner){
@@ -890,7 +940,10 @@ async function pollIncomingTransfers(){
 }
 
 async function processTransferQueue(){
-  if(transferQueueBusy)return;
+  // No mezclamos una transferencia de promotor con la revelación de un premio
+  // de ruleta: si el saldo está congelado por el giro, la transferencia espera
+  // unos segundos en la cola y se presenta al terminar la secuencia GANASTE.
+  if(transferQueueBusy||balanceHoldActive)return;
   transferQueueBusy=true;
   try{
     while(transferQueue.length){
