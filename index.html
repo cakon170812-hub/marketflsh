@@ -143,6 +143,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div id="leaderGatePanel" class="overlay"><div class="panel"><button class="close" data-close="leaderGatePanel">✕</button><h2>👑 Administrador Líder</h2><div id="leaderFirstSetup" class="hidden"><p class="tiny">Primera entrada: crea ahora la contraseña del panel.</p><input id="leaderNewPass" class="field" type="password" placeholder="Nueva contraseña"><input id="leaderNewPass2" class="field" type="password" placeholder="Confirmar contraseña"><button id="leaderCreatePassBtn" class="action green">Crear contraseña</button></div><div id="leaderLoginBox" class="hidden"><input id="leaderPass" class="field" type="password" placeholder="Contraseña del panel"><button id="leaderUnlockBtn" class="action">Entrar</button></div><div id="leaderGateMsg" class="msg"></div></div></div>
 
 <div id="leaderPanel" class="overlay"><div class="panel"><button class="close" data-close="leaderPanel">✕</button><h2>👑 Administrador Líder</h2><div class="stat-grid"><div class="stat"><b id="adminRegistered">0</b><span class="tiny">Registrados</span></div><div class="stat"><b id="adminOnline">0</b><span class="tiny">Jugando ahora</span></div></div>
+<div class="section"><h3>⚡ Mi Flash Coin</h3><div class="tiny">Envía o solicita Flash Coin usando tu saldo personal de la cuenta líder.</div><div class="row"><input id="leaderTransferId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="leaderFindTransferBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="leaderTransferUserResult"></div><input id="leaderTransferAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="leaderSendFcBtn" class="action green">Enviar Flash Coin</button><button id="leaderRequestFcBtn" class="action">Solicitar Flash Coin</button><div id="leaderTransferMsg" class="msg"></div></div>
 <div class="section"><h3>Asignar promotores</h3><div class="row"><input id="adminPromId" class="field" inputmode="numeric" maxlength="6" placeholder="ID usuario"><button id="adminFindPromBtn" class="action blue">Buscar</button></div><div id="adminPromResult"></div></div>
 <div class="section"><h3>Comunicado</h3><label class="switch-line"><input id="adminNoticeEnabled" class="switch" type="checkbox"><span>Mostrar comunicado a los usuarios</span></label><textarea id="adminNotice" class="field" rows="3" placeholder="Escribe el comunicado..."></textarea><div class="row"><div><label class="tiny">Visible durante (segundos)</label><input id="adminNoticeVisible" class="field" type="number" min="1" max="3600" value="10"></div><div><label class="tiny">Reaparece cada (segundos)</label><input id="adminNoticeRepeat" class="field" type="number" min="1" max="86400" value="300"></div></div><button id="adminSaveNoticeBtn" class="action green">Guardar comunicado</button></div>
 <div class="section"><h3>Recarga por ID</h3><div class="row"><input id="adminRechargeId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminFindRechargeBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="adminRechargeUserResult"></div><input id="adminRechargeAmount" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="adminRechargeBtn" class="action green">Acreditar recarga</button></div>
@@ -171,7 +172,7 @@ const AWAY_LIMIT_MS=10*60*1000;
 const REF_KEY='rf_referrer_public_id';
 const refFromUrl=(new URLSearchParams(location.search).get('ref')||'').trim();
 if(/^\d{6}$/.test(refFromUrl))localStorage.setItem(REF_KEY,refFromUrl);
-let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedAdminRechargeUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
+let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedLeaderTransferUser=null,selectedAdminRechargeUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
 let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0;
 const transferQueue=[];const seenTransferNotifications=new Set();
 const betQueues={};
@@ -463,8 +464,10 @@ function receiptLine(label,value){return `<div class="receipt-line"><span>${esc(
 function showReceipt(title,r){
   if(!r)return;
   const dt=r.created_at?new Date(r.created_at):new Date();
-  const isPromoter=/promotor/i.test(String(title||''));
-  const operation=isPromoter?'Recarga por promotor':'Recarga de saldo';
+  const titleText=String(title||'');
+  const isPromoter=/promotor/i.test(titleText);
+  const isLeaderTransfer=/envío.*administrador líder|envío.*líder/i.test(titleText);
+  const operation=isPromoter?'Recarga por promotor':(isLeaderTransfer?'Envío del Administrador Líder':'Recarga de saldo');
   const issuer=isPromoter?(me?.first_name||'Promotor')+' '+(me?.last_name||''):'Administrador Líder';
   const issuerId=me?.public_id?('ID '+me.public_id):'Sistema Flash Coin';
   const ref='FC'+String(r.receipt_id||Date.now()).padStart(10,'0');
@@ -857,8 +860,8 @@ async function loadPromoters(){
 }
 
 async function loadRequests(){
-  const {data}=await sb.from('rf_transfer_requests').select('id,promoter_id,amount,status,created_at').eq('user_id',me?.id||'').order('created_at',{ascending:false}).limit(30);
-  $('requestsList').innerHTML=(data||[]).length?(data||[]).map(r=>`<div class="card"><strong>${money(r.amount)} FC</strong><span class="tiny">Solicitud de promotor · ${esc(r.status)}</span>${r.status==='pending'?`<div class="row"><button class="action green" onclick="respondReq('${r.id}',true)">Aceptar</button><button class="action red" onclick="respondReq('${r.id}',false)">Rechazar</button></div>`:''}</div>`).join(''):'<div class="card">No tienes solicitudes.</div>';
+  const {data}=await sb.from('rf_transfer_requests').select('id,promoter_id,amount,status,created_at,requester_role').eq('user_id',me?.id||'').order('created_at',{ascending:false}).limit(30);
+  $('requestsList').innerHTML=(data||[]).length?(data||[]).map(r=>{const who=String(r.requester_role||'promoter')==='leader'?'Administrador Líder':'Promotor';return `<div class="card"><strong>${money(r.amount)} FC</strong><span class="tiny">Solicitud de ${who} · ${esc(r.status)}</span>${r.status==='pending'?`<div class="row"><button class="action green" onclick="respondReq('${r.id}',true)">Aceptar</button><button class="action red" onclick="respondReq('${r.id}',false)">Rechazar</button></div>`:''}</div>`;}).join(''):'<div class="card">No tienes solicitudes.</div>';
 }
 window.respondReq=async(id,accept)=>{
   const {error}=await sb.rpc('rf_respond_transfer_request',{p_request_id:id,p_accept:accept});
@@ -927,7 +930,11 @@ async function pollIncomingTransfers(){
   if(!me||transferPollBusy)return;
   transferPollBusy=true;
   try{
-    const {data,error}=await sb.rpc('rf_get_unread_promoter_transfers');
+    let {data,error}=await sb.rpc('rf_get_unread_fc_transfers');
+    if(error){
+      const fallback=await sb.rpc('rf_get_unread_promoter_transfers');
+      data=fallback.data;error=fallback.error;
+    }
     if(error)return;
     for(const row of (Array.isArray(data)?data:[])){
       const id=Number(row.notification_id);
@@ -953,7 +960,12 @@ async function processTransferQueue(){
       const remembered=Number(me?.balance);
       const startBalance=Number.isFinite(remembered)&&remembered<targetBalance?remembered:Math.max(0,targetBalance-amount);
       const dt=new Date(n.created_at||Date.now());
-      $('incomingTransferContent').innerHTML=`<div class="transfer-confirm-card"><h3>Transferencia confirmada</h3><div class="tiny" style="text-align:center">El dinero ya entró a tu saldo Flash Coin</div><div class="transfer-amount">+${money(n.amount)} FC</div><div class="transfer-line"><span>Promotor</span><b>${esc(n.promoter_name||'Promotor')}</b></div><div class="transfer-line"><span>ID del promotor</span><b>${esc(n.promoter_public_id||'—')}</b></div><div class="transfer-line"><span>WhatsApp del promotor</span><b>${esc(n.promoter_whatsapp||'No configurado')}</b></div><div class="transfer-line"><span>Comprobante</span><b>FC${String(n.receipt_id||'').padStart(10,'0')}</b></div><div class="transfer-line"><span>Fecha</span><b>${esc(dt.toLocaleDateString('es-DO'))} ${esc(dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}))}</b></div><div class="transfer-line"><span>Saldo resultante</span><b>${money(n.balance_after)} FC</b></div></div>`;
+      const senderRole=String(n.sender_role||'promoter').toLowerCase();
+      const senderLabel=senderRole==='leader'?'Administrador Líder':'Promotor';
+      const senderName=n.sender_name||n.promoter_name||senderLabel;
+      const senderPublicId=n.sender_public_id||n.promoter_public_id||'—';
+      const senderWhatsapp=n.sender_whatsapp||n.promoter_whatsapp||'No configurado';
+      $('incomingTransferContent').innerHTML=`<div class="transfer-confirm-card"><h3>Transferencia confirmada</h3><div class="tiny" style="text-align:center">El dinero ya entró a tu saldo Flash Coin</div><div class="transfer-amount">+${money(n.amount)} FC</div><div class="transfer-line"><span>${senderLabel}</span><b>${esc(senderName)}</b></div><div class="transfer-line"><span>ID del ${senderRole==='leader'?'líder':'promotor'}</span><b>${esc(senderPublicId)}</b></div><div class="transfer-line"><span>WhatsApp del ${senderRole==='leader'?'líder':'promotor'}</span><b>${esc(senderWhatsapp)}</b></div><div class="transfer-line"><span>Comprobante</span><b>FC${String(n.receipt_id||'').padStart(10,'0')}</b></div><div class="transfer-line"><span>Fecha</span><b>${esc(dt.toLocaleDateString('es-DO'))} ${esc(dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}))}</b></div><div class="transfer-line"><span>Saldo resultante</span><b>${money(n.balance_after)} FC</b></div></div>`;
       show('incomingTransferPanel');
       playBalanceCreditSound();animateCoinsToBalance();
       await animateBalanceIncrease(startBalance,targetBalance,1350);
@@ -1033,6 +1045,35 @@ $('leaderUnlockBtn').onclick=async()=>{
   hide('leaderGatePanel');await openLeaderPanel();
 };
 async function openLeaderPanel(){await Promise.all([loadSettings(),loadStats()]);renderSettings();show('leaderPanel')}
+$('leaderTransferId').addEventListener('input',()=>{selectedLeaderTransferUser=null;$('leaderTransferUserResult').innerHTML='';msg('leaderTransferMsg','');});
+$('leaderFindTransferBtn').onclick=async()=>{
+  if(me?.role!=='leader')return msg('leaderTransferMsg','Solo el Administrador Líder puede usar esta función.');
+  const id=$('leaderTransferId').value.trim();
+  if(!/^\d{6}$/.test(id))return msg('leaderTransferMsg','Escribe un ID válido de 6 dígitos.');
+  const {data,error}=await sb.rpc('rf_search_user_by_public_id',{p_public_id:id});
+  if(error)return msg('leaderTransferMsg',errText(error));
+  const u=Array.isArray(data)?data[0]:data;selectedLeaderTransferUser=u||null;
+  $('leaderTransferUserResult').innerHTML=u?`<div class="card"><strong>${esc(u.full_name)}</strong><span class="tiny">ID ${esc(u.public_id)} <button type="button" class="copy-btn" data-copy-id="${esc(u.public_id)}">Copiar</button> · Saldo ${money(u.balance)} FC</span></div>`:'<div class="card">ID no encontrado.</div>';
+};
+$('leaderSendFcBtn').onclick=async()=>leaderTransferAction('send');
+$('leaderRequestFcBtn').onclick=async()=>leaderTransferAction('request');
+async function leaderTransferAction(kind){
+  if(me?.role!=='leader')return msg('leaderTransferMsg','Solo el Administrador Líder puede usar esta función.');
+  if(!selectedLeaderTransferUser)return msg('leaderTransferMsg','Busca y confirma primero el ID del usuario.');
+  const id=$('leaderTransferId').value.trim(),amount=Number($('leaderTransferAmount').value);
+  if(selectedLeaderTransferUser.public_id!==id)return msg('leaderTransferMsg','Vuelve a buscar y confirmar el ID del usuario.');
+  if(!(amount>0))return msg('leaderTransferMsg','Monto inválido.');
+  const fn=kind==='send'?'rf_leader_send_fc_v07':'rf_leader_request_fc';
+  const {data,error}=await sb.rpc(fn,{p_public_id:id,p_amount:amount});
+  if(error)return msg('leaderTransferMsg',errText(error));
+  if(kind==='send'){
+    const receipt=Array.isArray(data)?data[0]:data;
+    $('leaderTransferId').value='';$('leaderTransferAmount').value='';$('leaderTransferUserResult').innerHTML='';selectedLeaderTransferUser=null;msg('leaderTransferMsg','');
+    await loadMe();renderMe();showReceipt('Comprobante de envío del Administrador Líder',receipt);
+  }else{
+    $('leaderTransferAmount').value='';msg('leaderTransferMsg','Solicitud enviada al usuario.');
+  }
+}
 $('adminFindPromBtn').onclick=async()=>{
   const id=$('adminPromId').value.trim();
   const {data,error}=await sb.rpc('rf_search_user_by_public_id',{p_public_id:id});
