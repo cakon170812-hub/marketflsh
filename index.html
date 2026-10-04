@@ -45,6 +45,9 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 /* Comprobante oficial Flash Coin — negro/dorado premium */
 .receipt-panel-wrap{max-width:470px!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}.receipt-panel-wrap>.close{position:relative;z-index:3;margin:9px 9px -48px 0;background:rgba(255,255,255,.08);border:1px solid rgba(255,216,107,.28)}.receipt-panel-wrap>h2{position:absolute;left:-9999px}.premium-receipt{position:relative;overflow:hidden;background:linear-gradient(155deg,#17130b 0%,#08090c 34%,#050608 100%);border:1px solid rgba(238,193,86,.68);border-radius:28px;padding:22px;box-shadow:0 26px 80px rgba(0,0,0,.72),inset 0 1px 0 rgba(255,235,169,.18);color:#f8f2df}.premium-receipt:before{content:"";position:absolute;inset:-30% 30% 52% -20%;background:radial-gradient(circle,rgba(241,188,57,.18),transparent 67%);pointer-events:none}.premium-receipt:after{content:"";position:absolute;right:-65px;top:-55px;width:170px;height:170px;border:1px solid rgba(255,214,105,.13);border-radius:50%;box-shadow:0 0 0 18px rgba(255,214,105,.025),0 0 0 36px rgba(255,214,105,.018);pointer-events:none}.receipt-head{position:relative;z-index:1;text-align:center;padding:10px 4px 18px;border-bottom:1px solid rgba(235,196,91,.20)}.receipt-brand{font-size:12px;letter-spacing:2.4px;font-weight:950;color:#e7bc54;text-transform:uppercase}.receipt-subbrand{font-size:9px;letter-spacing:1.8px;color:#827862;margin-top:3px}.receipt-check{width:58px;height:58px;margin:16px auto 10px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff0a4,#d9a326 48%,#765000 100%);color:#161006;font-size:34px;font-weight:950;box-shadow:0 0 0 5px rgba(224,176,57,.10),0 0 26px rgba(238,188,53,.28)}.receipt-success{font-size:18px;font-weight:950;color:#fff8df}.receipt-kicker{font-size:10px;color:#a79b80;margin-top:5px;letter-spacing:.25px}.receipt-amount{position:relative;z-index:1;text-align:center;padding:19px 8px 17px}.receipt-amount .label{font-size:10px;color:#948972;text-transform:uppercase;letter-spacing:1.2px}.receipt-amount strong{display:block;font-size:37px;line-height:1.1;color:#f5cb63;margin-top:5px;text-shadow:0 0 20px rgba(237,189,65,.16)}.receipt-status{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:6px 11px;border-radius:999px;border:1px solid rgba(111,237,154,.22);background:rgba(29,118,66,.14);color:#86efaa;font-size:10px;font-weight:900}.receipt-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#50db84;box-shadow:0 0 8px #50db84}.receipt-details{position:relative;z-index:1;border-top:1px solid rgba(235,196,91,.15);border-bottom:1px solid rgba(235,196,91,.15);padding:8px 0}.receipt-line{display:flex;justify-content:space-between;gap:18px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.055)}.receipt-line:last-child{border-bottom:0}.receipt-line span{font-size:10px;color:#8e8a82}.receipt-line b{max-width:62%;text-align:right;font-size:11px;color:#eee5d2;word-break:break-word}.receipt-balance{position:relative;z-index:1;margin-top:15px;padding:14px;border-radius:15px;border:1px solid rgba(230,186,72,.22);background:linear-gradient(135deg,rgba(218,165,43,.11),rgba(255,255,255,.025));text-align:center}.receipt-balance span{display:block;font-size:10px;color:#a69a80}.receipt-balance b{display:block;color:#f5cf6b;font-size:20px;margin-top:3px}.receipt-foot{position:relative;z-index:1;text-align:center;padding-top:15px;color:#6e6a61;font-size:9px;letter-spacing:.45px}.receipt-ref{margin-top:4px;color:#998d72}.save-confirm{position:fixed;z-index:650;inset:0;display:none;place-items:center;background:rgba(0,0,0,.58);pointer-events:none}.save-confirm.show{display:grid}.save-confirm-card{min-width:220px;text-align:center;background:#0c1712;border:1px solid #3bdd78;border-radius:20px;padding:22px;box-shadow:0 20px 70px #000}.save-check{width:62px;height:62px;margin:0 auto 9px;border-radius:50%;display:grid;place-items:center;background:#15954d;color:#fff;font-size:38px;font-weight:950}.win-flash{position:fixed;z-index:700;inset:0;display:none;place-items:center;background:radial-gradient(circle,rgba(255,230,94,.50),rgba(255,164,0,.22) 38%,rgba(0,0,0,.78) 78%);animation:winPulse .42s ease-in-out infinite alternate}.win-flash.show{display:grid}.win-flash.no-flash{animation:none;background:rgba(0,0,0,.76)}.win-flash.no-flash .win-card{box-shadow:0 18px 60px rgba(0,0,0,.72)}.win-card{text-align:center;background:rgba(7,10,16,.95);border:2px solid #ffe16e;border-radius:24px;padding:24px 28px;box-shadow:0 0 35px #ffb000}.win-card h2{font-size:30px;color:#ffe478}.win-prize{font-size:38px;font-weight:950;color:#6cff94;margin-top:7px}@keyframes winPulse{from{filter:brightness(1)}to{filter:brightness(1.45)}}
 @media(max-width:420px){.receipt-grid{grid-template-columns:1fr}.bet-controls{grid-template-columns:minmax(0,1fr) 118px}.switch-box{padding:7px 8px}}
+
+/* ===== ACTUALIZACIÓN: carteras, sesión persistente y credenciales ===== */
+.save-login{display:flex;align-items:center;gap:8px;margin:8px 0 3px;padding:8px 10px;border:1px solid #344154;border-radius:12px;background:#0b111b;color:#d6dce6;font-size:11px}.save-login input{width:18px;height:18px}.wallet-admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.wallet-admin-card{border:1px solid #6d5520;background:linear-gradient(145deg,#17130a,#090b10);border-radius:15px;padding:12px;text-align:left;color:#fff}.wallet-admin-card span{display:block;font-size:10px;color:#a9b0bd}.wallet-admin-card b{display:block;font-size:21px;color:#f3cd69;margin-top:4px}.wallet-admin-card small{display:block;color:#8f98a8;margin-top:4px}.wallet-history{max-height:280px;overflow:auto}.wallet-positive{color:#72f39b!important}.wallet-negative{color:#ff8c96!important}.wallet-neutral{color:#f3cd69!important}@media(max-width:420px){.wallet-admin-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -59,12 +62,14 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
       <input id="regLast" class="field" placeholder="Apellido" autocomplete="family-name" required>
       <input id="regEmail" class="field" type="email" placeholder="Correo" autocomplete="email" required>
       <input id="regPass" class="field" type="password" placeholder="Contraseña" minlength="6" required>
-      <input id="regPass2" class="field" type="password" placeholder="Confirmar contraseña" minlength="6" required>
+      <input id="regPass2" class="field" type="password" placeholder="Confirmar contraseña" minlength="6" autocomplete="new-password" required>
+      <label class="save-login"><input id="regSavePassword" type="checkbox"><span>Guardar contraseña en este dispositivo</span></label>
       <button class="primary" type="submit">CREAR CUENTA</button>
     </form>
     <form id="loginForm" class="hidden">
       <input id="loginEmail" class="field" type="email" placeholder="Correo" autocomplete="email" required>
       <input id="loginPass" class="field" type="password" placeholder="Contraseña" autocomplete="current-password" required>
+      <label class="save-login"><input id="loginSavePassword" type="checkbox"><span>Guardar contraseña en este dispositivo</span></label>
       <button class="primary" type="submit">INICIAR SESIÓN</button>
       <button id="forgotPasswordBtn" class="auth-link" type="button">¿Olvidaste tu contraseña?</button>
     </form>
@@ -143,12 +148,18 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div id="leaderGatePanel" class="overlay"><div class="panel"><button class="close" data-close="leaderGatePanel">✕</button><h2>👑 Administrador Líder</h2><div id="leaderFirstSetup" class="hidden"><p class="tiny">Primera entrada: crea ahora la contraseña del panel.</p><input id="leaderNewPass" class="field" type="password" placeholder="Nueva contraseña"><input id="leaderNewPass2" class="field" type="password" placeholder="Confirmar contraseña"><button id="leaderCreatePassBtn" class="action green">Crear contraseña</button></div><div id="leaderLoginBox" class="hidden"><input id="leaderPass" class="field" type="password" placeholder="Contraseña del panel"><button id="leaderUnlockBtn" class="action">Entrar</button></div><div id="leaderGateMsg" class="msg"></div></div></div>
 
 <div id="leaderPanel" class="overlay"><div class="panel"><button class="close" data-close="leaderPanel">✕</button><h2>👑 Administrador Líder</h2><div class="stat-grid"><div class="stat"><b id="adminRegistered">0</b><span class="tiny">Registrados</span></div><div class="stat"><b id="adminOnline">0</b><span class="tiny">Jugando ahora</span></div></div>
+<div class="wallet-admin-grid"><button id="adminWalletBtn" type="button" class="wallet-admin-card"><span>💼 Cartera Administrativa</span><b id="adminWalletPreview">0.000 FC</b><small>Enviar · solicitar · retirar</small></button><button id="rouletteWalletBtn" type="button" class="wallet-admin-card"><span>🎰 Cartera de la Ruleta</span><b id="rouletteWalletPreview">0.000 FC</b><small id="rouletteNetPreview">Ganancia/Pérdida: 0.000 FC</small></button></div>
 <div class="section"><h3>⚡ Mi Flash Coin</h3><div class="tiny">Envía o solicita Flash Coin usando tu saldo personal de la cuenta líder.</div><div class="row"><input id="leaderTransferId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="leaderFindTransferBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="leaderTransferUserResult"></div><input id="leaderTransferAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="leaderSendFcBtn" class="action green">Enviar Flash Coin</button><button id="leaderRequestFcBtn" class="action">Solicitar Flash Coin</button><div id="leaderTransferMsg" class="msg"></div></div>
 <div class="section"><h3>Asignar promotores</h3><div class="row"><input id="adminPromId" class="field" inputmode="numeric" maxlength="6" placeholder="ID usuario"><button id="adminFindPromBtn" class="action blue">Buscar</button></div><div id="adminPromResult"></div></div>
 <div class="section"><h3>Comunicado</h3><label class="switch-line"><input id="adminNoticeEnabled" class="switch" type="checkbox"><span>Mostrar comunicado a los usuarios</span></label><textarea id="adminNotice" class="field" rows="3" placeholder="Escribe el comunicado..."></textarea><div class="row"><div><label class="tiny">Visible durante (segundos)</label><input id="adminNoticeVisible" class="field" type="number" min="1" max="3600" value="10"></div><div><label class="tiny">Reaparece cada (segundos)</label><input id="adminNoticeRepeat" class="field" type="number" min="1" max="86400" value="300"></div></div><button id="adminSaveNoticeBtn" class="action green">Guardar comunicado</button></div>
 <div class="section"><h3>Recarga por ID</h3><div class="row"><input id="adminRechargeId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminFindRechargeBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="adminRechargeUserResult"></div><input id="adminRechargeAmount" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="adminRechargeBtn" class="action green">Acreditar recarga</button></div>
 <div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Porcentaje global de pago (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración</button></div>
 <div class="section"><h3>Cambiar contraseña del panel</h3><input id="oldLeaderPass" class="field" type="password" placeholder="Contraseña actual"><input id="newLeaderPass" class="field" type="password" placeholder="Nueva contraseña"><button id="changeLeaderPassBtn" class="action dark">Cambiar contraseña</button></div><div id="adminMsg" class="msg"></div></div></div>
+
+
+<div id="adminWalletPanel" class="overlay"><div class="panel"><button class="close" data-close="adminWalletPanel">✕</button><h2>💼 Cartera Administrativa</h2><div class="card"><span class="tiny">Saldo disponible de administración</span><strong id="adminWalletBalance" style="font-size:28px">0.000 FC</strong><div class="tiny">Este saldo es independiente del saldo personal del Administrador Líder.</div></div><h3>Usuario / Promotor</h3><div class="row"><input id="adminWalletUserId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminWalletFindBtn" type="button" class="search-mini">🔎</button></div><div id="adminWalletUserResult"></div><input id="adminWalletAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="adminWalletSendBtn" class="action green">Enviar desde cartera</button><button id="adminWalletRequestBtn" class="action">Solicitar a usuario/promotor</button><button id="adminWalletWithdrawBtn" class="action red">Retirar saldo a esta cartera</button><div id="adminWalletMsg" class="msg"></div><h3>Historial de la cartera</h3><div id="adminWalletHistory" class="wallet-history"></div></div></div>
+
+<div id="rouletteWalletPanel" class="overlay"><div class="panel"><button class="close" data-close="rouletteWalletPanel">✕</button><h2>🎰 Cartera de la Ruleta</h2><div class="stat-grid"><div class="stat"><b id="rouletteWalletBalance">0.000</b><span class="tiny">Saldo FC</span></div><div class="stat"><b id="rouletteWalletNet">0.000</b><span class="tiny">Ganancia/Pérdida del juego</span></div></div><div class="stat-grid" style="margin-top:8px"><div class="stat"><b id="rouletteBetsTotal">0.000</b><span class="tiny">Apuestas ingresadas</span></div><div class="stat"><b id="roulettePrizesTotal">0.000</b><span class="tiny">Premios pagados</span></div></div><div class="section"><h3>Recargar desde Cartera Administrativa</h3><input id="rouletteTopupAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="rouletteTopupBtn" class="action green">Transferir a la ruleta</button></div><div class="section"><h3>Ajuste manual autorizado</h3><input id="rouletteSetBalance" class="field" type="number" step="0.001" placeholder="Nuevo saldo de la ruleta"><input id="rouletteAdjustReason" class="field" placeholder="Motivo del ajuste"><button id="rouletteAdjustBtn" class="action">Guardar ajuste</button></div><div id="rouletteWalletMsg" class="msg"></div><h3>Historial de la ruleta</h3><div id="rouletteWalletHistory" class="wallet-history"></div></div></div>
 
 <div id="receiptPanel" class="overlay"><div class="panel receipt-panel-wrap"><button class="close" data-close="receiptPanel">✕</button><h2 id="receiptTitle">Comprobante</h2><div id="receiptContent"></div></div></div>
 
@@ -167,13 +178,14 @@ const SUPABASE_URL='https://mvwpbhhhspcaurjgsegz.supabase.co';
 const SUPABASE_KEY='sb_publishable_nO8z0atB5iB5Bri2iRXwdw_PJUOQvCx';
 const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const WHEEL_ORDER=[0,7,2,11,4,9,1,12,5,8,3,10,6];
-const AWAY_KEY='rf_away_since_v02'; // se conserva para no perder el estado al actualizar HTML
-const AWAY_LIMIT_MS=10*60*1000;
+const AWAY_KEY='rf_away_since_v02'; // compatibilidad: ya no cierra la sesión por ausencia
+const SAVE_LOGIN_KEY='rf_save_password_preference_v01';
+const SAVED_EMAIL_KEY='rf_saved_login_email_v01';
 const REF_KEY='rf_referrer_public_id';
 const refFromUrl=(new URLSearchParams(location.search).get('ref')||'').trim();
 if(/^\d{6}$/.test(refFromUrl))localStorage.setItem(REF_KEY,refFromUrl);
-let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedLeaderTransferUser=null,selectedAdminRechargeUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
-let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0;
+let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedLeaderTransferUser=null,selectedAdminRechargeUser=null,selectedAdminWalletUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
+let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,audioUnlockPromise=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0,recoveryMode=false;
 const transferQueue=[];const seenTransferNotifications=new Set();
 const betQueues={};
 const $=id=>document.getElementById(id);
@@ -272,6 +284,26 @@ function buildNumbers(){
   updateCountdown();
 }
 
+function isRecoveryReturn(){
+  const q=new URLSearchParams(location.search);
+  const h=String(location.hash||'');
+  return q.get('password_recovery')==='1'||q.get('type')==='recovery'||/type=recovery/i.test(h);
+}
+function recoveryReturnUrl(){return location.origin+location.pathname+'?password_recovery=1';}
+async function rememberCredential(email,password,checked,name='MAIKET FLASH'){
+  localStorage.setItem(SAVE_LOGIN_KEY,checked?'1':'0');
+  if(checked)localStorage.setItem(SAVED_EMAIL_KEY,email);else localStorage.removeItem(SAVED_EMAIL_KEY);
+  if(!checked||!('credentials' in navigator)||!window.PasswordCredential)return;
+  try{await navigator.credentials.store(new PasswordCredential({id:email,password,name}));}catch{}
+}
+function loadSavedLoginPreference(){
+  const enabled=localStorage.getItem(SAVE_LOGIN_KEY)==='1';
+  const email=localStorage.getItem(SAVED_EMAIL_KEY)||'';
+  if($('regSavePassword'))$('regSavePassword').checked=enabled;
+  if($('loginSavePassword'))$('loginSavePassword').checked=enabled;
+  if(email&&$('loginEmail')&&!$('loginEmail').value)$('loginEmail').value=email;
+}
+
 function setAuthMode(mode){
   const reg=mode==='register';
   $('registerForm').classList.toggle('hidden',!reg);
@@ -299,6 +331,7 @@ $('registerForm').addEventListener('submit',async e=>{
     const s=await sb.auth.signInWithPassword({email,password:pass});
     if(s.error)return msg('authMsg',authErrorText(s.error));
   }
+  await rememberCredential(email,pass,$('regSavePassword').checked,`${first} ${last}`.trim()||'MAIKET FLASH');
   localStorage.removeItem(AWAY_KEY);
   localStorage.removeItem(REF_KEY);
   await enterApp();
@@ -310,6 +343,7 @@ $('loginForm').addEventListener('submit',async e=>{
   const email=normalizeEmail($('loginEmail').value),password=$('loginPass').value;
   const {error}=await sb.auth.signInWithPassword({email,password});
   if(error)return msg('authMsg',authErrorText(error));
+  await rememberCredential(email,password,$('loginSavePassword').checked);
   localStorage.removeItem(AWAY_KEY);
   await enterApp();
 });
@@ -325,62 +359,42 @@ $('resetRequestBtn').onclick=async()=>{
   const email=normalizeEmail($('resetEmail').value);
   if(!email)return msg('resetMsg','Escribe el correo de tu cuenta.');
   msg('resetMsg','Enviando enlace...');
-  const redirectTo=location.origin+location.pathname;
-  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:recoveryReturnUrl()});
   if(error)return msg('resetMsg',errText(error));
-  msg('resetMsg','Enlace enviado. Revisa tu correo y abre el enlace para crear una contraseña nueva.');
+  msg('resetMsg','Enlace enviado. Abre el enlace del correo; volverás aquí para escribir la contraseña nueva dos veces.');
 };
 $('resetSaveBtn').onclick=async()=>{
   const p1=$('resetNewPass').value,p2=$('resetNewPass2').value;
   if(p1.length<6)return msg('resetMsg','La contraseña debe tener al menos 6 caracteres.');
   if(p1!==p2)return msg('resetMsg','Las contraseñas no coinciden.');
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return msg('resetMsg','El enlace de recuperación no está activo. Vuelve a abrir el enlace recibido por correo.');
   msg('resetMsg','Guardando contraseña...');
   const {error}=await sb.auth.updateUser({password:p1});
   if(error)return msg('resetMsg',errText(error));
   $('resetNewPass').value='';$('resetNewPass2').value='';
-  msg('resetMsg','Contraseña actualizada. Ya puedes seguir usando la misma cuenta.');
-  setTimeout(()=>{hide('passwordResetPanel');enterApp().catch(()=>{})},700);
+  recoveryMode=false;
+  history.replaceState({},document.title,location.origin+location.pathname);
+  msg('resetMsg','Contraseña actualizada correctamente. Entrando a tu ruleta...');
+  setTimeout(async()=>{hide('passwordResetPanel');await enterApp();},450);
 };
 
-async function sessionExpiredByAway(){
-  const raw=localStorage.getItem(AWAY_KEY);
-  if(!raw)return false;
-  const awaySince=Number(raw);
-  if(!Number.isFinite(awaySince)){localStorage.removeItem(AWAY_KEY);return false;}
-  if(Date.now()-awaySince<AWAY_LIMIT_MS){localStorage.removeItem(AWAY_KEY);return false;}
-  localStorage.removeItem(AWAY_KEY);
-  await sb.auth.signOut();
-  return true;
-}
-
-function markAway(){
-  if(!me||manualLogout)return;
-  if(!localStorage.getItem(AWAY_KEY))localStorage.setItem(AWAY_KEY,String(Date.now()));
-  if(presenceChannel){presenceChannel.untrack().catch(()=>{});}
-}
-
+// La sesión permanece activa mientras Supabase pueda renovarla.
+// Cerrar la pestaña, cambiar de aplicación o estar ausente NO ejecuta signOut.
+async function sessionExpiredByAway(){localStorage.removeItem(AWAY_KEY);return false;}
+function markAway(){if(presenceChannel){presenceChannel.untrack().catch(()=>{});}}
 async function handleReturnFromAway(){
   const {data:{session}}=await sb.auth.getSession();
-  if(!session){localStorage.removeItem(AWAY_KEY);return;}
-  if(await sessionExpiredByAway()){
-    alert('Tu sesión se cerró porque estuviste más de 10 minutos fuera del juego.');
-    location.reload();
-    return;
-  }
+  if(!session)return;
   if(me){await trackPresence();await refreshEverything();}
 }
-
-document.addEventListener('visibilitychange',()=>{
-  if(document.hidden)markAway();
-  else handleReturnFromAway().catch(()=>{});
-});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)markAway();else handleReturnFromAway().catch(()=>{});});
 window.addEventListener('pagehide',markAway);
 window.addEventListener('pageshow',()=>{if(!document.hidden)handleReturnFromAway().catch(()=>{});});
 
 async function enterApp(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return;
-  if(await sessionExpiredByAway()){location.reload();return;}
   const ensured=await sb.rpc('rf_ensure_my_profile');
   if(ensured.error){msg('authMsg','No se pudo cargar tu perfil: '+errText(ensured.error));return;}
   $('authView').classList.add('hidden');
@@ -503,23 +517,30 @@ function showReceipt(title,r){
   show('receiptPanel');
 }
 
-function ensureAudio(){
+async function unlockAudio(){
   if(!audioCtx){const C=window.AudioContext||window.webkitAudioContext;if(C)audioCtx=new C();}
-  if(audioCtx?.state==='suspended')audioCtx.resume().catch(()=>{});
+  if(!audioCtx)return false;
+  if(audioCtx.state==='running')return true;
+  if(audioUnlockPromise)return audioUnlockPromise;
+  audioUnlockPromise=audioCtx.resume().then(()=>audioCtx.state==='running').catch(()=>false).finally(()=>{audioUnlockPromise=null;});
+  return audioUnlockPromise;
 }
+function ensureAudio(){unlockAudio().catch(()=>{});return audioCtx;}
 function rouletteClick(){
-  if(!audioCtx||me?.sound_enabled===false)return;
+  if(!audioCtx||audioCtx.state!=='running'||me?.sound_enabled===false)return;
   const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
   o.type='triangle';o.frequency.setValueAtTime(720,t);o.frequency.exponentialRampToValueAtTime(260,t+.055);
   g.gain.setValueAtTime(.045,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);
   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.065);
 }
-function playRouletteSound(){
-  if(me?.sound_enabled===false)return;ensureAudio();clearTimeout(audioTickTimer);let i=0;
-  const tick=()=>{if(i>=34||me?.sound_enabled===false)return;rouletteClick();i++;audioTickTimer=setTimeout(tick,70+i*4);};tick();
+async function playRouletteSound(){
+  if(me?.sound_enabled===false)return;
+  if(!(await unlockAudio()))return;
+  clearTimeout(audioTickTimer);let i=0;
+  const tick=()=>{if(i>=34||me?.sound_enabled===false||audioCtx?.state!=='running')return;rouletteClick();i++;audioTickTimer=setTimeout(tick,70+i*4);};tick();
 }
 function coinChime(delay=0,freq=1300,volume=.055){
-  if(!audioCtx||me?.sound_enabled===false)return;
+  if(!audioCtx||audioCtx.state!=='running'||me?.sound_enabled===false)return;
   const t=audioCtx.currentTime+delay;
   const o=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();
   o.type='sine';o2.type='triangle';
@@ -528,17 +549,19 @@ function coinChime(delay=0,freq=1300,volume=.055){
   g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(volume,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+.28);
   o.connect(g);o2.connect(g);g.connect(audioCtx.destination);o.start(t);o2.start(t);o.stop(t+.30);o2.stop(t+.30);
 }
-function playWinnerSound(){
-  if(me?.sound_enabled===false)return;
-  ensureAudio();if(!audioCtx)return;
+async function playWinnerSound(){
+  if(me?.sound_enabled===false||!(await unlockAudio()))return;
   const notes=[1046,1318,1568,2093,1568,2349,2093,2637];
   notes.forEach((f,i)=>coinChime(i*.075,f,.045+(i%3)*.006));
   setTimeout(()=>{[1760,2093,2637,3136].forEach((f,i)=>coinChime(i*.055,f,.05));},620);
 }
-function playBalanceCreditSound(){
-  if(me?.sound_enabled===false)return;
-  ensureAudio();if(!audioCtx)return;
+async function playBalanceCreditSound(){
+  if(me?.sound_enabled===false||!(await unlockAudio()))return;
   [1180,1360,1580,1830,2140,2480].forEach((f,i)=>coinChime(i*.065,f,.042+(i%2)*.006));
+}
+async function playSoundTest(){
+  if(!(await unlockAudio()))return false;
+  [880,1175,1568].forEach((f,i)=>coinChime(i*.08,f,.05));return true;
 }
 function animateCoinsToBalance(sourceEl=null){
   const target=$('balanceBtn');if(!target)return;
@@ -574,7 +597,7 @@ function showWinnerCelebration(winner,prize){
   setTimeout(()=>layer.classList.remove('show'),3000);
 }
 
-document.addEventListener('pointerdown',ensureAudio,{once:true});
+['pointerdown','touchstart','keydown'].forEach(evt=>document.addEventListener(evt,()=>{unlockAudio().catch(()=>{});},{passive:true}));
 
 async function copyText(text,label='Copiado'){
   const value=String(text||'');
@@ -809,10 +832,12 @@ $('fixedStakeSwitch').addEventListener('change',async()=>{
   try{await saveStakePreference(enabled);if(!enabled)$('stakeInput').value=money(settings?.min_bet||.01);}catch(e){$('fixedStakeSwitch').checked=!enabled;alert(errText(e));}
 });
 $('soundSwitch').addEventListener('change',async()=>{
-  const enabled=$('soundSwitch').checked;if(enabled)ensureAudio();
+  const enabled=$('soundSwitch').checked;
+  if(enabled)await unlockAudio();
   const {error}=await sb.rpc('rf_set_sound_enabled',{p_enabled:enabled});
   if(error){$('soundSwitch').checked=!enabled;return alert(errText(error));}
   if(me)me.sound_enabled=enabled;
+  if(enabled){const ok=await playSoundTest();if(!ok)alert('El navegador todavía bloquea el audio. Toca la pantalla una vez y vuelve a activar Sonido.');}
 });
 $('flashSwitch').addEventListener('change',async()=>{
   const enabled=$('flashSwitch').checked;
@@ -861,7 +886,7 @@ async function loadPromoters(){
 
 async function loadRequests(){
   const {data}=await sb.from('rf_transfer_requests').select('id,promoter_id,amount,status,created_at,requester_role').eq('user_id',me?.id||'').order('created_at',{ascending:false}).limit(30);
-  $('requestsList').innerHTML=(data||[]).length?(data||[]).map(r=>{const who=String(r.requester_role||'promoter')==='leader'?'Administrador Líder':'Promotor';return `<div class="card"><strong>${money(r.amount)} FC</strong><span class="tiny">Solicitud de ${who} · ${esc(r.status)}</span>${r.status==='pending'?`<div class="row"><button class="action green" onclick="respondReq('${r.id}',true)">Aceptar</button><button class="action red" onclick="respondReq('${r.id}',false)">Rechazar</button></div>`:''}</div>`;}).join(''):'<div class="card">No tienes solicitudes.</div>';
+  $('requestsList').innerHTML=(data||[]).length?(data||[]).map(r=>{const rr=String(r.requester_role||'promoter');const who=rr==='admin_wallet'?'Cartera Administrativa':(rr==='leader'?'Administrador Líder':'Promotor');return `<div class="card"><strong>${money(r.amount)} FC</strong><span class="tiny">Solicitud de ${who} · ${esc(r.status)}</span>${r.status==='pending'?`<div class="row"><button class="action green" onclick="respondReq('${r.id}',true)">Aceptar</button><button class="action red" onclick="respondReq('${r.id}',false)">Rechazar</button></div>`:''}</div>`;}).join(''):'<div class="card">No tienes solicitudes.</div>';
 }
 window.respondReq=async(id,accept)=>{
   const {error}=await sb.rpc('rf_respond_transfer_request',{p_request_id:id,p_accept:accept});
@@ -1044,7 +1069,7 @@ $('leaderUnlockBtn').onclick=async()=>{
   if(!data)return msg('leaderGateMsg','Contraseña incorrecta.');
   hide('leaderGatePanel');await openLeaderPanel();
 };
-async function openLeaderPanel(){await Promise.all([loadSettings(),loadStats()]);renderSettings();show('leaderPanel')}
+async function openLeaderPanel(){await Promise.all([loadSettings(),loadStats(),loadLeaderWallets()]);renderSettings();show('leaderPanel')}
 $('leaderTransferId').addEventListener('input',()=>{selectedLeaderTransferUser=null;$('leaderTransferUserResult').innerHTML='';msg('leaderTransferMsg','');});
 $('leaderFindTransferBtn').onclick=async()=>{
   if(me?.role!=='leader')return msg('leaderTransferMsg','Solo el Administrador Líder puede usar esta función.');
@@ -1074,6 +1099,63 @@ async function leaderTransferAction(kind){
     $('leaderTransferAmount').value='';msg('leaderTransferMsg','Solicitud enviada al usuario.');
   }
 }
+
+async function loadLeaderWallets(){
+  if(me?.role!=='leader')return;
+  const {data,error}=await sb.rpc('rf_get_leader_wallets');
+  if(error)return;
+  const w=Array.isArray(data)?data[0]:data;if(!w)return;
+  const ab=Number(w.admin_balance||0),rb=Number(w.roulette_balance||0),net=Number(w.game_net||0);
+  $('adminWalletPreview').textContent=money(ab)+' FC';$('rouletteWalletPreview').textContent=money(rb)+' FC';
+  $('rouletteNetPreview').textContent=`Ganancia/Pérdida: ${net>=0?'+':''}${money(net)} FC`;
+  $('rouletteNetPreview').className=net>0?'wallet-positive':(net<0?'wallet-negative':'wallet-neutral');
+  $('adminWalletBalance').textContent=money(ab)+' FC';$('rouletteWalletBalance').textContent=money(rb);
+  $('rouletteWalletNet').textContent=(net>=0?'+':'')+money(net);$('rouletteWalletNet').className=net>0?'wallet-positive':(net<0?'wallet-negative':'wallet-neutral');
+  $('rouletteBetsTotal').textContent=money(w.total_bets||0);$('roulettePrizesTotal').textContent=money(w.total_prizes||0);
+}
+async function loadAdminWalletHistory(){
+  const {data,error}=await sb.rpc('rf_get_admin_wallet_history',{p_limit:60});if(error)return;
+  $('adminWalletHistory').innerHTML=(data||[]).length?(data||[]).map(x=>`<div class="card"><strong class="${Number(x.delta)>=0?'success':'danger'}">${Number(x.delta)>=0?'+':''}${money(x.delta)} FC</strong><span class="tiny">${esc(x.movement_type)} · Saldo ${money(x.balance_after)} FC</span><div class="tiny">${esc(x.reference||'')}</div></div>`).join(''):'<div class="card">Sin movimientos todavía.</div>';
+}
+async function loadRouletteWalletHistory(){
+  const {data,error}=await sb.rpc('rf_get_roulette_wallet_history',{p_limit:80});if(error)return;
+  $('rouletteWalletHistory').innerHTML=(data||[]).length?(data||[]).map(x=>`<div class="card"><strong class="${Number(x.delta)>=0?'success':'danger'}">${Number(x.delta)>=0?'+':''}${money(x.delta)} FC</strong><span class="tiny">${esc(x.movement_type)} · Saldo ${money(x.balance_after)} FC</span><div class="tiny">${esc(x.reference||'')}</div></div>`).join(''):'<div class="card">Sin movimientos todavía.</div>';
+}
+$('adminWalletBtn').onclick=async()=>{hide('leaderPanel');await Promise.all([loadLeaderWallets(),loadAdminWalletHistory()]);show('adminWalletPanel');};
+$('rouletteWalletBtn').onclick=async()=>{hide('leaderPanel');await Promise.all([loadLeaderWallets(),loadRouletteWalletHistory()]);show('rouletteWalletPanel');};
+$('adminWalletUserId').addEventListener('input',()=>{selectedAdminWalletUser=null;$('adminWalletUserResult').innerHTML='';msg('adminWalletMsg','');});
+$('adminWalletFindBtn').onclick=async()=>{
+  const id=$('adminWalletUserId').value.trim();if(!/^\d{6}$/.test(id))return msg('adminWalletMsg','Escribe un ID válido de 6 dígitos.');
+  const {data,error}=await sb.rpc('rf_search_user_by_public_id',{p_public_id:id});if(error)return msg('adminWalletMsg',errText(error));
+  const u=Array.isArray(data)?data[0]:data;selectedAdminWalletUser=u||null;
+  $('adminWalletUserResult').innerHTML=u?`<div class="card"><strong>${esc(u.full_name)}</strong><span class="tiny">ID ${esc(u.public_id)} · Saldo ${money(u.balance)} FC</span></div>`:'<div class="card">ID no encontrado.</div>';
+};
+async function adminWalletAction(kind){
+  if(!selectedAdminWalletUser)return msg('adminWalletMsg','Busca y confirma primero el ID.');
+  const id=$('adminWalletUserId').value.trim(),amount=Number($('adminWalletAmount').value);if(!(amount>0))return msg('adminWalletMsg','Monto inválido.');
+  if(selectedAdminWalletUser.public_id!==id)return msg('adminWalletMsg','Vuelve a buscar y confirmar el ID.');
+  const fn=kind==='send'?'rf_admin_wallet_send_fc':(kind==='request'?'rf_admin_wallet_request_fc':'rf_admin_wallet_withdraw_fc');
+  const {data,error}=await sb.rpc(fn,{p_public_id:id,p_amount:amount});if(error)return msg('adminWalletMsg',errText(error));
+  await Promise.all([loadLeaderWallets(),loadAdminWalletHistory(),loadMe(),loadLedger()]);renderMe();
+  $('adminWalletAmount').value='';
+  msg('adminWalletMsg',kind==='send'?'Flash Coin enviadas desde la Cartera Administrativa.':(kind==='request'?'Solicitud enviada.':'Saldo retirado a la Cartera Administrativa.'));
+}
+$('adminWalletSendBtn').onclick=async()=>adminWalletAction('send');
+$('adminWalletRequestBtn').onclick=async()=>adminWalletAction('request');
+$('adminWalletWithdrawBtn').onclick=async()=>adminWalletAction('withdraw');
+$('rouletteTopupBtn').onclick=async()=>{
+  const amount=Number($('rouletteTopupAmount').value);if(!(amount>0))return msg('rouletteWalletMsg','Monto inválido.');
+  const {error}=await sb.rpc('rf_admin_wallet_to_roulette',{p_amount:amount});if(error)return msg('rouletteWalletMsg',errText(error));
+  $('rouletteTopupAmount').value='';await Promise.all([loadLeaderWallets(),loadRouletteWalletHistory()]);msg('rouletteWalletMsg','Transferencia realizada desde la Cartera Administrativa.');
+};
+$('rouletteAdjustBtn').onclick=async()=>{
+  const newBalance=Number($('rouletteSetBalance').value),reason=$('rouletteAdjustReason').value.trim();
+  if(!Number.isFinite(newBalance))return msg('rouletteWalletMsg','Escribe el nuevo saldo.');
+  if(!reason)return msg('rouletteWalletMsg','Escribe el motivo del ajuste.');
+  const {error}=await sb.rpc('rf_admin_set_roulette_wallet_balance',{p_new_balance:newBalance,p_reason:reason});if(error)return msg('rouletteWalletMsg',errText(error));
+  await Promise.all([loadLeaderWallets(),loadRouletteWalletHistory()]);$('rouletteSetBalance').value='';$('rouletteAdjustReason').value='';msg('rouletteWalletMsg','Saldo de la ruleta ajustado y registrado.');
+};
+
 $('adminFindPromBtn').onclick=async()=>{
   const id=$('adminPromId').value.trim();
   const {data,error}=await sb.rpc('rf_search_user_by_public_id',{p_public_id:id});
@@ -1127,19 +1209,20 @@ $('changeLeaderPassBtn').onclick=async()=>{
 
 buildWheel();
 (async()=>{
+  loadSavedLoginPreference();
+  recoveryMode=isRecoveryReturn();
   const {data:{session}}=await sb.auth.getSession();
-  if(session){
-    if(!(await sessionExpiredByAway()))await enterApp();
-  }
-  sb.auth.onAuthStateChange(async(event,sessionNow)=>{
+  if(recoveryMode){
+    $('resetRequestBox').classList.add('hidden');$('resetNewPasswordBox').classList.remove('hidden');
+    msg('resetMsg',session?'Enlace confirmado. Escribe tu contraseña nueva dos veces.':'Validando enlace de recuperación...');show('passwordResetPanel');
+  }else if(session){await enterApp();}
+  sb.auth.onAuthStateChange((event,sessionNow)=>{
     if(event==='PASSWORD_RECOVERY'){
-      $('resetRequestBox').classList.add('hidden');
-      $('resetNewPasswordBox').classList.remove('hidden');
-      msg('resetMsg','Enlace confirmado. Escribe tu contraseña nueva.');
-      show('passwordResetPanel');
-      return;
+      recoveryMode=true;
+      $('resetRequestBox').classList.add('hidden');$('resetNewPasswordBox').classList.remove('hidden');
+      msg('resetMsg','Enlace confirmado. Escribe tu contraseña nueva dos veces.');show('passwordResetPanel');return;
     }
-    if(event==='SIGNED_IN'&&sessionNow&&$('appView').classList.contains('hidden'))await enterApp();
+    if(event==='SIGNED_IN'&&sessionNow&&!recoveryMode&&$('appView').classList.contains('hidden'))setTimeout(()=>enterApp().catch(()=>{}),0);
     if(event==='SIGNED_OUT'){
       me=null;currentRound=null;myBets={};
       $('appView').classList.add('hidden');$('authView').classList.remove('hidden');
@@ -1151,3 +1234,5 @@ buildWheel();
 </html>
 
 <!-- HTML ACTUALIZADO: conserva la base funcional e integra recuperación de contraseña, reparación de perfil al entrar, contador total apostado y animación de saldo recibido. -->
+
+<!-- ACTUALIZACIÓN FINAL: carteras independientes, recuperación robusta, audio desbloqueable, sesión persistente y guardar contraseña vía gestor del navegador. -->
