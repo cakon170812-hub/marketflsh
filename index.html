@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 0.6</title>
+<title>Ruleta Flash Coin — HTML 0.6 CORREGIDO</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -17,7 +17,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .brand{text-align:center;font-weight:950;letter-spacing:2px;font-size:26px;color:#ffe28a;text-shadow:0 0 18px rgba(255,168,0,.5)}
 .sub{text-align:center;color:var(--muted);font-size:13px;margin:6px 0 16px}.tabs{display:flex;gap:8px;margin-bottom:12px}.tab{flex:1;border:1px solid #344055;border-radius:12px;padding:11px;background:#111722;color:#fff;font-weight:800}.tab.active{background:linear-gradient(135deg,#ffe273,#c98800);color:#1b1200;border-color:#ffda58}
 .field{width:100%;border:1px solid #354157;border-radius:12px;padding:12px;margin:6px 0;background:#070c14;color:#fff;outline:none;font-size:16px}.field:focus{border-color:#ffd45a}.primary,.action{width:100%;border:0;border-radius:13px;padding:13px;margin-top:8px;font-weight:900;background:linear-gradient(135deg,#ffe272,#c98a00);color:#1b1200}.action.blue{background:#1675e8;color:#fff}.action.green{background:#16894b;color:#fff}.action.red{background:#a92835;color:#fff}.action.dark{background:#202a3a;color:#fff;border:1px solid #3a4659}.tiny{font-size:12px;color:var(--muted)}
-.topbar{width:min(100%,620px);margin:0 auto;display:flex;align-items:center;gap:7px;padding:10px 0 3px}.top-tools{display:flex;align-items:center;gap:7px}.wallet-row{width:min(100%,620px);margin:5px auto 0;display:flex;align-items:center;gap:7px}.wallet-row .balance-chip{flex:0 0 auto;min-width:126px;max-width:156px;justify-content:center;padding-left:8px;padding-right:8px}.promoter-chip{white-space:nowrap;background:linear-gradient(135deg,#135a91,#0a263d);border-color:#42b8ff;color:#fff}.brand-mini{font-weight:950;color:#ffe182;letter-spacing:1px;margin-right:auto;font-size:16px;text-shadow:0 2px 8px #000}.icon-btn,.balance-chip{border:1px solid rgba(255,215,90,.35);background:rgba(5,10,18,.88);color:#fff;border-radius:12px;min-height:42px;padding:8px 10px;font-weight:850}.balance-chip{display:flex;align-items:center;gap:7px;font-size:13px}.balance-chip strong{color:#6cff94}.icon-btn{min-width:42px}.group-btn{font-size:11px}
+.topbar{width:min(100%,620px);margin:0 auto;display:flex;align-items:center;gap:7px;padding:10px 0 3px}.top-tools{display:flex;align-items:center;gap:7px}.wallet-row{width:min(100%,620px);margin:5px auto 0;display:flex;align-items:center;gap:7px}.wallet-row .balance-chip{flex:1}.promoter-chip{white-space:nowrap;background:linear-gradient(135deg,#135a91,#0a263d);border-color:#42b8ff;color:#fff}.brand-mini{font-weight:950;color:#ffe182;letter-spacing:1px;margin-right:auto;font-size:16px;text-shadow:0 2px 8px #000}.icon-btn,.balance-chip{border:1px solid rgba(255,215,90,.35);background:rgba(5,10,18,.88);color:#fff;border-radius:12px;min-height:42px;padding:8px 10px;font-weight:850}.balance-chip{display:flex;align-items:center;gap:7px;font-size:13px}.balance-chip strong{color:#6cff94}.icon-btn{min-width:42px}.group-btn{font-size:11px}
 .machine{width:min(100%,620px);margin:8px auto 0;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.13);border-radius:25px;padding:13px 10px 14px;backdrop-filter:blur(4px)}
 .roundbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:8px}.round-meta{font-size:11px;color:#d1d7e0}.round-meta.right{text-align:right}.timer{min-width:80px;text-align:center;border-radius:14px;padding:8px;background:#070b11;border:1px solid #5e4b20;color:#ffd65b;font-size:24px;font-weight:950;box-shadow:0 0 16px rgba(255,166,0,.18)}
 .wheel-wrap{position:relative;width:min(82vw,360px);aspect-ratio:1;margin:5px auto 9px}.pointer{position:absolute;z-index:30;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:35px solid #ffe168;filter:drop-shadow(0 0 7px #ff9800)}
@@ -32,13 +32,17 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .online-chip{display:flex;align-items:center;gap:5px;border:1px solid rgba(92,255,145,.34);background:rgba(5,24,14,.90);color:#b8ffd0;border-radius:12px;min-height:42px;padding:8px 10px;font-weight:850;font-size:11px;white-space:nowrap}.online-dot{width:8px;height:8px;border-radius:50%;background:#42e77c;box-shadow:0 0 8px #42e77c}.info-chip{background:linear-gradient(135deg,#24395c,#0c1728);border-color:#5d89c7;color:#fff;white-space:nowrap}.invite-btn{font-size:11px}.game-layout{width:min(100%,900px);margin:8px auto 0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.public-notice-side{display:none;background:rgba(34,28,7,.94);border:1px solid #927617;border-radius:15px;padding:12px;white-space:pre-wrap;color:#ffeaa0;font-size:13px}.public-notice-side:not(.hidden){display:block}.copy-btn{border:1px solid #41506a;background:#182234;color:#fff;border-radius:8px;padding:4px 7px;font-size:10px;margin-left:5px;vertical-align:middle}.copy-toast{position:fixed;z-index:500;left:50%;bottom:24px;transform:translateX(-50%);background:#111a27;border:1px solid #52627c;color:#fff;border-radius:999px;padding:9px 14px;font-size:12px;opacity:0;pointer-events:none;transition:.2s}.copy-toast.show{opacity:1}.switch-line{display:flex;align-items:center;gap:10px;margin:7px 0;padding:9px;border:1px solid #344154;border-radius:12px;background:#0b111b}.whatsapp-preview{font-size:12px;color:#8df2ad;margin-top:5px;min-height:18px}.ref-card{background:#0b1422;border:1px solid #2f4e78;border-radius:14px;padding:12px;margin-top:8px}.ref-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.ref-stats div{background:#080d15;border:1px solid #26344a;border-radius:10px;padding:8px;text-align:center}.ref-stats b{display:block;color:#ffd55d;font-size:17px}@media(min-width:820px){.game-layout{grid-template-columns:220px minmax(0,620px);align-items:start;justify-content:center}.public-notice-side{position:sticky;top:12px}.machine{margin-top:0}}
 @media(max-width:390px){.numbers{grid-template-columns:repeat(7,1fr);gap:4px}.num{min-height:50px;font-size:14px}.wn{font-size:15px;transform:rotate(var(--a)) translateY(calc(-1 * min(24vw,90px))) rotate(calc(-1 * var(--a)))}.topbar,.top-tools,.wallet-row{gap:4px}.icon-btn,.balance-chip{padding:7px;font-size:11px}.promoter-chip{font-size:10px}.brand-mini{font-size:14px}}
 
-/* ===== HTML 0.6 ===== */
-.repeat-left{width:max-content;max-width:100%;margin:0 0 6px 0;padding:7px 10px;min-height:40px}.stake-label-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}.mini-toggle{display:flex;align-items:center;gap:5px;font-size:10px;color:#d6dce6}.mini-toggle .switch{transform:scale(.82);transform-origin:right center}.control-stack{display:grid;gap:6px}.sound-box{min-height:40px}.search-mini{flex:0 0 48px!important;width:48px;min-width:48px;margin:6px 0;padding:10px 8px;border:1px solid #41608c;border-radius:12px;background:#15375f;color:#fff;font-weight:900}
+/* ===== HTML 0.5 ===== */
+.stake-label-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}.mini-toggle{display:flex;align-items:center;gap:5px;font-size:10px;color:#d6dce6}.mini-toggle .switch{transform:scale(.82);transform-origin:right center}.control-stack{display:grid;gap:6px}.sound-box{min-height:40px}.search-mini{flex:0 0 48px!important;width:48px;min-width:48px;margin:6px 0;padding:10px 8px;border:1px solid #41608c;border-radius:12px;background:#15375f;color:#fff;font-weight:900}
+/* ===== 0.6 CORREGIDO: solo ajustes acordados sobre 0.5 ===== */
+.wallet-row .balance-chip{flex:0 0 auto;min-width:126px;max-width:156px;justify-content:center;padding-left:8px;padding-right:8px}
+.repeat-left{width:max-content;max-width:100%;margin:0 0 6px 0;padding:7px 10px;min-height:40px}
+.online-chip{appearance:none;-webkit-appearance:none;cursor:pointer}
+.online-user-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:#080d15;border:1px solid #2c394d;border-radius:13px;padding:11px;margin:7px 0}.online-user-row .who{min-width:0}.online-user-row .who b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.online-user-row .won{text-align:right;color:#73f49c;font-weight:950;white-space:nowrap}.online-user-row .won.zero{color:#9ba5b5}.online-round-note{padding:9px 10px;border-radius:11px;background:#101827;border:1px solid #2d405e;margin:8px 0;color:#d8e1ef;font-size:12px}
+.balance-coin{position:fixed;z-index:690;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 28%,#fff5b3,#f2bd3d 43%,#9b6200 72%,#3a2100);border:1px solid #ffe27d;color:#5b3700;font-weight:950;box-shadow:0 0 14px rgba(255,199,61,.65);pointer-events:none}.balance-credit-pulse{animation:balancePulse .68s ease}.transfer-confirm-card{background:linear-gradient(155deg,#17130b,#08090c 38%,#050608);border:1px solid rgba(238,193,86,.68);border-radius:22px;padding:18px;box-shadow:0 22px 70px rgba(0,0,0,.70)}.transfer-confirm-card h3{text-align:center;color:#ffe07a;margin:2px 0 4px}.transfer-confirm-card .transfer-amount{text-align:center;font-size:35px;font-weight:950;color:#73f49c;margin:12px 0}.transfer-confirm-card .transfer-line{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}.transfer-confirm-card .transfer-line span{font-size:11px;color:#999faa}.transfer-confirm-card .transfer-line b{text-align:right;font-size:12px;color:#fff;word-break:break-word}@keyframes balancePulse{0%{transform:scale(1)}45%{transform:scale(1.08);box-shadow:0 0 24px rgba(112,255,151,.85)}100%{transform:scale(1)}}
 /* Comprobante oficial Flash Coin — negro/dorado premium */
 .receipt-panel-wrap{max-width:470px!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}.receipt-panel-wrap>.close{position:relative;z-index:3;margin:9px 9px -48px 0;background:rgba(255,255,255,.08);border:1px solid rgba(255,216,107,.28)}.receipt-panel-wrap>h2{position:absolute;left:-9999px}.premium-receipt{position:relative;overflow:hidden;background:linear-gradient(155deg,#17130b 0%,#08090c 34%,#050608 100%);border:1px solid rgba(238,193,86,.68);border-radius:28px;padding:22px;box-shadow:0 26px 80px rgba(0,0,0,.72),inset 0 1px 0 rgba(255,235,169,.18);color:#f8f2df}.premium-receipt:before{content:"";position:absolute;inset:-30% 30% 52% -20%;background:radial-gradient(circle,rgba(241,188,57,.18),transparent 67%);pointer-events:none}.premium-receipt:after{content:"";position:absolute;right:-65px;top:-55px;width:170px;height:170px;border:1px solid rgba(255,214,105,.13);border-radius:50%;box-shadow:0 0 0 18px rgba(255,214,105,.025),0 0 0 36px rgba(255,214,105,.018);pointer-events:none}.receipt-head{position:relative;z-index:1;text-align:center;padding:10px 4px 18px;border-bottom:1px solid rgba(235,196,91,.20)}.receipt-brand{font-size:12px;letter-spacing:2.4px;font-weight:950;color:#e7bc54;text-transform:uppercase}.receipt-subbrand{font-size:9px;letter-spacing:1.8px;color:#827862;margin-top:3px}.receipt-check{width:58px;height:58px;margin:16px auto 10px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#fff0a4,#d9a326 48%,#765000 100%);color:#161006;font-size:34px;font-weight:950;box-shadow:0 0 0 5px rgba(224,176,57,.10),0 0 26px rgba(238,188,53,.28)}.receipt-success{font-size:18px;font-weight:950;color:#fff8df}.receipt-kicker{font-size:10px;color:#a79b80;margin-top:5px;letter-spacing:.25px}.receipt-amount{position:relative;z-index:1;text-align:center;padding:19px 8px 17px}.receipt-amount .label{font-size:10px;color:#948972;text-transform:uppercase;letter-spacing:1.2px}.receipt-amount strong{display:block;font-size:37px;line-height:1.1;color:#f5cb63;margin-top:5px;text-shadow:0 0 20px rgba(237,189,65,.16)}.receipt-status{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:6px 11px;border-radius:999px;border:1px solid rgba(111,237,154,.22);background:rgba(29,118,66,.14);color:#86efaa;font-size:10px;font-weight:900}.receipt-status:before{content:"";width:7px;height:7px;border-radius:50%;background:#50db84;box-shadow:0 0 8px #50db84}.receipt-details{position:relative;z-index:1;border-top:1px solid rgba(235,196,91,.15);border-bottom:1px solid rgba(235,196,91,.15);padding:8px 0}.receipt-line{display:flex;justify-content:space-between;gap:18px;padding:9px 2px;border-bottom:1px solid rgba(255,255,255,.055)}.receipt-line:last-child{border-bottom:0}.receipt-line span{font-size:10px;color:#8e8a82}.receipt-line b{max-width:62%;text-align:right;font-size:11px;color:#eee5d2;word-break:break-word}.receipt-balance{position:relative;z-index:1;margin-top:15px;padding:14px;border-radius:15px;border:1px solid rgba(230,186,72,.22);background:linear-gradient(135deg,rgba(218,165,43,.11),rgba(255,255,255,.025));text-align:center}.receipt-balance span{display:block;font-size:10px;color:#a69a80}.receipt-balance b{display:block;color:#f5cf6b;font-size:20px;margin-top:3px}.receipt-foot{position:relative;z-index:1;text-align:center;padding-top:15px;color:#6e6a61;font-size:9px;letter-spacing:.45px}.receipt-ref{margin-top:4px;color:#998d72}.save-confirm{position:fixed;z-index:650;inset:0;display:none;place-items:center;background:rgba(0,0,0,.58);pointer-events:none}.save-confirm.show{display:grid}.save-confirm-card{min-width:220px;text-align:center;background:#0c1712;border:1px solid #3bdd78;border-radius:20px;padding:22px;box-shadow:0 20px 70px #000}.save-check{width:62px;height:62px;margin:0 auto 9px;border-radius:50%;display:grid;place-items:center;background:#15954d;color:#fff;font-size:38px;font-weight:950}.win-flash{position:fixed;z-index:700;inset:0;display:none;place-items:center;background:radial-gradient(circle,rgba(255,230,94,.50),rgba(255,164,0,.22) 38%,rgba(0,0,0,.78) 78%);animation:winPulse .42s ease-in-out infinite alternate}.win-flash.show{display:grid}.win-flash.no-flash{animation:none;background:rgba(0,0,0,.76)}.win-flash.no-flash .win-card{box-shadow:0 18px 60px rgba(0,0,0,.72)}.win-card{text-align:center;background:rgba(7,10,16,.95);border:2px solid #ffe16e;border-radius:24px;padding:24px 28px;box-shadow:0 0 35px #ffb000}.win-card h2{font-size:30px;color:#ffe478}.win-prize{font-size:38px;font-weight:950;color:#6cff94;margin-top:7px}@keyframes winPulse{from{filter:brightness(1)}to{filter:brightness(1.45)}}
 @media(max-width:420px){.receipt-grid{grid-template-columns:1fr}.bet-controls{grid-template-columns:minmax(0,1fr) 118px}.switch-box{padding:7px 8px}}
-.balance-coin{position:fixed;z-index:760;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;pointer-events:none;font-size:12px;font-weight:950;color:#241500;background:radial-gradient(circle at 34% 28%,#fff5ae 0 12%,#ffd64f 30%,#d49300 63%,#6f4300 100%);border:1px solid #ffe784;box-shadow:0 0 12px rgba(255,190,35,.78),inset 0 1px 1px rgba(255,255,255,.55);transform:translate(-50%,-50%)}
-.balance-credit-pulse{animation:balanceCreditPulse .58s ease-out}@keyframes balanceCreditPulse{0%{transform:scale(1)}35%{transform:scale(1.12);box-shadow:0 0 22px rgba(90,255,145,.78)}100%{transform:scale(1)}}
 </style>
 </head>
 <body>
@@ -69,7 +73,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   <div class="topbar">
     <div class="brand-mini">⚡ FC</div>
     <div class="top-tools">
-      <div class="online-chip" title="Jugadores conectados ahora"><span class="online-dot"></span><span id="onlinePublic">0</span> en línea</div>
+      <button id="onlineUsersBtn" type="button" class="online-chip" title="Ver usuarios conectados"><span class="online-dot"></span><span id="onlinePublic">0</span> en línea</button>
       <button id="inviteBtn" class="icon-btn invite-btn">🔗 Invitar</button>
       <button id="groupBtn" class="icon-btn group-btn">Grupo WhatsApp</button>
       <button id="settingsBtn" class="icon-btn">⚙️</button>
@@ -100,7 +104,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
     <div class="bet-controls">
       <div>
-        <label class="switch-box repeat-left"><input id="repeatSwitch" class="switch" type="checkbox"><span>Guardar jugadas</span></label>
+        <label class="switch-box repeat-left"><input id="repeatSwitch" class="switch" type="checkbox"><span>Guardar<br>jugadas</span></label>
         <div class="stake-label-row">
           <label>Monto por toque</label>
           <label class="mini-toggle"><span>Fijar monto</span><input id="fixedStakeSwitch" class="switch" type="checkbox"></label>
@@ -120,6 +124,8 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 <div id="balancePanel" class="overlay"><div class="panel"><button class="close" data-close="balancePanel">✕</button><h2>💰 Flash Coin</h2><div class="card"><span class="tiny">Saldo disponible</span><strong style="font-size:28px" id="balancePanelValue">0.000 FC</strong><span class="tiny">Tu ID: <b id="balancePublicId"></b><button id="copyBalanceIdBtn" type="button" class="copy-btn">Copiar</button></span></div><h3>Solicitudes</h3><div id="requestsList"></div><h3>Historial</h3><div id="ledgerList"></div></div></div>
 
+<div id="onlineUsersPanel" class="overlay"><div class="panel"><button class="close" data-close="onlineUsersPanel">✕</button><h2>🟢 Usuarios en línea</h2><div id="onlineUsersRound" class="online-round-note">Cargando última ronda...</div><div id="onlineUsersList"></div></div></div>
+
 <div id="settingsPanel" class="overlay"><div class="panel"><button class="close" data-close="settingsPanel">✕</button><h2>⚙️ Configuración</h2><button id="editProfileBtn" class="action blue">Editar perfil</button><button id="inviteSettingsBtn" class="action dark">🔗 Invitar usuarios</button><div id="referralSummary" class="ref-card"><b>Referidos</b><div class="tiny">0.2 FC por primera jugada · 1 FC por primera recarga con promotor</div><div class="ref-stats"><div><b id="refInvited">0</b><span class="tiny">Invitados</span></div><div><b id="refPlayed">0</b><span class="tiny">Jugaron</span></div><div><b id="refEarned">0.000</b><span class="tiny">FC ganadas</span></div></div></div><button id="leaderBtn" class="action hidden">👑 Administrador Líder</button><button id="logoutBtn" class="action red">Cerrar sesión</button></div></div>
 
 <div id="editProfilePanel" class="overlay"><div class="panel"><button class="close" data-close="editProfilePanel">✕</button><h2>Editar perfil</h2><input id="editFirst" class="field" placeholder="Nombre"><input id="editLast" class="field" placeholder="Apellido"><button id="saveProfileBtn" class="action green">Guardar</button><div id="profileMsg" class="msg"></div></div></div>
@@ -136,10 +142,12 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div class="section"><h3>Asignar promotores</h3><div class="row"><input id="adminPromId" class="field" inputmode="numeric" maxlength="6" placeholder="ID usuario"><button id="adminFindPromBtn" class="action blue">Buscar</button></div><div id="adminPromResult"></div></div>
 <div class="section"><h3>Comunicado</h3><label class="switch-line"><input id="adminNoticeEnabled" class="switch" type="checkbox"><span>Mostrar comunicado a los usuarios</span></label><textarea id="adminNotice" class="field" rows="3" placeholder="Escribe el comunicado..."></textarea><div class="row"><div><label class="tiny">Visible durante (segundos)</label><input id="adminNoticeVisible" class="field" type="number" min="1" max="3600" value="10"></div><div><label class="tiny">Reaparece cada (segundos)</label><input id="adminNoticeRepeat" class="field" type="number" min="1" max="86400" value="300"></div></div><button id="adminSaveNoticeBtn" class="action green">Guardar comunicado</button></div>
 <div class="section"><h3>Recarga por ID</h3><div class="row"><input id="adminRechargeId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminFindRechargeBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="adminRechargeUserResult"></div><input id="adminRechargeAmount" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="adminRechargeBtn" class="action green">Acreditar recarga</button></div>
-<div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Preferencia por números con apuestas (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración</button></div>
+<div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Porcentaje global de pago (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración</button></div>
 <div class="section"><h3>Cambiar contraseña del panel</h3><input id="oldLeaderPass" class="field" type="password" placeholder="Contraseña actual"><input id="newLeaderPass" class="field" type="password" placeholder="Nueva contraseña"><button id="changeLeaderPassBtn" class="action dark">Cambiar contraseña</button></div><div id="adminMsg" class="msg"></div></div></div>
 
 <div id="receiptPanel" class="overlay"><div class="panel receipt-panel-wrap"><button class="close" data-close="receiptPanel">✕</button><h2 id="receiptTitle">Comprobante</h2><div id="receiptContent"></div></div></div>
+
+<div id="incomingTransferPanel" class="overlay"><div class="panel"><button class="close" data-close="incomingTransferPanel">✕</button><h2>⚡ Flash Coin recibidas</h2><div id="incomingTransferContent"></div></div></div>
 
 <div id="saveConfirm" class="save-confirm"><div class="save-confirm-card"><div class="save-check">✓</div><b id="saveConfirmText">Guardado correctamente</b></div></div>
 
@@ -157,9 +165,9 @@ const AWAY_LIMIT_MS=10*60*1000;
 const REF_KEY='rf_referrer_public_id';
 const refFromUrl=(new URLSearchParams(location.search).get('ref')||'').trim();
 if(/^\d{6}$/.test(refFromUrl))localStorage.setItem(REF_KEY,refFromUrl);
-let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedAdminRechargeUser=null,onlineCount=0,presenceChannel=null,clockOffset=0,tickBusy=false;
-let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,stakeSaveTimer=null,resultQueueBusy=false;
-const resultQueue=[];
+let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedAdminRechargeUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
+let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false;
+const transferQueue=[];const seenTransferNotifications=new Set();
 const betQueues={};
 const $=id=>document.getElementById(id);
 const money=v=>Number(v||0).toFixed(3);
@@ -291,6 +299,7 @@ async function enterApp(){
   await refreshEverything();
   startPresence(session.user.id);
   startLoop();
+  pollIncomingTransfers().catch(()=>{});
 }
 
 async function refreshEverything(){
@@ -443,29 +452,27 @@ function playBalanceCreditSound(){
 }
 function animateCoinsToBalance(){
   if(me?.flash_enabled===false)return;
-  const target=$('balanceBtn');
-  if(!target)return;
+  const target=$('balanceBtn');if(!target)return;
   const rect=target.getBoundingClientRect();
   const tx=rect.left+rect.width/2,ty=rect.top+rect.height/2;
   const sx=window.innerWidth/2,sy=Math.min(window.innerHeight*.62,window.innerHeight-110);
   for(let i=0;i<14;i++){
-    const coin=document.createElement('div');
-    coin.className='balance-coin';coin.textContent='⚡';
-    const ox=(i-6.5)*7+(Math.random()*18-9),oy=(Math.random()*42-21);
-    const x=sx+ox,y=sy+oy;
+    const coin=document.createElement('div');coin.className='balance-coin';coin.textContent='⚡';
+    const x=sx+(i-6.5)*7+(Math.random()*18-9),y=sy+(Math.random()*42-21);
     coin.style.left=x+'px';coin.style.top=y+'px';document.body.appendChild(coin);
     const dx=tx-x,dy=ty-y;
     const anim=coin.animate([
       {transform:'translate(-50%,-50%) scale(.55)',opacity:0},
-      {transform:'translate(-50%,-50%) translate('+(dx*.18)+'px,'+(dy*.08-32)+'px) scale(1.08)',opacity:1,offset:.28},
-      {transform:'translate(-50%,-50%) translate('+(dx*.64)+'px,'+(dy*.56-18)+'px) scale(.88)',opacity:1,offset:.72},
-      {transform:'translate(-50%,-50%) translate('+dx+'px,'+dy+'px) scale(.30)',opacity:0}
+      {transform:`translate(-50%,-50%) translate(${dx*.18}px,${dy*.08-32}px) scale(1.08)`,opacity:1,offset:.28},
+      {transform:`translate(-50%,-50%) translate(${dx*.64}px,${dy*.56-18}px) scale(.88)`,opacity:1,offset:.72},
+      {transform:`translate(-50%,-50%) translate(${dx}px,${dy}px) scale(.30)`,opacity:0}
     ],{duration:720+i*34,delay:i*24,easing:'cubic-bezier(.2,.72,.18,1)',fill:'forwards'});
     anim.onfinish=()=>coin.remove();
   }
   target.classList.remove('balance-credit-pulse');void target.offsetWidth;target.classList.add('balance-credit-pulse');
   setTimeout(()=>target.classList.remove('balance-credit-pulse'),700);
 }
+
 function showWinnerCelebration(winner,prize){
   $('winNumber').textContent='Número ganador: '+winner;
   $('winPrize').textContent='+'+money(prize)+' FC';
@@ -514,6 +521,7 @@ $('copyMyIdBtn').onclick=()=>copyText(me?.public_id,'ID copiado');
 $('copyBalanceIdBtn').onclick=()=>copyText(me?.public_id,'ID copiado');
 $('inviteBtn').onclick=shareInvite;
 $('inviteSettingsBtn').onclick=shareInvite;
+$('onlineUsersBtn').onclick=async()=>{await loadOnlinePanel();show('onlineUsersPanel')};
 
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-copy-id]');
@@ -547,68 +555,37 @@ async function tickRoulette(){
 }
 
 async function showLatestResult(){
-  let query=sb.from('rf_rounds').select('id,winning_number,settled_at,payout_enabled').eq('status','settled');
-  if(lastSettledId===null){
-    query=query.order('id',{ascending:false}).limit(1);
-  }else{
-    query=query.gt('id',lastSettledId).order('id',{ascending:true}).limit(20);
-  }
-  const {data,error}=await query;
-  if(error)return;
-  const rows=Array.isArray(data)?data:(data?[data]:[]);
-  if(!rows.length)return;
-  const ordered=lastSettledId===null?[rows[0]]:rows;
-  for(const row of ordered){
-    if(!row?.id)continue;
-    const id=Number(row.id);
-    if(lastSettledId!==null&&id<=Number(lastSettledId))continue;
-    resultQueue.push(row);
-    lastSettledId=id;
-  }
-  processResultQueue().catch(e=>console.warn('result queue',e));
-}
+  const {data,error}=await sb.from('rf_rounds').select('id,winning_number,settled_at,payout_enabled').eq('status','settled').order('id',{ascending:false}).limit(1).maybeSingle();
+  if(error||!data||!data.id||Number(data.id)===Number(lastSettledId))return;
+  lastSettledId=data.id;
+  const winner=Number(data.winning_number);
 
-const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-async function processResultQueue(){
-  if(resultQueueBusy)return;
-  resultQueueBusy=true;
-  try{
-    while(resultQueue.length){
-      const data=resultQueue.shift();
-      const winner=Number(data.winning_number);
-      const {data:winnerRows,error:winnerError}=await sb.rpc('rf_get_round_winners',{p_round_id:Number(data.id)});
-      if(winnerError)console.warn(winnerError);
-      const winners=Array.isArray(winnerRows)?winnerRows:[];
-      const mine=winners.find(w=>w.is_me===true);
+  const {data:winnerRows,error:winnerError}=await sb.rpc('rf_get_round_winners',{p_round_id:Number(data.id)});
+  if(winnerError)console.warn('Ganadores:',winnerError);
+  const winners=Array.isArray(winnerRows)?winnerRows:[];
+  const mine=winners.find(w=>w.is_me===true);
 
-      $('resultText').textContent='La ruleta está girando...';
-      spinTo(winner);playRouletteSound();
-      await wait(4700);
+  $('resultText').textContent='La ruleta está girando...';
+  spinTo(winner);playRouletteSound();
+  setTimeout(async()=>{
+    $('centerNumber').textContent=winner;
+    await Promise.all([loadMe(),loadLedger()]);renderMe();
 
-      $('centerNumber').textContent=winner;
-      await Promise.all([loadMe(),loadLedger()]);
-      renderMe();
-
-      if(winners.length){
-        const names=winners.map(w=>`${w.full_name||w.public_id} ganó ${money(w.prize_amount)} FC`);
-        $('resultText').textContent=`🎉 ${names.join(' · ')} · Número ${winner}`;
-      }else{
-        $('resultText').textContent=`Resultado global: ${winner}`;
-      }
-
-      if(mine){
-        const prize=Number(mine.prize_amount||0);
-        showWinnerCelebration(winner,prize);
-        setTimeout(()=>{playBalanceCreditSound();animateCoinsToBalance();},260);
-        await wait(3150);
-      }else{
-        await wait(500);
-      }
+    if(winners.length){
+      const winnerText=winners.map(w=>`${w.full_name||w.public_id} ganó ${money(w.prize_amount)} FC`).join(' · ');
+      $('resultText').textContent=`🎉 ${winnerText} · Número ${winner}`;
+    }else{
+      $('resultText').textContent=`Resultado global: ${winner}`;
     }
-  }finally{
-    resultQueueBusy=false;
-    if(resultQueue.length)processResultQueue().catch(()=>{});
-  }
+
+    if(mine){
+      const prize=Number(mine.prize_amount||0);
+      showWinnerCelebration(winner,prize);
+      setTimeout(()=>{playBalanceCreditSound();animateCoinsToBalance();},250);
+    }
+
+    if($('onlineUsersPanel').classList.contains('active'))loadOnlinePanel().catch(()=>{});
+  },4700);
 }
 
 function spinTo(winner){
@@ -634,6 +611,7 @@ function startLoop(){
   setInterval(updateCountdown,250);
   setInterval(()=>{if(!document.hidden)tickRoulette()},1000);
   setInterval(async()=>{if(document.hidden)return;try{await loadMe();renderMe()}catch{}},3500);
+  setInterval(()=>{if(!document.hidden)pollIncomingTransfers().catch(()=>{})},1800);
 }
 
 async function loadBets(){
@@ -773,8 +751,15 @@ async function startPresence(uid){
   presenceChannel=sb.channel('roulette-online',{config:{presence:{key:uid}}});
   presenceChannel.on('presence',{event:'sync'},()=>{
     const st=presenceChannel.presenceState();
-    onlineCount=Object.keys(st).length;
+    const byId=new Map();
+    Object.values(st||{}).flat().forEach(x=>{
+      const id=String(x?.user_id||'');if(!id)return;
+      byId.set(id,{user_id:id,public_id:String(x?.public_id||''),name:String(x?.name||'')});
+    });
+    onlineUsers=[...byId.values()];
+    onlineCount=onlineUsers.length;
     renderOnline();
+    if($('onlineUsersPanel').classList.contains('active'))loadOnlinePanel().catch(()=>{});
   });
   presenceChannel.subscribe(status=>{
     if(status==='SUBSCRIBED')trackPresence();
@@ -782,9 +767,68 @@ async function startPresence(uid){
 }
 async function trackPresence(){
   if(!presenceChannel||document.hidden||!me)return;
-  try{await presenceChannel.track({user_id:me.id,playing:true,at:new Date().toISOString()});}catch{}
+  const fullName=((me.first_name||'')+' '+(me.last_name||'')).trim()||me.public_id;
+  try{await presenceChannel.track({user_id:me.id,public_id:me.public_id,name:fullName,playing:true,at:new Date().toISOString()});}catch{}
 }
 function renderOnline(){[$('onlinePublic'),$('promOnline'),$('adminOnline')].forEach(el=>{if(el)el.textContent=onlineCount})}
+
+async function loadOnlinePanel(){
+  const ids=[...new Set(onlineUsers.map(x=>x.user_id).filter(Boolean))];
+  let profiles=[];
+  if(ids.length){
+    const {data,error}=await sb.rpc('rf_get_online_public_profiles',{p_user_ids:ids});
+    if(!error&&Array.isArray(data))profiles=data;
+  }
+  const pMap=new Map(profiles.map(p=>[String(p.user_id),p]));
+  const {data:round}=await sb.from('rf_rounds').select('id,winning_number,settled_at').eq('status','settled').order('id',{ascending:false}).limit(1).maybeSingle();
+  let winners=[];
+  if(round?.id){
+    const wr=await sb.rpc('rf_get_round_winners',{p_round_id:Number(round.id)});
+    if(!wr.error&&Array.isArray(wr.data))winners=wr.data;
+  }
+  const wonByPublicId=new Map(winners.map(w=>[String(w.public_id),Number(w.prize_amount||0)]));
+  $('onlineUsersRound').textContent=round?.id?`Última ronda: ${round.id} · Número ${round.winning_number}`:'Todavía no hay una ronda finalizada.';
+  const rows=onlineUsers.map(x=>{
+    const p=pMap.get(String(x.user_id));
+    const publicId=String(p?.public_id||x.public_id||'—');
+    const name=String(p?.full_name||x.name||publicId);
+    return {publicId,name,won:wonByPublicId.get(publicId)||0};
+  }).sort((a,b)=>a.publicId.localeCompare(b.publicId));
+  $('onlineUsersList').innerHTML=rows.length?rows.map(u=>`<div class="online-user-row"><div class="who"><b>${esc(u.name)}</b><span class="tiny">ID: ${esc(u.publicId)}</span></div><div class="won ${u.won>0?'':'zero'}">${u.won>0?'+':''}${money(u.won)} FC</div></div>`).join(''):'<div class="card">No hay usuarios conectados en este momento.</div>';
+}
+
+async function pollIncomingTransfers(){
+  if(!me||transferPollBusy)return;
+  transferPollBusy=true;
+  try{
+    const {data,error}=await sb.rpc('rf_get_unread_promoter_transfers');
+    if(error)return;
+    for(const row of (Array.isArray(data)?data:[])){
+      const id=Number(row.notification_id);
+      if(!id||seenTransferNotifications.has(id))continue;
+      seenTransferNotifications.add(id);
+      transferQueue.push(row);
+    }
+    processTransferQueue().catch(()=>{});
+  }finally{transferPollBusy=false;}
+}
+
+async function processTransferQueue(){
+  if(transferQueueBusy)return;
+  transferQueueBusy=true;
+  try{
+    while(transferQueue.length){
+      const n=transferQueue.shift();
+      await loadMe().catch(()=>{});renderMe();
+      const dt=new Date(n.created_at||Date.now());
+      $('incomingTransferContent').innerHTML=`<div class="transfer-confirm-card"><h3>Transferencia confirmada</h3><div class="tiny" style="text-align:center">El dinero ya entró a tu saldo Flash Coin</div><div class="transfer-amount">+${money(n.amount)} FC</div><div class="transfer-line"><span>Promotor</span><b>${esc(n.promoter_name||'Promotor')}</b></div><div class="transfer-line"><span>ID del promotor</span><b>${esc(n.promoter_public_id||'—')}</b></div><div class="transfer-line"><span>WhatsApp del promotor</span><b>${esc(n.promoter_whatsapp||'No configurado')}</b></div><div class="transfer-line"><span>Comprobante</span><b>FC${String(n.receipt_id||'').padStart(10,'0')}</b></div><div class="transfer-line"><span>Fecha</span><b>${esc(dt.toLocaleDateString('es-DO'))} ${esc(dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}))}</b></div><div class="transfer-line"><span>Saldo resultante</span><b>${money(n.balance_after)} FC</b></div></div>`;
+      show('incomingTransferPanel');
+      playBalanceCreditSound();animateCoinsToBalance();
+      await sb.rpc('rf_mark_promoter_transfer_read',{p_notification_id:Number(n.notification_id)}).catch(()=>{});
+      await new Promise(resolve=>setTimeout(resolve,3000));
+    }
+  }finally{transferQueueBusy=false;}
+}
 async function loadStats(){
   const {data,error}=await sb.rpc('rf_get_dashboard_stats');
   if(error)return;
@@ -924,4 +968,4 @@ buildWheel();
 </body>
 </html>
 
-<!-- HTML 0.6: actualización acumulativa sobre 0.5; premio acreditado y anunciado por ronda, monedas hacia saldo, bono de registro gestionado por SQL 0.6 y ajustes visuales. -->
+<!-- HTML 0.6 CORREGIDO: base 0.5 intacta + saldo ganador, bono registro, panel en línea, aviso promotor y ajustes visuales acordados. -->
