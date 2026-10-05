@@ -78,6 +78,15 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .wallet-main-balance{display:flex;align-items:center;gap:9px;margin-top:5px}.wallet-main-balance .fc-coin{width:34px;height:34px}.wallet-main-balance strong{font-size:28px!important;margin:0}
 .wallet-pair-label{display:flex;align-items:center;gap:6px}.wallet-pair-label .fc-coin{width:22px;height:22px}
 
+
+/* V1.5 · notificaciones del líder y audio Safari */
+.promoter-history-btn{position:relative;width:100%;margin:10px 0 4px;border:1px solid rgba(255,255,255,.16);background:linear-gradient(135deg,#151d32,#23385e);color:#fff;border-radius:16px;padding:14px 16px;font-weight:900;text-align:left}
+.promoter-history-btn .badge{float:right;min-width:26px;height:26px;padding:0 7px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:#ff314a;color:#fff;font-size:12px;box-shadow:0 4px 15px rgba(255,49,74,.38)}
+.promoter-history-btn .badge.hidden{display:none}
+.promoter-sale-row{padding:13px 14px;border-radius:15px;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10);margin:8px 0}
+.promoter-sale-row .top{display:flex;justify-content:space-between;gap:12px;align-items:center}.promoter-sale-row .amount{font-size:18px;font-weight:950;color:#ffe082}.promoter-sale-row .route{font-size:13px;font-weight:800;margin-top:5px}.promoter-sale-row .meta{font-size:11px;opacity:.73;margin-top:5px;line-height:1.45}
+.leader-promoter-toast{position:fixed;z-index:10050;left:50%;top:18px;transform:translate(-50%,-130%);width:min(92vw,430px);padding:13px 15px;border-radius:17px;background:rgba(11,19,35,.97);color:#fff;border:1px solid rgba(255,255,255,.18);box-shadow:0 14px 40px rgba(0,0,0,.35);transition:transform .28s ease;pointer-events:none}.leader-promoter-toast.show{transform:translate(-50%,0)}.leader-promoter-toast b{display:block}.leader-promoter-toast span{font-size:12px;opacity:.82}
+
 </style>
 </head>
 <body>
@@ -184,6 +193,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 <div id="leaderPanel" class="overlay"><div class="panel"><button class="close" data-close="leaderPanel">✕</button><h2>👑 Administrador Líder</h2><div class="stat-grid"><div class="stat"><b id="adminRegistered">0</b><span class="tiny">Registrados</span></div><div class="stat"><b id="adminOnline">0</b><span class="tiny">Jugando ahora</span></div></div>
 <div class="wallet-admin-grid"><button id="adminWalletBtn" type="button" class="wallet-admin-card"><span class="wallet-pair-label"><i class="fc-coin"></i> Cartera Administrativa</span><b id="adminWalletPreview" class="fc-balance">0.000 FC</b><div class="wallet-id-line">ID <strong id="adminWalletIdPreview">———</strong></div><small>Enviar · solicitar · retirar</small></button><button id="rouletteWalletBtn" type="button" class="wallet-admin-card"><span class="wallet-pair-label"><i class="fc-coin"></i> Cartera de la Ruleta</span><b id="rouletteWalletPreview" class="fc-balance">0.000 FC</b><div class="wallet-id-line">ID <strong id="rouletteWalletIdPreview">———</strong></div><small id="rouletteNetPreview">Ganancia/Pérdida: 0.000 FC</small></button></div>
+<button id="promoterSalesHistoryBtn" type="button" class="promoter-history-btn">📊 Historial de promotores <span id="promoterSalesBadge" class="badge hidden">0</span><div class="tiny" style="margin-top:4px">Envíos de Flash Coin realizados por promotores</div></button>
 <div class="section"><h3>⚡ Mi Flash Coin</h3><div class="tiny">Envía o solicita Flash Coin usando tu saldo personal de la cuenta líder.</div><div class="row"><input id="leaderTransferId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="leaderFindTransferBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="leaderTransferUserResult"></div><input id="leaderTransferAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="leaderSendFcBtn" class="action green">Enviar Flash Coin</button><button id="leaderRequestFcBtn" class="action">Solicitar Flash Coin</button><div id="leaderTransferMsg" class="msg"></div></div>
 <div class="section"><h3>Asignar promotores</h3><div class="row"><input id="adminPromId" class="field" inputmode="numeric" maxlength="6" placeholder="ID usuario"><button id="adminFindPromBtn" class="action blue">Buscar</button></div><div id="adminPromResult"></div></div>
 <div class="section"><h3>Comunicado</h3><label class="switch-line"><input id="adminNoticeEnabled" class="switch" type="checkbox"><span>Mostrar comunicado a los usuarios</span></label><textarea id="adminNotice" class="field" rows="3" placeholder="Escribe el comunicado..."></textarea><div class="row"><div><label class="tiny">Visible durante (segundos)</label><input id="adminNoticeVisible" class="field" type="number" min="1" max="3600" value="10"></div><div><label class="tiny">Reaparece cada (segundos)</label><input id="adminNoticeRepeat" class="field" type="number" min="1" max="86400" value="300"></div></div><button id="adminSaveNoticeBtn" class="action green">Guardar comunicado</button></div>
@@ -191,6 +201,10 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador de ronda (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Porcentaje global de pago (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">⏱ Duración visual del giro (segundos)</label><input id="adminSpinDuration" class="field" type="number" min="3" max="20" step="0.5" inputmode="decimal"><div class="tiny">Controla cuánto tiempo y cuántas vueltas da la ruleta antes de detenerse. No cambia el número ganador.</div><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración</button></div>
 <div class="section"><h3>Seguridad del panel</h3><label class="switch-line"><input id="leaderPasswordRequiredSwitch" class="switch" type="checkbox"><span>Solicitar contraseña al entrar al panel</span></label><div class="tiny">Si lo apagas, la contraseña no se elimina: el Administrador Líder autorizado entra directamente. Puedes volver a activarlo cuando quieras.</div><div id="leaderPasswordModeMsg" class="msg"></div><h3 style="margin-top:14px">Cambiar contraseña del panel</h3><input id="oldLeaderPass" class="field" type="password" placeholder="Contraseña actual"><input id="newLeaderPass" class="field" type="password" placeholder="Nueva contraseña"><button id="changeLeaderPassBtn" class="action dark">Cambiar contraseña</button></div><div id="adminMsg" class="msg"></div></div></div>
 
+
+<div id="promoterSalesHistoryPanel" class="overlay"><div class="panel"><button class="close" data-close="promoterSalesHistoryPanel">✕</button><h2>📊 Historial de promotores</h2><div class="tiny">Cada envío de Flash Coin realizado por un promotor queda registrado aquí y no puede ser eliminado por el promotor.</div><button id="refreshPromoterSalesBtn" type="button" class="action blue">Actualizar historial</button><div id="promoterSalesHistoryList" style="margin-top:10px"></div></div></div>
+
+<div id="leaderPromoterToast" class="leader-promoter-toast"><b>🔔 Nuevo envío de promotor</b><span id="leaderPromoterToastText">Hay un nuevo movimiento de Flash Coin.</span></div>
 
 <div id="adminWalletPanel" class="overlay"><div class="panel"><button class="close" data-close="adminWalletPanel">✕</button><h2>💼 Cartera Administrativa</h2><div class="card"><span class="tiny">Saldo disponible de administración</span><div class="wallet-main-balance"><span class="fc-coin"></span><strong id="adminWalletBalance">0.000 FC</strong></div><div class="wallet-id-line">ID de cartera: <b id="adminWalletPublicId">———</b><button id="copyAdminWalletIdBtn" type="button" class="copy-btn">Copiar</button></div><div class="tiny">Este saldo es independiente del saldo personal del Administrador Líder.</div></div><h3>Usuario / Promotor</h3><div class="row"><input id="adminWalletUserId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminWalletFindBtn" type="button" class="search-mini">🔎</button></div><div id="adminWalletUserResult"></div><input id="adminWalletAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="adminWalletSendBtn" class="action green">Enviar desde cartera</button><button id="adminWalletRequestBtn" class="action">Solicitar a usuario/promotor</button><button id="adminWalletWithdrawBtn" class="action red">Retirar saldo a esta cartera</button><div id="adminWalletMsg" class="msg"></div><h3>Historial de la cartera</h3><div id="adminWalletHistory" class="wallet-history"></div></div></div>
 
@@ -206,7 +220,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 <div id="saveConfirm" class="save-confirm"><div class="save-confirm-card"><div class="save-check">✓</div><b id="saveConfirmText">Guardado correctamente</b></div></div>
 
-<div id="winFlash" class="win-flash"><div class="win-card"><h2>🎉 ¡GANASTE!</h2><div id="winNumber" class="tiny"></div><div class="receipt-coin"><span class="fc-coin"></span></div><div id="winPrize" class="win-prize">+0.000 FC</div><div class="tiny">Premio acreditado automáticamente a tu saldo</div></div></div>
+<div id="winFlash" class="win-flash"><div class="win-card"><h2>🎉 ¡GANASTE!</h2><div id="winNumber" class="tiny"></div><div class="receipt-coin"><span class="fc-coin"></span></div><div id="winPrize" class="win-prize">+0.000 FC</div><div class="tiny">Tu premio entrará al saldo al cerrar esta pantalla</div></div></div>
 
 <div id="copyToast" class="copy-toast">Copiado</div>
 
@@ -223,7 +237,7 @@ const REF_KEY='rf_referrer_public_id';
 const refFromUrl=(new URLSearchParams(location.search).get('ref')||'').trim();
 if(/^\d{6}$/.test(refFromUrl))localStorage.setItem(REF_KEY,refFromUrl);
 let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedLeaderTransferUser=null,selectedAdminRechargeUser=null,selectedAdminWalletUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
-let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,audioUnlockPromise=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0,recoveryMode=false,pendingPromAction=null,promConfirmBusy=false;
+let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,audioUnlockPromise=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0,recoveryMode=false,pendingPromAction=null,promConfirmBusy=false,roundRevealBusy=false,promoterUnreadCount=null;
 const SOUND_LOCAL_KEY='rf_sound_enabled_v13';
 let soundLocalOverride=localStorage.getItem(SOUND_LOCAL_KEY)===null?null:localStorage.getItem(SOUND_LOCAL_KEY)==='1';
 function soundIsEnabled(){return soundLocalOverride!==null?soundLocalOverride:(me?.sound_enabled!==false);}
@@ -491,8 +505,13 @@ async function enterApp(){
   pollTransferRequestEvents().catch(()=>{});
 }
 
+async function primeLastSettledId(){
+  const {data}=await sb.from('rf_rounds').select('id').eq('status','settled').order('id',{ascending:false}).limit(1).maybeSingle();
+  lastSettledId=data?.id||null;
+}
 async function refreshEverything(){
   await Promise.all([loadMe(),loadSettings()]);
+  if(!currentRound)await primeLastSettledId();
   await tickRoulette();
   await Promise.all([loadBets(),loadRequests(),loadLedger(),loadReferralStats()]);
   renderMe();
@@ -605,21 +624,65 @@ function showReceipt(title,r){
   show('receiptPanel');
 }
 
+const FALLBACK_TICK_SRC='data:audio/wav;base64,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';
+const FALLBACK_COIN_SRC='data:audio/wav;base64,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VACKAKQAngB9AEkADgDZ/7H/m/+Y/6P/t//O/+P/9/8IABsAMABGAFgAYgBfAEsAJgD2/8D/kv90/3D/hv+1//L/MABlAIYAjAB5AFIAIQDx/8n/sP+n/6z/u//N/+D/8v8BABAAIQAzAEUAUQBTAEgALgAIAN3/sv+S/4b/j/+v/97/EwBEAGcAdgBuAFMALAACAN7/xP+3/7f/wf/P/9//7v/8/wgAFgAkADMAPwBFAEEAMAAVAPL/zf+v/53/nv+x/9P//v8oAEsAXgBfAE8AMgAQAPD/1//I/8T/yf/T/+D/7f/4/wIADQAZACUAMAA3ADcALgAbAAAA4//I/7X/r/+4/9D/8P8TADIARgBNAEUAMgAYAP7/5//X/9H/0v/Z/+P/7f/3////BwAPABkAIgApACwAJwAcAAkA8//c/8r/wv/E/9L/6f8DAB0AMQA7ADkALQAbAAYA8//l/93/3P/g/+f/7v/2//3/AgAJABAAFwAdACEAIAAZAA0A/v/s/93/0//S/9n/5//7/w4AHwApACsAJgAaAAoA/P/w/+j/5v/n/+v/8f/3//z/AAAEAAkADgATABYAFwAUAA0AAgD3/+v/4//f/+L/6v/3/wQAEQAaAB4AHAAVAAsAAQD4//L/7//v//H/9f/4//z///8BAAQACAALAA4ADwAOAAoABAD+//b/7//s/+z/8P/3/wAABwAOABIAEgAPAAkAAwD+//n/9v/2//b/+P/7//3///8AAAIABAAFAAcACAAIAAcABAAAAPz/+P/2//X/9v/6//7/AgAGAAgACQAIAAYAAwAAAP7//P/7//v//P/9//7///8AAAAAAQACAAMAAwADAAMAAgAAAAAA/v/9//z//P/9////AAABAAIAAwADAAIAAQAAAAAA//////////8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=';
+let fallbackTickAudio=null,fallbackCoinAudio=null,fallbackAudioPrimed=false;
+function fallbackAudio(kind){
+  const isTick=kind==='tick';
+  let a=isTick?fallbackTickAudio:fallbackCoinAudio;
+  if(!a){
+    a=new Audio(isTick?FALLBACK_TICK_SRC:FALLBACK_COIN_SRC);
+    a.preload='auto';a.playsInline=true;a.volume=isTick?.72:.82;
+    if(isTick)fallbackTickAudio=a;else fallbackCoinAudio=a;
+  }
+  return a;
+}
+function playFallbackAudio(kind,volume=null){
+  if(!soundIsEnabled())return false;
+  try{
+    const a=fallbackAudio(kind);
+    if(volume!==null)a.volume=Math.max(0,Math.min(1,Number(volume)));
+    a.pause();a.currentTime=0;
+    const p=a.play();if(p?.catch)p.catch(()=>{});
+    return true;
+  }catch{return false}
+}
+function primeFallbackAudio(){
+  if(fallbackAudioPrimed)return;
+  try{
+    const a=fallbackAudio('coin');a.volume=.01;a.currentTime=0;
+    const p=a.play();
+    if(p?.then)p.then(()=>{a.pause();a.currentTime=0;a.volume=.82;fallbackAudioPrimed=true;}).catch(()=>{a.volume=.82;});
+    else{a.pause();a.currentTime=0;a.volume=.82;fallbackAudioPrimed=true;}
+  }catch{}
+}
 async function unlockAudio(){
-  if(!audioCtx){const C=window.AudioContext||window.webkitAudioContext;if(C)audioCtx=new C();}
-  if(!audioCtx)return false;
-  if(audioCtx.state==='running')return true;
-  if(audioUnlockPromise)return audioUnlockPromise;
-  audioUnlockPromise=audioCtx.resume().then(()=>audioCtx.state==='running').catch(()=>false).finally(()=>{audioUnlockPromise=null;});
-  return audioUnlockPromise;
+  try{
+    if(!audioCtx){const C=window.AudioContext||window.webkitAudioContext;if(C)audioCtx=new C();}
+    if(!audioCtx)return false;
+    if(audioCtx.state==='running')return true;
+    if(audioUnlockPromise)return audioUnlockPromise;
+    audioUnlockPromise=audioCtx.resume().then(()=>audioCtx.state==='running').catch(()=>false).finally(()=>{audioUnlockPromise=null;});
+    return audioUnlockPromise;
+  }catch{return false}
+}
+function primeAudioOnGesture(){
+  primeFallbackAudio();
+  unlockAudio().catch(()=>{});
+}
+async function activateAudioNow(){
+  primeFallbackAudio();
+  const webOk=await unlockAudio();
+  return webOk||!!fallbackAudio('coin');
 }
 function ensureAudio(){unlockAudio().catch(()=>{});return audioCtx;}
 function rouletteClick(){
-  if(!audioCtx||audioCtx.state!=='running'||!soundIsEnabled())return;
+  if(!soundIsEnabled())return;
+  if(!audioCtx||audioCtx.state!=='running'){playFallbackAudio('tick',.72);return;}
   const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.type='triangle';o.frequency.setValueAtTime(720,t);o.frequency.exponentialRampToValueAtTime(260,t+.055);
-  g.gain.setValueAtTime(.045,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);
-  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.065);
+  o.type='triangle';o.frequency.setValueAtTime(820,t);o.frequency.exponentialRampToValueAtTime(280,t+.060);
+  g.gain.setValueAtTime(.085,t);g.gain.exponentialRampToValueAtTime(.001,t+.065);
+  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.070);
 }
 function getSpinDurationSeconds(){
   const raw=Number(settings?.spin_duration_seconds||8);
@@ -627,13 +690,12 @@ function getSpinDurationSeconds(){
 }
 async function playRouletteSound(durationMs=getSpinDurationSeconds()*1000){
   if(!soundIsEnabled())return;
-  if(!(await unlockAudio()))return;
+  await activateAudioNow();
   clearTimeout(audioTickTimer);
   const started=performance.now(),total=Math.max(2500,Number(durationMs)||8000);
   const tick=()=>{
-    if(!soundIsEnabled()||audioCtx?.state!=='running')return;
-    const elapsed=performance.now()-started;
-    if(elapsed>=total)return;
+    if(!soundIsEnabled())return;
+    const elapsed=performance.now()-started;if(elapsed>=total)return;
     rouletteClick();
     const progress=Math.max(0,Math.min(1,elapsed/total));
     const delay=42+Math.pow(progress,2.15)*210;
@@ -641,8 +703,9 @@ async function playRouletteSound(durationMs=getSpinDurationSeconds()*1000){
   };
   tick();
 }
-function coinChime(delay=0,freq=1300,volume=.055){
-  if(!audioCtx||audioCtx.state!=='running'||!soundIsEnabled())return;
+function coinChime(delay=0,freq=1300,volume=.09){
+  if(!soundIsEnabled())return;
+  if(!audioCtx||audioCtx.state!=='running'){setTimeout(()=>playFallbackAudio('coin',Math.min(1,volume*8)),Math.round(delay*1000));return;}
   const t=audioCtx.currentTime+delay;
   const o=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();
   o.type='sine';o2.type='triangle';
@@ -652,18 +715,21 @@ function coinChime(delay=0,freq=1300,volume=.055){
   o.connect(g);o2.connect(g);g.connect(audioCtx.destination);o.start(t);o2.start(t);o.stop(t+.30);o2.stop(t+.30);
 }
 async function playWinnerSound(){
-  if(!soundIsEnabled()||!(await unlockAudio()))return;
+  if(!soundIsEnabled())return;await activateAudioNow();
   const notes=[1046,1318,1568,2093,1568,2349,2093,2637];
-  notes.forEach((f,i)=>coinChime(i*.075,f,.045+(i%3)*.006));
-  setTimeout(()=>{[1760,2093,2637,3136].forEach((f,i)=>coinChime(i*.055,f,.05));},620);
+  notes.forEach((f,i)=>coinChime(i*.075,f,.075+(i%3)*.008));
+  setTimeout(()=>{[1760,2093,2637,3136].forEach((f,i)=>coinChime(i*.055,f,.08));},620);
 }
 async function playBalanceCreditSound(){
-  if(!soundIsEnabled()||!(await unlockAudio()))return;
-  [1180,1360,1580,1830,2140,2480].forEach((f,i)=>coinChime(i*.065,f,.042+(i%2)*.006));
+  if(!soundIsEnabled())return;await activateAudioNow();
+  [1180,1360,1580,1830,2140,2480].forEach((f,i)=>coinChime(i*.065,f,.072+(i%2)*.008));
 }
 async function playSoundTest(){
-  if(!(await unlockAudio()))return false;
-  [880,1175,1568].forEach((f,i)=>coinChime(i*.08,f,.05));return true;
+  if(!soundIsEnabled())return false;
+  const ok=await activateAudioNow();
+  if(audioCtx?.state==='running') [880,1175,1568].forEach((f,i)=>coinChime(i*.08,f,.09));
+  else playFallbackAudio('coin',.9);
+  return ok;
 }
 function animateCoinsToBalance(sourceEl=null){
   const target=$('balanceBtn');if(!target)return;
@@ -696,10 +762,11 @@ function showWinnerCelebration(winner,prize){
   layer.classList.toggle('no-flash',me?.flash_enabled===false);
   layer.classList.add('show');
   playWinnerSound();
-  setTimeout(()=>layer.classList.remove('show'),3000);
+  return new Promise(resolve=>setTimeout(()=>{layer.classList.remove('show');resolve();},3000));
 }
 
-['pointerdown','touchstart','keydown'].forEach(evt=>document.addEventListener(evt,()=>{if(soundIsEnabled())unlockAudio().catch(()=>{});},{passive:true,capture:true}));
+$('soundSwitch').addEventListener('pointerdown',()=>primeAudioOnGesture(),{passive:true});
+['pointerdown','touchstart','keydown'].forEach(evt=>document.addEventListener(evt,e=>{if(soundIsEnabled()||e.target===$('soundSwitch'))primeAudioOnGesture();},{passive:true,capture:true}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&soundIsEnabled())unlockAudio().catch(()=>{});});
 window.addEventListener('pageshow',()=>{if(soundIsEnabled())unlockAudio().catch(()=>{});});
 
@@ -751,7 +818,6 @@ async function tickRoulette(){
   tickBusy=true;
   try{
     const hadRound=!!currentRound;
-    const visibleBeforeTick=displayedBalanceValue;
     const {data,error}=await sb.rpc('rf_tick_roulette');
     if(error)throw error;
     const r=Array.isArray(data)?data[0]:data;
@@ -761,24 +827,27 @@ async function tickRoulette(){
     currentRound={id:r.round_id,status:r.round_status,starts_at:r.starts_at,ends_at:r.ends_at,winning_number:r.winning_number,payout_enabled:r.payout_enabled};
     $('roundId').textContent=currentRound.id;
 
-    // Si acabó una ronda mientras el usuario estaba jugando, congelamos SOLO
-    // la cifra visible del saldo. El premio puede quedar registrado en SQL,
-    // pero no se enseña en pantalla hasta revelar el número ganador y GANASTE.
-    if(changed&&hadRound){
-      displayedBalanceValue=visibleBeforeTick;
-      holdBalanceDisplay();
-    }
-
     if(changed){
+      roundRevealBusy=true;
+      updateCountdown();
+      // Primero se revela y liquida visualmente la ronda anterior.
+      // El servidor ya descontó la apuesta al arrancar el giro y ya calculó el premio.
+      await showLatestResult();
+
+      // Solo después de terminar GANASTE se prepara la selección de la nueva ronda.
       const auto=await sb.rpc('rf_apply_saved_plays',{p_round_id:currentRound.id});
       await Promise.all([loadMe(),loadBets()]);
       renderMe();
+      roundRevealBusy=false;
+      updateCountdown();
       if(auto.error)console.warn(auto.error);
       if(auto.data===false&&me.auto_repeat)$('resultText').textContent='Nueva ronda · jugadas guardadas no aplicadas (revisa saldo o mínimo).';
-      else $('resultText').textContent='Nueva ronda · toca cada número las veces que quieras apostar.';
+      else if(hadRound||lastSettledId)$('resultText').textContent='Nueva ronda · toca cada número las veces que quieras apostar.';
+    }else{
+      await showLatestResult();
     }
-    await showLatestResult();
   }catch(e){
+    roundRevealBusy=false;
     releaseBalanceDisplay(false);
     $('resultText').textContent='Conexión: '+errText(e);
   }finally{tickBusy=false;}
@@ -786,10 +855,7 @@ async function tickRoulette(){
 
 async function showLatestResult(){
   const {data,error}=await sb.from('rf_rounds').select('id,winning_number,settled_at,payout_enabled').eq('status','settled').order('id',{ascending:false}).limit(1).maybeSingle();
-  if(error||!data||!data.id||Number(data.id)===Number(lastSettledId)){
-    if(balanceHoldActive&&(!data||Number(data?.id)===Number(lastSettledId)))releaseBalanceDisplay(true);
-    return;
-  }
+  if(error||!data||!data.id||Number(data.id)===Number(lastSettledId))return;
   lastSettledId=data.id;
   const winner=Number(data.winning_number);
 
@@ -797,19 +863,23 @@ async function showLatestResult(){
   if(winnerError)console.warn('Ganadores:',winnerError);
   const winners=Array.isArray(winnerRows)?winnerRows:[];
   const mine=winners.find(w=>w.is_me===true);
+  const prize=Number(mine?.prize_amount||0);
+
+  // El saldo real se consulta después de que Supabase cerró la ronda.
+  // Si el usuario ganó, restamos temporalmente el premio para que primero se vea
+  // el descuento de la apuesta al comenzar el giro y el premio entre al final.
+  await Promise.all([loadMe(),loadLedger()]);
+  const settledBalance=Number(me?.balance||0);
+  const afterBetBalance=mine?Math.max(0,settledBalance-prize):settledBalance;
+  balanceHoldActive=false;heldBalance=null;balanceAnimating=false;
+  setBalanceDisplay(afterBetBalance);
 
   $('resultText').textContent='La ruleta está girando...';
   setBetTotalVisible(false);
   const spinMs=spinTo(winner);
   playRouletteSound(spinMs);
-
   await new Promise(resolve=>setTimeout(resolve,spinMs));
   $('centerNumber').textContent=winner;
-
-  // Actualizamos los datos reales en memoria, pero mientras haya un premio
-  // pendiente mantenemos congelada la cifra visible anterior.
-  await Promise.all([loadMe(),loadLedger()]);
-  renderMe();
 
   if(winners.length){
     const winnerText=winners.map(w=>`${w.full_name||w.public_id} ganó ${money(w.prize_amount)} FC`).join(' · ');
@@ -818,27 +888,17 @@ async function showLatestResult(){
     $('resultText').textContent=`Resultado global: ${winner}`;
   }
 
-  if(mine){
-    const prize=Number(mine.prize_amount||0);
-    const startBalance=Number.isFinite(Number(heldBalance))?Number(heldBalance):Math.max(0,Number(me?.balance||0)-prize);
-    const targetForPrize=startBalance+prize;
-    showWinnerCelebration(winner,prize);
-
-    // Primero aparece GANASTE. Después las monedas salen de esa tarjeta y
-    // el saldo principal sube visualmente hasta reflejar el premio.
-    await new Promise(resolve=>setTimeout(resolve,320));
+  if(mine&&prize>0){
+    // La pantalla GANASTE permanece completa. Cuando desaparece, las monedas
+    // viajan al saldo y la cifra sube exactamente hasta el saldo real de Supabase.
+    await showWinnerCelebration(winner,prize);
     playBalanceCreditSound();
     animateCoinsToBalance(document.querySelector('#winFlash .win-card'));
-    await animateBalanceIncrease(startBalance,targetForPrize,1450);
-
-    // El servidor sigue siendo la única fuente real del saldo. Si en la nueva
-    // ronda ya se aplicaron jugadas guardadas, al terminar la animación se
-    // sincroniza con ese saldo real sin volver a acreditar el premio.
-    balanceHoldActive=false;
-    heldBalance=null;
-    if(me)setBalanceDisplay(me.balance);
+    await animateBalanceIncrease(afterBetBalance,settledBalance,1450);
+    await loadMe().catch(()=>{});
+    setBalanceDisplay(me?.balance??settledBalance);
   }else{
-    releaseBalanceDisplay(true);
+    setBalanceDisplay(settledBalance);
   }
 
   setBetTotalVisible(true);
@@ -865,7 +925,7 @@ function updateCountdown(){
   if(!currentRound)return;
   const left=roundSecondsLeft();
   $('countdown').textContent=left;
-  const locked=left<=0;
+  const locked=roundRevealBusy||left<=0;
   document.querySelectorAll('.num').forEach(b=>b.disabled=locked);
 }
 function startLoop(){
@@ -876,19 +936,20 @@ function startLoop(){
   setInterval(async()=>{if(document.hidden)return;try{await loadMe();renderMe()}catch{}},3500);
   setInterval(()=>{if(!document.hidden)pollIncomingTransfers().catch(()=>{})},1800);
   setInterval(()=>{if(!document.hidden)pollTransferRequestEvents().catch(()=>{})},1600);
+  setInterval(()=>{if(!document.hidden&&me?.role==='leader')loadPromoterSalesUnreadCount(true).catch(()=>{})},2600);
 }
 
 async function loadBets(){
   if(!currentRound)return;
-  const {data,error}=await sb.from('rf_bets').select('number,amount,tap_count').eq('round_id',currentRound.id);
+  const {data,error}=await sb.rpc('rf_get_my_pending_bets_v15',{p_round_id:Number(currentRound.id)});
   if(error)throw error;
   myBets={};
-  (data||[]).forEach(x=>myBets[x.number]={amount:Number(x.amount),taps:Number(x.tap_count||1)});
+  (data||[]).forEach(x=>myBets[Number(x.number)]={amount:Number(x.amount),taps:Number(x.tap_count||1)});
   buildNumbers();
 }
 
 function queueBet(n){
-  if(!currentRound||roundSecondsLeft()<=0)return;
+  if(roundRevealBusy||!currentRound||roundSecondsLeft()<=0)return;
   betQueues[n]=(betQueues[n]||Promise.resolve()).then(()=>placeBetOnce(n)).catch(e=>alert(errText(e)));
 }
 
@@ -896,22 +957,23 @@ async function placeBetOnce(n){
   const amount=Number($('stakeInput').value);
   const minimum=Number(settings?.min_bet||0.01);
   if(!Number.isFinite(amount)||amount<minimum){alert(`Mínimo ${money(minimum)} FC`);return;}
-  if(!me||Number(me.balance)<amount){alert('Saldo Flash Coin insuficiente.');return;}
-  if(roundSecondsLeft()<=0){alert('La ronda está cerrando. Espera la próxima.');return;}
+  const selectedTotal=Object.values(myBets||{}).reduce((sum,b)=>sum+Number(b?.amount||0),0);
+  if(!me||selectedTotal+amount>Number(me.balance)){alert('Tu selección supera el saldo disponible.');return;}
+  if(roundRevealBusy||roundSecondsLeft()<=0){alert('La ronda está cerrando. Espera la próxima.');return;}
   const {error}=await sb.rpc('rf_place_bet',{p_number:n,p_amount:amount});
   if(error){alert(errText(error));return;}
-  await Promise.all([loadMe(),loadBets()]);
-  renderMe();
+  // Aquí solo se guarda la selección. El saldo NO se descuenta todavía.
+  await loadBets();
+  $('resultText').textContent='Selección preparada · el saldo se descontará cuando arranque la ruleta.';
 }
 
 async function cancelNumber(n){
-  if(roundSecondsLeft()<=0)return alert('La ronda está cerrando.');
+  if(roundRevealBusy||roundSecondsLeft()<=0)return alert('La ronda está cerrando.');
   const {data,error}=await sb.rpc('rf_cancel_bet_number',{p_number:n});
   if(error)return alert(errText(error));
   if(Number(data)>0){
-    await Promise.all([loadMe(),loadBets()]);
-    renderMe();
-    $('resultText').textContent=`Apuesta del ${n} cancelada · ${money(data)} FC devueltos al saldo.`;
+    await loadBets();
+    $('resultText').textContent=`Selección del ${n} retirada · el saldo no había sido descontado.`;
   }
 }
 
@@ -950,16 +1012,14 @@ $('soundSwitch').addEventListener('change',async()=>{
   if(me)me.sound_enabled=enabled;
   if(!enabled){clearTimeout(audioTickTimer);return void sb.rpc('rf_set_sound_enabled',{p_enabled:false}).catch(()=>{});}
 
-  // En Safari/iPhone el AudioContext debe reanudarse dentro del toque del usuario.
-  const ok=await unlockAudio();
-  if(ok)await playSoundTest();
-  else alert('No se pudo activar el audio del navegador. Revisa que Safari no esté bloqueando el sonido y toca Sonido de nuevo.');
+  // Safari/iPhone: se intenta WebAudio y, además, un audio HTML embebido de respaldo.
+  primeAudioOnGesture();
+  const ok=await activateAudioNow();
+  await playSoundTest();
+  if(!ok)alert('No se pudo inicializar ningún motor de audio del navegador. Revisa el volumen del iPhone y vuelve a tocar Sonido.');
 
   const {error}=await sb.rpc('rf_set_sound_enabled',{p_enabled:true});
-  if(error){
-    // El sonido sigue activo localmente aunque falle guardar la preferencia en Supabase.
-    console.warn('No se pudo guardar la preferencia de sonido:',error);
-  }
+  if(error)console.warn('No se pudo guardar la preferencia de sonido:',error);
 });
 $('flashSwitch').addEventListener('change',async()=>{
   const enabled=$('flashSwitch').checked;
@@ -1129,6 +1189,40 @@ async function loadStats(){
   $('promRegistered').textContent=n;$('adminRegistered').textContent=n;renderOnline();
 }
 
+function showLeaderPromoterToast(count){
+  const t=$('leaderPromoterToast');if(!t)return;
+  $('leaderPromoterToastText').textContent=count===1?'Hay 1 envío nuevo de Flash Coin.':`Hay ${count} envíos nuevos de Flash Coin.`;
+  t.classList.add('show');clearTimeout(t._hideTimer);t._hideTimer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+async function loadPromoterSalesUnreadCount(showNotice=true){
+  if(me?.role!=='leader')return;
+  const {data,error}=await sb.rpc('rf_get_unread_promoter_sales_count_v15');
+  if(error)return;
+  const count=Number(Array.isArray(data)?data[0]?.count:data||0);
+  const badge=$('promoterSalesBadge');
+  badge.textContent=String(count);badge.classList.toggle('hidden',count<=0);
+  if(showNotice&&promoterUnreadCount!==null&&count>promoterUnreadCount)showLeaderPromoterToast(count-promoterUnreadCount);
+  promoterUnreadCount=count;
+}
+async function loadPromoterSalesHistory(){
+  const {data,error}=await sb.rpc('rf_get_promoter_sales_history_v15',{p_limit:120});
+  if(error){$('promoterSalesHistoryList').innerHTML=`<div class="card">${esc(errText(error))}</div>`;return;}
+  const rows=Array.isArray(data)?data:[];
+  $('promoterSalesHistoryList').innerHTML=rows.length?rows.map(x=>{
+    const dt=new Date(x.created_at||Date.now());
+    const target=x.target_type==='admin_wallet'?'Cartera Administrativa':(x.target_type==='roulette_wallet'?'Cartera de la Ruleta':(x.recipient_name||'Usuario'));
+    return `<div class="promoter-sale-row"><div class="top"><b>${esc(x.promoter_name||x.promoter_public_id||'Promotor')}</b><span class="amount">${money(x.amount)} FC</span></div><div class="route">ID ${esc(x.promoter_public_id||'—')} → ${esc(target)} · ID ${esc(x.recipient_public_id||'—')}</div><div class="meta">${esc(dt.toLocaleDateString('es-DO'))} ${esc(dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',second:'2-digit'}))} · Comprobante ${esc(String(x.source_receipt_id||'—'))}${x.seen?'':' · NUEVO'}</div></div>`;
+  }).join(''):'<div class="card">Todavía no hay envíos de promotores registrados.</div>';
+}
+$('promoterSalesHistoryBtn').onclick=async()=>{
+  if(me?.role!=='leader')return;
+  hide('leaderPanel');show('promoterSalesHistoryPanel');
+  await loadPromoterSalesHistory();
+  await sb.rpc('rf_mark_promoter_sales_seen_v15').catch(()=>{});
+  promoterUnreadCount=0;await loadPromoterSalesUnreadCount(false);
+};
+$('refreshPromoterSalesBtn').onclick=async()=>{await loadPromoterSalesHistory();await sb.rpc('rf_mark_promoter_sales_seen_v15').catch(()=>{});await loadPromoterSalesUnreadCount(false);};
+
 $('saveWhatsAppBtn').onclick=async()=>{
   const raw=$('promWhatsApp').value.trim();
   if(!raw)return alert('Escribe tu número completo de WhatsApp.');
@@ -1196,7 +1290,7 @@ $('leaderUnlockBtn').onclick=async()=>{
   if(!data)return msg('leaderGateMsg','Contraseña incorrecta.');
   hide('leaderGatePanel');await openLeaderPanel();
 };
-async function openLeaderPanel(){await Promise.all([loadSettings(),loadStats(),loadLeaderWallets()]);renderSettings();show('leaderPanel')}
+async function openLeaderPanel(){await Promise.all([loadSettings(),loadStats(),loadLeaderWallets(),loadPromoterSalesUnreadCount(false)]);renderSettings();show('leaderPanel')}
 $('leaderTransferId').addEventListener('input',()=>{selectedLeaderTransferUser=null;$('leaderTransferUserResult').innerHTML='';msg('leaderTransferMsg','');});
 $('leaderFindTransferBtn').onclick=async()=>{
   if(me?.role!=='leader')return msg('leaderTransferMsg','Solo el Administrador Líder puede usar esta función.');
@@ -1911,7 +2005,7 @@ buildWheel();
 })().catch(e=>msg('authMsg',errText(e)));
 </script>
 
-<!-- V1.4: sonido reforzado en Safari/iPhone, contraseña del panel líder opcional mediante interruptor y duración visual del giro configurable desde administración. -->
+<!-- V1.5: audio Safari con respaldo, historial/notificaciones de promotores y apuestas descontadas al arrancar el giro; premios acreditados visualmente al cerrar GANASTE. -->
 </body>
 </html>
 
