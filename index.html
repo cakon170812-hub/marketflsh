@@ -328,7 +328,9 @@ function isRecoveryReturn(){
   const h=String(location.hash||'');
   return q.get('password_recovery')==='1'||q.get('type')==='recovery'||/type=recovery/i.test(h);
 }
-function emailConfirmationReturnUrl(){return location.origin+location.pathname+'?email_confirmed=1';}
+const APP_PUBLIC_URL='https://cakon170812-hub.github.io/marketflsh/';
+function appReturnUrl(param){const u=new URL(APP_PUBLIC_URL);u.searchParams.set(param,'1');return u.toString();}
+function emailConfirmationReturnUrl(){return appReturnUrl('email_confirmed');}
 function isEmailConfirmationReturn(){return new URLSearchParams(location.search).get('email_confirmed')==='1';}
 function cleanEmailConfirmationUrl(){
   const u=new URL(location.href);
@@ -343,7 +345,7 @@ function showEmailConfirmationPending(email){
   msg('emailConfirmMsg','Revisa también la carpeta de correo no deseado.');
   show('emailConfirmPanel');
 }
-function recoveryReturnUrl(){return location.origin+location.pathname+'?password_recovery=1';}
+function recoveryReturnUrl(){return appReturnUrl('password_recovery');}
 async function rememberCredential(email,password,checked,name='MAIKET FLASH'){
   localStorage.setItem(SAVE_LOGIN_KEY,checked?'1':'0');
   if(checked)localStorage.setItem(SAVED_EMAIL_KEY,email);else localStorage.removeItem(SAVED_EMAIL_KEY);
@@ -693,7 +695,7 @@ async function copyText(text,label='Copiado'){
 }
 
 function inviteLink(){
-  const u=new URL(location.href);u.searchParams.set('ref',me.public_id);u.hash='';return u.toString();
+  const u=new URL(APP_PUBLIC_URL);u.searchParams.set('ref',me.public_id);u.hash='';return u.toString();
 }
 async function shareInvite(){
   if(!me)return;
@@ -1865,3 +1867,4 @@ buildWheel();
 <!-- V1.0: request_id corregido y carteras Administrativa/Ruleta conectadas en ambos sentidos. -->
 
 <!-- V1.1: confirmación por correo para registros nuevos + confirmación previa de envío/solicitud de Promotor + porcentaje global de ganador efectivo solo en administración. -->
+<!-- V1.2: URL pública fija de GitHub Pages para confirmación de correo, recuperación de contraseña y enlaces de referido; evita localhost:3000. -->
