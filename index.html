@@ -639,7 +639,7 @@ function makeFallbackVoice(kind){
 function fallbackPool(kind){
   const isTick=kind==='tick';
   const pool=isTick?fallbackTickPool:fallbackCoinPool;
-  const wanted=isTick?8:4;
+  const wanted=isTick?16:4;
   while(pool.length<wanted)pool.push(makeFallbackVoice(kind));
   return pool;
 }
@@ -824,32 +824,48 @@ function setAudioMasterEnabled(enabled){
 }
 function playUIButtonSound(emphasis=false){
   if(!soundIsEnabled())return;
-  const now=performance.now();
-  if(now-lastUiSoundAt<34)return;
-  lastUiSoundAt=now;
-
+  // Sin limitador temporal: CADA pointerdown debe responder inmediatamente,
+  // incluso si el usuario toca varios botones muy rápido uno detrás de otro.
   if(!webAudioRunning()){
     playFallbackAudio('tick',emphasis?.40:.28);
     return;
   }
   try{
-    const t=audioCtx.currentTime+.002;
+    const t=audioCtx.currentTime+.001;
     const o=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();
     o.type='sine';o2.type='triangle';
     const base=emphasis?790:640;
     o.frequency.setValueAtTime(base,t);
-    o.frequency.exponentialRampToValueAtTime(base*1.16,t+.055);
+    o.frequency.exponentialRampToValueAtTime(base*1.16,t+.050);
     o2.frequency.setValueAtTime(base*1.9,t);
-    o2.frequency.exponentialRampToValueAtTime(base*1.48,t+.068);
+    o2.frequency.exponentialRampToValueAtTime(base*1.48,t+.062);
     const peak=emphasis?.052:.034;
     g.gain.setValueAtTime(.001,t);
-    g.gain.linearRampToValueAtTime(peak,t+.006);
-    g.gain.exponentialRampToValueAtTime(.001,t+.080);
+    g.gain.linearRampToValueAtTime(peak,t+.004);
+    g.gain.exponentialRampToValueAtTime(.001,t+.072);
     o.connect(g);o2.connect(g);connectAudioNode(g);
-    o.start(t);o2.start(t);o.stop(t+.085);o2.stop(t+.085);
+    o.start(t);o2.start(t);o.stop(t+.078);o2.stop(t+.078);
   }catch{
     playFallbackAudio('tick',emphasis?.40:.28);
   }
+}
+function playNumberTapSound(){
+  if(!soundIsEnabled())return;
+  if(!webAudioRunning()){
+    playFallbackAudio('tick',.36);
+    return;
+  }
+  try{
+    const t=audioCtx.currentTime+.001;
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type='triangle';
+    o.frequency.setValueAtTime(980,t);
+    o.frequency.exponentialRampToValueAtTime(620,t+.045);
+    g.gain.setValueAtTime(.001,t);
+    g.gain.linearRampToValueAtTime(.060,t+.003);
+    g.gain.exponentialRampToValueAtTime(.001,t+.060);
+    o.connect(g);connectAudioNode(g);o.start(t);o.stop(t+.065);
+  }catch{playFallbackAudio('tick',.36)}
 }
 function uiButtonIsImportant(btn){
   const s=((btn?.id||'')+' '+(btn?.textContent||'')+' '+(btn?.getAttribute?.('aria-label')||'')).toLowerCase();
@@ -890,6 +906,42 @@ function scheduleRouletteTickAt(when,level=.14){
     return false;
   }
 }
+function scheduleRouletteMicroTickAt(when,level=.060){
+  if(!soundIsEnabled()||!webAudioRunning())return false;
+  try{
+    const t=Math.max(audioCtx.currentTime+.001,Number(when)||audioCtx.currentTime+.001);
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type='square';
+    o.frequency.setValueAtTime(1500,t);
+    o.frequency.exponentialRampToValueAtTime(720,t+.018);
+    g.gain.setValueAtTime(.001,t);
+    g.gain.linearRampToValueAtTime(level,t+.002);
+    g.gain.exponentialRampToValueAtTime(.001,t+.024);
+    o.connect(g);connectAudioNode(g);
+    rouletteScheduledNodes.push(o);
+    o.onended=()=>untrackRouletteNode(o);
+    o.start(t);o.stop(t+.026);
+    return true;
+  }catch{return false}
+}
+function playRouletteLandingSound(){
+  if(!soundIsEnabled())return;
+  if(!webAudioRunning()){
+    playFallbackAudio('tick',.95);
+    setTimeout(()=>playFallbackAudio('coin',.70),55);
+    return;
+  }
+  try{
+    const t=audioCtx.currentTime+.004;
+    const o=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.type='triangle';o2.type='sine';
+    o.frequency.setValueAtTime(520,t);o.frequency.exponentialRampToValueAtTime(260,t+.16);
+    o2.frequency.setValueAtTime(1180,t);o2.frequency.exponentialRampToValueAtTime(760,t+.12);
+    g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(.115,t+.005);g.gain.exponentialRampToValueAtTime(.001,t+.21);
+    o.connect(g);o2.connect(g);connectAudioNode(g);
+    o.start(t);o2.start(t);o.stop(t+.22);o2.stop(t+.22);
+  }catch{playFallbackAudio('tick',.95)}
+}
 function rouletteClick(){
   if(!soundIsEnabled())return;
   if(webAudioRunning()){
@@ -906,33 +958,55 @@ function playRouletteSound(durationMs=getSpinDurationSeconds()*1000){
   stopRouletteScheduledAudio();
   const total=Math.max(2500,Number(durationMs)||8000);
 
-  // Web Audio: todos los tac-tac quedan programados en el reloj interno del motor.
-  // Así no dependen de setTimeout ni de una nueva autorización cuando la ruleta gira sola.
+  // Secuencia mecánica sincronizada:
+  // 1) arranque tipo "trrrrr" muy rápido,
+  // 2) tac-tac progresivo,
+  // 3) desaceleración cada vez más separada hasta el número final.
   if(webAudioRunning()){
     ensureAudioKeepAlive();
-    const base=audioCtx.currentTime+.025;
-    let elapsed=0,guard=0;
-    while(elapsed<total&&guard<420){
-      const progress=Math.max(0,Math.min(1,elapsed/total));
-      const level=.145-(progress*.025);
+    const base=audioCtx.currentTime+.020;
+    const rattleMs=Math.min(1350,Math.max(620,total*.18));
+
+    // TRRRR inicial: microgolpes suficientemente juntos para sentirse continuos.
+    let r=0,rGuard=0;
+    while(r<rattleMs&&rGuard<100){
+      const rp=r/rattleMs;
+      scheduleRouletteMicroTickAt(base+(r/1000),.068-(rp*.018));
+      r+=18+rp*14;
+      rGuard++;
+    }
+
+    // TAC-TAC desde el final del arranque hasta detenerse.
+    let elapsed=rattleMs*.78,guard=0;
+    const usable=Math.max(1,total-elapsed);
+    while(elapsed<total-35&&guard<360){
+      const progress=Math.max(0,Math.min(1,(elapsed-rattleMs*.78)/usable));
+      const level=.145-(progress*.030);
       scheduleRouletteTickAt(base+(elapsed/1000),level);
-      const delay=45+Math.pow(progress,2.15)*205;
+      // Rápido al principio, claramente separado al final.
+      const delay=52+Math.pow(progress,2.35)*255;
       elapsed+=delay;
       guard++;
     }
-    audioTickTimer=setTimeout(()=>{rouletteScheduledNodes.length=0;audioTickTimer=null;},total+600);
+    audioTickTimer=setTimeout(()=>{rouletteScheduledNodes.length=0;audioTickTimer=null;},total+650);
     return;
   }
 
-  // Respaldo para navegadores sin Web Audio.
+  // Respaldo HTMLAudio: conserva la misma sensación en navegadores sin Web Audio.
   const started=performance.now();
+  const rattleMs=Math.min(1350,Math.max(620,total*.18));
   const tick=()=>{
     if(!soundIsEnabled())return;
     const elapsed=performance.now()-started;
     if(elapsed>=total)return;
-    playFallbackAudio('tick',.82);
-    const progress=Math.max(0,Math.min(1,elapsed/total));
-    const delay=45+Math.pow(progress,2.15)*205;
+    playFallbackAudio('tick',elapsed<rattleMs?.72:.86);
+    let delay;
+    if(elapsed<rattleMs){
+      delay=22+(elapsed/rattleMs)*14;
+    }else{
+      const p=Math.max(0,Math.min(1,(elapsed-rattleMs)/Math.max(1,total-rattleMs)));
+      delay=52+Math.pow(p,2.35)*255;
+    }
     audioTickTimer=setTimeout(tick,delay);
   };
   tick();
@@ -964,21 +1038,22 @@ function playWinnerSound(){
   if(!soundIsEnabled())return;
   ensureAudioKeepAlive();
   if(webAudioRunning()){
-    const notes=[1046,1318,1568,2093,1568,2349,2093,2637];
-    notes.forEach((f,i)=>coinChime(i*.075,f,.082+(i%3)*.008));
-    [1760,2093,2637,3136].forEach((f,i)=>coinChime(.620+i*.055,f,.09));
+    // Fanfarria corta justo cuando aparece el panel ¡GANASTE!.
+    [880,1175,1397,1760].forEach((f,i)=>coinChime(i*.105,f,.090+i*.004));
+    [1760,2093,2637].forEach((f,i)=>coinChime(.520+i*.090,f,.100));
     return;
   }
-  playFallbackAudio('coin',.95);
+  playFallbackAudio('coin',1);
 }
 function playBalanceCreditSound(){
   if(!soundIsEnabled())return;
   ensureAudioKeepAlive();
   if(webAudioRunning()){
-    [1180,1360,1580,1830,2140,2480].forEach((f,i)=>coinChime(i*.065,f,.080+(i%2)*.008));
+    // "Cling" de monedas reservado para el instante en que llegan al saldo.
+    [1260,1540,1880,2240,2680].forEach((f,i)=>coinChime(i*.070,f,.088+(i%2)*.010));
     return;
   }
-  playFallbackAudio('coin',.95);
+  playFallbackAudio('coin',1);
 }
 function playSoundTest(){
   if(!soundIsEnabled())return false;
@@ -1027,6 +1102,14 @@ function animateCoinsToBalance(sourceEl=null){
   setTimeout(()=>target.classList.remove('balance-credit-pulse'),700);
 }
 
+async function animateCreditArrival(startBalance,targetBalance,sourceEl=null,duration=800){
+  animateCoinsToBalance(sourceEl);
+  // Las primeras monedas llegan al botón de saldo alrededor de este punto.
+  await new Promise(resolve=>setTimeout(resolve,680));
+  playBalanceCreditSound();
+  await animateBalanceIncrease(startBalance,targetBalance,duration);
+}
+
 function showWinnerCelebration(winner,prize){
   $('winNumber').textContent='Número ganador: '+winner;
   $('winPrize').textContent='+'+money(prize)+' FC';
@@ -1044,7 +1127,9 @@ document.addEventListener('pointerdown',e=>{
   if(soundIsEnabled()||e.target===$('soundSwitch'))primeAudioOnGesture();
   const btn=e.target?.closest?.('button,input[type="button"],input[type="submit"],[role="button"]');
   if(!btn||btn.disabled||!soundIsEnabled())return;
-  playUIButtonSound(uiButtonIsImportant(btn));
+  // Los números tienen un golpe propio, instantáneo, y nunca comparten limitador con otro toque.
+  if(btn.classList?.contains('num'))playNumberTapSound();
+  else playUIButtonSound(uiButtonIsImportant(btn));
 },{passive:true,capture:true});
 // Respaldo para navegadores/dispositivos que entreguen touchstart o teclado antes que pointerdown.
 ['touchstart','keydown'].forEach(evt=>document.addEventListener(evt,e=>{
@@ -1183,6 +1268,7 @@ async function showLatestResult(){
   const spinMs=spinTo(winner);
   playRouletteSound(spinMs);
   await new Promise(resolve=>setTimeout(resolve,spinMs));
+  playRouletteLandingSound();
   $('centerNumber').textContent=winner;
 
   if(winners.length){
@@ -1196,9 +1282,7 @@ async function showLatestResult(){
     // La pantalla GANASTE permanece completa. Cuando desaparece, las monedas
     // viajan al saldo y la cifra sube exactamente hasta el saldo real de Supabase.
     await showWinnerCelebration(winner,prize);
-    playBalanceCreditSound();
-    animateCoinsToBalance(document.querySelector('#winFlash .win-card'));
-    await animateBalanceIncrease(afterBetBalance,settledBalance,1450);
+    await animateCreditArrival(afterBetBalance,settledBalance,document.querySelector('#winFlash .win-card'),800);
     await loadMe().catch(()=>{});
     // Solo DESPUÉS de desaparecer GANASTE y terminar la entrada de monedas
     // se libera el saldo para que el premio quede visible.
@@ -1476,10 +1560,17 @@ async function pollIncomingTransfers(){
   if(!me||transferPollBusy)return;
   transferPollBusy=true;
   try{
-    let {data,error}=await sb.rpc('rf_get_unread_fc_transfers');
+    // V1.6.3: el servidor reclama y marca la notificación como mostrada ANTES de devolverla.
+    // Así un mismo envío nunca vuelve a salir al recargar, cerrar Safari o iniciar sesión otro día.
+    let {data,error}=await sb.rpc('rf_claim_unseen_fc_transfers_v163');
     if(error){
-      const fallback=await sb.rpc('rf_get_unread_promoter_transfers');
+      // Compatibilidad temporal si el HTML se publica unos segundos antes que el SQL.
+      const fallback=await sb.rpc('rf_get_unread_fc_transfers');
       data=fallback.data;error=fallback.error;
+      if(error){
+        const oldFallback=await sb.rpc('rf_get_unread_promoter_transfers');
+        data=oldFallback.data;error=oldFallback.error;
+      }
     }
     if(error)return;
     for(const row of (Array.isArray(data)?data:[])){
@@ -1513,8 +1604,7 @@ async function processTransferQueue(){
       const senderWhatsapp=n.sender_whatsapp||n.promoter_whatsapp||'No configurado';
       $('incomingTransferContent').innerHTML=`<div class="transfer-confirm-card"><div class="receipt-coin"><span class="fc-coin"></span></div><h3>Transferencia confirmada</h3><div class="tiny" style="text-align:center">El dinero ya entró a tu saldo Flash Coin</div><div class="transfer-amount">+${money(n.amount)} FC</div><div class="transfer-line"><span>Origen</span><b>${esc(senderLabel)}</b></div><div class="transfer-line"><span>Nombre</span><b>${esc(senderName)}</b></div><div class="transfer-line"><span>ID origen</span><b>${esc(senderPublicId)}</b></div>${senderRole==='admin_wallet'?'':`<div class="transfer-line"><span>WhatsApp</span><b>${esc(senderWhatsapp)}</b></div>`}<div class="transfer-line"><span>Comprobante</span><b>FC${String(n.receipt_id||'').padStart(10,'0')}</b></div><div class="transfer-line"><span>Fecha</span><b>${esc(dt.toLocaleDateString('es-DO'))} ${esc(dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}))}</b></div><div class="transfer-line"><span>Saldo resultante</span><b>${money(n.balance_after)} FC</b></div></div>`;
       show('incomingTransferPanel');
-      playBalanceCreditSound();animateCoinsToBalance();
-      await animateBalanceIncrease(startBalance,targetBalance,1350);
+      await animateCreditArrival(startBalance,targetBalance,null,760);
       await loadMe().catch(()=>{});renderMe();
       await sb.rpc('rf_mark_promoter_transfer_read',{p_notification_id:Number(n.notification_id)}).catch(()=>{});
       await new Promise(resolve=>setTimeout(resolve,1650));
