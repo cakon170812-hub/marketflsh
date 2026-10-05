@@ -154,7 +154,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
         <div class="stake-row"><button id="stakeDown" type="button">−</button><input id="stakeInput" class="field stake" type="number" step="0.01" value="0.01"><button id="stakeUp" type="button">+</button></div>
       </div>
       <div class="control-stack">
-        <label class="switch-box sound-box"><input id="soundSwitch" class="switch" type="checkbox" checked><span>🔊 Sonido</span></label>
+        <label class="switch-box sound-box"><input id="soundSwitch" class="switch" type="checkbox"><span>🔊 Sonido</span></label>
         <label class="switch-box sound-box"><input id="flashSwitch" class="switch" type="checkbox" checked><span>✨ Destello</span></label>
       </div>
     </div>
@@ -227,7 +227,11 @@ let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=n
 let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,audioUnlockPromise=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0,recoveryMode=false,pendingPromAction=null,promConfirmBusy=false;
 const SOUND_LOCAL_KEY='rf_sound_enabled_v13';
 let soundLocalOverride=localStorage.getItem(SOUND_LOCAL_KEY)===null?null:localStorage.getItem(SOUND_LOCAL_KEY)==='1';
-function soundIsEnabled(){return soundLocalOverride!==null?soundLocalOverride:(me?.sound_enabled!==false);}
+// El permiso/preferencia puede quedar guardado, pero por seguridad de Safari/iPhone
+// el motor de esta sesión NO queda activo hasta que el usuario toque el control Sonido.
+let audioSessionActivated=false;
+function soundPreferenceEnabled(){return soundLocalOverride!==null?soundLocalOverride:(me?.sound_enabled!==false);}
+function soundIsEnabled(){return audioSessionActivated&&soundPreferenceEnabled();}
 const transferQueue=[];const seenTransferNotifications=new Set();
 const betQueues={};
 const $=id=>document.getElementById(id);
@@ -606,32 +610,63 @@ function showReceipt(title,r){
   show('receiptPanel');
 }
 
-// ===== HTML 1.0.1 · MOTOR DE SONIDO MULTINAVEGADOR =====
-// Safari/iPhone exige que el audio se desbloquee desde un gesto real del usuario.
-// El primer toque prepara un único AudioContext, y a partir de ahí la ruleta,
-// ganador, monedas y botones reutilizan el mismo motor sin pedir permiso otra vez.
-let audioMasterGain=null,rouletteNoiseBuffer=null;
+// ===== HTML 1.0 · CORRECCIÓN DEL MOTOR DE SONIDO MULTINAVEGADOR =====
+// Safari/iPhone exige un gesto real del usuario. Por eso el motor de sonido de
+// cada sesión solo queda activo cuando el usuario toca explícitamente Sonido.
+// Después de ese toque, botones, ruleta, ganador y monedas reutilizan el mismo
+// AudioContext. La duración del sonido de la ruleta sigue el tiempo real definido
+// por el Administrador (3–20 s), incluido 15 s.
+let audioMasterGain=null,rouletteNoiseBuffer=null,rouletteTickBuffer=null;
 const rouletteAudioNodes=[];
 
 function getAudioContext(){
-  if(audioCtx)return audioCtx;
+  if(audioCtx&&audioCtx.state!=='closed')return audioCtx;
+  audioCtx=null;audioMasterGain=null;
   const C=window.AudioContext||window.webkitAudioContext;
   if(!C)return null;
   try{audioCtx=new C({latencyHint:'interactive'});}catch{try{audioCtx=new C();}catch{return null}}
   try{
     audioMasterGain=audioCtx.createGain();
-    audioMasterGain.gain.value=.82;
+    audioMasterGain.gain.value=.84;
     audioMasterGain.connect(audioCtx.destination);
   }catch{audioMasterGain=null;}
   return audioCtx;
 }
 function audioOutput(){return audioMasterGain||audioCtx?.destination||null;}
 function webAudioRunning(){return !!audioCtx&&audioCtx.state==='running';}
+
+// Sonido corto que NO depende de soundIsEnabled(): se usa solamente en el mismo
+// gesto físico con el que el usuario enciende Sonido, para confirmar que Safari
+// realmente recibió el gesto y abrió el motor.
+function playAudioActivationConfirmDirect(ctx){
+  try{
+    const dest=audioOutput(),t=ctx.currentTime+.008;
+    const o=ctx.createOscillator(),o2=ctx.createOscillator(),g=ctx.createGain();
+    o.type='sine';o2.type='triangle';
+    o.frequency.setValueAtTime(660,t);o.frequency.exponentialRampToValueAtTime(900,t+.075);
+    o2.frequency.setValueAtTime(990,t+.035);o2.frequency.exponentialRampToValueAtTime(1320,t+.120);
+    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.055,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.150);
+    o.connect(g);o2.connect(g);if(dest)g.connect(dest);
+    o.start(t);o2.start(t+.035);o.stop(t+.155);o2.stop(t+.165);
+  }catch{}
+}
+function activateAudioSessionFromGesture(){
+  const ctx=getAudioContext();if(!ctx)return false;
+  audioSessionActivated=true;
+  try{
+    const r=ctx.resume();
+    if(r&&typeof r.catch==='function')r.catch(()=>{});
+  }catch{}
+  // Pulso real y audible en el MISMO toque del usuario.
+  playAudioActivationConfirmDirect(ctx);
+  return true;
+}
 function primeAudioFromGesture(force=false){
-  if(!force&&!soundIsEnabled())return false;
+  if(force){return activateAudioSessionFromGesture();}
+  if(!audioSessionActivated||!soundPreferenceEnabled())return false;
   const ctx=getAudioContext();if(!ctx)return false;
   try{if(ctx.state!=='running')ctx.resume().catch(()=>{});}catch{}
-  // Pequeño pulso inaudible dentro del gesto: ayuda a dejar Safari/iOS activado.
+  // Pulso inaudible para recuperar Safari si volvió de segundo plano.
   try{
     const o=ctx.createOscillator(),g=ctx.createGain(),dest=audioOutput();
     g.gain.value=.000001;o.frequency.value=30;
@@ -640,6 +675,7 @@ function primeAudioFromGesture(force=false){
   return true;
 }
 async function unlockAudio(){
+  if(!audioSessionActivated)return false;
   const ctx=getAudioContext();if(!ctx)return false;
   if(ctx.state==='running')return true;
   if(audioUnlockPromise)return audioUnlockPromise;
@@ -715,8 +751,10 @@ function uiSoundKind(el){
   return 'normal';
 }
 function onImmediateControlPress(e){
+  // La primera activación NO se hace con cualquier botón: el usuario debe tocar
+  // explícitamente Sonido. Una vez activado, cualquier toque real también sirve
+  // para reanudar Safari si iOS suspendió el AudioContext.
   if(!soundIsEnabled())return;
-  // Se ejecuta en pointerdown/touchstart: no espera click, red ni Supabase.
   primeAudioFromGesture();
   const kind=uiSoundKind(e.target);if(kind)playUIButtonSound(kind);
 }
@@ -747,56 +785,88 @@ function getRouletteNoiseBuffer(){
   }
   rouletteNoiseBuffer=b;return b;
 }
+function getRouletteTickBuffer(){
+  const ctx=getAudioContext();if(!ctx)return null;
+  if(rouletteTickBuffer&&rouletteTickBuffer.sampleRate===ctx.sampleRate)return rouletteTickBuffer;
+  const duration=.070,length=Math.max(1,Math.floor(ctx.sampleRate*duration));
+  const b=ctx.createBuffer(1,length,ctx.sampleRate),a=b.getChannelData(0);
+  for(let i=0;i<length;i++){
+    const t=i/ctx.sampleRate;
+    const env=Math.exp(-t*54);
+    const metallic=(Math.sin(2*Math.PI*1120*t)*.68)+(Math.sin(2*Math.PI*610*t)*.32);
+    a[i]=metallic*env*.72;
+  }
+  rouletteTickBuffer=b;return b;
+}
 function scheduleRouletteTickAt(when,level=.060){
   if(!webAudioRunning()||!soundIsEnabled())return;
   try{
     const ctx=audioCtx,t=Math.max(ctx.currentTime+.001,when),dest=audioOutput();
-    const o=trackRouletteNode(ctx.createOscillator()),o2=trackRouletteNode(ctx.createOscillator()),g=ctx.createGain();
-    o.type='triangle';o2.type='sine';
-    o.frequency.setValueAtTime(980,t);o.frequency.exponentialRampToValueAtTime(390,t+.045);
-    o2.frequency.setValueAtTime(1650,t);o2.frequency.exponentialRampToValueAtTime(820,t+.030);
-    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(level,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.052);
-    o.connect(g);o2.connect(g);if(dest)g.connect(dest);
-    o.onended=()=>untrackRouletteNode(o);o2.onended=()=>untrackRouletteNode(o2);
-    o.start(t);o2.start(t);o.stop(t+.058);o2.stop(t+.058);
+    const src=trackRouletteNode(ctx.createBufferSource()),g=ctx.createGain();
+    src.buffer=getRouletteTickBuffer();
+    g.gain.setValueAtTime(Math.max(.012,level),t);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.068);
+    src.connect(g);if(dest)g.connect(dest);
+    src.onended=()=>untrackRouletteNode(src);
+    src.start(t);src.stop(t+.070);
   }catch{}
 }
 function startRouletteAudio(totalMs){
   if(!webAudioRunning()||!soundIsEnabled())return false;
   stopRouletteAudio();
-  const ctx=audioCtx,dest=audioOutput(),total=Math.max(2500,Number(totalMs)||8000),sec=total/1000,base=ctx.currentTime+.015;
+  const ctx=audioCtx,dest=audioOutput();
+  const total=Math.max(2500,Math.min(20000,Number(totalMs)||8000));
+  const sec=total/1000,base=ctx.currentTime+.020;
+
+  // Cama mecánica continua "rrrrrr". No se corta a mitad de una vuelta larga:
+  // se mantiene viva durante TODO el giro y solo baja de volumen al entrar los
+  // golpes finales. Esto evita que a 15–20 s parezca que el sonido se apagó.
   try{
-    // Un solo rrrrr continuo: mucho más estable en Safari/iPhone que cientos de microsonidos.
     const noise=trackRouletteNode(ctx.createBufferSource()),filter=ctx.createBiquadFilter(),rattleGain=ctx.createGain();
     const lfo=trackRouletteNode(ctx.createOscillator()),lfoDepth=ctx.createGain();
     noise.buffer=getRouletteNoiseBuffer();noise.loop=true;
-    filter.type='bandpass';filter.Q.value=1.35;
-    filter.frequency.setValueAtTime(1250,base);filter.frequency.exponentialRampToValueAtTime(520,base+Math.max(.5,sec*.64));
+    filter.type='bandpass';filter.Q.value=1.15;
+    filter.frequency.setValueAtTime(1420,base);
+    filter.frequency.exponentialRampToValueAtTime(470,base+Math.max(.8,sec-.18));
+
+    const strongEnd=Math.max(.55,sec*.42);
+    const tickEntry=Math.max(.75,sec*.58);
     rattleGain.gain.setValueAtTime(.0001,base);
-    rattleGain.gain.linearRampToValueAtTime(.052,base+.055);
-    rattleGain.gain.setValueAtTime(.045,base+Math.min(sec*.17,.95));
-    rattleGain.gain.exponentialRampToValueAtTime(.012,base+Math.max(.7,sec*.58));
-    rattleGain.gain.exponentialRampToValueAtTime(.0001,base+Math.max(.9,sec-.10));
-    lfo.type='sine';lfo.frequency.setValueAtTime(30,base);lfo.frequency.exponentialRampToValueAtTime(8.5,base+Math.max(.7,sec*.58));
-    lfoDepth.gain.setValueAtTime(.020,base);lfoDepth.gain.exponentialRampToValueAtTime(.004,base+Math.max(.7,sec*.58));
+    rattleGain.gain.linearRampToValueAtTime(.060,base+.060);
+    rattleGain.gain.setValueAtTime(.054,base+strongEnd);
+    rattleGain.gain.linearRampToValueAtTime(.028,base+tickEntry);
+    rattleGain.gain.exponentialRampToValueAtTime(.008,base+Math.max(tickEntry+.2,sec-.28));
+    rattleGain.gain.exponentialRampToValueAtTime(.0001,base+Math.max(.9,sec-.06));
+
+    lfo.type='sine';
+    lfo.frequency.setValueAtTime(34,base);
+    lfo.frequency.exponentialRampToValueAtTime(6.2,base+Math.max(.9,sec-.20));
+    lfoDepth.gain.setValueAtTime(.018,base);
+    lfoDepth.gain.exponentialRampToValueAtTime(.003,base+Math.max(.9,sec-.20));
+
     noise.connect(filter);filter.connect(rattleGain);if(dest)rattleGain.connect(dest);
     lfo.connect(lfoDepth);lfoDepth.connect(rattleGain.gain);
     noise.onended=()=>untrackRouletteNode(noise);lfo.onended=()=>untrackRouletteNode(lfo);
-    noise.start(base);noise.stop(base+sec-.06);lfo.start(base);lfo.stop(base+Math.max(.7,sec*.60));
+    noise.start(base);noise.stop(base+sec-.045);
+    lfo.start(base);lfo.stop(base+sec-.045);
   }catch{}
 
-  // Ta-ta-ta progresivo. Se programa con el reloj de Web Audio, no con decenas
-  // de setTimeout, para que los golpes no "troten" en iPhone.
-  let elapsed=Math.max(520,total*.18),guard=0;
-  while(elapsed<total-90&&guard<48){
-    const p=Math.max(0,Math.min(1,elapsed/total));
-    scheduleRouletteTickAt(base+elapsed/1000,.067-p*.016);
-    const delay=64+Math.pow(p,2.35)*330;
+  // Los "ta-ta-ta" empiezan al 58 % del giro, no con un número fijo de golpes.
+  // Así 3 s, 8 s, 15 s o 20 s mantienen la misma progresión hasta el final.
+  const tickStart=Math.max(650,total*.58);
+  const tickWindow=Math.max(1,total-tickStart);
+  let elapsed=tickStart,guard=0;
+  while(elapsed<total-95&&guard<80){
+    const p=Math.max(0,Math.min(1,(elapsed-tickStart)/tickWindow));
+    const level=.070-(p*.017);
+    scheduleRouletteTickAt(base+elapsed/1000,level);
+    const delay=78+Math.pow(p,2.35)*420;
     elapsed+=delay;guard++;
   }
-  audioTickTimer=setTimeout(()=>{audioTickTimer=null;},total+250);
+  audioTickTimer=setTimeout(()=>{audioTickTimer=null;},total+220);
   return true;
 }
+
 function getSpinDurationSeconds(){
   const raw=Number(settings?.spin_duration_seconds||8);
   return Math.max(3,Math.min(20,Number.isFinite(raw)?raw:8));
@@ -895,10 +965,22 @@ function showWinnerCelebration(winner,prize){
   setTimeout(()=>layer.classList.remove('show'),3000);
 }
 
-// El interruptor de sonido necesita preparar Safari justo en el toque que lo activa.
-$('soundSwitch').addEventListener(immediatePressEvent,()=>primeAudioFromGesture(true),{passive:true,capture:true});
+// ACTIVACIÓN OBLIGATORIA DE SONIDO POR SESIÓN.
+// Se escucha el control completo (checkbox + texto), porque muchos usuarios de
+// iPhone tocan la palabra "Sonido" y no exactamente el interruptor.
+const soundControl=$('soundSwitch')?.closest?.('.sound-box')||$('soundSwitch');
+if(soundControl)soundControl.addEventListener(immediatePressEvent,()=>{
+  // Si está apagado, este toque es el que lo va a encender y desbloquea Safari.
+  if(!$('soundSwitch').checked)activateAudioSessionFromGesture();
+  // Si ya estaba encendido pero iOS suspendió el contexto, el mismo toque lo recupera.
+  else if(audioSessionActivated)primeAudioFromGesture();
+},{passive:true,capture:true});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRouletteAudio();});
-window.addEventListener('pageshow',()=>{if(soundIsEnabled()&&audioCtx?.state==='suspended')audioCtx.resume().catch(()=>{});});
+window.addEventListener('pageshow',()=>{
+  // No intentamos forzar autoplay al volver: Safari lo puede bloquear. Si quedó
+  // suspendido, el siguiente toque real (o el control Sonido) lo reanuda.
+  if(audioCtx?.state==='closed'){audioCtx=null;audioMasterGain=null;audioSessionActivated=false;}
+});
 
 async function copyText(text,label='Copiado'){
   const value=String(text||'');
@@ -1146,18 +1228,31 @@ $('soundSwitch').addEventListener('change',async()=>{
   soundLocalOverride=enabled;
   localStorage.setItem(SOUND_LOCAL_KEY,enabled?'1':'0');
   if(me)me.sound_enabled=enabled;
-  if(!enabled){stopRouletteAudio();return void sb.rpc('rf_set_sound_enabled',{p_enabled:false}).catch(()=>{});}
+  if(!enabled){
+    stopRouletteAudio();
+    audioSessionActivated=false;
+    return void sb.rpc('rf_set_sound_enabled',{p_enabled:false}).catch(()=>{});
+  }
 
-  // En Safari/iPhone el AudioContext debe reanudarse dentro del toque del usuario.
+  // El pointerdown/touchstart del propio control ya intentó abrir el motor dentro
+  // del gesto físico. Aquí solo verificamos que realmente quedó funcionando.
+  if(!audioSessionActivated)activateAudioSessionFromGesture();
   const ok=await unlockAudio();
-  if(ok)await playSoundTest();
-  else alert('No se pudo activar el audio del navegador. Revisa que Safari no esté bloqueando el sonido y toca Sonido de nuevo.');
+  if(ok){
+    // Confirmación breve adicional una sola vez al terminar de activar.
+    playUIButtonSound('confirm');
+  }else{
+    audioSessionActivated=false;
+    $('soundSwitch').checked=false;
+    soundLocalOverride=false;
+    localStorage.setItem(SOUND_LOCAL_KEY,'0');
+    if(me)me.sound_enabled=false;
+    alert('Safari no pudo activar el motor de sonido. Toca nuevamente Sonido para encenderlo.');
+    return;
+  }
 
   const {error}=await sb.rpc('rf_set_sound_enabled',{p_enabled:true});
-  if(error){
-    // El sonido sigue activo localmente aunque falle guardar la preferencia en Supabase.
-    console.warn('No se pudo guardar la preferencia de sonido:',error);
-  }
+  if(error)console.warn('No se pudo guardar la preferencia de sonido:',error);
 });
 $('flashSwitch').addEventListener('change',async()=>{
   const enabled=$('flashSwitch').checked;
