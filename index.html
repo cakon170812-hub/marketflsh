@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- MAIKET FLASH · HTML 1.0.1 · actualización exclusiva de sonido sobre la base oficial HTML 1.0 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -605,65 +606,260 @@ function showReceipt(title,r){
   show('receiptPanel');
 }
 
+// ===== HTML 1.0.1 · MOTOR DE SONIDO MULTINAVEGADOR =====
+// Safari/iPhone exige que el audio se desbloquee desde un gesto real del usuario.
+// El primer toque prepara un único AudioContext, y a partir de ahí la ruleta,
+// ganador, monedas y botones reutilizan el mismo motor sin pedir permiso otra vez.
+let audioMasterGain=null,rouletteNoiseBuffer=null;
+const rouletteAudioNodes=[];
+
+function getAudioContext(){
+  if(audioCtx)return audioCtx;
+  const C=window.AudioContext||window.webkitAudioContext;
+  if(!C)return null;
+  try{audioCtx=new C({latencyHint:'interactive'});}catch{try{audioCtx=new C();}catch{return null}}
+  try{
+    audioMasterGain=audioCtx.createGain();
+    audioMasterGain.gain.value=.82;
+    audioMasterGain.connect(audioCtx.destination);
+  }catch{audioMasterGain=null;}
+  return audioCtx;
+}
+function audioOutput(){return audioMasterGain||audioCtx?.destination||null;}
+function webAudioRunning(){return !!audioCtx&&audioCtx.state==='running';}
+function primeAudioFromGesture(force=false){
+  if(!force&&!soundIsEnabled())return false;
+  const ctx=getAudioContext();if(!ctx)return false;
+  try{if(ctx.state!=='running')ctx.resume().catch(()=>{});}catch{}
+  // Pequeño pulso inaudible dentro del gesto: ayuda a dejar Safari/iOS activado.
+  try{
+    const o=ctx.createOscillator(),g=ctx.createGain(),dest=audioOutput();
+    g.gain.value=.000001;o.frequency.value=30;
+    o.connect(g);if(dest)g.connect(dest);o.start();o.stop(ctx.currentTime+.012);
+  }catch{}
+  return true;
+}
 async function unlockAudio(){
-  if(!audioCtx){const C=window.AudioContext||window.webkitAudioContext;if(C)audioCtx=new C();}
-  if(!audioCtx)return false;
-  if(audioCtx.state==='running')return true;
+  const ctx=getAudioContext();if(!ctx)return false;
+  if(ctx.state==='running')return true;
   if(audioUnlockPromise)return audioUnlockPromise;
-  audioUnlockPromise=audioCtx.resume().then(()=>audioCtx.state==='running').catch(()=>false).finally(()=>{audioUnlockPromise=null;});
+  audioUnlockPromise=Promise.resolve(ctx.resume()).then(()=>ctx.state==='running').catch(()=>false).finally(()=>{audioUnlockPromise=null;});
   return audioUnlockPromise;
 }
-function ensureAudio(){unlockAudio().catch(()=>{});return audioCtx;}
-function rouletteClick(){
-  if(!audioCtx||audioCtx.state!=='running'||!soundIsEnabled())return;
-  const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.type='triangle';o.frequency.setValueAtTime(720,t);o.frequency.exponentialRampToValueAtTime(260,t+.055);
-  g.gain.setValueAtTime(.045,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);
-  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.065);
+function ensureAudio(){primeAudioFromGesture();return audioCtx;}
+
+function playOscTone(freq=620,duration=.055,volume=.045,type='sine',endFreq=null,delay=0){
+  if(!soundIsEnabled())return false;
+  const ctx=getAudioContext();if(!ctx)return false;
+  if(ctx.state!=='running')primeAudioFromGesture();
+  try{
+    const t=ctx.currentTime+Math.max(0,delay),o=ctx.createOscillator(),g=ctx.createGain(),dest=audioOutput();
+    o.type=type;
+    o.frequency.setValueAtTime(Math.max(20,freq),t);
+    if(endFreq&&endFreq>0)o.frequency.exponentialRampToValueAtTime(Math.max(20,endFreq),t+duration);
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.linearRampToValueAtTime(volume,t+.004);
+    g.gain.exponentialRampToValueAtTime(.0001,t+duration);
+    o.connect(g);if(dest)g.connect(dest);
+    o.start(t);o.stop(t+duration+.012);
+    return true;
+  }catch{return false;}
+}
+function playUIButtonSound(kind='normal'){
+  if(!soundIsEnabled())return;
+  primeAudioFromGesture();
+  switch(kind){
+    case 'number':
+      playOscTone(1080,.043,.050,'triangle',510,0);
+      playOscTone(1540,.030,.018,'sine',920,.002);
+      break;
+    case 'confirm':
+      playOscTone(560,.075,.044,'sine',720,0);
+      playOscTone(880,.090,.032,'triangle',1120,.045);
+      break;
+    case 'danger':
+      playOscTone(300,.085,.047,'triangle',175,0);
+      playOscTone(760,.045,.018,'sine',430,.010);
+      break;
+    case 'close':
+      playOscTone(520,.060,.038,'triangle',310,0);
+      break;
+    case 'adjust':
+      playOscTone(1280,.040,.040,'triangle',720,0);
+      break;
+    case 'toggle':
+      playOscTone(720,.052,.038,'sine',940,0);
+      break;
+    case 'nav':
+      playOscTone(650,.055,.036,'triangle',790,0);
+      playOscTone(980,.045,.018,'sine',1120,.035);
+      break;
+    default:
+      playOscTone(760,.052,.038,'triangle',500,0);
+  }
+}
+function uiSoundKind(el){
+  const node=el?.closest?.('.cancel-num,button,[role="button"],input.switch');
+  if(!node)return null;
+  if(node.disabled)return null;
+  if(node.classList?.contains('cancel-num'))return 'danger';
+  if(node.classList?.contains('num'))return 'number';
+  if(node.matches?.('input.switch'))return 'toggle';
+  const s=((node.id||'')+' '+(node.className||'')+' '+(node.textContent||'')+' '+(node.getAttribute?.('aria-label')||'')).toLowerCase();
+  if(/eliminar|borrar|rechazar|bloquear|cancelar|retirar/.test(s))return 'danger';
+  if(/cerrar|volver|atrás|atras|close/.test(s)||node.classList?.contains('close'))return 'close';
+  if(/guardar|confirm|enviar|aceptar|aprobar|actualizar|registr|iniciar|solicitar|recargar|transfer|crear|cambiar|pagar/.test(s))return 'confirm';
+  const label=String(node.textContent||'').trim();
+  if(node.id==='stakeUp'||node.id==='stakeDown'||label==='+'||label==='−'||label==='-')return 'adjust';
+  if(/perfil|saldo|ajustes|config|historial|promotor|admin|info|invitar|grupo|buscar|panel/.test(s))return 'nav';
+  return 'normal';
+}
+function onImmediateControlPress(e){
+  if(!soundIsEnabled())return;
+  // Se ejecuta en pointerdown/touchstart: no espera click, red ni Supabase.
+  primeAudioFromGesture();
+  const kind=uiSoundKind(e.target);if(kind)playUIButtonSound(kind);
+}
+const immediatePressEvent=('PointerEvent' in window)?'pointerdown':'touchstart';
+document.addEventListener(immediatePressEvent,onImmediateControlPress,{passive:true,capture:true});
+document.addEventListener('keydown',e=>{
+  if(!soundIsEnabled()||!['Enter',' '].includes(e.key))return;
+  const kind=uiSoundKind(e.target);if(kind){primeAudioFromGesture();playUIButtonSound(kind);}
+},{capture:true});
+
+function trackRouletteNode(n){if(n)rouletteAudioNodes.push(n);return n;}
+function untrackRouletteNode(n){const i=rouletteAudioNodes.indexOf(n);if(i>=0)rouletteAudioNodes.splice(i,1);}
+function stopRouletteAudio(){
+  clearTimeout(audioTickTimer);audioTickTimer=null;
+  const nodes=rouletteAudioNodes.splice(0);
+  for(const n of nodes){try{n.onended=null;n.stop();}catch{}}
+}
+function getRouletteNoiseBuffer(){
+  const ctx=getAudioContext();if(!ctx)return null;
+  if(rouletteNoiseBuffer&&rouletteNoiseBuffer.sampleRate===ctx.sampleRate)return rouletteNoiseBuffer;
+  const length=Math.max(1,Math.floor(ctx.sampleRate*.75));
+  const b=ctx.createBuffer(1,length,ctx.sampleRate),a=b.getChannelData(0);
+  let last=0;
+  for(let i=0;i<length;i++){
+    const white=Math.random()*2-1;
+    last=(last*.72)+(white*.28);
+    a[i]=last*.82;
+  }
+  rouletteNoiseBuffer=b;return b;
+}
+function scheduleRouletteTickAt(when,level=.060){
+  if(!webAudioRunning()||!soundIsEnabled())return;
+  try{
+    const ctx=audioCtx,t=Math.max(ctx.currentTime+.001,when),dest=audioOutput();
+    const o=trackRouletteNode(ctx.createOscillator()),o2=trackRouletteNode(ctx.createOscillator()),g=ctx.createGain();
+    o.type='triangle';o2.type='sine';
+    o.frequency.setValueAtTime(980,t);o.frequency.exponentialRampToValueAtTime(390,t+.045);
+    o2.frequency.setValueAtTime(1650,t);o2.frequency.exponentialRampToValueAtTime(820,t+.030);
+    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(level,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.052);
+    o.connect(g);o2.connect(g);if(dest)g.connect(dest);
+    o.onended=()=>untrackRouletteNode(o);o2.onended=()=>untrackRouletteNode(o2);
+    o.start(t);o2.start(t);o.stop(t+.058);o2.stop(t+.058);
+  }catch{}
+}
+function startRouletteAudio(totalMs){
+  if(!webAudioRunning()||!soundIsEnabled())return false;
+  stopRouletteAudio();
+  const ctx=audioCtx,dest=audioOutput(),total=Math.max(2500,Number(totalMs)||8000),sec=total/1000,base=ctx.currentTime+.015;
+  try{
+    // Un solo rrrrr continuo: mucho más estable en Safari/iPhone que cientos de microsonidos.
+    const noise=trackRouletteNode(ctx.createBufferSource()),filter=ctx.createBiquadFilter(),rattleGain=ctx.createGain();
+    const lfo=trackRouletteNode(ctx.createOscillator()),lfoDepth=ctx.createGain();
+    noise.buffer=getRouletteNoiseBuffer();noise.loop=true;
+    filter.type='bandpass';filter.Q.value=1.35;
+    filter.frequency.setValueAtTime(1250,base);filter.frequency.exponentialRampToValueAtTime(520,base+Math.max(.5,sec*.64));
+    rattleGain.gain.setValueAtTime(.0001,base);
+    rattleGain.gain.linearRampToValueAtTime(.052,base+.055);
+    rattleGain.gain.setValueAtTime(.045,base+Math.min(sec*.17,.95));
+    rattleGain.gain.exponentialRampToValueAtTime(.012,base+Math.max(.7,sec*.58));
+    rattleGain.gain.exponentialRampToValueAtTime(.0001,base+Math.max(.9,sec-.10));
+    lfo.type='sine';lfo.frequency.setValueAtTime(30,base);lfo.frequency.exponentialRampToValueAtTime(8.5,base+Math.max(.7,sec*.58));
+    lfoDepth.gain.setValueAtTime(.020,base);lfoDepth.gain.exponentialRampToValueAtTime(.004,base+Math.max(.7,sec*.58));
+    noise.connect(filter);filter.connect(rattleGain);if(dest)rattleGain.connect(dest);
+    lfo.connect(lfoDepth);lfoDepth.connect(rattleGain.gain);
+    noise.onended=()=>untrackRouletteNode(noise);lfo.onended=()=>untrackRouletteNode(lfo);
+    noise.start(base);noise.stop(base+sec-.06);lfo.start(base);lfo.stop(base+Math.max(.7,sec*.60));
+  }catch{}
+
+  // Ta-ta-ta progresivo. Se programa con el reloj de Web Audio, no con decenas
+  // de setTimeout, para que los golpes no "troten" en iPhone.
+  let elapsed=Math.max(520,total*.18),guard=0;
+  while(elapsed<total-90&&guard<48){
+    const p=Math.max(0,Math.min(1,elapsed/total));
+    scheduleRouletteTickAt(base+elapsed/1000,.067-p*.016);
+    const delay=64+Math.pow(p,2.35)*330;
+    elapsed+=delay;guard++;
+  }
+  audioTickTimer=setTimeout(()=>{audioTickTimer=null;},total+250);
+  return true;
 }
 function getSpinDurationSeconds(){
   const raw=Number(settings?.spin_duration_seconds||8);
   return Math.max(3,Math.min(20,Number.isFinite(raw)?raw:8));
 }
-async function playRouletteSound(durationMs=getSpinDurationSeconds()*1000){
+function playRouletteSound(durationMs=getSpinDurationSeconds()*1000){
   if(!soundIsEnabled())return;
-  if(!(await unlockAudio()))return;
-  clearTimeout(audioTickTimer);
-  const started=performance.now(),total=Math.max(2500,Number(durationMs)||8000);
-  const tick=()=>{
-    if(!soundIsEnabled()||audioCtx?.state!=='running')return;
-    const elapsed=performance.now()-started;
-    if(elapsed>=total)return;
-    rouletteClick();
-    const progress=Math.max(0,Math.min(1,elapsed/total));
-    const delay=42+Math.pow(progress,2.15)*210;
-    audioTickTimer=setTimeout(tick,delay);
+  const total=Math.max(2500,Number(durationMs)||8000);
+  if(webAudioRunning()){startRouletteAudio(total);return;}
+  // Normalmente ya está desbloqueado por el toque de apuesta. Si Safari lo
+  // suspendió, intentamos recuperarlo sin alterar la lógica de la ruleta.
+  unlockAudio().then(ok=>{if(ok&&soundIsEnabled())startRouletteAudio(total);}).catch(()=>{});
+}
+function playRouletteLandingSound(){
+  if(!soundIsEnabled())return;
+  stopRouletteAudio();
+  const fire=()=>{
+    // "PRUM" final: golpe grave + clic metálico exactamente al caer.
+    playOscTone(155,.180,.095,'sine',72,0);
+    playOscTone(760,.095,.065,'triangle',310,.004);
+    playOscTone(1540,.060,.032,'sine',720,.012);
   };
-  tick();
+  if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire();}).catch(()=>{});
 }
 function coinChime(delay=0,freq=1300,volume=.055){
-  if(!audioCtx||audioCtx.state!=='running'||!soundIsEnabled())return;
-  const t=audioCtx.currentTime+delay;
-  const o=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();
-  o.type='sine';o2.type='triangle';
-  o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(freq*1.55,t+.16);
-  o2.frequency.setValueAtTime(freq*2.03,t);o2.frequency.exponentialRampToValueAtTime(freq*1.35,t+.20);
-  g.gain.setValueAtTime(.001,t);g.gain.linearRampToValueAtTime(volume,t+.008);g.gain.exponentialRampToValueAtTime(.001,t+.28);
-  o.connect(g);o2.connect(g);g.connect(audioCtx.destination);o.start(t);o2.start(t);o.stop(t+.30);o2.stop(t+.30);
+  if(!soundIsEnabled())return;
+  const ctx=getAudioContext();if(!ctx)return;
+  const make=()=>{
+    try{
+      const t=ctx.currentTime+Math.max(0,delay),o=ctx.createOscillator(),o2=ctx.createOscillator(),g=ctx.createGain(),dest=audioOutput();
+      o.type='sine';o2.type='triangle';
+      o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(freq*1.55,t+.16);
+      o2.frequency.setValueAtTime(freq*2.03,t);o2.frequency.exponentialRampToValueAtTime(freq*1.35,t+.20);
+      g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(volume,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.28);
+      o.connect(g);o2.connect(g);if(dest)g.connect(dest);o.start(t);o2.start(t);o.stop(t+.30);o2.stop(t+.30);
+    }catch{}
+  };
+  if(ctx.state==='running')make();else unlockAudio().then(ok=>{if(ok)make();}).catch(()=>{});
 }
-async function playWinnerSound(){
-  if(!soundIsEnabled()||!(await unlockAudio()))return;
-  const notes=[1046,1318,1568,2093,1568,2349,2093,2637];
-  notes.forEach((f,i)=>coinChime(i*.075,f,.045+(i%3)*.006));
-  setTimeout(()=>{[1760,2093,2637,3136].forEach((f,i)=>coinChime(i*.055,f,.05));},620);
+function playWinnerSound(){
+  if(!soundIsEnabled())return;
+  const fire=()=>{
+    // Golpe de victoria "pum" + firma elegante del panel ¡GANASTE!.
+    playOscTone(185,.210,.085,'sine',82,0);
+    playOscTone(620,.100,.040,'triangle',980,.015);
+    [1046,1318,1568,2093].forEach((f,i)=>coinChime(.085+i*.095,f,.050+i*.004));
+    [1760,2093,2637].forEach((f,i)=>coinChime(.560+i*.085,f,.054));
+  };
+  if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire();}).catch(()=>{});
 }
-async function playBalanceCreditSound(){
-  if(!soundIsEnabled()||!(await unlockAudio()))return;
-  [1180,1360,1580,1830,2140,2480].forEach((f,i)=>coinChime(i*.065,f,.042+(i%2)*.006));
+function playBalanceCreditSound(delayMs=0){
+  if(!soundIsEnabled())return;
+  const base=Math.max(0,Number(delayMs)||0)/1000;
+  const fire=()=>{
+    // Monedas entrando + "cling" final de acreditación.
+    [1320,1540,1810,2140].forEach((f,i)=>coinChime(base+i*.070,f,.044+i*.003));
+    coinChime(base+.315,2860,.065);
+  };
+  if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire();}).catch(()=>{});
 }
 async function playSoundTest(){
   if(!(await unlockAudio()))return false;
-  [880,1175,1568].forEach((f,i)=>coinChime(i*.08,f,.05));return true;
+  playUIButtonSound('confirm');
+  coinChime(.12,1320,.045);coinChime(.21,1760,.050);return true;
 }
 function animateCoinsToBalance(sourceEl=null){
   const target=$('balanceBtn');if(!target)return;
@@ -699,9 +895,10 @@ function showWinnerCelebration(winner,prize){
   setTimeout(()=>layer.classList.remove('show'),3000);
 }
 
-['pointerdown','touchstart','keydown'].forEach(evt=>document.addEventListener(evt,()=>{if(soundIsEnabled())unlockAudio().catch(()=>{});},{passive:true,capture:true}));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&soundIsEnabled())unlockAudio().catch(()=>{});});
-window.addEventListener('pageshow',()=>{if(soundIsEnabled())unlockAudio().catch(()=>{});});
+// El interruptor de sonido necesita preparar Safari justo en el toque que lo activa.
+$('soundSwitch').addEventListener(immediatePressEvent,()=>primeAudioFromGesture(true),{passive:true,capture:true});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRouletteAudio();});
+window.addEventListener('pageshow',()=>{if(soundIsEnabled()&&audioCtx?.state==='suspended')audioCtx.resume().catch(()=>{});});
 
 async function copyText(text,label='Copiado'){
   const value=String(text||'');
@@ -804,6 +1001,7 @@ async function showLatestResult(){
   playRouletteSound(spinMs);
 
   await new Promise(resolve=>setTimeout(resolve,spinMs));
+  playRouletteLandingSound();
   $('centerNumber').textContent=winner;
 
   // Actualizamos los datos reales en memoria, pero mientras haya un premio
@@ -827,7 +1025,7 @@ async function showLatestResult(){
     // Primero aparece GANASTE. Después las monedas salen de esa tarjeta y
     // el saldo principal sube visualmente hasta reflejar el premio.
     await new Promise(resolve=>setTimeout(resolve,320));
-    playBalanceCreditSound();
+    playBalanceCreditSound(700);
     animateCoinsToBalance(document.querySelector('#winFlash .win-card'));
     await animateBalanceIncrease(startBalance,targetForPrize,1450);
 
@@ -948,7 +1146,7 @@ $('soundSwitch').addEventListener('change',async()=>{
   soundLocalOverride=enabled;
   localStorage.setItem(SOUND_LOCAL_KEY,enabled?'1':'0');
   if(me)me.sound_enabled=enabled;
-  if(!enabled){clearTimeout(audioTickTimer);return void sb.rpc('rf_set_sound_enabled',{p_enabled:false}).catch(()=>{});}
+  if(!enabled){stopRouletteAudio();return void sb.rpc('rf_set_sound_enabled',{p_enabled:false}).catch(()=>{});}
 
   // En Safari/iPhone el AudioContext debe reanudarse dentro del toque del usuario.
   const ok=await unlockAudio();
@@ -1114,7 +1312,7 @@ async function processTransferQueue(){
       const senderWhatsapp=n.sender_whatsapp||n.promoter_whatsapp||'No configurado';
       $('incomingTransferContent').innerHTML=`<div class="transfer-confirm-card"><div class="receipt-coin"><span class="fc-coin"></span></div><h3>Transferencia confirmada</h3><div class="tiny" style="text-align:center">El dinero ya entró a tu saldo Flash Coin</div><div class="transfer-amount">+${money(n.amount)} FC</div><div class="transfer-line"><span>Origen</span><b>${esc(senderLabel)}</b></div><div class="transfer-line"><span>Nombre</span><b>${esc(senderName)}</b></div><div class="transfer-line"><span>ID origen</span><b>${esc(senderPublicId)}</b></div>${senderRole==='admin_wallet'?'':`<div class="transfer-line"><span>WhatsApp</span><b>${esc(senderWhatsapp)}</b></div>`}<div class="transfer-line"><span>Comprobante</span><b>FC${String(n.receipt_id||'').padStart(10,'0')}</b></div><div class="transfer-line"><span>Fecha</span><b>${esc(dt.toLocaleDateString('es-DO'))} ${esc(dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}))}</b></div><div class="transfer-line"><span>Saldo resultante</span><b>${money(n.balance_after)} FC</b></div></div>`;
       show('incomingTransferPanel');
-      playBalanceCreditSound();animateCoinsToBalance();
+      playBalanceCreditSound(700);animateCoinsToBalance();
       await animateBalanceIncrease(startBalance,targetBalance,1350);
       await loadMe().catch(()=>{});renderMe();
       await sb.rpc('rf_mark_promoter_transfer_read',{p_notification_id:Number(n.notification_id)}).catch(()=>{});
@@ -1490,7 +1688,7 @@ async function processTransferRequestEventQueue(){
           renderMe();
           const target=Number(me?.balance);
           if(Number.isFinite(target)&&target>oldVisible){
-            playBalanceCreditSound();
+            playBalanceCreditSound(700);
             animateCoinsToBalance();
             await animateBalanceIncrease(oldVisible,target,1100).catch(()=>{});
           }
