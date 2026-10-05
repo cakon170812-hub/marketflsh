@@ -814,57 +814,21 @@ function scheduleRouletteTickAt(when,level=.060){
 function startRouletteAudio(totalMs){
   if(!webAudioRunning()||!soundIsEnabled())return false;
   stopRouletteAudio();
-  const ctx=audioCtx,dest=audioOutput();
+  const ctx=audioCtx;
   const total=Math.max(2500,Math.min(20000,Number(totalMs)||8000));
-  const sec=total/1000,base=ctx.currentTime+.004;
+  const base=ctx.currentTime+.004;
 
-  // "rrrrrr" CONTINUO DURANTE TODO EL GIRO.
-  // Empieza prácticamente junto con el movimiento y se mantiene audible hasta
-  // el instante exacto en que la ruleta se detiene. Los ta-ta-ta se superponen
-  // durante la desaceleración, pero nunca sustituyen ni apagan el rrrrrr.
-  try{
-    const noise=trackRouletteNode(ctx.createBufferSource()),filter=ctx.createBiquadFilter(),rattleGain=ctx.createGain();
-    const lfo=trackRouletteNode(ctx.createOscillator()),lfoDepth=ctx.createGain();
-    noise.buffer=getRouletteNoiseBuffer();noise.loop=true;
-    filter.type='bandpass';filter.Q.value=1.15;
-    filter.frequency.setValueAtTime(1420,base);
-    filter.frequency.exponentialRampToValueAtTime(470,base+Math.max(.8,sec-.02));
-
-    const strongEnd=Math.max(.55,sec*.42);
-    const tickEntry=Math.max(.75,sec*.58);
-    rattleGain.gain.setValueAtTime(.0001,base);
-    rattleGain.gain.linearRampToValueAtTime(.060,base+.045);
-    rattleGain.gain.setValueAtTime(.054,base+strongEnd);
-    rattleGain.gain.linearRampToValueAtTime(.032,base+tickEntry);
-    // Sigue claramente audible hasta el final del giro; solo hace un cierre
-    // de unos milisegundos para evitar un clic digital cuando entra el PRUM.
-    rattleGain.gain.linearRampToValueAtTime(.022,base+Math.max(tickEntry+.10,sec-.015));
-    rattleGain.gain.exponentialRampToValueAtTime(.0001,base+sec);
-
-    lfo.type='sine';
-    lfo.frequency.setValueAtTime(34,base);
-    lfo.frequency.exponentialRampToValueAtTime(6.2,base+Math.max(.9,sec-.02));
-    lfoDepth.gain.setValueAtTime(.018,base);
-    lfoDepth.gain.exponentialRampToValueAtTime(.0045,base+Math.max(.9,sec-.02));
-
-    noise.connect(filter);filter.connect(rattleGain);if(dest)rattleGain.connect(dest);
-    lfo.connect(lfoDepth);lfoDepth.connect(rattleGain.gain);
-    noise.onended=()=>untrackRouletteNode(noise);lfo.onended=()=>untrackRouletteNode(lfo);
-    noise.start(base);noise.stop(base+sec);
-    lfo.start(base);lfo.stop(base+sec);
-  }catch{}
-
-  // Los "ta-ta-ta" empiezan al 58 % del giro y se montan ENCIMA del rrrrrr.
-  // Así 3 s, 8 s, 15 s o 20 s mantienen la misma progresión hasta el final.
-  const tickStart=Math.max(650,total*.58);
-  const tickWindow=Math.max(1,total-tickStart);
-  let elapsed=tickStart,guard=0;
-  while(elapsed<total-95&&guard<80){
-    const p=Math.max(0,Math.min(1,(elapsed-tickStart)/tickWindow));
-    const level=.070-(p*.017);
+  // ÚNICO sonido durante el giro: “ti-ti-ti”.
+  // No hay rrrrrr, ruido continuo ni cama de fondo. Los ti-ti-ti empiezan
+  // junto con la ruleta y se separan progresivamente conforme desacelera.
+  let elapsed=0,guard=0;
+  while(elapsed<total-70&&guard<180){
+    const p=Math.max(0,Math.min(1,elapsed/total));
+    const level=.074-(p*.018);
     scheduleRouletteTickAt(base+elapsed/1000,level);
-    const delay=78+Math.pow(p,2.35)*420;
-    elapsed+=delay;guard++;
+    const delay=62+Math.pow(p,2.40)*390;
+    elapsed+=delay;
+    guard++;
   }
   audioTickTimer=setTimeout(()=>{audioTickTimer=null;},total+220);
   return true;
