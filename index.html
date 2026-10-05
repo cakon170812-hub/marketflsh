@@ -835,6 +835,7 @@ async function tickRoulette(){
       await showLatestResult();
 
       // Solo después de terminar GANASTE se prepara la selección de la nueva ronda.
+      // El starts_at del servidor reserva el tiempo completo de apuestas después de esta secuencia.
       const auto=await sb.rpc('rf_apply_saved_plays',{p_round_id:currentRound.id});
       await Promise.all([loadMe(),loadBets()]);
       renderMe();
@@ -917,15 +918,34 @@ function spinTo(winner){
   return Math.round(duration*1000);
 }
 
+function roundSelectionOpen(){
+  if(!currentRound||roundRevealBusy)return false;
+  const now=Date.now()+clockOffset;
+  const starts=new Date(currentRound.starts_at).getTime();
+  const ends=new Date(currentRound.ends_at).getTime();
+  return now>=starts&&now<ends;
+}
 function roundSecondsLeft(){
   if(!currentRound)return 0;
-  return Math.max(0,Math.ceil((new Date(currentRound.ends_at).getTime()-(Date.now()+clockOffset))/1000));
+  const now=Date.now()+clockOffset;
+  const starts=new Date(currentRound.starts_at).getTime();
+  const ends=new Date(currentRound.ends_at).getTime();
+  // Antes de abrir la selección, conservamos el tiempo completo de la ronda.
+  if(now<starts)return Math.max(0,Math.ceil((ends-starts)/1000));
+  return Math.max(0,Math.ceil((ends-now)/1000));
 }
 function updateCountdown(){
   if(!currentRound)return;
+  const now=Date.now()+clockOffset;
+  const starts=new Date(currentRound.starts_at).getTime();
   const left=roundSecondsLeft();
-  $('countdown').textContent=left;
-  const locked=roundRevealBusy||left<=0;
+  if(now<starts){
+    const untilOpen=Math.max(0,Math.ceil((starts-now)/1000));
+    $('countdown').textContent=untilOpen>0?untilOpen:left;
+  }else{
+    $('countdown').textContent=left;
+  }
+  const locked=!roundSelectionOpen()||left<=0;
   document.querySelectorAll('.num').forEach(b=>b.disabled=locked);
 }
 function startLoop(){
@@ -949,7 +969,7 @@ async function loadBets(){
 }
 
 function queueBet(n){
-  if(roundRevealBusy||!currentRound||roundSecondsLeft()<=0)return;
+  if(!roundSelectionOpen())return;
   betQueues[n]=(betQueues[n]||Promise.resolve()).then(()=>placeBetOnce(n)).catch(e=>alert(errText(e)));
 }
 
@@ -957,18 +977,25 @@ async function placeBetOnce(n){
   const amount=Number($('stakeInput').value);
   const minimum=Number(settings?.min_bet||0.01);
   if(!Number.isFinite(amount)||amount<minimum){alert(`Mínimo ${money(minimum)} FC`);return;}
-  const selectedTotal=Object.values(myBets||{}).reduce((sum,b)=>sum+Number(b?.amount||0),0);
-  if(!me||selectedTotal+amount>Number(me.balance)){alert('Tu selección supera el saldo disponible.');return;}
-  if(roundRevealBusy||roundSecondsLeft()<=0){alert('La ronda está cerrando. Espera la próxima.');return;}
+  if(!roundSelectionOpen()){alert('La ronda está cerrando. Espera la próxima.');return;}
+
+  // No usamos el saldo guardado en pantalla para decidir si puede apostar.
+  // Supabase valida de forma atómica el saldo REAL y las selecciones ya preparadas.
   const {error}=await sb.rpc('rf_place_bet',{p_number:n,p_amount:amount});
-  if(error){alert(errText(error));return;}
+  if(error){
+    // Refrescamos pantalla y selecciones para que nunca aparezca un aviso por datos viejos.
+    await Promise.all([loadMe().catch(()=>{}),loadBets().catch(()=>{})]);
+    renderMe();
+    alert(errText(error));
+    return;
+  }
   // Aquí solo se guarda la selección. El saldo NO se descuenta todavía.
   await loadBets();
   $('resultText').textContent='Selección preparada · el saldo se descontará cuando arranque la ruleta.';
 }
 
 async function cancelNumber(n){
-  if(roundRevealBusy||roundSecondsLeft()<=0)return alert('La ronda está cerrando.');
+  if(!roundSelectionOpen())return alert('La ronda está cerrando.');
   const {data,error}=await sb.rpc('rf_cancel_bet_number',{p_number:n});
   if(error)return alert(errText(error));
   if(Number(data)>0){
@@ -2005,7 +2032,7 @@ buildWheel();
 })().catch(e=>msg('authMsg',errText(e)));
 </script>
 
-<!-- V1.5: audio Safari con respaldo, historial/notificaciones de promotores y apuestas descontadas al arrancar el giro; premios acreditados visualmente al cerrar GANASTE. -->
+<!-- V1.5 CORREGIDO FINAL: conserva V1.5 y corrige apertura de botones/tiempo completo de ronda y validación de saldo real. -->
 </body>
 </html>
 
