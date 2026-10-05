@@ -816,42 +816,45 @@ function startRouletteAudio(totalMs){
   stopRouletteAudio();
   const ctx=audioCtx,dest=audioOutput();
   const total=Math.max(2500,Math.min(20000,Number(totalMs)||8000));
-  const sec=total/1000,base=ctx.currentTime+.020;
+  const sec=total/1000,base=ctx.currentTime+.004;
 
-  // Cama mecánica continua "rrrrrr". No se corta a mitad de una vuelta larga:
-  // se mantiene viva durante TODO el giro y solo baja de volumen al entrar los
-  // golpes finales. Esto evita que a 15–20 s parezca que el sonido se apagó.
+  // "rrrrrr" CONTINUO DURANTE TODO EL GIRO.
+  // Empieza prácticamente junto con el movimiento y se mantiene audible hasta
+  // el instante exacto en que la ruleta se detiene. Los ta-ta-ta se superponen
+  // durante la desaceleración, pero nunca sustituyen ni apagan el rrrrrr.
   try{
     const noise=trackRouletteNode(ctx.createBufferSource()),filter=ctx.createBiquadFilter(),rattleGain=ctx.createGain();
     const lfo=trackRouletteNode(ctx.createOscillator()),lfoDepth=ctx.createGain();
     noise.buffer=getRouletteNoiseBuffer();noise.loop=true;
     filter.type='bandpass';filter.Q.value=1.15;
     filter.frequency.setValueAtTime(1420,base);
-    filter.frequency.exponentialRampToValueAtTime(470,base+Math.max(.8,sec-.18));
+    filter.frequency.exponentialRampToValueAtTime(470,base+Math.max(.8,sec-.02));
 
     const strongEnd=Math.max(.55,sec*.42);
     const tickEntry=Math.max(.75,sec*.58);
     rattleGain.gain.setValueAtTime(.0001,base);
-    rattleGain.gain.linearRampToValueAtTime(.060,base+.060);
+    rattleGain.gain.linearRampToValueAtTime(.060,base+.045);
     rattleGain.gain.setValueAtTime(.054,base+strongEnd);
-    rattleGain.gain.linearRampToValueAtTime(.028,base+tickEntry);
-    rattleGain.gain.exponentialRampToValueAtTime(.008,base+Math.max(tickEntry+.2,sec-.28));
-    rattleGain.gain.exponentialRampToValueAtTime(.0001,base+Math.max(.9,sec-.06));
+    rattleGain.gain.linearRampToValueAtTime(.032,base+tickEntry);
+    // Sigue claramente audible hasta el final del giro; solo hace un cierre
+    // de unos milisegundos para evitar un clic digital cuando entra el PRUM.
+    rattleGain.gain.linearRampToValueAtTime(.022,base+Math.max(tickEntry+.10,sec-.015));
+    rattleGain.gain.exponentialRampToValueAtTime(.0001,base+sec);
 
     lfo.type='sine';
     lfo.frequency.setValueAtTime(34,base);
-    lfo.frequency.exponentialRampToValueAtTime(6.2,base+Math.max(.9,sec-.20));
+    lfo.frequency.exponentialRampToValueAtTime(6.2,base+Math.max(.9,sec-.02));
     lfoDepth.gain.setValueAtTime(.018,base);
-    lfoDepth.gain.exponentialRampToValueAtTime(.003,base+Math.max(.9,sec-.20));
+    lfoDepth.gain.exponentialRampToValueAtTime(.0045,base+Math.max(.9,sec-.02));
 
     noise.connect(filter);filter.connect(rattleGain);if(dest)rattleGain.connect(dest);
     lfo.connect(lfoDepth);lfoDepth.connect(rattleGain.gain);
     noise.onended=()=>untrackRouletteNode(noise);lfo.onended=()=>untrackRouletteNode(lfo);
-    noise.start(base);noise.stop(base+sec-.045);
-    lfo.start(base);lfo.stop(base+sec-.045);
+    noise.start(base);noise.stop(base+sec);
+    lfo.start(base);lfo.stop(base+sec);
   }catch{}
 
-  // Los "ta-ta-ta" empiezan al 58 % del giro, no con un número fijo de golpes.
+  // Los "ta-ta-ta" empiezan al 58 % del giro y se montan ENCIMA del rrrrrr.
   // Así 3 s, 8 s, 15 s o 20 s mantienen la misma progresión hasta el final.
   const tickStart=Math.max(650,total*.58);
   const tickWindow=Math.max(1,total-tickStart);
