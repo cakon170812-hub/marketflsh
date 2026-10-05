@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML V1.1</title>
+<title>Ruleta Flash Coin — HTML V1.4</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -22,7 +22,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .roundbar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:8px}.round-meta{font-size:11px;color:#d1d7e0}.round-meta.right{text-align:right}.timer{min-width:80px;text-align:center;border-radius:14px;padding:8px;background:#070b11;border:1px solid #5e4b20;color:#ffd65b;font-size:24px;font-weight:950;box-shadow:0 0 16px rgba(255,166,0,.18)}
 .wheel-wrap{position:relative;width:min(82vw,360px);aspect-ratio:1;margin:5px auto 9px}.pointer{position:absolute;z-index:30;top:-6px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-top:35px solid #ffe168;filter:drop-shadow(0 0 7px #ff9800)}
 .wheel-shell{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(#ffdc72 0deg 3deg,#765000 3deg 6deg);box-shadow:0 0 0 4px #382200,0 0 25px rgba(255,160,0,.75),0 0 55px rgba(20,111,255,.25)}.wheel-shell:after{content:"";position:absolute;inset:7%;border-radius:50%;background:#05070c;box-shadow:inset 0 0 22px #000}
-.wheel{position:absolute;z-index:5;inset:8.5%;border-radius:50%;border:3px solid #e3ad3b;background:conic-gradient(from -13.846deg,#0c9345 0deg 27.692deg,#b91e29 27.692deg 55.384deg,#11151d 55.384deg 83.076deg,#b91e29 83.076deg 110.768deg,#11151d 110.768deg 138.46deg,#b91e29 138.46deg 166.152deg,#11151d 166.152deg 193.844deg,#b91e29 193.844deg 221.536deg,#11151d 221.536deg 249.228deg,#b91e29 249.228deg 276.92deg,#11151d 276.92deg 304.612deg,#b91e29 304.612deg 332.304deg,#11151d 332.304deg 360deg);box-shadow:inset 0 0 25px #000;transition:transform 4.7s cubic-bezier(.11,.7,.1,1);will-change:transform}.wheel:after{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(from -13.846deg,transparent 0 26.7deg,rgba(255,224,140,.95) 26.7deg 27.692deg);pointer-events:none}
+.wheel{position:absolute;z-index:5;inset:8.5%;border-radius:50%;border:3px solid #e3ad3b;background:conic-gradient(from -13.846deg,#0c9345 0deg 27.692deg,#b91e29 27.692deg 55.384deg,#11151d 55.384deg 83.076deg,#b91e29 83.076deg 110.768deg,#11151d 110.768deg 138.46deg,#b91e29 138.46deg 166.152deg,#11151d 166.152deg 193.844deg,#b91e29 193.844deg 221.536deg,#11151d 221.536deg 249.228deg,#b91e29 249.228deg 276.92deg,#11151d 276.92deg 304.612deg,#b91e29 304.612deg 332.304deg,#11151d 332.304deg 360deg);box-shadow:inset 0 0 25px #000;transition:transform 8s cubic-bezier(.11,.7,.1,1);will-change:transform}.wheel:after{content:"";position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(from -13.846deg,transparent 0 26.7deg,rgba(255,224,140,.95) 26.7deg 27.692deg);pointer-events:none}
 .wn{position:absolute;left:50%;top:50%;width:38px;height:38px;margin:-19px;display:grid;place-items:center;font-weight:950;font-size:18px;text-shadow:0 2px 4px #000;z-index:7;transform:rotate(var(--a)) translateY(calc(-1 * min(24vw,104px))) rotate(calc(-1 * var(--a)))}
 .center{position:absolute;z-index:15;left:50%;top:50%;transform:translate(-50%,-50%);width:31%;aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff1a4,#c78113 28%,#5b3300 62%,#130900);border:3px solid #ffd45b;display:grid;place-items:center;box-shadow:0 0 18px #f29a00}.center b{width:60%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:#08090c;border:2px solid #c58c21;color:#ffdb67;font-size:29px}
 .result{text-align:center;min-height:42px;display:grid;place-items:center;border:1px solid #5f4c23;border-radius:12px;background:rgba(5,8,13,.92);color:#ffd76b;font-weight:900;margin:4px 0 9px;padding:7px}.rules{text-align:center;color:#d3d8e1;font-size:11px;margin-bottom:8px}
@@ -188,8 +188,8 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div class="section"><h3>Asignar promotores</h3><div class="row"><input id="adminPromId" class="field" inputmode="numeric" maxlength="6" placeholder="ID usuario"><button id="adminFindPromBtn" class="action blue">Buscar</button></div><div id="adminPromResult"></div></div>
 <div class="section"><h3>Comunicado</h3><label class="switch-line"><input id="adminNoticeEnabled" class="switch" type="checkbox"><span>Mostrar comunicado a los usuarios</span></label><textarea id="adminNotice" class="field" rows="3" placeholder="Escribe el comunicado..."></textarea><div class="row"><div><label class="tiny">Visible durante (segundos)</label><input id="adminNoticeVisible" class="field" type="number" min="1" max="3600" value="10"></div><div><label class="tiny">Reaparece cada (segundos)</label><input id="adminNoticeRepeat" class="field" type="number" min="1" max="86400" value="300"></div></div><button id="adminSaveNoticeBtn" class="action green">Guardar comunicado</button></div>
 <div class="section"><h3>Recarga por ID</h3><div class="row"><input id="adminRechargeId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminFindRechargeBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="adminRechargeUserResult"></div><input id="adminRechargeAmount" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="adminRechargeBtn" class="action green">Acreditar recarga</button></div>
-<div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Porcentaje global de pago (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración</button></div>
-<div class="section"><h3>Cambiar contraseña del panel</h3><input id="oldLeaderPass" class="field" type="password" placeholder="Contraseña actual"><input id="newLeaderPass" class="field" type="password" placeholder="Nueva contraseña"><button id="changeLeaderPassBtn" class="action dark">Cambiar contraseña</button></div><div id="adminMsg" class="msg"></div></div></div>
+<div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador de ronda (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Porcentaje global de pago (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">⏱ Duración visual del giro (segundos)</label><input id="adminSpinDuration" class="field" type="number" min="3" max="20" step="0.5" inputmode="decimal"><div class="tiny">Controla cuánto tiempo y cuántas vueltas da la ruleta antes de detenerse. No cambia el número ganador.</div><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración</button></div>
+<div class="section"><h3>Seguridad del panel</h3><label class="switch-line"><input id="leaderPasswordRequiredSwitch" class="switch" type="checkbox"><span>Solicitar contraseña al entrar al panel</span></label><div class="tiny">Si lo apagas, la contraseña no se elimina: el Administrador Líder autorizado entra directamente. Puedes volver a activarlo cuando quieras.</div><div id="leaderPasswordModeMsg" class="msg"></div><h3 style="margin-top:14px">Cambiar contraseña del panel</h3><input id="oldLeaderPass" class="field" type="password" placeholder="Contraseña actual"><input id="newLeaderPass" class="field" type="password" placeholder="Nueva contraseña"><button id="changeLeaderPassBtn" class="action dark">Cambiar contraseña</button></div><div id="adminMsg" class="msg"></div></div></div>
 
 
 <div id="adminWalletPanel" class="overlay"><div class="panel"><button class="close" data-close="adminWalletPanel">✕</button><h2>💼 Cartera Administrativa</h2><div class="card"><span class="tiny">Saldo disponible de administración</span><div class="wallet-main-balance"><span class="fc-coin"></span><strong id="adminWalletBalance">0.000 FC</strong></div><div class="wallet-id-line">ID de cartera: <b id="adminWalletPublicId">———</b><button id="copyAdminWalletIdBtn" type="button" class="copy-btn">Copiar</button></div><div class="tiny">Este saldo es independiente del saldo personal del Administrador Líder.</div></div><h3>Usuario / Promotor</h3><div class="row"><input id="adminWalletUserId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminWalletFindBtn" type="button" class="search-mini">🔎</button></div><div id="adminWalletUserResult"></div><input id="adminWalletAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="adminWalletSendBtn" class="action green">Enviar desde cartera</button><button id="adminWalletRequestBtn" class="action">Solicitar a usuario/promotor</button><button id="adminWalletWithdrawBtn" class="action red">Retirar saldo a esta cartera</button><div id="adminWalletMsg" class="msg"></div><h3>Historial de la cartera</h3><div id="adminWalletHistory" class="wallet-history"></div></div></div>
@@ -224,6 +224,9 @@ const refFromUrl=(new URLSearchParams(location.search).get('ref')||'').trim();
 if(/^\d{6}$/.test(refFromUrl))localStorage.setItem(REF_KEY,refFromUrl);
 let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedLeaderTransferUser=null,selectedAdminRechargeUser=null,selectedAdminWalletUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
 let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,audioUnlockPromise=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0,recoveryMode=false,pendingPromAction=null,promConfirmBusy=false;
+const SOUND_LOCAL_KEY='rf_sound_enabled_v13';
+let soundLocalOverride=localStorage.getItem(SOUND_LOCAL_KEY)===null?null:localStorage.getItem(SOUND_LOCAL_KEY)==='1';
+function soundIsEnabled(){return soundLocalOverride!==null?soundLocalOverride:(me?.sound_enabled!==false);}
 const transferQueue=[];const seenTransferNotifications=new Set();
 const betQueues={};
 const $=id=>document.getElementById(id);
@@ -506,7 +509,7 @@ function renderMe(){
   $('balancePublicId').textContent=me.public_id;
   $('repeatSwitch').checked=!!me.auto_repeat;
   $('fixedStakeSwitch').checked=!!me.fixed_stake_enabled;
-  $('soundSwitch').checked=me.sound_enabled!==false;
+  $('soundSwitch').checked=soundIsEnabled();
   $('flashSwitch').checked=me.flash_enabled!==false;
   if(me.fixed_stake_enabled&&Number(me.fixed_stake_amount)>0&&document.activeElement!==$('stakeInput'))$('stakeInput').value=money(Math.max(Number(me.fixed_stake_amount),Number(settings?.min_bet||0)));
   $('promoterBtn').classList.toggle('hidden',me.role!=='promoter');
@@ -530,6 +533,8 @@ function renderSettings(){
   $('adminSeconds').value=settings.round_seconds;
   $('adminMinBet').value=settings.min_bet;
   $('adminPayoutPct').value=settings.payout_probability;
+  if($('adminSpinDuration'))$('adminSpinDuration').value=Number(settings.spin_duration_seconds||8);
+  if($('leaderPasswordRequiredSwitch'))$('leaderPasswordRequiredSwitch').checked=settings.leader_password_required!==false;
   $('adminGroupUrl').value=settings.whatsapp_group_url||'';
   $('adminNotice').value=settings.public_notice||'';
   schedulePublicNotice();
@@ -610,20 +615,34 @@ async function unlockAudio(){
 }
 function ensureAudio(){unlockAudio().catch(()=>{});return audioCtx;}
 function rouletteClick(){
-  if(!audioCtx||audioCtx.state!=='running'||me?.sound_enabled===false)return;
+  if(!audioCtx||audioCtx.state!=='running'||!soundIsEnabled())return;
   const t=audioCtx.currentTime,o=audioCtx.createOscillator(),g=audioCtx.createGain();
   o.type='triangle';o.frequency.setValueAtTime(720,t);o.frequency.exponentialRampToValueAtTime(260,t+.055);
   g.gain.setValueAtTime(.045,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);
   o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+.065);
 }
-async function playRouletteSound(){
-  if(me?.sound_enabled===false)return;
+function getSpinDurationSeconds(){
+  const raw=Number(settings?.spin_duration_seconds||8);
+  return Math.max(3,Math.min(20,Number.isFinite(raw)?raw:8));
+}
+async function playRouletteSound(durationMs=getSpinDurationSeconds()*1000){
+  if(!soundIsEnabled())return;
   if(!(await unlockAudio()))return;
-  clearTimeout(audioTickTimer);let i=0;
-  const tick=()=>{if(i>=34||me?.sound_enabled===false||audioCtx?.state!=='running')return;rouletteClick();i++;audioTickTimer=setTimeout(tick,70+i*4);};tick();
+  clearTimeout(audioTickTimer);
+  const started=performance.now(),total=Math.max(2500,Number(durationMs)||8000);
+  const tick=()=>{
+    if(!soundIsEnabled()||audioCtx?.state!=='running')return;
+    const elapsed=performance.now()-started;
+    if(elapsed>=total)return;
+    rouletteClick();
+    const progress=Math.max(0,Math.min(1,elapsed/total));
+    const delay=42+Math.pow(progress,2.15)*210;
+    audioTickTimer=setTimeout(tick,delay);
+  };
+  tick();
 }
 function coinChime(delay=0,freq=1300,volume=.055){
-  if(!audioCtx||audioCtx.state!=='running'||me?.sound_enabled===false)return;
+  if(!audioCtx||audioCtx.state!=='running'||!soundIsEnabled())return;
   const t=audioCtx.currentTime+delay;
   const o=audioCtx.createOscillator(),o2=audioCtx.createOscillator(),g=audioCtx.createGain();
   o.type='sine';o2.type='triangle';
@@ -633,13 +652,13 @@ function coinChime(delay=0,freq=1300,volume=.055){
   o.connect(g);o2.connect(g);g.connect(audioCtx.destination);o.start(t);o2.start(t);o.stop(t+.30);o2.stop(t+.30);
 }
 async function playWinnerSound(){
-  if(me?.sound_enabled===false||!(await unlockAudio()))return;
+  if(!soundIsEnabled()||!(await unlockAudio()))return;
   const notes=[1046,1318,1568,2093,1568,2349,2093,2637];
   notes.forEach((f,i)=>coinChime(i*.075,f,.045+(i%3)*.006));
   setTimeout(()=>{[1760,2093,2637,3136].forEach((f,i)=>coinChime(i*.055,f,.05));},620);
 }
 async function playBalanceCreditSound(){
-  if(me?.sound_enabled===false||!(await unlockAudio()))return;
+  if(!soundIsEnabled()||!(await unlockAudio()))return;
   [1180,1360,1580,1830,2140,2480].forEach((f,i)=>coinChime(i*.065,f,.042+(i%2)*.006));
 }
 async function playSoundTest(){
@@ -680,7 +699,9 @@ function showWinnerCelebration(winner,prize){
   setTimeout(()=>layer.classList.remove('show'),3000);
 }
 
-['pointerdown','touchstart','keydown'].forEach(evt=>document.addEventListener(evt,()=>{unlockAudio().catch(()=>{});},{passive:true}));
+['pointerdown','touchstart','keydown'].forEach(evt=>document.addEventListener(evt,()=>{if(soundIsEnabled())unlockAudio().catch(()=>{});},{passive:true,capture:true}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&soundIsEnabled())unlockAudio().catch(()=>{});});
+window.addEventListener('pageshow',()=>{if(soundIsEnabled())unlockAudio().catch(()=>{});});
 
 async function copyText(text,label='Copiado'){
   const value=String(text||'');
@@ -779,9 +800,10 @@ async function showLatestResult(){
 
   $('resultText').textContent='La ruleta está girando...';
   setBetTotalVisible(false);
-  spinTo(winner);playRouletteSound();
+  const spinMs=spinTo(winner);
+  playRouletteSound(spinMs);
 
-  await new Promise(resolve=>setTimeout(resolve,4700));
+  await new Promise(resolve=>setTimeout(resolve,spinMs));
   $('centerNumber').textContent=winner;
 
   // Actualizamos los datos reales en memoria, pero mientras haya un premio
@@ -824,9 +846,15 @@ async function showLatestResult(){
 }
 
 function spinTo(winner){
+  const duration=getSpinDurationSeconds();
   const idx=WHEEL_ORDER.indexOf(winner),seg=360/13,current=((rotation%360)+360)%360,target=((360-idx*seg-current)%360+360)%360;
-  rotation+=360*5+target;
-  $('wheel').style.transform=`rotate(${rotation}deg)`;
+  const turns=Math.max(6,Math.round(duration*1.35));
+  rotation+=360*turns+target;
+  const wheel=$('wheel');
+  wheel.style.transitionDuration=`${duration}s`;
+  wheel.style.transitionTimingFunction='cubic-bezier(.08,.66,.08,1)';
+  wheel.style.transform=`rotate(${rotation}deg)`;
+  return Math.round(duration*1000);
 }
 
 function roundSecondsLeft(){
@@ -917,11 +945,21 @@ $('fixedStakeSwitch').addEventListener('change',async()=>{
 });
 $('soundSwitch').addEventListener('change',async()=>{
   const enabled=$('soundSwitch').checked;
-  if(enabled)await unlockAudio();
-  const {error}=await sb.rpc('rf_set_sound_enabled',{p_enabled:enabled});
-  if(error){$('soundSwitch').checked=!enabled;return alert(errText(error));}
+  soundLocalOverride=enabled;
+  localStorage.setItem(SOUND_LOCAL_KEY,enabled?'1':'0');
   if(me)me.sound_enabled=enabled;
-  if(enabled){const ok=await playSoundTest();if(!ok)alert('El navegador todavía bloquea el audio. Toca la pantalla una vez y vuelve a activar Sonido.');}
+  if(!enabled){clearTimeout(audioTickTimer);return void sb.rpc('rf_set_sound_enabled',{p_enabled:false}).catch(()=>{});}
+
+  // En Safari/iPhone el AudioContext debe reanudarse dentro del toque del usuario.
+  const ok=await unlockAudio();
+  if(ok)await playSoundTest();
+  else alert('No se pudo activar el audio del navegador. Revisa que Safari no esté bloqueando el sonido y toca Sonido de nuevo.');
+
+  const {error}=await sb.rpc('rf_set_sound_enabled',{p_enabled:true});
+  if(error){
+    // El sonido sigue activo localmente aunque falle guardar la preferencia en Supabase.
+    console.warn('No se pudo guardar la preferencia de sonido:',error);
+  }
 });
 $('flashSwitch').addEventListener('change',async()=>{
   const enabled=$('flashSwitch').checked;
@@ -1133,7 +1171,12 @@ async function promAction(kind){
 }
 
 $('leaderBtn').onclick=async()=>{
+  if(me?.role!=='leader')return alert('Solo el Administrador Líder puede entrar a este panel.');
   hide('settingsPanel');msg('leaderGateMsg','');
+  try{await loadSettings();}catch(e){return alert(errText(e));}
+  if(settings?.leader_password_required===false){
+    return openLeaderPanel();
+  }
   const {data,error}=await sb.rpc('rf_leader_has_password');
   if(error)return alert(errText(error));
   $('leaderFirstSetup').classList.toggle('hidden',!!data);
@@ -1272,8 +1315,8 @@ $('adminRechargeBtn').onclick=async()=>{
   showReceipt('Comprobante de recarga',receipt);
 };
 $('adminSaveSettingsBtn').onclick=async()=>{
-  const payload={p_round_seconds:Number($('adminSeconds').value),p_min_bet:Number($('adminMinBet').value),p_payout_probability:Number($('adminPayoutPct').value),p_whatsapp_group_url:$('adminGroupUrl').value.trim()};
-  const {data,error}=await sb.rpc('rf_admin_update_roulette_settings',payload);
+  const payload={p_round_seconds:Number($('adminSeconds').value),p_min_bet:Number($('adminMinBet').value),p_payout_probability:Number($('adminPayoutPct').value),p_spin_duration_seconds:Number($('adminSpinDuration').value),p_whatsapp_group_url:$('adminGroupUrl').value.trim()};
+  const {data,error}=await sb.rpc('rf_admin_update_roulette_settings_v14',payload);
   if(error)return msg('adminMsg',errText(error));
   settings=Array.isArray(data)?data[0]:data;renderSettings();msg('adminMsg','');
   showSaved('Guardado correctamente',()=>hide('leaderPanel'));
@@ -1285,6 +1328,17 @@ $('adminSaveNoticeBtn').onclick=async()=>{
   settings=Array.isArray(data)?data[0]:data;renderSettings();schedulePublicNotice(true);msg('adminMsg','');
   showSaved('Comunicado guardado',()=>hide('leaderPanel'));
 };
+$('leaderPasswordRequiredSwitch').addEventListener('change',async()=>{
+  const required=$('leaderPasswordRequiredSwitch').checked;
+  msg('leaderPasswordModeMsg','Guardando...');
+  const {data,error}=await sb.rpc('rf_leader_set_password_required_v14',{p_required:required});
+  if(error){
+    $('leaderPasswordRequiredSwitch').checked=!required;
+    return msg('leaderPasswordModeMsg',errText(error));
+  }
+  if(settings)settings.leader_password_required=required;
+  msg('leaderPasswordModeMsg',required?'Contraseña activada para el próximo acceso.':'Acceso directo activado. La contraseña sigue guardada.');
+});
 $('changeLeaderPassBtn').onclick=async()=>{
   const {error}=await sb.rpc('rf_leader_change_password',{p_old_password:$('oldLeaderPass').value,p_new_password:$('newLeaderPass').value});
   if(error)return msg('adminMsg',errText(error));
@@ -1386,7 +1440,7 @@ showReceipt=function(title,r){
 };
 
 async function playRequestAlertSound(){
-  if(me?.sound_enabled===false)return;
+  if(!soundIsEnabled())return;
   const ok=await unlockAudio();if(!ok||!audioCtx)return;
   [880,1175,1480].forEach((f,i)=>coinChime(i*.11,f,.045));
 }
@@ -1856,6 +1910,8 @@ buildWheel();
   });
 })().catch(e=>msg('authMsg',errText(e)));
 </script>
+
+<!-- V1.4: sonido reforzado en Safari/iPhone, contraseña del panel líder opcional mediante interruptor y duración visual del giro configurable desde administración. -->
 </body>
 </html>
 
