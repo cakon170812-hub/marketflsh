@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 0.6 CORREGIDO</title>
+<title>Ruleta Flash Coin — HTML V1.1</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -63,6 +63,16 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .request-receipt .request-title{font-size:18px;font-weight:950;color:#ffe17b}.request-receipt .request-state{display:inline-block;margin-top:7px;border-radius:999px;padding:5px 10px;font-size:10px;font-weight:900;border:1px solid #6d5520;color:#ffe28a;background:#211a09}
 .request-receipt .request-amount{text-align:center;font-size:34px;font-weight:950;color:#f5cb63;margin:14px 0}
 .request-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.action-confirm-flash{position:fixed;z-index:760;inset:0;display:none;pointer-events:none;background:radial-gradient(circle,rgba(255,226,101,.74),rgba(255,178,0,.24) 34%,rgba(0,0,0,0) 72%)}
+.action-confirm-flash.show{display:block;animation:actionConfirmFlash .19s ease-out}
+@keyframes actionConfirmFlash{0%{opacity:0;filter:brightness(1)}45%{opacity:1;filter:brightness(1.45)}100%{opacity:0;filter:brightness(1)}}
+.confirm-operation-card{background:linear-gradient(155deg,#17130b,#08090c 38%,#050608);border:1px solid rgba(238,193,86,.68);border-radius:22px;padding:17px;margin:10px 0;box-shadow:0 18px 58px rgba(0,0,0,.62)}
+.confirm-operation-card .confirm-icon{display:grid;place-items:center;margin:3px auto 9px}.confirm-operation-card .confirm-icon .fc-coin{width:58px;height:58px}
+.confirm-operation-card .confirm-amount{text-align:center;font-size:32px;font-weight:950;color:#f5cb63;margin:8px 0 13px}
+.confirm-operation-card .confirm-line{display:flex;justify-content:space-between;gap:14px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.confirm-operation-card .confirm-line:last-child{border-bottom:0}.confirm-operation-card .confirm-line span{font-size:10px;color:#999faa}.confirm-operation-card .confirm-line b{max-width:65%;text-align:right;font-size:12px;color:#fff;word-break:break-word}
+.email-confirm-card{text-align:center}.email-confirm-card .mail-icon{font-size:46px;margin:5px 0 10px}.email-confirm-card strong{color:#ffe07a}.email-confirm-card .tiny{line-height:1.45}
+
 .wallet-id-line{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;margin-top:6px;font-size:10px;color:#aeb7c5}
 .wallet-admin-card .wallet-id-line{justify-content:flex-start}
 .wallet-main-balance{display:flex;align-items:center;gap:9px;margin-top:5px}.wallet-main-balance .fc-coin{width:34px;height:34px}.wallet-main-balance strong{font-size:28px!important;margin:0}
@@ -96,6 +106,8 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
     <div id="authMsg" class="msg"></div>
   </div>
 </section>
+
+<div id="emailConfirmPanel" class="overlay"><div class="panel email-confirm-card"><h2>📧 Confirma tu correo</h2><div class="mail-icon">✉️</div><p class="tiny">Te enviamos un enlace de confirmación a:</p><strong id="emailConfirmAddress">—</strong><p class="tiny" style="margin-top:12px">Abre el mensaje y toca <b>Confirmar correo</b>. Al confirmarlo, regresarás automáticamente a MAIKET FLASH y entrarás a la pantalla principal con esta misma cuenta.</p><button id="emailConfirmResendBtn" type="button" class="action blue">Reenviar correo de confirmación</button><button id="emailConfirmLoginBtn" type="button" class="action dark">Volver a iniciar sesión</button><div id="emailConfirmMsg" class="msg"></div></div></div>
 
 <main id="appView" class="bg hidden">
   <div class="topbar">
@@ -165,6 +177,9 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 <div id="promUserPanel" class="overlay"><div class="panel"><button class="close" data-close="promUserPanel">✕</button><h2>Destino Flash Coin</h2><div id="promUserCard" class="card"></div><input id="promAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="promSendBtn" class="action green">Enviar Flash Coin</button><button id="promRequestBtn" class="action">Solicitar Flash Coin</button><div id="promUserMsg" class="msg"></div></div></div>
 
+<div id="promActionFlash" class="action-confirm-flash"></div>
+<div id="promConfirmPanel" class="overlay"><div class="panel"><button class="close" data-close="promConfirmPanel">✕</button><h2 id="promConfirmTitle">Confirmar operación</h2><div id="promConfirmContent"></div><div class="request-actions"><button id="promConfirmCancelBtn" type="button" class="action red">Cancelar</button><button id="promConfirmDoBtn" type="button" class="action green">Confirmar</button></div><div id="promConfirmMsg" class="msg"></div></div></div>
+
 <div id="leaderGatePanel" class="overlay"><div class="panel"><button class="close" data-close="leaderGatePanel">✕</button><h2>👑 Administrador Líder</h2><div id="leaderFirstSetup" class="hidden"><p class="tiny">Primera entrada: crea ahora la contraseña del panel.</p><input id="leaderNewPass" class="field" type="password" placeholder="Nueva contraseña"><input id="leaderNewPass2" class="field" type="password" placeholder="Confirmar contraseña"><button id="leaderCreatePassBtn" class="action green">Crear contraseña</button></div><div id="leaderLoginBox" class="hidden"><input id="leaderPass" class="field" type="password" placeholder="Contraseña del panel"><button id="leaderUnlockBtn" class="action">Entrar</button></div><div id="leaderGateMsg" class="msg"></div></div></div>
 
 <div id="leaderPanel" class="overlay"><div class="panel"><button class="close" data-close="leaderPanel">✕</button><h2>👑 Administrador Líder</h2><div class="stat-grid"><div class="stat"><b id="adminRegistered">0</b><span class="tiny">Registrados</span></div><div class="stat"><b id="adminOnline">0</b><span class="tiny">Jugando ahora</span></div></div>
@@ -203,11 +218,12 @@ const WHEEL_ORDER=[0,7,2,11,4,9,1,12,5,8,3,10,6];
 const AWAY_KEY='rf_away_since_v02'; // compatibilidad: ya no cierra la sesión por ausencia
 const SAVE_LOGIN_KEY='rf_save_password_preference_v01';
 const SAVED_EMAIL_KEY='rf_saved_login_email_v01';
+const PENDING_CONFIRM_EMAIL_KEY='rf_pending_confirm_email_v11';
 const REF_KEY='rf_referrer_public_id';
 const refFromUrl=(new URLSearchParams(location.search).get('ref')||'').trim();
 if(/^\d{6}$/.test(refFromUrl))localStorage.setItem(REF_KEY,refFromUrl);
 let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedLeaderTransferUser=null,selectedAdminRechargeUser=null,selectedAdminWalletUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
-let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,audioUnlockPromise=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0,recoveryMode=false;
+let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,audioUnlockPromise=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0,recoveryMode=false,pendingPromAction=null,promConfirmBusy=false;
 const transferQueue=[];const seenTransferNotifications=new Set();
 const betQueues={};
 const $=id=>document.getElementById(id);
@@ -222,6 +238,7 @@ function authErrorText(e){
   const t=errText(e);
   if(/invalid login credentials/i.test(t))return 'Correo o contraseña incorrectos. Si olvidaste la contraseña, usa “¿Olvidaste tu contraseña?”.';
   if(/user already registered/i.test(t))return 'Ese correo ya tiene una cuenta. Usa Iniciar sesión o recupera tu contraseña.';
+  if(/email not confirmed|email.*confirm/i.test(t))return 'Primero confirma tu correo desde el mensaje que te envió MAIKET FLASH.';
   return t;
 }
 function setBalanceDisplay(v){
@@ -311,6 +328,21 @@ function isRecoveryReturn(){
   const h=String(location.hash||'');
   return q.get('password_recovery')==='1'||q.get('type')==='recovery'||/type=recovery/i.test(h);
 }
+function emailConfirmationReturnUrl(){return location.origin+location.pathname+'?email_confirmed=1';}
+function isEmailConfirmationReturn(){return new URLSearchParams(location.search).get('email_confirmed')==='1';}
+function cleanEmailConfirmationUrl(){
+  const u=new URL(location.href);
+  if(!u.searchParams.has('email_confirmed'))return;
+  u.searchParams.delete('email_confirmed');
+  history.replaceState({},'',u.pathname+(u.search?'?'+u.searchParams.toString():'')+u.hash);
+}
+function showEmailConfirmationPending(email){
+  const normalized=normalizeEmail(email);
+  localStorage.setItem(PENDING_CONFIRM_EMAIL_KEY,normalized);
+  $('emailConfirmAddress').textContent=normalized||'tu correo';
+  msg('emailConfirmMsg','Revisa también la carpeta de correo no deseado.');
+  show('emailConfirmPanel');
+}
 function recoveryReturnUrl(){return location.origin+location.pathname+'?password_recovery=1';}
 async function rememberCredential(email,password,checked,name='MAIKET FLASH'){
   localStorage.setItem(SAVE_LOGIN_KEY,checked?'1':'0');
@@ -339,7 +371,7 @@ $('tabLogin').onclick=()=>setAuthMode('login');
 
 $('registerForm').addEventListener('submit',async e=>{
   e.preventDefault();
-  msg('authMsg','Creando cuenta...');
+  msg('authMsg','Creando cuenta y preparando confirmación...');
   const first=$('regFirst').value.trim(),last=$('regLast').value.trim(),email=normalizeEmail($('regEmail').value),pass=$('regPass').value,pass2=$('regPass2').value;
   if(!first||!last)return msg('authMsg','Escribe nombre y apellido.');
   if(!email)return msg('authMsg','Escribe un correo válido.');
@@ -347,17 +379,40 @@ $('registerForm').addEventListener('submit',async e=>{
   const referrer=(localStorage.getItem(REF_KEY)||'').trim();
   const metadata={first_name:first,last_name:last};
   if(/^\d{6}$/.test(referrer))metadata.referrer_public_id=referrer;
-  const {data,error}=await sb.auth.signUp({email,password:pass,options:{data:metadata}});
+  const {data,error}=await sb.auth.signUp({
+    email,
+    password:pass,
+    options:{data:metadata,emailRedirectTo:emailConfirmationReturnUrl()}
+  });
   if(error)return msg('authMsg',authErrorText(error));
-  if(!data.session){
-    const s=await sb.auth.signInWithPassword({email,password:pass});
-    if(s.error)return msg('authMsg',authErrorText(s.error));
-  }
   await rememberCredential(email,pass,$('regSavePassword').checked,`${first} ${last}`.trim()||'MAIKET FLASH');
   localStorage.removeItem(AWAY_KEY);
   localStorage.removeItem(REF_KEY);
-  await enterApp();
+  if(data?.session){
+    localStorage.removeItem(PENDING_CONFIRM_EMAIL_KEY);
+    await enterApp();
+    return;
+  }
+  msg('authMsg','Te enviamos un correo de confirmación.');
+  showEmailConfirmationPending(email);
 });
+
+$('emailConfirmResendBtn').onclick=async()=>{
+  const email=normalizeEmail(localStorage.getItem(PENDING_CONFIRM_EMAIL_KEY)||$('regEmail').value||$('loginEmail').value);
+  if(!email)return msg('emailConfirmMsg','No encontramos el correo. Vuelve al registro.');
+  const btn=$('emailConfirmResendBtn');btn.disabled=true;btn.textContent='Enviando...';
+  try{
+    const {error}=await sb.auth.resend({type:'signup',email,options:{emailRedirectTo:emailConfirmationReturnUrl()}});
+    if(error)throw error;
+    msg('emailConfirmMsg','Correo reenviado. Revisa tu bandeja de entrada.');
+  }catch(e){msg('emailConfirmMsg',authErrorText(e));}
+  finally{btn.disabled=false;btn.textContent='Reenviar correo de confirmación';}
+};
+$('emailConfirmLoginBtn').onclick=()=>{
+  const email=normalizeEmail(localStorage.getItem(PENDING_CONFIRM_EMAIL_KEY)||'');
+  hide('emailConfirmPanel');setAuthMode('login');if(email)$('loginEmail').value=email;
+  msg('authMsg','Cuando hayas confirmado el correo, también puedes iniciar sesión aquí.');
+};
 
 $('loginForm').addEventListener('submit',async e=>{
   e.preventDefault();
@@ -417,6 +472,9 @@ window.addEventListener('pageshow',()=>{if(!document.hidden)handleReturnFromAway
 async function enterApp(){
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return;
+  localStorage.removeItem(PENDING_CONFIRM_EMAIL_KEY);
+  cleanEmailConfirmationUrl();
+  hide('emailConfirmPanel');
   const ensured=await sb.rpc('rf_ensure_my_profile');
   if(ensured.error){msg('authMsg','No se pudo cargar tu perfil: '+errText(ensured.error));return;}
   $('authView').classList.add('hidden');
@@ -1454,22 +1512,51 @@ $('promSearchBtn').onclick=async()=>{
     };
   }catch(e){alert(errText(e))}
 };
+function flashBeforePromConfirmation(){
+  const el=$('promActionFlash');
+  el.classList.remove('show');void el.offsetWidth;el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),210);
+}
+function openPromConfirmation(kind,amount,user){
+  const isSend=kind==='send';
+  pendingPromAction={kind,amount:Number(amount),public_id:user.public_id,full_name:user.full_name||user.public_id,target_type:user.target_type||'user',role:user.role||'user'};
+  $('promConfirmTitle').textContent=isSend?'Confirmar envío de Flash Coin':'Confirmar solicitud de Flash Coin';
+  $('promConfirmDoBtn').textContent=isSend?'Sí, enviar Flash Coin':'Sí, solicitar Flash Coin';
+  $('promConfirmDoBtn').className='action '+(isSend?'green':'blue');
+  $('promConfirmContent').innerHTML=`<div class="confirm-operation-card"><div class="confirm-icon"><span class="fc-coin"></span></div><div class="tiny" style="text-align:center">${isSend?'Vas a enviar':'Vas a solicitar'}</div><div class="confirm-amount">${money(amount)} FC</div><div class="confirm-line"><span>Operación</span><b>${isSend?'Enviar Flash Coin':'Solicitar Flash Coin'}</b></div><div class="confirm-line"><span>Destino</span><b>${esc(user.full_name||user.public_id)}</b></div><div class="confirm-line"><span>ID</span><b>${esc(user.public_id)}</b></div><div class="confirm-line"><span>Tipo</span><b>${esc(user.target_type==='user'?(user.role||'Usuario'):'Cartera')}</b></div></div>`;
+  msg('promConfirmMsg','Confirma antes de continuar.');
+  flashBeforePromConfirmation();
+  setTimeout(()=>show('promConfirmPanel'),145);
+}
 promAction=async function(kind){
   if(me?.role!=='promoter')return msg('promUserMsg','Ya no tienes permiso de promotor.');
   if(!selectedPromUser)return msg('promUserMsg','Busca y abre primero el destino.');
   const amount=Number($('promAmount').value);
   if(!(amount>0))return msg('promUserMsg','Monto inválido.');
   if(kind==='request'&&selectedPromUser.target_type!=='user')return msg('promUserMsg','Las solicitudes se envían a una cuenta de usuario/promotor, no a otra cartera.');
-  const fn=kind==='send'?'rf_promoter_send_fc_v08':'rf_promoter_request_fc_v08';
-  const {data,error}=await sb.rpc(fn,{p_public_id:selectedPromUser.public_id,p_amount:amount});
-  if(error)return msg('promUserMsg',errText(error));
-  const receipt=oneRow(data);
-  if(kind==='send'){
-    $('promSearchId').value='';$('promAmount').value='';$('promSearchResult').innerHTML='';$('promUserCard').innerHTML='';selectedPromUser=null;
-    hide('promUserPanel');await loadMe();renderMe();showReceipt('Comprobante de envío del Promotor',receipt);
-  }else{
-    $('promAmount').value='';showRequestReceipt('Solicitud enviada',receipt);msg('promUserMsg','');
-  }
+  openPromConfirmation(kind,amount,selectedPromUser);
+};
+$('promConfirmCancelBtn').onclick=()=>{if(promConfirmBusy)return;pendingPromAction=null;msg('promConfirmMsg','');hide('promConfirmPanel');};
+$('promConfirmDoBtn').onclick=async()=>{
+  if(promConfirmBusy||!pendingPromAction)return;
+  const op={...pendingPromAction};
+  promConfirmBusy=true;
+  const btn=$('promConfirmDoBtn'),oldText=btn.textContent;btn.disabled=true;btn.textContent='Procesando...';
+  try{
+    if(me?.role!=='promoter')throw new Error('Ya no tienes permiso de promotor.');
+    const fn=op.kind==='send'?'rf_promoter_send_fc_v08':'rf_promoter_request_fc_v08';
+    const {data,error}=await sb.rpc(fn,{p_public_id:op.public_id,p_amount:op.amount});
+    if(error)throw error;
+    const receipt=oneRow(data);
+    pendingPromAction=null;msg('promConfirmMsg','');hide('promConfirmPanel');
+    if(op.kind==='send'){
+      $('promSearchId').value='';$('promAmount').value='';$('promSearchResult').innerHTML='';$('promUserCard').innerHTML='';selectedPromUser=null;
+      hide('promUserPanel');await loadMe();renderMe();showReceipt('Comprobante de envío del Promotor',receipt);
+    }else{
+      $('promAmount').value='';showRequestReceipt('Solicitud enviada',receipt);msg('promUserMsg','');
+    }
+  }catch(e){msg('promConfirmMsg',errText(e));}
+  finally{promConfirmBusy=false;btn.disabled=false;btn.textContent=oldText;}
 };
 
 $('leaderFindTransferBtn').onclick=async()=>{
@@ -1747,7 +1834,12 @@ buildWheel();
   if(recoveryMode){
     $('resetRequestBox').classList.add('hidden');$('resetNewPasswordBox').classList.remove('hidden');
     msg('resetMsg',session?'Enlace confirmado. Escribe tu contraseña nueva dos veces.':'Validando enlace de recuperación...');show('passwordResetPanel');
-  }else if(session){await enterApp();}
+  }else if(session){
+    await enterApp();
+  }else if(isEmailConfirmationReturn()){
+    setAuthMode('login');
+    msg('authMsg','Confirmación recibida. Validando tu sesión para entrar automáticamente...');
+  }
   sb.auth.onAuthStateChange((event,sessionNow)=>{
     if(event==='PASSWORD_RECOVERY'){
       recoveryMode=true;
@@ -1771,3 +1863,5 @@ buildWheel();
 
 <!-- ACTUALIZACIÓN FINAL: carteras independientes, recuperación robusta, audio desbloqueable, sesión persistente y guardar contraseña vía gestor del navegador. -->
 <!-- V1.0: request_id corregido y carteras Administrativa/Ruleta conectadas en ambos sentidos. -->
+
+<!-- V1.1: confirmación por correo para registros nuevos + confirmación previa de envío/solicitud de Promotor + porcentaje global de ganador efectivo solo en administración. -->
