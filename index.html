@@ -1,12 +1,16 @@
 <!DOCTYPE html>
-<!-- MAIKET FLASH · HTML 1.1 · DOMINÓ COMPLETO -->
+<!-- MAIKET FLASH · HTML 1.2.4 · DOMINÓ SINCRONIZADO -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html lang="es">
+<html lang="es" data-app-build="1.2.4">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="application-version" content="1.2.4">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 1.1 Dominó</title>
+<title>Ruleta Flash Coin — HTML 1.2.4 Dominó Sincronizado</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -191,6 +195,19 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 }
 
 
+
+/* ===== HTML 1.2.4 · SINCRONIZACIÓN Y NAVEGACIÓN DOMINÓ ===== */
+.domino-sync-state{margin-top:3px;font-size:9px;color:#9fb3a7}
+.domino-sync-state.ok{color:#75efa0}
+.domino-sync-state.warn{color:#ffd86c}
+.domino-sync-state.bad{color:#ff9098}
+.mf-update-toast{
+  position:fixed;z-index:900;left:50%;bottom:18px;transform:translateX(-50%);
+  width:min(92vw,420px);padding:10px 12px;border-radius:14px;
+  border:1px solid rgba(255,215,90,.55);background:rgba(5,10,8,.97);
+  color:#fff2b0;text-align:center;font-size:11px;box-shadow:0 12px 35px rgba(0,0,0,.55)
+}
+
 </style>
 </head>
 <body>
@@ -280,13 +297,13 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 <div id="gamesPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="gamesPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p>El área de Juegos está dedicada al Dominó.</p></div><img class="domino-hero" src="domino_lobby_dorado.png" alt="Dominó Flash Coin"><button id="dominoPlayBtn" type="button" class="action green">ENTRAR A LAS MESAS</button></div></div></div>
 
-<div id="dominoLobbyPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="dominoLobbyPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p><span class="domino-live-dot"></span>Mesas en línea · entra, elige tu saldo de mesa y juega</p></div><div id="dominoLobbyMsg" class="msg"></div><div id="dominoLobbyModes" class="domino-two-tables"></div></div></div></div>
+<div id="dominoLobbyPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button id="dominoLobbyCloseBtn" type="button" class="close">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p><span class="domino-live-dot"></span>Mesas en línea · entra, elige tu saldo de mesa y juega</p></div><div id="dominoLobbyMsg" class="msg"></div><div id="dominoLobbyModes" class="domino-two-tables"></div></div></div></div>
 
-<div id="dominoBuyinPanel" class="overlay"><div class="panel domino-buyin-card"><button class="close" data-close="dominoBuyinPanel">✕</button><h2 id="dominoBuyinTitle">Sentarse</h2><div class="tiny">Elige cuántas Flash Coin vas a llevar a la mesa. Se descuentan del saldo principal y vuelven al salir solamente las que realmente te queden.</div><div id="dominoBuyinValue" class="domino-buyin-value">0.000 FC</div><input id="dominoBuyinRange" class="domino-buyin-range" type="range" min="0.3" max="1" step="0.01"><input id="dominoBuyinInput" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="dominoConfirmJoinBtn" class="action green">SENTARME EN LA MESA</button><div id="dominoBuyinMsg" class="msg"></div></div></div>
+<div id="dominoBuyinPanel" class="overlay"><div class="panel domino-buyin-card"><button id="dominoBuyinCloseBtn" type="button" class="close">✕</button><h2 id="dominoBuyinTitle">Sentarse</h2><div class="tiny">Elige cuántas Flash Coin vas a llevar a la mesa. Se descuentan del saldo principal y vuelven al salir solamente las que realmente te queden.</div><div id="dominoBuyinValue" class="domino-buyin-value">0.000 FC</div><input id="dominoBuyinRange" class="domino-buyin-range" type="range" min="0.3" max="1" step="0.01"><input id="dominoBuyinInput" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="dominoConfirmJoinBtn" class="action green">SENTARME EN LA MESA</button><div id="dominoBuyinMsg" class="msg"></div></div></div>
 
-<div id="dominoTablePanel" class="overlay"><div class="panel domino-game-panel"><div class="domino-topbar"><div><div id="dominoTableTitle" class="domino-title">Dominó</div><div id="dominoTableSub" class="domino-pot">Mesa</div></div><button id="dominoGearBtn" class="domino-gear" type="button">⚙️</button></div><div id="dominoStage" class="domino-stage"><div id="dominoSeats"></div><div id="dominoCenterStatus" class="domino-center-status">Esperando jugadores...</div><div id="dominoBoard" class="domino-board"></div><div id="dominoHand" class="domino-hand"></div><div id="dominoVictory" class="domino-victory"><div><b>¡GANASTE!</b><span id="dominoVictoryText">Victoria</span></div></div></div></div></div>
+<div id="dominoTablePanel" class="overlay"><div class="panel domino-game-panel"><div class="domino-topbar"><div><div id="dominoTableTitle" class="domino-title">Dominó</div><div id="dominoTableSub" class="domino-pot">Mesa</div><div id="dominoSyncState" class="domino-sync-state">Conectando…</div></div><button id="dominoGearBtn" class="domino-gear" type="button">⚙️</button></div><div id="dominoStage" class="domino-stage"><div id="dominoSeats"></div><div id="dominoCenterStatus" class="domino-center-status">Esperando jugadores...</div><div id="dominoBoard" class="domino-board"></div><div id="dominoHand" class="domino-hand"></div><div id="dominoVictory" class="domino-victory"><div><b>¡GANASTE!</b><span id="dominoVictoryText">Victoria</span></div></div></div></div></div>
 
-<div id="dominoMenuPanel" class="overlay"><div class="panel"><button class="close" data-close="dominoMenuPanel">✕</button><h2>⚙️ Mesa de Dominó</h2><div class="domino-menu-actions"><button id="dominoBackBtn" class="action dark">← Atrás</button><div class="tiny">Regresas al lobby. Tu asiento sigue jugando automáticamente hasta terminar la mano. Si vuelves antes de que termine, continúas normalmente.</div><button id="dominoExitBtn" class="action red">Salir de la mesa</button><div class="tiny">La mano continúa automáticamente. Si tu asiento gana después de confirmar la salida, ese premio se acredita a la Cartera Administrativa.</div></div></div></div>
+<div id="dominoMenuPanel" class="overlay"><div class="panel"><button id="dominoMenuCloseBtn" type="button" class="close">✕</button><h2>⚙️ Mesa de Dominó</h2><div class="domino-menu-actions"><button id="dominoBackBtn" class="action dark">← Atrás</button><div class="tiny">Regresas al lobby. Tu asiento sigue jugando automáticamente hasta terminar la mano. Si vuelves antes de que termine, continúas normalmente.</div><button id="dominoExitBtn" class="action red">Salir de la mesa</button><div class="tiny">La mano continúa automáticamente. Si tu asiento gana después de confirmar la salida, ese premio se acredita a la Cartera Administrativa.</div></div></div></div>
 
 <div id="dominoExitConfirmPanel" class="overlay"><div class="panel"><h2>¿Salir de la mesa?</h2><p class="tiny">Tu asiento terminará la mano automáticamente. El premio de una victoria posterior a tu salida irá al saldo administrativo.</p><div class="request-actions"><button id="dominoExitCancelBtn" class="action dark">Cancelar</button><button id="dominoExitConfirmBtn" class="action red">Confirmar salida</button></div></div></div>
 
@@ -347,50 +364,6 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div id="winFlash" class="win-flash"><div class="win-card"><h2>🎉 ¡GANASTE!</h2><div id="winNumber" class="tiny"></div><div class="receipt-coin"><span class="fc-coin"></span></div><div id="winPrize" class="win-prize">+0.000 FC</div><div class="tiny">Premio acreditado automáticamente a tu saldo</div></div></div>
 
 <div id="copyToast" class="copy-toast">Copiado</div>
-
-
-<script id="dominoGamesButtonSafety">
-(function(){
-  function abrirPanelDominoSeguro(){
-    var panel=document.getElementById('dominoLobbyPanel');
-    if(!panel)return;
-    panel.classList.add('active');
-
-    var host=document.getElementById('dominoLobbyModes');
-    if(host && !host.innerHTML.trim()){
-      host.innerHTML='<div class="domino-choice-card" style="grid-column:1/-1;text-align:center;padding:28px"><div class="domino-spinner"></div><div class="domino-wait-title">Cargando mesas...</div><div class="domino-wait-sub">Conectando con Dominó Flash Coin</div></div>';
-    }
-
-    // La carga real de las mesas se deja a la función principal cuando está disponible.
-    try{
-      if(typeof window.openDominoLobby==='function'){
-        window.openDominoLobby();
-      }
-    }catch(e){
-      console.error('Dominó lobby:',e);
-    }
-  }
-
-  function conectar(){
-    var btn=document.getElementById('gamesBtn');
-    if(!btn || btn.dataset.dominoSafetyBound==='1')return;
-    btn.dataset.dominoSafetyBound='1';
-    btn.addEventListener('click',function(ev){
-      ev.preventDefault();
-      abrirPanelDominoSeguro();
-    });
-  }
-
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',conectar,{once:true});
-  }else{
-    conectar();
-  }
-
-  window.abrirPanelDominoSeguro=abrirPanelDominoSeguro;
-})();
-</script>
-
 <script>
 const SUPABASE_URL='https://mvwpbhhhspcaurjgsegz.supabase.co';
 const SUPABASE_KEY='sb_publishable_nO8z0atB5iB5Bri2iRXwdw_PJUOQvCx';
@@ -1373,7 +1346,9 @@ $('promoterBtn').onclick=async()=>{
   await loadStats();show('promoterPanel');
 };
 $('groupBtn').onclick=()=>{if(settings?.whatsapp_group_url)window.open(settings.whatsapp_group_url,'_blank')};
-document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>hide(b.dataset.close));
+document.querySelectorAll('[data-close]').forEach(b=>{
+  b.addEventListener('click',()=>hide(b.dataset.close));
+});
 
 $('saveProfileBtn').onclick=async()=>{
   const {error}=await sb.rpc('rf_update_my_name',{p_first_name:$('editFirst').value.trim(),p_last_name:$('editLast').value.trim()});
@@ -2273,10 +2248,9 @@ $('rouletteRequestBtn').onclick=async()=>{
 
 // ===== HTML 1.0.2: PANEL DE JUEGOS =====
 const gamesButton=$('gamesBtn');
-if(gamesButton && gamesButton.dataset.dominoMainBound!=='1'){
-  gamesButton.dataset.dominoMainBound='1';
+if(gamesButton){
   gamesButton.addEventListener('click',(ev)=>{
-    if(ev)ev.preventDefault();
+    ev.preventDefault();
     openDominoLobby();
   });
 }
@@ -2367,20 +2341,45 @@ $('leaderUsersRechargeBtn').onclick=()=>leaderUsersOperation('recharge');
 // ===== HTML 1.1: DOMINÓ FLASH COIN =====
 let dominoLobbyData=null,dominoCurrentTableId=null,dominoState=null,dominoPollTimer=null,dominoJoinConfig=null,dominoLastWinnerHand=null,dominoRealtimeChannel=null,dominoRealtimeBusy=false;
 function dominoMoney(v){return Number(v||0).toFixed(3)}
-function dominoStartPolling(){clearInterval(dominoPollTimer);dominoPollTimer=setInterval(()=>{if(dominoCurrentTableId)loadDominoState(false).catch(()=>{});},2200)}
+function dominoSetSyncState(text,state='warn'){
+  const el=$('dominoSyncState');if(!el)return;
+  el.textContent=text;el.className='domino-sync-state '+state;
+}
+function dominoStartPolling(){
+  clearInterval(dominoPollTimer);
+  dominoPollTimer=setInterval(()=>{
+    if(dominoCurrentTableId)loadDominoState(false).catch(()=>dominoSetSyncState('Reconectando…','warn'));
+  },1000);
+}
 function dominoStopPolling(){clearInterval(dominoPollTimer);dominoPollTimer=null}
 async function dominoStopRealtime(){
   if(dominoRealtimeChannel){try{await sb.removeChannel(dominoRealtimeChannel)}catch(e){}dominoRealtimeChannel=null}
 }
 async function dominoStartRealtime(){
   await dominoStopRealtime();
-  if(!dominoCurrentTableId||!sb?.channel)return;
+  if(!dominoCurrentTableId||!sb?.channel){
+    dominoSetSyncState('Sincronización por respaldo cada 1 s','warn');
+    return;
+  }
   const tid=Number(dominoCurrentTableId);
+  dominoSetSyncState('Conectando en tiempo real…','warn');
   dominoRealtimeChannel=sb.channel('domino-table-'+tid)
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'rf_domino_events',filter:`table_id=eq.${tid}`},async()=>{
-      if(dominoRealtimeBusy)return;dominoRealtimeBusy=true;
-      try{await loadDominoState(false)}catch(e){}finally{dominoRealtimeBusy=false}
-    }).subscribe();
+      if(dominoRealtimeBusy)return;
+      dominoRealtimeBusy=true;
+      try{
+        await loadDominoState(false);
+      }catch(e){
+        dominoSetSyncState('Reconectando…','warn');
+      }finally{
+        dominoRealtimeBusy=false;
+      }
+    })
+    .subscribe(status=>{
+      if(status==='SUBSCRIBED')dominoSetSyncState('● En línea · tiempo real','ok');
+      else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')dominoSetSyncState('Respaldo activo · cada 1 s','warn');
+      else if(status==='CLOSED')dominoSetSyncState('Reconectando…','warn');
+    });
 }
 function dominoConfigModeLabel(m){return m==='paid_pass'?'Pases pagados':'Clásico'}
 async function openDominoLobby(){
@@ -2442,11 +2441,42 @@ function openDominoBuyin(configId){
 $('dominoBuyinRange').addEventListener('input',()=>{$('dominoBuyinInput').value=Number($('dominoBuyinRange').value).toFixed(3);$('dominoBuyinValue').textContent=dominoMoney($('dominoBuyinRange').value)+' FC'});
 $('dominoBuyinInput').addEventListener('input',()=>{const v=Number($('dominoBuyinInput').value||0);$('dominoBuyinValue').textContent=dominoMoney(v)+' FC';if(Number.isFinite(v))$('dominoBuyinRange').value=String(v)});
 $('dominoConfirmJoinBtn').onclick=async()=>{
-  if(!dominoJoinConfig)return;const amount=Number($('dominoBuyinInput').value);if(!(amount>=Number(dominoJoinConfig.min_entry)))return msg('dominoBuyinMsg','Debes entrar con la mínima completa de la mesa.');
-  $('dominoConfirmJoinBtn').disabled=true;msg('dominoBuyinMsg','Sentándote en la mesa...');
-  const {data,error}=await sb.rpc('rf_domino_join_v11',{p_config_id:Number(dominoJoinConfig.id),p_buyin:amount});$('dominoConfirmJoinBtn').disabled=false;
-  if(error)return msg('dominoBuyinMsg',errText(error));
-  dominoCurrentTableId=Number(data);hide('dominoBuyinPanel');hide('dominoLobbyPanel');show('dominoTablePanel');await loadMe();renderMe();dominoStartPolling();await dominoStartRealtime();await loadDominoState(true);
+  if(!dominoJoinConfig)return;
+  const amount=Number($('dominoBuyinInput').value);
+  const min=Number(dominoJoinConfig.min_entry||0);
+  const available=Number(me?.balance||0);
+  if(!Number.isFinite(amount)||amount<min)return msg('dominoBuyinMsg','Debes entrar con la mínima completa de la mesa.');
+  if(amount>available)return msg('dominoBuyinMsg','No tienes suficiente saldo Flash Coin para ese monto.');
+
+  $('dominoConfirmJoinBtn').disabled=true;
+  msg('dominoBuyinMsg','Sentándote en la mesa…');
+
+  try{
+    const {data,error}=await sb.rpc('rf_domino_join_v11',{
+      p_config_id:Number(dominoJoinConfig.id),
+      p_buyin:Number(amount.toFixed(3))
+    });
+    if(error)throw error;
+    if(!data)throw new Error('Supabase no devolvió el número de mesa.');
+
+    dominoCurrentTableId=Number(data);
+    hide('dominoBuyinPanel');
+    hide('dominoLobbyPanel');
+    show('dominoTablePanel');
+    dominoSetSyncState('Conectando…','warn');
+
+    await loadMe();
+    renderMe();
+    dominoStartPolling();
+    await dominoStartRealtime();
+    await loadDominoState(true);
+  }catch(e){
+    dominoCurrentTableId=null;
+    msg('dominoBuyinMsg',errText(e));
+    show('dominoBuyinPanel');
+  }finally{
+    $('dominoConfirmJoinBtn').disabled=false;
+  }
 };
 function dominoPiece(tile,idx,playable,board=false){const a=Number(tile?.a??tile?.[0]??0),b=Number(tile?.b??tile?.[1]??0);return `<button type="button" class="domino-piece ${board?'board-piece':'hand-piece'} ${playable?'playable':''}" ${!board&&playable?`data-domino-tile="${idx}"`:''}><span class="half">${a}</span><span class="half">${b}</span></button>`}
 function dominoTileLegal(tile,h){if(!h||!tile)return false;if(!(h.board||[]).length)return true;const a=Number(tile[0]),b=Number(tile[1]);return [h.open_left,h.open_right].map(Number).includes(a)||[h.open_left,h.open_right].map(Number).includes(b)}
@@ -2467,16 +2497,50 @@ function renderDominoState(st){
   $('dominoCenterStatus').innerHTML=status;if($('dominoPassBtn'))$('dominoPassBtn').onclick=dominoPass;
   const lr=st?.last_result;if(lr&&lr.id!==dominoLastWinnerHand){dominoLastWinnerHand=lr.id;const mySeat=seats.find(x=>String(x.user_id)===String(uid));const winSeat=seats.find(x=>String(x.user_id)===String(lr.winner_user_id));let iWon=String(lr.winner_user_id)===String(uid);if(!iWon&&seats.length===4&&mySeat&&winSeat)iWon=Math.abs(Number(mySeat.seat_no)-Number(winSeat.seat_no))===2;if(iWon){$('dominoVictoryText').textContent=lr.winner_reason==='TRANQUE_MENOS_PUNTOS'?'Ganaste por tener menos puntos':'Cerraste con tu última ficha';$('dominoVictory').classList.add('show');try{playWinnerSound()}catch(e){}setTimeout(()=>$('dominoVictory').classList.remove('show'),2800)}}
 }
-async function loadDominoState(force){if(!dominoCurrentTableId)return;await sb.rpc('rf_domino_tick_v11',{p_table_id:dominoCurrentTableId});const {data,error}=await sb.rpc('rf_domino_get_state_v11',{p_table_id:dominoCurrentTableId});if(error){if(force)alert(errText(error));return}renderDominoState(data)}
+async function loadDominoState(force){
+  if(!dominoCurrentTableId)return;
+  const tick=await sb.rpc('rf_domino_tick_v11',{p_table_id:dominoCurrentTableId});
+  if(tick.error){
+    dominoSetSyncState('Error de sincronización','bad');
+    if(force)alert(errText(tick.error));
+    return;
+  }
+  const {data,error}=await sb.rpc('rf_domino_get_state_v11',{p_table_id:dominoCurrentTableId});
+  if(error){
+    dominoSetSyncState('Error al leer la mesa','bad');
+    if(force)alert(errText(error));
+    return;
+  }
+  if(!dominoRealtimeChannel)dominoSetSyncState('En línea · respaldo cada 1 s','ok');
+  renderDominoState(data);
+}
 async function dominoPlayTile(index){if(!dominoCurrentTableId)return;const {error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:'right'});if(error)return alert(errText(error));await loadDominoState(false);dominoWinPulse()}
 async function dominoPass(){if(!dominoCurrentTableId)return;const {error}=await sb.rpc('rf_domino_pass_v11',{p_table_id:dominoCurrentTableId});if(error)return alert(errText(error));await loadDominoState(false)}
 function dominoWinPulse(){const v=$('dominoVictory');if(!v)return;v.classList.remove('show')}
+
+function dominoReturnToLobbyFromBuyin(){
+  hide('dominoBuyinPanel');
+  dominoJoinConfig=null;
+  show('dominoLobbyPanel');
+  if(dominoLobbyData)renderDominoLobby();
+  else openDominoLobby();
+}
+if($('dominoBuyinCloseBtn'))$('dominoBuyinCloseBtn').addEventListener('click',dominoReturnToLobbyFromBuyin);
+if($('dominoLobbyCloseBtn'))$('dominoLobbyCloseBtn').addEventListener('click',()=>{
+  hide('dominoLobbyPanel');
+  dominoJoinConfig=null;
+});
+if($('dominoMenuCloseBtn'))$('dominoMenuCloseBtn').addEventListener('click',()=>{
+  hide('dominoMenuPanel');
+  if(dominoCurrentTableId)show('dominoTablePanel');
+});
+
 $('dominoGearBtn').onclick=()=>show('dominoMenuPanel');
 $('dominoBackBtn').onclick=async()=>{if(!dominoCurrentTableId)return;await sb.rpc('rf_domino_back_v11',{p_table_id:dominoCurrentTableId});hide('dominoMenuPanel');hide('dominoTablePanel');dominoStopPolling();await dominoStopRealtime();dominoCurrentTableId=null;await loadMe();renderMe();await openDominoLobby()};
 $('dominoExitBtn').onclick=()=>{hide('dominoMenuPanel');show('dominoExitConfirmPanel')};
 $('dominoExitCancelBtn').onclick=()=>hide('dominoExitConfirmPanel');
 $('dominoExitConfirmBtn').onclick=async()=>{if(!dominoCurrentTableId)return;const tid=dominoCurrentTableId;$('dominoExitConfirmBtn').disabled=true;const {error}=await sb.rpc('rf_domino_exit_now_v11',{p_table_id:tid});$('dominoExitConfirmBtn').disabled=false;if(error)return alert(errText(error));hide('dominoExitConfirmPanel');hide('dominoTablePanel');dominoStopPolling();await dominoStopRealtime();dominoCurrentTableId=null;await loadMe();renderMe();await openDominoLobby()};
-$('dominoPlayBtn').onclick=openDominoLobby;
+if($('dominoPlayBtn'))$('dominoPlayBtn').addEventListener('click',openDominoLobby);
 
 // Administración de las dos modalidades de Dominó.
 async function loadDominoAdminConfigs(){
@@ -2519,6 +2583,67 @@ buildWheel();
 <!-- HTML 1.0.2: jugadas guardadas reforzadas en SQL, apuestas sin reembolso, bonos automáticos desactivados, lista completa de usuarios líder, panel Juegos con imagen oficial elegida (Póker/Billar/Juegos Slot/Blackjack) y audio con activación física. -->
 <!-- V1.4: sonido reforzado en Safari/iPhone, contraseña del panel líder opcional mediante interruptor y duración visual del giro configurable desde administración. -->
 <!-- HTML 1.2.3: Botón Juegos blindado: ID del lobby correcto + listener de seguridad independiente + apertura inmediata antes de consultar Supabase. -->
+
+<script id="mfBuildSync">
+(function(){
+  const CURRENT_BUILD='1.2.4';
+  let checking=false,noticeShown=false;
+
+  function showUpdateNotice(latest){
+    if(noticeShown)return;
+    noticeShown=true;
+    const box=document.createElement('div');
+    box.className='mf-update-toast';
+    box.id='mfUpdateToast';
+    box.innerHTML='Nueva versión disponible ('+latest+'). Se actualizará al salir de la mesa.';
+    document.body.appendChild(box);
+  }
+
+  async function checkBuild(){
+    if(checking)return;
+    checking=true;
+    try{
+      const url=new URL(location.href);
+      url.searchParams.set('__mf_check',Date.now().toString());
+      const r=await fetch(url.toString(),{
+        cache:'no-store',
+        headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}
+      });
+      if(!r.ok)return;
+      const text=await r.text();
+      const m=text.match(/data-app-build=["']([^"']+)["']/i);
+      const latest=m&&m[1];
+      if(!latest||latest===CURRENT_BUILD)return;
+
+      const inDomino=(typeof dominoCurrentTableId!=='undefined'&&!!dominoCurrentTableId);
+      if(inDomino){
+        localStorage.setItem('mf_pending_build',latest);
+        showUpdateNotice(latest);
+        return;
+      }
+
+      const next=new URL(location.href);
+      next.searchParams.delete('__mf_check');
+      next.searchParams.set('v',latest);
+      next.searchParams.set('_refresh',Date.now().toString());
+      location.replace(next.toString());
+    }catch(e){
+      // El juego sigue funcionando con Realtime/polling aunque falle esta comprobación.
+    }finally{
+      checking=false;
+    }
+  }
+
+  window.mfCheckBuild=checkBuild;
+  window.addEventListener('focus',checkBuild);
+  window.addEventListener('online',checkBuild);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkBuild();});
+  setTimeout(checkBuild,1800);
+  setInterval(checkBuild,30000);
+})();
+</script>
+
+<!-- 1.2.4: X de Sentarse vuelve a las dos mesas; un solo listener Juegos; Realtime + polling 1s; comprobación de versión contra caché vieja. -->
 </body>
 </html>
 
