@@ -97,6 +97,18 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .admin-user-row.selected{border-color:#ffd45a;box-shadow:0 0 0 1px rgba(255,212,90,.25),0 0 18px rgba(255,212,90,.10)}
 .admin-user-main strong{display:block;font-size:14px}.admin-user-main small{display:block;color:#9ea9ba;margin-top:3px}.admin-user-balance{font-weight:950;color:#74f39b;white-space:nowrap}.admin-user-actions{border:1px solid #34445d;background:#080c13;border-radius:14px;padding:12px;margin:10px 0}.admin-user-actions h3{margin:0 0 7px}.admin-users-count{font-size:11px;color:#9ba8bb;margin-top:6px}
 @media(min-width:720px){.games-grid{grid-template-columns:repeat(3,1fr)}.game-dev-card{min-height:188px}.game-art{height:136px}}
+/* ===== JUEGOS: IMAGEN OFICIAL ELEGIDA ===== */
+.games-poster-panel{position:relative;width:min(100%,760px)!important;max-width:760px!important;padding:8px!important;background:#07050d!important;border-color:#4a236d!important;overflow:hidden}
+.games-poster-panel .close{position:absolute;right:14px;top:14px;z-index:20;float:none;background:rgba(4,5,10,.78);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(7px);box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.games-poster-wrap{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:16px;background:#06040c}
+.games-poster-image{display:block;width:100%;height:100%;object-fit:contain;border-radius:16px;user-select:none;-webkit-user-drag:none}
+.game-poster-hotspot{position:absolute;z-index:10;border:0;background:transparent;color:transparent;cursor:pointer;padding:0;border-radius:8%;-webkit-tap-highlight-color:transparent}
+.game-poster-hotspot:focus-visible{outline:3px solid #ffd85a;outline-offset:-3px}
+.game-poster-hotspot:active{background:rgba(255,255,255,.04)}
+.game-poster-hotspot.poker{left:3.4%;top:51.2%;width:22.5%;height:29.6%}
+.game-poster-hotspot.billar{left:27.0%;top:51.2%;width:22.2%;height:29.6%}
+.game-poster-hotspot.slots{left:50.4%;top:51.2%;width:22.4%;height:29.6%}
+.game-poster-hotspot.blackjack{left:74.0%;top:51.2%;width:22.4%;height:29.6%}
 @media(max-width:440px){.wallet-row{flex-wrap:wrap}.wallet-row .promoter-chip:not(.hidden){flex:1 1 100%}}
 
 </style>
@@ -186,16 +198,12 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 </main>
 
 
-<div id="gamesPanel" class="overlay"><div class="panel"><button class="close" data-close="gamesPanel">✕</button><h2>🎮 Juegos</h2><div class="tiny">Próximos juegos de MAIKET FLASH · selecciona una tarjeta para ver su estado.</div><div class="games-grid">
-  <button type="button" class="game-dev-card" data-game-name="Billar" data-game-icon="🎱"><span class="dev-badge">EN DESARROLLO</span><div class="game-art">
-    <svg viewBox="0 0 360 160" role="img" aria-label="Billar"><defs><linearGradient id="bgB" x1="0" x2="1"><stop stop-color="#07151b"/><stop offset="1" stop-color="#0d0820"/></linearGradient><filter id="gB"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="360" height="160" fill="url(#bgB)"/><rect x="35" y="28" width="290" height="104" rx="18" fill="#05291f" stroke="#31f2cf" stroke-width="2" opacity=".95"/><line x1="74" y1="118" x2="268" y2="48" stroke="#d8f7ef" stroke-width="5" stroke-linecap="round"/><circle cx="239" cy="86" r="22" fill="#101218" stroke="#57e9ff" stroke-width="3" filter="url(#gB)"/><circle cx="239" cy="86" r="9" fill="#fff"/><text x="239" y="91" fill="#111" text-anchor="middle" font-size="13" font-weight="900">8</text><circle cx="278" cy="104" r="16" fill="#f1cf47"/><circle cx="204" cy="103" r="15" fill="#c43bff"/><circle cx="263" cy="62" r="14" fill="#ff4a79"/></svg>
-  </div><div class="game-info"><strong>Billar</strong><span>Mesas competitivas · próximamente</span></div></button>
-  <button type="button" class="game-dev-card" data-game-name="Póker" data-game-icon="🃏"><span class="dev-badge">EN DESARROLLO</span><div class="game-art">
-    <svg viewBox="0 0 360 160" role="img" aria-label="Póker"><defs><linearGradient id="bgP" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#160725"/><stop offset=".55" stop-color="#091424"/><stop offset="1" stop-color="#05070d"/></linearGradient><filter id="gP"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="360" height="160" fill="url(#bgP)"/><rect x="88" y="34" width="86" height="108" rx="12" fill="#f7f8fb" transform="rotate(-8 131 88)"/><text x="112" y="68" fill="#d71936" font-size="28" font-weight="900">A</text><text x="132" y="111" fill="#d71936" font-size="36">♥</text><rect x="172" y="30" width="86" height="108" rx="12" fill="#f7f8fb" transform="rotate(8 215 84)"/><text x="195" y="64" fill="#111" font-size="28" font-weight="900">K</text><text x="210" y="107" fill="#111" font-size="36">♠</text><g filter="url(#gP)"><ellipse cx="274" cy="118" rx="42" ry="14" fill="#2d0d4e" stroke="#b875ff" stroke-width="3"/><ellipse cx="274" cy="108" rx="42" ry="14" fill="#0b3047" stroke="#43ddff" stroke-width="3"/><ellipse cx="274" cy="98" rx="42" ry="14" fill="#4a2411" stroke="#ffd45a" stroke-width="3"/></g></svg>
-  </div><div class="game-info"><strong>Póker</strong><span>Mesas y fichas Flash Coin · próximamente</span></div></button>
-  <button type="button" class="game-dev-card" data-game-name="Slots" data-game-icon="🎰"><span class="dev-badge">EN DESARROLLO</span><div class="game-art">
-    <svg viewBox="0 0 360 160" role="img" aria-label="Slots"><defs><linearGradient id="bgS" x1="0" x2="1"><stop stop-color="#090d1b"/><stop offset=".5" stop-color="#19091d"/><stop offset="1" stop-color="#080b12"/></linearGradient><filter id="gS"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><rect width="360" height="160" fill="url(#bgS)"/><rect x="64" y="25" width="232" height="115" rx="20" fill="#111621" stroke="#ff5bd6" stroke-width="3" filter="url(#gS)"/><rect x="87" y="50" width="53" height="62" rx="8" fill="#f9f5ea"/><rect x="153" y="50" width="53" height="62" rx="8" fill="#f9f5ea"/><rect x="219" y="50" width="53" height="62" rx="8" fill="#f9f5ea"/><text x="113" y="92" fill="#e01844" text-anchor="middle" font-size="35" font-weight="950">7</text><text x="179" y="91" fill="#f3b51d" text-anchor="middle" font-size="32">★</text><text x="245" y="92" fill="#e01844" text-anchor="middle" font-size="35" font-weight="950">7</text><circle cx="306" cy="63" r="10" fill="#ffd45a"/><rect x="302" y="68" width="8" height="48" rx="4" fill="#ffd45a"/></svg>
-  </div><div class="game-info"><strong>Slots</strong><span>Máquinas de premio · próximamente</span></div></button>
+<div id="gamesPanel" class="overlay"><div class="panel games-poster-panel"><button class="close" data-close="gamesPanel" aria-label="Cerrar juegos">✕</button><div class="games-poster-wrap">
+  <img class="games-poster-image" src="Juegos_en_desarrollo_tu_eliges.png" alt="Ruleta Flash Coin · Juegos en proceso de desarrollo: Póker, Billar, Juegos Slot y Blackjack">
+  <button type="button" class="game-poster-hotspot poker" data-game-name="Póker" data-game-icon="🃏" aria-label="Póker · En desarrollo"></button>
+  <button type="button" class="game-poster-hotspot billar" data-game-name="Billar" data-game-icon="🎱" aria-label="Billar · En desarrollo"></button>
+  <button type="button" class="game-poster-hotspot slots" data-game-name="Juegos Slot" data-game-icon="🎰" aria-label="Juegos Slot · En desarrollo"></button>
+  <button type="button" class="game-poster-hotspot blackjack" data-game-name="Blackjack" data-game-icon="🂡" aria-label="Blackjack · En desarrollo"></button>
 </div></div></div>
 <div id="gameDevelopmentPanel" class="overlay"><div class="panel"><button class="close" data-close="gameDevelopmentPanel">✕</button><div class="game-dev-message"><div id="gameDevelopmentIcon" class="big">🎮</div><h3 id="gameDevelopmentTitle">Juego</h3><p>Este juego está en desarrollo. Muy pronto estará disponible dentro de MAIKET FLASH.</p></div></div></div>
 
@@ -2136,7 +2144,7 @@ $('rouletteRequestBtn').onclick=async()=>{
 
 // ===== HTML 1.0.2: PANEL DE JUEGOS =====
 $('gamesBtn').onclick=()=>show('gamesPanel');
-document.querySelectorAll('.game-dev-card').forEach(card=>card.addEventListener('click',()=>{
+document.querySelectorAll('.game-poster-hotspot').forEach(card=>card.addEventListener('click',()=>{
   $('gameDevelopmentIcon').textContent=card.dataset.gameIcon||'🎮';
   $('gameDevelopmentTitle').textContent=(card.dataset.gameName||'Juego')+' · En desarrollo';
   show('gameDevelopmentPanel');
@@ -2247,7 +2255,7 @@ buildWheel();
 })().catch(e=>msg('authMsg',errText(e)));
 </script>
 
-<!-- HTML 1.0.2: jugadas guardadas reforzadas en SQL, apuestas sin reembolso, bonos automáticos desactivados, lista completa de usuarios líder, panel Juegos (Billar/Póker/Slots) y audio con activación física. -->
+<!-- HTML 1.0.2: jugadas guardadas reforzadas en SQL, apuestas sin reembolso, bonos automáticos desactivados, lista completa de usuarios líder, panel Juegos con imagen oficial elegida (Póker/Billar/Juegos Slot/Blackjack) y audio con activación física. -->
 <!-- V1.4: sonido reforzado en Safari/iPhone, contraseña del panel líder opcional mediante interruptor y duración visual del giro configurable desde administración. -->
 </body>
 </html>
