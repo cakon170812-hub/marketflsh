@@ -280,7 +280,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 <div id="gamesPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="gamesPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p>El área de Juegos está dedicada al Dominó.</p></div><img class="domino-hero" src="domino_lobby_dorado.png" alt="Dominó Flash Coin"><button id="dominoPlayBtn" type="button" class="action green">ENTRAR A LAS MESAS</button></div></div></div>
 
-<div id="dominoLobbyPanel class="overlay"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="dominoLobbyPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p><span class="domino-live-dot"></span>Mesas en línea · entra, elige tu saldo de mesa y juega</p></div><div id="dominoLobbyMsg" class="msg"></div><div id="dominoLobbyModes" class="domino-two-tables"></div></div></div></div>
+<div id="dominoLobbyPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="dominoLobbyPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p><span class="domino-live-dot"></span>Mesas en línea · entra, elige tu saldo de mesa y juega</p></div><div id="dominoLobbyMsg" class="msg"></div><div id="dominoLobbyModes" class="domino-two-tables"></div></div></div></div>
 
 <div id="dominoBuyinPanel" class="overlay"><div class="panel domino-buyin-card"><button class="close" data-close="dominoBuyinPanel">✕</button><h2 id="dominoBuyinTitle">Sentarse</h2><div class="tiny">Elige cuántas Flash Coin vas a llevar a la mesa. Se descuentan del saldo principal y vuelven al salir solamente las que realmente te queden.</div><div id="dominoBuyinValue" class="domino-buyin-value">0.000 FC</div><input id="dominoBuyinRange" class="domino-buyin-range" type="range" min="0.3" max="1" step="0.01"><input id="dominoBuyinInput" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="dominoConfirmJoinBtn" class="action green">SENTARME EN LA MESA</button><div id="dominoBuyinMsg" class="msg"></div></div></div>
 
@@ -348,6 +348,49 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 <div id="copyToast" class="copy-toast">Copiado</div>
 
+
+<script id="dominoGamesButtonSafety">
+(function(){
+  function abrirPanelDominoSeguro(){
+    var panel=document.getElementById('dominoLobbyPanel');
+    if(!panel)return;
+    panel.classList.add('active');
+
+    var host=document.getElementById('dominoLobbyModes');
+    if(host && !host.innerHTML.trim()){
+      host.innerHTML='<div class="domino-choice-card" style="grid-column:1/-1;text-align:center;padding:28px"><div class="domino-spinner"></div><div class="domino-wait-title">Cargando mesas...</div><div class="domino-wait-sub">Conectando con Dominó Flash Coin</div></div>';
+    }
+
+    // La carga real de las mesas se deja a la función principal cuando está disponible.
+    try{
+      if(typeof window.openDominoLobby==='function'){
+        window.openDominoLobby();
+      }
+    }catch(e){
+      console.error('Dominó lobby:',e);
+    }
+  }
+
+  function conectar(){
+    var btn=document.getElementById('gamesBtn');
+    if(!btn || btn.dataset.dominoSafetyBound==='1')return;
+    btn.dataset.dominoSafetyBound='1';
+    btn.addEventListener('click',function(ev){
+      ev.preventDefault();
+      abrirPanelDominoSeguro();
+    });
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',conectar,{once:true});
+  }else{
+    conectar();
+  }
+
+  window.abrirPanelDominoSeguro=abrirPanelDominoSeguro;
+})();
+</script>
+
 <script>
 const SUPABASE_URL='https://mvwpbhhhspcaurjgsegz.supabase.co';
 const SUPABASE_KEY='sb_publishable_nO8z0atB5iB5Bri2iRXwdw_PJUOQvCx';
@@ -377,8 +420,8 @@ const betQueues={};
 const $=id=>document.getElementById(id);
 const money=v=>Number(v||0).toFixed(3);
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-function show(id){$(id).classList.add('active')}
-function hide(id){$(id).classList.remove('active')}
+function show(id){const el=$(id);if(el)el.classList.add('active');else console.error('No existe panel:',id)}
+function hide(id){const el=$(id);if(el)el.classList.remove('active')}
 function msg(id,t){$(id).textContent=t||''}
 function errText(e){return e?.message||String(e||'Error')}
 function normalizeEmail(v){return String(v||'').trim().toLowerCase()}
@@ -2230,11 +2273,12 @@ $('rouletteRequestBtn').onclick=async()=>{
 
 // ===== HTML 1.0.2: PANEL DE JUEGOS =====
 const gamesButton=$('gamesBtn');
-if(gamesButton){
-  gamesButton.onclick=(ev)=>{
+if(gamesButton && gamesButton.dataset.dominoMainBound!=='1'){
+  gamesButton.dataset.dominoMainBound='1';
+  gamesButton.addEventListener('click',(ev)=>{
     if(ev)ev.preventDefault();
     openDominoLobby();
-  };
+  });
 }
 document.querySelectorAll('.game-poster-hotspot').forEach(card=>card.addEventListener('click',()=>{
   $('gameDevelopmentIcon').textContent=card.dataset.gameIcon||'🎮';
@@ -2341,7 +2385,8 @@ async function dominoStartRealtime(){
 function dominoConfigModeLabel(m){return m==='paid_pass'?'Pases pagados':'Clásico'}
 async function openDominoLobby(){
   hide('gamesPanel');
-  show('dominoLobbyPanel');
+  const lobbyPanel=$('dominoLobbyPanel');
+  if(lobbyPanel)lobbyPanel.classList.add('active');
 
   const host=$('dominoLobbyModes');
   if(host){
@@ -2371,6 +2416,7 @@ async function openDominoLobby(){
     msg('dominoLobbyMsg',errText(e));
   }
 }
+window.openDominoLobby=openDominoLobby;
 function renderDominoLobby(){
   const host=$('dominoLobbyModes');if(!host)return;
   const configs=(dominoLobbyData?.configs||[]).slice(0,2),tables=dominoLobbyData?.tables||[],myTable=dominoLobbyData?.my_table,myState=dominoLobbyData?.my_state;
@@ -2472,6 +2518,7 @@ buildWheel();
 
 <!-- HTML 1.0.2: jugadas guardadas reforzadas en SQL, apuestas sin reembolso, bonos automáticos desactivados, lista completa de usuarios líder, panel Juegos con imagen oficial elegida (Póker/Billar/Juegos Slot/Blackjack) y audio con activación física. -->
 <!-- V1.4: sonido reforzado en Safari/iPhone, contraseña del panel líder opcional mediante interruptor y duración visual del giro configurable desde administración. -->
+<!-- HTML 1.2.3: Botón Juegos blindado: ID del lobby correcto + listener de seguridad independiente + apertura inmediata antes de consultar Supabase. -->
 </body>
 </html>
 
@@ -2488,3 +2535,4 @@ buildWheel();
 <!-- HTML 1.1: Dominó multijugador 2–4, mesas automáticas, saldo de mesa, comisión, pases pagados, auto-jugada, salida segura y administración editable. -->
 <!-- HTML 1.2: Juegos abre directo al Dominó; lobby con solo dos mesas, fondo Dominó, tira de entrada, espera con spinner y sincronización Realtime + respaldo por polling. -->
 <!-- HTML 1.2.1: Corrección del botón Juegos: el panel de las dos mesas abre inmediatamente y carga Supabase dentro del panel. -->
+<!-- HTML 1.2.2: Reparación real del botón Juegos: se corrige el id malformed de dominoLobbyPanel y show/hide quedan protegidos. -->
