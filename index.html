@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<!-- MAIKET FLASH · HTML 1.0.2 · ACTUALIZACIÓN COMPLETA -->
+<!-- MAIKET FLASH · HTML 1.1 · DOMINÓ COMPLETO -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 1.0.2</title>
+<title>Ruleta Flash Coin — HTML 1.1 Dominó</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -111,6 +111,26 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .game-poster-hotspot.blackjack{left:74.0%;top:51.2%;width:22.4%;height:29.6%}
 @media(max-width:440px){.wallet-row{flex-wrap:wrap}.wallet-row .promoter-chip:not(.hidden){flex:1 1 100%}}
 
+
+/* ===== DOMINÓ FLASH COIN · HTML 1.1 ===== */
+.domino-launch{margin:12px 4px 5px;border:1px solid rgba(255,213,90,.55);border-radius:18px;overflow:hidden;background:linear-gradient(145deg,#101720,#07100c);box-shadow:0 12px 30px rgba(0,0,0,.34)}
+.domino-launch img{display:block;width:100%;aspect-ratio:16/7;object-fit:cover;object-position:center}
+.domino-launch-body{padding:12px}.domino-launch-body h3{margin:0 0 4px;color:#ffe07a}.domino-launch-body p{font-size:11px;color:#b7c0cd;margin-bottom:9px;line-height:1.4}
+.domino-panel{width:min(96vw,860px)!important;max-width:860px!important;background:radial-gradient(circle at 50% 0,#192b24,#07110d 45%,#05080a)!important;border-color:#9c7b2b!important}
+.domino-hero{width:100%;border-radius:16px;border:1px solid rgba(255,215,91,.35);max-height:260px;object-fit:cover;margin:4px 0 12px}
+.domino-mode-card{border:1px solid #385443;background:linear-gradient(145deg,#101a15,#090f0c);border-radius:16px;padding:12px;margin:9px 0}
+.domino-mode-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.domino-mode-head strong{font-size:16px;color:#ffe08a}.domino-mode-card .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:9px 0}.domino-mode-card .meta span{font-size:10px;background:#08110d;border:1px solid #263a30;border-radius:10px;padding:7px;color:#c3ccc6}
+.domino-tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}.domino-table-mini{border:1px solid #31493c;background:#08100c;border-radius:12px;padding:9px;color:#fff;text-align:left}.domino-table-mini b{display:block;color:#ffe07a}.domino-table-mini small{color:#aab5ad}
+.domino-buyin-card{text-align:center}.domino-buyin-value{font-size:33px;color:#ffe071;font-weight:950;margin:10px 0}.domino-buyin-range{width:100%;accent-color:#e7a824}
+.domino-game-panel{width:min(100vw,980px)!important;max-width:980px!important;height:min(96vh,820px);padding:10px!important;background:radial-gradient(ellipse at center,#173e2f 0,#0b261c 46%,#07110d 100%)!important;border:1px solid #9c7a29!important;overflow:hidden!important}
+.domino-topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}.domino-topbar .domino-title{font-weight:950;color:#ffe17f}.domino-topbar .domino-pot{font-size:11px;color:#d6decf}.domino-gear{width:38px;height:38px;border-radius:50%;border:1px solid #856b28;background:#17140b;color:#ffe07a;font-size:18px}
+.domino-stage{position:relative;height:calc(100% - 48px);border:2px solid rgba(189,149,53,.6);border-radius:46% / 22%;background:radial-gradient(ellipse at center,#1c704c 0,#124d36 46%,#0b2c20 74%,#08150f 100%);box-shadow:inset 0 0 60px rgba(0,0,0,.72),0 14px 40px rgba(0,0,0,.48);overflow:hidden}
+.domino-seat{position:absolute;width:126px;min-height:64px;border-radius:14px;border:1px solid #806d31;background:rgba(5,10,8,.86);padding:7px;text-align:center;z-index:4}.domino-seat strong{display:block;font-size:11px}.domino-seat small{display:block;color:#aeb8b0;font-size:9px}.domino-seat .seat-bal{color:#77efa0;font-weight:900}.domino-seat.turn{box-shadow:0 0 0 2px #ffdc6a,0 0 22px rgba(255,220,106,.45)}.domino-seat.s1{left:50%;bottom:108px;transform:translateX(-50%)}.domino-seat.s2{right:9px;top:50%;transform:translateY(-50%)}.domino-seat.s3{left:50%;top:10px;transform:translateX(-50%)}.domino-seat.s4{left:9px;top:50%;transform:translateY(-50%)}
+.domino-board{position:absolute;left:10%;right:10%;top:37%;min-height:82px;display:flex;align-items:center;justify-content:center;gap:3px;flex-wrap:wrap;z-index:2}.domino-piece{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#fff,#dfe4df);color:#080b09;border:1px solid #111;border-radius:6px;box-shadow:0 3px 8px rgba(0,0,0,.35);font-weight:950;user-select:none}.domino-piece.board-piece{width:42px;height:26px;font-size:11px}.domino-piece.hand-piece{width:52px;height:82px;flex-direction:column;font-size:18px;border-radius:8px}.domino-piece .half{display:grid;place-items:center;flex:1;width:100%}.domino-piece.hand-piece .half+ .half{border-top:1px solid #111}.domino-piece.board-piece .half+ .half{border-left:1px solid #111}.domino-piece.playable{box-shadow:0 0 0 2px #ffd85d,0 0 16px rgba(255,216,93,.45);cursor:pointer}.domino-piece:not(.playable).hand-piece{opacity:.58}
+.domino-hand{position:absolute;left:10px;right:10px;bottom:10px;display:flex;gap:6px;align-items:flex-end;justify-content:center;overflow-x:auto;padding:8px 4px;z-index:6}.domino-center-status{position:absolute;left:50%;top:19%;transform:translateX(-50%);min-width:180px;text-align:center;z-index:5;background:rgba(4,10,7,.84);border:1px solid rgba(255,218,93,.32);border-radius:12px;padding:7px 10px;font-size:10px;color:#d8e3db}.domino-timer{font-size:24px;color:#ffe069;font-weight:950}.domino-victory{position:absolute;inset:0;display:none;place-items:center;background:radial-gradient(circle,rgba(255,221,92,.60),rgba(2,7,4,.86) 55%);z-index:20;text-align:center}.domino-victory.show{display:grid;animation:dominoWin .35s ease-out}.domino-victory b{font-size:32px;color:#fff3a5;text-shadow:0 0 18px #ffc928}.domino-victory span{display:block;margin-top:6px}@keyframes dominoWin{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.domino-menu-actions{display:grid;gap:9px}.domino-admin-card{border:1px solid #3d4b42;background:#090e0b;border-radius:14px;padding:11px;margin-top:10px}.domino-admin-card h4{color:#ffe07c;margin-bottom:6px}.domino-admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.domino-admin-grid label{font-size:9px;color:#aab3ad}.domino-admin-grid .field{margin-top:3px}
+@media(max-width:620px){.domino-game-panel{height:94vh}.domino-seat{width:94px;min-height:58px;padding:5px}.domino-seat.s1{bottom:104px}.domino-board{left:4%;right:4%;top:37%}.domino-piece.hand-piece{width:44px;height:72px;font-size:16px}.domino-piece.board-piece{width:37px;height:24px}.domino-center-status{top:21%;min-width:145px}.domino-admin-grid{grid-template-columns:1fr 1fr}}
+
 </style>
 </head>
 <body>
@@ -204,7 +224,18 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   <button type="button" class="game-poster-hotspot billar" data-game-name="Billar" data-game-icon="🎱" aria-label="Billar · En desarrollo"></button>
   <button type="button" class="game-poster-hotspot slots" data-game-name="Juegos Slot" data-game-icon="🎰" aria-label="Juegos Slot · En desarrollo"></button>
   <button type="button" class="game-poster-hotspot blackjack" data-game-name="Blackjack" data-game-icon="🂡" aria-label="Blackjack · En desarrollo"></button>
-</div></div></div>
+</div><div class="domino-launch"><img src="domino_lobby_dorado.png" alt="Dominó Flash Coin"><div class="domino-launch-body"><h3>🁫 Dominó Flash Coin</h3><p>Mesas automáticas de 2 a 4 jugadores · saldo de mesa · modo clásico y modo con pases pagados.</p><button id="dominoPlayBtn" type="button" class="action green">JUGAR DOMINÓ</button></div></div></div></div>
+
+<div id="dominoLobbyPanel" class="overlay"><div class="panel domino-panel"><button class="close" data-close="dominoLobbyPanel">✕</button><h2>🁫 Mesas de Dominó</h2><img class="domino-hero" src="domino_lobby_dorado.png" alt="Lobby dorado de Dominó"><div id="dominoLobbyMsg" class="msg"></div><div id="dominoLobbyModes"></div></div></div>
+
+<div id="dominoBuyinPanel" class="overlay"><div class="panel domino-buyin-card"><button class="close" data-close="dominoBuyinPanel">✕</button><h2 id="dominoBuyinTitle">Sentarse</h2><div class="tiny">Elige cuántas Flash Coin vas a llevar a la mesa. Se descuentan del saldo principal y vuelven al salir solamente las que realmente te queden.</div><div id="dominoBuyinValue" class="domino-buyin-value">0.000 FC</div><input id="dominoBuyinRange" class="domino-buyin-range" type="range" min="0.3" max="1" step="0.01"><input id="dominoBuyinInput" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="dominoConfirmJoinBtn" class="action green">SENTARME EN LA MESA</button><div id="dominoBuyinMsg" class="msg"></div></div></div>
+
+<div id="dominoTablePanel" class="overlay"><div class="panel domino-game-panel"><div class="domino-topbar"><div><div id="dominoTableTitle" class="domino-title">Dominó</div><div id="dominoTableSub" class="domino-pot">Mesa</div></div><button id="dominoGearBtn" class="domino-gear" type="button">⚙️</button></div><div id="dominoStage" class="domino-stage"><div id="dominoSeats"></div><div id="dominoCenterStatus" class="domino-center-status">Esperando jugadores...</div><div id="dominoBoard" class="domino-board"></div><div id="dominoHand" class="domino-hand"></div><div id="dominoVictory" class="domino-victory"><div><b>¡GANASTE!</b><span id="dominoVictoryText">Victoria</span></div></div></div></div></div>
+
+<div id="dominoMenuPanel" class="overlay"><div class="panel"><button class="close" data-close="dominoMenuPanel">✕</button><h2>⚙️ Mesa de Dominó</h2><div class="domino-menu-actions"><button id="dominoBackBtn" class="action dark">← Atrás</button><div class="tiny">Regresas al lobby. Tu asiento sigue jugando automáticamente hasta terminar la mano. Si vuelves antes de que termine, continúas normalmente.</div><button id="dominoExitBtn" class="action red">Salir de la mesa</button><div class="tiny">La mano continúa automáticamente. Si tu asiento gana después de confirmar la salida, ese premio se acredita a la Cartera Administrativa.</div></div></div></div>
+
+<div id="dominoExitConfirmPanel" class="overlay"><div class="panel"><h2>¿Salir de la mesa?</h2><p class="tiny">Tu asiento terminará la mano automáticamente. El premio de una victoria posterior a tu salida irá al saldo administrativo.</p><div class="request-actions"><button id="dominoExitCancelBtn" class="action dark">Cancelar</button><button id="dominoExitConfirmBtn" class="action red">Confirmar salida</button></div></div></div>
+
 <div id="gameDevelopmentPanel" class="overlay"><div class="panel"><button class="close" data-close="gameDevelopmentPanel">✕</button><div class="game-dev-message"><div id="gameDevelopmentIcon" class="big">🎮</div><h3 id="gameDevelopmentTitle">Juego</h3><p>Este juego está en desarrollo. Muy pronto estará disponible dentro de MAIKET FLASH.</p></div></div></div>
 
 <div id="balancePanel" class="overlay"><div class="panel"><button class="close" data-close="balancePanel">✕</button><h2>💰 Flash Coin</h2><div class="card"><span class="tiny">Saldo disponible</span><strong style="font-size:28px" id="balancePanelValue" class="fc-balance">0.000 FC</strong><span class="tiny">Tu ID: <b id="balancePublicId"></b><button id="copyBalanceIdBtn" type="button" class="copy-btn">Copiar</button></span></div><h3>Solicitudes</h3><div id="requestsList"></div><h3>Historial</h3><div id="ledgerList"></div></div></div>
@@ -234,6 +265,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div class="section"><h3>Comunicado</h3><label class="switch-line"><input id="adminNoticeEnabled" class="switch" type="checkbox"><span>Mostrar comunicado a los usuarios</span></label><textarea id="adminNotice" class="field" rows="3" placeholder="Escribe el comunicado..."></textarea><div class="row"><div><label class="tiny">Visible durante (segundos)</label><input id="adminNoticeVisible" class="field" type="number" min="1" max="3600" value="10"></div><div><label class="tiny">Reaparece cada (segundos)</label><input id="adminNoticeRepeat" class="field" type="number" min="1" max="86400" value="300"></div></div><button id="adminSaveNoticeBtn" class="action green">Guardar comunicado</button></div>
 <div class="section"><h3>Recarga por ID</h3><div class="row"><input id="adminRechargeId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminFindRechargeBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="adminRechargeUserResult"></div><input id="adminRechargeAmount" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="adminRechargeBtn" class="action green">Acreditar recarga</button></div>
 <div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador de ronda (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Porcentaje global de pago (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">⏱ Duración visual del giro (segundos)</label><input id="adminSpinDuration" class="field" type="number" min="3" max="20" step="0.5" inputmode="decimal"><div class="tiny">Controla cuánto tiempo y cuántas vueltas da la ruleta antes de detenerse. No cambia el número ganador.</div><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración</button></div>
+<div class="section"><h3>🁫 Configuración del Dominó</h3><div class="tiny">Edita cada modalidad. Los cambios aplican a las próximas manos, sin borrar las mesas ni los saldos actuales.</div><div id="dominoAdminConfigs"></div><div id="dominoAdminMsg" class="msg"></div></div>
 <div class="section"><h3>Seguridad del panel</h3><label class="switch-line"><input id="leaderPasswordRequiredSwitch" class="switch" type="checkbox"><span>Solicitar contraseña al entrar al panel</span></label><div class="tiny">Si lo apagas, la contraseña no se elimina: el Administrador Líder autorizado entra directamente. Puedes volver a activarlo cuando quieras.</div><div id="leaderPasswordModeMsg" class="msg"></div><h3 style="margin-top:14px">Cambiar contraseña del panel</h3><input id="oldLeaderPass" class="field" type="password" placeholder="Contraseña actual"><input id="newLeaderPass" class="field" type="password" placeholder="Nueva contraseña"><button id="changeLeaderPassBtn" class="action dark">Cambiar contraseña</button></div><div id="adminMsg" class="msg"></div></div></div>
 
 
@@ -1456,7 +1488,7 @@ $('leaderUnlockBtn').onclick=async()=>{
   if(!data)return msg('leaderGateMsg','Contraseña incorrecta.');
   hide('leaderGatePanel');await openLeaderPanel();
 };
-async function openLeaderPanel(){await Promise.all([loadSettings(),loadStats(),loadLeaderWallets()]);renderSettings();show('leaderPanel')}
+async function openLeaderPanel(){await Promise.all([loadSettings(),loadStats(),loadLeaderWallets(),loadDominoAdminConfigs()]);renderSettings();show('leaderPanel')}
 $('leaderTransferId').addEventListener('input',()=>{selectedLeaderTransferUser=null;$('leaderTransferUserResult').innerHTML='';msg('leaderTransferMsg','');});
 $('leaderFindTransferBtn').onclick=async()=>{
   if(me?.role!=='leader')return msg('leaderTransferMsg','Solo el Administrador Líder puede usar esta función.');
@@ -2226,6 +2258,84 @@ $('leaderUsersSendBtn').onclick=()=>leaderUsersOperation('send');
 $('leaderUsersRequestBtn').onclick=()=>leaderUsersOperation('request');
 $('leaderUsersRechargeBtn').onclick=()=>leaderUsersOperation('recharge');
 
+
+
+// ===== HTML 1.1: DOMINÓ FLASH COIN =====
+let dominoLobbyData=null,dominoCurrentTableId=null,dominoState=null,dominoPollTimer=null,dominoJoinConfig=null,dominoLastWinnerHand=null;
+function dominoMoney(v){return Number(v||0).toFixed(3)}
+function dominoStartPolling(){clearInterval(dominoPollTimer);dominoPollTimer=setInterval(()=>{if(dominoCurrentTableId)loadDominoState(false).catch(()=>{});},900)}
+function dominoStopPolling(){clearInterval(dominoPollTimer);dominoPollTimer=null}
+function dominoConfigModeLabel(m){return m==='paid_pass'?'Pases pagados':'Clásico'}
+async function openDominoLobby(){
+  hide('gamesPanel');
+  const {data,error}=await sb.rpc('rf_domino_get_lobby_v11');
+  if(error){alert(errText(error));return}
+  dominoLobbyData=data||{};renderDominoLobby();show('dominoLobbyPanel');
+}
+function renderDominoLobby(){
+  const host=$('dominoLobbyModes');if(!host)return;
+  const configs=dominoLobbyData?.configs||[],tables=dominoLobbyData?.tables||[],myTable=dominoLobbyData?.my_table,myState=dominoLobbyData?.my_state;
+  host.innerHTML=configs.map(c=>{
+    const tt=tables.filter(t=>Number(t.config_id)===Number(c.id));
+    return `<div class="domino-mode-card"><div class="domino-mode-head"><strong>${esc(c.name)}</strong><span class="dev-badge" style="position:static">${dominoConfigModeLabel(c.mode)}</span></div><div class="meta"><span>Entrada mínima <b>${dominoMoney(c.min_entry)} FC</b></span><span>Bote por jugador <b>${dominoMoney(c.hand_stake)} FC</b></span><span>Comisión <b>${Number(c.commission_pct||0).toFixed(2)}%</b></span><span>Pase <b>${dominoMoney(c.pass_fee)} FC</b></span></div><button class="action green domino-join-mode" data-config="${c.id}">Entrar / buscar mesa</button><div class="domino-tables">${tt.slice(0,8).map(t=>`<div class="domino-table-mini"><b>Mesa #${t.table_no}</b><small>${t.players}/4 jugadores</small></div>`).join('')||'<div class="tiny">La primera mesa se crea automáticamente.</div>'}</div></div>`;
+  }).join('');
+  if(myTable)host.insertAdjacentHTML('afterbegin',myState==='abandoned'?`<div class="card"><strong>Salida confirmada</strong><div class="tiny">Tu asiento terminará esta mano automáticamente y después quedará libre. Si gana, el premio irá a la Cartera Administrativa.</div></div>`:`<div class="card"><strong>Tu asiento sigue activo</strong><div class="tiny">Puedes volver a tu mesa antes de que termine la mano para continuar jugando.</div><button id="dominoResumeTableBtn" class="action blue">VOLVER A MI MESA</button></div>`);
+  host.querySelectorAll('.domino-join-mode').forEach(b=>b.onclick=()=>openDominoBuyin(Number(b.dataset.config)));
+  if($('dominoResumeTableBtn'))$('dominoResumeTableBtn').onclick=async()=>{dominoCurrentTableId=Number(myTable);await sb.rpc('rf_domino_resume_v11',{p_table_id:dominoCurrentTableId});hide('dominoLobbyPanel');show('dominoTablePanel');dominoStartPolling();await loadDominoState(true)};
+}
+function openDominoBuyin(configId){
+  const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(configId));if(!c)return;
+  dominoJoinConfig=c;$('dominoBuyinTitle').textContent=c.name+' · Sentarse';
+  const bal=Number(me?.balance||0),min=Number(c.min_entry||0.3),max=Math.max(min,bal);
+  $('dominoBuyinRange').min=String(min);$('dominoBuyinRange').max=String(max);$('dominoBuyinRange').step='0.001';$('dominoBuyinRange').value=String(Math.min(max,Math.max(min,min)));
+  $('dominoBuyinInput').min=String(min);$('dominoBuyinInput').max=String(max);$('dominoBuyinInput').value=dominoMoney(Math.min(max,min));
+  $('dominoBuyinValue').textContent=dominoMoney($('dominoBuyinInput').value)+' FC';msg('dominoBuyinMsg','');show('dominoBuyinPanel');
+}
+$('dominoBuyinRange').addEventListener('input',()=>{$('dominoBuyinInput').value=Number($('dominoBuyinRange').value).toFixed(3);$('dominoBuyinValue').textContent=dominoMoney($('dominoBuyinRange').value)+' FC'});
+$('dominoBuyinInput').addEventListener('input',()=>{const v=Number($('dominoBuyinInput').value||0);$('dominoBuyinValue').textContent=dominoMoney(v)+' FC';if(Number.isFinite(v))$('dominoBuyinRange').value=String(v)});
+$('dominoConfirmJoinBtn').onclick=async()=>{
+  if(!dominoJoinConfig)return;const amount=Number($('dominoBuyinInput').value);if(!(amount>=Number(dominoJoinConfig.min_entry)))return msg('dominoBuyinMsg','Debes entrar con la mínima completa de la mesa.');
+  $('dominoConfirmJoinBtn').disabled=true;msg('dominoBuyinMsg','Sentándote en la mesa...');
+  const {data,error}=await sb.rpc('rf_domino_join_v11',{p_config_id:Number(dominoJoinConfig.id),p_buyin:amount});$('dominoConfirmJoinBtn').disabled=false;
+  if(error)return msg('dominoBuyinMsg',errText(error));
+  dominoCurrentTableId=Number(data);hide('dominoBuyinPanel');hide('dominoLobbyPanel');show('dominoTablePanel');await loadMe();renderMe();dominoStartPolling();await loadDominoState(true);
+};
+function dominoPiece(tile,idx,playable,board=false){const a=Number(tile?.a??tile?.[0]??0),b=Number(tile?.b??tile?.[1]??0);return `<button type="button" class="domino-piece ${board?'board-piece':'hand-piece'} ${playable?'playable':''}" ${!board&&playable?`data-domino-tile="${idx}"`:''}><span class="half">${a}</span><span class="half">${b}</span></button>`}
+function dominoTileLegal(tile,h){if(!h||!tile)return false;if(!(h.board||[]).length)return true;const a=Number(tile[0]),b=Number(tile[1]);return [h.open_left,h.open_right].map(Number).includes(a)||[h.open_left,h.open_right].map(Number).includes(b)}
+function renderDominoState(st){
+  dominoState=st;const h=st?.hand,c=st?.config||{},seats=st?.seats||[],uid=st?.me;
+  $('dominoTableTitle').textContent=c.name||'Dominó Flash Coin';$('dominoTableSub').textContent=`Mesa #${(dominoLobbyData?.tables||[]).find(t=>Number(t.id)===Number(dominoCurrentTableId))?.table_no||dominoCurrentTableId} · Bote ${dominoMoney(h?.pot||0)} FC · Comisión ${Number(c.commission_pct||0).toFixed(2)}%`;
+  $('dominoSeats').innerHTML=[1,2,3,4].map(n=>{const s=seats.find(x=>Number(x.seat_no)===n);if(!s)return `<div class="domino-seat s${n}"><strong>Asiento libre</strong><small>Esperando jugador</small></div>`;const turn=h&&String(h.turn_user_id)===String(s.user_id);return `<div class="domino-seat s${n} ${turn?'turn':''}"><strong>${esc(s.name||s.public_id)}${String(s.user_id)===String(uid)?' · TÚ':''}</strong><small>ID ${esc(s.public_id)} · ${s.tile_count||0} fichas</small><span class="seat-bal">${dominoMoney(s.table_balance)} FC</span></div>`}).join('');
+  $('dominoBoard').innerHTML=(h?.board||[]).map((t,i)=>dominoPiece(t,i,false,true)).join('');
+  const myTurn=h&&h.status==='playing'&&String(h.turn_user_id)===String(uid);const tiles=h?.my_tiles||[];
+  $('dominoHand').innerHTML=tiles.map((t,i)=>dominoPiece(t,i,myTurn&&dominoTileLegal(t,h),false)).join('');
+  $('dominoHand').querySelectorAll('[data-domino-tile]').forEach(b=>b.onclick=()=>dominoPlayTile(Number(b.dataset.dominoTile)));
+  let status='Esperando jugadores...';
+  if(h?.status==='shuffling'){const sec=Math.max(0,Math.ceil((new Date(h.play_starts_at)-Date.now())/1000));status=`Barajando y repartiendo · ${sec}s`}
+  else if(h?.status==='playing'){const sec=Math.max(0,Math.ceil((new Date(h.turn_deadline)-Date.now())/1000));status=`${myTurn?'TU TURNO':'Turno de otro jugador'} · <span class="domino-timer">${sec}</span>s${myTurn?'<br><button id="dominoPassBtn" class="action dark" style="padding:6px 10px;margin-top:5px">PASAR</button>':''}`}
+  $('dominoCenterStatus').innerHTML=status;if($('dominoPassBtn'))$('dominoPassBtn').onclick=dominoPass;
+  const lr=st?.last_result;if(lr&&lr.id!==dominoLastWinnerHand){dominoLastWinnerHand=lr.id;const mySeat=seats.find(x=>String(x.user_id)===String(uid));const winSeat=seats.find(x=>String(x.user_id)===String(lr.winner_user_id));let iWon=String(lr.winner_user_id)===String(uid);if(!iWon&&seats.length===4&&mySeat&&winSeat)iWon=Math.abs(Number(mySeat.seat_no)-Number(winSeat.seat_no))===2;if(iWon){$('dominoVictoryText').textContent=lr.winner_reason==='TRANQUE_MENOS_PUNTOS'?'Ganaste por tener menos puntos':'Cerraste con tu última ficha';$('dominoVictory').classList.add('show');try{playWinnerSound()}catch(e){}setTimeout(()=>$('dominoVictory').classList.remove('show'),2800)}}
+}
+async function loadDominoState(force){if(!dominoCurrentTableId)return;await sb.rpc('rf_domino_tick_v11',{p_table_id:dominoCurrentTableId});const {data,error}=await sb.rpc('rf_domino_get_state_v11',{p_table_id:dominoCurrentTableId});if(error){if(force)alert(errText(error));return}renderDominoState(data)}
+async function dominoPlayTile(index){if(!dominoCurrentTableId)return;const {error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:'right'});if(error)return alert(errText(error));await loadDominoState(false);dominoWinPulse()}
+async function dominoPass(){if(!dominoCurrentTableId)return;const {error}=await sb.rpc('rf_domino_pass_v11',{p_table_id:dominoCurrentTableId});if(error)return alert(errText(error));await loadDominoState(false)}
+function dominoWinPulse(){const v=$('dominoVictory');if(!v)return;v.classList.remove('show')}
+$('dominoGearBtn').onclick=()=>show('dominoMenuPanel');
+$('dominoBackBtn').onclick=async()=>{if(!dominoCurrentTableId)return;await sb.rpc('rf_domino_back_v11',{p_table_id:dominoCurrentTableId});hide('dominoMenuPanel');hide('dominoTablePanel');dominoStopPolling();dominoCurrentTableId=null;await loadMe();renderMe();await openDominoLobby()};
+$('dominoExitBtn').onclick=()=>{hide('dominoMenuPanel');show('dominoExitConfirmPanel')};
+$('dominoExitCancelBtn').onclick=()=>hide('dominoExitConfirmPanel');
+$('dominoExitConfirmBtn').onclick=async()=>{if(!dominoCurrentTableId)return;const tid=dominoCurrentTableId;$('dominoExitConfirmBtn').disabled=true;const {error}=await sb.rpc('rf_domino_exit_now_v11',{p_table_id:tid});$('dominoExitConfirmBtn').disabled=false;if(error)return alert(errText(error));hide('dominoExitConfirmPanel');hide('dominoTablePanel');dominoStopPolling();dominoCurrentTableId=null;await loadMe();renderMe();await openDominoLobby()};
+$('dominoPlayBtn').onclick=openDominoLobby;
+
+// Administración de las dos modalidades de Dominó.
+async function loadDominoAdminConfigs(){
+  if(me?.role!=='leader'||!$('dominoAdminConfigs'))return;
+  const {data,error}=await sb.rpc('rf_domino_admin_configs_v11');if(error){$('dominoAdminConfigs').innerHTML='<div class="tiny">'+esc(errText(error))+'</div>';return}
+  $('dominoAdminConfigs').innerHTML=(data||[]).map(c=>`<div class="domino-admin-card" data-domino-admin="${c.id}"><h4>${esc(c.name)} · ${dominoConfigModeLabel(c.mode)}</h4><div class="domino-admin-grid"><label>Nombre<input class="field d-name" value="${esc(c.name)}"></label><label>Activa<select class="field d-active"><option value="1" ${c.active?'selected':''}>Sí</option><option value="0" ${!c.active?'selected':''}>No</option></select></label><label>Entrada mínima FC<input class="field d-entry" type="number" step="0.001" value="${c.min_entry}"></label><label>Bote por jugador FC<input class="field d-stake" type="number" step="0.001" value="${c.hand_stake}"></label><label>Comisión %<input class="field d-comm" type="number" step="0.001" value="${c.commission_pct}"></label><label>Costo de pase FC<input class="field d-pass" type="number" step="0.001" value="${c.pass_fee}"></label><label>Mínimo para seguir FC<input class="field d-continue" type="number" step="0.001" value="${c.min_continue_balance}"></label><label>Tiempo por turno (s)<input class="field d-turn" type="number" min="5" max="120" value="${c.turn_seconds}"></label><label>Barajado (s)<input class="field d-shuffle" type="number" min="1" max="15" step="0.5" value="${c.shuffle_seconds}"></label></div><button class="action green d-save">Guardar esta mesa</button></div>`).join('');
+  $('dominoAdminConfigs').querySelectorAll('[data-domino-admin]').forEach(card=>card.querySelector('.d-save').onclick=()=>saveDominoAdminCard(card));
+}
+async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmin),q=s=>card.querySelector(s);const payload={p_id:id,p_name:q('.d-name').value.trim(),p_min_entry:Number(q('.d-entry').value),p_hand_stake:Number(q('.d-stake').value),p_commission_pct:Number(q('.d-comm').value),p_pass_fee:Number(q('.d-pass').value),p_min_continue:Number(q('.d-continue').value),p_turn_seconds:Number(q('.d-turn').value),p_shuffle_seconds:Number(q('.d-shuffle').value),p_active:q('.d-active').value==='1'};const {error}=await sb.rpc('rf_domino_admin_save_config_v11',payload);if(error)return msg('dominoAdminMsg',errText(error));msg('dominoAdminMsg','Configuración de Dominó guardada.');await loadDominoAdminConfigs()}
+
 buildWheel();
 (async()=>{
   loadSavedLoginPreference();
@@ -2269,3 +2379,5 @@ buildWheel();
 
 <!-- V1.1: confirmación por correo para registros nuevos + confirmación previa de envío/solicitud de Promotor + porcentaje global de ganador efectivo solo en administración. -->
 <!-- V1.2: URL pública fija de GitHub Pages para confirmación de correo, recuperación de contraseña y enlaces de referido; evita localhost:3000. -->
+
+<!-- HTML 1.1: Dominó multijugador 2–4, mesas automáticas, saldo de mesa, comisión, pases pagados, auto-jugada, salida segura y administración editable. -->
