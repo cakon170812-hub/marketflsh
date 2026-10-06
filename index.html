@@ -2229,7 +2229,13 @@ $('rouletteRequestBtn').onclick=async()=>{
 };
 
 // ===== HTML 1.0.2: PANEL DE JUEGOS =====
-$('gamesBtn').onclick=()=>openDominoLobby();
+const gamesButton=$('gamesBtn');
+if(gamesButton){
+  gamesButton.onclick=(ev)=>{
+    if(ev)ev.preventDefault();
+    openDominoLobby();
+  };
+}
 document.querySelectorAll('.game-poster-hotspot').forEach(card=>card.addEventListener('click',()=>{
   $('gameDevelopmentIcon').textContent=card.dataset.gameIcon||'🎮';
   $('gameDevelopmentTitle').textContent=(card.dataset.gameName||'Juego')+' · En desarrollo';
@@ -2335,9 +2341,35 @@ async function dominoStartRealtime(){
 function dominoConfigModeLabel(m){return m==='paid_pass'?'Pases pagados':'Clásico'}
 async function openDominoLobby(){
   hide('gamesPanel');
-  const {data,error}=await sb.rpc('rf_domino_get_lobby_v11');
-  if(error){alert(errText(error));return}
-  dominoLobbyData=data||{};renderDominoLobby();show('dominoLobbyPanel');
+  show('dominoLobbyPanel');
+
+  const host=$('dominoLobbyModes');
+  if(host){
+    host.innerHTML=`<div class="domino-choice-card" style="grid-column:1/-1;text-align:center;padding:28px">
+      <div class="domino-spinner"></div>
+      <div class="domino-wait-title">Cargando mesas...</div>
+      <div class="domino-wait-sub">Conectando con Dominó Flash Coin</div>
+    </div>`;
+  }
+  msg('dominoLobbyMsg','');
+
+  try{
+    const {data,error}=await sb.rpc('rf_domino_get_lobby_v11');
+    if(error)throw error;
+    dominoLobbyData=data||{};
+    renderDominoLobby();
+  }catch(e){
+    if(host){
+      host.innerHTML=`<div class="domino-choice-card" style="grid-column:1/-1;text-align:center">
+        <h3>🁫 Dominó Flash Coin</h3>
+        <div class="mode-desc">No se pudieron cargar las mesas.</div>
+        <button id="dominoRetryLobbyBtn" class="action green">VOLVER A INTENTAR</button>
+      </div>`;
+      const retry=$('dominoRetryLobbyBtn');
+      if(retry)retry.onclick=openDominoLobby;
+    }
+    msg('dominoLobbyMsg',errText(e));
+  }
 }
 function renderDominoLobby(){
   const host=$('dominoLobbyModes');if(!host)return;
@@ -2455,3 +2487,4 @@ buildWheel();
 
 <!-- HTML 1.1: Dominó multijugador 2–4, mesas automáticas, saldo de mesa, comisión, pases pagados, auto-jugada, salida segura y administración editable. -->
 <!-- HTML 1.2: Juegos abre directo al Dominó; lobby con solo dos mesas, fondo Dominó, tira de entrada, espera con spinner y sincronización Realtime + respaldo por polling. -->
+<!-- HTML 1.2.1: Corrección del botón Juegos: el panel de las dos mesas abre inmediatamente y carga Supabase dentro del panel. -->
