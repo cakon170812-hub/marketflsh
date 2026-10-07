@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- MAIKET FLASH · HTML 0.1 · DOMINÓ MESA LIMPIA -->
+<!-- MAIKET FLASH · HTML 0.1 · DOMINÓ TRAYECTORIA 7 -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
 <html lang="es" data-app-build="0.1">
 <head>
@@ -10,7 +10,7 @@
 <meta name="application-version" content="0.1">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 0.1 Dominó Mesa Limpia</title>
+<title>Ruleta Flash Coin — HTML 0.1 Dominó Trayectoria 7</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -1047,6 +1047,210 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   .domino-seat{width:74px!important;min-height:64px!important}.domino-avatar-wrap{width:50px;height:50px}.domino-seat .domino-avatar{width:42px!important;height:42px!important}.domino-turn-seconds{top:-11px;min-width:24px;height:18px;font-size:9px}
   .domino-seat.s1{bottom:17%!important}.domino-seat.s2{right:.8%!important;top:55%!important}.domino-seat.s3{top:2%!important}.domino-seat.s4{left:.8%!important;top:55%!important}
   .domino-seat .domino-seat-name{max-width:74px!important;font-size:7.5px!important}.domino-seat .domino-seat-info{display:none!important}.domino-seat .seat-bal{font-size:7px!important}.domino-see-message{font-size:6px;padding:2px 5px}
+}
+
+
+
+/* ==========================================================
+   HTML 0.1 · DOMINÓ TRAYECTORIA 7 / MESA SIN OBSTRUCCIONES
+   - Fichas del tablero mantienen siempre el mismo tamaño.
+   - Cadena continua en serpiente: fila, giro hacia abajo y regreso.
+   - Sin fondos/espacios negros ni fichas fantasma sobre la foto.
+   - Perfil propio debajo de la zona de fichas.
+   - Bote en el centro de la mesa.
+   - El zoom de cada jugada afecta solo la fotografía de la mesa,
+     nunca el tamaño de las fichas.
+   ========================================================== */
+:root{
+  --domino-board-tile-w:48px;
+  --domino-board-tile-h:28px;
+  --domino-board-row-h:48px;
+  --domino-board-row-w:398px;
+  --domino-board-gap:2px;
+}
+
+/* Zona real de juego: más arriba, limpia y transparente. */
+.domino-board{
+  left:50%!important;
+  right:auto!important;
+  top:33%!important;
+  transform:translate(-50%,-50%)!important;
+  width:min(64%,620px)!important;
+  height:44%!important;
+  max-height:none!important;
+  min-height:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:0!important;
+  padding:0!important;
+  margin:0!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  overflow:visible!important;
+  pointer-events:none!important;
+  z-index:8!important;
+}
+.domino-board::before,.domino-board::after,
+.domino-board-row::before,.domino-board-row::after{content:none!important;display:none!important}
+.domino-board-empty{display:none!important;background:transparent!important;border:0!important;box-shadow:none!important}
+
+/* Cada fila usa la misma anchura visual para que el giro conecte con la siguiente. */
+.domino-board-row{
+  width:min(100%,var(--domino-board-row-w))!important;
+  min-height:var(--domino-board-row-h)!important;
+  height:var(--domino-board-row-h)!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:var(--domino-board-gap)!important;
+  padding:0!important;
+  margin:0 auto -4px!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  overflow:visible!important;
+}
+.domino-board-row.flow-right{flex-direction:row!important;justify-content:flex-start!important}
+.domino-board-row.flow-left{flex-direction:row-reverse!important;justify-content:flex-start!important}
+.domino-board-row:last-child{margin-bottom:0!important}
+
+/* Tamaño físico fijo de la ficha del tablero. */
+.domino-piece.board-piece{
+  width:var(--domino-board-tile-w)!important;
+  height:var(--domino-board-tile-h)!important;
+  min-width:var(--domino-board-tile-w)!important;
+  min-height:var(--domino-board-tile-h)!important;
+  max-width:var(--domino-board-tile-w)!important;
+  max-height:var(--domino-board-tile-h)!important;
+  margin:0!important;
+  flex:0 0 var(--domino-board-tile-w)!important;
+  background:linear-gradient(145deg,#ffffff 0%,#f5f6f4 58%,#d9dcda 100%)!important;
+  border:1px solid #9ea49f!important;
+  box-shadow:0 3px 7px rgba(0,0,0,.28),inset 1px 1px 0 rgba(255,255,255,.96)!important;
+  filter:none!important;
+}
+
+/* El doble sigue vertical, pero ocupa el mismo paso horizontal de una ficha normal. */
+.domino-piece.board-piece.domino-double{
+  width:var(--domino-board-tile-h)!important;
+  min-width:var(--domino-board-tile-h)!important;
+  max-width:var(--domino-board-tile-h)!important;
+  height:var(--domino-board-tile-w)!important;
+  min-height:var(--domino-board-tile-w)!important;
+  max-height:var(--domino-board-tile-w)!important;
+  flex:0 0 var(--domino-board-tile-h)!important;
+  margin-left:10px!important;
+  margin-right:10px!important;
+}
+
+/* La última ficha de una fila hace el giro real hacia abajo.
+   No se dibuja ninguna ficha falsa ni bloque negro para simular el giro. */
+.domino-piece.board-piece.domino-turn-down:not(.domino-double){
+  transform:rotate(90deg)!important;
+  transform-origin:center center!important;
+  z-index:3!important;
+}
+.domino-piece.board-piece.domino-turn-down.domino-double{
+  transform:none!important;
+  z-index:3!important;
+}
+.domino-board-row.turn-right .domino-turn-down{margin-right:10px!important}
+.domino-board-row.turn-left .domino-turn-down{margin-left:10px!important}
+.domino-board-row.turn-right .domino-double.domino-turn-down,
+.domino-board-row.turn-left .domino-double.domino-turn-down{margin-left:10px!important;margin-right:10px!important}
+
+/* La ficha recién puesta no cambia de tamaño. Solo recibe un destello de caída. */
+.domino-piece.just-dropped{animation:dominoDropClackFixed .34s ease-out!important}
+@keyframes dominoDropClackFixed{
+  0%{opacity:.34;filter:brightness(1.42) drop-shadow(0 0 8px rgba(255,228,132,.72))}
+  55%{opacity:1;filter:brightness(1.16) drop-shadow(0 0 5px rgba(255,228,132,.40))}
+  100%{opacity:1;filter:none}
+}
+
+/* La mano tampoco deja huecos, placas negras ni espacios de la ficha ya jugada. */
+.domino-hand{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  overflow:visible!important;
+}
+.domino-hand::before,.domino-hand::after{content:none!important;display:none!important}
+
+/* Perfil propio debajo de los dominós; laterales fuera de la trayectoria. */
+.domino-seat.s1{left:50%!important;bottom:15.5%!important;top:auto!important;transform:translateX(-50%)!important}
+.domino-seat.s2{right:1.5%!important;top:58%!important;transform:translateY(-50%)!important}
+.domino-seat.s3{left:50%!important;top:2.2%!important;bottom:auto!important;transform:translateX(-50%)!important}
+.domino-seat.s4{left:1.5%!important;top:58%!important;transform:translateY(-50%)!important}
+
+/* Bote al centro de la mesa, compacto y sin tapar la trayectoria superior. */
+.domino-inside-pot{
+  left:50%!important;
+  top:55%!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:translate(-50%,-50%)!important;
+  min-width:106px!important;
+  z-index:17!important;
+}
+
+/* "Zoom" de cámara: se amplía solo una copia de la fotografía de la mesa.
+   Los perfiles y las fichas HTML permanecen a escala 1:1. */
+.domino-stage{--domino-focus-x:50%;--domino-focus-y:34%}
+.domino-stage::before{
+  content:""!important;
+  position:absolute!important;
+  inset:-5%!important;
+  z-index:0!important;
+  pointer-events:none!important;
+  border:0!important;
+  border-radius:0!important;
+  background-image:var(--domino-table-image)!important;
+  background-position:center center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+  opacity:0!important;
+  transform:scale(1)!important;
+  transform-origin:var(--domino-focus-x) var(--domino-focus-y)!important;
+}
+.domino-stage.domino-camera-zoom::before{animation:dominoCameraZoomPhoto .52s ease-out!important}
+@keyframes dominoCameraZoomPhoto{
+  0%{opacity:0;transform:scale(1)}
+  28%{opacity:.86;transform:scale(1.028)}
+  65%{opacity:.46;transform:scale(1.052)}
+  100%{opacity:0;transform:scale(1.065)}
+}
+
+@media(max-width:620px){
+  :root{
+    --domino-board-tile-w:40px;
+    --domino-board-tile-h:24px;
+    --domino-board-row-h:40px;
+    --domino-board-row-w:334px;
+    --domino-board-gap:2px;
+  }
+  .domino-board{top:32.5%!important;width:min(64%,430px)!important;height:45%!important}
+  .domino-board-row{margin-bottom:-3px!important}
+  .domino-piece.board-piece.domino-double{margin-left:8px!important;margin-right:8px!important}
+  .domino-board-row.turn-right .domino-turn-down{margin-right:8px!important}
+  .domino-board-row.turn-left .domino-turn-down{margin-left:8px!important}
+  .domino-board-row.turn-right .domino-double.domino-turn-down,
+  .domino-board-row.turn-left .domino-double.domino-turn-down{margin-left:8px!important;margin-right:8px!important}
+  .domino-seat.s1{bottom:14.8%!important}
+  .domino-seat.s2,.domino-seat.s4{top:58.5%!important}
+  .domino-inside-pot{top:55.5%!important;min-width:96px!important}
+}
+@media(max-height:430px) and (orientation:landscape){
+  .domino-board{top:31.5%!important;height:46%!important}
+  .domino-seat.s1{bottom:13.8%!important}
+  .domino-seat.s2,.domino-seat.s4{top:59%!important}
+  .domino-inside-pot{top:56%!important}
 }
 
 </style>
@@ -3538,7 +3742,7 @@ $('leaderUsersRechargeBtn').onclick=()=>leaderUsersOperation('recharge');
 
 
 // ===== HTML 1.1: DOMINÓ FLASH COIN =====
-let dominoLobbyData=null,dominoCurrentTableId=null,dominoState=null,dominoPollTimer=null,dominoJoinConfig=null,dominoLastWinnerHand=null,dominoRealtimeChannel=null,dominoRealtimeBusy=false,dominoSelectedTile=null,dominoDragState=null,dominoLastMoveId=null,dominoMoveEffectsPrimed=false,dominoAutoPassTimer=null,dominoSuppressTickUntil=0,dominoSkipOwnPlaySoundUntil=0,dominoUrgentTickKey='',dominoWakeLock=null,dominoWakeWanted=false;
+let dominoLobbyData=null,dominoCurrentTableId=null,dominoState=null,dominoPollTimer=null,dominoJoinConfig=null,dominoLastWinnerHand=null,dominoRealtimeChannel=null,dominoRealtimeBusy=false,dominoSelectedTile=null,dominoDragState=null,dominoLastMoveId=null,dominoMoveEffectsPrimed=false,dominoAutoPassTimer=null,dominoSuppressTickUntil=0,dominoSkipOwnPlaySoundUntil=0,dominoUrgentTickKey='',dominoWakeLock=null,dominoWakeWanted=false,dominoCameraZoomTimer=null;
 const dominoUserMessageCache=new Map();
 let dominoHeartbeatLast=0,dominoHeartbeatBusy=false;
 function dominoMoney(v){return Number(v||0).toFixed(3)}
@@ -3897,7 +4101,7 @@ function dominoInitials(name,id){
 }
 function dominoResetTableEffects(){
   dominoSelectedTile=null;dominoDragState=null;dominoLastMoveId=null;dominoMoveEffectsPrimed=false;dominoClearEndHighlights();dominoUserMessageCache.clear();
-  clearTimeout(dominoAutoPassTimer);dominoAutoPassTimer=null;dominoSuppressTickUntil=0;dominoSkipOwnPlaySoundUntil=0;dominoUrgentTickKey='';
+  clearTimeout(dominoAutoPassTimer);dominoAutoPassTimer=null;clearTimeout(dominoCameraZoomTimer);dominoCameraZoomTimer=null;$('dominoStage')?.classList.remove('domino-camera-zoom');dominoSuppressTickUntil=0;dominoSkipOwnPlaySoundUntil=0;dominoUrgentTickKey='';
 }
 function playDominoPickSound(){
   if(!dominoSoundIsEnabled())return;resumeAudioOnGesture();
@@ -3936,18 +4140,48 @@ function playDominoWinSound(){
   if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire()}).catch(()=>{});
 }
 function dominoRows(board,lastMove,animateMove){
-  if(!board?.length)return '<div class="domino-board-empty">MESA LISTA</div>';
-  const perRow=board.length>20?7:(board.length>12?6:8),rows=[];
+  if(!board?.length)return '';
+  // Ocho pasos por fila permiten mostrar las 28 fichas sin reducir su tamaño.
+  // La siguiente fila regresa en sentido contrario: recorrido continuo tipo 7/serpiente.
+  const perRow=8,rows=[];
   for(let i=0;i<board.length;i+=perRow){
-    const slice=board.slice(i,i+perRow),indices=slice.map((_,j)=>i+j),rev=(rows.length%2===1);
-    const pairs=slice.map((tile,j)=>({tile,idx:indices[j]}));
-    rows.push(`<div class="domino-board-row ${rev?'reverse':''}">${pairs.map(({tile,idx})=>{
-      const side=lastMove?.side||'right',newIndex=side==='left'?0:board.length-1;
+    const rowNo=rows.length;
+    const slice=board.slice(i,i+perRow);
+    const flowRight=rowNo%2===0;
+    const hasNext=i+slice.length<board.length;
+    const turnLogicalIndex=hasNext?(i+slice.length-1):-1;
+    const directionClass=flowRight?'flow-right':'flow-left';
+    const turnClass=hasNext?(flowRight?'turn-right':'turn-left'):'';
+    const html=slice.map((tile,j)=>{
+      const idx=i+j;
+      const side=lastMove?.side||'right';
+      const newIndex=side==='left'?0:board.length-1;
       const endClasses=`${idx===0?'domino-end-left ':''}${idx===board.length-1?'domino-end-right ':''}`.trim();
-      return dominoPiece(tile,idx,false,true,`${endClasses} ${animateMove&&idx===newIndex?'just-dropped':''}`.trim());
-    }).join('')}</div>`);
+      const bendClass=idx===turnLogicalIndex?'domino-turn-down':'';
+      const dropClass=animateMove&&idx===newIndex?'just-dropped':'';
+      return dominoPiece(tile,idx,false,true,`${endClasses} ${bendClass} ${dropClass}`.trim());
+    }).join('');
+    rows.push(`<div class="domino-board-row ${directionClass} ${turnClass}" data-domino-row="${rowNo}">${html}</div>`);
   }
   return rows.join('');
+}
+function dominoCameraFocusMove(){
+  const stage=$('dominoStage');
+  const fresh=stage?.querySelector('.domino-piece.just-dropped');
+  if(!stage||!fresh)return;
+  requestAnimationFrame(()=>{
+    const sr=stage.getBoundingClientRect(),fr=fresh.getBoundingClientRect();
+    if(!sr.width||!sr.height)return;
+    const x=Math.max(12,Math.min(88,((fr.left+fr.width/2-sr.left)/sr.width)*100));
+    const y=Math.max(10,Math.min(72,((fr.top+fr.height/2-sr.top)/sr.height)*100));
+    stage.style.setProperty('--domino-focus-x',`${x.toFixed(1)}%`);
+    stage.style.setProperty('--domino-focus-y',`${y.toFixed(1)}%`);
+    stage.classList.remove('domino-camera-zoom');
+    void stage.offsetWidth;
+    stage.classList.add('domino-camera-zoom');
+    clearTimeout(dominoCameraZoomTimer);
+    dominoCameraZoomTimer=setTimeout(()=>stage.classList.remove('domino-camera-zoom'),620);
+  });
 }
 function dominoClearEndHighlights(){
   const board=$('dominoBoard');if(!board)return;
@@ -4240,6 +4474,7 @@ function renderDominoState(st){
   dominoBindMessageButtons();
   $('dominoBoard').innerHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
   dominoBindBoardEndInteractions();
+  if(effects.animate)dominoCameraFocusMove();
   const myTurn=!!(h&&h.status==='playing'&&String(h.turn_user_id)===String(uid)),tiles=h?.my_tiles||[],hasLegal=myTurn&&tiles.some(t=>dominoTileLegal(t,h));
   const animateDeal=!!(h&&h.status==='shuffling'&&dominoDealAnimationHandId!==h.id);
   if(animateDeal)dominoDealAnimationHandId=h.id;
@@ -4714,6 +4949,7 @@ buildWheel();
 </div>
 
 </body>
+<!-- HTML 0.1: trayectoria 7 continua, fichas sin cambio de tamaño, tablero transparente, perfil debajo, bote central y zoom solo de fotografía. -->
 </html>
 
 <!-- V0.9: comprobantes de solicitudes, IDs de cartera y moneda Flash Coin opción 7 integrada. -->
