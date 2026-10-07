@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- MAIKET FLASH · HTML 0.1 · DOMINÓ TRAYECTORIA 7 -->
+<!-- MAIKET FLASH · HTML 0.1 · BASE OFICIAL VISUAL · PWA / DOMINÓ PREMIUM -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
 <html lang="es" data-app-build="0.1">
 <head>
@@ -10,7 +10,13 @@
 <meta name="application-version" content="0.1">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 0.1 Dominó Trayectoria 7</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
+<meta name="format-detection" content="telephone=no">
+<link rel="manifest" href="manifest.webmanifest?v=0.1">
+<title>MAIKET FLASH — HTML 0.1 · Base Oficial Visual</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -1253,6 +1259,155 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   .domino-inside-pot{top:56%!important}
 }
 
+
+
+/* ============================================================
+   HTML 0.1 · BASE OFICIAL VISUAL
+   Interfaz aprobada: mesa premium 4 jugadores + PWA fija.
+   ============================================================ */
+html,body{
+  width:100%;height:100%;height:100dvh;overflow:hidden!important;overscroll-behavior:none!important;
+  background:#020504!important;touch-action:manipulation;-webkit-text-size-adjust:100%;
+}
+body{position:fixed;inset:0;width:100%;height:var(--mf-vh,100dvh);max-height:var(--mf-vh,100dvh)}
+button,input,textarea,select{touch-action:manipulation}
+input,textarea{touch-action:auto}
+.auth{position:fixed!important;inset:0!important;min-height:0!important;height:var(--mf-vh,100dvh)!important;overflow-y:auto!important;overscroll-behavior:contain;padding:max(14px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))!important}
+#appView{
+  position:fixed!important;inset:0!important;width:100%!important;height:var(--mf-vh,100dvh)!important;min-height:0!important;
+  overflow:hidden!important;overscroll-behavior:none!important;padding-top:max(4px,env(safe-area-inset-top));
+  padding-right:max(5px,env(safe-area-inset-right));padding-bottom:max(5px,env(safe-area-inset-bottom));padding-left:max(5px,env(safe-area-inset-left));
+}
+.overlay{overscroll-behavior:none!important}
+.overlay>.panel{max-height:calc(var(--mf-vh,100dvh) - max(18px,env(safe-area-inset-top)) - max(18px,env(safe-area-inset-bottom)))!important;overflow-y:auto;overscroll-behavior:contain}
+
+/* Ruleta recogida: rueda ligeramente menor y controles sin switches visibles. */
+#appView .topbar{padding:4px 6px!important;min-height:36px!important}
+#appView .wallet-row{margin:3px auto 2px!important;gap:5px!important}
+#appView .game-layout{height:calc(var(--mf-vh,100dvh) - 96px)!important;min-height:0!important;margin-top:2px!important;overflow:hidden!important;align-items:stretch!important}
+#appView .machine{height:100%!important;min-height:0!important;margin:0 auto!important;padding:7px 8px 8px!important;border-radius:19px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+#appView .roundbar{min-height:42px!important;padding:4px 7px!important;margin-bottom:2px!important}
+#appView .timer{font-size:25px!important}
+#appView .wheel-wrap{width:min(45vh,300px,70vw)!important;max-height:42vh!important;margin:2px auto 4px!important;flex:0 1 auto!important}
+#appView .result{min-height:20px!important;margin:1px 0 3px!important;font-size:11px!important}
+.roulette-bet-compact{grid-template-columns:minmax(0,1fr) auto!important;gap:6px!important;margin:2px 0 5px!important;align-items:end!important}
+.roulette-modern-options{display:grid;grid-template-columns:1fr;gap:5px;min-width:122px}
+.roulette-option-btn{min-height:34px;border-radius:11px;border:1px solid rgba(128,151,184,.45);background:linear-gradient(145deg,#182333,#0a111c);color:#dce7f7;padding:5px 8px;font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:5px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 5px 14px rgba(0,0,0,.24)}
+.roulette-option-btn.active{border-color:rgba(255,211,80,.68);background:linear-gradient(145deg,#46340b,#181205);color:#ffe995;box-shadow:0 0 15px rgba(255,189,34,.15),inset 0 1px 0 rgba(255,246,184,.15)}
+.numbers{gap:4px!important;margin-top:auto!important;grid-template-columns:repeat(7,minmax(0,1fr))!important}
+.num{min-height:43px!important;border-radius:10px!important;font-size:14px!important;padding:2px!important}
+.num-action{font-size:8px!important;line-height:1.12!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;color:#ffe388!important;border-color:rgba(255,209,81,.52)!important;background:linear-gradient(145deg,#39290b,#0f0c06)!important}
+.num-action.active{background:linear-gradient(145deg,#1e6d42,#092419)!important;border-color:#5de69c!important;color:#caffdf!important;box-shadow:0 0 12px rgba(68,235,143,.24)!important}
+.roulette-save-icon{font-size:14px;line-height:1}
+@media(max-height:720px){
+  #appView .game-layout{height:calc(var(--mf-vh,100dvh) - 86px)!important}
+  #appView .wheel-wrap{width:min(38vh,248px,61vw)!important;max-height:36vh!important}
+  .num{min-height:38px!important}.roulette-option-btn{min-height:30px!important}
+}
+
+/* Selección de mesas: fondo de mesa real, con contraste premium. */
+#gamesPanel .domino-lobby-shell,#dominoLobbyPanel .domino-lobby-shell{
+  position:relative!important;isolation:isolate;background:
+    linear-gradient(180deg,rgba(2,7,5,.42),rgba(1,5,3,.82)),
+    var(--domino-table-image) center/cover no-repeat!important;
+  border:1px solid rgba(243,193,68,.56)!important;box-shadow:0 28px 90px rgba(0,0,0,.78),inset 0 0 80px rgba(0,0,0,.30)!important
+}
+#gamesPanel .domino-lobby-shell:before,#dominoLobbyPanel .domino-lobby-shell:before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 50% 42%,rgba(17,91,55,.10),rgba(0,0,0,.56) 72%);pointer-events:none}
+#gamesPanel .domino-hero{display:none!important}
+.domino-lobby-content{position:relative;z-index:1!important}
+.domino-choice-card{backdrop-filter:blur(12px)!important;background:linear-gradient(145deg,rgba(17,22,18,.92),rgba(3,7,5,.87))!important;border:1px solid rgba(244,202,89,.38)!important;box-shadow:0 15px 34px rgba(0,0,0,.42)!important}
+
+/* MESA OFICIAL: madera cálida, paño verde, 4 perfiles y controles reales. */
+#dominoTablePanel{padding:0!important;background:radial-gradient(circle at 50% 48%,#182117 0,#030604 67%,#000 100%)!important}
+.domino-game-panel{width:100vw!important;max-width:none!important;height:var(--mf-vh,100dvh)!important;max-height:none!important;padding:0!important;border:0!important;border-radius:0!important;background:#020403!important;box-shadow:none!important;overflow:hidden!important}
+.domino-stage{
+  position:absolute!important;inset:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left))!important;
+  width:auto!important;height:auto!important;border-radius:11% / 17%!important;
+  border:clamp(12px,2vw,24px) solid #6b3515!important;outline:2px solid #d49735!important;outline-offset:-6px!important;
+  background-image:linear-gradient(rgba(2,36,20,.18),rgba(0,22,13,.30)),var(--domino-table-image)!important;
+  background-position:center!important;background-size:cover!important;background-repeat:no-repeat!important;
+  box-shadow:inset 0 0 0 3px rgba(255,188,65,.22),inset 0 0 90px rgba(0,0,0,.38),0 16px 44px rgba(0,0,0,.70)!important;
+  overflow:hidden!important;contain:layout paint;isolation:isolate
+}
+.domino-stage:after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.055),transparent 18%,transparent 80%,rgba(0,0,0,.14));box-shadow:inset 0 0 80px rgba(0,0,0,.20)}
+.domino-photo-veil{display:none!important}
+.domino-table-brand{position:absolute;left:2.4%;top:2.5%;z-index:21;font-size:clamp(9px,1.45vw,17px);font-weight:1000;font-style:italic;letter-spacing:.08em;color:#fff1b4;text-shadow:0 2px 9px #000,0 0 14px rgba(255,178,46,.42)}
+.domino-table-brand b{display:block;color:#ffc94f;font-size:1.22em;line-height:.9}
+.domino-inside-status{left:2.2%!important;top:12%!important;right:auto!important;bottom:auto!important;font-size:7px!important;opacity:.78!important;z-index:22!important}
+.domino-live-top-controls{top:2%!important;right:2%!important;z-index:35!important;gap:7px!important}
+.domino-compact-balance{display:none!important}
+.domino-live-icon{width:42px!important;height:42px!important;border-radius:50%!important;background:rgba(4,7,6,.86)!important;border:1px solid rgba(246,199,91,.64)!important;color:#fff4c8!important;box-shadow:0 8px 20px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.08)!important}
+.domino-live-actions{position:absolute!important;top:2%!important;right:calc(2% + 98px)!important;bottom:auto!important;left:auto!important;z-index:34!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important;display:block!important}
+#dominoChatBtn,#dominoEmojiBtn{display:none!important}
+#dominoSurrenderBtn{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;padding:0!important;border-radius:50%!important;background:rgba(45,9,12,.88)!important;border:1px solid rgba(255,108,108,.55)!important;font-size:17px!important;display:grid!important;place-items:center!important}
+#dominoSurrenderBtn span{display:none!important}
+
+/* Perfiles: solo cuatro posiciones visuales, como la base oficial. */
+.domino-seat{width:clamp(88px,12vw,148px)!important;min-height:0!important;padding:5px 7px 6px!important;border-radius:18px!important;background:linear-gradient(145deg,rgba(17,14,10,.96),rgba(3,5,4,.96))!important;border:1px solid rgba(235,183,67,.62)!important;box-shadow:0 8px 24px rgba(0,0,0,.50),inset 0 1px 0 rgba(255,239,182,.08)!important;z-index:25!important;pointer-events:none!important}
+.domino-avatar-wrap{width:58px!important;height:58px!important;margin:-22px auto 0!important}
+.domino-seat .domino-avatar{width:52px!important;height:52px!important;border:2px solid #dca84d!important;background:radial-gradient(circle at 35% 28%,#383229,#0e0d0a 72%)!important;box-shadow:0 4px 12px rgba(0,0,0,.48)!important}
+.domino-seat.turn .domino-avatar{box-shadow:0 0 0 2px #4cff82,0 0 18px rgba(56,255,121,.88)!important;border-color:#66ff91!important}
+.domino-turn-ring{filter:drop-shadow(0 0 6px rgba(94,255,143,.65))!important;background:conic-gradient(#4cff82 var(--turn-angle,0deg),rgba(255,255,255,.10) 0)!important}
+.domino-seat .domino-seat-name{margin-top:0!important;max-width:100%!important;background:none!important;border:0!important;padding:1px 2px!important;color:#fff!important;font-size:clamp(7px,1vw,11px)!important;font-weight:950!important;text-shadow:0 2px 4px #000}
+.domino-seat .domino-seat-info{display:none!important}
+.domino-seat .seat-bal{display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;margin-top:1px!important;color:#ffd75f!important;font-size:clamp(7px,.9vw,10px)!important;font-weight:950!important}
+.domino-seat .seat-bal:before{content:"";width:13px;height:13px;border-radius:50%;background-image:var(--fc-coin-image);background-size:cover;background-position:center;box-shadow:0 0 7px rgba(255,192,55,.40)}
+.domino-see-message{pointer-events:auto!important;background:rgba(0,17,29,.78)!important;border-color:rgba(83,147,255,.44)!important;color:#b8ddff!important;font-size:6px!important}
+.domino-seat.s1{left:50%!important;bottom:13.8%!important;top:auto!important;right:auto!important;transform:translateX(-50%)!important}
+.domino-seat.s2{right:1.2%!important;top:48%!important;left:auto!important;bottom:auto!important;transform:translateY(-50%)!important}
+.domino-seat.s3{left:50%!important;top:4.4%!important;right:auto!important;bottom:auto!important;transform:translateX(-50%)!important}
+.domino-seat.s4{left:1.2%!important;top:48%!important;right:auto!important;bottom:auto!important;transform:translateY(-50%)!important}
+
+/* Cadena realista: pegada, centrada; dobla solo al acercarse al borde útil. */
+:root{--domino-board-tile-w:48px;--domino-board-tile-h:28px;--domino-board-row-step:38px;--domino-board-row-w:480px;--domino-board-gap:0px}
+.domino-board{left:50%!important;top:35.5%!important;transform:translate(-50%,-50%)!important;width:min(68%,680px)!important;height:38%!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:0!important;overflow:visible!important;z-index:10!important;background:transparent!important}
+.domino-board-row{width:min(100%,var(--domino-board-row-w))!important;height:var(--domino-board-row-step)!important;min-height:var(--domino-board-row-step)!important;gap:0!important;margin:0!important;padding:0!important;overflow:visible!important;background:none!important;display:flex!important;align-items:center!important}
+.domino-board-row.flow-right{flex-direction:row!important;justify-content:flex-start!important}
+.domino-board-row.flow-left{flex-direction:row-reverse!important;justify-content:flex-start!important}
+.domino-piece.board-piece{width:var(--domino-board-tile-w)!important;height:var(--domino-board-tile-h)!important;min-width:var(--domino-board-tile-w)!important;min-height:var(--domino-board-tile-h)!important;max-width:var(--domino-board-tile-w)!important;max-height:var(--domino-board-tile-h)!important;flex:0 0 var(--domino-board-tile-w)!important;margin:0!important;border-radius:6px!important;background:linear-gradient(145deg,#fffef8 0,#f1eee5 58%,#d8d2c7 100%)!important;border:1px solid #918a7e!important;box-shadow:0 4px 8px rgba(0,0,0,.38),inset 1px 1px 0 rgba(255,255,255,.94)!important}
+.domino-piece.board-piece.domino-double{width:var(--domino-board-tile-h)!important;min-width:var(--domino-board-tile-h)!important;max-width:var(--domino-board-tile-h)!important;height:var(--domino-board-tile-w)!important;min-height:var(--domino-board-tile-w)!important;max-height:var(--domino-board-tile-w)!important;flex:0 0 var(--domino-board-tile-w)!important;margin-left:10px!important;margin-right:10px!important}
+.domino-piece.board-piece.domino-turn-down:not(.domino-double){transform:rotate(90deg)!important;transform-origin:center!important;z-index:4!important}
+.domino-board-row.turn-right .domino-turn-down,.domino-board-row.turn-left .domino-turn-down{margin-left:0!important;margin-right:0!important}
+.domino-board .domino-pip{background:#090a09!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.18)!important}
+.domino-board .domino-divider{background:#171817!important;height:auto}
+
+/* Bote exactamente en la zona central inferior de la cadena. */
+.domino-inside-pot{left:50%!important;top:59%!important;transform:translate(-50%,-50%)!important;min-width:118px!important;padding:7px 13px!important;border-radius:999px!important;background:linear-gradient(145deg,rgba(91,47,17,.96),rgba(28,15,7,.96))!important;border:1px solid rgba(255,193,67,.80)!important;box-shadow:0 8px 22px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,239,177,.17)!important;z-index:21!important}
+.domino-inside-pot span{font-size:7px!important;color:#fff2c3!important}.domino-inside-pot b{font-size:11px!important;color:#ffd55a!important}
+
+/* Mano sobre rack de madera, siempre sin huecos fantasmas. */
+.domino-hand{left:50%!important;bottom:1.4%!important;transform:translateX(-50%)!important;width:min(40%,500px)!important;min-height:74px!important;padding:7px 10px!important;gap:3px!important;background:linear-gradient(180deg,rgba(103,52,19,.96),rgba(45,22,9,.98))!important;border:1px solid rgba(227,155,55,.72)!important;border-radius:14px!important;box-shadow:0 9px 24px rgba(0,0,0,.50),inset 0 2px 0 rgba(255,214,126,.12)!important;overflow:visible!important;z-index:24!important}
+.domino-piece.hand-piece{background:linear-gradient(145deg,#fffef8,#ede9df 62%,#d4cdc1)!important;border-color:#938b7e!important;box-shadow:0 5px 8px rgba(0,0,0,.38),inset 1px 1px 0 #fff!important}
+.domino-piece.hand-piece .domino-pip{background:#0a0b0a!important}
+
+/* Chat visible como en la interfaz oficial, con teclado real al tocar el campo. */
+.domino-mini-chat{position:absolute;left:1.1%;bottom:1.3%;width:min(27%,315px);height:min(25%,190px);z-index:31;border-radius:16px;background:rgba(3,7,8,.91);border:1px solid rgba(255,255,255,.16);box-shadow:0 12px 30px rgba(0,0,0,.48);padding:7px;display:flex;flex-direction:column;gap:5px;backdrop-filter:blur(10px)}
+.domino-mini-chat-list{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;justify-content:flex-end;gap:3px;padding:1px 3px;font-size:clamp(6px,.76vw,9px);line-height:1.25;overscroll-behavior:contain}
+.domino-mini-line{display:flex;gap:4px;min-width:0;color:#f0f2f4}.domino-mini-line b{color:#49b8ff;white-space:nowrap}.domino-mini-line.me b{color:#4dffc0}.domino-mini-line span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.domino-mini-empty{color:#8e9aa7;font-size:7px}
+.domino-mini-chat-compose{display:grid;grid-template-columns:30px minmax(0,1fr) 32px;gap:5px;align-items:center}.domino-mini-chat-compose input{width:100%;height:34px;border-radius:999px;border:1px solid rgba(255,255,255,.13);background:rgba(24,29,31,.90);color:#fff;padding:0 10px;font-size:16px;outline:none}.domino-mini-chat-compose input:focus{border-color:#3fa8ff;box-shadow:0 0 0 2px rgba(63,168,255,.18)}
+.domino-mini-emoji,.domino-mini-send{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.18);background:#12191f;color:#fff;display:grid;place-items:center;font-size:14px}.domino-mini-send{background:#173353;color:#dff0ff}
+.domino-all-messages-btn{position:absolute;right:1.2%;bottom:2%;z-index:31;min-width:132px;min-height:40px;border-radius:999px;border:1px solid rgba(73,128,255,.62);background:linear-gradient(145deg,rgba(7,27,56,.96),rgba(3,12,28,.96));color:#fff;padding:6px 9px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:9px;font-weight:950;box-shadow:0 8px 23px rgba(0,0,0,.42)}
+.domino-all-messages-btn b{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#1769ff;font-size:8px;color:#fff}
+.domino-seat-bubble{z-index:40!important}
+
+@media(max-width:740px){
+  :root{--domino-board-tile-w:40px;--domino-board-tile-h:24px;--domino-board-row-step:32px;--domino-board-row-w:320px}
+  .domino-stage{border-width:10px!important;border-radius:9% / 16%!important}
+  .domino-live-icon,#dominoSurrenderBtn{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}
+  .domino-live-actions{right:calc(2% + 80px)!important}
+  .domino-seat{width:78px!important;padding:4px!important;border-radius:14px!important}.domino-avatar-wrap{width:45px!important;height:45px!important;margin-top:-17px!important}.domino-seat .domino-avatar{width:40px!important;height:40px!important}.domino-turn-seconds{top:-9px!important}
+  .domino-seat.s1{bottom:14.5%!important}.domino-seat.s2,.domino-seat.s4{top:48%!important}
+  .domino-board{top:35%!important;width:min(65%,430px)!important;height:39%!important}
+  .domino-inside-pot{top:59.5%!important;min-width:94px!important;padding:5px 9px!important}
+  .domino-hand{width:min(40%,360px)!important;min-height:59px!important;padding:5px 7px!important;gap:2px!important}
+  .domino-piece.hand-piece{width:37px!important;height:58px!important}
+  .domino-mini-chat{width:28%!important;height:25%!important;padding:5px!important;border-radius:12px!important}.domino-mini-chat-compose{grid-template-columns:26px minmax(0,1fr) 27px!important;gap:3px!important}.domino-mini-emoji,.domino-mini-send{width:26px!important;height:26px!important;font-size:12px!important}.domino-mini-chat-compose input{height:29px!important;font-size:16px!important;padding:0 7px!important}
+  .domino-all-messages-btn{min-width:105px!important;min-height:34px!important;font-size:7px!important;padding:4px 7px!important}.domino-all-messages-btn b{width:21px!important;height:21px!important;font-size:7px!important}
+}
+@media(max-height:430px) and (orientation:landscape){
+  .domino-board{top:34%!important;height:39%!important}.domino-inside-pot{top:59.8%!important}.domino-seat.s1{bottom:14%!important}.domino-mini-chat{height:27%!important}
+}
+
 </style>
 </head>
 <body>
@@ -1322,19 +1477,20 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
     <div id="resultText" class="result">Cargando ronda...</div>
 
-    <div class="bet-controls">
+    <input id="repeatSwitch" class="switch" type="checkbox" hidden>
+    <input id="fixedStakeSwitch" class="switch" type="checkbox" hidden>
+    <input id="soundSwitch" class="switch" type="checkbox" hidden><span id="soundSwitchLabel" class="hidden"></span>
+    <input id="flashSwitch" class="switch" type="checkbox" checked hidden>
+
+    <div class="bet-controls roulette-bet-compact">
       <div>
-        <label class="switch-box repeat-left"><input id="repeatSwitch" class="switch" type="checkbox"><span>Guardar<br>jugadas</span></label>
         <div id="roundBetTotal" class="bet-total-mini">Apostado <b>0.000 FC</b></div>
-        <div class="stake-label-row">
-          <label>Monto por toque</label>
-          <label class="mini-toggle"><span>Fijar monto</span><input id="fixedStakeSwitch" class="switch" type="checkbox"></label>
-        </div>
+        <div class="stake-label-row"><label>Monto por toque</label></div>
         <div class="stake-row"><button id="stakeDown" type="button">−</button><input id="stakeInput" class="field stake" type="number" step="0.01" value="0.01"><button id="stakeUp" type="button">+</button></div>
       </div>
-      <div class="control-stack">
-        <input id="soundSwitch" class="switch" type="checkbox" hidden><span id="soundSwitchLabel" class="hidden"></span>
-        <label class="switch-box sound-box"><input id="flashSwitch" class="switch" type="checkbox" checked><span>✨ Destello</span></label>
+      <div class="roulette-modern-options">
+        <button id="fixedStakeActionBtn" type="button" class="roulette-option-btn" aria-pressed="false">📌 <span>Fijar monto</span></button>
+        <button id="flashActionBtn" type="button" class="roulette-option-btn" aria-pressed="true">✨ <span>Destello</span></button>
       </div>
     </div>
 
@@ -1355,6 +1511,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div id="dominoTableSub" class="hidden">Mesa</div>
 <div id="dominoSyncState" class="hidden">Conectando…</div>
 <div id="dominoStage" class="domino-stage">
+<div class="domino-table-brand">⚡ MAIKET <b>FLASH</b></div>
 <div class="domino-inside-status"><span class="domino-live-dot"></span>En línea · Tiempo real</div>
 <div class="domino-inside-pot"><span>Bote de la mesa</span><b id="dominoPotBadge">0.000 FC</b></div>
 <div class="domino-photo-veil" aria-hidden="true"></div>
@@ -1368,6 +1525,15 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <button id="dominoReadyBtn" type="button" class="domino-ready-btn hidden">CONFIRMAR</button>
 <div id="dominoBoard" class="domino-board" aria-label="Fichas jugadas"></div>
 <div id="dominoHand" class="domino-hand" aria-label="Tus fichas"></div>
+<div id="dominoMiniChat" class="domino-mini-chat" aria-label="Chat rápido de la mesa">
+  <div id="dominoMiniChatList" class="domino-mini-chat-list"><div class="domino-mini-empty">Todavía no hay mensajes.</div></div>
+  <div class="domino-mini-chat-compose">
+    <button id="dominoMiniEmojiBtn" type="button" class="domino-mini-emoji" aria-label="Emoji">😊</button>
+    <input id="dominoMiniChatInput" maxlength="200" placeholder="Escribe un mensaje…" autocomplete="off" inputmode="text" enterkeyhint="send" aria-label="Escribe tu mensaje">
+    <button id="dominoMiniChatSendBtn" type="button" class="domino-mini-send" aria-label="Enviar mensaje">➤</button>
+  </div>
+</div>
+<button id="dominoAllMessagesBtn" type="button" class="domino-all-messages-btn">💬 <span>Ver mensaje</span><b id="dominoMiniChatCount">0</b></button>
 <div class="domino-live-actions" aria-label="Controles de la mesa">
   <button id="dominoChatBtn" type="button" class="domino-live-action" title="Chat">💬 <span>Chat</span></button>
   <button id="dominoEmojiBtn" type="button" class="domino-live-action" title="Emojis">😊 <span>Emoji</span></button>
@@ -1693,6 +1859,11 @@ function buildNumbers(){
     b.addEventListener('click',()=>queueBet(n));
     c.appendChild(b);
   }
+  const save=document.createElement('button');
+  save.type='button';save.id='repeatActionBtn';save.className='num num-action roulette-save-action';
+  save.addEventListener('click',()=>{const sw=$('repeatSwitch');if(!sw)return;sw.checked=!sw.checked;syncRouletteModernButtons();sw.dispatchEvent(new Event('change',{bubbles:true}));});
+  c.appendChild(save);
+  syncRouletteModernButtons();
   updateBetTotal();
   updateCountdown();
 }
@@ -1941,6 +2112,16 @@ async function refreshEverything(){
 async function loadMe(){const {data,error}=await sb.from('rf_profiles').select('*').single();if(error)throw error;me=data}
 async function loadSettings(){const {data,error}=await sb.from('rf_app_settings').select('*').eq('id',1).single();if(error)throw error;settings=data}
 
+function syncRouletteModernButtons(){
+  const repeat=$('repeatSwitch'),fixed=$('fixedStakeSwitch'),flash=$('flashSwitch');
+  const saveBtn=$('repeatActionBtn'),fixedBtn=$('fixedStakeActionBtn'),flashBtn=$('flashActionBtn');
+  if(saveBtn&&repeat){
+    const on=!!repeat.checked;saveBtn.classList.toggle('active',on);saveBtn.setAttribute('aria-pressed',String(on));
+    saveBtn.innerHTML=`<span class="roulette-save-icon">💾</span><span>${on?'Jugadas guardadas':'Guardar jugadas'}</span>`;
+  }
+  if(fixedBtn&&fixed){const on=!!fixed.checked;fixedBtn.classList.toggle('active',on);fixedBtn.setAttribute('aria-pressed',String(on));fixedBtn.querySelector('span').textContent=on?'Monto fijado':'Fijar monto';}
+  if(flashBtn&&flash){const on=!!flash.checked;flashBtn.classList.toggle('active',on);flashBtn.setAttribute('aria-pressed',String(on));flashBtn.querySelector('span').textContent=on?'Destello activo':'Destello apagado';}
+}
 function renderMe(){
   if(!me)return;
   if(!balanceAnimating&&!balanceHoldActive)setBalanceDisplay(me.balance);
@@ -1951,6 +2132,7 @@ function renderMe(){
   loadScopedSoundPreferences();
   setSoundSwitchUI();
   $('flashSwitch').checked=me.flash_enabled!==false;
+  syncRouletteModernButtons();
   if(me.fixed_stake_enabled&&Number(me.fixed_stake_amount)>0&&document.activeElement!==$('stakeInput'))$('stakeInput').value=money(Math.max(Number(me.fixed_stake_amount),Number(settings?.min_bet||0)));
   $('promoterBtn').classList.toggle('hidden',me.role!=='promoter');
   $('leaderBtn').classList.toggle('hidden',me.role!=='leader');
@@ -2623,7 +2805,7 @@ $('stakeInput').addEventListener('blur',()=>{
   $('stakeInput').value=(!Number.isFinite(v)||v<min?min:v).toFixed(3);persistFixedStakeIfNeeded();
 });
 $('fixedStakeSwitch').addEventListener('change',async()=>{
-  const enabled=$('fixedStakeSwitch').checked;
+  const enabled=$('fixedStakeSwitch').checked;syncRouletteModernButtons();
   try{await saveStakePreference(enabled);if(!enabled)$('stakeInput').value=money(settings?.min_bet||.01);}catch(e){$('fixedStakeSwitch').checked=!enabled;alert(errText(e));}
 });
 $('soundSwitch').addEventListener('change',async()=>{
@@ -2698,16 +2880,16 @@ if($('dominoSoundBtn'))$('dominoSoundBtn').addEventListener('click',async()=>{
 });
 
 $('flashSwitch').addEventListener('change',async()=>{
-  const enabled=$('flashSwitch').checked;
+  const enabled=$('flashSwitch').checked;syncRouletteModernButtons();
   const {error}=await sb.rpc('rf_set_flash_enabled',{p_enabled:enabled});
-  if(error){$('flashSwitch').checked=!enabled;return alert(errText(error));}
+  if(error){$('flashSwitch').checked=!enabled;syncRouletteModernButtons();return alert(errText(error));}
   if(me)me.flash_enabled=enabled;
 });
 
 $('repeatSwitch').addEventListener('change',async()=>{
-  const enabled=$('repeatSwitch').checked;
+  const enabled=$('repeatSwitch').checked;syncRouletteModernButtons();
   const {error}=await sb.rpc('rf_set_auto_repeat',{p_enabled:enabled});
-  if(error){$('repeatSwitch').checked=!enabled;return alert(errText(error));}
+  if(error){$('repeatSwitch').checked=!enabled;syncRouletteModernButtons();return alert(errText(error));}
   await loadMe();renderMe();
 });
 
@@ -4141,9 +4323,11 @@ function playDominoWinSound(){
 }
 function dominoRows(board,lastMove,animateMove){
   if(!board?.length)return '';
-  // Ocho pasos por fila permiten mostrar las 28 fichas sin reducir su tamaño.
-  // La siguiente fila regresa en sentido contrario: recorrido continuo tipo 7/serpiente.
-  const perRow=8,rows=[];
+  // BASE OFICIAL: cadena continua, centrada y pegada.
+  // En horizontal se acerca al borde útil de la mesa antes de doblar.
+  const compact=window.matchMedia?.('(max-width:620px)').matches;
+  const perRow=compact?8:10;
+  const rows=[];
   for(let i=0;i<board.length;i+=perRow){
     const rowNo=rows.length;
     const slice=board.slice(i,i+perRow);
@@ -4338,6 +4522,18 @@ function dominoShowToast(text){
 function dominoFormatClock(value){
   try{return new Date(value).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}catch{return ''}
 }
+function renderDominoMiniChat(rows){
+  const list=$('dominoMiniChatList'),count=$('dominoMiniChatCount');
+  if(!list)return;
+  const texts=(Array.isArray(rows)?rows:[]).filter(r=>String(r.kind||'text')==='text'&&String(r.message||'').trim());
+  const recent=texts.slice(-4);
+  list.innerHTML=recent.length?recent.map(r=>{
+    const mine=String(r.user_id)===String(dominoState?.me);
+    return `<div class="domino-mini-line ${mine?'me':''}"><b>${esc(r.full_name||r.public_id||'Jugador')}:</b><span>${esc(r.message)}</span></div>`;
+  }).join(''):'<div class="domino-mini-empty">Todavía no hay mensajes.</div>';
+  list.scrollTop=list.scrollHeight;
+  if(count)count.textContent=String(Math.min(99,texts.length));
+}
 async function loadDominoChat(force=false){
   if(!dominoCurrentTableId||!$('dominoChatList'))return;
   if(!force&&Date.now()-dominoChatLastLoadAt<700)return;
@@ -4348,6 +4544,7 @@ async function loadDominoChat(force=false){
     return;
   }
   const rows=data||[];
+  renderDominoMiniChat(rows);
   rows.forEach(r=>{if(String(r.kind||'text')==='text'&&String(r.message||'').trim())dominoUserMessageCache.set(String(r.user_id),r)});
   dominoUpdateUserMessageButtons();
   $('dominoChatList').innerHTML=rows.length?rows.map(r=>{
@@ -4437,7 +4634,7 @@ async function syncDominoTableMessages(force=false){
   dominoTableMessageCheckAt=Date.now();
   const {data,error}=await sb.rpc('rf_domino_chat_list_v150',{p_table_id:dominoCurrentTableId,p_limit:20});
   if(error)return;
-  const rows=data||[];if(!rows.length)return;
+  const rows=data||[];renderDominoMiniChat(rows);if(!rows.length)return;
   rows.forEach(r=>{if(String(r.kind||'text')==='text'&&String(r.message||'').trim())dominoUserMessageCache.set(String(r.user_id),r)});
   dominoUpdateUserMessageButtons();
   const row=rows[rows.length-1];
@@ -4627,6 +4824,20 @@ if($('dominoMenuCloseBtn'))$('dominoMenuCloseBtn').addEventListener('click',()=>
 
 
 $('dominoGearBtn').onclick=()=>show('dominoMenuPanel');
+
+if($('fixedStakeActionBtn'))$('fixedStakeActionBtn').onclick=()=>{const sw=$('fixedStakeSwitch');if(!sw)return;sw.checked=!sw.checked;syncRouletteModernButtons();sw.dispatchEvent(new Event('change',{bubbles:true}));};
+if($('flashActionBtn'))$('flashActionBtn').onclick=()=>{const sw=$('flashSwitch');if(!sw)return;sw.checked=!sw.checked;syncRouletteModernButtons();sw.dispatchEvent(new Event('change',{bubbles:true}));};
+
+async function submitDominoMiniChat(){
+  const input=$('dominoMiniChatInput');if(!input)return;
+  const value=String(input.value||'').trim();if(!value)return input.focus();
+  const btn=$('dominoMiniChatSendBtn');if(btn)btn.disabled=true;
+  try{if(await sendDominoChat(value,'text')){input.value='';input.focus();}}finally{if(btn)btn.disabled=false;}
+}
+if($('dominoMiniChatSendBtn'))$('dominoMiniChatSendBtn').onclick=submitDominoMiniChat;
+if($('dominoMiniChatInput'))$('dominoMiniChatInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submitDominoMiniChat();}});
+if($('dominoAllMessagesBtn'))$('dominoAllMessagesBtn').onclick=async()=>{show('dominoChatPanel');await loadDominoChat(true);setTimeout(()=>$('dominoChatInput')?.focus(),80);};
+if($('dominoMiniEmojiBtn'))$('dominoMiniEmojiBtn').onclick=e=>{e.preventDefault();e.stopPropagation();$('dominoEmojiTray')?.classList.toggle('hidden');};
 
 if($('dominoChatBtn'))$('dominoChatBtn').onclick=async()=>{
   show('dominoChatPanel');
@@ -4948,8 +5159,52 @@ buildWheel();
   </div>
 </div>
 
+
+<script>
+(function mfImmersiveAppV01(){
+  const root=document.documentElement;
+  function setViewportHeight(){
+    const h=Math.round(window.visualViewport?.height||window.innerHeight||document.documentElement.clientHeight||0);
+    if(h>0)root.style.setProperty('--mf-vh',h+'px');
+  }
+  setViewportHeight();
+  window.addEventListener('resize',setViewportHeight,{passive:true});
+  window.visualViewport?.addEventListener('resize',setViewportHeight,{passive:true});
+  window.visualViewport?.addEventListener('scroll',setViewportHeight,{passive:true});
+
+  const standalone=()=>window.matchMedia?.('(display-mode: standalone)').matches||window.navigator.standalone===true;
+  root.dataset.appMode=standalone()?'standalone':'browser';
+
+  let fullscreenTried=false;
+  async function requestImmersiveOnce(){
+    if(fullscreenTried||standalone())return;
+    fullscreenTried=true;
+    try{
+      const el=document.documentElement;
+      if(document.fullscreenElement)return;
+      if(el.requestFullscreen)await el.requestFullscreen({navigationUI:'hide'});
+      else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+    }catch(e){/* iPhone Safari normal no permite quitar su barra desde JS. */}
+  }
+  document.addEventListener('pointerup',e=>{
+    if(e.target.closest('input,textarea,select'))return;
+    requestImmersiveOnce();
+  },{capture:false,passive:true,once:true});
+
+  if('serviceWorker' in navigator && location.protocol==='https:'){
+    navigator.serviceWorker.register('./sw.js?v=0.1',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
+  }
+
+  // Impide arrastrar la página completa; los paneles internos conservan su propio scroll.
+  document.addEventListener('touchmove',e=>{
+    const scrollable=e.target.closest('.panel,.domino-mini-chat-list,.domino-chat-list,.wallet-history,.admin-user-list');
+    if(!scrollable)e.preventDefault();
+  },{passive:false});
+})();
+</script>
+
 </body>
-<!-- HTML 0.1: trayectoria 7 continua, fichas sin cambio de tamaño, tablero transparente, perfil debajo, bote central y zoom solo de fotografía. -->
+<!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 </html>
 
 <!-- V0.9: comprobantes de solicitudes, IDs de cartera y moneda Flash Coin opción 7 integrada. -->
