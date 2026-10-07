@@ -1,11 +1,16 @@
 <!DOCTYPE html>
-<!-- MAIKET FLASH · HTML 1.0.1 · actualización exclusiva de sonido sobre la base oficial HTML 1.0 -->
-<html lang="es">
+<!-- MAIKET FLASH · HTML 1.8.9 · DOMINÓ MESA LIMPIA -->
+<!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
+<html lang="es" data-app-build="1.8.9">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="application-version" content="1.8.9">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML V1.4</title>
+<title>Ruleta Flash Coin — HTML 1.8.9 Dominó Mesa Limpia</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -29,7 +34,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .result{text-align:center;min-height:42px;display:grid;place-items:center;border:1px solid #5f4c23;border-radius:12px;background:rgba(5,8,13,.92);color:#ffd76b;font-weight:900;margin:4px 0 9px;padding:7px}.rules{text-align:center;color:#d3d8e1;font-size:11px;margin-bottom:8px}
 .bet-controls{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px}.bet-controls label{font-size:11px;color:var(--muted)}.stake-row{display:flex;gap:6px}.stake-row button{width:42px;border:1px solid #3c4758;background:#1c2533;color:#fff;border-radius:10px;font-size:20px}.stake{margin:0}.switch-box{display:flex;align-items:center;gap:8px;background:#0b111b;border:1px solid #344154;border-radius:12px;padding:8px 10px;min-height:47px;font-size:12px}.switch{appearance:none;width:42px;height:24px;border-radius:20px;background:#394353;position:relative;transition:.2s}.switch:before{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.2s}.switch:checked{background:#16a15a}.switch:checked:before{left:21px}
 .numbers{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.num{position:relative;min-width:0;min-height:52px;border-radius:11px;border:1px solid #4c5668;background:linear-gradient(#242b36,#0c1017);color:#fff;font-weight:950;font-size:16px}.num.zero{border-color:#19955a}.num.selected{outline:2px solid #ffd34f;box-shadow:0 0 10px rgba(255,178,0,.48)}.num .tap-count{display:block;color:#fff3b0;font-size:10px;line-height:1.1;margin-top:1px}.num .amt{display:block;color:#ffd45f;font-size:9px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cancel-num{position:absolute;right:-5px;top:-7px;width:22px;height:22px;border-radius:50%;border:1px solid #fff;background:#a51e2a;color:#fff;font-size:12px;font-weight:900;display:grid;place-items:center}
-.overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.84);padding:18px;overflow:auto}.overlay.active{display:block}.panel{margin:20px auto}.close{float:right;border:0;border-radius:10px;background:#273244;color:#fff;padding:8px 11px}.panel h2{margin-bottom:14px}.panel h3{margin:17px 0 8px}.card{background:#080d15;border:1px solid #28364a;border-radius:14px;padding:12px;margin:8px 0}.card strong{display:block;margin-bottom:4px}.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}.notice{white-space:pre-wrap;background:#302607;border:1px solid #8d7315;border-radius:13px;padding:12px;margin:9px 0}.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#080d15;border:1px solid #2c394d;border-radius:14px;padding:12px;text-align:center}.stat b{display:block;font-size:24px;color:#ffd55d}.tag{display:inline-block;border-radius:999px;background:#253146;padding:4px 8px;font-size:11px;margin-top:5px}.section{border-top:1px solid #263244;margin-top:13px;padding-top:13px}.wa{background:#159447!important;color:#fff!important}.danger{color:#ff8c96}.success{color:#72f39b}.msg{margin-top:8px;font-size:13px;color:#ffde77;min-height:18px}
+.overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.84);padding:18px;overflow:auto}.overlay.active{display:block}.panel{margin:20px auto}.close{float:right;position:relative;z-index:50;pointer-events:auto;border:0;border-radius:10px;background:#273244;color:#fff;padding:8px 11px}.panel h2{margin-bottom:14px}.panel h3{margin:17px 0 8px}.card{background:#080d15;border:1px solid #28364a;border-radius:14px;padding:12px;margin:8px 0}.card strong{display:block;margin-bottom:4px}.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}.notice{white-space:pre-wrap;background:#302607;border:1px solid #8d7315;border-radius:13px;padding:12px;margin:9px 0}.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.stat{background:#080d15;border:1px solid #2c394d;border-radius:14px;padding:12px;text-align:center}.stat b{display:block;font-size:24px;color:#ffd55d}.tag{display:inline-block;border-radius:999px;background:#253146;padding:4px 8px;font-size:11px;margin-top:5px}.section{border-top:1px solid #263244;margin-top:13px;padding-top:13px}.wa{background:#159447!important;color:#fff!important}.danger{color:#ff8c96}.success{color:#72f39b}.msg{margin-top:8px;font-size:13px;color:#ffde77;min-height:18px}
 .online-chip{display:flex;align-items:center;gap:5px;border:1px solid rgba(92,255,145,.34);background:rgba(5,24,14,.90);color:#b8ffd0;border-radius:12px;min-height:42px;padding:8px 10px;font-weight:850;font-size:11px;white-space:nowrap}.online-dot{width:8px;height:8px;border-radius:50%;background:#42e77c;box-shadow:0 0 8px #42e77c}.info-chip{background:linear-gradient(135deg,#24395c,#0c1728);border-color:#5d89c7;color:#fff;white-space:nowrap}.invite-btn{font-size:11px}.game-layout{width:min(100%,900px);margin:8px auto 0;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.public-notice-side{display:none;background:rgba(34,28,7,.94);border:1px solid #927617;border-radius:15px;padding:12px;white-space:pre-wrap;color:#ffeaa0;font-size:13px}.public-notice-side:not(.hidden){display:block}.copy-btn{border:1px solid #41506a;background:#182234;color:#fff;border-radius:8px;padding:4px 7px;font-size:10px;margin-left:5px;vertical-align:middle}.copy-toast{position:fixed;z-index:500;left:50%;bottom:24px;transform:translateX(-50%);background:#111a27;border:1px solid #52627c;color:#fff;border-radius:999px;padding:9px 14px;font-size:12px;opacity:0;pointer-events:none;transition:.2s}.copy-toast.show{opacity:1}.switch-line{display:flex;align-items:center;gap:10px;margin:7px 0;padding:9px;border:1px solid #344154;border-radius:12px;background:#0b111b}.whatsapp-preview{font-size:12px;color:#8df2ad;margin-top:5px;min-height:18px}.ref-card{background:#0b1422;border:1px solid #2f4e78;border-radius:14px;padding:12px;margin-top:8px}.ref-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.ref-stats div{background:#080d15;border:1px solid #26344a;border-radius:10px;padding:8px;text-align:center}.ref-stats b{display:block;color:#ffd55d;font-size:17px}@media(min-width:820px){.game-layout{grid-template-columns:220px minmax(0,620px);align-items:start;justify-content:center}.public-notice-side{position:sticky;top:12px}.machine{margin-top:0}}
 @media(max-width:390px){.numbers{grid-template-columns:repeat(7,1fr);gap:4px}.num{min-height:50px;font-size:14px}.wn{font-size:15px;transform:rotate(var(--a)) translateY(calc(-1 * min(24vw,90px))) rotate(calc(-1 * var(--a)))}.topbar,.top-tools,.wallet-row{gap:4px}.icon-btn,.balance-chip{padding:7px;font-size:11px}.promoter-chip{font-size:10px}.brand-mini{font-size:14px}}
 
@@ -79,6 +84,903 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .wallet-main-balance{display:flex;align-items:center;gap:9px;margin-top:5px}.wallet-main-balance .fc-coin{width:34px;height:34px}.wallet-main-balance strong{font-size:28px!important;margin:0}
 .wallet-pair-label{display:flex;align-items:center;gap:6px}.wallet-pair-label .fc-coin{width:22px;height:22px}
 
+
+/* ===== HTML 1.0.2: JUEGOS + LISTA DE USUARIOS ADMIN ===== */
+.games-chip{white-space:nowrap;background:linear-gradient(135deg,#12142a,#091522)!important;border-color:#8a67ff!important;color:#efe9ff!important;box-shadow:inset 0 0 18px rgba(99,76,255,.12)}
+.games-grid{display:grid;grid-template-columns:1fr;gap:13px;margin-top:12px}
+.game-dev-card{position:relative;overflow:hidden;border:1px solid rgba(129,103,255,.55);border-radius:20px;min-height:170px;background:#070a12;color:#fff;padding:0;text-align:left;box-shadow:0 12px 34px rgba(0,0,0,.35),0 0 22px rgba(71,50,255,.12)}
+.game-dev-card:active{transform:scale(.987)}
+.game-art{height:122px;position:relative;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 25% 20%,rgba(73,224,255,.22),transparent 35%),radial-gradient(circle at 80% 30%,rgba(172,74,255,.28),transparent 36%),linear-gradient(145deg,#0b1020,#05070d 62%,#0b0716)}
+.game-art svg{width:100%;height:100%;display:block}
+.game-info{padding:12px 14px 13px;background:linear-gradient(180deg,rgba(13,17,28,.96),rgba(6,8,13,.98));border-top:1px solid rgba(255,255,255,.06)}
+.game-info strong{font-size:17px;letter-spacing:.2px}.game-info span{display:block;margin-top:4px;color:#9ba8bb;font-size:11px}.dev-badge{position:absolute;right:10px;top:10px;z-index:2;padding:5px 9px;border-radius:999px;border:1px solid rgba(255,216,92,.55);background:rgba(28,20,4,.84);color:#ffe37f;font-size:9px;font-weight:950;letter-spacing:.8px;box-shadow:0 0 14px rgba(255,204,58,.14)}
+.game-dev-message{text-align:center;padding:22px 10px}.game-dev-message .big{font-size:50px;margin-bottom:8px}.game-dev-message h3{font-size:24px;margin:4px 0 8px}.game-dev-message p{color:#aeb8c8;font-size:13px}
+.admin-users-toolbar{position:sticky;top:-1px;z-index:3;background:rgba(4,7,12,.97);padding:8px 0 10px;backdrop-filter:blur(12px)}
+.admin-users-list{display:flex;flex-direction:column;gap:8px;margin-top:8px;padding-bottom:10px}
+.admin-user-row{width:100%;border:1px solid #29364a;background:linear-gradient(145deg,#0b111b,#070a10);border-radius:14px;padding:11px 12px;color:#fff;text-align:left;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center}
+.admin-user-row.selected{border-color:#ffd45a;box-shadow:0 0 0 1px rgba(255,212,90,.25),0 0 18px rgba(255,212,90,.10)}
+.admin-user-main strong{display:block;font-size:14px}.admin-user-main small{display:block;color:#9ea9ba;margin-top:3px}.admin-user-balance{font-weight:950;color:#74f39b;white-space:nowrap}.admin-user-actions{border:1px solid #34445d;background:#080c13;border-radius:14px;padding:12px;margin:10px 0}.admin-user-actions h3{margin:0 0 7px}.admin-users-count{font-size:11px;color:#9ba8bb;margin-top:6px}
+@media(min-width:720px){.games-grid{grid-template-columns:repeat(3,1fr)}.game-dev-card{min-height:188px}.game-art{height:136px}}
+/* ===== JUEGOS: IMAGEN OFICIAL ELEGIDA ===== */
+.games-poster-panel{position:relative;width:min(100%,760px)!important;max-width:760px!important;padding:8px!important;background:#07050d!important;border-color:#4a236d!important;overflow:hidden}
+.games-poster-panel .close{position:absolute;right:14px;top:14px;z-index:20;float:none;background:rgba(4,5,10,.78);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(7px);box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.games-poster-wrap{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:16px;background:#06040c}
+.games-poster-image{display:block;width:100%;height:100%;object-fit:contain;border-radius:16px;user-select:none;-webkit-user-drag:none}
+.game-poster-hotspot{position:absolute;z-index:10;border:0;background:transparent;color:transparent;cursor:pointer;padding:0;border-radius:8%;-webkit-tap-highlight-color:transparent}
+.game-poster-hotspot:focus-visible{outline:3px solid #ffd85a;outline-offset:-3px}
+.game-poster-hotspot:active{background:rgba(255,255,255,.04)}
+.game-poster-hotspot.poker{left:3.4%;top:51.2%;width:22.5%;height:29.6%}
+.game-poster-hotspot.billar{left:27.0%;top:51.2%;width:22.2%;height:29.6%}
+.game-poster-hotspot.slots{left:50.4%;top:51.2%;width:22.4%;height:29.6%}
+.game-poster-hotspot.blackjack{left:74.0%;top:51.2%;width:22.4%;height:29.6%}
+@media(max-width:440px){.wallet-row{flex-wrap:wrap}.wallet-row .promoter-chip:not(.hidden){flex:1 1 100%}}
+
+
+/* ===== DOMINÓ FLASH COIN · HTML 1.1 ===== */
+.domino-launch{margin:12px 4px 5px;border:1px solid rgba(255,213,90,.55);border-radius:18px;overflow:hidden;background:linear-gradient(145deg,#101720,#07100c);box-shadow:0 12px 30px rgba(0,0,0,.34)}
+.domino-launch img{display:block;width:100%;aspect-ratio:16/7;object-fit:cover;object-position:center}
+.domino-launch-body{padding:12px}.domino-launch-body h3{margin:0 0 4px;color:#ffe07a}.domino-launch-body p{font-size:11px;color:#b7c0cd;margin-bottom:9px;line-height:1.4}
+.domino-panel{width:min(96vw,860px)!important;max-width:860px!important;background:radial-gradient(circle at 50% 0,#192b24,#07110d 45%,#05080a)!important;border-color:#9c7b2b!important}
+.domino-hero{width:100%;border-radius:16px;border:1px solid rgba(255,215,91,.35);max-height:260px;object-fit:cover;margin:4px 0 12px}
+.domino-mode-card{border:1px solid #385443;background:linear-gradient(145deg,#101a15,#090f0c);border-radius:16px;padding:12px;margin:9px 0}
+.domino-mode-head{display:flex;justify-content:space-between;gap:10px;align-items:center}.domino-mode-head strong{font-size:16px;color:#ffe08a}.domino-mode-card .meta{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:9px 0}.domino-mode-card .meta span{font-size:10px;background:#08110d;border:1px solid #263a30;border-radius:10px;padding:7px;color:#c3ccc6}
+.domino-tables{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}.domino-table-mini{border:1px solid #31493c;background:#08100c;border-radius:12px;padding:9px;color:#fff;text-align:left}.domino-table-mini b{display:block;color:#ffe07a}.domino-table-mini small{color:#aab5ad}
+.domino-buyin-card{text-align:center}.domino-buyin-value{font-size:33px;color:#ffe071;font-weight:950;margin:10px 0}.domino-buyin-range{width:100%;accent-color:#e7a824}
+.domino-game-panel{width:min(100vw,980px)!important;max-width:980px!important;height:min(96vh,820px);padding:10px!important;background:radial-gradient(ellipse at center,#173e2f 0,#0b261c 46%,#07110d 100%)!important;border:1px solid #9c7a29!important;overflow:hidden!important}
+.domino-topbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}.domino-topbar .domino-title{font-weight:950;color:#ffe17f}.domino-topbar .domino-pot{font-size:11px;color:#d6decf}.domino-gear{width:38px;height:38px;border-radius:50%;border:1px solid #856b28;background:#17140b;color:#ffe07a;font-size:18px}
+.domino-stage{position:relative;height:calc(100% - 48px);border:2px solid rgba(189,149,53,.6);border-radius:46% / 22%;background:radial-gradient(ellipse at center,#1c704c 0,#124d36 46%,#0b2c20 74%,#08150f 100%);box-shadow:inset 0 0 60px rgba(0,0,0,.72),0 14px 40px rgba(0,0,0,.48);overflow:hidden}
+.domino-seat{position:absolute;width:126px;min-height:64px;border-radius:14px;border:1px solid #806d31;background:rgba(5,10,8,.86);padding:7px;text-align:center;z-index:4}.domino-seat strong{display:block;font-size:11px}.domino-seat small{display:block;color:#aeb8b0;font-size:9px}.domino-seat .seat-bal{color:#77efa0;font-weight:900}.domino-seat.turn{box-shadow:0 0 0 2px #ffdc6a,0 0 22px rgba(255,220,106,.45)}.domino-seat.s1{left:50%;bottom:108px;transform:translateX(-50%)}.domino-seat.s2{right:9px;top:50%;transform:translateY(-50%)}.domino-seat.s3{left:50%;top:10px;transform:translateX(-50%)}.domino-seat.s4{left:9px;top:50%;transform:translateY(-50%)}
+.domino-board{position:absolute;left:10%;right:10%;top:37%;min-height:82px;display:flex;align-items:center;justify-content:center;gap:3px;flex-wrap:wrap;z-index:2}.domino-piece{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#fff,#dfe4df);color:#080b09;border:1px solid #111;border-radius:6px;box-shadow:0 3px 8px rgba(0,0,0,.35);font-weight:950;user-select:none}.domino-piece.board-piece{width:42px;height:26px;font-size:11px}.domino-piece.hand-piece{width:52px;height:82px;flex-direction:column;font-size:18px;border-radius:8px}.domino-piece .half{display:grid;place-items:center;flex:1;width:100%}.domino-piece.hand-piece .half+ .half{border-top:1px solid #111}.domino-piece.board-piece .half+ .half{border-left:1px solid #111}.domino-piece.playable{box-shadow:0 0 0 2px #ffd85d,0 0 16px rgba(255,216,93,.45);cursor:pointer}.domino-piece:not(.playable).hand-piece{opacity:.58}
+.domino-hand{position:absolute;left:10px;right:10px;bottom:10px;display:flex;gap:6px;align-items:flex-end;justify-content:center;overflow-x:auto;padding:8px 4px;z-index:6}.domino-center-status{position:absolute;left:50%;top:19%;transform:translateX(-50%);min-width:180px;text-align:center;z-index:5;background:rgba(4,10,7,.84);border:1px solid rgba(255,218,93,.32);border-radius:12px;padding:7px 10px;font-size:10px;color:#d8e3db}.domino-timer{font-size:24px;color:#ffe069;font-weight:950}.domino-victory{position:absolute;inset:0;display:none;place-items:center;background:radial-gradient(circle,rgba(255,221,92,.60),rgba(2,7,4,.86) 55%);z-index:20;text-align:center}.domino-victory.show{display:grid;animation:dominoWin .35s ease-out}.domino-victory b{font-size:32px;color:#fff3a5;text-shadow:0 0 18px #ffc928}.domino-victory span{display:block;margin-top:6px}@keyframes dominoWin{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.domino-menu-actions{display:grid;gap:9px}.domino-admin-card{border:1px solid #3d4b42;background:#090e0b;border-radius:14px;padding:11px;margin-top:10px}.domino-admin-card h4{color:#ffe07c;margin-bottom:6px}.domino-admin-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.domino-admin-grid label{font-size:9px;color:#aab3ad}.domino-admin-grid .field{margin-top:3px}
+@media(max-width:620px){.domino-game-panel{height:94vh}.domino-seat{width:94px;min-height:58px;padding:5px}.domino-seat.s1{bottom:104px}.domino-board{left:4%;right:4%;top:37%}.domino-piece.hand-piece{width:44px;height:72px;font-size:16px}.domino-piece.board-piece{width:37px;height:24px}.domino-center-status{top:21%;min-width:145px}.domino-admin-grid{grid-template-columns:1fr 1fr}}
+
+/* ===== HTML 1.2 · DOMINÓ DIRECTO / DOS MESAS / ESPERA EN TIEMPO REAL ===== */
+.domino-lobby-shell{
+  position:relative;overflow:hidden;
+  background:
+    linear-gradient(rgba(3,9,8,.72),rgba(3,8,7,.88)),
+    url('domino_lobby_dorado.png?v=1.8.9') center/cover no-repeat !important;
+  border:1px solid rgba(255,215,100,.65)!important;
+  box-shadow:0 20px 60px rgba(0,0,0,.55), inset 0 0 80px rgba(0,0,0,.35)!important;
+}
+.domino-lobby-shell:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 50% 18%,rgba(255,220,110,.15),transparent 36%);
+}
+.domino-lobby-content{position:relative;z-index:2}
+.domino-lobby-head{text-align:center;margin:6px 0 14px}
+.domino-lobby-head h2{margin:0;color:#ffe899;font-size:26px;text-shadow:0 2px 12px #000}
+.domino-lobby-head p{margin:5px 0 0;color:#d9e5dc;font-size:11px}
+.domino-two-tables{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.domino-choice-card{
+  position:relative;overflow:hidden;border:1px solid rgba(255,219,107,.48);
+  border-radius:20px;padding:16px;background:linear-gradient(145deg,rgba(8,23,18,.94),rgba(4,10,8,.96));
+  box-shadow:0 14px 30px rgba(0,0,0,.35)
+}
+.domino-choice-card:after{
+  content:"";position:absolute;right:-35px;bottom:-35px;width:115px;height:115px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,213,79,.12),transparent 65%);pointer-events:none
+}
+.domino-choice-card h3{margin:0 0 3px;color:#ffe486;font-size:18px}
+.domino-choice-card .mode-desc{font-size:10px;color:#aebcb4;margin-bottom:11px;min-height:28px}
+.domino-choice-card .table-stats{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}
+.domino-choice-card .table-stat{border:1px solid #33483d;border-radius:11px;padding:8px;background:#07110d;color:#bdc9c1;font-size:9px}
+.domino-choice-card .table-stat b{display:block;color:#fff1aa;font-size:12px;margin-top:2px}
+.domino-choice-card .online-line{font-size:10px;color:#8de4aa;margin:0 0 10px}
+.domino-game-panel{
+  background:
+    linear-gradient(rgba(2,9,6,.58),rgba(2,8,6,.72)),
+    url('domino_lobby_dorado.png?v=1.8.9') center/cover no-repeat !important;
+}
+.domino-stage{background:radial-gradient(ellipse at center,rgba(23,106,71,.92) 0,rgba(11,61,42,.94) 48%,rgba(5,22,15,.97) 100%)}
+.domino-center-status.waiting-player{
+  top:50%;transform:translate(-50%,-50%);min-width:230px;padding:18px 18px;
+  border:1px solid rgba(255,224,119,.62);background:rgba(3,10,7,.92);
+  box-shadow:0 10px 30px rgba(0,0,0,.52),0 0 24px rgba(255,216,89,.11);
+}
+.domino-wait-title{display:block;color:#ffe58d;font-size:17px;font-weight:950;margin-top:8px}
+.domino-wait-sub{display:block;color:#aebbb4;font-size:9px;margin-top:5px}
+.domino-spinner{
+  width:42px;height:42px;margin:0 auto;border-radius:50%;
+  border:4px solid rgba(255,225,120,.18);border-top-color:#ffe478;
+  animation:dominoSpin .8s linear infinite;box-shadow:0 0 17px rgba(255,214,82,.22)
+}
+@keyframes dominoSpin{to{transform:rotate(360deg)}}
+.domino-live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#52f58a;box-shadow:0 0 8px #52f58a;margin-right:5px}
+@media(max-width:620px){
+  .domino-two-tables{grid-template-columns:1fr}
+  .domino-lobby-head h2{font-size:21px}
+  .domino-center-status.waiting-player{min-width:190px}
+}
+
+
+
+/* ===== HTML 1.2.4 · SINCRONIZACIÓN Y NAVEGACIÓN DOMINÓ ===== */
+.domino-sync-state{margin-top:3px;font-size:9px;color:#9fb3a7}
+.domino-sync-state.ok{color:#75efa0}
+.domino-sync-state.warn{color:#ffd86c}
+.domino-sync-state.bad{color:#ff9098}
+.mf-update-toast{
+  position:fixed;z-index:900;left:50%;bottom:18px;transform:translateX(-50%);
+  width:min(92vw,420px);padding:10px 12px;border-radius:14px;
+  border:1px solid rgba(255,215,90,.55);background:rgba(5,10,8,.97);
+  color:#fff2b0;text-align:center;font-size:11px;box-shadow:0 12px 35px rgba(0,0,0,.55)
+}
+
+
+.domino-build-badge{display:inline-block;margin-top:7px;padding:4px 8px;border:1px solid rgba(255,220,105,.34);border-radius:999px;background:rgba(0,0,0,.35);color:#d7e0d9;font-size:8px}
+.domino-build-badge.ok{color:#7bf0a3;border-color:rgba(123,240,163,.45)}
+.domino-build-badge.bad{color:#ff9a9f;border-color:rgba(255,120,128,.45)}
+.domino-refresh-btn{margin-top:8px!important;padding:7px 10px!important;font-size:9px!important}
+
+/* ===== HTML 1.4.0 · MESA REAL, FICHAS CLÁSICAS Y ARRASTRE ===== */
+#dominoTablePanel{overscroll-behavior:none;touch-action:none}
+.domino-game-panel{height:min(94vh,820px)!important;height:min(94svh,820px)!important;overflow:hidden!important;background:linear-gradient(145deg,#11140f,#050805)!important;border:1px solid rgba(212,172,72,.82)!important;box-shadow:0 24px 70px rgba(0,0,0,.72),inset 0 0 0 1px rgba(255,226,132,.08)!important}
+.domino-topbar{min-height:46px;padding:1px 4px 5px;border-bottom:1px solid rgba(222,181,74,.24)}
+.domino-stage{position:relative;height:calc(100% - 50px)!important;border-radius:42% / 18%!important;border:7px solid #2b2110!important;outline:2px solid #9b7627;outline-offset:-5px;background:radial-gradient(ellipse at 50% 47%,#176345 0%,#0d4c34 39%,#073422 67%,#041b12 100%)!important;box-shadow:inset 0 0 0 2px rgba(255,220,110,.18),inset 0 0 78px rgba(0,0,0,.78),0 16px 35px rgba(0,0,0,.55)!important;overflow:hidden!important;contain:layout paint;user-select:none;-webkit-user-select:none}
+.domino-stage:before{content:"";position:absolute;inset:10px;border-radius:42% / 18%;border:1px solid rgba(241,204,110,.24);pointer-events:none;z-index:0}
+.domino-stage:after{content:"DOMINÓ FLASH COIN";position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);font-weight:900;font-size:clamp(12px,2.1vw,24px);letter-spacing:.18em;color:rgba(246,215,125,.055);white-space:nowrap;pointer-events:none;z-index:0}
+.domino-table-emblem{position:absolute;left:50%;top:54%;transform:translate(-50%,-50%);width:84px;height:84px;border:1px solid rgba(235,198,98,.08);border-radius:50%;display:grid;place-items:center;color:rgba(255,220,113,.05);font-size:38px;z-index:0;pointer-events:none}
+
+/* Perfiles redondos */
+.domino-seat{position:absolute;width:114px!important;min-height:84px!important;padding:0!important;border:0!important;background:transparent!important;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;z-index:7;pointer-events:none}
+.domino-seat .domino-avatar{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 28%,#2b3028,#111510 70%);border:2px solid #8e6e28;box-shadow:0 6px 18px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,226,128,.06);color:#ffe49a;font-weight:950;font-size:15px;letter-spacing:.03em;position:relative}
+.domino-seat .domino-avatar:after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid transparent;transition:.2s}
+.domino-seat.turn .domino-avatar:after{border-color:#ffdf70;box-shadow:0 0 18px rgba(255,223,112,.66)}
+.domino-seat.turn{box-shadow:none!important}
+.domino-seat .domino-seat-name{margin-top:4px;max-width:128px;padding:4px 8px;border-radius:999px;background:rgba(3,8,5,.83);border:1px solid rgba(199,159,61,.38);font-size:12px;font-weight:850;color:#fff4bd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.domino-seat .domino-seat-info{font-size:8px;color:#b8c7bd;margin-top:2px;white-space:nowrap}
+.domino-seat .seat-bal{font-size:9px;color:#78ef9d;font-weight:900}
+.domino-seat.empty .domino-avatar{border-style:dashed;color:#708077;background:rgba(5,10,7,.6)}
+.domino-seat.s1{left:50%!important;bottom:94px!important;transform:translateX(-50%)!important}.domino-seat.s2{right:3px!important;top:50%!important;transform:translateY(-50%)!important}.domino-seat.s3{left:50%!important;top:5px!important;transform:translateX(-50%)!important}.domino-seat.s4{left:3px!important;top:50%!important;transform:translateY(-50%)!important}
+
+/* Fichas negras premium con puntos dorados auténticos */
+.domino-piece{position:relative;box-sizing:border-box;background:linear-gradient(145deg,#20231f 0%,#090b09 58%,#171914 100%)!important;border:1px solid #a98231!important;color:#dfb852!important;border-radius:7px!important;box-shadow:0 5px 12px rgba(0,0,0,.58),inset 0 0 0 1px rgba(255,222,128,.08)!important;user-select:none;-webkit-user-select:none;flex:none;overflow:hidden}
+.domino-piece .domino-face{position:relative;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);place-items:center;min-width:0;min-height:0}
+.domino-piece .domino-pip{width:5px;height:5px;border-radius:50%;opacity:0;background:radial-gradient(circle at 35% 30%,#fff1a7 0 13%,#e2b94f 24%,#9b691a 72%,#4c3108 100%);box-shadow:inset 0 1px 1px rgba(255,255,255,.36),0 1px 1px rgba(0,0,0,.75)}
+.domino-piece .domino-pip.on{opacity:1}
+.domino-piece .domino-divider{position:absolute;background:linear-gradient(90deg,#755416,#e6bd55,#755416);box-shadow:0 0 3px rgba(229,188,84,.28);z-index:2}
+.domino-piece.hand-piece{width:50px!important;height:78px!important;display:grid!important;grid-template-rows:1fr 1fr;grid-template-columns:1fr;padding:4px!important;touch-action:none;cursor:default;transition:transform .13s ease,filter .13s ease,opacity .13s ease;will-change:transform}
+.domino-piece.hand-piece .domino-divider{left:5px;right:5px;top:50%;height:1px;transform:translateY(-.5px)}
+.domino-piece.hand-piece .domino-face{width:100%;height:100%;padding:4px}
+.domino-piece.board-piece{width:54px!important;height:30px!important;display:grid!important;grid-template-columns:1fr 1fr;grid-template-rows:1fr;padding:3px!important;border-radius:5px!important}
+.domino-piece.board-piece .domino-divider{top:4px;bottom:4px;left:50%;width:1px;transform:translateX(-.5px)}
+.domino-piece.board-piece .domino-face{width:100%;height:100%;padding:2px}
+.domino-piece.board-piece .domino-pip{width:3.6px;height:3.6px}
+/* Los dobles se colocan cruzados, pero la cadena sigue por solo dos extremos. */
+.domino-piece.board-piece.domino-double{width:30px!important;height:54px!important;grid-template-columns:1fr;grid-template-rows:1fr 1fr;padding:3px!important}
+.domino-piece.board-piece.domino-double .domino-divider{left:4px;right:4px;top:50%;bottom:auto;width:auto;height:1px;transform:translateY(-.5px)}
+.domino-piece.board-piece.domino-double .domino-face{padding:2px}
+.domino-piece.playable{opacity:1!important;cursor:grab!important;box-shadow:0 0 0 2px rgba(255,216,82,.82),0 0 18px rgba(255,205,61,.34),0 5px 12px rgba(0,0,0,.58)!important}
+.domino-piece.playable:active,.domino-piece.dragging{cursor:grabbing!important;z-index:30;filter:brightness(1.16);transition:none!important}
+.domino-piece:not(.playable).hand-piece{opacity:.44!important;filter:saturate(.7)}
+.domino-piece.selected{box-shadow:0 0 0 3px #ffe37d,0 0 24px rgba(255,218,85,.58)!important;transform:translateY(-6px)}
+.domino-piece.invalid-return{animation:dominoInvalidReturn .28s ease}
+@keyframes dominoInvalidReturn{0%,100%{transform:translate(0,0)}25%{transform:translate(-7px,0)}70%{transform:translate(7px,0)}}
+.domino-piece.just-dropped{animation:dominoDropClack .34s cubic-bezier(.18,.78,.2,1.18)}
+@keyframes dominoDropClack{0%{opacity:.15;transform:translateY(-28px) scale(1.14) rotate(-4deg)}65%{opacity:1;transform:translateY(3px) scale(.98) rotate(1deg)}100%{transform:translateY(0) scale(1) rotate(0)}}
+
+/* Cadena única, sin ramificaciones. Se acomoda en líneas para mantener la mesa fija. */
+.domino-board{position:absolute!important;left:50%!important;right:auto!important;top:50%!important;transform:translate(-50%,-50%)!important;width:min(64%,560px)!important;min-height:80px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:1px!important;z-index:3!important;pointer-events:none}
+.domino-board-row{display:flex;align-items:center;justify-content:center;gap:2px;min-height:54px;width:100%}
+.domino-board-row.reverse{flex-direction:row-reverse}
+.domino-board-empty{font-size:10px;color:rgba(255,235,174,.5);letter-spacing:.08em}
+.domino-hand{left:50%!important;right:auto!important;bottom:8px!important;transform:translateX(-50%);width:min(82%,610px);display:flex!important;gap:5px!important;overflow:visible!important;padding:8px 5px!important;z-index:10!important}
+
+
+.domino-ready-btn{
+  position:absolute;left:50%;top:66%;transform:translate(-50%,-50%);
+  z-index:24;min-width:150px;padding:11px 18px;border-radius:999px;
+  border:1px solid rgba(255,224,113,.85);
+  background:linear-gradient(180deg,#2f8b50,#176637);
+  color:#fff8ce;font-size:13px;font-weight:950;letter-spacing:.06em;
+  box-shadow:0 9px 28px rgba(0,0,0,.5),0 0 18px rgba(101,246,145,.2);
+}
+.domino-ready-btn:disabled{opacity:.55;filter:grayscale(.3)}
+
+/* Destinos de arrastre */
+.domino-drop-zone{position:absolute;top:50%;transform:translateY(-50%) scale(.92);width:74px;min-height:62px;border-radius:16px;border:1px dashed rgba(255,220,112,.42);background:rgba(2,10,6,.72);color:#9eaa9f;z-index:9;opacity:0;pointer-events:none;transition:.16s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-weight:900}
+.domino-drop-zone span{font-size:22px;line-height:1}.domino-drop-zone small{font-size:7px;letter-spacing:.08em}
+.domino-drop-zone.left{left:2.5%}.domino-drop-zone.right{right:2.5%}
+.domino-drop-zone.show{opacity:1;pointer-events:auto;transform:translateY(-50%) scale(1)}
+.domino-drop-zone.allowed{border-style:solid;border-color:#f4cb62;color:#ffe795;box-shadow:0 0 18px rgba(238,190,68,.19)}
+.domino-drop-zone.hover{background:rgba(69,51,10,.91);box-shadow:0 0 0 2px #ffe177,0 0 26px rgba(255,213,70,.45);transform:translateY(-50%) scale(1.08)}
+.domino-drop-zone.blocked{opacity:.32}
+
+.domino-center-status{top:19%!important;max-width:min(72%,390px);pointer-events:none}
+.domino-auto-pass{color:#ffd777;font-weight:900}.domino-auto-pass:before{content:"●";display:inline-block;margin-right:5px;animation:dominoPassPulse .7s infinite alternate}@keyframes dominoPassPulse{to{opacity:.25}}
+
+@media(max-width:620px){
+ .domino-game-panel{height:min(96vh,760px)!important;height:min(96svh,760px)!important;padding:6px!important}
+ .domino-stage{border-width:5px!important;border-radius:38% / 16%!important}
+ .domino-seat{width:96px!important;min-height:70px!important}.domino-seat .domino-avatar{width:44px;height:44px;font-size:12px}.domino-seat .domino-seat-name{max-width:94px;font-size:10px;padding:3px 6px}.domino-seat .domino-seat-info{font-size:7px}.domino-seat .seat-bal{font-size:8px}
+ .domino-seat.s1{bottom:82px!important}.domino-seat.s2{right:0!important}.domino-seat.s4{left:0!important}.domino-seat.s3{top:2px!important}
+ .domino-board{width:58%!important;top:51%!important}.domino-board-row{min-height:42px!important;gap:1px}
+ .domino-piece.board-piece{width:42px!important;height:24px!important}.domino-piece.board-piece.domino-double{width:24px!important;height:42px!important}.domino-piece.board-piece .domino-pip{width:2.8px;height:2.8px}
+ .domino-piece.hand-piece{width:42px!important;height:66px!important}.domino-piece.hand-piece .domino-pip{width:4px;height:4px}
+ .domino-hand{width:78%!important;gap:3px!important;bottom:4px!important;padding:5px 2px!important}
+ .domino-drop-zone{width:54px;min-height:50px;border-radius:12px}.domino-drop-zone.left{left:1%}.domino-drop-zone.right{right:1%}.domino-drop-zone span{font-size:18px}.domino-drop-zone small{font-size:6px}
+ .domino-center-status{top:20%!important;min-width:138px!important;font-size:8px!important;padding:5px 7px!important}.domino-timer{font-size:18px!important}
+}
+@media(max-width:380px){.domino-piece.hand-piece{width:38px!important;height:61px!important}.domino-hand{width:76%!important}.domino-board{width:56%!important}.domino-drop-zone{width:48px}.domino-seat.s2,.domino-seat.s4{top:49%!important}}
+
+
+/* ===== HTML 1.4.0 · MESA PREMIUM / EXTREMOS ILUMINADOS / AUDIO SEPARADO ===== */
+.machine{position:relative}
+.module-sound-btn{
+  width:42px;height:42px;border-radius:50%;border:1px solid rgba(220,183,91,.54);
+  background:linear-gradient(145deg,rgba(27,31,28,.96),rgba(7,10,8,.97));
+  color:#c8b26f;display:grid;place-items:center;font-size:18px;line-height:1;
+  box-shadow:0 7px 18px rgba(0,0,0,.42),inset 0 0 0 1px rgba(255,231,152,.05);
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease,color .16s ease;
+  z-index:30
+}
+.module-sound-btn.on{color:#ffe17a;border-color:#d8aa3f;box-shadow:0 0 0 1px rgba(255,222,115,.14),0 0 18px rgba(225,177,58,.18),0 7px 18px rgba(0,0,0,.42)}
+.module-sound-btn:active{transform:scale(.94)}
+.roulette-sound-btn{position:absolute;top:9px;right:9px}.machine .roundbar{padding-right:48px}
+.domino-top-actions{display:flex;align-items:center;gap:7px}
+.domino-sound-btn{width:38px;height:38px;font-size:16px}
+#soundSwitch{display:none!important}
+.control-stack .sound-box{display:none!important}
+
+#dominoTablePanel{padding:6px!important;overflow:hidden!important;background:radial-gradient(circle at 50% 35%,rgba(36,28,13,.38),rgba(0,0,0,.94) 66%)!important}
+.domino-game-panel{
+  width:min(98vw,1120px)!important;max-width:1120px!important;
+  height:min(96vh,820px)!important;height:min(96svh,820px)!important;
+  margin:0 auto!important;padding:8px!important;border-radius:26px!important;
+  background:
+    linear-gradient(145deg,rgba(43,28,14,.97),rgba(13,11,7,.99))!important;
+  border:1px solid rgba(225,186,86,.68)!important;
+  box-shadow:0 30px 90px rgba(0,0,0,.78),inset 0 0 0 1px rgba(255,229,151,.09)!important
+}
+.domino-topbar{
+  min-height:52px!important;margin:0 2px 7px!important;padding:4px 7px 7px!important;
+  border-bottom:1px solid rgba(224,181,75,.24)!important
+}
+.domino-title{font-size:15px;letter-spacing:.06em}
+.domino-stage{
+  height:calc(100% - 59px)!important;
+  border-radius:34px!important;
+  border:11px solid #3b2413!important;
+  outline:2px solid #b38a38!important;outline-offset:-7px!important;
+  background:
+    radial-gradient(circle at 18% 16%,rgba(255,255,255,.035),transparent 16%),
+    radial-gradient(circle at 76% 71%,rgba(0,0,0,.12),transparent 24%),
+    linear-gradient(115deg,rgba(255,255,255,.012) 25%,transparent 25%,transparent 50%,rgba(255,255,255,.012) 50%,rgba(255,255,255,.012) 75%,transparent 75%),
+    radial-gradient(ellipse at 50% 48%,#176f4d 0%,#0e563b 42%,#083923 72%,#052417 100%)!important;
+  background-size:auto,auto,14px 14px,auto!important;
+  box-shadow:
+    inset 0 0 0 2px rgba(251,219,122,.20),
+    inset 0 0 0 7px rgba(23,12,5,.40),
+    inset 0 0 95px rgba(0,0,0,.62),
+    0 11px 0 #201207,
+    0 18px 38px rgba(0,0,0,.62)!important;
+  overflow:hidden!important
+}
+.domino-stage:before{
+  inset:9px!important;border-radius:22px!important;
+  border:1px solid rgba(255,223,132,.22)!important;
+  box-shadow:inset 0 0 22px rgba(0,0,0,.28)
+}
+.domino-stage:after{
+  content:"FLASH COIN · DOMINÓ"!important;top:56%!important;
+  font-size:clamp(10px,1.7vw,19px)!important;letter-spacing:.28em!important;
+  color:rgba(255,226,145,.045)!important
+}
+.domino-table-emblem{
+  top:54%!important;width:116px!important;height:116px!important;
+  border:1px solid rgba(235,198,98,.075)!important;
+  box-shadow:inset 0 0 0 9px rgba(255,226,137,.018);
+  font-size:46px!important;color:rgba(255,220,113,.042)!important
+}
+
+/* No se muestran flechas ni cajas laterales. La propia ficha extrema es el destino. */
+.domino-drop-zone{display:none!important}
+.domino-board{pointer-events:none!important}
+.domino-piece.board-piece{transition:filter .16s ease,box-shadow .16s ease,transform .16s ease}
+.domino-piece.board-piece.domino-end-left,
+.domino-piece.board-piece.domino-end-right{position:relative}
+.domino-piece.board-piece.domino-end-left.end-allowed-left,
+.domino-piece.board-piece.domino-end-right.end-allowed-right{
+  pointer-events:auto!important;cursor:pointer!important;filter:brightness(1.12)
+}
+.domino-piece.board-piece.domino-end-left.end-allowed-left{
+  box-shadow:-8px 0 18px rgba(255,218,91,.28),0 0 0 2px rgba(255,222,113,.70),0 5px 12px rgba(0,0,0,.58)!important
+}
+.domino-piece.board-piece.domino-end-right.end-allowed-right{
+  box-shadow:8px 0 18px rgba(255,218,91,.28),0 0 0 2px rgba(255,222,113,.70),0 5px 12px rgba(0,0,0,.58)!important
+}
+.domino-piece.board-piece.domino-end-left.end-hover-left{
+  filter:brightness(1.34)!important;
+  box-shadow:-12px 0 28px rgba(255,224,99,.58),0 0 0 3px #ffe783,0 5px 12px rgba(0,0,0,.58)!important;
+  transform:translateX(-2px) scale(1.05)
+}
+.domino-piece.board-piece.domino-end-right.end-hover-right{
+  filter:brightness(1.34)!important;
+  box-shadow:12px 0 28px rgba(255,224,99,.58),0 0 0 3px #ffe783,0 5px 12px rgba(0,0,0,.58)!important;
+  transform:translateX(2px) scale(1.05)
+}
+.domino-piece.board-piece.domino-end-left.end-allowed-left::before,
+.domino-piece.board-piece.domino-end-right.end-allowed-right::after{
+  content:"";position:absolute;top:17%;bottom:17%;width:4px;border-radius:99px;
+  background:#ffe27a;box-shadow:0 0 13px #ffd34e;z-index:5;pointer-events:none
+}
+.domino-piece.board-piece.domino-end-left.end-allowed-left::before{left:-6px}
+.domino-piece.board-piece.domino-end-right.end-allowed-right::after{right:-6px}
+.domino-piece.board-piece.domino-end-left.end-hover-left::before,
+.domino-piece.board-piece.domino-end-right.end-hover-right::after{width:6px;background:#fff0a9;box-shadow:0 0 20px #ffda52}
+.domino-board.empty-drop-active{
+  pointer-events:auto!important;min-height:92px!important;border-radius:28px;
+  background:radial-gradient(circle,rgba(255,221,101,.10),transparent 64%);
+  box-shadow:inset 0 0 0 1px rgba(255,223,121,.18)
+}
+.domino-board.empty-drop-active.empty-drop-hover{
+  background:radial-gradient(circle,rgba(255,224,103,.20),transparent 66%);
+  box-shadow:inset 0 0 0 2px rgba(255,229,143,.46),0 0 24px rgba(255,207,61,.13)
+}
+.domino-board-empty{color:rgba(255,235,174,.38)!important}
+
+/* Pequeño acabado de lujo alrededor de los perfiles */
+.domino-seat .domino-avatar{
+  background:radial-gradient(circle at 35% 28%,#31372f,#10140f 72%)!important;
+  border:2px solid #a77f2f!important;
+  box-shadow:0 7px 20px rgba(0,0,0,.56),inset 0 0 0 2px rgba(255,226,128,.06)!important
+}
+.domino-seat.turn .domino-avatar:after{border-color:#ffe37b!important;box-shadow:0 0 21px rgba(255,223,112,.72)!important}
+
+@media(max-width:620px){
+  #dominoTablePanel{padding:2px!important}
+  .domino-game-panel{width:99vw!important;height:min(98vh,780px)!important;height:min(98svh,780px)!important;padding:4px!important;border-radius:18px!important}
+  .domino-topbar{min-height:48px!important;margin-bottom:4px!important;padding:2px 4px 5px!important}
+  .module-sound-btn{width:38px;height:38px;font-size:16px}.roulette-sound-btn{top:7px;right:7px}
+  .domino-stage{height:calc(100% - 53px)!important;border-width:7px!important;border-radius:22px!important;outline-offset:-5px!important}
+}
+
+
+/* ===== HTML 1.4.2 · IMAGEN REAL DE LA MESA =====
+   Carga principal:
+   images2/Mesa de Dominó Flash Coin.png
+   Respaldo:
+   images2/Mesa de Dominó Flash Coin.png
+   Esta capa solo cambia la visual. La lógica y el SQL permanecen en 1.4.0.
+*/
+:root{
+  --domino-table-image:url('https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.8.9');
+}
+
+.domino-stage{
+  background-image:
+    linear-gradient(rgba(2,7,5,.11),rgba(2,7,5,.19)),
+    var(--domino-table-image) !important;
+  background-position:center center !important;
+  background-size:cover !important;
+  background-repeat:no-repeat !important;
+  background-color:#07140f !important;
+}
+
+.domino-stage:before{
+  background:radial-gradient(
+    circle at 50% 48%,
+    transparent 46%,
+    rgba(0,0,0,.10) 80%,
+    rgba(0,0,0,.24) 100%
+  ) !important;
+  pointer-events:none !important;
+}
+
+.domino-stage:after{
+  content:"" !important;
+}
+
+.domino-table-emblem{
+  display:none !important;
+}
+
+.domino-seat .domino-avatar{
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+
+.domino-board,
+.domino-hand,
+.domino-center-status{
+  filter:drop-shadow(0 5px 8px rgba(0,0,0,.45));
+}
+
+@media(max-width:620px){
+  .domino-stage{
+    background-position:center center !important;
+    background-size:cover !important;
+  }
+}
+
+
+/* ==========================================================
+   HTML 1.6.0 · MESA VISUAL REAL + CONTROLES HTML FUNCIONALES
+   La fotografía es decoración; los controles reales están encima.
+   ========================================================== */
+.domino-game-panel{position:relative}
+.domino-stage{
+  isolation:isolate;
+  background-image:
+    url('https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.8.9') !important;
+  background-position:center center!important;
+  background-size:cover!important;
+  background-repeat:no-repeat!important;
+}
+.domino-photo-veil{
+  position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;
+  background:
+    linear-gradient(180deg,rgba(3,10,7,.50) 0,rgba(3,10,7,.16) 18%,rgba(3,10,7,.10) 72%,rgba(3,10,7,.66) 100%),
+    radial-gradient(ellipse at center,rgba(0,38,22,.08),rgba(0,10,6,.28));
+  box-shadow:inset 0 0 70px rgba(0,0,0,.42);
+}
+.domino-live-top-controls{
+  position:absolute;top:10px;right:10px;z-index:14;display:flex;gap:8px
+}
+.domino-live-icon{
+  width:44px;height:44px;border-radius:50%;display:grid;place-items:center;
+  border:1px solid rgba(255,219,104,.72);
+  background:rgba(7,12,10,.88);color:#ffe181;font-size:19px;
+  box-shadow:0 6px 18px rgba(0,0,0,.42),inset 0 0 0 1px rgba(255,235,161,.06)
+}
+.domino-live-actions{
+  position:absolute;left:50%;bottom:96px;transform:translateX(-50%);
+  z-index:13;display:flex;justify-content:center;gap:6px;max-width:94%;padding:7px;
+  border:1px solid rgba(255,218,91,.25);border-radius:18px;
+  background:rgba(4,12,8,.72);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+  box-shadow:0 10px 28px rgba(0,0,0,.38)
+}
+.domino-live-action{
+  min-width:64px;min-height:48px;border-radius:13px;padding:5px 7px;
+  border:1px solid rgba(255,219,112,.34);background:rgba(11,21,15,.92);color:#fff;
+  font-size:17px;font-weight:900;display:grid;place-items:center;gap:1px
+}
+.domino-live-action span{display:block;font-size:8px;color:#e8dcae;letter-spacing:.2px}
+.domino-live-action:disabled{opacity:.36;filter:saturate(.5);cursor:not-allowed}
+.domino-live-action:not(:disabled):active{transform:scale(.96)}
+.domino-live-action.danger{border-color:rgba(255,99,104,.45);background:rgba(75,13,17,.88)}
+.domino-emoji-tray{
+  position:absolute;left:50%;bottom:154px;transform:translateX(-50%);
+  z-index:15;display:flex;gap:7px;padding:7px 9px;border-radius:16px;
+  background:rgba(6,12,9,.94);border:1px solid rgba(255,221,118,.34);
+  box-shadow:0 12px 28px rgba(0,0,0,.45)
+}
+.domino-emoji-tray button{
+  width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.12);
+  background:#141a15;font-size:21px
+}
+.domino-toast{
+  position:absolute;top:68px;left:50%;transform:translate(-50%,-8px);
+  z-index:18;max-width:82%;padding:8px 12px;border-radius:14px;
+  background:rgba(5,10,8,.92);border:1px solid rgba(255,217,92,.32);
+  color:#fff;font-size:10px;font-weight:800;text-align:center;opacity:0;pointer-events:none;
+  transition:.18s ease
+}
+.domino-toast.show{opacity:1;transform:translate(-50%,0)}
+.domino-chat-panel{max-width:520px}
+.domino-chat-list{
+  height:min(48vh,360px);overflow:auto;display:flex;flex-direction:column;gap:7px;
+  padding:8px;border-radius:14px;background:rgba(2,8,5,.72);border:1px solid rgba(255,220,110,.17)
+}
+.domino-chat-line{padding:7px 9px;border-radius:12px;background:#101813;border:1px solid rgba(255,255,255,.07)}
+.domino-chat-line.me{background:#182619;border-color:rgba(118,237,154,.24)}
+.domino-chat-line .who{font-size:9px;color:#ffe188;font-weight:900}
+.domino-chat-line .when{font-size:7px;color:#829086;margin-left:5px}
+.domino-chat-line .body{font-size:11px;color:#f4f5ef;margin-top:2px;overflow-wrap:anywhere}
+.domino-chat-line.reaction .body{font-size:26px}
+.domino-chat-compose{display:grid;grid-template-columns:1fr auto;gap:7px;margin-top:8px}
+.domino-round-content{display:grid;gap:7px}
+.domino-round-row{
+  display:flex;justify-content:space-between;gap:12px;padding:8px 10px;border-radius:12px;
+  background:#101813;border:1px solid rgba(255,220,110,.13);font-size:11px
+}
+.domino-seat{z-index:7!important}
+.domino-board{z-index:7!important}
+.domino-center-status{z-index:9!important}
+.domino-hand{z-index:12!important;bottom:8px!important}
+.domino-victory{z-index:30!important}
+.domino-piece.board-piece.end-allowed-left,
+.domino-piece.board-piece.end-allowed-right{
+  box-shadow:0 0 0 2px #ffe175,0 0 23px rgba(255,218,73,.86)!important;
+  filter:brightness(1.18)
+}
+.domino-piece.board-piece.end-hover-left,
+.domino-piece.board-piece.end-hover-right{
+  box-shadow:0 0 0 3px #fff1a8,0 0 32px rgba(255,224,97,.98)!important;
+  filter:brightness(1.38)
+}
+@media(max-width:720px){
+  .domino-live-actions{bottom:82px;gap:3px;padding:5px;max-width:98%}
+  .domino-live-action{min-width:48px;min-height:43px;padding:3px 4px;font-size:15px}
+  .domino-live-action span{font-size:7px}
+  .domino-emoji-tray{bottom:132px}
+  .domino-live-top-controls{top:6px;right:6px}
+  .domino-live-icon{width:38px;height:38px;font-size:16px}
+}
+
+
+/* ==========================================================
+   HTML 1.6.0 · RESPONSIVE iPhone / Android / Mac
+   ========================================================== */
+#dominoTablePanel{
+  padding:
+    max(4px,env(safe-area-inset-top))
+    max(4px,env(safe-area-inset-right))
+    max(4px,env(safe-area-inset-bottom))
+    max(4px,env(safe-area-inset-left))!important;
+  overflow:auto!important;
+}
+.domino-game-panel{
+  width:min(100%,1020px)!important;
+  max-width:1020px!important;
+  height:auto!important;
+  max-height:none!important;
+  min-height:0!important;
+  padding:6px!important;
+  overflow:visible!important;
+}
+.domino-topbar{min-height:48px}
+.domino-stage{
+  width:min(100%,calc((100svh - 72px) * 1.60))!important;
+  height:auto!important;
+  aspect-ratio:1.60 / 1!important;
+  max-height:calc(100svh - 72px)!important;
+  margin:0 auto!important;
+  border-radius:clamp(18px,4vw,42px)!important;
+  background-size:100% 100%!important;
+  background-position:center!important;
+}
+.domino-seat{
+  width:clamp(72px,13.5%,122px)!important;
+  min-height:0!important;
+  pointer-events:auto!important;
+}
+.domino-seat .domino-avatar{
+  width:clamp(40px,6.8vw,62px)!important;
+  height:clamp(40px,6.8vw,62px)!important;
+  font-size:clamp(11px,1.8vw,17px)!important;
+  overflow:hidden;
+  cursor:default;
+}
+.domino-seat.mine .domino-avatar{cursor:pointer}
+.domino-seat.mine .domino-avatar:before{
+  content:"📷";
+  position:absolute;right:-2px;bottom:-2px;width:18px;height:18px;border-radius:50%;
+  display:grid;place-items:center;background:#0c1711;border:1px solid #f2ce69;
+  font-size:9px;z-index:3;
+}
+.domino-avatar img{
+  width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;
+}
+.domino-seat.empty .domino-avatar{
+  font-size:clamp(24px,4vw,34px)!important;
+  color:#ffe58f!important;
+  border:2px dashed rgba(255,222,113,.75)!important;
+  background:rgba(7,15,10,.80)!important;
+}
+.domino-seat.empty .domino-seat-name{color:#f5e6a6}
+.domino-seat.s1{left:50%!important;bottom:15.5%!important;transform:translateX(-50%)!important}
+.domino-seat.s2{right:1.5%!important;top:49%!important;transform:translateY(-50%)!important}
+.domino-seat.s3{left:50%!important;top:1.5%!important;transform:translateX(-50%)!important}
+.domino-seat.s4{left:1.5%!important;top:49%!important;transform:translateY(-50%)!important}
+.domino-seat .domino-seat-name{
+  max-width:100%!important;font-size:clamp(7px,1.2vw,10px)!important;
+}
+.domino-seat .domino-seat-info,.domino-seat .seat-bal{
+  font-size:clamp(6px,1vw,9px)!important;
+}
+.domino-board{
+  width:min(58%,590px)!important;
+  top:49%!important;
+}
+.domino-hand{
+  width:min(78%,650px)!important;
+  bottom:1.3%!important;
+  gap:clamp(2px,.55vw,6px)!important;
+  padding:clamp(3px,.7vw,8px)!important;
+}
+.domino-piece.hand-piece{
+  width:clamp(34px,5.6vw,54px)!important;
+  height:clamp(56px,8.8vw,84px)!important;
+}
+.domino-piece.board-piece{
+  width:clamp(30px,4.4vw,45px)!important;
+  height:clamp(19px,2.8vw,28px)!important;
+}
+.domino-live-actions{
+  bottom:13.7%!important;
+  max-width:92%!important;
+  gap:clamp(2px,.7vw,7px)!important;
+}
+.domino-live-action{
+  min-width:clamp(42px,8vw,72px)!important;
+  min-height:clamp(38px,6vw,52px)!important;
+  font-size:clamp(13px,2vw,18px)!important;
+}
+.domino-live-action span{font-size:clamp(6px,.9vw,9px)!important}
+.domino-center-status{
+  top:16%!important;
+  max-width:46%!important;
+  min-width:120px!important;
+  padding:clamp(4px,.8vw,8px) clamp(6px,1vw,11px)!important;
+  font-size:clamp(7px,1.15vw,10px)!important;
+}
+.domino-live-top-controls{top:1.5%!important;right:1.5%!important}
+.domino-live-icon{
+  width:clamp(34px,5.2vw,44px)!important;
+  height:clamp(34px,5.2vw,44px)!important;
+}
+@media (orientation:portrait) and (max-width:700px){
+  .domino-game-panel{width:100%!important;padding:3px!important}
+  .domino-topbar{min-height:44px}
+  .domino-stage{
+    width:100%!important;
+    max-height:none!important;
+    aspect-ratio:1.60 / 1!important;
+    border-width:4px!important;
+  }
+  .domino-seat{width:70px!important}
+  .domino-seat .domino-avatar{width:40px!important;height:40px!important}
+  .domino-seat .domino-seat-info{display:none}
+  .domino-seat .seat-bal{font-size:7px!important}
+  .domino-seat.s1{bottom:16%!important}
+  .domino-live-actions{bottom:14.5%!important;padding:4px!important}
+  .domino-live-action{min-width:40px!important;min-height:37px!important;padding:2px 3px!important}
+  .domino-live-action span{font-size:6px!important}
+  .domino-board{width:55%!important}
+  .domino-hand{width:76%!important}
+  .domino-center-status{top:17%!important;max-width:43%!important}
+}
+@media (orientation:landscape) and (max-height:560px){
+  #dominoTablePanel{align-items:flex-start!important}
+  .domino-topbar{min-height:39px}
+  .domino-stage{width:min(100%,calc((100svh - 52px)*1.60))!important;max-height:calc(100svh - 52px)!important}
+  .domino-seat .domino-avatar{width:38px!important;height:38px!important}
+  .domino-seat .domino-seat-name{font-size:9px!important}
+  .domino-seat .domino-seat-info{display:none}
+  .domino-live-action{min-height:34px!important}
+  .domino-live-icon{width:32px!important;height:32px!important}
+}
+
+/* Foto propia: animación táctil */
+.domino-seat.mine .domino-avatar:active{transform:scale(.95)}
+.domino-seat-photo-help{
+  position:absolute;left:50%;bottom:2px;transform:translateX(-50%);z-index:16;
+  font-size:7px;color:#fff1b0;background:rgba(0,0,0,.68);padding:2px 6px;border-radius:999px;
+  pointer-events:none;
+}
+
+
+/* ==========================================================
+   HTML 1.8.9 · MESA LIMPIA / CONTROLES MÍNIMOS
+   ========================================================== */
+.domino-topbar{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:10px!important;padding:3px 6px 7px!important
+}
+.domino-topbar-right{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.domino-money-pill{
+  min-width:112px;padding:6px 10px;border-radius:14px;
+  border:1px solid rgba(255,218,91,.28);background:rgba(5,12,9,.88);
+  box-shadow:0 5px 18px rgba(0,0,0,.28);text-align:right
+}
+.domino-money-pill span{display:block;font-size:7px;color:#aebaa9;text-transform:uppercase;letter-spacing:.55px}
+.domino-money-pill b{display:block;color:#ffe484;font-size:12px;line-height:1.25}
+
+.domino-live-actions{
+  left:auto!important;right:1.5%!important;bottom:3%!important;transform:none!important;
+  max-width:none!important;padding:5px!important;gap:5px!important;border-radius:16px!important;
+  background:rgba(4,12,8,.78)!important
+}
+.domino-live-action{
+  min-width:44px!important;min-height:40px!important;padding:3px 5px!important;
+  border-radius:12px!important
+}
+.domino-live-action span{font-size:6px!important}
+.domino-live-action.danger{background:rgba(70,13,16,.92)!important}
+
+.domino-emoji-tray{
+  left:auto!important;right:1.5%!important;bottom:11%!important;transform:none!important
+}
+.domino-big-emoji{
+  position:absolute;left:50%;top:49%;transform:translate(-50%,-50%) scale(.55);
+  z-index:24;font-size:clamp(64px,12vw,128px);line-height:1;opacity:0;pointer-events:none;
+  filter:drop-shadow(0 10px 18px rgba(0,0,0,.55));
+  transition:opacity .16s ease,transform .22s cubic-bezier(.2,.9,.3,1.2)
+}
+.domino-big-emoji.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.domino-seat-bubble{
+  position:absolute;z-index:23;max-width:min(210px,34%);padding:6px 9px;border-radius:13px;
+  background:rgba(7,13,10,.94);border:1px solid rgba(255,224,116,.42);
+  box-shadow:0 8px 22px rgba(0,0,0,.42);font-size:9px;font-weight:800;color:#fff;
+  opacity:0;transform:scale(.92);transition:.16s ease;pointer-events:none;
+  overflow-wrap:anywhere
+}
+.domino-seat-bubble.show{opacity:1;transform:scale(1)}
+.domino-seat-bubble.s1{left:50%;bottom:27%;transform:translateX(-50%) scale(.92)}
+.domino-seat-bubble.s1.show{transform:translateX(-50%) scale(1)}
+.domino-seat-bubble.s2{right:13%;top:50%;transform:translateY(-50%) scale(.92)}
+.domino-seat-bubble.s2.show{transform:translateY(-50%) scale(1)}
+.domino-seat-bubble.s3{left:50%;top:12%;transform:translateX(-50%) scale(.92)}
+.domino-seat-bubble.s3.show{transform:translateX(-50%) scale(1)}
+.domino-seat-bubble.s4{left:13%;top:50%;transform:translateY(-50%) scale(.92)}
+.domino-seat-bubble.s4.show{transform:translateY(-50%) scale(1)}
+.domino-seat-bubble.reaction{font-size:34px;background:transparent;border:0;box-shadow:none}
+
+.domino-photo-veil{
+  background:
+    linear-gradient(180deg,rgba(3,10,7,.35) 0,rgba(3,10,7,.08) 18%,rgba(3,10,7,.06) 72%,rgba(3,10,7,.46) 100%),
+    radial-gradient(ellipse at 50% 50%,rgba(255,222,123,.05),rgba(0,10,6,.16))!important;
+  box-shadow:inset 0 0 55px rgba(0,0,0,.34),inset 0 0 110px rgba(255,210,90,.035)!important
+}
+.domino-stage:after{
+  content:"";position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(ellipse at 50% 43%,rgba(255,255,255,.045),transparent 48%);
+  mix-blend-mode:screen
+}
+.domino-piece{
+  filter:drop-shadow(0 5px 4px rgba(0,0,0,.38))
+}
+.domino-piece.hand-piece{transition:transform .15s ease,filter .15s ease}
+.domino-piece.hand-piece:active{transform:translateY(-5px) scale(1.04);filter:drop-shadow(0 10px 7px rgba(0,0,0,.5))}
+@media(max-width:720px){
+  .domino-topbar-right{gap:4px}
+  .domino-money-pill{min-width:94px;padding:5px 7px}
+  .domino-money-pill b{font-size:10px}
+  .domino-live-actions{right:1%!important;bottom:2%!important}
+  .domino-live-action{min-width:38px!important;min-height:36px!important}
+  .domino-emoji-tray{right:1%!important;bottom:12%!important}
+  .domino-seat-bubble{font-size:8px;max-width:36%}
+}
+
+
+/* 1.7.0 · orientación obligatoria para la mesa */
+#dominoRotateGuard{
+  position:fixed;inset:0;z-index:999999;display:none;align-items:center;justify-content:center;
+  background:rgba(2,5,8,.98);padding:24px;text-align:center;color:#fff
+}
+#dominoRotateGuard.show{display:flex}
+.domino-rotate-card{
+  max-width:360px;padding:24px 20px;border-radius:22px;
+  border:1px solid rgba(255,216,90,.35);background:rgba(11,16,24,.98);
+  box-shadow:0 18px 55px rgba(0,0,0,.5)
+}
+.domino-rotate-icon{font-size:58px;line-height:1;margin-bottom:12px}
+.domino-rotate-title{font-size:18px;font-weight:900;color:#ffe07b;margin-bottom:8px}
+.domino-rotate-text{font-size:12px;color:#c8d0da;line-height:1.45}
+@media (orientation:portrait){
+  body.domino-playing #dominoRotateGuard{display:flex}
+}
+
+
+/* ==========================================================
+   HTML 1.8.9 · MESA APP FULLSCREEN + ESPERA + REPARTO
+   ========================================================== */
+.live-game-counts{
+  display:flex;gap:5px;align-items:center;flex-wrap:wrap;
+  font-size:9px;color:#dce9df
+}
+.live-game-counts span{
+  padding:5px 7px;border:1px solid rgba(110,230,145,.20);
+  background:rgba(6,19,12,.76);border-radius:999px;white-space:nowrap
+}
+.live-game-counts b{color:#8ef1ad}
+
+#dominoTablePanel{
+  padding:0!important;background:#020604!important;
+  align-items:center!important;justify-content:center!important;overflow:hidden!important
+}
+.domino-game-panel{
+  width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;
+  min-height:100dvh!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  background:#020604!important;box-shadow:none!important;overflow:hidden!important
+}
+#dominoTablePanel .domino-topbar{display:none!important}
+.domino-stage{
+  position:relative!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;
+  aspect-ratio:auto!important;margin:0!important;border:0!important;border-radius:0!important;outline:0!important;
+  background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;
+  box-shadow:inset 0 0 95px rgba(0,0,0,.52)!important;overflow:hidden!important
+}
+.domino-stage:before{inset:0!important;border-radius:0!important;border:0!important}
+.domino-stage:after{display:none!important}
+
+.domino-inside-status{
+  position:absolute;left:max(8px,env(safe-area-inset-left));top:max(8px,env(safe-area-inset-top));
+  z-index:18;padding:4px 7px;border-radius:999px;background:rgba(2,12,7,.72);
+  border:1px solid rgba(82,233,126,.25);color:#9cf4b7;font-size:7px;font-weight:900;
+  letter-spacing:.25px;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)
+}
+.domino-inside-pot{
+  position:absolute;left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);
+  z-index:18;min-width:112px;padding:4px 10px;border-radius:12px;text-align:center;
+  background:rgba(4,11,8,.72);border:1px solid rgba(255,218,94,.24);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)
+}
+.domino-inside-pot span{display:block;font-size:6px;text-transform:uppercase;letter-spacing:.5px;color:#c0b991}
+.domino-inside-pot b{display:block;font-size:10px;color:#ffe48a}
+.domino-live-top-controls{
+  top:max(7px,env(safe-area-inset-top))!important;
+  right:max(8px,env(safe-area-inset-right))!important;
+  z-index:20!important;display:flex!important;align-items:center!important;gap:5px!important
+}
+.domino-compact-balance{
+  display:flex;align-items:center;gap:5px;min-height:32px;padding:4px 8px;border-radius:999px;
+  background:rgba(5,12,9,.82);border:1px solid rgba(255,217,88,.28);
+  color:#ffe681;box-shadow:0 5px 18px rgba(0,0,0,.28);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)
+}
+.domino-compact-balance b{font-size:9px;white-space:nowrap}
+.fc-mini-coin{
+  width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:900;
+  color:#4b3400;background:radial-gradient(circle at 35% 30%,#fff0a5,#ffd345 48%,#b97800 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 2px 7px rgba(0,0,0,.35)
+}
+.domino-live-icon{width:32px!important;height:32px!important;font-size:14px!important}
+
+.domino-center-status{
+  top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important;
+  min-width:180px!important;max-width:42%!important;padding:11px 15px!important;border-radius:18px!important;
+  background:rgba(2,10,6,.72)!important;border:1px solid rgba(255,221,105,.18)!important;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:0 12px 35px rgba(0,0,0,.34)!important
+}
+.domino-center-status.waiting-player{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:6px!important
+}
+.domino-center-status.waiting-player .domino-spinner{
+  width:32px!important;height:32px!important;border-width:3px!important;margin:0 auto 2px!important;
+  border-color:rgba(255,221,105,.18)!important;border-top-color:#ffe16f!important;
+  box-shadow:0 0 18px rgba(255,214,67,.18)
+}
+.domino-wait-title{font-size:11px!important;color:#fff3bb!important}
+.domino-wait-sub{font-size:7px!important;max-width:190px!important;line-height:1.35!important}
+
+.domino-piece{
+  background:linear-gradient(145deg,#171b19 0%,#080a09 45%,#191e1a 100%)!important;
+  border:1px solid rgba(230,197,105,.50)!important;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.08),
+    inset -2px -2px 5px rgba(0,0,0,.8),
+    0 5px 9px rgba(0,0,0,.42)!important;
+}
+.domino-divider{background:linear-gradient(90deg,transparent,#d3ad55,transparent)!important}
+.domino-pip.on{
+  background:radial-gradient(circle at 35% 32%,#fff2b2,#e6b94f 46%,#815700 100%)!important;
+  box-shadow:0 0 4px rgba(255,210,80,.32),inset 0 1px 1px rgba(255,255,255,.3)!important
+}
+.domino-hand .domino-piece.dealing{
+  opacity:0;transform:translateY(-32vh) scale(.45) rotate(-18deg);
+  animation:dominoDealIn .44s cubic-bezier(.18,.78,.24,1.08) forwards;
+}
+.domino-hand .deal-0{animation-delay:.03s}.domino-hand .deal-1{animation-delay:.15s}
+.domino-hand .deal-2{animation-delay:.27s}.domino-hand .deal-3{animation-delay:.39s}
+.domino-hand .deal-4{animation-delay:.51s}.domino-hand .deal-5{animation-delay:.63s}
+.domino-hand .deal-6{animation-delay:.75s}
+@keyframes dominoDealIn{
+  0%{opacity:0;transform:translateY(-30vh) scale(.42) rotate(-18deg)}
+  72%{opacity:1;transform:translateY(4px) scale(1.04) rotate(2deg)}
+  100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}
+}
+
+@media(max-width:740px){
+  .domino-inside-pot{min-width:92px;padding:3px 7px}
+  .domino-inside-pot b{font-size:8px}
+  .domino-compact-balance{min-height:29px;padding:3px 6px}
+  .domino-compact-balance b{font-size:8px}
+  .fc-mini-coin{width:18px;height:18px;font-size:9px}
+  .domino-live-icon{width:29px!important;height:29px!important;font-size:12px!important}
+  .domino-center-status{max-width:46%!important;min-width:155px!important;padding:8px 10px!important}
+  .domino-seat.s1{bottom:10%!important}
+  .domino-hand{bottom:1%!important;width:min(72%,620px)!important}
+  .domino-live-actions{right:max(4px,env(safe-area-inset-right))!important;bottom:max(4px,env(safe-area-inset-bottom))!important}
+}
+@media(orientation:portrait) and (max-width:740px){
+  body.domino-playing #dominoTablePanel{display:flex!important}
+}
+
 </style>
 </head>
 <body>
@@ -114,7 +1016,10 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   <div class="topbar">
     <div class="brand-mini">⚡ FC</div>
     <div class="top-tools">
-      <button id="onlineUsersBtn" type="button" class="online-chip" title="Ver usuarios conectados"><span class="online-dot"></span><span id="onlinePublic">0</span> en línea</button>
+      <button id="onlineUsersBtn" type="button" class="online-chip" title="Ver usuarios conectados"><span class="online-dot"></span><span id="onlinePublic">0</span> en línea</button><div class="live-game-counts" title="Actividad en tiempo real">
+  <span>🎲 <b id="dominoPlayingPublic">0</b> dominó</span>
+  <span>🎯 <b id="roulettePlayingPublic">0</b> ruleta</span>
+</div>
       <button id="inviteBtn" class="icon-btn invite-btn">🔗 Invitar</button>
       <button id="groupBtn" class="icon-btn group-btn">Grupo WhatsApp</button>
       <button id="settingsBtn" class="icon-btn">⚙️</button>
@@ -123,12 +1028,14 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   <div class="wallet-row">
     <button id="promotersInfoBtn" class="icon-btn info-chip">👥 Promotores Info</button>
     <button id="balanceBtn" class="balance-chip">💰 <strong id="balanceTop" class="fc-balance">0.000 FC</strong></button>
+    <button id="gamesBtn" type="button" class="icon-btn games-chip">🎮 Juegos</button>
     <button id="promoterBtn" class="icon-btn promoter-chip hidden">💼 Panel Promotor</button>
   </div>
 
   <div class="game-layout">
     <aside id="publicNoticeSide" class="public-notice-side hidden"></aside>
   <section class="machine">
+    <button id="rouletteSoundBtn" type="button" class="module-sound-btn roulette-sound-btn" aria-pressed="false" aria-label="Encender sonido de la ruleta" title="Sonido de la ruleta">🔇</button>
     <div class="roundbar">
       <div class="round-meta">Ronda<br><b id="roundId">—</b></div>
       <div id="countdown" class="timer">15</div>
@@ -154,7 +1061,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
         <div class="stake-row"><button id="stakeDown" type="button">−</button><input id="stakeInput" class="field stake" type="number" step="0.01" value="0.01"><button id="stakeUp" type="button">+</button></div>
       </div>
       <div class="control-stack">
-        <label class="switch-box sound-box"><input id="soundSwitch" class="switch" type="checkbox"><span>🔊 Sonido</span></label>
+        <input id="soundSwitch" class="switch" type="checkbox" hidden><span id="soundSwitchLabel" class="hidden"></span>
         <label class="switch-box sound-box"><input id="flashSwitch" class="switch" type="checkbox" checked><span>✨ Destello</span></label>
       </div>
     </div>
@@ -164,11 +1071,77 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   </div>
 </main>
 
+
+<div id="gamesPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="gamesPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p>El área de Juegos está dedicada al Dominó.</p></div><img class="domino-hero" src="domino_lobby_dorado.png?v=1.8.9" alt="Dominó Flash Coin"><button id="dominoPlayBtn" type="button" class="action green">ENTRAR A LAS MESAS</button></div></div></div>
+
+<div id="dominoLobbyPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button id="dominoLobbyCloseBtn" type="button" class="close">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p><span class="domino-live-dot"></span>Mesas en línea · entra, elige tu saldo de mesa y juega</p><div id="dominoBuildBadge" class="domino-build-badge">HTML 1.6.0 · verificando servidor…</div></div><div id="dominoLobbyMsg" class="msg"></div><div id="dominoLobbyModes" class="domino-two-tables"></div></div></div></div>
+
+<div id="dominoBuyinPanel" class="overlay"><div class="panel domino-buyin-card"><button id="dominoBuyinCloseBtn" type="button" class="close">✕</button><h2 id="dominoBuyinTitle">Sentarse</h2><div class="tiny">Elige cuántas Flash Coin vas a llevar a la mesa. Se descuentan del saldo principal y vuelven al salir solamente las que realmente te queden.</div><div id="dominoBuyinValue" class="domino-buyin-value">0.000 FC</div><input id="dominoBuyinRange" class="domino-buyin-range" type="range" min="0.3" max="1" step="0.01"><input id="dominoBuyinInput" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="dominoConfirmJoinBtn" class="action green">SENTARME EN LA MESA</button><div id="dominoBuyinMsg" class="msg"></div></div></div>
+
+<div id="dominoTablePanel" class="overlay"><div class="panel domino-game-panel">
+<div id="dominoTableTitle" class="hidden">Dominó</div>
+<div id="dominoTableSub" class="hidden">Mesa</div>
+<div id="dominoSyncState" class="hidden">Conectando…</div>
+<div id="dominoStage" class="domino-stage">
+<div class="domino-inside-status"><span class="domino-live-dot"></span>En línea · Tiempo real</div>
+<div class="domino-inside-pot"><span>Bote de la mesa</span><b id="dominoPotBadge">0.000 FC</b></div>
+<div class="domino-photo-veil" aria-hidden="true"></div>
+<div class="domino-live-top-controls">
+  <div class="domino-compact-balance" title="Saldo Flash Coin"><span class="fc-mini-coin">⚡</span><b id="dominoGlobalBalance">0.000 FC</b></div>
+  <button id="dominoSoundBtn" type="button" class="domino-live-icon" aria-pressed="false" aria-label="Encender sonido de la mesa" title="Sonido de Dominó">🔇</button>
+  <button id="dominoGearBtn" type="button" class="domino-live-icon" aria-label="Configuración de mesa" title="Configuración">⚙️</button>
+</div>
+<div id="dominoSeats"></div>
+<div id="dominoCenterStatus" class="domino-center-status">Esperando jugadores...</div>
+<button id="dominoReadyBtn" type="button" class="domino-ready-btn hidden">CONFIRMAR</button>
+<div id="dominoBoard" class="domino-board" aria-label="Fichas jugadas"></div>
+<div id="dominoHand" class="domino-hand" aria-label="Tus fichas"></div>
+<div class="domino-live-actions" aria-label="Controles de la mesa">
+  <button id="dominoChatBtn" type="button" class="domino-live-action" title="Chat">💬 <span>Chat</span></button>
+  <button id="dominoEmojiBtn" type="button" class="domino-live-action" title="Emojis">😊 <span>Emoji</span></button>
+  <button id="dominoSurrenderBtn" type="button" class="domino-live-action danger" title="Salir">🚪 <span>Salir</span></button>
+</div>
+<div id="dominoBigEmoji" class="domino-big-emoji" aria-hidden="true"></div>
+<div id="dominoSeatBubble1" class="domino-seat-bubble s1"></div>
+<div id="dominoSeatBubble2" class="domino-seat-bubble s2"></div>
+<div id="dominoSeatBubble3" class="domino-seat-bubble s3"></div>
+<div id="dominoSeatBubble4" class="domino-seat-bubble s4"></div>
+<div id="dominoEmojiTray" class="domino-emoji-tray hidden" aria-label="Reacciones rápidas">
+  <button type="button" data-domino-reaction="👍">👍</button>
+  <button type="button" data-domino-reaction="👏">👏</button>
+  <button type="button" data-domino-reaction="😎">😎</button>
+  <button type="button" data-domino-reaction="😂">😂</button>
+  <button type="button" data-domino-reaction="🔥">🔥</button>
+  <button type="button" data-domino-reaction="💪">💪</button>
+</div>
+<div id="dominoToast" class="domino-toast"></div>
+<div id="dominoVictory" class="domino-victory"><div><b>¡GANASTE!</b><span id="dominoVictoryText">Victoria</span></div></div>
+</div></div></div>
+<input id="dominoAvatarFile" type="file" accept="image/*" class="hidden" aria-hidden="true">
+
+<div id="dominoChatPanel" class="overlay"><div class="panel domino-chat-panel">
+  <button class="close" data-close="dominoChatPanel">✕</button>
+  <h2>💬 Chat de la mesa</h2>
+  <div id="dominoChatList" class="domino-chat-list"><div class="tiny">Cargando mensajes…</div></div>
+  <div class="domino-chat-compose">
+    <input id="dominoChatInput" class="field" maxlength="200" placeholder="Escribe un mensaje…" autocomplete="off">
+    <button id="dominoChatSendBtn" type="button" class="action green">Enviar</button>
+  </div>
+  <div id="dominoChatMsg" class="msg"></div>
+</div></div>
+
+
+<div id="dominoMenuPanel" class="overlay"><div class="panel"><button id="dominoMenuCloseBtn" type="button" class="close">✕</button><h2>⚙️ Mesa de Dominó</h2><div class="domino-menu-actions"><button id="dominoBackBtn" class="action dark">← Atrás / Dejar la mano</button><div class="tiny">Vuelves directamente a las mesas de Dominó. Si la mano está activa, seguirá automáticamente hasta terminar; si vuelves antes, recuperas tu lugar.</div><button id="dominoExitBtn" class="action red">Salir de la mesa</button><div class="tiny">Sales directamente a la pantalla principal de mesas de Dominó.</div></div></div></div>
+
+<div id="dominoExitConfirmPanel" class="overlay"><div class="panel"><h2>¿Salir de la mesa?</h2><p class="tiny">Tu asiento se libera de inmediato para otro jugador. Si ya estabas participando en una mano, tus fichas siguen jugando automáticamente hasta terminar. Si ganas, el premio se acredita a tu saldo Flash Coin aunque estés fuera.</p><div class="request-actions"><button id="dominoExitCancelBtn" class="action dark">Cancelar</button><button id="dominoExitConfirmBtn" class="action red">Confirmar salir</button></div></div></div>
+
+<div id="gameDevelopmentPanel" class="overlay"><div class="panel"><button class="close" data-close="gameDevelopmentPanel">✕</button><div class="game-dev-message"><div id="gameDevelopmentIcon" class="big">🎮</div><h3 id="gameDevelopmentTitle">Juego</h3><p>Este juego está en desarrollo. Muy pronto estará disponible dentro de MAIKET FLASH.</p></div></div></div>
+
 <div id="balancePanel" class="overlay"><div class="panel"><button class="close" data-close="balancePanel">✕</button><h2>💰 Flash Coin</h2><div class="card"><span class="tiny">Saldo disponible</span><strong style="font-size:28px" id="balancePanelValue" class="fc-balance">0.000 FC</strong><span class="tiny">Tu ID: <b id="balancePublicId"></b><button id="copyBalanceIdBtn" type="button" class="copy-btn">Copiar</button></span></div><h3>Solicitudes</h3><div id="requestsList"></div><h3>Historial</h3><div id="ledgerList"></div></div></div>
 
 <div id="onlineUsersPanel" class="overlay"><div class="panel"><button class="close" data-close="onlineUsersPanel">✕</button><h2>🟢 Usuarios en línea</h2><div id="onlineUsersRound" class="online-round-note">Cargando última ronda...</div><div id="onlineUsersList"></div></div></div>
 
-<div id="settingsPanel" class="overlay"><div class="panel"><button class="close" data-close="settingsPanel">✕</button><h2>⚙️ Configuración</h2><button id="editProfileBtn" class="action blue">Editar perfil</button><button id="inviteSettingsBtn" class="action dark">🔗 Invitar usuarios</button><div id="referralSummary" class="ref-card"><b>Referidos</b><div class="tiny">0.2 FC por primera jugada · 1 FC por primera recarga con promotor</div><div class="ref-stats"><div><b id="refInvited">0</b><span class="tiny">Invitados</span></div><div><b id="refPlayed">0</b><span class="tiny">Jugaron</span></div><div><b id="refEarned">0.000</b><span class="tiny">FC ganadas</span></div></div></div><button id="leaderBtn" class="action hidden">👑 Administrador Líder</button><button id="logoutBtn" class="action red">Cerrar sesión</button></div></div>
+<div id="settingsPanel" class="overlay"><div class="panel"><button class="close" data-close="settingsPanel">✕</button><h2>⚙️ Configuración</h2><button id="editProfileBtn" class="action blue">Editar perfil</button><button id="inviteSettingsBtn" class="action dark">🔗 Invitar usuarios</button><div id="referralSummary" class="ref-card"><b>Referidos</b><div class="tiny">Invita usuarios con tu enlace · sin bonificaciones automáticas</div><div class="ref-stats"><div><b id="refInvited">0</b><span class="tiny">Invitados</span></div><div><b id="refPlayed">0</b><span class="tiny">Jugaron</span></div><div><b id="refEarned">0.000</b><span class="tiny">FC ganadas</span></div></div></div><button id="leaderBtn" class="action hidden">👑 Administrador Líder</button><button id="logoutBtn" class="action red">Cerrar sesión</button></div></div>
 
 <div id="editProfilePanel" class="overlay"><div class="panel"><button class="close" data-close="editProfilePanel">✕</button><h2>Editar perfil</h2><input id="editFirst" class="field" placeholder="Nombre"><input id="editLast" class="field" placeholder="Apellido"><button id="saveProfileBtn" class="action green">Guardar</button><div id="profileMsg" class="msg"></div></div></div>
 
@@ -184,14 +1157,23 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div id="leaderGatePanel" class="overlay"><div class="panel"><button class="close" data-close="leaderGatePanel">✕</button><h2>👑 Administrador Líder</h2><div id="leaderFirstSetup" class="hidden"><p class="tiny">Primera entrada: crea ahora la contraseña del panel.</p><input id="leaderNewPass" class="field" type="password" placeholder="Nueva contraseña"><input id="leaderNewPass2" class="field" type="password" placeholder="Confirmar contraseña"><button id="leaderCreatePassBtn" class="action green">Crear contraseña</button></div><div id="leaderLoginBox" class="hidden"><input id="leaderPass" class="field" type="password" placeholder="Contraseña del panel"><button id="leaderUnlockBtn" class="action">Entrar</button></div><div id="leaderGateMsg" class="msg"></div></div></div>
 
 <div id="leaderPanel" class="overlay"><div class="panel"><button class="close" data-close="leaderPanel">✕</button><h2>👑 Administrador Líder</h2><div class="stat-grid"><div class="stat"><b id="adminRegistered">0</b><span class="tiny">Registrados</span></div><div class="stat"><b id="adminOnline">0</b><span class="tiny">Jugando ahora</span></div></div>
+<div class="section"><button id="allUsersBtn" type="button" class="action blue">👥 Todos los usuarios</button><div class="tiny">Consulta IDs y saldos, busca directamente y realiza operaciones desde una misma pantalla.</div></div>
 <div class="wallet-admin-grid"><button id="adminWalletBtn" type="button" class="wallet-admin-card"><span class="wallet-pair-label"><i class="fc-coin"></i> Cartera Administrativa</span><b id="adminWalletPreview" class="fc-balance">0.000 FC</b><div class="wallet-id-line">ID <strong id="adminWalletIdPreview">———</strong></div><small>Enviar · solicitar · retirar</small></button><button id="rouletteWalletBtn" type="button" class="wallet-admin-card"><span class="wallet-pair-label"><i class="fc-coin"></i> Cartera de la Ruleta</span><b id="rouletteWalletPreview" class="fc-balance">0.000 FC</b><div class="wallet-id-line">ID <strong id="rouletteWalletIdPreview">———</strong></div><small id="rouletteNetPreview">Ganancia/Pérdida: 0.000 FC</small></button></div>
 <div class="section"><h3>⚡ Mi Flash Coin</h3><div class="tiny">Envía o solicita Flash Coin usando tu saldo personal de la cuenta líder.</div><div class="row"><input id="leaderTransferId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="leaderFindTransferBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="leaderTransferUserResult"></div><input id="leaderTransferAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="leaderSendFcBtn" class="action green">Enviar Flash Coin</button><button id="leaderRequestFcBtn" class="action">Solicitar Flash Coin</button><div id="leaderTransferMsg" class="msg"></div></div>
 <div class="section"><h3>Asignar promotores</h3><div class="row"><input id="adminPromId" class="field" inputmode="numeric" maxlength="6" placeholder="ID usuario"><button id="adminFindPromBtn" class="action blue">Buscar</button></div><div id="adminPromResult"></div></div>
 <div class="section"><h3>Comunicado</h3><label class="switch-line"><input id="adminNoticeEnabled" class="switch" type="checkbox"><span>Mostrar comunicado a los usuarios</span></label><textarea id="adminNotice" class="field" rows="3" placeholder="Escribe el comunicado..."></textarea><div class="row"><div><label class="tiny">Visible durante (segundos)</label><input id="adminNoticeVisible" class="field" type="number" min="1" max="3600" value="10"></div><div><label class="tiny">Reaparece cada (segundos)</label><input id="adminNoticeRepeat" class="field" type="number" min="1" max="86400" value="300"></div></div><button id="adminSaveNoticeBtn" class="action green">Guardar comunicado</button></div>
 <div class="section"><h3>Recarga por ID</h3><div class="row"><input id="adminRechargeId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminFindRechargeBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="adminRechargeUserResult"></div><input id="adminRechargeAmount" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="adminRechargeBtn" class="action green">Acreditar recarga</button></div>
 <div class="section"><h3>Configuración de la ruleta</h3><label class="tiny">Temporizador de ronda (segundos)</label><input id="adminSeconds" class="field" type="number" min="5" max="300"><label class="tiny">Apuesta mínima (mínimo 0.010 FC)</label><input id="adminMinBet" class="field" type="number" min="0.01" step="0.001"><label class="tiny">Porcentaje global de pago (0–100%)</label><input id="adminPayoutPct" class="field" type="number" min="0" max="100" step="0.01"><label class="tiny">⏱ Duración visual del giro (segundos)</label><input id="adminSpinDuration" class="field" type="number" min="3" max="20" step="0.5" inputmode="decimal"><div class="tiny">Controla cuánto tiempo y cuántas vueltas da la ruleta antes de detenerse. No cambia el número ganador.</div><label class="tiny">Enlace grupo WhatsApp</label><input id="adminGroupUrl" class="field" placeholder="https://chat.whatsapp.com/..."><button id="adminSaveSettingsBtn" class="action">Guardar configuración</button></div>
+<div class="section"><h3>🁫 Configuración del Dominó</h3><div class="tiny">Edita cada modalidad. Los cambios aplican a las próximas manos, sin borrar las mesas ni los saldos actuales.</div><div id="dominoAdminConfigs"></div><div id="dominoAdminMsg" class="msg"></div></div>
 <div class="section"><h3>Seguridad del panel</h3><label class="switch-line"><input id="leaderPasswordRequiredSwitch" class="switch" type="checkbox"><span>Solicitar contraseña al entrar al panel</span></label><div class="tiny">Si lo apagas, la contraseña no se elimina: el Administrador Líder autorizado entra directamente. Puedes volver a activarlo cuando quieras.</div><div id="leaderPasswordModeMsg" class="msg"></div><h3 style="margin-top:14px">Cambiar contraseña del panel</h3><input id="oldLeaderPass" class="field" type="password" placeholder="Contraseña actual"><input id="newLeaderPass" class="field" type="password" placeholder="Nueva contraseña"><button id="changeLeaderPassBtn" class="action dark">Cambiar contraseña</button></div><div id="adminMsg" class="msg"></div></div></div>
 
+
+
+<div id="allUsersPanel" class="overlay"><div class="panel"><button class="close" data-close="allUsersPanel">✕</button><h2>👥 Todos los usuarios</h2>
+  <div class="admin-users-toolbar"><div class="row"><input id="leaderUsersSearch" class="field" inputmode="numeric" maxlength="6" placeholder="Buscar por ID de 6 dígitos"><button id="leaderUsersSearchBtn" type="button" class="search-mini" title="Buscar ID">🔎</button></div><div id="leaderUsersCount" class="admin-users-count">Cargando usuarios...</div></div>
+  <div id="leaderSelectedUserActions" class="admin-user-actions hidden"><h3>Usuario seleccionado</h3><div id="leaderSelectedUserCard"></div><input id="leaderUsersAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="leaderUsersSendBtn" type="button" class="action green">Enviar Flash Coin</button><button id="leaderUsersRequestBtn" type="button" class="action">Solicitar Flash Coin</button><button id="leaderUsersRechargeBtn" type="button" class="action blue">Acreditar recarga</button><div id="leaderUsersMsg" class="msg"></div></div>
+  <div id="leaderUsersList" class="admin-users-list"></div>
+</div></div>
 
 <div id="adminWalletPanel" class="overlay"><div class="panel"><button class="close" data-close="adminWalletPanel">✕</button><h2>💼 Cartera Administrativa</h2><div class="card"><span class="tiny">Saldo disponible de administración</span><div class="wallet-main-balance"><span class="fc-coin"></span><strong id="adminWalletBalance">0.000 FC</strong></div><div class="wallet-id-line">ID de cartera: <b id="adminWalletPublicId">———</b><button id="copyAdminWalletIdBtn" type="button" class="copy-btn">Copiar</button></div><div class="tiny">Este saldo es independiente del saldo personal del Administrador Líder.</div></div><h3>Usuario / Promotor</h3><div class="row"><input id="adminWalletUserId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="adminWalletFindBtn" type="button" class="search-mini">🔎</button></div><div id="adminWalletUserResult"></div><input id="adminWalletAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="adminWalletSendBtn" class="action green">Enviar desde cartera</button><button id="adminWalletRequestBtn" class="action">Solicitar a usuario/promotor</button><button id="adminWalletWithdrawBtn" class="action red">Retirar saldo a esta cartera</button><div id="adminWalletMsg" class="msg"></div><h3>Historial de la cartera</h3><div id="adminWalletHistory" class="wallet-history"></div></div></div>
 
@@ -210,7 +1192,6 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 <div id="winFlash" class="win-flash"><div class="win-card"><h2>🎉 ¡GANASTE!</h2><div id="winNumber" class="tiny"></div><div class="receipt-coin"><span class="fc-coin"></span></div><div id="winPrize" class="win-prize">+0.000 FC</div><div class="tiny">Premio acreditado automáticamente a tu saldo</div></div></div>
 
 <div id="copyToast" class="copy-toast">Copiado</div>
-
 <script>
 const SUPABASE_URL='https://mvwpbhhhspcaurjgsegz.supabase.co';
 const SUPABASE_KEY='sb_publishable_nO8z0atB5iB5Bri2iRXwdw_PJUOQvCx';
@@ -224,21 +1205,137 @@ const REF_KEY='rf_referrer_public_id';
 const refFromUrl=(new URLSearchParams(location.search).get('ref')||'').trim();
 if(/^\d{6}$/.test(refFromUrl))localStorage.setItem(REF_KEY,refFromUrl);
 let me=null,settings=null,currentRound=null,myBets={},rotation=0,lastSettledId=null,selectedPromUser=null,selectedLeaderTransferUser=null,selectedAdminRechargeUser=null,selectedAdminWalletUser=null,onlineCount=0,onlineUsers=[],presenceChannel=null,clockOffset=0,tickBusy=false;
-let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,audioUnlockPromise=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0,recoveryMode=false,pendingPromAction=null,promConfirmBusy=false;
-const SOUND_LOCAL_KEY='rf_sound_enabled_v13';
-let soundLocalOverride=localStorage.getItem(SOUND_LOCAL_KEY)===null?null:localStorage.getItem(SOUND_LOCAL_KEY)==='1';
-// El permiso/preferencia puede quedar guardado, pero por seguridad de Safari/iPhone
-// el motor de esta sesión NO queda activo hasta que el usuario toque el control Sonido.
-let audioSessionActivated=false;
-function soundPreferenceEnabled(){return soundLocalOverride!==null?soundLocalOverride:(me?.sound_enabled!==false);}
-function soundIsEnabled(){return audioSessionActivated&&soundPreferenceEnabled();}
+let rouletteAwayRoundId=null;
+let rouletteAwayReason='';
+let rouletteDisableRepeatBusy=false;
+let dominoViewAway=false;
+
+let loopStarted=false,manualLogout=false,noticeHideTimer=null,noticeCycleTimer=null,audioCtx=null,audioTickTimer=null,audioUnlockPromise=null,stakeSaveTimer=null,transferPollBusy=false,transferQueueBusy=false,balanceAnimating=false,betTotalVisible=true,balanceHoldActive=false,heldBalance=null,displayedBalanceValue=0,recoveryMode=false,pendingPromAction=null,promConfirmBusy=false,leaderUsersBusy=false,leaderUsersTimer=null,selectedLeaderListUser=null;
+const LEGACY_SOUND_LOCAL_KEY='rf_sound_enabled_v13';
+const ROULETTE_SOUND_LOCAL_KEY='rf_roulette_sound_enabled_v140';
+const DOMINO_SOUND_LOCAL_KEY='rf_domino_sound_enabled_v140';
+const legacySoundStored=localStorage.getItem(LEGACY_SOUND_LOCAL_KEY);
+let rouletteSoundLocalOverride=localStorage.getItem(ROULETTE_SOUND_LOCAL_KEY)===null
+  ?(legacySoundStored===null?null:legacySoundStored==='1')
+  :localStorage.getItem(ROULETTE_SOUND_LOCAL_KEY)==='1';
+let dominoSoundLocalOverride=localStorage.getItem(DOMINO_SOUND_LOCAL_KEY)===null
+  ?(legacySoundStored===null?null:legacySoundStored==='1')
+  :localStorage.getItem(DOMINO_SOUND_LOCAL_KEY)==='1';
+function soundScopedKey(base){return me?.public_id?`${base}_${me.public_id}`:base}
+function loadScopedSoundPreferences(){
+  if(!me?.public_id)return;
+  const rr=localStorage.getItem(soundScopedKey(ROULETTE_SOUND_LOCAL_KEY));
+  const dd=localStorage.getItem(soundScopedKey(DOMINO_SOUND_LOCAL_KEY));
+  if(rr!==null)rouletteSoundLocalOverride=rr==='1';
+  if(dd!==null)dominoSoundLocalOverride=dd==='1';
+}
+function saveScopedSoundPreference(base,enabled){
+  localStorage.setItem(base,enabled?'1':'0');
+  localStorage.setItem(soundScopedKey(base),enabled?'1':'0');
+}
+let audioSessionArmed=false;
+function rouletteSoundPreferenceEnabled(){return rouletteSoundLocalOverride!==null?rouletteSoundLocalOverride:(me?.sound_enabled!==false);}
+function dominoSoundPreferenceEnabled(){return dominoSoundLocalOverride!==null?dominoSoundLocalOverride:(me?.sound_enabled!==false);}
+function soundPreferenceEnabled(){return rouletteSoundPreferenceEnabled();} // compatibilidad con el motor existente de la ruleta
+function rouletteSoundIsEnabled(){return audioSessionArmed&&rouletteSoundPreferenceEnabled();}
+function dominoSoundIsEnabled(){return audioSessionArmed&&dominoSoundPreferenceEnabled();}
+function soundIsEnabled(){return rouletteSoundIsEnabled();} // compatibilidad: la ruleta conserva las funciones existentes
+function audioDomainEnabled(domain='roulette'){return domain==='domino'?dominoSoundIsEnabled():rouletteSoundIsEnabled();}
+
+function enforceExclusiveAudio(domain,enabled){
+  if(!enabled)return;
+  if(domain==='roulette'){
+    dominoSoundLocalOverride=false;
+    saveScopedSoundPreference(DOMINO_SOUND_LOCAL_KEY,false);
+  }else if(domain==='domino'){
+    rouletteSoundLocalOverride=false;
+    saveScopedSoundPreference(ROULETTE_SOUND_LOCAL_KEY,false);
+    const sw=$('soundSwitch');if(sw)sw.checked=false;
+    stopRouletteAudio();
+  }
+}
+
+function setSoundSwitchUI(){
+  const sw=$('soundSwitch'),label=$('soundSwitchLabel');
+  const roulettePref=rouletteSoundPreferenceEnabled(),dominoPref=dominoSoundPreferenceEnabled();
+  const rouletteOn=audioSessionArmed&&roulettePref,dominoOn=audioSessionArmed&&dominoPref;
+  if(sw)sw.checked=roulettePref;
+  if(label)label.textContent=rouletteOn?'🔊 Sonido Ruleta':(roulettePref?'🔈 Toca para activar Ruleta':'🔇 Sonido Ruleta');
+  const rb=$('rouletteSoundBtn');
+  if(rb){
+    rb.textContent=rouletteOn?'🔊':(roulettePref?'🔈':'🔇');
+    rb.classList.toggle('on',rouletteOn);
+    rb.setAttribute('aria-pressed',roulettePref?'true':'false');
+    rb.setAttribute('aria-label',rouletteOn?'Apagar sonido de la ruleta':(roulettePref?'Activar audio de la ruleta':'Encender sonido de la ruleta'));
+    rb.title=rouletteOn?'Sonido de la ruleta: activado':(roulettePref?'Toca para activar el audio de la ruleta':'Sonido de la ruleta: apagado');
+  }
+  const db=$('dominoSoundBtn');
+  if(db){
+    db.textContent=dominoOn?'🔊':(dominoPref?'🔈':'🔇');
+    db.classList.toggle('on',dominoOn);
+    db.setAttribute('aria-pressed',dominoPref?'true':'false');
+    db.setAttribute('aria-label',dominoOn?'Apagar sonido de la mesa de dominó':(dominoPref?'Activar audio de la mesa de dominó':'Encender sonido de la mesa de dominó'));
+    db.title=dominoOn?'Sonido de Dominó: activado':(dominoPref?'Toca para activar el audio de Dominó':'Sonido de Dominó: apagado');
+  }
+}
 const transferQueue=[];const seenTransferNotifications=new Set();
 const betQueues={};
 const $=id=>document.getElementById(id);
 const money=v=>Number(v||0).toFixed(3);
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-function show(id){$(id).classList.add('active')}
-function hide(id){$(id).classList.remove('active')}
+const ROULETTE_PASSIVE_OVERLAYS=new Set([
+  'saveConfirm','winFlash','incomingTransferPanel','requestReceiptPanel'
+]);
+function rouletteMainViewIsVisible(){
+  if(document.hidden)return false;
+  if(document.body.classList.contains('domino-playing'))return false;
+  return ![...document.querySelectorAll('.overlay.active')]
+    .some(el=>!ROULETTE_PASSIVE_OVERLAYS.has(el.id));
+}
+function markRouletteViewAway(reason='otra sección'){
+  if(!currentRound||!me?.auto_repeat)return;
+  rouletteAwayRoundId=Number(currentRound.id);
+  rouletteAwayReason=reason;
+}
+function maybeCancelRouletteAwayBeforeRoundEnds(){
+  if(!rouletteAwayRoundId||!currentRound)return;
+  if(!rouletteMainViewIsVisible())return;
+  if(Number(currentRound.id)!==Number(rouletteAwayRoundId))return;
+  if(roundSecondsLeft()<=0)return;
+  rouletteAwayRoundId=null;
+  rouletteAwayReason='';
+}
+async function disableSavedRoulettePlaysAfterAway(){
+  if(rouletteDisableRepeatBusy)return;
+  rouletteDisableRepeatBusy=true;
+  try{
+    const {error}=await sb.rpc('rf_set_auto_repeat',{p_enabled:false});
+    if(error)throw error;
+    if(me){
+      me.auto_repeat=false;
+      me.saved_plays={};
+      me.saved_play_taps={};
+    }
+    if($('repeatSwitch'))$('repeatSwitch').checked=false;
+    rouletteAwayRoundId=null;
+    rouletteAwayReason='';
+  }catch(e){
+    console.warn('No se pudo desactivar Guardar jugadas al salir:',e);
+  }finally{
+    rouletteDisableRepeatBusy=false;
+  }
+}
+function show(id){
+  const el=$(id);
+  if(!el){console.error('No existe panel:',id);return}
+  if(!ROULETTE_PASSIVE_OVERLAYS.has(id))markRouletteViewAway(id);
+  el.classList.add('active');
+}
+function hide(id){
+  const el=$(id);
+  if(el)el.classList.remove('active');
+  setTimeout(()=>maybeCancelRouletteAwayBeforeRoundEnds(),0);
+}
 function msg(id,t){$(id).textContent=t||''}
 function errText(e){return e?.message||String(e||'Error')}
 function normalizeEmail(v){return String(v||'').trim().toLowerCase()}
@@ -316,15 +1413,6 @@ function buildNumbers(){
     b.className='num'+(n===0?' zero':'')+(bet?' selected':'');
     b.innerHTML=`${n}${bet?`<span class="tap-count">×${Number(bet.taps||1)}</span><span class="amt">${money(bet.amount)} FC</span>`:'<span class="tap-count">Tocar</span><span class="amt">&nbsp;</span>'}`;
     b.addEventListener('click',()=>queueBet(n));
-    if(bet){
-      const x=document.createElement('span');
-      x.className='cancel-num';
-      x.textContent='↩';
-      x.title='Cancelar toda la apuesta de este número y devolver las Flash Coin';
-      x.setAttribute('aria-label','Cancelar apuesta del número '+n);
-      x.addEventListener('click',e=>{e.stopPropagation();cancelNumber(n)});
-      b.appendChild(x);
-    }
     c.appendChild(b);
   }
   updateBetTotal();
@@ -475,9 +1563,64 @@ async function handleReturnFromAway(){
   if(!session)return;
   if(me){await trackPresence();await refreshEverything();}
 }
-document.addEventListener('visibilitychange',()=>{if(document.hidden)markAway();else handleReturnFromAway().catch(()=>{});});
-window.addEventListener('pagehide',markAway);
-window.addEventListener('pageshow',()=>{if(!document.hidden)handleReturnFromAway().catch(()=>{});});
+async function markDominoViewAway(){
+  if(!dominoCurrentTableId||dominoViewAway)return;
+  dominoViewAway=true;
+  try{
+    await sb.rpc('rf_domino_back_v11',{p_table_id:dominoCurrentTableId});
+  }catch(e){
+    console.warn('Dominó: no se pudo marcar ausencia temporal',e);
+  }
+}
+async function resumeDominoIfStillInHand(){
+  if(!dominoCurrentTableId||!dominoViewAway)return;
+  const tid=dominoCurrentTableId;
+  dominoViewAway=false;
+  try{
+    const {error}=await sb.rpc('rf_domino_resume_v11',{p_table_id:tid});
+    if(error)throw error;
+    dominoHeartbeatLast=0;
+    await dominoHeartbeat(true);
+    await loadDominoState(false);
+  }catch(e){
+    // Si la mano terminó mientras estaba fuera, el asiento ya fue liberado.
+    dominoStopPolling();
+    await dominoStopRealtime().catch(()=>{});
+    dominoCurrentTableId=null;
+    dominoResetTableEffects();
+    hide('dominoTablePanel');
+    hide('dominoMenuPanel');
+    hide('dominoExitConfirmPanel');
+    dominoReleaseLandscape();
+    await loadMe().catch(()=>{});
+    renderMe();
+  }
+}
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){
+    markAway();
+    markRouletteViewAway('app en segundo plano');
+    markDominoViewAway().catch(()=>{});
+  }else{
+    handleReturnFromAway()
+      .then(()=>resumeDominoIfStillInHand())
+      .then(()=>maybeCancelRouletteAwayBeforeRoundEnds())
+      .catch(()=>{});
+  }
+});
+window.addEventListener('pagehide',()=>{
+  markAway();
+  markRouletteViewAway('página fuera de vista');
+  markDominoViewAway().catch(()=>{});
+});
+window.addEventListener('pageshow',()=>{
+  if(!document.hidden){
+    handleReturnFromAway()
+      .then(()=>resumeDominoIfStillInHand())
+      .then(()=>maybeCancelRouletteAwayBeforeRoundEnds())
+      .catch(()=>{});
+  }
+});
 
 async function enterApp(){
   const {data:{session}}=await sb.auth.getSession();
@@ -487,8 +1630,19 @@ async function enterApp(){
   hide('emailConfirmPanel');
   const ensured=await sb.rpc('rf_ensure_my_profile');
   if(ensured.error){msg('authMsg','No se pudo cargar tu perfil: '+errText(ensured.error));return;}
+
+  // Primero mostramos la aplicación. La limpieza de Dominó es auxiliar y
+  // nunca debe poder dejar la pantalla negra si el RPC falla o todavía no existe.
   $('authView').classList.add('hidden');
   $('appView').classList.remove('hidden');
+
+  try{
+    const awayResult=await sb.rpc('rf_domino_mark_away_v184');
+    if(awayResult?.error)console.warn('Dominó mark-away:',awayResult.error);
+  }catch(e){
+    console.warn('Dominó mark-away omitido:',e);
+  }
+
   await refreshEverything();
   startPresence(session.user.id);
   startLoop();
@@ -514,7 +1668,8 @@ function renderMe(){
   $('balancePublicId').textContent=me.public_id;
   $('repeatSwitch').checked=!!me.auto_repeat;
   $('fixedStakeSwitch').checked=!!me.fixed_stake_enabled;
-  $('soundSwitch').checked=soundIsEnabled();
+  loadScopedSoundPreferences();
+  setSoundSwitchUI();
   $('flashSwitch').checked=me.flash_enabled!==false;
   if(me.fixed_stake_enabled&&Number(me.fixed_stake_amount)>0&&document.activeElement!==$('stakeInput'))$('stakeInput').value=money(Math.max(Number(me.fixed_stake_amount),Number(settings?.min_bet||0)));
   $('promoterBtn').classList.toggle('hidden',me.role!=='promoter');
@@ -610,84 +1765,63 @@ function showReceipt(title,r){
   show('receiptPanel');
 }
 
-// ===== HTML 1.0 · CORRECCIÓN DEL MOTOR DE SONIDO MULTINAVEGADOR =====
-// Safari/iPhone exige un gesto real del usuario. Por eso el motor de sonido de
-// cada sesión solo queda activo cuando el usuario toca explícitamente Sonido.
-// Después de ese toque, botones, ruleta, ganador y monedas reutilizan el mismo
-// AudioContext. La duración del sonido de la ruleta sigue el tiempo real definido
-// por el Administrador (3–20 s), incluido 15 s.
-let audioMasterGain=null,rouletteNoiseBuffer=null,rouletteTickBuffer=null;
+// ===== HTML 1.0.1 · MOTOR DE SONIDO MULTINAVEGADOR =====
+// Safari/iPhone exige que el audio se desbloquee desde un gesto real del usuario.
+// El primer toque prepara un único AudioContext, y a partir de ahí la ruleta,
+// ganador, monedas y botones reutilizan el mismo motor sin pedir permiso otra vez.
+let audioMasterGain=null,rouletteNoiseBuffer=null;
 const rouletteAudioNodes=[];
 
 function getAudioContext(){
-  if(audioCtx&&audioCtx.state!=='closed')return audioCtx;
-  audioCtx=null;audioMasterGain=null;
+  if(audioCtx)return audioCtx;
   const C=window.AudioContext||window.webkitAudioContext;
   if(!C)return null;
   try{audioCtx=new C({latencyHint:'interactive'});}catch{try{audioCtx=new C();}catch{return null}}
   try{
     audioMasterGain=audioCtx.createGain();
-    audioMasterGain.gain.value=.84;
+    audioMasterGain.gain.value=.82;
     audioMasterGain.connect(audioCtx.destination);
   }catch{audioMasterGain=null;}
   return audioCtx;
 }
 function audioOutput(){return audioMasterGain||audioCtx?.destination||null;}
 function webAudioRunning(){return !!audioCtx&&audioCtx.state==='running';}
-
-// Sonido corto que NO depende de soundIsEnabled(): se usa solamente en el mismo
-// gesto físico con el que el usuario enciende Sonido, para confirmar que Safari
-// realmente recibió el gesto y abrió el motor.
-function playAudioActivationConfirmDirect(ctx){
-  try{
-    const dest=audioOutput(),t=ctx.currentTime+.008;
-    const o=ctx.createOscillator(),o2=ctx.createOscillator(),g=ctx.createGain();
-    o.type='sine';o2.type='triangle';
-    o.frequency.setValueAtTime(660,t);o.frequency.exponentialRampToValueAtTime(900,t+.075);
-    o2.frequency.setValueAtTime(990,t+.035);o2.frequency.exponentialRampToValueAtTime(1320,t+.120);
-    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.055,t+.008);g.gain.exponentialRampToValueAtTime(.0001,t+.150);
-    o.connect(g);o2.connect(g);if(dest)g.connect(dest);
-    o.start(t);o2.start(t+.035);o.stop(t+.155);o2.stop(t+.165);
-  }catch{}
-}
-function activateAudioSessionFromGesture(){
+function resumeAudioOnGesture(){
+  if(!audioSessionArmed)return false;
   const ctx=getAudioContext();if(!ctx)return false;
-  audioSessionActivated=true;
-  try{
-    const r=ctx.resume();
-    if(r&&typeof r.catch==='function')r.catch(()=>{});
-  }catch{}
-  // Pulso real y audible en el MISMO toque del usuario.
-  playAudioActivationConfirmDirect(ctx);
+  try{if(ctx.state==='suspended')ctx.resume().catch(()=>{});}catch{}
   return true;
 }
-function primeAudioFromGesture(force=false){
-  if(force){return activateAudioSessionFromGesture();}
-  if(!audioSessionActivated||!soundPreferenceEnabled())return false;
+function armAudioFromGesture(playConfirmation=false){
   const ctx=getAudioContext();if(!ctx)return false;
+  audioSessionArmed=true;
   try{if(ctx.state!=='running')ctx.resume().catch(()=>{});}catch{}
-  // Pulso inaudible para recuperar Safari si volvió de segundo plano.
+  // Se crea y se agenda DENTRO del gesto físico. Safari/iPhone reconoce así el motor.
   try{
-    const o=ctx.createOscillator(),g=ctx.createGain(),dest=audioOutput();
-    g.gain.value=.000001;o.frequency.value=30;
-    o.connect(g);if(dest)g.connect(dest);o.start();o.stop(ctx.currentTime+.012);
+    const t=ctx.currentTime+.005,o=ctx.createOscillator(),g=ctx.createGain(),dest=audioOutput();
+    o.type='triangle';o.frequency.setValueAtTime(playConfirmation?760:40,t);
+    if(playConfirmation)o.frequency.exponentialRampToValueAtTime(1120,t+.075);
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.linearRampToValueAtTime(playConfirmation?.050:.000001,t+.006);
+    g.gain.exponentialRampToValueAtTime(.0001,t+(playConfirmation?.105:.018));
+    o.connect(g);if(dest)g.connect(dest);o.start(t);o.stop(t+(playConfirmation?.12:.025));
   }catch{}
   return true;
 }
 async function unlockAudio(){
-  if(!audioSessionActivated)return false;
+  if(!audioSessionArmed)return false;
   const ctx=getAudioContext();if(!ctx)return false;
   if(ctx.state==='running')return true;
   if(audioUnlockPromise)return audioUnlockPromise;
   audioUnlockPromise=Promise.resolve(ctx.resume()).then(()=>ctx.state==='running').catch(()=>false).finally(()=>{audioUnlockPromise=null;});
   return audioUnlockPromise;
 }
-function ensureAudio(){primeAudioFromGesture();return audioCtx;}
+function ensureAudio(){resumeAudioOnGesture();return audioCtx;}
 
-function playOscTone(freq=620,duration=.055,volume=.045,type='sine',endFreq=null,delay=0){
-  if(!soundIsEnabled())return false;
+function playOscTone(freq=620,duration=.055,volume=.045,type='sine',endFreq=null,delay=0,domain='roulette'){
+  if(!audioDomainEnabled(domain))return false;
   const ctx=getAudioContext();if(!ctx)return false;
-  if(ctx.state!=='running')primeAudioFromGesture();
+  if(ctx.state!=='running')resumeAudioOnGesture();
   try{
     const t=ctx.currentTime+Math.max(0,delay),o=ctx.createOscillator(),g=ctx.createGain(),dest=audioOutput();
     o.type=type;
@@ -701,43 +1835,49 @@ function playOscTone(freq=620,duration=.055,volume=.045,type='sine',endFreq=null
     return true;
   }catch{return false;}
 }
-function playUIButtonSound(kind='normal'){
-  if(!soundIsEnabled())return;
-  primeAudioFromGesture();
+function playUIButtonSound(kind='normal',domain='roulette'){
+  if(!audioDomainEnabled(domain))return;
+  resumeAudioOnGesture();
+  const tone=(freq,duration,volume,type='sine',endFreq=null,delay=0)=>playOscTone(freq,duration,volume,type,endFreq,delay,domain);
   switch(kind){
     case 'number':
-      playOscTone(1080,.043,.050,'triangle',510,0);
-      playOscTone(1540,.030,.018,'sine',920,.002);
+      tone(1080,.043,.050,'triangle',510,0);
+      tone(1540,.030,.018,'sine',920,.002);
       break;
     case 'confirm':
-      playOscTone(560,.075,.044,'sine',720,0);
-      playOscTone(880,.090,.032,'triangle',1120,.045);
+      tone(560,.075,.044,'sine',720,0);
+      tone(880,.090,.032,'triangle',1120,.045);
       break;
     case 'danger':
-      playOscTone(300,.085,.047,'triangle',175,0);
-      playOscTone(760,.045,.018,'sine',430,.010);
+      tone(300,.085,.047,'triangle',175,0);
+      tone(760,.045,.018,'sine',430,.010);
       break;
     case 'close':
-      playOscTone(520,.060,.038,'triangle',310,0);
+      tone(520,.060,.038,'triangle',310,0);
       break;
     case 'adjust':
-      playOscTone(1280,.040,.040,'triangle',720,0);
+      tone(1280,.040,.040,'triangle',720,0);
       break;
     case 'toggle':
-      playOscTone(720,.052,.038,'sine',940,0);
+      tone(720,.052,.038,'sine',940,0);
       break;
     case 'nav':
-      playOscTone(650,.055,.036,'triangle',790,0);
-      playOscTone(980,.045,.018,'sine',1120,.035);
+      tone(650,.055,.036,'triangle',790,0);
+      tone(980,.045,.018,'sine',1120,.035);
+      break;
+    case 'domino':
+      tone(430,.046,.040,'triangle',260,0);
+      tone(980,.024,.018,'sine',620,.008);
       break;
     default:
-      playOscTone(760,.052,.038,'triangle',500,0);
+      tone(760,.052,.038,'triangle',500,0);
   }
 }
 function uiSoundKind(el){
   const node=el?.closest?.('.cancel-num,button,[role="button"],input.switch');
   if(!node)return null;
   if(node.disabled)return null;
+  if(node.classList?.contains('domino-piece'))return null;
   if(node.classList?.contains('cancel-num'))return 'danger';
   if(node.classList?.contains('num'))return 'number';
   if(node.matches?.('input.switch'))return 'toggle';
@@ -748,21 +1888,28 @@ function uiSoundKind(el){
   const label=String(node.textContent||'').trim();
   if(node.id==='stakeUp'||node.id==='stakeDown'||label==='+'||label==='−'||label==='-')return 'adjust';
   if(/perfil|saldo|ajustes|config|historial|promotor|admin|info|invitar|grupo|buscar|panel/.test(s))return 'nav';
+  if(node.closest?.('#dominoTablePanel,#dominoMenuPanel,#dominoExitConfirmPanel,#dominoBuyinPanel,#dominoLobbyPanel'))return 'domino';
   return 'normal';
 }
+function uiSoundDomain(el){
+  const node=el?.closest?.('button,[role="button"],input.switch');
+  if(!node)return 'roulette';
+  if(node.closest?.('#dominoTablePanel,#dominoMenuPanel,#dominoExitConfirmPanel,#dominoBuyinPanel,#dominoLobbyPanel'))return 'domino';
+  return 'roulette';
+}
 function onImmediateControlPress(e){
-  // La primera activación NO se hace con cualquier botón: el usuario debe tocar
-  // explícitamente Sonido. Una vez activado, cualquier toque real también sirve
-  // para reanudar Safari si iOS suspendió el AudioContext.
-  if(!soundIsEnabled())return;
-  primeAudioFromGesture();
-  const kind=uiSoundKind(e.target);if(kind)playUIButtonSound(kind);
+  const domain=uiSoundDomain(e.target);
+  if(!audioDomainEnabled(domain))return;
+  // Se ejecuta en pointerdown/touchstart: no espera click, red ni Supabase.
+  resumeAudioOnGesture();
+  const kind=uiSoundKind(e.target);if(kind)playUIButtonSound(kind,domain);
 }
 const immediatePressEvent=('PointerEvent' in window)?'pointerdown':'touchstart';
 document.addEventListener(immediatePressEvent,onImmediateControlPress,{passive:true,capture:true});
 document.addEventListener('keydown',e=>{
-  if(!soundIsEnabled()||!['Enter',' '].includes(e.key))return;
-  const kind=uiSoundKind(e.target);if(kind){primeAudioFromGesture();playUIButtonSound(kind);}
+  if(!['Enter',' '].includes(e.key))return;
+  const domain=uiSoundDomain(e.target);if(!audioDomainEnabled(domain))return;
+  const kind=uiSoundKind(e.target);if(kind){resumeAudioOnGesture();playUIButtonSound(kind,domain);}
 },{capture:true});
 
 function trackRouletteNode(n){if(n)rouletteAudioNodes.push(n);return n;}
@@ -785,66 +1932,72 @@ function getRouletteNoiseBuffer(){
   }
   rouletteNoiseBuffer=b;return b;
 }
-function getRouletteTickBuffer(){
-  const ctx=getAudioContext();if(!ctx)return null;
-  if(rouletteTickBuffer&&rouletteTickBuffer.sampleRate===ctx.sampleRate)return rouletteTickBuffer;
-  const duration=.070,length=Math.max(1,Math.floor(ctx.sampleRate*duration));
-  const b=ctx.createBuffer(1,length,ctx.sampleRate),a=b.getChannelData(0);
-  for(let i=0;i<length;i++){
-    const t=i/ctx.sampleRate;
-    const env=Math.exp(-t*54);
-    const metallic=(Math.sin(2*Math.PI*1120*t)*.68)+(Math.sin(2*Math.PI*610*t)*.32);
-    a[i]=metallic*env*.72;
-  }
-  rouletteTickBuffer=b;return b;
-}
 function scheduleRouletteTickAt(when,level=.060){
   if(!webAudioRunning()||!soundIsEnabled())return;
   try{
     const ctx=audioCtx,t=Math.max(ctx.currentTime+.001,when),dest=audioOutput();
-    const src=trackRouletteNode(ctx.createBufferSource()),g=ctx.createGain();
-    src.buffer=getRouletteTickBuffer();
-    g.gain.setValueAtTime(Math.max(.012,level),t);
-    g.gain.exponentialRampToValueAtTime(.0001,t+.068);
-    src.connect(g);if(dest)g.connect(dest);
-    src.onended=()=>untrackRouletteNode(src);
-    src.start(t);src.stop(t+.070);
+    const o=trackRouletteNode(ctx.createOscillator()),o2=trackRouletteNode(ctx.createOscillator()),g=ctx.createGain();
+    o.type='triangle';o2.type='sine';
+    o.frequency.setValueAtTime(980,t);o.frequency.exponentialRampToValueAtTime(390,t+.045);
+    o2.frequency.setValueAtTime(1650,t);o2.frequency.exponentialRampToValueAtTime(820,t+.030);
+    g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(level,t+.002);g.gain.exponentialRampToValueAtTime(.0001,t+.052);
+    o.connect(g);o2.connect(g);if(dest)g.connect(dest);
+    o.onended=()=>untrackRouletteNode(o);o2.onended=()=>untrackRouletteNode(o2);
+    o.start(t);o2.start(t);o.stop(t+.058);o2.stop(t+.058);
   }catch{}
 }
 function startRouletteAudio(totalMs){
   if(!webAudioRunning()||!soundIsEnabled())return false;
   stopRouletteAudio();
-  const ctx=audioCtx;
-  const total=Math.max(2500,Math.min(20000,Number(totalMs)||8000));
-  const base=ctx.currentTime+.004;
+  const ctx=audioCtx,dest=audioOutput(),total=Math.max(2500,Number(totalMs)||getSpinDurationSeconds()*1000),sec=total/1000,base=ctx.currentTime+.015;
+  try{
+    // Un solo rrrrr continuo durante TODO el giro: estable para Safari/iPhone.
+    const noise=trackRouletteNode(ctx.createBufferSource()),filter=ctx.createBiquadFilter(),rattleGain=ctx.createGain();
+    const lfo=trackRouletteNode(ctx.createOscillator()),lfoDepth=ctx.createGain();
+    noise.buffer=getRouletteNoiseBuffer();noise.loop=true;
+    filter.type='bandpass';filter.Q.value=1.30;
+    filter.frequency.setValueAtTime(1320,base);
+    filter.frequency.exponentialRampToValueAtTime(500,base+Math.max(.8,sec*.94));
+    rattleGain.gain.setValueAtTime(.0001,base);
+    rattleGain.gain.linearRampToValueAtTime(.052,base+.055);
+    rattleGain.gain.setValueAtTime(.044,base+Math.min(.9,sec*.18));
+    rattleGain.gain.exponentialRampToValueAtTime(.027,base+Math.max(.9,sec*.62));
+    rattleGain.gain.exponentialRampToValueAtTime(.012,base+Math.max(1.1,sec*.94));
+    rattleGain.gain.exponentialRampToValueAtTime(.0001,base+Math.max(1.2,sec-.035));
+    lfo.type='sine';lfo.frequency.setValueAtTime(31,base);
+    lfo.frequency.exponentialRampToValueAtTime(7.2,base+Math.max(.9,sec*.95));
+    lfoDepth.gain.setValueAtTime(.018,base);
+    lfoDepth.gain.exponentialRampToValueAtTime(.0035,base+Math.max(.9,sec*.95));
+    noise.connect(filter);filter.connect(rattleGain);if(dest)rattleGain.connect(dest);
+    lfo.connect(lfoDepth);lfoDepth.connect(rattleGain.gain);
+    noise.onended=()=>untrackRouletteNode(noise);lfo.onended=()=>untrackRouletteNode(lfo);
+    noise.start(base);noise.stop(base+sec-.02);lfo.start(base);lfo.stop(base+sec-.02);
+  }catch{}
 
-  // ÚNICO sonido durante el giro: “ti-ti-ti”.
-  // No hay rrrrrr, ruido continuo ni cama de fondo. Los ti-ti-ti empiezan
-  // junto con la ruleta y se separan progresivamente conforme desacelera.
-  let elapsed=0,guard=0;
-  while(elapsed<total-70&&guard<180){
+  // Ta-ta-ta: se crea solo el siguiente golpe. No existe límite fijo de 48 golpes,
+  // por eso se adapta automáticamente a 3, 6, 10, 12, 15 o 20 segundos.
+  const startedAt=performance.now();
+  const tickStep=()=>{
+    if(!webAudioRunning()||!soundIsEnabled())return;
+    const elapsed=performance.now()-startedAt;
+    if(elapsed>=total-100)return;
     const p=Math.max(0,Math.min(1,elapsed/total));
-    const level=.074-(p*.018);
-    scheduleRouletteTickAt(base+elapsed/1000,level);
-    const delay=62+Math.pow(p,2.40)*390;
-    elapsed+=delay;
-    guard++;
-  }
-  audioTickTimer=setTimeout(()=>{audioTickTimer=null;},total+220);
+    scheduleRouletteTickAt(ctx.currentTime+.008,.068-p*.020);
+    const delay=Math.max(58,58+Math.pow(p,2.25)*355);
+    audioTickTimer=setTimeout(tickStep,delay);
+  };
+  audioTickTimer=setTimeout(tickStep,Math.max(330,total*.12));
   return true;
 }
-
 function getSpinDurationSeconds(){
   const raw=Number(settings?.spin_duration_seconds||8);
   return Math.max(3,Math.min(20,Number.isFinite(raw)?raw:8));
 }
 function playRouletteSound(durationMs=getSpinDurationSeconds()*1000){
   if(!soundIsEnabled())return;
-  const total=Math.max(2500,Number(durationMs)||8000);
+  const total=Math.max(2500,Number(durationMs)||getSpinDurationSeconds()*1000);
   if(webAudioRunning()){startRouletteAudio(total);return;}
-  // Normalmente ya está desbloqueado por el toque de apuesta. Si Safari lo
-  // suspendió, intentamos recuperarlo sin alterar la lógica de la ruleta.
-  unlockAudio().then(ok=>{if(ok&&soundIsEnabled())startRouletteAudio(total);}).catch(()=>{});
+  if(audioSessionArmed)unlockAudio().then(ok=>{if(ok&&soundIsEnabled())startRouletteAudio(total);}).catch(()=>{});
 }
 function playRouletteLandingSound(){
   if(!soundIsEnabled())return;
@@ -932,22 +2085,16 @@ function showWinnerCelebration(winner,prize){
   setTimeout(()=>layer.classList.remove('show'),3000);
 }
 
-// ACTIVACIÓN OBLIGATORIA DE SONIDO POR SESIÓN.
-// Se escucha el control completo (checkbox + texto), porque muchos usuarios de
-// iPhone tocan la palabra "Sonido" y no exactamente el interruptor.
-const soundControl=$('soundSwitch')?.closest?.('.sound-box')||$('soundSwitch');
-if(soundControl)soundControl.addEventListener(immediatePressEvent,()=>{
-  // Si está apagado, este toque es el que lo va a encender y desbloquea Safari.
-  if(!$('soundSwitch').checked)activateAudioSessionFromGesture();
-  // Si ya estaba encendido pero iOS suspendió el contexto, el mismo toque lo recupera.
-  else if(audioSessionActivated)primeAudioFromGesture();
+// El sonido NO se considera activo hasta un toque físico real en este interruptor.
+$('soundSwitch').addEventListener(immediatePressEvent,()=>{
+  const sw=$('soundSwitch');
+  if(sw.checked)return; // este toque lo va a apagar; no rearmar.
+  rouletteSoundLocalOverride=true;
+  saveScopedSoundPreference(ROULETTE_SOUND_LOCAL_KEY,true);
+  if(me)me.sound_enabled=true;
+  armAudioFromGesture(true);
 },{passive:true,capture:true});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopRouletteAudio();});
-window.addEventListener('pageshow',()=>{
-  // No intentamos forzar autoplay al volver: Safari lo puede bloquear. Si quedó
-  // suspendido, el siguiente toque real (o el control Sonido) lo reanuda.
-  if(audioCtx?.state==='closed'){audioCtx=null;audioMasterGain=null;audioSessionActivated=false;}
-});
 
 async function copyText(text,label='Copiado'){
   const value=String(text||'');
@@ -1016,12 +2163,28 @@ async function tickRoulette(){
     }
 
     if(changed){
-      const auto=await sb.rpc('rf_apply_saved_plays',{p_round_id:currentRound.id});
+      let auto={data:false,error:null};
+      const stayedAwayThroughRoundEnd=
+        rouletteAwayRoundId!==null &&
+        Number(rouletteAwayRoundId)!==Number(currentRound.id);
+
+      if(stayedAwayThroughRoundEnd){
+        await disableSavedRoulettePlaysAfterAway();
+        myBets={};
+        buildNumbers();
+        $('resultText').textContent='Nueva ronda · Guardar jugadas se desactivó al salir de la ruleta.';
+      }else{
+        auto=await sb.rpc('rf_apply_saved_plays',{p_round_id:currentRound.id});
+      }
+
       await Promise.all([loadMe(),loadBets()]);
       renderMe();
-      if(auto.error)console.warn(auto.error);
-      if(auto.data===false&&me.auto_repeat)$('resultText').textContent='Nueva ronda · jugadas guardadas no aplicadas (revisa saldo o mínimo).';
-      else $('resultText').textContent='Nueva ronda · toca cada número las veces que quieras apostar.';
+
+      if(!stayedAwayThroughRoundEnd){
+        if(auto.error)console.warn(auto.error);
+        if(auto.data===false&&me.auto_repeat)$('resultText').textContent='Nueva ronda · jugadas guardadas no aplicadas (revisa saldo o mínimo).';
+        else $('resultText').textContent='Nueva ronda · toca cada número las veces que quieras apostar.';
+      }
     }
     await showLatestResult();
   }catch(e){
@@ -1151,15 +2314,8 @@ async function placeBetOnce(n){
   renderMe();
 }
 
-async function cancelNumber(n){
-  if(roundSecondsLeft()<=0)return alert('La ronda está cerrando.');
-  const {data,error}=await sb.rpc('rf_cancel_bet_number',{p_number:n});
-  if(error)return alert(errText(error));
-  if(Number(data)>0){
-    await Promise.all([loadMe(),loadBets()]);
-    renderMe();
-    $('resultText').textContent=`Apuesta del ${n} cancelada · ${money(data)} FC devueltos al saldo.`;
-  }
+async function cancelNumber(){
+  alert('Las apuestas confirmadas no se cancelan ni se reembolsan. Si el número no gana, ese monto no vuelve al saldo.');
 }
 
 async function saveStakePreference(enabled){
@@ -1192,35 +2348,75 @@ $('fixedStakeSwitch').addEventListener('change',async()=>{
 });
 $('soundSwitch').addEventListener('change',async()=>{
   const enabled=$('soundSwitch').checked;
-  soundLocalOverride=enabled;
-  localStorage.setItem(SOUND_LOCAL_KEY,enabled?'1':'0');
+  rouletteSoundLocalOverride=enabled;
+  if(enabled)enforceExclusiveAudio('roulette',true);
+  saveScopedSoundPreference(ROULETTE_SOUND_LOCAL_KEY,enabled);
   if(me)me.sound_enabled=enabled;
   if(!enabled){
-    stopRouletteAudio();
-    audioSessionActivated=false;
-    return void sb.rpc('rf_set_sound_enabled',{p_enabled:false}).catch(()=>{});
-  }
-
-  // El pointerdown/touchstart del propio control ya intentó abrir el motor dentro
-  // del gesto físico. Aquí solo verificamos que realmente quedó funcionando.
-  if(!audioSessionActivated)activateAudioSessionFromGesture();
-  const ok=await unlockAudio();
-  if(ok){
-    // Confirmación breve adicional una sola vez al terminar de activar.
-    playUIButtonSound('confirm');
-  }else{
-    audioSessionActivated=false;
-    $('soundSwitch').checked=false;
-    soundLocalOverride=false;
-    localStorage.setItem(SOUND_LOCAL_KEY,'0');
-    if(me)me.sound_enabled=false;
-    alert('Safari no pudo activar el motor de sonido. Toca nuevamente Sonido para encenderlo.');
+    stopRouletteAudio();setSoundSwitchUI();
+    try{await sb.rpc('rf_set_sound_enabled',{p_enabled:false});}catch(e){}
     return;
   }
+
+  // Si llegó por teclado/accesibilidad, se intenta armar aquí; con toque físico ya quedó armado en pointerdown/touchstart.
+  if(!audioSessionArmed)armAudioFromGesture(true);
+  setSoundSwitchUI();
+  const ok=await unlockAudio();
+  if(!ok)alert('Toca nuevamente “Activar sonido”. Safari/iPhone necesita un toque físico para iniciar el audio.');
 
   const {error}=await sb.rpc('rf_set_sound_enabled',{p_enabled:true});
   if(error)console.warn('No se pudo guardar la preferencia de sonido:',error);
 });
+
+if($('rouletteSoundBtn'))$('rouletteSoundBtn').addEventListener('click',async()=>{
+  const pref=rouletteSoundPreferenceEnabled();
+  if(pref&&!audioSessionArmed){
+    armAudioFromGesture(true);
+    await unlockAudio().catch(()=>false);
+    setSoundSwitchUI();
+    if(rouletteSoundIsEnabled())playOscTone(720,.055,.036,'triangle',980,0,'roulette');
+    return;
+  }
+  const enabled=!pref;
+  if(enabled&&!audioSessionArmed)armAudioFromGesture(true);
+  const sw=$('soundSwitch');
+  if(sw){
+    sw.checked=enabled;
+    sw.dispatchEvent(new Event('change',{bubbles:true}));
+  }else{
+    rouletteSoundLocalOverride=enabled;
+    if(enabled)enforceExclusiveAudio('roulette',true);
+    saveScopedSoundPreference(ROULETTE_SOUND_LOCAL_KEY,enabled);
+    setSoundSwitchUI();
+  }
+});
+if($('dominoSoundBtn'))$('dominoSoundBtn').addEventListener('click',async()=>{
+  const pref=dominoSoundPreferenceEnabled();
+  if(pref&&!audioSessionArmed){
+    armAudioFromGesture(true);
+    await unlockAudio().catch(()=>false);
+    setSoundSwitchUI();
+    if(dominoSoundIsEnabled()){
+      playOscTone(610,.055,.035,'triangle',860,0,'domino');
+      playOscTone(970,.045,.018,'sine',1180,.035,'domino');
+    }
+    return;
+  }
+  const enabled=!pref;
+  dominoSoundLocalOverride=enabled;
+  if(enabled)enforceExclusiveAudio('domino',true);
+  saveScopedSoundPreference(DOMINO_SOUND_LOCAL_KEY,enabled);
+  if(enabled){
+    if(!audioSessionArmed)armAudioFromGesture(true);
+    await unlockAudio().catch(()=>false);
+  }
+  setSoundSwitchUI();
+  if(enabled&&dominoSoundIsEnabled()){
+    playOscTone(610,.055,.035,'triangle',860,0,'domino');
+    playOscTone(970,.045,.018,'sine',1180,.035,'domino');
+  }
+});
+
 $('flashSwitch').addEventListener('change',async()=>{
   const enabled=$('flashSwitch').checked;
   const {error}=await sb.rpc('rf_set_flash_enabled',{p_enabled:enabled});
@@ -1244,7 +2440,9 @@ $('promoterBtn').onclick=async()=>{
   await loadStats();show('promoterPanel');
 };
 $('groupBtn').onclick=()=>{if(settings?.whatsapp_group_url)window.open(settings.whatsapp_group_url,'_blank')};
-document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>hide(b.dataset.close));
+document.querySelectorAll('[data-close]').forEach(b=>{
+  b.addEventListener('click',()=>hide(b.dataset.close));
+});
 
 $('saveProfileBtn').onclick=async()=>{
   const {error}=await sb.rpc('rf_update_my_name',{p_first_name:$('editFirst').value.trim(),p_last_name:$('editLast').value.trim()});
@@ -1295,6 +2493,7 @@ async function startPresence(uid){
     onlineUsers=[...byId.values()];
     onlineCount=onlineUsers.length;
     renderOnline();
+    refreshPublicActivityCounts().catch(()=>{});
     if($('onlineUsersPanel').classList.contains('active'))loadOnlinePanel().catch(()=>{});
   });
   presenceChannel.subscribe(status=>{
@@ -1307,6 +2506,28 @@ async function trackPresence(){
   try{await presenceChannel.track({user_id:me.id,public_id:me.public_id,name:fullName,playing:true,at:new Date().toISOString()});}catch{}
 }
 function renderOnline(){[$('onlinePublic'),$('promOnline'),$('adminOnline')].forEach(el=>{if(el)el.textContent=onlineCount})}
+
+let mfActivityTimer=null;
+async function refreshPublicActivityCounts(){
+  const dominoEl=$('dominoPlayingPublic'),rouletteEl=$('roulettePlayingPublic');
+  if(!dominoEl||!rouletteEl)return;
+  const ids=[...new Set((onlineUsers||[]).map(x=>x.user_id).filter(Boolean))];
+  if(!ids.length){
+    dominoEl.textContent='0';rouletteEl.textContent='0';return;
+  }
+  try{
+    const {data,error}=await sb.rpc('rf_online_activity_v180',{p_online_ids:ids});
+    if(error)return;
+    dominoEl.textContent=Number(data?.domino||0);
+    rouletteEl.textContent=Number(data?.roulette||0);
+  }catch(e){}
+}
+function startPublicActivityCounter(){
+  clearInterval(mfActivityTimer);
+  refreshPublicActivityCounts().catch(()=>{});
+  mfActivityTimer=setInterval(()=>refreshPublicActivityCounts().catch(()=>{}),4000);
+}
+
 
 async function loadOnlinePanel(){
   const ids=[...new Set(onlineUsers.map(x=>x.user_id).filter(Boolean))];
@@ -1377,7 +2598,7 @@ async function processTransferQueue(){
       playBalanceCreditSound(700);animateCoinsToBalance();
       await animateBalanceIncrease(startBalance,targetBalance,1350);
       await loadMe().catch(()=>{});renderMe();
-      await sb.rpc('rf_mark_promoter_transfer_read',{p_notification_id:Number(n.notification_id)}).catch(()=>{});
+      try{await sb.rpc('rf_mark_promoter_transfer_read',{p_notification_id:Number(n.notification_id)});}catch(e){}
       await new Promise(resolve=>setTimeout(resolve,1650));
     }
   }finally{transferQueueBusy=false;}
@@ -1456,7 +2677,7 @@ $('leaderUnlockBtn').onclick=async()=>{
   if(!data)return msg('leaderGateMsg','Contraseña incorrecta.');
   hide('leaderGatePanel');await openLeaderPanel();
 };
-async function openLeaderPanel(){await Promise.all([loadSettings(),loadStats(),loadLeaderWallets()]);renderSettings();show('leaderPanel')}
+async function openLeaderPanel(){await Promise.all([loadSettings(),loadStats(),loadLeaderWallets(),loadDominoAdminConfigs()]);renderSettings();show('leaderPanel')}
 $('leaderTransferId').addEventListener('input',()=>{selectedLeaderTransferUser=null;$('leaderTransferUserResult').innerHTML='';msg('leaderTransferMsg','');});
 $('leaderFindTransferBtn').onclick=async()=>{
   if(me?.role!=='leader')return msg('leaderTransferMsg','Solo el Administrador Líder puede usar esta función.');
@@ -1722,7 +2943,7 @@ async function pollTransferRequestEvents(){
 }
 async function markRequestEventRead(id){
   if(!id)return;
-  await sb.rpc('rf_mark_transfer_request_event_read_v08',{p_notification_id:Number(id)}).catch(()=>{});
+  try{await sb.rpc('rf_mark_transfer_request_event_read_v08',{p_notification_id:Number(id)});}catch(e){}
 }
 async function processTransferRequestEventQueue(){
   if(requestEventQueueBusy||!requestEventQueue.length)return;
@@ -1734,6 +2955,12 @@ async function processTransferRequestEventQueue(){
         if($('incomingRequestPanel').classList.contains('active'))break;
         requestEventQueue.shift();
         currentIncomingRequestEvent=row;
+
+        // 1.4.3: el aviso automático se muestra una sola vez.
+        // Se marca como leído ANTES de mostrarlo. La solicitud sigue pendiente
+        // en el panel de saldo hasta que el usuario la acepte o rechace.
+        await markRequestEventRead(row.notification_id);
+
         $('incomingRequestContent').innerHTML=requestReceiptHTML(row,true);
         $('incomingRequestActions').classList.toggle('hidden',String(row.status)!=='pending');
         msg('incomingRequestMsg','');
@@ -2142,6 +3369,1005 @@ $('rouletteRequestBtn').onclick=async()=>{
   }
 };
 
+// ===== HTML 1.0.2: PANEL DE JUEGOS =====
+const gamesButton=$('gamesBtn');
+if(gamesButton){
+  gamesButton.addEventListener('click',(ev)=>{
+    ev.preventDefault();
+    openDominoLobby();
+  });
+}
+document.querySelectorAll('.game-poster-hotspot').forEach(card=>card.addEventListener('click',()=>{
+  $('gameDevelopmentIcon').textContent=card.dataset.gameIcon||'🎮';
+  $('gameDevelopmentTitle').textContent=(card.dataset.gameName||'Juego')+' · En desarrollo';
+  show('gameDevelopmentPanel');
+}));
+
+// ===== HTML 1.0.2: TODOS LOS USUARIOS · SOLO ADMINISTRADOR LÍDER =====
+function leaderRoleLabel(role){return role==='leader'?'Administrador Líder':(role==='promoter'?'Promotor':'Usuario')}
+function leaderUserCardHTML(u){
+  if(!u)return '';
+  return `<div class="card"><strong>${esc(u.full_name||u.public_id)}</strong><span class="tiny">ID ${esc(u.public_id)} · ${esc(leaderRoleLabel(u.role))}</span><div class="wallet-pair-label" style="margin-top:7px"><span class="fc-coin sm"></span><b class="wallet-positive">${money(u.balance)} FC</b></div></div>`;
+}
+function renderLeaderUsers(rows){
+  const list=$('leaderUsersList'),items=Array.isArray(rows)?rows:[];
+  $('leaderUsersCount').textContent=`${items.length} usuario${items.length===1?'':'s'} mostrado${items.length===1?'':'s'}`;
+  if(!items.length){list.innerHTML='<div class="card">No se encontraron usuarios.</div>';return;}
+  list.innerHTML=items.map(u=>`<button type="button" class="admin-user-row${selectedLeaderListUser?.public_id===u.public_id?' selected':''}" data-leader-user-id="${esc(u.public_id)}"><span class="admin-user-main"><strong>${esc(u.full_name||u.public_id)}</strong><small>ID ${esc(u.public_id)} · ${esc(leaderRoleLabel(u.role))}</small></span><span class="admin-user-balance">${money(u.balance)} FC</span></button>`).join('');
+  list.querySelectorAll('[data-leader-user-id]').forEach(btn=>btn.addEventListener('click',()=>{
+    const u=items.find(x=>String(x.public_id)===String(btn.dataset.leaderUserId));
+    if(!u)return;selectedLeaderListUser=u;
+    $('leaderSelectedUserCard').innerHTML=leaderUserCardHTML(u);
+    $('leaderSelectedUserActions').classList.remove('hidden');
+    msg('leaderUsersMsg','');renderLeaderUsers(items);
+    $('leaderSelectedUserActions').scrollIntoView({behavior:'smooth',block:'nearest'});
+  }));
+}
+async function loadLeaderUsers(search=''){
+  if(me?.role!=='leader')return;
+  const q=String(search||'').replace(/\D/g,'').slice(0,6);
+  const {data,error}=await sb.rpc('rf_admin_list_users_v101',{p_search:q||null});
+  if(error){$('leaderUsersList').innerHTML=`<div class="card danger">${esc(errText(error))}</div>`;return;}
+  const rows=Array.isArray(data)?data:[];
+  if(q.length===6&&rows.length===1){
+    selectedLeaderListUser=rows[0];
+    $('leaderSelectedUserCard').innerHTML=leaderUserCardHTML(rows[0]);
+    $('leaderSelectedUserActions').classList.remove('hidden');
+    msg('leaderUsersMsg','');
+  }
+  renderLeaderUsers(rows);
+}
+$('allUsersBtn').onclick=async()=>{
+  if(me?.role!=='leader')return alert('Solo el Administrador Líder puede ver todos los usuarios.');
+  selectedLeaderListUser=null;$('leaderSelectedUserActions').classList.add('hidden');$('leaderUsersSearch').value='';
+  show('allUsersPanel');await loadLeaderUsers('');
+};
+$('leaderUsersSearch').addEventListener('input',()=>{
+  const input=$('leaderUsersSearch');input.value=input.value.replace(/\D/g,'').slice(0,6);
+  clearTimeout(leaderUsersTimer);leaderUsersTimer=setTimeout(()=>loadLeaderUsers(input.value),180);
+});
+$('leaderUsersSearchBtn').onclick=()=>loadLeaderUsers($('leaderUsersSearch').value);
+async function leaderUsersOperation(kind){
+  if(leaderUsersBusy)return;
+  if(me?.role!=='leader')return msg('leaderUsersMsg','Solo el Administrador Líder puede usar esta función.');
+  if(!selectedLeaderListUser)return msg('leaderUsersMsg','Selecciona un usuario.');
+  const amount=Number($('leaderUsersAmount').value);if(!(amount>0))return msg('leaderUsersMsg','Monto inválido.');
+  const id=selectedLeaderListUser.public_id;leaderUsersBusy=true;
+  const ids=['leaderUsersSendBtn','leaderUsersRequestBtn','leaderUsersRechargeBtn'];ids.forEach(x=>$(x).disabled=true);
+  msg('leaderUsersMsg','Procesando...');
+  try{
+    if(kind==='send'){
+      const {data,error}=await sb.rpc('rf_leader_send_fc_v08',{p_public_id:id,p_amount:amount});if(error)throw error;
+      const r=oneRow(data);showReceipt('Envío del Administrador Líder',r);msg('leaderUsersMsg','Envío completado.');
+    }else if(kind==='request'){
+      const {data,error}=await sb.rpc('rf_leader_request_fc_v08',{p_public_id:id,p_amount:amount});if(error)throw error;
+      showRequestReceipt('Solicitud del Administrador Líder',oneRow(data));msg('leaderUsersMsg','Solicitud enviada.');
+    }else if(kind==='recharge'){
+      const {data,error}=await sb.rpc('rf_admin_recharge_v04',{p_public_id:id,p_amount:amount});if(error)throw error;
+      const r=oneRow(data);showReceipt('Recarga por Administrador',r);msg('leaderUsersMsg','Recarga acreditada.');
+    }
+    $('leaderUsersAmount').value='';
+    await Promise.all([loadMe(),loadLeaderUsers($('leaderUsersSearch').value)]);renderMe();
+    // Reubica el usuario seleccionado con su saldo actualizado.
+    const {data}=await sb.rpc('rf_admin_list_users_v101',{p_search:id});
+    const u=Array.isArray(data)?data.find(x=>String(x.public_id)===String(id)):null;
+    if(u){selectedLeaderListUser=u;$('leaderSelectedUserCard').innerHTML=leaderUserCardHTML(u);}
+  }catch(e){msg('leaderUsersMsg',errText(e));}
+  finally{leaderUsersBusy=false;ids.forEach(x=>$(x).disabled=false);}
+}
+$('leaderUsersSendBtn').onclick=()=>leaderUsersOperation('send');
+$('leaderUsersRequestBtn').onclick=()=>leaderUsersOperation('request');
+$('leaderUsersRechargeBtn').onclick=()=>leaderUsersOperation('recharge');
+
+
+
+// ===== HTML 1.1: DOMINÓ FLASH COIN =====
+let dominoLobbyData=null,dominoCurrentTableId=null,dominoState=null,dominoPollTimer=null,dominoJoinConfig=null,dominoLastWinnerHand=null,dominoRealtimeChannel=null,dominoRealtimeBusy=false,dominoSelectedTile=null,dominoDragState=null,dominoLastMoveId=null,dominoMoveEffectsPrimed=false,dominoAutoPassTimer=null,dominoSuppressTickUntil=0,dominoSkipOwnPlaySoundUntil=0;
+let dominoHeartbeatLast=0,dominoHeartbeatBusy=false;
+function dominoMoney(v){return Number(v||0).toFixed(3)}
+function dominoSetSyncState(text,state='warn'){
+  const el=$('dominoSyncState');if(!el)return;
+  el.textContent=text;el.className='domino-sync-state '+state;
+}
+async function dominoHeartbeat(force=false){
+  if(!dominoCurrentTableId||dominoHeartbeatBusy||document.hidden)return;
+  if(!$('dominoTablePanel')?.classList.contains('active'))return;
+  const now=Date.now();
+  if(!force&&now-dominoHeartbeatLast<2500)return;
+  dominoHeartbeatBusy=true;
+  try{
+    const {data,error}=await sb.rpc('rf_domino_heartbeat_v184',{p_table_id:dominoCurrentTableId});
+    if(error)throw error;
+    if(data===false){
+      const oldTable=Number(dominoCurrentTableId);
+      const lobby=await sb.rpc('rf_domino_get_lobby_v11');
+      if(!lobby.error&&lobby.data?.my_table&&Number(lobby.data.my_table)!==oldTable){
+        dominoLobbyData=lobby.data;
+        dominoCurrentTableId=Number(lobby.data.my_table);
+        dominoResetTableEffects();
+        await dominoStartRealtime();
+        dominoSetSyncState('Mesa reorganizada · conectado','ok');
+      }
+    }
+    dominoHeartbeatLast=now;
+  }catch(e){
+    console.warn('Dominó heartbeat:',e);
+  }finally{
+    dominoHeartbeatBusy=false;
+  }
+}
+function dominoStartPolling(){
+  clearInterval(dominoPollTimer);
+  dominoHeartbeatLast=0;
+  dominoHeartbeat(true).catch(()=>{});
+  dominoPollTimer=setInterval(()=>{
+    if(!dominoCurrentTableId)return;
+    dominoHeartbeat(false).catch(()=>{});
+    loadDominoState(false).catch(()=>dominoSetSyncState('Reconectando…','warn'));
+  },1000);
+}
+function dominoStopPolling(){
+  clearInterval(dominoPollTimer);
+  dominoPollTimer=null;
+  dominoHeartbeatLast=0;
+}
+async function dominoStopRealtime(){
+  if(dominoRealtimeChannel){try{await sb.removeChannel(dominoRealtimeChannel)}catch(e){}dominoRealtimeChannel=null}
+}
+async function dominoStartRealtime(){
+  await dominoStopRealtime();
+  if(!dominoCurrentTableId||!sb?.channel){
+    dominoSetSyncState('Sincronización por respaldo cada 1 s','warn');
+    return;
+  }
+  const tid=Number(dominoCurrentTableId);
+  dominoSetSyncState('Conectando en tiempo real…','warn');
+  dominoRealtimeChannel=sb.channel('domino-table-'+tid)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'rf_domino_events',filter:`table_id=eq.${tid}`},async()=>{
+      if(dominoRealtimeBusy)return;
+      dominoRealtimeBusy=true;
+      try{
+        await loadDominoState(false);
+      }catch(e){
+        dominoSetSyncState('Reconectando…','warn');
+      }finally{
+        dominoRealtimeBusy=false;
+      }
+    })
+    .subscribe(status=>{
+      if(status==='SUBSCRIBED')dominoSetSyncState('● En línea · tiempo real','ok');
+      else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')dominoSetSyncState('Respaldo activo · cada 1 s','warn');
+      else if(status==='CLOSED')dominoSetSyncState('Reconectando…','warn');
+    });
+}
+function dominoConfigModeLabel(m){return m==='paid_pass'?'Pases pagados':'Clásico'}
+
+async function dominoForceLandscape(){
+  document.body.classList.add('domino-playing');
+  try{
+    if(document.documentElement.requestFullscreen && !document.fullscreenElement){
+      await document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{});
+    }
+  }catch(e){}
+  try{
+    if(screen.orientation?.lock){
+      await screen.orientation.lock('landscape');
+    }
+  }catch(e){
+    // Algunos navegadores no permiten ignorar el bloqueo de rotación del sistema.
+  }
+  dominoUpdateRotateGuard();
+}
+function dominoReleaseLandscape(){
+  document.body.classList.remove('domino-playing');
+  try{screen.orientation?.unlock?.()}catch(e){}
+  const g=$('dominoRotateGuard');if(g)g.classList.remove('show');
+}
+function dominoUpdateRotateGuard(){
+  const g=$('dominoRotateGuard');if(!g)return;
+  const playing=document.body.classList.contains('domino-playing');
+  const portrait=window.matchMedia?.('(orientation: portrait)').matches ?? (innerHeight>innerWidth);
+  g.classList.toggle('show',playing&&portrait);
+}
+window.addEventListener('orientationchange',()=>setTimeout(dominoUpdateRotateGuard,150));
+window.addEventListener('resize',dominoUpdateRotateGuard);
+
+async function verifyDominoBackendVersion(){
+  const badge=$('dominoBuildBadge');
+  if(!badge)return;
+  try{
+    const {data,error}=await sb.rpc('rf_domino_build_v189');
+    if(error)throw error;
+    const version=String(data?.sql_version||'');
+    if(version==='1.8.9'){
+      badge.textContent='HTML 1.8.9 · SQL 1.8.9 · sincronizado';
+      badge.className='domino-build-badge ok';
+    }else{
+      badge.textContent='HTML 1.8.9 · SQL diferente ('+(version||'desconocido')+')';
+      badge.className='domino-build-badge bad';
+    }
+  }catch(e){
+    badge.textContent='HTML 1.8.9 · SQL pendiente de verificar';
+    badge.className='domino-build-badge bad';
+  }
+}
+
+async function openDominoLobby(){
+  markRouletteViewAway('Dominó');
+  dominoReleaseLandscape();
+  hide('gamesPanel');
+  const lobbyPanel=$('dominoLobbyPanel');
+  if(lobbyPanel)lobbyPanel.classList.add('active');
+  verifyDominoBackendVersion().catch(()=>{});
+
+  const host=$('dominoLobbyModes');
+  if(host){
+    host.innerHTML=`<div class="domino-choice-card" style="grid-column:1/-1;text-align:center;padding:28px">
+      <div class="domino-spinner"></div>
+      <div class="domino-wait-title">Cargando mesas...</div>
+      <div class="domino-wait-sub">Conectando con Dominó Flash Coin</div>
+    </div>`;
+  }
+  msg('dominoLobbyMsg','');
+
+  try{
+    const {data,error}=await sb.rpc('rf_domino_get_lobby_v11');
+    if(error)throw error;
+    dominoLobbyData=data||{};
+    renderDominoLobby();
+
+    // 1.8.9: el mantenimiento está separado del lobby y nunca puede tumbarlo.
+    (async()=>{
+      try{
+        const maintenance=await sb.rpc('rf_domino_maintenance_v189');
+        if(maintenance.error){
+          console.warn('Dominó mantenimiento:',maintenance.error);
+          return;
+        }
+        if(maintenance.data?.changed){
+          const refreshed=await sb.rpc('rf_domino_get_lobby_v11');
+          if(!refreshed.error){
+            dominoLobbyData=refreshed.data||{};
+            renderDominoLobby();
+          }
+        }
+      }catch(e){
+        console.warn('Dominó mantenimiento omitido:',e);
+      }
+    })();
+  }catch(e){
+    if(host){
+      host.innerHTML=`<div class="domino-choice-card" style="grid-column:1/-1;text-align:center">
+        <h3>🁫 Dominó Flash Coin</h3>
+        <div class="mode-desc">No se pudieron cargar las mesas.</div>
+        <button id="dominoRetryLobbyBtn" class="action green">VOLVER A INTENTAR</button><button id="dominoForceRefreshBtn" class="action dark domino-refresh-btn">↻ ACTUALIZAR VERSIÓN</button>
+      </div>`;
+      const retry=$('dominoRetryLobbyBtn');
+      if(retry)retry.onclick=openDominoLobby;
+      const forceRefresh=$('dominoForceRefreshBtn');
+      if(forceRefresh)forceRefresh.onclick=()=>{
+        const u=new URL(location.href);
+        u.searchParams.set('v','1.8.9');
+        u.searchParams.set('_refresh',Date.now().toString());
+        location.replace(u.toString());
+      };
+    }
+    msg('dominoLobbyMsg',errText(e));
+  }
+}
+window.openDominoLobby=openDominoLobby;
+function renderDominoLobby(){
+  const host=$('dominoLobbyModes');if(!host)return;
+  const configs=(dominoLobbyData?.configs||[]).slice(0,2),tables=dominoLobbyData?.tables||[],myTable=dominoLobbyData?.my_table,myState=dominoLobbyData?.my_state;
+  host.innerHTML=configs.map((c,idx)=>{
+    const tt=tables.filter(t=>Number(t.config_id)===Number(c.id));
+    const players=tt.reduce((a,t)=>a+Number(t.players||0),0);
+    const free=tt.find(t=>Number(t.players||0)<4);
+    const desc=c.mode==='paid_pass'?'Cada pase pagado va directo al saldo de mesa del jugador que lo provoca.':'Dominó clásico: si no tienes ficha válida, pasas sin pagar.';
+    return `<div class="domino-choice-card"><h3>${idx===0?'🁫':'🁬'} ${esc(c.name)}</h3><div class="mode-desc">${desc}</div><div class="table-stats"><div class="table-stat">Entrada mínima<b>${dominoMoney(c.min_entry)} FC</b></div><div class="table-stat">Bote por jugador<b>${dominoMoney(c.hand_stake)} FC</b></div><div class="table-stat">Comisión<b>${Number(c.commission_pct||0).toFixed(2)}%</b></div><div class="table-stat">${c.mode==='paid_pass'?'Cada pase':'Mínimo seguir'}<b>${c.mode==='paid_pass'?dominoMoney(c.pass_fee)+' FC':dominoMoney(c.min_continue_balance)+' FC'}</b></div></div><div class="online-line"><span class="domino-live-dot"></span>${players} jugador${players===1?'':'es'} conectado${players===1?'':'s'} · ${free?'mesa disponible':'se abrirá otra mesa automáticamente'}</div><button class="action green domino-join-mode" data-config="${c.id}">JUGAR EN ESTA MESA</button></div>`;
+  }).join('');
+  if(myTable)host.insertAdjacentHTML('afterbegin',myState==='abandoned'?`<div class="card"><strong>Salida confirmada</strong><div class="tiny">Tu asiento terminará esta mano automáticamente y después quedará libre. Si gana, el premio irá a la Cartera Administrativa.</div></div>`:`<div class="card"><strong>Tu asiento sigue activo</strong><div class="tiny">Puedes volver a tu mesa y continuar la mano si todavía no ha terminado.</div><button id="dominoResumeTableBtn" class="action blue">VOLVER A MI MESA</button></div>`);
+  host.querySelectorAll('.domino-join-mode').forEach(b=>b.onclick=()=>openDominoBuyin(Number(b.dataset.config)));
+  if($('dominoResumeTableBtn'))$('dominoResumeTableBtn').onclick=async()=>{dominoCurrentTableId=Number(myTable);dominoResetTableEffects();await sb.rpc('rf_domino_resume_v11',{p_table_id:dominoCurrentTableId});hide('dominoLobbyPanel');show('dominoTablePanel');
+  dominoForceLandscape().catch(()=>{});dominoStartPolling();await dominoHeartbeat(true);await dominoStartRealtime();await loadDominoState(true)};
+}
+function openDominoBuyin(configId){
+  const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(configId));if(!c)return;
+  dominoJoinConfig=c;$('dominoBuyinTitle').textContent=c.name+' · Sentarse';
+  const bal=Number(me?.balance||0),min=Number(c.min_entry||0.3),max=Math.max(min,bal);
+  $('dominoBuyinRange').min=String(min);$('dominoBuyinRange').max=String(max);$('dominoBuyinRange').step='0.001';$('dominoBuyinRange').value=String(Math.min(max,Math.max(min,min)));
+  $('dominoBuyinInput').min=String(min);$('dominoBuyinInput').max=String(max);$('dominoBuyinInput').value=dominoMoney(Math.min(max,min));
+  $('dominoBuyinValue').textContent=dominoMoney($('dominoBuyinInput').value)+' FC';msg('dominoBuyinMsg','');show('dominoBuyinPanel');
+}
+$('dominoBuyinRange').addEventListener('input',()=>{$('dominoBuyinInput').value=Number($('dominoBuyinRange').value).toFixed(3);$('dominoBuyinValue').textContent=dominoMoney($('dominoBuyinRange').value)+' FC'});
+$('dominoBuyinInput').addEventListener('input',()=>{const v=Number($('dominoBuyinInput').value||0);$('dominoBuyinValue').textContent=dominoMoney(v)+' FC';if(Number.isFinite(v))$('dominoBuyinRange').value=String(v)});
+$('dominoConfirmJoinBtn').onclick=async()=>{
+  if(!dominoJoinConfig)return;
+  const amount=Number($('dominoBuyinInput').value);
+  const min=Number(dominoJoinConfig.min_entry||0);
+  const available=Number(me?.balance||0);
+  if(!Number.isFinite(amount)||amount<min)return msg('dominoBuyinMsg','Debes entrar con la mínima completa de la mesa.');
+  if(amount>available)return msg('dominoBuyinMsg','No tienes suficiente saldo Flash Coin para ese monto.');
+
+  // Se solicita pantalla completa desde el toque del usuario para que iPhone/Android
+  // tengan la mayor probabilidad posible de aceptarlo antes de la llamada a Supabase.
+  dominoForceLandscape().catch(()=>{});
+  $('dominoConfirmJoinBtn').disabled=true;
+  msg('dominoBuyinMsg','Sentándote en la mesa…');
+
+  try{
+    const {data,error}=await sb.rpc('rf_domino_join_v11',{
+      p_config_id:Number(dominoJoinConfig.id),
+      p_buyin:Number(amount.toFixed(3))
+    });
+    if(error)throw error;
+    if(!data)throw new Error('Supabase no devolvió el número de mesa.');
+
+    dominoCurrentTableId=Number(data);
+
+    // 1.8.7: después de entrar, intenta compactar sin bloquear el acceso.
+    // Si el servidor movió este asiento a otra mesa, recuperamos la mesa final.
+    try{
+      await sb.rpc('rf_domino_maintenance_v189');
+      const lobbyAfterJoin=await sb.rpc('rf_domino_get_lobby_v11');
+      if(!lobbyAfterJoin.error){
+        dominoLobbyData=lobbyAfterJoin.data||dominoLobbyData;
+        if(lobbyAfterJoin.data?.my_table){
+          dominoCurrentTableId=Number(lobbyAfterJoin.data.my_table);
+        }
+      }
+    }catch(e){
+      console.warn('Dominó compactación post-entrada omitida:',e);
+    }
+
+    dominoResetTableEffects();
+    hide('dominoBuyinPanel');
+    hide('dominoLobbyPanel');
+    show('dominoTablePanel');
+    dominoSetSyncState('Conectando…','warn');
+
+    await loadMe();
+    renderMe();
+    dominoStartPolling();
+    await dominoHeartbeat(true);
+    await dominoStartRealtime();
+    await loadDominoState(true);
+  }catch(e){
+    dominoCurrentTableId=null;
+    msg('dominoBuyinMsg',errText(e));
+    show('dominoBuyinPanel');
+  }finally{
+    $('dominoConfirmJoinBtn').disabled=false;
+  }
+};
+// Distribución clásica fija: el 6 SIEMPRE conserva tres puntos arriba y tres abajo.
+const DOMINO_PIPS=Object.freeze({0:[],1:[5],2:[1,9],3:[1,5,9],4:[1,3,7,9],5:[1,3,5,7,9],6:[1,2,3,7,8,9]});
+function dominoFace(value){
+  const n=Math.max(0,Math.min(6,Number(value)||0)),on=new Set(DOMINO_PIPS[n]||[]);
+  return `<span class="domino-face" aria-hidden="true">${Array.from({length:9},(_,i)=>`<i class="domino-pip p${i+1} ${on.has(i+1)?'on':''}"></i>`).join('')}</span>`;
+}
+function dominoPiece(tile,idx,playable=false,board=false,extraClass=''){
+  const a=Number(tile?.a??tile?.[0]??0),b=Number(tile?.b??tile?.[1]??0),dbl=a===b;
+  const tag=board?'div':'button';
+  const sides=!board&&dominoState?.hand?dominoTileSides(tile,dominoState.hand):{left:false,right:false};
+  const attrs=board?'':`type="button" data-domino-tile="${idx}" data-left="${sides.left?1:0}" data-right="${sides.right?1:0}" aria-label="Ficha ${a}-${b}${playable?', jugable':''}"`;
+  return `<${tag} ${attrs} class="domino-piece ${board?'board-piece':'hand-piece'} ${board&&dbl?'domino-double':''} ${playable?'playable':''} ${extraClass}">${dominoFace(a)}<span class="domino-divider"></span>${dominoFace(b)}</${tag}>`;
+}
+function dominoTileSides(tile,h){
+  if(!h||!tile)return {left:false,right:false};
+  if(!(h.board||[]).length)return {left:true,right:true};
+  const a=Number(tile?.a??tile?.[0]),b=Number(tile?.b??tile?.[1]);
+  const left=Number(h.open_left),right=Number(h.open_right);
+  return {left:a===left||b===left,right:a===right||b===right};
+}
+function dominoTileLegal(tile,h){const sides=dominoTileSides(tile,h);return sides.left||sides.right}
+
+function dominoAvatarHTML(seat,name,mine){
+  const url=String(seat?.avatar_url||'').trim();
+  if(url)return `<img src="${esc(url)}" alt="Foto de ${esc(name||'jugador')}" loading="lazy" referrerpolicy="no-referrer">`;
+  return esc(dominoInitials(name,seat?.public_id));
+}
+function bindDominoSeatProfiles(){
+  document.querySelectorAll('#dominoSeats .domino-seat.mine .domino-avatar').forEach(el=>{
+    el.setAttribute('role','button');
+    el.setAttribute('tabindex','0');
+    el.setAttribute('aria-label','Cambiar mi foto de perfil');
+    const open=()=>{ const input=$('dominoAvatarFile'); if(input){input.value='';input.click()} };
+    el.onclick=open;
+    el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open()}};
+  });
+}
+async function uploadDominoAvatar(file){
+  if(!file||!me?.id)return;
+  if(!String(file.type||'').startsWith('image/'))return alert('Selecciona una imagen válida.');
+  if(file.size>5*1024*1024)return alert('La foto debe pesar menos de 5 MB.');
+  const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,5)||'jpg';
+  const path=`${me.id}/avatar.${ext}`;
+  dominoShowToast('Subiendo foto…');
+  const up=await sb.storage.from('rf-profile-photos').upload(path,file,{upsert:true,contentType:file.type,cacheControl:'3600'});
+  if(up.error)return alert(errText(up.error));
+  const pub=sb.storage.from('rf-profile-photos').getPublicUrl(path);
+  const publicUrl=pub?.data?.publicUrl;
+  if(!publicUrl)return alert('No se pudo obtener la URL de la foto.');
+  const {error}=await sb.rpc('rf_set_avatar_url_v160',{p_avatar_url:publicUrl});
+  if(error)return alert(errText(error));
+  me.avatar_url=publicUrl;
+  dominoShowToast('Foto actualizada');
+  await loadDominoState(true,true);
+}
+
+function dominoInitials(name,id){
+  const parts=String(name||'').trim().split(/\s+/).filter(Boolean);
+  if(parts.length)return (parts[0][0]+(parts[1]?.[0]||'')).toUpperCase();
+  return String(id||'FC').slice(-2).toUpperCase();
+}
+function dominoResetTableEffects(){
+  dominoSelectedTile=null;dominoDragState=null;dominoLastMoveId=null;dominoMoveEffectsPrimed=false;dominoClearEndHighlights();
+  clearTimeout(dominoAutoPassTimer);dominoAutoPassTimer=null;dominoSuppressTickUntil=0;dominoSkipOwnPlaySoundUntil=0;
+}
+function playDominoPickSound(){
+  if(!dominoSoundIsEnabled())return;resumeAudioOnGesture();
+  playOscTone(920,.032,.028,'triangle',620,0,'domino');playOscTone(1480,.020,.012,'sine',980,.006,'domino');
+}
+function playDominoClackSound(){
+  if(!dominoSoundIsEnabled())return;
+  const fire=()=>{playOscTone(205,.070,.100,'triangle',78,0,'domino');playOscTone(1350,.032,.042,'square',510,0,'domino');playOscTone(680,.040,.024,'triangle',260,.014,'domino')};
+  if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire()}).catch(()=>{});
+}
+function playDominoPassSound(){
+  if(!dominoSoundIsEnabled())return;
+  const fire=()=>{playOscTone(490,.042,.045,'triangle',300,0,'domino');playOscTone(360,.052,.035,'triangle',210,.075,'domino')};
+  if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire()}).catch(()=>{});
+}
+function playDominoInvalidSound(){if(!dominoSoundIsEnabled())return;playOscTone(240,.075,.035,'triangle',155,0,'domino')}
+function playDominoWinSound(){
+  if(!dominoSoundIsEnabled())return;
+  const fire=()=>{
+    playOscTone(520,.08,.040,'triangle',760,0,'domino');
+    playOscTone(760,.09,.045,'triangle',1040,.065,'domino');
+    playOscTone(1040,.12,.052,'sine',1420,.135,'domino');
+  };
+  if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire()}).catch(()=>{});
+}
+function dominoRows(board,lastMove,animateMove){
+  if(!board?.length)return '<div class="domino-board-empty">MESA LISTA</div>';
+  const perRow=board.length>20?7:(board.length>12?6:8),rows=[];
+  for(let i=0;i<board.length;i+=perRow){
+    const slice=board.slice(i,i+perRow),indices=slice.map((_,j)=>i+j),rev=(rows.length%2===1);
+    const pairs=slice.map((tile,j)=>({tile,idx:indices[j]}));
+    rows.push(`<div class="domino-board-row ${rev?'reverse':''}">${pairs.map(({tile,idx})=>{
+      const side=lastMove?.side||'right',newIndex=side==='left'?0:board.length-1;
+      const endClasses=`${idx===0?'domino-end-left ':''}${idx===board.length-1?'domino-end-right ':''}`.trim();
+      return dominoPiece(tile,idx,false,true,`${endClasses} ${animateMove&&idx===newIndex?'just-dropped':''}`.trim());
+    }).join('')}</div>`);
+  }
+  return rows.join('');
+}
+function dominoClearEndHighlights(){
+  const board=$('dominoBoard');if(!board)return;
+  board.classList.remove('empty-drop-active','empty-drop-hover');
+  board.querySelectorAll('.board-piece').forEach(el=>el.classList.remove('end-allowed-left','end-allowed-right','end-hover-left','end-hover-right'));
+}
+function dominoSetDropZones(tileIndex=null,hoverSide=null){
+  dominoSelectedTile=Number.isInteger(tileIndex)?tileIndex:null;
+  dominoClearEndHighlights();
+  const board=$('dominoBoard');
+  let sides={left:false,right:false};
+  const tile=dominoSelectedTile!==null?dominoState?.hand?.my_tiles?.[dominoSelectedTile]:null;
+  if(tile)sides=dominoTileSides(tile,dominoState?.hand);
+  const empty=!(dominoState?.hand?.board||[]).length;
+  if(board&&dominoSelectedTile!==null&&empty){
+    board.classList.add('empty-drop-active');
+    if(hoverSide)board.classList.add('empty-drop-hover');
+  }else if(board&&dominoSelectedTile!==null){
+    const left=board.querySelector('.domino-end-left');
+    const right=board.querySelector('.domino-end-right');
+    if(left&&sides.left)left.classList.add('end-allowed-left');
+    if(right&&sides.right)right.classList.add('end-allowed-right');
+    if(hoverSide==='left'&&left&&sides.left)left.classList.add('end-hover-left');
+    if(hoverSide==='right'&&right&&sides.right)right.classList.add('end-hover-right');
+  }
+  $('dominoHand')?.querySelectorAll('[data-domino-tile]').forEach(el=>el.classList.toggle('selected',Number(el.dataset.dominoTile)===dominoSelectedTile));
+}
+function dominoHideDropZones(){dominoSelectedTile=null;dominoClearEndHighlights();$('dominoHand')?.querySelectorAll('[data-domino-tile]').forEach(el=>el.classList.remove('selected'))}
+function dominoPointNearRect(x,y,rect,pad=34){
+  return x>=rect.left-pad&&x<=rect.right+pad&&y>=rect.top-pad&&y<=rect.bottom+pad;
+}
+function dominoSideAtPoint(x,y,tileIndex){
+  const h=dominoState?.hand,tile=h?.my_tiles?.[tileIndex];if(!h||!tile)return null;
+  const sides=dominoTileSides(tile,h),board=$('dominoBoard');
+  if(!(h.board||[]).length){
+    if(!board)return 'right';
+    const r=board.getBoundingClientRect();
+    return dominoPointNearRect(x,y,r,30)?'right':null;
+  }
+  if(!board)return null;
+  const left=board.querySelector('.domino-end-left'),right=board.querySelector('.domino-end-right');
+  const lrect=left?.getBoundingClientRect(),rrect=right?.getBoundingClientRect();
+  if(left&&right&&left===right&&lrect){
+    if(!dominoPointNearRect(x,y,lrect,44))return null;
+    if(sides.left&&sides.right)return x<(lrect.left+lrect.width/2)?'left':'right';
+    if(sides.left)return 'left';
+    if(sides.right)return 'right';
+    return null;
+  }
+  const dl=lrect&&sides.left&&dominoPointNearRect(x,y,lrect,44);
+  const dr=rrect&&sides.right&&dominoPointNearRect(x,y,rrect,44);
+  if(dl&&dr){
+    const lc=Math.hypot(x-(lrect.left+lrect.width/2),y-(lrect.top+lrect.height/2));
+    const rc=Math.hypot(x-(rrect.left+rrect.width/2),y-(rrect.top+rrect.height/2));
+    return lc<=rc?'left':'right';
+  }
+  if(dl)return 'left';
+  if(dr)return 'right';
+  return null;
+}
+function dominoBindBoardEndInteractions(){
+  const board=$('dominoBoard');if(!board)return;
+  board.onclick=async e=>{
+    if(dominoSelectedTile===null||!dominoState?.hand)return;
+    if(!(dominoState.hand.board||[]).length){
+      await dominoPlaySelectedSide('right');return;
+    }
+    const end=e.target.closest?.('.domino-end-left,.domino-end-right');if(!end)return;
+    let side=null;
+    if(end.classList.contains('domino-end-left')&&end.classList.contains('domino-end-right')){
+      const r=end.getBoundingClientRect();side=e.clientX<(r.left+r.width/2)?'left':'right';
+    }else if(end.classList.contains('domino-end-left'))side='left';
+    else if(end.classList.contains('domino-end-right'))side='right';
+    if(side)await dominoPlaySelectedSide(side);
+  };
+}
+function dominoBindHandInteractions(){
+  const hand=$('dominoHand'),stage=$('dominoStage');if(!hand||!stage)return;
+  hand.querySelectorAll('.hand-piece.playable[data-domino-tile]').forEach(piece=>{
+    piece.addEventListener('click',e=>{
+      if(piece.dataset.dragged==='1'){piece.dataset.dragged='';return}
+      if(dominoDragState?.moved)return;
+      const idx=Number(piece.dataset.dominoTile);playDominoPickSound();dominoSetDropZones(dominoSelectedTile===idx?null:idx);
+    });
+    piece.addEventListener('pointerdown',e=>{
+      if(e.button!==undefined&&e.button!==0)return;
+      const idx=Number(piece.dataset.dominoTile),tile=dominoState?.hand?.my_tiles?.[idx];if(!tile)return;
+      e.preventDefault();resumeAudioOnGesture();playDominoPickSound();dominoSetDropZones(idx);
+      try{piece.setPointerCapture(e.pointerId)}catch{}
+      dominoDragState={active:true,moved:false,pointerId:e.pointerId,idx,startX:e.clientX,startY:e.clientY,el:piece,dx:0,dy:0};piece.classList.add('dragging');
+    });
+    piece.addEventListener('pointermove',e=>{
+      const d=dominoDragState;if(!d?.active||d.pointerId!==e.pointerId||d.el!==piece)return;
+      const dx=e.clientX-d.startX,dy=e.clientY-d.startY;d.dx=dx;d.dy=dy;if(Math.hypot(dx,dy)>9)d.moved=true;
+      piece.style.transform=`translate(${dx}px,${dy}px) rotate(${Math.max(-8,Math.min(8,dx/18))}deg) scale(1.08)`;
+      d.hoverSide=d.moved?dominoSideAtPoint(e.clientX,e.clientY,d.idx):null;
+      dominoSetDropZones(d.idx,d.hoverSide);
+    });
+    const finish=async e=>{
+      const d=dominoDragState;if(!d?.active||d.pointerId!==e.pointerId||d.el!==piece)return;
+      d.active=false;piece.classList.remove('dragging');
+      const moved=d.moved,side=d.hoverSide||dominoSideAtPoint(e.clientX,e.clientY,d.idx),sides=dominoTileSides(dominoState?.hand?.my_tiles?.[d.idx],dominoState?.hand);
+      if(moved)piece.dataset.dragged='1';
+      piece.style.transform='';
+      dominoDragState=null;
+      if(moved&&side&&sides[side]){
+        dominoHideDropZones();await dominoPlayTile(d.idx,side,piece);return;
+      }
+      if(moved){
+        piece.classList.add('invalid-return');playDominoInvalidSound();setTimeout(()=>piece.classList.remove('invalid-return'),320);
+      }
+      dominoSetDropZones(d.idx);
+    };
+    piece.addEventListener('pointerup',finish);piece.addEventListener('pointercancel',finish);
+  });
+}
+async function dominoPlaySelectedSide(side){
+  if(dominoSelectedTile===null||!dominoState?.hand)return;
+  const tile=dominoState.hand.my_tiles?.[dominoSelectedTile],sides=dominoTileSides(tile,dominoState.hand);
+  if(!sides[side]){playDominoInvalidSound();return}
+  const idx=dominoSelectedTile;dominoHideDropZones();await dominoPlayTile(idx,side,null);
+}
+function dominoScheduleAutoPass(){
+  clearTimeout(dominoAutoPassTimer);dominoAutoPassTimer=setTimeout(async()=>{
+    if(!dominoCurrentTableId)return;
+    try{const {error}=await sb.rpc('rf_domino_tick_v11',{p_table_id:dominoCurrentTableId});if(!error)await loadDominoState(false)}catch(e){}
+  },180);
+}
+function dominoHandleMoveEffects(st){
+  const mv=st?.last_move;
+  if(!dominoMoveEffectsPrimed){dominoMoveEffectsPrimed=true;dominoLastMoveId=mv?.id??null;return {animate:false}}
+  if(!mv?.id||String(mv.id)===String(dominoLastMoveId))return {animate:false};
+  dominoLastMoveId=mv.id;
+  const action=String(mv.action||'');
+  if(action.includes('PASS'))playDominoPassSound();
+  else if(action.includes('PLAY')){
+    const own=String(mv.user_id||'')===String(st?.me||'');
+    if(!(own&&Date.now()<dominoSkipOwnPlaySoundUntil))playDominoClackSound();
+  }
+  return {animate:action.includes('PLAY')};
+}
+
+let dominoChatLastLoadAt=0,dominoToastTimer=null;
+let dominoDealAnimationHandId=null;
+
+function dominoShowToast(text){
+  const el=$('dominoToast');if(!el)return;
+  el.textContent=String(text||'');el.classList.add('show');
+  clearTimeout(dominoToastTimer);
+  dominoToastTimer=setTimeout(()=>el.classList.remove('show'),2200);
+}
+function dominoFormatClock(value){
+  try{return new Date(value).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}catch{return ''}
+}
+async function loadDominoChat(force=false){
+  if(!dominoCurrentTableId||!$('dominoChatList'))return;
+  if(!force&&Date.now()-dominoChatLastLoadAt<700)return;
+  dominoChatLastLoadAt=Date.now();
+  const {data,error}=await sb.rpc('rf_domino_chat_list_v150',{p_table_id:dominoCurrentTableId,p_limit:40});
+  if(error){
+    $('dominoChatList').innerHTML=`<div class="tiny">${esc(errText(error))}</div>`;
+    return;
+  }
+  const rows=data||[];
+  $('dominoChatList').innerHTML=rows.length?rows.map(r=>{
+    const mine=String(r.user_id)===String(dominoState?.me);
+    return `<div class="domino-chat-line ${mine?'me':''} ${r.kind==='reaction'?'reaction':''}">
+      <div><span class="who">${esc(r.full_name||r.public_id||'Jugador')}</span><span class="when">${esc(dominoFormatClock(r.created_at))}</span></div>
+      <div class="body">${esc(r.message)}</div>
+    </div>`;
+  }).join(''):'<div class="tiny">Todavía no hay mensajes en esta mesa.</div>';
+  $('dominoChatList').scrollTop=$('dominoChatList').scrollHeight;
+}
+async function sendDominoChat(message,kind='text'){
+  const text=String(message||'').trim();
+  if(!dominoCurrentTableId||!text)return false;
+  const {error}=await sb.rpc('rf_domino_chat_send_v150',{p_table_id:dominoCurrentTableId,p_message:text,p_kind:kind});
+  if(error){msg('dominoChatMsg',errText(error));return false}
+  msg('dominoChatMsg','');
+  await loadDominoChat(true);
+  return true;
+}
+
+let dominoTableMessageLastId='',dominoTableMessageTimer=null,dominoTableMessageCheckAt=0;
+function dominoClearSeatBubbles(){
+  [1,2,3,4].forEach(n=>{
+    const b=$('dominoSeatBubble'+n);
+    if(b){b.className='domino-seat-bubble s'+n;b.textContent=''}
+  });
+}
+function dominoVisualSeatForReal(realSeat){
+  const seats=dominoState?.seats||[],uid=dominoState?.me;
+  const mine=seats.find(x=>String(x.user_id)===String(uid));
+  const myReal=Number(mine?.seat_no||1);
+  const real=Number(realSeat||0);
+  if(!real)return 0;
+  return ((real-myReal+4)%4)+1;
+}
+function dominoSeatForUser(userId){
+  const s=(dominoState?.seats||[]).find(x=>String(x.user_id)===String(userId));
+  return s ? dominoVisualSeatForReal(s.seat_no) : 0;
+}
+function dominoShowBigEmoji(emoji){
+  const el=$('dominoBigEmoji');if(!el)return;
+  el.textContent=String(emoji||'');
+  el.classList.remove('show');void el.offsetWidth;el.classList.add('show');
+  clearTimeout(dominoTableMessageTimer);
+  dominoTableMessageTimer=setTimeout(()=>el.classList.remove('show'),2300);
+}
+function dominoShowSeatMessage(row){
+  const seat=dominoSeatForUser(row?.user_id);if(!seat)return;
+  const bubble=$('dominoSeatBubble'+seat);if(!bubble)return;
+  dominoClearSeatBubbles();
+  const isReaction=String(row?.kind||'')==='reaction';
+  bubble.className='domino-seat-bubble s'+seat+(isReaction?' reaction':'');
+  bubble.textContent=String(row?.message||'');
+  bubble.classList.add('show');
+  if(isReaction)dominoShowBigEmoji(row?.message||'');
+  clearTimeout(bubble._hideTimer);
+  bubble._hideTimer=setTimeout(()=>bubble.classList.remove('show'),isReaction?2600:4200);
+}
+async function syncDominoTableMessages(force=false){
+  if(!dominoCurrentTableId)return;
+  if(!force&&Date.now()-dominoTableMessageCheckAt<1100)return;
+  dominoTableMessageCheckAt=Date.now();
+  const {data,error}=await sb.rpc('rf_domino_chat_list_v150',{p_table_id:dominoCurrentTableId,p_limit:6});
+  if(error)return;
+  const rows=data||[];if(!rows.length)return;
+  const row=rows[rows.length-1];
+  const key=[row.id||'',row.user_id||'',row.created_at||'',row.message||'',row.kind||''].join('|');
+  if(!force&&key===dominoTableMessageLastId)return;
+  dominoTableMessageLastId=key;
+  const age=Date.now()-new Date(row.created_at||0).getTime();
+  if(force||age<6500)dominoShowSeatMessage(row);
+}
+function dominoUpdateLiveControls(){
+  // 1.7.0: no existen botones manuales de Pasar, Repartir ni Ronda.
+  // El pase y el reparto permanecen automáticos en la lógica del juego.
+}
+
+function renderDominoState(st){
+  dominoState=st;setSoundSwitchUI();const h=st?.hand,c=st?.config||{},seats=st?.seats||[],uid=st?.me,effects=dominoHandleMoveEffects(st);
+  $('dominoTableTitle').textContent=c.name||'Dominó Flash Coin';
+  $('dominoTableSub').textContent=`Mesa #${(dominoLobbyData?.tables||[]).find(t=>Number(t.id)===Number(dominoCurrentTableId))?.table_no||dominoCurrentTableId}`;
+  if($('dominoPotBadge'))$('dominoPotBadge').textContent=`${dominoMoney(h?.pot||0)} FC`;
+  if($('dominoGlobalBalance'))$('dominoGlobalBalance').textContent=$('balanceTop')?.textContent||'0.000 FC';
+  $('dominoSeats').innerHTML=[1,2,3,4].map(visualSeat=>{
+    const s=seats.find(x=>dominoVisualSeatForReal(x.seat_no)===visualSeat);
+    if(!s)return `<div class="domino-seat s${visualSeat} empty" aria-label="Asiento libre"><div class="domino-avatar">+</div><div class="domino-seat-name">Asiento libre</div><div class="domino-seat-info">El próximo jugador se sentará aquí</div></div>`;
+    const turn=h&&String(h.turn_user_id)===String(s.user_id),mine=String(s.user_id)===String(uid),name=s.name||s.public_id;
+    const seatDetail=h&&Number(s.tile_count||0)===0?'Próxima mano':`${s.tile_count||0} fichas`;
+    return `<div class="domino-seat s${visualSeat} ${turn?'turn':''} ${mine?'mine':''}" data-seat-user="${esc(s.user_id)}" data-real-seat="${Number(s.seat_no)}"><div class="domino-avatar">${dominoAvatarHTML(s,name,mine)}</div><div class="domino-seat-name">${esc(name)}${mine?' · TÚ':''}</div><div class="domino-seat-info">ID ${esc(s.public_id)} · ${seatDetail}</div><span class="seat-bal">${dominoMoney(s.table_balance)} FC</span></div>`;
+  }).join('');
+  bindDominoSeatProfiles();
+  $('dominoBoard').innerHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
+  dominoBindBoardEndInteractions();
+  const myTurn=!!(h&&h.status==='playing'&&String(h.turn_user_id)===String(uid)),tiles=h?.my_tiles||[],hasLegal=myTurn&&tiles.some(t=>dominoTileLegal(t,h));
+  const animateDeal=!!(h&&h.status==='shuffling'&&dominoDealAnimationHandId!==h.id);
+  if(animateDeal)dominoDealAnimationHandId=h.id;
+  $('dominoHand').innerHTML=tiles.map((t,i)=>dominoPiece(t,i,myTurn&&dominoTileLegal(t,h),false,animateDeal?`dealing deal-${i}`:'')).join('');
+  dominoBindHandInteractions();
+  if(dominoSelectedTile!==null){
+    if(!myTurn||!tiles[dominoSelectedTile]||!dominoTileLegal(tiles[dominoSelectedTile],h))dominoHideDropZones();
+    else dominoSetDropZones(dominoSelectedTile);
+  }
+  const mySeatState=seats.find(x=>String(x.user_id)===String(uid));
+  const meReady=mySeatState ? mySeatState.is_ready!==false : true;
+  const pendingSeats=seats.filter(x=>x.is_ready===false);
+  const readyBtn=$('dominoReadyBtn');
+  if(readyBtn)readyBtn.classList.toggle('hidden',meReady);
+
+  let status='',waiting=!h&&seats.length<2;
+  $('dominoCenterStatus').classList.toggle('waiting-player',waiting);
+  if(!meReady){
+    status=h
+      ? 'Confirma tu asiento · entrarás en el próximo reparto'
+      : 'Toca CONFIRMAR para recibir tus fichas';
+  }else if(waiting){
+    status=`<div class="domino-spinner"></div><span class="domino-wait-title">Esperando jugadores...</span><span class="domino-wait-sub">Mesa activa · conectando jugadores en tiempo real</span>`;
+  }else if(!h&&pendingSeats.length){
+    status=`Esperando confirmación de ${pendingSeats.length===1?'1 jugador':pendingSeats.length+' jugadores'}...`;
+  }else if(!h){
+    status='Preparando el reparto...';
+  }else if(h.status==='shuffling'){
+    const sec=Math.max(0,Math.ceil((new Date(h.play_starts_at)-Date.now())/1000));
+    status=`Preparando fichas · <span class="domino-timer">${sec}</span>s`;
+  }else if(h.status==='playing'){
+    const inCurrentHand=!!h?.me_in_hand;
+    if(!inCurrentHand){
+      status=meReady?'Confirmado · entrarás en la próxima mano':'Confirma tu asiento · entrarás en la próxima mano';
+    }else{
+      const sec=Math.max(0,Math.ceil((new Date(h.turn_deadline)-Date.now())/1000));
+      if(myTurn&&!hasLegal){
+        status=`<span class="domino-auto-pass">No tienes ficha válida · pase automático…</span>`;
+        dominoScheduleAutoPass();
+      }else{
+        status=`${myTurn?'TU TURNO · arrastra la ficha hasta el dominó iluminado':'Turno de otro jugador'} · <span class="domino-timer">${sec}</span>s`;
+      }
+    }
+  }
+  $('dominoCenterStatus').innerHTML=status;
+  dominoUpdateLiveControls(st,myTurn,hasLegal);
+  syncDominoTableMessages().catch(()=>{});
+  if($('dominoChatPanel')?.classList.contains('active'))loadDominoChat().catch(()=>{});
+  const lr=st?.last_result;if(lr&&lr.id!==dominoLastWinnerHand){dominoLastWinnerHand=lr.id;const mySeat=seats.find(x=>String(x.user_id)===String(uid));const winSeat=seats.find(x=>String(x.user_id)===String(lr.winner_user_id));let iWon=String(lr.winner_user_id)===String(uid);if(!iWon&&Number(h?.player_count||st?.last_result?.player_count||0)===4&&mySeat&&winSeat)iWon=Math.abs(Number(mySeat.seat_no)-Number(winSeat.seat_no))===2;if(iWon){$('dominoVictoryText').textContent=lr.winner_reason==='TRANQUE_MENOS_PUNTOS'?'Ganaste por tener menos puntos':'Cerraste con tu última ficha';$('dominoVictory').classList.add('show');try{playDominoWinSound()}catch(e){}setTimeout(()=>$('dominoVictory').classList.remove('show'),2800)}}
+}
+async function loadDominoState(force,skipTick=false){
+  if(!dominoCurrentTableId)return;
+
+  if(!skipTick&&Date.now()>=dominoSuppressTickUntil){
+    try{
+      const tick=await sb.rpc('rf_domino_tick_v11',{p_table_id:dominoCurrentTableId});
+      if(tick.error){
+        console.warn('Dominó tick:',tick.error);
+        dominoSetSyncState('Mesa conectada · sincronización en reintento','warn');
+      }
+    }catch(e){
+      console.warn('Dominó tick:',e);
+      dominoSetSyncState('Mesa conectada · sincronización en reintento','warn');
+    }
+  }
+
+  let stateResult=await sb.rpc('rf_domino_get_state_v160',{
+    p_table_id:dominoCurrentTableId
+  });
+
+  // Si la compactación movió el asiento, seguir la mesa nueva automáticamente.
+  if(stateResult.error){
+    try{
+      const lobby=await sb.rpc('rf_domino_get_lobby_v11');
+      const movedTo=Number(lobby.data?.my_table||0);
+      if(!lobby.error&&movedTo&&movedTo!==Number(dominoCurrentTableId)){
+        dominoLobbyData=lobby.data||dominoLobbyData;
+        dominoCurrentTableId=movedTo;
+        dominoResetTableEffects();
+        await dominoStartRealtime();
+        stateResult=await sb.rpc('rf_domino_get_state_v160',{
+          p_table_id:dominoCurrentTableId
+        });
+      }
+    }catch(e){}
+  }
+
+  if(stateResult.error){
+    dominoSetSyncState('Error al leer la mesa','bad');
+    if(force)alert(errText(stateResult.error));
+    return;
+  }
+
+  if(!dominoRealtimeChannel)dominoSetSyncState('En línea · respaldo cada 1 s','ok');
+  if(dominoDragState?.active&&!force)return;
+
+  try{
+    renderDominoState(stateResult.data);
+  }catch(e){
+    console.error('Dominó visual:',e);
+    dominoSetSyncState('Error visual de mesa','bad');
+    if(force)alert('Error visual de Dominó: '+errText(e));
+  }
+}
+async function dominoPlayTile(index,side='right',sourceEl=null){
+  if(!dominoCurrentTableId)return;
+  const tile=dominoState?.hand?.my_tiles?.[index],sides=dominoTileSides(tile,dominoState?.hand);
+  if(!sides[side]){if(sourceEl){sourceEl.classList.add('invalid-return');setTimeout(()=>sourceEl.classList.remove('invalid-return'),320)}playDominoInvalidSound();return}
+  const {error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:side});
+  if(error){playDominoInvalidSound();return alert(errText(error))}
+  playDominoClackSound();dominoSkipOwnPlaySoundUntil=Date.now()+1200;dominoSuppressTickUntil=Date.now()+360;
+  await loadDominoState(false,true);dominoWinPulse();
+  setTimeout(()=>{if(dominoCurrentTableId)loadDominoState(false).catch(()=>{})},390);
+}
+async function dominoPass(){if(!dominoCurrentTableId)return;const {error}=await sb.rpc('rf_domino_pass_v11',{p_table_id:dominoCurrentTableId});if(error)return alert(errText(error));await loadDominoState(false)}
+function dominoWinPulse(){const v=$('dominoVictory');if(!v)return;v.classList.remove('show')}
+
+async function dominoReturnToLobbyFromBuyin(){
+  hide('dominoBuyinPanel');
+  dominoJoinConfig=null;
+  show('dominoLobbyPanel');
+  if(dominoLobbyData){
+    renderDominoLobby();
+    verifyDominoBackendVersion().catch(()=>{});
+  }else{
+    await openDominoLobby();
+  }
+}
+if($('dominoBuyinCloseBtn')){
+  let dominoXLock=false;
+  const closeBuyin=(ev)=>{
+    if(ev){ev.preventDefault();ev.stopPropagation();}
+    if(dominoXLock)return;
+    dominoXLock=true;
+    Promise.resolve(dominoReturnToLobbyFromBuyin()).finally(()=>setTimeout(()=>{dominoXLock=false},250));
+  };
+  $('dominoBuyinCloseBtn').addEventListener('pointerup',closeBuyin);
+  $('dominoBuyinCloseBtn').addEventListener('click',closeBuyin);
+}
+if($('dominoLobbyCloseBtn'))$('dominoLobbyCloseBtn').addEventListener('click',()=>{
+  hide('dominoLobbyPanel');
+  dominoJoinConfig=null;
+});
+if($('dominoMenuCloseBtn'))$('dominoMenuCloseBtn').addEventListener('click',()=>{
+  hide('dominoMenuPanel');
+  if(dominoCurrentTableId)show('dominoTablePanel');
+});
+
+
+$('dominoGearBtn').onclick=()=>show('dominoMenuPanel');
+
+if($('dominoChatBtn'))$('dominoChatBtn').onclick=async()=>{
+  show('dominoChatPanel');
+  await loadDominoChat(true);
+  setTimeout(()=>$('dominoChatInput')?.focus(),80);
+};
+if($('dominoChatSendBtn'))$('dominoChatSendBtn').onclick=async()=>{
+  const input=$('dominoChatInput');
+  if(await sendDominoChat(input?.value||'','text')){input.value='';input.focus();await syncDominoTableMessages(true)}
+};
+if($('dominoChatInput'))$('dominoChatInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('dominoChatSendBtn')?.click()}
+});
+if($('dominoEmojiBtn'))$('dominoEmojiBtn').onclick=()=>{
+  $('dominoEmojiTray')?.classList.toggle('hidden');
+};
+$('dominoEmojiTray')?.querySelectorAll('[data-domino-reaction]').forEach(btn=>{
+  btn.addEventListener('click',async()=>{
+    const emoji=btn.dataset.dominoReaction;
+    $('dominoEmojiTray').classList.add('hidden');
+    const ok=await sendDominoChat(emoji,'reaction');
+    if(ok){dominoShowBigEmoji(emoji);await syncDominoTableMessages(true)}
+  });
+});
+
+if($('dominoReadyBtn'))$('dominoReadyBtn').onclick=async()=>{
+  if(!dominoCurrentTableId)return;
+  const btn=$('dominoReadyBtn');
+  const old=btn.textContent;
+  btn.disabled=true;
+  btn.textContent='CONFIRMANDO…';
+  try{
+    // 1) Confirmación persistente: NO reparte dentro de esta transacción.
+    const confirmed=await sb.rpc('rf_domino_confirm_v189',{
+      p_table_id:Number(dominoCurrentTableId)
+    });
+    if(confirmed.error)throw confirmed.error;
+
+    btn.classList.add('hidden');
+    dominoSetSyncState('Confirmado · preparando reparto…','ok');
+
+    // 2) Reparto independiente. Si falla, la confirmación ya quedó guardada.
+    try{
+      const started=await sb.rpc('rf_domino_try_start_v189',{
+        p_table_id:Number(dominoCurrentTableId)
+      });
+      if(started.error){
+        console.warn('Dominó reparto:',started.error);
+        dominoSetSyncState('Confirmado · reparto en reintento','warn');
+      }else if(started.data?.error){
+        console.warn('Dominó reparto:',started.data.error);
+        dominoSetSyncState('Confirmado · reparto en reintento','warn');
+      }else if(started.data?.started){
+        dominoSetSyncState('Repartiendo fichas…','ok');
+      }
+    }catch(startError){
+      console.warn('Dominó reparto omitido:',startError);
+      dominoSetSyncState('Confirmado · reparto en reintento','warn');
+    }
+
+    // Leer el estado sin disparar otro tick inmediatamente desde el botón.
+    await loadDominoState(true,true);
+  }catch(e){
+    alert(errText(e));
+  }finally{
+    btn.disabled=false;
+    btn.textContent=old;
+  }
+};
+
+if($('dominoSurrenderBtn'))$('dominoSurrenderBtn').onclick=dominoLeaveToLobby;
+
+async function dominoLeaveToLobby(){
+  if(!dominoCurrentTableId){
+    hide('dominoTablePanel');hide('dominoMenuPanel');hide('dominoExitConfirmPanel');
+    await openDominoLobby();return;
+  }
+  const tid=Number(dominoCurrentTableId);
+  const buttons=[$('dominoBackBtn'),$('dominoExitBtn'),$('dominoSurrenderBtn')].filter(Boolean);
+  buttons.forEach(b=>b.disabled=true);
+  try{
+    const {error}=await sb.rpc('rf_domino_back_v11',{p_table_id:tid});
+    if(error)throw error;
+    hide('dominoMenuPanel');
+    hide('dominoExitConfirmPanel');
+    hide('dominoTablePanel');
+    dominoStopPolling();
+    await dominoStopRealtime();
+    dominoCurrentTableId=null;
+    dominoResetTableEffects();
+    dominoReleaseLandscape();
+    await loadMe();
+    renderMe();
+    await openDominoLobby();
+  }catch(e){
+    alert(errText(e));
+  }finally{
+    buttons.forEach(b=>b.disabled=false);
+  }
+}
+$('dominoBackBtn').onclick=dominoLeaveToLobby;
+$('dominoExitBtn').onclick=dominoLeaveToLobby;
+$('dominoExitCancelBtn').onclick=()=>hide('dominoExitConfirmPanel');
+$('dominoExitConfirmBtn').onclick=dominoLeaveToLobby;
+if($('dominoAvatarFile'))$('dominoAvatarFile').addEventListener('change',async(e)=>{
+  const file=e.target.files?.[0];
+  if(file)await uploadDominoAvatar(file);
+});
+
+if($('dominoPlayBtn'))$('dominoPlayBtn').addEventListener('click',openDominoLobby);
+
+// Administración de las dos modalidades de Dominó.
+async function loadDominoAdminConfigs(){
+  if(me?.role!=='leader'||!$('dominoAdminConfigs'))return;
+  const {data,error}=await sb.rpc('rf_domino_admin_configs_v11');if(error){$('dominoAdminConfigs').innerHTML='<div class="tiny">'+esc(errText(error))+'</div>';return}
+  $('dominoAdminConfigs').innerHTML=(data||[]).map(c=>`<div class="domino-admin-card" data-domino-admin="${c.id}"><h4>${esc(c.name)} · ${dominoConfigModeLabel(c.mode)}</h4><div class="domino-admin-grid"><label>Nombre<input class="field d-name" value="${esc(c.name)}"></label><label>Activa<select class="field d-active"><option value="1" ${c.active?'selected':''}>Sí</option><option value="0" ${!c.active?'selected':''}>No</option></select></label><label>Entrada mínima FC<input class="field d-entry" type="number" step="0.001" value="${c.min_entry}"></label><label>Bote por jugador FC<input class="field d-stake" type="number" step="0.001" value="${c.hand_stake}"></label><label>Comisión %<input class="field d-comm" type="number" step="0.001" value="${c.commission_pct}"></label><label>Costo de pase FC<input class="field d-pass" type="number" step="0.001" value="${c.pass_fee}"></label><label>Mínimo para seguir FC<input class="field d-continue" type="number" step="0.001" value="${c.min_continue_balance}"></label><label>Tiempo por turno (s)<input class="field d-turn" type="number" min="5" max="120" value="${c.turn_seconds}"></label><label>Barajado (s)<input class="field d-shuffle" type="number" min="1" max="15" step="0.5" value="${c.shuffle_seconds}"></label></div><button class="action green d-save">Guardar esta mesa</button></div>`).join('');
+  $('dominoAdminConfigs').querySelectorAll('[data-domino-admin]').forEach(card=>card.querySelector('.d-save').onclick=()=>saveDominoAdminCard(card));
+}
+async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmin),q=s=>card.querySelector(s);const payload={p_id:id,p_name:q('.d-name').value.trim(),p_min_entry:Number(q('.d-entry').value),p_hand_stake:Number(q('.d-stake').value),p_commission_pct:Number(q('.d-comm').value),p_pass_fee:Number(q('.d-pass').value),p_min_continue:Number(q('.d-continue').value),p_turn_seconds:Number(q('.d-turn').value),p_shuffle_seconds:Number(q('.d-shuffle').value),p_active:q('.d-active').value==='1'};const {error}=await sb.rpc('rf_domino_admin_save_config_v11',payload);if(error)return msg('dominoAdminMsg',errText(error));msg('dominoAdminMsg','Configuración de Dominó guardada.');await loadDominoAdminConfigs()}
+
 buildWheel();
 (async()=>{
   loadSavedLoginPreference();
@@ -2168,10 +4394,176 @@ buildWheel();
       $('appView').classList.add('hidden');$('authView').classList.remove('hidden');
     }
   });
-})().catch(e=>msg('authMsg',errText(e)));
+})().catch(e=>{
+  console.error('Inicio MAIKET FLASH:',e);
+  try{
+    $('appView')?.classList.add('hidden');
+    $('authView')?.classList.remove('hidden');
+    msg('authMsg','No se pudo iniciar la aplicación: '+errText(e));
+  }catch(_){}
+});
 </script>
 
+<!-- HTML 1.0.2: jugadas guardadas reforzadas en SQL, apuestas sin reembolso, bonos automáticos desactivados, lista completa de usuarios líder, panel Juegos con imagen oficial elegida (Póker/Billar/Juegos Slot/Blackjack) y audio con activación física. -->
 <!-- V1.4: sonido reforzado en Safari/iPhone, contraseña del panel líder opcional mediante interruptor y duración visual del giro configurable desde administración. -->
+<!-- HTML 1.2.3: Botón Juegos blindado: ID del lobby correcto + listener de seguridad independiente + apertura inmediata antes de consultar Supabase. -->
+
+<script id="mfBuildSync">
+(function(){
+  const CURRENT_BUILD='1.8.9';
+  let checking=false,noticeShown=false,lastReloadTarget='';
+
+  function parseVersion(v){
+    const m=String(v||'').trim().match(/^(\d+)\.(\d+)\.(\d+)$/);
+    return m ? [Number(m[1]),Number(m[2]),Number(m[3])] : null;
+  }
+  function compareVersions(a,b){
+    const A=parseVersion(a),B=parseVersion(b);
+    if(!A||!B)return 0;
+    for(let i=0;i<3;i++){
+      if(A[i]>B[i])return 1;
+      if(A[i]<B[i])return -1;
+    }
+    return 0;
+  }
+  function showUpdateNotice(latest){
+    if(noticeShown)return;
+    noticeShown=true;
+    const box=document.createElement('div');
+    box.className='mf-update-toast';
+    box.id='mfUpdateToast';
+    box.innerHTML='Nueva versión disponible ('+latest+'). Se actualizará al salir de la mesa.';
+    document.body.appendChild(box);
+  }
+  function clearBadPending(){
+    try{
+      const pending=localStorage.getItem('mf_pending_build');
+      if(pending && compareVersions(pending,CURRENT_BUILD)<=0){
+        localStorage.removeItem('mf_pending_build');
+      }
+    }catch(e){}
+  }
+  function goToNewerBuild(latest){
+    if(compareVersions(latest,CURRENT_BUILD)<=0)return;
+    if(lastReloadTarget===latest)return;
+    lastReloadTarget=latest;
+    const next=new URL(location.href);
+    next.searchParams.delete('__mf_check');
+    next.searchParams.set('v',latest);
+    next.searchParams.set('_refresh',Date.now().toString());
+    location.replace(next.toString());
+  }
+  async function checkBuild(){
+    if(checking)return;
+    checking=true;
+    try{
+      const url=new URL(location.href);
+      url.searchParams.delete('v');
+      url.searchParams.delete('_refresh');
+      url.searchParams.set('__mf_check',Date.now().toString());
+      const r=await fetch(url.toString(),{
+        cache:'no-store',
+        headers:{'Cache-Control':'no-cache, no-store, must-revalidate','Pragma':'no-cache'}
+      });
+      if(!r.ok)return;
+      const text=await r.text();
+      const m=text.match(/data-app-build=["']([^"']+)["']/i);
+      const latest=m&&m[1];
+      if(!latest)return;
+
+      if(compareVersions(latest,CURRENT_BUILD)<=0){
+        clearBadPending();
+        return;
+      }
+
+      const inDomino=(typeof dominoCurrentTableId!=='undefined'&&!!dominoCurrentTableId);
+      if(inDomino){
+        localStorage.setItem('mf_pending_build',latest);
+        showUpdateNotice(latest);
+        return;
+      }
+      goToNewerBuild(latest);
+    }catch(e){
+    }finally{
+      checking=false;
+    }
+  }
+  function applyPendingBuild(){
+    try{
+      const pending=localStorage.getItem('mf_pending_build');
+      if(!pending)return;
+      const inDomino=(typeof dominoCurrentTableId!=='undefined'&&!!dominoCurrentTableId);
+      if(compareVersions(pending,CURRENT_BUILD)>0 && !inDomino){
+        localStorage.removeItem('mf_pending_build');
+        goToNewerBuild(pending);
+      }else if(compareVersions(pending,CURRENT_BUILD)<=0){
+        localStorage.removeItem('mf_pending_build');
+      }
+    }catch(e){}
+  }
+
+  clearBadPending();
+  window.mfCheckBuild=checkBuild;
+  window.addEventListener('focus',checkBuild);
+  window.addEventListener('online',checkBuild);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkBuild();});
+  setTimeout(applyPendingBuild,300);
+  setTimeout(checkBuild,1200);
+  setInterval(checkBuild,15000);
+})();
+</script>
+
+<!-- 1.4.0: mesa premium aprobada; sin flechas; extremos reales iluminados; sonido Ruleta/Dominó independiente. -->
+<!-- HTML 1.4.0: mesa fija premium; fichas negras con puntos dorados clásicos; dobles cruzados; arrastre izquierda/derecha; caída CLAC; pase automático; perfiles redondos. -->
+
+<!-- HTML 1.6.0: usa la ruta REAL images2/Mesa de Dominó Flash Coin.png; aviso de solicitud se muestra una sola vez. SQL permanece 1.4.0. -->
+
+<script>
+(function dominoTableImageLoaderV150(){
+  const REL='images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.8.9';
+  const PAGES='https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.8.9';
+  const RAW='https://raw.githubusercontent.com/cakon170812-hub/marketflsh/main/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.8.9';
+
+  function use(url){
+    document.documentElement.style.setProperty('--domino-table-image',`url("${url}")`);
+  }
+
+  function tryLoad(url){
+    return new Promise((resolve,reject)=>{
+      const img=new Image();
+      img.onload=()=>resolve(url);
+      img.onerror=()=>reject(new Error('No cargó '+url));
+      img.src=url+(url.includes('?')?'&':'?')+'_cb='+Date.now();
+    });
+  }
+
+  (async()=>{
+    for(const url of [PAGES,REL,RAW]){
+      try{
+        await tryLoad(url);
+        use(url);
+        document.documentElement.dataset.dominoImage='ok';
+        return;
+      }catch(e){}
+    }
+    document.documentElement.dataset.dominoImage='error';
+    console.warn('No se pudo cargar la imagen real de la mesa desde images2.');
+  })();
+})();
+</script>
+
+
+<!-- HTML 1.6.0: la imagen aprobada es fondo visual; controles, jugadores, fichas, chat, emojis, pase, ronda y salida son HTML reales y funcionales. -->
+<!-- HTML 1.8.9: mesa limpia, sin Pasar/Repartir/Copa; chat por asiento, emoji grande, saldo y bote visibles. -->
+
+<div id="dominoRotateGuard" aria-live="polite">
+  <div class="domino-rotate-card">
+    <div class="domino-rotate-icon">📱↻</div>
+    <div class="domino-rotate-title">Gira el teléfono</div>
+    <div class="domino-rotate-text">La mesa de Dominó se juega en horizontal. Gira el dispositivo para continuar.</div>
+  </div>
+</div>
+
 </body>
 </html>
 
@@ -2184,3 +4576,8 @@ buildWheel();
 
 <!-- V1.1: confirmación por correo para registros nuevos + confirmación previa de envío/solicitud de Promotor + porcentaje global de ganador efectivo solo en administración. -->
 <!-- V1.2: URL pública fija de GitHub Pages para confirmación de correo, recuperación de contraseña y enlaces de referido; evita localhost:3000. -->
+
+<!-- HTML 1.1: Dominó multijugador 2–4, mesas automáticas, saldo de mesa, comisión, pases pagados, auto-jugada, salida segura y administración editable. -->
+<!-- HTML 1.2: Juegos abre directo al Dominó; lobby con solo dos mesas, fondo Dominó, tira de entrada, espera con spinner y sincronización Realtime + respaldo por polling. -->
+<!-- HTML 1.2.1: Corrección del botón Juegos: el panel de las dos mesas abre inmediatamente y carga Supabase dentro del panel. -->
+<!-- HTML 1.2.2: Reparación real del botón Juegos: se corrige el id malformed de dominoLobbyPanel y show/hide quedan protegidos. -->
