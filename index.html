@@ -1721,6 +1721,382 @@ input,textarea{touch-action:auto}
 }
 
 </style>
+
+<style id="mfV01RealisticDominoFinal">
+/* ============================================================
+   HTML 0.1 · MESA REALISTA FINAL + RULETA COMPACTA
+   Base visual oficial: mesa cercana, fichas centradas, perfiles limpios.
+   ============================================================ */
+
+/* ---------- RULETA: Fijar monto arriba de la barra de resultado ---------- */
+#appView .roulette-result-tools{
+  flex:0 0 auto!important;
+  width:100%!important;
+  min-height:34px!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:flex-start!important;
+  padding:0 2px 2px!important;
+  margin:-1px 0 0!important;
+}
+#appView .roulette-result-tools #fixedStakeActionBtn{
+  min-width:132px!important;
+  width:auto!important;
+  min-height:36px!important;
+  padding:7px 12px!important;
+  border-radius:12px!important;
+  font-size:10px!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.28)!important;
+}
+#appView .roulette-bet-compact{
+  grid-template-columns:minmax(0,1fr) minmax(112px,132px)!important;
+  gap:6px!important;
+  margin:-1px 0 3px!important;
+  align-items:end!important;
+}
+#appView .roulette-stake-head{display:none!important}
+#appView .stake-label-row{
+  min-height:26px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:6px!important;
+  padding:0 2px!important;
+}
+#appView .stake-label-row label{
+  font-size:11px!important;
+  font-weight:950!important;
+}
+#appView .stake-label-row #roundBetTotal{
+  margin:0!important;
+  min-height:24px!important;
+  display:flex!important;
+  align-items:center!important;
+  padding:4px 7px!important;
+  font-size:9px!important;
+}
+#appView .stake-row{
+  grid-template-columns:52px minmax(0,1fr) 52px!important;
+  gap:5px!important;
+  min-height:49px!important;
+}
+#appView .stake-row button{
+  width:52px!important;
+  min-width:52px!important;
+  height:49px!important;
+  min-height:49px!important;
+  border-radius:12px!important;
+  font-size:26px!important;
+}
+#appView .stake-row .stake{
+  height:49px!important;
+  min-height:49px!important;
+  font-size:18px!important;
+  border-radius:12px!important;
+}
+#appView .roulette-option-btn{
+  min-height:49px!important;
+  border-radius:12px!important;
+  font-size:10px!important;
+  padding:8px 9px!important;
+}
+#appView .numbers{gap:5px!important}
+#appView .num,#appView .num-action{
+  min-height:52px!important;
+  border-radius:12px!important;
+}
+#appView .num{font-size:clamp(15px,3.8vw,18px)!important}
+#appView .result{
+  min-height:24px!important;
+  margin:0 0 2px!important;
+  border-radius:11px!important;
+  font-size:10px!important;
+  padding:4px 7px!important;
+}
+@media(max-width:520px){
+  #appView .roulette-result-tools{min-height:31px!important;padding-bottom:1px!important}
+  #appView .roulette-result-tools #fixedStakeActionBtn{min-width:118px!important;min-height:33px!important;padding:6px 9px!important;font-size:9px!important}
+  #appView .roulette-bet-compact{grid-template-columns:minmax(0,1fr) 104px!important;gap:4px!important}
+  #appView .stake-row{grid-template-columns:47px minmax(0,1fr) 47px!important;min-height:46px!important}
+  #appView .stake-row button{width:47px!important;min-width:47px!important;height:46px!important;min-height:46px!important}
+  #appView .stake-row .stake,#appView .roulette-option-btn{height:46px!important;min-height:46px!important}
+  #appView .num,#appView .num-action{min-height:49px!important}
+}
+@media(max-height:720px){
+  #appView .roulette-result-tools{min-height:29px!important}
+  #appView .roulette-result-tools #fixedStakeActionBtn{min-height:31px!important;padding-top:5px!important;padding-bottom:5px!important}
+  #appView .stake-row,#appView .stake-row button,#appView .stake-row .stake,#appView .roulette-option-btn{height:43px!important;min-height:43px!important}
+  #appView .num,#appView .num-action{min-height:46px!important}
+}
+
+/* ---------- DOMINÓ: mesa cercana, sin círculo/óvalo artificial ---------- */
+#dominoTablePanel{background:#050504!important}
+.domino-game-panel{background:#050504!important}
+.domino-stage{
+  inset:0!important;
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background-image:
+    linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.13)),
+    var(--domino-table-image)!important;
+  background-size:132% auto!important;
+  background-position:center 54%!important;
+  background-repeat:no-repeat!important;
+  overflow:hidden!important;
+}
+.domino-stage:before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:0!important;
+  opacity:1!important;
+  pointer-events:none!important;
+  transform:none!important;
+  animation:none!important;
+  border:0!important;
+  border-radius:0!important;
+  background:
+    radial-gradient(ellipse at 50% 48%,rgba(255,226,149,.045) 0,rgba(0,0,0,0) 40%,rgba(0,0,0,.18) 82%),
+    linear-gradient(90deg,rgba(19,7,2,.22),transparent 10%,transparent 90%,rgba(19,7,2,.22))!important;
+}
+.domino-stage:after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:1!important;
+  pointer-events:none!important;
+  border:0!important;
+  border-radius:0!important;
+  background:linear-gradient(180deg,rgba(0,0,0,.13),transparent 14%,transparent 82%,rgba(0,0,0,.20))!important;
+  box-shadow:inset 0 0 90px rgba(0,0,0,.17)!important;
+}
+.domino-photo-veil{display:none!important}
+.domino-inside-status{display:none!important}
+.domino-table-brand{
+  left:2.2%!important;top:2.2%!important;
+  font-size:clamp(8px,1.25vw,14px)!important;
+  opacity:.92!important;
+}
+
+/* Bote arriba, lejos de fichas y del perfil propio. */
+.domino-inside-pot{
+  left:50%!important;top:10.5%!important;right:auto!important;bottom:auto!important;
+  transform:translateX(-50%)!important;
+  min-width:116px!important;
+  padding:6px 13px!important;
+  border-radius:999px!important;
+  background:linear-gradient(145deg,rgba(92,47,16,.95),rgba(31,16,7,.96))!important;
+  border:1px solid rgba(255,197,80,.78)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,239,180,.15)!important;
+  z-index:29!important;
+}
+.domino-inside-pot span{font-size:7px!important}.domino-inside-pot b{font-size:11px!important}
+
+/* Controles compactos en una sola zona superior derecha. */
+.domino-live-top-controls{
+  top:max(8px,env(safe-area-inset-top))!important;
+  right:max(8px,env(safe-area-inset-right))!important;
+  gap:5px!important;z-index:42!important
+}
+.domino-live-icon,#dominoSurrenderBtn{
+  width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;
+  border-radius:12px!important;font-size:15px!important;
+  backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)
+}
+.domino-live-actions{
+  top:max(8px,env(safe-area-inset-top))!important;
+  right:calc(max(8px,env(safe-area-inset-right)) + 86px)!important;
+  bottom:auto!important;left:auto!important;z-index:41!important
+}
+
+/* Perfiles compactos, sin grandes tarjetas. Foto fija + nombre + saldo circular. */
+.domino-seat{
+  width:auto!important;min-width:88px!important;max-width:132px!important;min-height:0!important;
+  display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;
+  gap:5px!important;padding:2px!important;
+  border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0!important;
+  pointer-events:auto!important;z-index:31!important
+}
+.domino-avatar-wrap{
+  position:relative!important;width:46px!important;height:46px!important;min-width:46px!important;
+  margin:0!important;flex:0 0 46px!important
+}
+.domino-seat .domino-avatar{
+  width:42px!important;height:42px!important;border-radius:50%!important;
+  border:2px solid rgba(241,195,84,.85)!important;
+  background:radial-gradient(circle at 35% 28%,#3a342b,#0d0c09 72%)!important;
+  box-shadow:0 5px 13px rgba(0,0,0,.46)!important;
+  overflow:hidden!important;pointer-events:auto!important;cursor:pointer!important
+}
+.domino-avatar-photo{display:block!important;width:100%!important;height:100%!important;border-radius:50%!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}
+.domino-turn-ring{inset:-2px!important}
+.domino-turn-seconds{top:-10px!important;min-width:23px!important;height:18px!important;font-size:8px!important}
+.domino-seat .domino-seat-name{
+  order:2!important;max-width:74px!important;margin:0!important;padding:4px 7px!important;
+  border-radius:999px!important;background:rgba(3,8,6,.86)!important;border:1px solid rgba(255,222,124,.32)!important;
+  font-size:clamp(7px,.95vw,10px)!important;color:#fff7dc!important;text-shadow:0 1px 3px #000!important;
+  overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important
+}
+.domino-seat .domino-seat-info{display:none!important}
+.domino-seat .seat-bal{
+  order:3!important;flex:0 0 47px!important;width:47px!important;height:47px!important;margin:0!important;padding:3px!important;
+  border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  text-align:center!important;line-height:1.05!important;white-space:normal!important;
+  color:#ffe17a!important;font-size:6.8px!important;font-weight:1000!important;
+  background:radial-gradient(circle at 35% 28%,rgba(65,46,14,.98),rgba(11,10,7,.98) 72%)!important;
+  border:1px solid rgba(255,202,76,.70)!important;box-shadow:0 5px 13px rgba(0,0,0,.43),inset 0 1px 0 rgba(255,248,201,.13)!important
+}
+.domino-seat .seat-bal:before{display:none!important}
+.domino-see-message{display:none!important}
+
+/* El usuario propio queda a la izquierda del rack; nunca encima de sus fichas. */
+.domino-seat.s1{left:2.2%!important;bottom:3.1%!important;top:auto!important;right:auto!important;transform:none!important}
+.domino-seat.s2{right:2.0%!important;top:49%!important;left:auto!important;bottom:auto!important;transform:translateY(-50%)!important}
+.domino-seat.s3{left:50%!important;top:2.0%!important;right:auto!important;bottom:auto!important;transform:translateX(-50%)!important}
+.domino-seat.s4{left:2.0%!important;top:49%!important;right:auto!important;bottom:auto!important;transform:translateY(-50%)!important}
+
+/* Mano central inferior; no comparte espacio con el perfil. */
+.domino-hand{
+  left:50%!important;bottom:1.8%!important;transform:translateX(-50%)!important;
+  width:min(58%,560px)!important;min-height:70px!important;
+  padding:6px 10px!important;gap:3px!important;
+  border-radius:13px!important;
+  background:linear-gradient(180deg,rgba(99,50,18,.92),rgba(38,19,8,.96))!important;
+  border:1px solid rgba(231,163,67,.66)!important;
+  box-shadow:0 10px 25px rgba(0,0,0,.44),inset 0 2px 0 rgba(255,215,129,.11)!important;
+  z-index:26!important
+}
+
+/* Cadena en el verdadero centro de la mesa. */
+:root{
+  --domino-board-tile-w:48px;
+  --domino-board-tile-h:28px;
+  --domino-board-row-step:30px;
+  --domino-board-row-w:528px;
+}
+.domino-board{
+  left:50%!important;top:47%!important;right:auto!important;bottom:auto!important;
+  transform:translate(-50%,-50%)!important;
+  width:min(72%,700px)!important;height:40%!important;max-height:none!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:0!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;
+  box-shadow:none!important;filter:none!important;overflow:visible!important;z-index:15!important
+}
+.domino-board-row{
+  width:min(100%,var(--domino-board-row-w))!important;
+  height:var(--domino-board-row-step)!important;min-height:var(--domino-board-row-step)!important;
+  display:flex!important;align-items:center!important;gap:0!important;
+  padding:0!important;margin:0!important;background:transparent!important;border:0!important;box-shadow:none!important;overflow:visible!important
+}
+.domino-board-row.only-row{justify-content:center!important}
+.domino-board-row.flow-right:not(.only-row){flex-direction:row!important;justify-content:flex-start!important}
+.domino-board-row.flow-left:not(.only-row){flex-direction:row-reverse!important;justify-content:flex-start!important}
+.domino-board-row.partial-last.flow-right{justify-content:flex-end!important}
+.domino-board-row.partial-last.flow-left{justify-content:flex-end!important}
+
+/* Fichas blancas reales, pegadas y sin placas negras/fondos falsos. */
+.domino-piece{
+  background:linear-gradient(145deg,#fffefb 0%,#f4f2ec 60%,#d9d5cc 100%)!important;
+  border:1px solid #8e8a82!important;color:#090a09!important;border-radius:6px!important;
+  box-shadow:0 4px 8px rgba(0,0,0,.36),inset 1px 1px 0 rgba(255,255,255,.98),inset -1px -1px 2px rgba(0,0,0,.08)!important;
+  filter:none!important
+}
+.domino-piece .domino-face{
+  display:grid!important;
+  grid-template-columns:1fr .22fr 1fr!important;
+  grid-template-rows:1fr 1fr 1fr!important;
+  align-items:center!important;justify-items:center!important;
+  padding:2px 3px!important
+}
+.domino-piece .domino-pip,.domino-piece .domino-pip.on{
+  background:#080908!important;box-shadow:inset 0 1px 1px rgba(255,255,255,.20),0 1px 1px rgba(0,0,0,.16)!important
+}
+.domino-piece .domino-divider{background:#161716!important;opacity:.90!important;box-shadow:none!important}
+.domino-piece.board-piece{
+  width:var(--domino-board-tile-w)!important;height:var(--domino-board-tile-h)!important;
+  min-width:var(--domino-board-tile-w)!important;min-height:var(--domino-board-tile-h)!important;
+  max-width:var(--domino-board-tile-w)!important;max-height:var(--domino-board-tile-h)!important;
+  flex:0 0 var(--domino-board-tile-w)!important;margin:0!important
+}
+.domino-piece.board-piece.domino-double{
+  width:var(--domino-board-tile-h)!important;min-width:var(--domino-board-tile-h)!important;max-width:var(--domino-board-tile-h)!important;
+  height:var(--domino-board-tile-w)!important;min-height:var(--domino-board-tile-w)!important;max-height:var(--domino-board-tile-w)!important;
+  flex:0 0 var(--domino-board-tile-w)!important;margin-left:10px!important;margin-right:10px!important
+}
+.domino-piece.board-piece.domino-turn-down:not(.domino-double){transform:rotate(90deg)!important;transform-origin:center!important;z-index:5!important}
+.domino-piece.board-piece .domino-pip{width:3.6px!important;height:3.6px!important}
+.domino-piece.hand-piece{width:43px!important;height:68px!important;padding:4px!important}
+.domino-piece.hand-piece .domino-pip{width:4.8px!important;height:4.8px!important}
+
+/* Chat fijo eliminado: solo queda Ver mensajes; desde ahí se lee y se escribe. */
+#dominoMiniChat{display:none!important}
+#dominoAllMessagesBtn{
+  right:max(9px,env(safe-area-inset-right))!important;
+  bottom:max(10px,env(safe-area-inset-bottom))!important;
+  min-width:118px!important;min-height:38px!important;
+  border-radius:12px!important;font-size:8px!important;z-index:42!important
+}
+.domino-seat-bubble{
+  max-width:min(230px,31%)!important;
+  padding:7px 10px!important;
+  border-radius:13px!important;
+  font-size:9px!important;line-height:1.25!important;
+  background:rgba(2,7,7,.93)!important;border:1px solid rgba(255,231,159,.35)!important;
+  box-shadow:0 9px 22px rgba(0,0,0,.45)!important;z-index:43!important
+}
+.domino-seat-bubble.s1{left:16%!important;bottom:16%!important;transform:none!important}
+.domino-seat-bubble.s1.show{transform:none!important}
+.domino-seat-bubble.s2{right:13%!important;top:49%!important}
+.domino-seat-bubble.s3{left:50%!important;top:14%!important}
+.domino-seat-bubble.s4{left:13%!important;top:49%!important}
+
+/* El contador central desaparece durante la jugada para no tapar la mesa. */
+.domino-center-status.playing-quiet{display:none!important}
+
+/* ---------- Perfil de jugador ---------- */
+.domino-profile-card{max-width:390px!important;text-align:center!important}
+.domino-profile-photo-wrap{width:118px;height:118px;margin:8px auto 12px;border-radius:50%;padding:4px;background:linear-gradient(145deg,#f6ca63,#7c4e13);box-shadow:0 12px 28px rgba(0,0,0,.40)}
+.domino-profile-photo{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:#111812;color:#ffe49a;font-weight:1000;font-size:28px;cursor:pointer;background-size:cover;background-position:center;background-repeat:no-repeat}
+.domino-profile-name{font-size:18px;font-weight:950;color:#fff2bc;margin-bottom:5px}
+.domino-profile-id{font-size:12px;color:#cbd6cf;margin-bottom:12px}.domino-profile-id b{color:#ffe47f}
+.domino-profile-balance{display:inline-flex;align-items:center;justify-content:center;min-width:110px;padding:7px 12px;border-radius:999px;border:1px solid rgba(255,211,82,.45);background:#0c140f;color:#ffe178;font-weight:950;font-size:12px}
+#dominoProfileChangePhotoBtn{margin-top:12px!important}
+#dominoPhotoFullscreen{background:rgba(0,0,0,.96)!important;z-index:999999!important}
+#dominoPhotoFullscreen .domino-photo-full-panel{position:relative;width:100vw;height:100dvh;display:grid;place-items:center;padding:max(18px,env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));overflow:hidden}
+#dominoPhotoFullscreenImg{max-width:94vw;max-height:88dvh;object-fit:contain;border-radius:16px;box-shadow:0 18px 70px rgba(0,0,0,.65)}
+#dominoPhotoFullscreenClose{position:absolute;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.26);background:rgba(6,8,8,.84);color:#fff;font-size:20px;z-index:2}
+
+@media(max-width:740px){
+  .domino-stage{background-size:142% auto!important;background-position:center 54%!important}
+  .domino-live-icon,#dominoSurrenderBtn{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}
+  .domino-live-actions{right:calc(max(7px,env(safe-area-inset-right)) + 76px)!important}
+  .domino-seat{min-width:70px!important;max-width:105px!important;gap:3px!important}
+  .domino-avatar-wrap{width:39px!important;height:39px!important;min-width:39px!important;flex-basis:39px!important}
+  .domino-seat .domino-avatar{width:36px!important;height:36px!important}
+  .domino-seat .domino-seat-name{max-width:58px!important;padding:3px 5px!important;font-size:7px!important}
+  .domino-seat .seat-bal{width:40px!important;height:40px!important;flex-basis:40px!important;font-size:5.8px!important}
+  .domino-seat.s1{left:1.2%!important;bottom:3%!important}.domino-seat.s2{right:.8%!important}.domino-seat.s4{left:.8%!important}.domino-seat.s3{top:1.5%!important}
+  .domino-inside-pot{top:10%!important;min-width:96px!important;padding:5px 9px!important}
+  :root{--domino-board-tile-w:40px;--domino-board-tile-h:24px;--domino-board-row-step:26px;--domino-board-row-w:400px}
+  .domino-board{top:46.5%!important;width:min(72%,520px)!important;height:39%!important}
+  .domino-piece.board-piece .domino-pip{width:3px!important;height:3px!important}
+  .domino-piece.hand-piece{width:37px!important;height:58px!important}.domino-piece.hand-piece .domino-pip{width:4px!important;height:4px!important}
+  .domino-hand{width:min(59%,410px)!important;min-height:59px!important;padding:5px 7px!important}
+  #dominoAllMessagesBtn{min-width:103px!important;min-height:34px!important;font-size:7px!important}
+  .domino-seat-bubble{font-size:8px!important;max-width:30%!important}
+}
+@media(max-height:430px) and (orientation:landscape){
+  .domino-stage{background-size:146% auto!important;background-position:center 55%!important}
+  .domino-inside-pot{top:9.5%!important}
+  .domino-board{top:46%!important;height:38%!important}
+  .domino-seat.s1{bottom:2.2%!important}
+  .domino-hand{bottom:1.2%!important;min-height:55px!important}
+  #dominoAllMessagesBtn{bottom:7px!important}
+}
+</style>
+
 </head>
 <body>
 
@@ -4958,7 +5334,7 @@ async function syncDominoTableMessages(force=false){
   if(!force&&key===dominoTableMessageLastId)return;
   dominoTableMessageLastId=key;
   const age=Date.now()-new Date(row.created_at||0).getTime();
-  if(force||age<6500)dominoShowSeatMessage(row);
+  if(force||age<10500)dominoShowSeatMessage(row);
 }
 function dominoUpdateLiveControls(){
   // 1.7.0: no existen botones manuales de Pasar, Repartir ni Ronda.
@@ -5325,8 +5701,8 @@ buildWheel();
   let checking=false,noticeShown=false,lastReloadTarget='';
 
   function parseVersion(v){
-    const m=String(v||'').trim().match(/^(\d+)\.(\d+)\.(\d+)$/);
-    return m ? [Number(m[1]),Number(m[2]),Number(m[3])] : null;
+    const m=String(v||'').trim().match(/^(\d+)\.(\d+)(?:\.(\d+))?$/);
+    return m ? [Number(m[1]),Number(m[2]),Number(m[3]||0)] : null;
   }
   function compareVersions(a,b){
     const A=parseVersion(a),B=parseVersion(b);
@@ -5519,6 +5895,178 @@ buildWheel();
 })();
 </script>
 
+
+<div id="dominoProfilePanel" class="overlay"><div class="panel domino-profile-card">
+  <button id="dominoProfileCloseBtn" type="button" class="close">✕</button>
+  <h2>Perfil del jugador</h2>
+  <div class="domino-profile-photo-wrap"><div id="dominoProfilePhoto" class="domino-profile-photo" role="button" tabindex="0" aria-label="Ver foto a pantalla completa"></div></div>
+  <div id="dominoProfileName" class="domino-profile-name">Jugador</div>
+  <div id="dominoProfileId" class="domino-profile-id">ID <b>———</b></div>
+  <div id="dominoProfileBalance" class="domino-profile-balance">0.000 FC</div>
+  <button id="dominoProfileChangePhotoBtn" type="button" class="action blue hidden">📷 Cambiar mi foto</button>
+</div></div>
+<div id="dominoPhotoFullscreen" class="overlay"><div class="domino-photo-full-panel">
+  <button id="dominoPhotoFullscreenClose" type="button" aria-label="Cerrar foto">✕</button>
+  <img id="dominoPhotoFullscreenImg" alt="Foto de perfil ampliada">
+</div></div>
+
+
+<script id="mfV01RealisticDominoFinalJS">
+(function(){
+  /* Mueve Fijar monto al espacio libre inmediatamente encima de la barra de resultado. */
+  const result=document.getElementById('resultText');
+  const fixed=document.getElementById('fixedStakeActionBtn');
+  const total=document.getElementById('roundBetTotal');
+  const labelRow=document.querySelector('#appView .stake-label-row');
+  if(result&&fixed){
+    let tools=document.querySelector('#appView .roulette-result-tools');
+    if(!tools){
+      tools=document.createElement('div');
+      tools.className='roulette-result-tools';
+      result.parentNode.insertBefore(tools,result);
+    }
+    tools.appendChild(fixed);
+  }
+  if(total&&labelRow)labelRow.appendChild(total);
+
+  /* El chat rápido fijo ya no ocupa pantalla. Ver mensaje abre el chat completo, donde se ve y se escribe. */
+  const allBtn=document.getElementById('dominoAllMessagesBtn');
+  if(allBtn){
+    allBtn.querySelector('span') && (allBtn.querySelector('span').textContent='Ver mensajes');
+  }
+
+  /* Perfil visual: cualquier avatar abre información; el propio permite cambiar la foto. */
+  window.dominoAvatarHTML=function(seat,name,mine){
+    const url=String(seat?.avatar_url||'').trim();
+    if(url){
+      const safe=esc(url);
+      return `<span class="domino-avatar-photo" style="background-image:url(&quot;${safe}&quot;)" aria-label="Foto de ${esc(name||'jugador')}"></span>`;
+    }
+    return esc(dominoInitials(name,seat?.public_id));
+  };
+
+  window.openDominoProfile=function(userId){
+    const s=(dominoState?.seats||[]).find(x=>String(x.user_id)===String(userId));
+    if(!s)return;
+    const mine=String(s.user_id)===String(dominoState?.me);
+    const name=s.name||s.full_name||s.public_id||'Jugador';
+    const url=String(s.avatar_url||'').trim();
+    const photo=document.getElementById('dominoProfilePhoto');
+    document.getElementById('dominoProfileName').textContent=name+(mine?' · TÚ':'');
+    document.getElementById('dominoProfileId').innerHTML='ID <b>'+esc(s.public_id||'———')+'</b>';
+    document.getElementById('dominoProfileBalance').textContent=dominoMoney(s.table_balance)+' FC';
+    if(photo){
+      photo.dataset.photoUrl=url;
+      photo.textContent=url?'':dominoInitials(name,s.public_id);
+      photo.style.backgroundImage=url?`url("${url.replace(/"/g,'%22')}")`:'none';
+    }
+    document.getElementById('dominoProfileChangePhotoBtn')?.classList.toggle('hidden',!mine);
+    show('dominoProfilePanel');
+  };
+
+  window.bindDominoSeatProfiles=function(){
+    /* Eventos delegados: no recreamos listeners cada segundo y la foto no parpadea por listeners repetidos. */
+  };
+
+  const seatsHost=document.getElementById('dominoSeats');
+  if(seatsHost&&!seatsHost.dataset.profileDelegate){
+    seatsHost.dataset.profileDelegate='1';
+    seatsHost.addEventListener('click',e=>{
+      const avatar=e.target.closest('.domino-avatar');
+      if(!avatar)return;
+      const seat=avatar.closest('.domino-seat[data-seat-user]');
+      if(!seat)return;
+      e.preventDefault();e.stopPropagation();
+      openDominoProfile(seat.dataset.seatUser);
+    });
+  }
+
+  const profileClose=document.getElementById('dominoProfileCloseBtn');
+  if(profileClose)profileClose.onclick=()=>hide('dominoProfilePanel');
+  const change=document.getElementById('dominoProfileChangePhotoBtn');
+  if(change)change.onclick=()=>{const input=document.getElementById('dominoAvatarFile');if(input){input.value='';input.click()}};
+
+  function openFullProfilePhoto(){
+    const p=document.getElementById('dominoProfilePhoto');
+    const url=String(p?.dataset.photoUrl||'');
+    if(!url)return;
+    const img=document.getElementById('dominoPhotoFullscreenImg');
+    if(img)img.src=url;
+    show('dominoPhotoFullscreen');
+  }
+  const profilePhoto=document.getElementById('dominoProfilePhoto');
+  if(profilePhoto){
+    profilePhoto.onclick=openFullProfilePhoto;
+    profilePhoto.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openFullProfilePhoto()}};
+  }
+  const fullClose=document.getElementById('dominoPhotoFullscreenClose');
+  if(fullClose)fullClose.onclick=()=>hide('dominoPhotoFullscreen');
+  const fullPanel=document.getElementById('dominoPhotoFullscreen');
+  if(fullPanel)fullPanel.addEventListener('click',e=>{if(e.target===fullPanel||e.target.classList.contains('domino-photo-full-panel'))hide('dominoPhotoFullscreen')});
+
+  /* Burbujas visibles diez segundos. */
+  window.dominoShowSeatMessage=function(row){
+    const seat=dominoSeatForUser(row?.user_id);if(!seat)return;
+    const bubble=document.getElementById('dominoSeatBubble'+seat);if(!bubble)return;
+    dominoClearSeatBubbles();
+    const isReaction=String(row?.kind||'')==='reaction';
+    bubble.className='domino-seat-bubble s'+seat+(isReaction?' reaction':'');
+    bubble.textContent=String(row?.message||'');
+    bubble.classList.add('show');
+    if(isReaction)dominoShowBigEmoji(row?.message||'');
+    clearTimeout(bubble._hideTimer);
+    bubble._hideTimer=setTimeout(()=>bubble.classList.remove('show'),isReaction?5000:10000);
+  };
+
+  /* Cadena centrada: una sola fila se centra; al llenarse, serpentea pegada al borde útil y dobla. */
+  window.dominoRows=function(board,lastMove,animateMove){
+    if(!board?.length)return '';
+    const compact=window.matchMedia?.('(max-width:740px)').matches;
+    const perRow=compact?10:11;
+    const rows=[];
+    const totalRows=Math.ceil(board.length/perRow);
+    for(let i=0;i<board.length;i+=perRow){
+      const rowNo=rows.length;
+      const slice=board.slice(i,i+perRow);
+      const flowRight=rowNo%2===0;
+      const hasNext=i+slice.length<board.length;
+      const turnLogicalIndex=hasNext?(i+slice.length-1):-1;
+      const directionClass=flowRight?'flow-right':'flow-left';
+      const onlyRow=totalRows===1?'only-row':'';
+      const partialLast=!hasNext&&totalRows>1&&slice.length<perRow?'partial-last':'';
+      const turnClass=hasNext?(flowRight?'turn-right':'turn-left'):'';
+      const html=slice.map((tile,j)=>{
+        const idx=i+j;
+        const side=lastMove?.side||'right';
+        const newIndex=side==='left'?0:board.length-1;
+        const endClasses=`${idx===0?'domino-end-left ':''}${idx===board.length-1?'domino-end-right ':''}`.trim();
+        const bendClass=idx===turnLogicalIndex?'domino-turn-down':'';
+        const dropClass=animateMove&&idx===newIndex?'just-dropped':'';
+        return dominoPiece(tile,idx,false,true,`${endClasses} ${bendClass} ${dropClass}`.trim());
+      }).join('');
+      rows.push(`<div class="domino-board-row ${directionClass} ${turnClass} ${onlyRow} ${partialLast}" data-domino-row="${rowNo}">${html}</div>`);
+    }
+    return rows.join('');
+  };
+
+  /* Oculta cualquier botón por jugador "Ver mensaje" viejo: solo queda el botón global. */
+  const originalUpdateButtons=window.dominoUpdateUserMessageButtons;
+  window.dominoUpdateUserMessageButtons=function(){
+    document.querySelectorAll('#dominoSeats .domino-see-message').forEach(btn=>btn.classList.add('hidden'));
+  };
+
+  /* El panel global conserva envío + historial. */
+  if(allBtn){
+    allBtn.onclick=async()=>{
+      show('dominoChatPanel');
+      await loadDominoChat(true).catch(()=>{});
+      setTimeout(()=>document.getElementById('dominoChatInput')?.focus(),80);
+    };
+  }
+})();
+</script>
+
+<!-- HTML 0.1 FINAL: mesa realista cercana, perfiles compactos, chat por Ver mensajes, burbujas 10 s, fichas centradas y ruleta reorganizada. -->
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
