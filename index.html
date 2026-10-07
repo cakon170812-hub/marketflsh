@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- MAIKET FLASH · HTML 1.7.0 · DOMINÓ MESA LIMPIA -->
+<!-- MAIKET FLASH · HTML 1.7.1 · DOMINÓ MESA LIMPIA -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html lang="es" data-app-build="1.7.0">
+<html lang="es" data-app-build="1.7.1">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="application-version" content="1.7.0">
+<meta name="application-version" content="1.7.1">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 1.7.0 Dominó Mesa Limpia</title>
+<title>Ruleta Flash Coin — HTML 1.7.1 Dominó Mesa Limpia</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -140,7 +140,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   position:relative;overflow:hidden;
   background:
     linear-gradient(rgba(3,9,8,.72),rgba(3,8,7,.88)),
-    url('domino_lobby_dorado.png?v=1.7.0') center/cover no-repeat !important;
+    url('domino_lobby_dorado.png?v=1.7.1') center/cover no-repeat !important;
   border:1px solid rgba(255,215,100,.65)!important;
   box-shadow:0 20px 60px rgba(0,0,0,.55), inset 0 0 80px rgba(0,0,0,.35)!important;
 }
@@ -171,7 +171,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .domino-game-panel{
   background:
     linear-gradient(rgba(2,9,6,.58),rgba(2,8,6,.72)),
-    url('domino_lobby_dorado.png?v=1.7.0') center/cover no-repeat !important;
+    url('domino_lobby_dorado.png?v=1.7.1') center/cover no-repeat !important;
 }
 .domino-stage{background:radial-gradient(ellipse at center,rgba(23,106,71,.92) 0,rgba(11,61,42,.94) 48%,rgba(5,22,15,.97) 100%)}
 .domino-center-status.waiting-player{
@@ -435,7 +435,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
    Esta capa solo cambia la visual. La lógica y el SQL permanecen en 1.4.0.
 */
 :root{
-  --domino-table-image:url('https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.0');
+  --domino-table-image:url('https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.1');
 }
 
 .domino-stage{
@@ -493,7 +493,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .domino-stage{
   isolation:isolate;
   background-image:
-    url('https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.0') !important;
+    url('https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.1') !important;
   background-position:center center!important;
   background-size:cover!important;
   background-repeat:no-repeat!important;
@@ -743,7 +743,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 
 /* ==========================================================
-   HTML 1.7.0 · MESA LIMPIA / CONTROLES MÍNIMOS
+   HTML 1.7.1 · MESA LIMPIA / CONTROLES MÍNIMOS
    ========================================================== */
 .domino-topbar{
   display:flex!important;align-items:center!important;justify-content:space-between!important;
@@ -931,7 +931,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 </main>
 
 
-<div id="gamesPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="gamesPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p>El área de Juegos está dedicada al Dominó.</p></div><img class="domino-hero" src="domino_lobby_dorado.png?v=1.7.0" alt="Dominó Flash Coin"><button id="dominoPlayBtn" type="button" class="action green">ENTRAR A LAS MESAS</button></div></div></div>
+<div id="gamesPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="gamesPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p>El área de Juegos está dedicada al Dominó.</p></div><img class="domino-hero" src="domino_lobby_dorado.png?v=1.7.1" alt="Dominó Flash Coin"><button id="dominoPlayBtn" type="button" class="action green">ENTRAR A LAS MESAS</button></div></div></div>
 
 <div id="dominoLobbyPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button id="dominoLobbyCloseBtn" type="button" class="close">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p><span class="domino-live-dot"></span>Mesas en línea · entra, elige tu saldo de mesa y juega</p><div id="dominoBuildBadge" class="domino-build-badge">HTML 1.6.0 · verificando servidor…</div></div><div id="dominoLobbyMsg" class="msg"></div><div id="dominoLobbyModes" class="domino-two-tables"></div></div></div></div>
 
@@ -3282,7 +3282,7 @@ async function openDominoLobby(){
       const forceRefresh=$('dominoForceRefreshBtn');
       if(forceRefresh)forceRefresh.onclick=()=>{
         const u=new URL(location.href);
-        u.searchParams.set('v','1.6.0');
+        u.searchParams.set('v','1.7.1');
         u.searchParams.set('_refresh',Date.now().toString());
         location.replace(u.toString());
       };
@@ -3866,9 +3866,22 @@ buildWheel();
 
 <script id="mfBuildSync">
 (function(){
-  const CURRENT_BUILD='1.6.0';
-  let checking=false,noticeShown=false;
+  const CURRENT_BUILD='1.7.1';
+  let checking=false,noticeShown=false,lastReloadTarget='';
 
+  function parseVersion(v){
+    const m=String(v||'').trim().match(/^(\d+)\.(\d+)\.(\d+)$/);
+    return m ? [Number(m[1]),Number(m[2]),Number(m[3])] : null;
+  }
+  function compareVersions(a,b){
+    const A=parseVersion(a),B=parseVersion(b);
+    if(!A||!B)return 0;
+    for(let i=0;i<3;i++){
+      if(A[i]>B[i])return 1;
+      if(A[i]<B[i])return -1;
+    }
+    return 0;
+  }
   function showUpdateNotice(latest){
     if(noticeShown)return;
     noticeShown=true;
@@ -3878,22 +3891,46 @@ buildWheel();
     box.innerHTML='Nueva versión disponible ('+latest+'). Se actualizará al salir de la mesa.';
     document.body.appendChild(box);
   }
-
+  function clearBadPending(){
+    try{
+      const pending=localStorage.getItem('mf_pending_build');
+      if(pending && compareVersions(pending,CURRENT_BUILD)<=0){
+        localStorage.removeItem('mf_pending_build');
+      }
+    }catch(e){}
+  }
+  function goToNewerBuild(latest){
+    if(compareVersions(latest,CURRENT_BUILD)<=0)return;
+    if(lastReloadTarget===latest)return;
+    lastReloadTarget=latest;
+    const next=new URL(location.href);
+    next.searchParams.delete('__mf_check');
+    next.searchParams.set('v',latest);
+    next.searchParams.set('_refresh',Date.now().toString());
+    location.replace(next.toString());
+  }
   async function checkBuild(){
     if(checking)return;
     checking=true;
     try{
       const url=new URL(location.href);
+      url.searchParams.delete('v');
+      url.searchParams.delete('_refresh');
       url.searchParams.set('__mf_check',Date.now().toString());
       const r=await fetch(url.toString(),{
         cache:'no-store',
-        headers:{'Cache-Control':'no-cache','Pragma':'no-cache'}
+        headers:{'Cache-Control':'no-cache, no-store, must-revalidate','Pragma':'no-cache'}
       });
       if(!r.ok)return;
       const text=await r.text();
       const m=text.match(/data-app-build=["']([^"']+)["']/i);
       const latest=m&&m[1];
-      if(!latest||latest===CURRENT_BUILD)return;
+      if(!latest)return;
+
+      if(compareVersions(latest,CURRENT_BUILD)<=0){
+        clearBadPending();
+        return;
+      }
 
       const inDomino=(typeof dominoCurrentTableId!=='undefined'&&!!dominoCurrentTableId);
       if(inDomino){
@@ -3901,43 +3938,34 @@ buildWheel();
         showUpdateNotice(latest);
         return;
       }
-
-      const next=new URL(location.href);
-      next.searchParams.delete('__mf_check');
-      next.searchParams.set('v',latest);
-      next.searchParams.set('_refresh',Date.now().toString());
-      location.replace(next.toString());
+      goToNewerBuild(latest);
     }catch(e){
-      // El juego sigue funcionando con Realtime/polling aunque falle esta comprobación.
     }finally{
       checking=false;
     }
   }
-
-
   function applyPendingBuild(){
     try{
       const pending=localStorage.getItem('mf_pending_build');
+      if(!pending)return;
       const inDomino=(typeof dominoCurrentTableId!=='undefined'&&!!dominoCurrentTableId);
-      if(pending && pending!==CURRENT_BUILD && !inDomino){
+      if(compareVersions(pending,CURRENT_BUILD)>0 && !inDomino){
         localStorage.removeItem('mf_pending_build');
-        const next=new URL(location.href);
-        next.searchParams.set('v',pending);
-        next.searchParams.set('_refresh',Date.now().toString());
-        location.replace(next.toString());
-      }else if(pending===CURRENT_BUILD){
+        goToNewerBuild(pending);
+      }else if(compareVersions(pending,CURRENT_BUILD)<=0){
         localStorage.removeItem('mf_pending_build');
       }
     }catch(e){}
   }
 
+  clearBadPending();
   window.mfCheckBuild=checkBuild;
   window.addEventListener('focus',checkBuild);
   window.addEventListener('online',checkBuild);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkBuild();});
   setTimeout(applyPendingBuild,300);
-  setTimeout(checkBuild,900);
-  setInterval(checkBuild,10000);
+  setTimeout(checkBuild,1200);
+  setInterval(checkBuild,15000);
 })();
 </script>
 
@@ -3948,9 +3976,9 @@ buildWheel();
 
 <script>
 (function dominoTableImageLoaderV150(){
-  const REL='images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.0';
-  const PAGES='https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.0';
-  const RAW='https://raw.githubusercontent.com/cakon170812-hub/marketflsh/main/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.0';
+  const REL='images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.1';
+  const PAGES='https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.1';
+  const RAW='https://raw.githubusercontent.com/cakon170812-hub/marketflsh/main/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.1';
 
   function use(url){
     document.documentElement.style.setProperty('--domino-table-image',`url("${url}")`);
@@ -3982,7 +4010,7 @@ buildWheel();
 
 
 <!-- HTML 1.6.0: la imagen aprobada es fondo visual; controles, jugadores, fichas, chat, emojis, pase, ronda y salida son HTML reales y funcionales. -->
-<!-- HTML 1.7.0: mesa limpia, sin Pasar/Repartir/Copa; chat por asiento, emoji grande, saldo y bote visibles. -->
+<!-- HTML 1.7.1: mesa limpia, sin Pasar/Repartir/Copa; chat por asiento, emoji grande, saldo y bote visibles. -->
 
 <div id="dominoRotateGuard" aria-live="polite">
   <div class="domino-rotate-card">
