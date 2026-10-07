@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<!-- MAIKET FLASH · HTML 1.7.1 · DOMINÓ MESA LIMPIA -->
+<!-- MAIKET FLASH · HTML 1.8.0 · DOMINÓ MESA LIMPIA -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html lang="es" data-app-build="1.7.1">
+<html lang="es" data-app-build="1.8.0">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="application-version" content="1.7.1">
+<meta name="application-version" content="1.8.0">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
-<title>Ruleta Flash Coin — HTML 1.7.1 Dominó Mesa Limpia</title>
+<title>Ruleta Flash Coin — HTML 1.8.0 Dominó Mesa Limpia</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -140,7 +140,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   position:relative;overflow:hidden;
   background:
     linear-gradient(rgba(3,9,8,.72),rgba(3,8,7,.88)),
-    url('domino_lobby_dorado.png?v=1.7.1') center/cover no-repeat !important;
+    url('domino_lobby_dorado.png?v=1.8.0') center/cover no-repeat !important;
   border:1px solid rgba(255,215,100,.65)!important;
   box-shadow:0 20px 60px rgba(0,0,0,.55), inset 0 0 80px rgba(0,0,0,.35)!important;
 }
@@ -171,7 +171,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .domino-game-panel{
   background:
     linear-gradient(rgba(2,9,6,.58),rgba(2,8,6,.72)),
-    url('domino_lobby_dorado.png?v=1.7.1') center/cover no-repeat !important;
+    url('domino_lobby_dorado.png?v=1.8.0') center/cover no-repeat !important;
 }
 .domino-stage{background:radial-gradient(ellipse at center,rgba(23,106,71,.92) 0,rgba(11,61,42,.94) 48%,rgba(5,22,15,.97) 100%)}
 .domino-center-status.waiting-player{
@@ -435,7 +435,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
    Esta capa solo cambia la visual. La lógica y el SQL permanecen en 1.4.0.
 */
 :root{
-  --domino-table-image:url('https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.1');
+  --domino-table-image:url('https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.8.0');
 }
 
 .domino-stage{
@@ -493,7 +493,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 .domino-stage{
   isolation:isolate;
   background-image:
-    url('https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.1') !important;
+    url('https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.8.0') !important;
   background-position:center center!important;
   background-size:cover!important;
   background-repeat:no-repeat!important;
@@ -743,7 +743,7 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 
 
 /* ==========================================================
-   HTML 1.7.1 · MESA LIMPIA / CONTROLES MÍNIMOS
+   HTML 1.8.0 · MESA LIMPIA / CONTROLES MÍNIMOS
    ========================================================== */
 .domino-topbar{
   display:flex!important;align-items:center!important;justify-content:space-between!important;
@@ -843,6 +843,133 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   body.domino-playing #dominoRotateGuard{display:flex}
 }
 
+
+/* ==========================================================
+   HTML 1.8.0 · MESA APP FULLSCREEN + ESPERA + REPARTO
+   ========================================================== */
+.live-game-counts{
+  display:flex;gap:5px;align-items:center;flex-wrap:wrap;
+  font-size:9px;color:#dce9df
+}
+.live-game-counts span{
+  padding:5px 7px;border:1px solid rgba(110,230,145,.20);
+  background:rgba(6,19,12,.76);border-radius:999px;white-space:nowrap
+}
+.live-game-counts b{color:#8ef1ad}
+
+#dominoTablePanel{
+  padding:0!important;background:#020604!important;
+  align-items:center!important;justify-content:center!important;overflow:hidden!important
+}
+.domino-game-panel{
+  width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;
+  min-height:100dvh!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;
+  background:#020604!important;box-shadow:none!important;overflow:hidden!important
+}
+#dominoTablePanel .domino-topbar{display:none!important}
+.domino-stage{
+  position:relative!important;width:100vw!important;height:100dvh!important;max-width:none!important;max-height:none!important;
+  aspect-ratio:auto!important;margin:0!important;border:0!important;border-radius:0!important;outline:0!important;
+  background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;
+  box-shadow:inset 0 0 95px rgba(0,0,0,.52)!important;overflow:hidden!important
+}
+.domino-stage:before{inset:0!important;border-radius:0!important;border:0!important}
+.domino-stage:after{display:none!important}
+
+.domino-inside-status{
+  position:absolute;left:max(8px,env(safe-area-inset-left));top:max(8px,env(safe-area-inset-top));
+  z-index:18;padding:4px 7px;border-radius:999px;background:rgba(2,12,7,.72);
+  border:1px solid rgba(82,233,126,.25);color:#9cf4b7;font-size:7px;font-weight:900;
+  letter-spacing:.25px;backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)
+}
+.domino-inside-pot{
+  position:absolute;left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);
+  z-index:18;min-width:112px;padding:4px 10px;border-radius:12px;text-align:center;
+  background:rgba(4,11,8,.72);border:1px solid rgba(255,218,94,.24);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)
+}
+.domino-inside-pot span{display:block;font-size:6px;text-transform:uppercase;letter-spacing:.5px;color:#c0b991}
+.domino-inside-pot b{display:block;font-size:10px;color:#ffe48a}
+.domino-live-top-controls{
+  top:max(7px,env(safe-area-inset-top))!important;
+  right:max(8px,env(safe-area-inset-right))!important;
+  z-index:20!important;display:flex!important;align-items:center!important;gap:5px!important
+}
+.domino-compact-balance{
+  display:flex;align-items:center;gap:5px;min-height:32px;padding:4px 8px;border-radius:999px;
+  background:rgba(5,12,9,.82);border:1px solid rgba(255,217,88,.28);
+  color:#ffe681;box-shadow:0 5px 18px rgba(0,0,0,.28);
+  backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)
+}
+.domino-compact-balance b{font-size:9px;white-space:nowrap}
+.fc-mini-coin{
+  width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:900;
+  color:#4b3400;background:radial-gradient(circle at 35% 30%,#fff0a5,#ffd345 48%,#b97800 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.4),0 2px 7px rgba(0,0,0,.35)
+}
+.domino-live-icon{width:32px!important;height:32px!important;font-size:14px!important}
+
+.domino-center-status{
+  top:50%!important;left:50%!important;transform:translate(-50%,-50%)!important;
+  min-width:180px!important;max-width:42%!important;padding:11px 15px!important;border-radius:18px!important;
+  background:rgba(2,10,6,.72)!important;border:1px solid rgba(255,221,105,.18)!important;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:0 12px 35px rgba(0,0,0,.34)!important
+}
+.domino-center-status.waiting-player{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:6px!important
+}
+.domino-center-status.waiting-player .domino-spinner{
+  width:32px!important;height:32px!important;border-width:3px!important;margin:0 auto 2px!important;
+  border-color:rgba(255,221,105,.18)!important;border-top-color:#ffe16f!important;
+  box-shadow:0 0 18px rgba(255,214,67,.18)
+}
+.domino-wait-title{font-size:11px!important;color:#fff3bb!important}
+.domino-wait-sub{font-size:7px!important;max-width:190px!important;line-height:1.35!important}
+
+.domino-piece{
+  background:linear-gradient(145deg,#171b19 0%,#080a09 45%,#191e1a 100%)!important;
+  border:1px solid rgba(230,197,105,.50)!important;
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.08),
+    inset -2px -2px 5px rgba(0,0,0,.8),
+    0 5px 9px rgba(0,0,0,.42)!important;
+}
+.domino-divider{background:linear-gradient(90deg,transparent,#d3ad55,transparent)!important}
+.domino-pip.on{
+  background:radial-gradient(circle at 35% 32%,#fff2b2,#e6b94f 46%,#815700 100%)!important;
+  box-shadow:0 0 4px rgba(255,210,80,.32),inset 0 1px 1px rgba(255,255,255,.3)!important
+}
+.domino-hand .domino-piece.dealing{
+  opacity:0;transform:translateY(-32vh) scale(.45) rotate(-18deg);
+  animation:dominoDealIn .44s cubic-bezier(.18,.78,.24,1.08) forwards;
+}
+.domino-hand .deal-0{animation-delay:.03s}.domino-hand .deal-1{animation-delay:.15s}
+.domino-hand .deal-2{animation-delay:.27s}.domino-hand .deal-3{animation-delay:.39s}
+.domino-hand .deal-4{animation-delay:.51s}.domino-hand .deal-5{animation-delay:.63s}
+.domino-hand .deal-6{animation-delay:.75s}
+@keyframes dominoDealIn{
+  0%{opacity:0;transform:translateY(-30vh) scale(.42) rotate(-18deg)}
+  72%{opacity:1;transform:translateY(4px) scale(1.04) rotate(2deg)}
+  100%{opacity:1;transform:translateY(0) scale(1) rotate(0)}
+}
+
+@media(max-width:740px){
+  .domino-inside-pot{min-width:92px;padding:3px 7px}
+  .domino-inside-pot b{font-size:8px}
+  .domino-compact-balance{min-height:29px;padding:3px 6px}
+  .domino-compact-balance b{font-size:8px}
+  .fc-mini-coin{width:18px;height:18px;font-size:9px}
+  .domino-live-icon{width:29px!important;height:29px!important;font-size:12px!important}
+  .domino-center-status{max-width:46%!important;min-width:155px!important;padding:8px 10px!important}
+  .domino-seat.s1{bottom:10%!important}
+  .domino-hand{bottom:1%!important;width:min(72%,620px)!important}
+  .domino-live-actions{right:max(4px,env(safe-area-inset-right))!important;bottom:max(4px,env(safe-area-inset-bottom))!important}
+}
+@media(orientation:portrait) and (max-width:740px){
+  body.domino-playing #dominoTablePanel{display:flex!important}
+}
+
 </style>
 </head>
 <body>
@@ -878,7 +1005,10 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
   <div class="topbar">
     <div class="brand-mini">⚡ FC</div>
     <div class="top-tools">
-      <button id="onlineUsersBtn" type="button" class="online-chip" title="Ver usuarios conectados"><span class="online-dot"></span><span id="onlinePublic">0</span> en línea</button>
+      <button id="onlineUsersBtn" type="button" class="online-chip" title="Ver usuarios conectados"><span class="online-dot"></span><span id="onlinePublic">0</span> en línea</button><div class="live-game-counts" title="Actividad en tiempo real">
+  <span>🎲 <b id="dominoPlayingPublic">0</b> dominó</span>
+  <span>🎯 <b id="roulettePlayingPublic">0</b> ruleta</span>
+</div>
       <button id="inviteBtn" class="icon-btn invite-btn">🔗 Invitar</button>
       <button id="groupBtn" class="icon-btn group-btn">Grupo WhatsApp</button>
       <button id="settingsBtn" class="icon-btn">⚙️</button>
@@ -931,21 +1061,22 @@ body{overflow-x:hidden}button,input,textarea{font:inherit}button{cursor:pointer}
 </main>
 
 
-<div id="gamesPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="gamesPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p>El área de Juegos está dedicada al Dominó.</p></div><img class="domino-hero" src="domino_lobby_dorado.png?v=1.7.1" alt="Dominó Flash Coin"><button id="dominoPlayBtn" type="button" class="action green">ENTRAR A LAS MESAS</button></div></div></div>
+<div id="gamesPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="gamesPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p>El área de Juegos está dedicada al Dominó.</p></div><img class="domino-hero" src="domino_lobby_dorado.png?v=1.8.0" alt="Dominó Flash Coin"><button id="dominoPlayBtn" type="button" class="action green">ENTRAR A LAS MESAS</button></div></div></div>
 
 <div id="dominoLobbyPanel" class="overlay"><div class="panel domino-panel domino-lobby-shell"><button id="dominoLobbyCloseBtn" type="button" class="close">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p><span class="domino-live-dot"></span>Mesas en línea · entra, elige tu saldo de mesa y juega</p><div id="dominoBuildBadge" class="domino-build-badge">HTML 1.6.0 · verificando servidor…</div></div><div id="dominoLobbyMsg" class="msg"></div><div id="dominoLobbyModes" class="domino-two-tables"></div></div></div></div>
 
 <div id="dominoBuyinPanel" class="overlay"><div class="panel domino-buyin-card"><button id="dominoBuyinCloseBtn" type="button" class="close">✕</button><h2 id="dominoBuyinTitle">Sentarse</h2><div class="tiny">Elige cuántas Flash Coin vas a llevar a la mesa. Se descuentan del saldo principal y vuelven al salir solamente las que realmente te queden.</div><div id="dominoBuyinValue" class="domino-buyin-value">0.000 FC</div><input id="dominoBuyinRange" class="domino-buyin-range" type="range" min="0.3" max="1" step="0.01"><input id="dominoBuyinInput" class="field" type="number" step="0.001" min="0.001" placeholder="Monto FC"><button id="dominoConfirmJoinBtn" class="action green">SENTARME EN LA MESA</button><div id="dominoBuyinMsg" class="msg"></div></div></div>
 
-<div id="dominoTablePanel" class="overlay"><div class="panel domino-game-panel"><div class="domino-topbar">
-<div><div id="dominoTableTitle" class="domino-title">Dominó</div><div id="dominoTableSub" class="domino-pot">Mesa</div><div id="dominoSyncState" class="domino-sync-state">Conectando…</div></div>
-<div class="domino-topbar-right">
-  <div class="domino-money-pill"><span>Saldo Flash Coin</span><b id="dominoGlobalBalance">0.000 FC</b></div>
-  <div class="domino-money-pill"><span>Bote de la mesa</span><b id="dominoPotBadge">0.000 FC</b></div>
-</div>
-</div><div id="dominoStage" class="domino-stage">
+<div id="dominoTablePanel" class="overlay"><div class="panel domino-game-panel">
+<div id="dominoTableTitle" class="hidden">Dominó</div>
+<div id="dominoTableSub" class="hidden">Mesa</div>
+<div id="dominoSyncState" class="hidden">Conectando…</div>
+<div id="dominoStage" class="domino-stage">
+<div class="domino-inside-status"><span class="domino-live-dot"></span>En línea · Tiempo real</div>
+<div class="domino-inside-pot"><span>Bote de la mesa</span><b id="dominoPotBadge">0.000 FC</b></div>
 <div class="domino-photo-veil" aria-hidden="true"></div>
 <div class="domino-live-top-controls">
+  <div class="domino-compact-balance" title="Saldo Flash Coin"><span class="fc-mini-coin">⚡</span><b id="dominoGlobalBalance">0.000 FC</b></div>
   <button id="dominoSoundBtn" type="button" class="domino-live-icon" aria-pressed="false" aria-label="Encender sonido de la mesa" title="Sonido de Dominó">🔇</button>
   <button id="dominoGearBtn" type="button" class="domino-live-icon" aria-label="Configuración de mesa" title="Configuración">⚙️</button>
 </div>
@@ -2208,6 +2339,7 @@ async function startPresence(uid){
     onlineUsers=[...byId.values()];
     onlineCount=onlineUsers.length;
     renderOnline();
+    refreshPublicActivityCounts().catch(()=>{});
     if($('onlineUsersPanel').classList.contains('active'))loadOnlinePanel().catch(()=>{});
   });
   presenceChannel.subscribe(status=>{
@@ -2220,6 +2352,28 @@ async function trackPresence(){
   try{await presenceChannel.track({user_id:me.id,public_id:me.public_id,name:fullName,playing:true,at:new Date().toISOString()});}catch{}
 }
 function renderOnline(){[$('onlinePublic'),$('promOnline'),$('adminOnline')].forEach(el=>{if(el)el.textContent=onlineCount})}
+
+let mfActivityTimer=null;
+async function refreshPublicActivityCounts(){
+  const dominoEl=$('dominoPlayingPublic'),rouletteEl=$('roulettePlayingPublic');
+  if(!dominoEl||!rouletteEl)return;
+  const ids=[...new Set((onlineUsers||[]).map(x=>x.user_id).filter(Boolean))];
+  if(!ids.length){
+    dominoEl.textContent='0';rouletteEl.textContent='0';return;
+  }
+  try{
+    const {data,error}=await sb.rpc('rf_online_activity_v180',{p_online_ids:ids});
+    if(error)return;
+    dominoEl.textContent=Number(data?.domino||0);
+    rouletteEl.textContent=Number(data?.roulette||0);
+  }catch(e){}
+}
+function startPublicActivityCounter(){
+  clearInterval(mfActivityTimer);
+  refreshPublicActivityCounts().catch(()=>{});
+  mfActivityTimer=setInterval(()=>refreshPublicActivityCounts().catch(()=>{}),4000);
+}
+
 
 async function loadOnlinePanel(){
   const ids=[...new Set(onlineUsers.map(x=>x.user_id).filter(Boolean))];
@@ -3232,11 +3386,11 @@ async function verifyDominoBackendVersion(){
   const badge=$('dominoBuildBadge');
   if(!badge)return;
   try{
-    const {data,error}=await sb.rpc('rf_domino_build_v160');
+    const {data,error}=await sb.rpc('rf_domino_build_v180');
     if(error)throw error;
     const version=String(data?.sql_version||'');
-    if(version==='1.6.0'){
-      badge.textContent='HTML 1.6.0 · SQL 1.6.0 · sincronizado';
+    if(version==='1.8.0'){
+      badge.textContent='HTML 1.6.0 · SQL 1.8.0 · sincronizado';
       badge.className='domino-build-badge ok';
     }else{
       badge.textContent='HTML 1.6.0 · SQL diferente ('+(version||'desconocido')+')';
@@ -3324,6 +3478,9 @@ $('dominoConfirmJoinBtn').onclick=async()=>{
   if(!Number.isFinite(amount)||amount<min)return msg('dominoBuyinMsg','Debes entrar con la mínima completa de la mesa.');
   if(amount>available)return msg('dominoBuyinMsg','No tienes suficiente saldo Flash Coin para ese monto.');
 
+  // Se solicita pantalla completa desde el toque del usuario para que iPhone/Android
+  // tengan la mayor probabilidad posible de aceptarlo antes de la llamada a Supabase.
+  dominoForceLandscape().catch(()=>{});
   $('dominoConfirmJoinBtn').disabled=true;
   msg('dominoBuyinMsg','Sentándote en la mesa…');
 
@@ -3599,6 +3756,7 @@ function dominoHandleMoveEffects(st){
 }
 
 let dominoChatLastLoadAt=0,dominoToastTimer=null;
+let dominoDealAnimationHandId=null;
 
 function dominoShowToast(text){
   const el=$('dominoToast');if(!el)return;
@@ -3703,7 +3861,9 @@ function renderDominoState(st){
   $('dominoBoard').innerHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
   dominoBindBoardEndInteractions();
   const myTurn=!!(h&&h.status==='playing'&&String(h.turn_user_id)===String(uid)),tiles=h?.my_tiles||[],hasLegal=myTurn&&tiles.some(t=>dominoTileLegal(t,h));
-  $('dominoHand').innerHTML=tiles.map((t,i)=>dominoPiece(t,i,myTurn&&dominoTileLegal(t,h),false)).join('');
+  const animateDeal=!!(h&&h.status==='shuffling'&&dominoDealAnimationHandId!==h.id);
+  if(animateDeal)dominoDealAnimationHandId=h.id;
+  $('dominoHand').innerHTML=tiles.map((t,i)=>dominoPiece(t,i,myTurn&&dominoTileLegal(t,h),false,animateDeal?`dealing deal-${i}`:'')).join('');
   dominoBindHandInteractions();
   if(dominoSelectedTile!==null){
     if(!myTurn||!tiles[dominoSelectedTile]||!dominoTileLegal(tiles[dominoSelectedTile],h))dominoHideDropZones();
@@ -3711,9 +3871,9 @@ function renderDominoState(st){
   }
   let status='',waiting=!h&&seats.length<2;
   $('dominoCenterStatus').classList.toggle('waiting-player',waiting);
-  if(waiting)status=`<div class="domino-spinner"></div><span class="domino-wait-title">Esperando jugador...</span><span class="domino-wait-sub">Tu asiento está reservado · la partida inicia automáticamente cuando se siente otro jugador</span>`;
+  if(waiting)status=`<div class="domino-spinner"></div><span class="domino-wait-title">Esperando jugadores...</span><span class="domino-wait-sub">Mesa activa · conectando jugadores en tiempo real</span>`;
   else if(!h)status='Preparando la próxima mano...';
-  else if(h.status==='shuffling'){const sec=Math.max(0,Math.ceil((new Date(h.play_starts_at)-Date.now())/1000));status=`Barajando y repartiendo · <span class="domino-timer">${sec}</span>s`}
+  else if(h.status==='shuffling'){const sec=Math.max(0,Math.ceil((new Date(h.play_starts_at)-Date.now())/1000));status=`Preparando fichas · <span class="domino-timer">${sec}</span>s`}
   else if(h.status==='playing'){
     const sec=Math.max(0,Math.ceil((new Date(h.turn_deadline)-Date.now())/1000));
     if(myTurn&&!hasLegal){status=`<span class="domino-auto-pass">No tienes ficha válida · pase automático…</span>`;dominoScheduleAutoPass()}
@@ -3866,7 +4026,7 @@ buildWheel();
 
 <script id="mfBuildSync">
 (function(){
-  const CURRENT_BUILD='1.7.1';
+  const CURRENT_BUILD='1.8.0';
   let checking=false,noticeShown=false,lastReloadTarget='';
 
   function parseVersion(v){
@@ -3976,9 +4136,9 @@ buildWheel();
 
 <script>
 (function dominoTableImageLoaderV150(){
-  const REL='images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.1';
-  const PAGES='https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.1';
-  const RAW='https://raw.githubusercontent.com/cakon170812-hub/marketflsh/main/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.7.1';
+  const REL='images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.8.0';
+  const PAGES='https://cakon170812-hub.github.io/marketflsh/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.8.0';
+  const RAW='https://raw.githubusercontent.com/cakon170812-hub/marketflsh/main/images2/Mesa%20de%20Domino%CC%81%20Flash%20Coin.png?v=1.8.0';
 
   function use(url){
     document.documentElement.style.setProperty('--domino-table-image',`url("${url}")`);
@@ -4010,7 +4170,7 @@ buildWheel();
 
 
 <!-- HTML 1.6.0: la imagen aprobada es fondo visual; controles, jugadores, fichas, chat, emojis, pase, ronda y salida son HTML reales y funcionales. -->
-<!-- HTML 1.7.1: mesa limpia, sin Pasar/Repartir/Copa; chat por asiento, emoji grande, saldo y bote visibles. -->
+<!-- HTML 1.8.0: mesa limpia, sin Pasar/Repartir/Copa; chat por asiento, emoji grande, saldo y bote visibles. -->
 
 <div id="dominoRotateGuard" aria-live="polite">
   <div class="domino-rotate-card">
