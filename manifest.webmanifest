@@ -1,1 +1,15 @@
+{
+  "id": "./",
+  "name": "MAIKET FLASH",
+  "short_name": "MAIKET FLASH",
+  "description": "MAIKET FLASH · Ruleta Flash Coin y Dominó Flash Coin",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
+  "orientation": "any",
+  "background_color": "#020504",
+  "theme_color": "#05070d",
+  "lang": "es"
+}
 
