@@ -1,41 +1,19 @@
-const CACHE='maiket-flash-0.1-shell';
-const SHELL=['./','./index.html','./manifest.webmanifest'];
+const MF_SW_VERSION='0.1-stable-4';
 
-self.addEventListener('install',event=>{
+self.addEventListener('install',()=>{
   self.skipWaiting();
-  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).catch(()=>{}));
 });
 
 self.addEventListener('activate',event=>{
   event.waitUntil((async()=>{
-    const keys=await caches.keys();
-    await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
+    try{
+      const keys=await caches.keys();
+      await Promise.all(keys.filter(k=>k.startsWith('maiket-flash-')).map(k=>caches.delete(k)));
+    }catch(e){}
     await self.clients.claim();
   })());
 });
 
-self.addEventListener('fetch',event=>{
-  const req=event.request;
-  if(req.method!=='GET')return;
-  const url=new URL(req.url);
-  if(url.origin!==self.location.origin)return;
-  if(req.mode==='navigate'){
-    event.respondWith((async()=>{
-      try{
-        const fresh=await fetch(req);
-        const cache=await caches.open(CACHE);
-        cache.put('./index.html',fresh.clone()).catch(()=>{});
-        return fresh;
-      }catch{
-        return (await caches.match('./index.html')) || (await caches.match('./'));
-      }
-    })());
-    return;
-  }
-  event.respondWith(caches.match(req).then(hit=>hit||fetch(req).then(res=>{
-    const copy=res.clone();
-    caches.open(CACHE).then(cache=>cache.put(req,copy)).catch(()=>{});
-    return res;
-  })));
-});
-
+// Intencionalmente NO interceptamos navegación ni index.html.
+// Así GitHub Pages entrega siempre el HTML actual y evitamos que una copia
+// antigua del service worker deje la aplicación cargando o en blanco.
