@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.webmanifest?v=0.1">
+<link rel="manifest" href="manifest.webmanifest?v=0.1-final">
 <title>MAIKET FLASH — HTML 0.1 · Base Oficial Visual</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2346,7 +2346,7 @@ html[data-app-mode="standalone"] #mfInstallHint{display:none!important}
   <button type="button" data-domino-reaction="💪">💪</button>
 </div>
 <div id="dominoToast" class="domino-toast"></div>
-<div id="dominoVictory" class="domino-victory"><div><b>¡GANASTE!</b><span id="dominoVictoryText">Victoria</span></div></div>
+<div id="dominoVictory" class="domino-victory"><div class="domino-victory-card"><b>¡FELICIDADES!</b><strong>¡GANASTE!</strong><span id="dominoVictoryText">Victoria</span><small>Tu premio entró a tu saldo Flash Coin</small></div></div>
 </div></div></div>
 <input id="dominoAvatarFile" type="file" accept="image/*" class="hidden" aria-hidden="true">
 
@@ -4930,7 +4930,7 @@ async function openDominoLobby(){
 window.openDominoLobby=openDominoLobby;
 function renderDominoLobby(){
   const host=$('dominoLobbyModes');if(!host)return;
-  const configs=(dominoLobbyData?.configs||[]).slice(0,2),tables=dominoLobbyData?.tables||[],myTable=dominoLobbyData?.my_table,myState=dominoLobbyData?.my_state;
+  const configs=(dominoLobbyData?.configs||[]),tables=dominoLobbyData?.tables||[],myTable=dominoLobbyData?.my_table,myState=dominoLobbyData?.my_state;
   host.innerHTML=configs.map((c,idx)=>{
     const tt=tables.filter(t=>Number(t.config_id)===Number(c.id));
     const players=tt.reduce((a,t)=>a+Number(t.players||0),0);
@@ -5442,26 +5442,66 @@ function dominoUpdateLiveControls(){
   // El pase y el reparto permanecen automáticos en la lógica del juego.
 }
 
+
+function dominoRenderSeatsStable(st){
+  const host=$('dominoSeats');if(!host)return;
+  const h=st?.hand,c=st?.config||{},seats=st?.seats||[],uid=st?.me;
+  for(let visualSeat=1;visualSeat<=4;visualSeat++){
+    let node=host.querySelector(`.domino-seat[data-visual-seat="${visualSeat}"]`);
+    if(!node){
+      node=document.createElement('div');
+      node.dataset.visualSeat=String(visualSeat);
+      node.innerHTML=`<div class="domino-avatar-wrap"><span class="domino-turn-ring" aria-hidden="true"></span><div class="domino-avatar"></div><span class="domino-turn-seconds hidden"></span></div><div class="domino-seat-name"></div><div class="domino-seat-info"></div><span class="seat-bal"></span><button type="button" class="domino-see-message hidden">Ver mensaje</button>`;
+      host.appendChild(node);
+    }
+    const seat=seats.find(x=>dominoVisualSeatForReal(x.seat_no)===visualSeat);
+    const avatar=node.querySelector('.domino-avatar');
+    const secEl=node.querySelector('.domino-turn-seconds');
+    const nameEl=node.querySelector('.domino-seat-name');
+    const infoEl=node.querySelector('.domino-seat-info');
+    const balEl=node.querySelector('.seat-bal');
+    const msgBtn=node.querySelector('.domino-see-message');
+    if(!seat){
+      node.className=`domino-seat s${visualSeat} empty`;
+      node.removeAttribute('data-seat-user');node.removeAttribute('data-real-seat');
+      node.style.setProperty('--turn-angle','0deg');
+      if(node.dataset.avatarKey!=='empty'){avatar.innerHTML='+';node.dataset.avatarKey='empty'}
+      nameEl.textContent='Asiento libre';infoEl.textContent='El próximo jugador se sentará aquí';balEl.textContent='';
+      secEl.textContent='';secEl.classList.add('hidden');msgBtn.classList.add('hidden');
+      continue;
+    }
+    const turn=!!(h&&String(h.turn_user_id)===String(seat.user_id));
+    const mine=String(seat.user_id)===String(uid),name=seat.name||seat.full_name||seat.public_id||'Jugador';
+    const seatDetail=h&&Number(seat.tile_count||0)===0?'Próxima mano':`${seat.tile_count||0} fichas`;
+    const turnSec=turn&&h?.status==='playing'?Math.max(0,Math.ceil((new Date(h.turn_deadline)-Date.now())/1000)):null;
+    const turnTotal=Math.max(1,Number(c.turn_seconds||20));
+    const turnAngle=turnSec===null?0:Math.max(0,Math.min(360,(turnSec/turnTotal)*360));
+    const urgent=turn&&turnSec!==null&&turnSec<=5;
+    node.className=`domino-seat s${visualSeat}${turn?' turn':''}${urgent?' urgent':''}${mine?' mine':''}`;
+    node.dataset.seatUser=String(seat.user_id);node.dataset.realSeat=String(Number(seat.seat_no)||'');
+    node.style.setProperty('--turn-angle',turnAngle.toFixed(1)+'deg');
+    const avatarKey=[seat.user_id,String(seat.avatar_url||''),name].join('|');
+    if(node.dataset.avatarKey!==avatarKey){
+      avatar.innerHTML=dominoAvatarHTML(seat,name,mine);
+      node.dataset.avatarKey=avatarKey;
+    }
+    nameEl.textContent=name+(mine?' · TÚ':'');
+    infoEl.textContent=`ID ${seat.public_id||'———'} · ${seatDetail}`;
+    balEl.textContent=dominoMoney(seat.table_balance)+' FC';
+    if(turnSec!==null){secEl.textContent=String(turnSec);secEl.classList.remove('hidden')}else{secEl.textContent='';secEl.classList.add('hidden')}
+    const hasMessages=dominoUserMessageCache.has(String(seat.user_id));
+    msgBtn.dataset.messageUser=String(seat.user_id);msgBtn.dataset.messageName=name;msgBtn.classList.toggle('hidden',!hasMessages);
+  }
+  bindDominoSeatProfiles();dominoBindMessageButtons();
+}
+
 function renderDominoState(st){
   dominoState=st;setSoundSwitchUI();const h=st?.hand,c=st?.config||{},seats=st?.seats||[],uid=st?.me,effects=dominoHandleMoveEffects(st);
   $('dominoTableTitle').textContent=c.name||'Dominó Flash Coin';
   $('dominoTableSub').textContent=`Mesa #${(dominoLobbyData?.tables||[]).find(t=>Number(t.id)===Number(dominoCurrentTableId))?.table_no||dominoCurrentTableId}`;
   if($('dominoPotBadge'))$('dominoPotBadge').textContent=`${dominoMoney(h?.pot||0)} FC`;
   if($('dominoGlobalBalance'))$('dominoGlobalBalance').textContent=$('balanceTop')?.textContent||'0.000 FC';
-  $('dominoSeats').innerHTML=[1,2,3,4].map(visualSeat=>{
-    const s=seats.find(x=>dominoVisualSeatForReal(x.seat_no)===visualSeat);
-    if(!s)return `<div class="domino-seat s${visualSeat} empty" aria-label="Asiento libre"><div class="domino-avatar-wrap"><div class="domino-avatar">+</div></div><div class="domino-seat-name">Asiento libre</div><div class="domino-seat-info">El próximo jugador se sentará aquí</div></div>`;
-    const turn=h&&String(h.turn_user_id)===String(s.user_id),mine=String(s.user_id)===String(uid),name=s.name||s.public_id;
-    const seatDetail=h&&Number(s.tile_count||0)===0?'Próxima mano':`${s.tile_count||0} fichas`;
-    const turnSec=turn&&h?.status==='playing'?Math.max(0,Math.ceil((new Date(h.turn_deadline)-Date.now())/1000)):null;
-    const turnTotal=Math.max(1,Number(c.turn_seconds||20));
-    const turnAngle=turnSec===null?0:Math.max(0,Math.min(360,(turnSec/turnTotal)*360));
-    const urgent=turn&&turnSec!==null&&turnSec<=5;
-    const hasMessages=dominoUserMessageCache.has(String(s.user_id));
-    return `<div class="domino-seat s${visualSeat} ${turn?'turn':''} ${urgent?'urgent':''} ${mine?'mine':''}" data-seat-user="${esc(s.user_id)}" data-real-seat="${Number(s.seat_no)}" style="--turn-angle:${turnAngle.toFixed(1)}deg"><div class="domino-avatar-wrap"><span class="domino-turn-ring" aria-hidden="true"></span><div class="domino-avatar">${dominoAvatarHTML(s,name,mine)}</div>${turn&&turnSec!==null?`<span class="domino-turn-seconds">${turnSec}</span>`:''}</div><div class="domino-seat-name">${esc(name)}${mine?' · TÚ':''}</div><div class="domino-seat-info">ID ${esc(s.public_id)} · ${seatDetail}</div><span class="seat-bal">${dominoMoney(s.table_balance)} FC</span><button type="button" class="domino-see-message ${hasMessages?'':'hidden'}" data-message-user="${esc(s.user_id)}" data-message-name="${esc(name)}">Ver mensaje</button></div>`;
-  }).join('');
-  bindDominoSeatProfiles();
-  dominoBindMessageButtons();
+  dominoRenderSeatsStable(st);
   $('dominoBoard').innerHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
   dominoBindBoardEndInteractions();
   if(effects.animate)dominoCameraFocusMove();
@@ -5985,7 +6025,7 @@ buildWheel();
   },{capture:false,passive:true,once:true});
 
   if('serviceWorker' in navigator && location.protocol==='https:'){
-    navigator.serviceWorker.register('./sw.js?v=0.1',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
+    navigator.serviceWorker.register('./sw.js?v=0.1-final',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
   }
 
   // Impide arrastrar la página completa; los paneles internos conservan su propio scroll.
@@ -6223,6 +6263,302 @@ buildWheel();
   },1200);
   setTimeout(()=>clearInterval(hintTimer),30000);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(maybeShowInstallHint,300)});
+})();
+</script>
+
+
+<style id="mfV01FinalRequestedPatch">
+/* ===== FINAL 0.1: seis mesas, lobby fijo, saldo mayor, victoria y reordenamiento ===== */
+#dominoLobbyPanel{padding:0!important;overflow:hidden!important;align-items:stretch!important;justify-content:stretch!important;background:#020503!important}
+#dominoLobbyPanel>.domino-panel{width:100vw!important;max-width:none!important;height:var(--mf-screen-h,100dvh)!important;max-height:none!important;margin:0!important;border-radius:0!important;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))!important;overflow:hidden!important}
+#dominoLobbyPanel .domino-lobby-content{height:100%!important;display:flex!important;flex-direction:column!important;min-height:0!important}
+#dominoLobbyPanel .domino-lobby-head{flex:0 0 auto!important;margin:1px 0 6px!important}
+#dominoLobbyPanel .domino-lobby-head h2{font-size:clamp(16px,4.3vw,24px)!important}
+#dominoLobbyPanel .domino-lobby-head p{font-size:8px!important;margin-top:2px!important}
+#dominoLobbyPanel .domino-build-badge{margin-top:3px!important;padding:2px 6px!important;font-size:6.5px!important}
+#dominoLobbyModes.domino-two-tables{flex:1 1 auto!important;min-height:0!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-rows:repeat(3,minmax(0,1fr))!important;gap:5px!important;overflow:hidden!important}
+#dominoLobbyModes .domino-choice-card{min-height:0!important;padding:7px!important;margin:0!important;border-radius:12px!important;display:flex!important;flex-direction:column!important;justify-content:space-between!important;overflow:hidden!important}
+#dominoLobbyModes .domino-choice-card h3{font-size:11px!important;line-height:1.1!important;margin-bottom:2px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#dominoLobbyModes .mode-desc{font-size:6.8px!important;line-height:1.15!important;min-height:0!important;margin-bottom:3px!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#dominoLobbyModes .table-stats{grid-template-columns:1fr 1fr!important;gap:3px!important;margin-bottom:3px!important}
+#dominoLobbyModes .table-stat{padding:3px!important;border-radius:7px!important;font-size:5.8px!important;line-height:1.05!important}
+#dominoLobbyModes .table-stat b{font-size:7.5px!important;margin-top:1px!important}
+#dominoLobbyModes .online-line{font-size:6.2px!important;line-height:1.1!important;margin:0 0 3px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#dominoLobbyModes .action{min-height:28px!important;padding:5px!important;font-size:7px!important;margin:0!important;border-radius:8px!important}
+#dominoLobbyModes>.card{grid-column:1/-1!important;position:absolute!important;z-index:20!important;left:10px!important;right:10px!important;top:max(42px,env(safe-area-inset-top))!important;padding:7px 9px!important;background:rgba(5,11,8,.96)!important}
+@media (orientation:landscape){
+  #dominoLobbyModes.domino-two-tables{grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(2,minmax(0,1fr))!important;gap:5px!important}
+  #dominoLobbyPanel .domino-lobby-head{margin-bottom:4px!important}
+  #dominoLobbyPanel .domino-lobby-head p{display:none!important}
+}
+
+/* Perfil propio y saldo un poco más grandes/elegantes. */
+.domino-seat.s1.mine{min-width:142px!important;max-width:178px!important}
+.domino-seat.s1.mine .domino-avatar-wrap{width:64px!important;height:64px!important;min-width:64px!important;flex-basis:64px!important}
+.domino-seat.s1.mine .domino-avatar{width:60px!important;height:60px!important}
+.domino-seat.s1.mine .domino-seat-name{font-size:10px!important;max-width:86px!important}
+.domino-seat.s1.mine .seat-bal{width:57px!important;height:57px!important;flex-basis:57px!important;font-size:7.8px!important;box-shadow:0 0 18px rgba(255,211,82,.17)!important}
+.domino-compact-balance.balance-chip{min-width:154px!important;min-height:42px!important;padding:6px 12px!important;font-size:15px!important;border-radius:14px!important;box-shadow:0 8px 24px rgba(0,0,0,.34),0 0 16px rgba(255,205,73,.10)!important}
+.domino-compact-balance .fc-balance:before{width:27px!important;height:27px!important;flex-basis:27px!important}
+
+/* Cada ficha mantiene una cara 3x3 real; solo gira la ficha completa cuando la trayectoria dobla. */
+.domino-piece .domino-face{grid-template-columns:1fr 1fr 1fr!important;grid-template-rows:1fr 1fr 1fr!important;padding:2px!important;aspect-ratio:auto!important}
+.domino-piece.board-piece{display:grid!important;grid-template-columns:1fr 1fr!important;grid-template-rows:1fr!important;padding:2px!important;gap:0!important}
+.domino-piece.board-piece .domino-divider{left:50%!important;top:3px!important;bottom:3px!important;width:1px!important;height:auto!important;right:auto!important;transform:translateX(-.5px)!important}
+.domino-piece.board-piece.domino-double,.domino-piece.board-piece.domino-turn-down:not(.domino-double){display:grid!important;grid-template-columns:1fr!important;grid-template-rows:1fr 1fr!important;padding:2px!important}
+.domino-piece.board-piece.domino-double .domino-divider,.domino-piece.board-piece.domino-turn-down:not(.domino-double) .domino-divider{left:3px!important;right:3px!important;top:50%!important;bottom:auto!important;width:auto!important;height:1px!important;transform:translateY(-.5px)!important}
+.domino-board-row{gap:0!important;column-gap:0!important;row-gap:0!important}
+.domino-board-row .domino-piece.board-piece{margin:0!important}
+
+/* Reordenamiento local de la mano fuera de turno. */
+.domino-hand.domino-reorder-enabled .domino-piece.hand-piece{cursor:grab!important;transition:transform .12s ease,box-shadow .12s ease!important}
+.domino-hand .domino-piece.hand-piece.reorder-dragging{cursor:grabbing!important;z-index:90!important;transform:translateY(-9px) scale(1.07)!important;box-shadow:0 15px 30px rgba(0,0,0,.58),0 0 0 2px rgba(255,221,99,.72)!important}
+.domino-hand .domino-piece.hand-piece.reorder-target{transform:translateY(-3px)!important}
+
+/* Victoria: misma sensación de premio de la ruleta, con cling y monedas al saldo. */
+.domino-victory{background:radial-gradient(circle at 50% 47%,rgba(255,227,102,.72),rgba(6,26,15,.87) 44%,rgba(0,0,0,.94) 75%)!important;backdrop-filter:blur(1.5px)}
+.domino-victory.show{display:grid!important;animation:dominoWinFinal .42s cubic-bezier(.18,.86,.24,1.24)!important}
+.domino-victory-card{min-width:min(82vw,380px);padding:20px 24px;border-radius:24px;border:1px solid rgba(255,224,116,.78);background:linear-gradient(155deg,rgba(19,27,18,.96),rgba(5,10,7,.96));box-shadow:0 24px 65px rgba(0,0,0,.58),0 0 34px rgba(255,207,68,.34)}
+.domino-victory-card b{display:block;font-size:clamp(25px,7vw,43px)!important;letter-spacing:.04em;color:#fff2a8!important;text-shadow:0 0 20px rgba(255,204,61,.9)}
+.domino-victory-card strong{display:block;margin-top:3px;font-size:clamp(15px,4vw,24px);color:#77f69d}
+.domino-victory-card span{display:block;margin-top:7px!important;font-size:12px;color:#fff}
+.domino-victory-card small{display:block;margin-top:6px;color:#d5dfd8;font-size:9px}
+.domino-win-coin{position:fixed!important;z-index:1000000!important;width:25px!important;height:25px!important;border-radius:50%!important;background-image:var(--fc-coin-image)!important;background-size:cover!important;background-position:center!important;pointer-events:none!important;filter:drop-shadow(0 0 7px rgba(255,203,69,.75))}
+.domino-win-balance-pulse{animation:dominoBalanceWinPulse .8s ease!important}
+@keyframes dominoBalanceWinPulse{0%{transform:scale(1)}38%{transform:scale(1.14);box-shadow:0 0 30px rgba(255,218,80,.72)}100%{transform:scale(1)}}
+@keyframes dominoWinFinal{0%{opacity:0;transform:scale(.82)}65%{opacity:1;transform:scale(1.05)}100%{opacity:1;transform:scale(1)}}
+</style>
+
+<script id="mfV01FinalRequestedPatchJS">
+(function(){
+  /* Orden local de fichas: persiste durante la mano y no altera índices del servidor. */
+  let handOrderHandId=null,handOrderKeys=[];
+  const tileKey=t=>{const a=Number(t?.a??t?.[0]??0),b=Number(t?.b??t?.[1]??0);return Math.min(a,b)+'-'+Math.max(a,b)};
+  function normalizeHandOrder(st){
+    const h=st?.hand,tiles=h?.my_tiles||[];
+    if(!h)return [];
+    const keys=tiles.map(tileKey);
+    if(String(handOrderHandId)!==String(h.id)){handOrderHandId=h.id;handOrderKeys=[...keys]}
+    handOrderKeys=handOrderKeys.filter(k=>keys.includes(k));
+    for(const k of keys)if(!handOrderKeys.includes(k))handOrderKeys.push(k);
+    return handOrderKeys;
+  }
+  function applyHandOrder(st){
+    const hand=document.getElementById('dominoHand'),h=st?.hand;if(!hand||!h)return;
+    const tiles=h.my_tiles||[],order=normalizeHandOrder(st),byKey=new Map();
+    hand.querySelectorAll('.hand-piece[data-domino-tile]').forEach(el=>{
+      const idx=Number(el.dataset.dominoTile),t=tiles[idx],k=tileKey(t);el.dataset.dominoKey=k;byKey.set(k,el);
+    });
+    for(const k of order){const el=byKey.get(k);if(el)hand.appendChild(el)}
+  }
+  function storeCurrentDomOrder(hand){handOrderKeys=[...hand.querySelectorAll('.hand-piece[data-domino-key]')].map(el=>el.dataset.dominoKey).filter(Boolean)}
+  function bindHandReorder(st){
+    const hand=document.getElementById('dominoHand'),h=st?.hand,uid=st?.me;if(!hand||!h)return;
+    const myTurn=!!(h.status==='playing'&&String(h.turn_user_id)===String(uid));
+    hand.classList.toggle('domino-reorder-enabled',!myTurn);
+    if(myTurn)return;
+    hand.querySelectorAll('.hand-piece[data-domino-tile]').forEach(piece=>{
+      if(piece.dataset.reorderBound==='1')return;piece.dataset.reorderBound='1';
+      piece.addEventListener('pointerdown',e=>{
+        if(e.button!==undefined&&e.button!==0)return;
+        e.preventDefault();
+        try{piece.setPointerCapture(e.pointerId)}catch{}
+        const state={active:true,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,moved:false,el:piece};
+        piece._mfReorder=state;piece.classList.add('reorder-dragging');
+        try{dominoDragState={active:true,reordering:true}}catch(_){}
+      });
+      piece.addEventListener('pointermove',e=>{
+        const d=piece._mfReorder;if(!d?.active||d.pointerId!==e.pointerId)return;
+        if(Math.hypot(e.clientX-d.startX,e.clientY-d.startY)>6)d.moved=true;
+        if(!d.moved)return;
+        const siblings=[...hand.querySelectorAll('.hand-piece[data-domino-key]:not(.reorder-dragging)')];
+        siblings.forEach(x=>x.classList.remove('reorder-target'));
+        let target=null,best=Infinity;
+        for(const el of siblings){const r=el.getBoundingClientRect(),cx=r.left+r.width/2,dist=Math.abs(e.clientX-cx);if(dist<best){best=dist;target=el}}
+        if(!target)return;
+        target.classList.add('reorder-target');
+        const r=target.getBoundingClientRect();
+        if(e.clientX<r.left+r.width/2)hand.insertBefore(piece,target);else hand.insertBefore(piece,target.nextSibling);
+        storeCurrentDomOrder(hand);
+      });
+      const finish=e=>{
+        const d=piece._mfReorder;if(!d?.active||d.pointerId!==e.pointerId)return;
+        d.active=false;piece._mfReorder=null;piece.classList.remove('reorder-dragging');
+        hand.querySelectorAll('.reorder-target').forEach(x=>x.classList.remove('reorder-target'));
+        storeCurrentDomOrder(hand);
+        try{dominoDragState=null}catch(_){}
+      };
+      piece.addEventListener('pointerup',finish);piece.addEventListener('pointercancel',finish);
+    });
+  }
+  const prevRender=window.renderDominoState;
+  if(typeof prevRender==='function'&&!prevRender.__mfReorderWrapped){
+    const wrapped=function(st){const r=prevRender.apply(this,arguments);try{applyHandOrder(st);bindHandReorder(st)}catch(e){console.warn('Orden de mano:',e)}return r};
+    wrapped.__mfReorderWrapped=true;window.renderDominoState=wrapped;
+  }
+
+  /* Victoria reforzada: cling claro + monedas entrando al saldo visible de Dominó. */
+  window.dominoAnimateWinCoins=function(){
+    const target=document.querySelector('.domino-compact-balance')||document.getElementById('balanceBtn');
+    const source=document.querySelector('#dominoVictory .domino-victory-card')||document.getElementById('dominoVictory');
+    if(!target||!source)return;
+    const tr=target.getBoundingClientRect(),sr=source.getBoundingClientRect();
+    const tx=tr.left+tr.width/2,ty=tr.top+tr.height/2,sx=sr.left+sr.width/2,sy=sr.top+sr.height/2;
+    for(let i=0;i<18;i++){
+      const coin=document.createElement('div');coin.className='domino-win-coin';
+      const x=sx+(Math.random()*130-65),y=sy+(Math.random()*70-35);coin.style.left=x+'px';coin.style.top=y+'px';document.body.appendChild(coin);
+      const dx=tx-x,dy=ty-y;
+      const anim=coin.animate([{transform:'translate(-50%,-50%) scale(.45)',opacity:0},{transform:`translate(-50%,-50%) translate(${dx*.18}px,${dy*.05-45}px) scale(1.08)`,opacity:1,offset:.25},{transform:`translate(-50%,-50%) translate(${dx*.68}px,${dy*.58-20}px) scale(.82)`,opacity:1,offset:.72},{transform:`translate(-50%,-50%) translate(${dx}px,${dy}px) scale(.25)`,opacity:0}],{duration:760+i*25,delay:i*22,easing:'cubic-bezier(.18,.75,.2,1)',fill:'forwards'});
+      anim.onfinish=()=>coin.remove();
+    }
+    target.classList.remove('domino-win-balance-pulse');void target.offsetWidth;target.classList.add('domino-win-balance-pulse');setTimeout(()=>target.classList.remove('domino-win-balance-pulse'),900);
+  };
+  window.playDominoWinSound=function(){
+    if(!dominoSoundIsEnabled())return;
+    const fire=()=>{
+      playOscTone(190,.18,.09,'sine',96,0,'domino');
+      [1180,1560,2040,2860].forEach((f,i)=>{try{coinChime(i*.075,f,.060)}catch(_){playOscTone(f,.075,.045,'triangle',f*1.08,i*.075,'domino')}});
+      playOscTone(3120,.13,.065,'sine',3600,.30,'domino');
+    };
+    if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire()}).catch(()=>{});
+    setTimeout(()=>dominoAnimateWinCoins(),90);
+  };
+
+  /* Administración: seis opciones y selector Pase paga / Pase no paga. */
+  window.dominoConfigModeLabel=function(mode){return mode==='paid_pass'?'Pase paga':'Pase no paga'};
+  window.loadDominoAdminConfigs=async function(){
+    if(me?.role!=='leader'||!document.getElementById('dominoAdminConfigs'))return;
+    const {data,error}=await sb.rpc('rf_domino_admin_configs_v11');
+    const host=document.getElementById('dominoAdminConfigs');
+    if(error){host.innerHTML='<div class="tiny">'+esc(errText(error))+'</div>';return}
+    host.innerHTML=(data||[]).map(c=>`<div class="domino-admin-card" data-domino-admin="${c.id}"><h4>${esc(c.name)} · ${dominoConfigModeLabel(c.mode)}</h4><div class="domino-admin-grid"><label>Nombre de la mesa<input class="field d-name" value="${esc(c.name)}"></label><label>Tipo de pase<select class="field d-mode"><option value="normal" ${c.mode==='normal'?'selected':''}>Pase no paga</option><option value="paid_pass" ${c.mode==='paid_pass'?'selected':''}>Pase paga</option></select></label><label>Activa<select class="field d-active"><option value="1" ${c.active?'selected':''}>Sí</option><option value="0" ${!c.active?'selected':''}>No</option></select></label><label>Entrada mínima FC<input class="field d-entry" type="number" step="0.001" value="${c.min_entry}"></label><label>Bote por jugador FC<input class="field d-stake" type="number" step="0.001" value="${c.hand_stake}"></label><label>Comisión %<input class="field d-comm" type="number" step="0.001" value="${c.commission_pct}"></label><label>Costo de pase FC<input class="field d-pass" type="number" step="0.001" value="${c.pass_fee}"></label><label>Mínimo para seguir FC<input class="field d-continue" type="number" step="0.001" value="${c.min_continue_balance}"></label><label>Tiempo por turno (s)<input class="field d-turn" type="number" min="5" max="120" value="${c.turn_seconds}"></label><label>Barajado (s)<input class="field d-shuffle" type="number" min="1" max="15" step="0.5" value="${c.shuffle_seconds}"></label></div><button class="action green d-save">Guardar esta mesa</button></div>`).join('');
+    host.querySelectorAll('[data-domino-admin]').forEach(card=>card.querySelector('.d-save').onclick=()=>saveDominoAdminCard(card));
+  };
+  window.saveDominoAdminCard=async function(card){
+    const id=Number(card.dataset.dominoAdmin),q=s=>card.querySelector(s);
+    const payload={p_id:id,p_name:q('.d-name').value.trim(),p_mode:q('.d-mode').value,p_min_entry:Number(q('.d-entry').value),p_hand_stake:Number(q('.d-stake').value),p_commission_pct:Number(q('.d-comm').value),p_pass_fee:Number(q('.d-pass').value),p_min_continue:Number(q('.d-continue').value),p_turn_seconds:Number(q('.d-turn').value),p_shuffle_seconds:Number(q('.d-shuffle').value),p_active:q('.d-active').value==='1'};
+    const {error}=await sb.rpc('rf_domino_admin_save_config_v012',payload);
+    if(error)return msg('dominoAdminMsg',errText(error));
+    msg('dominoAdminMsg','Mesa guardada correctamente.');await loadDominoAdminConfigs();
+  };
+})();
+</script>
+
+
+<style id="mfV01CornerContinuityFix">
+/* ===== 0.1 · continuidad real de la cadena al doblar =====
+   La secuencia lógica del servidor ya llega orientada A->B.
+   En las filas que regresan hacia la izquierda mostramos B a la izquierda y A a la derecha,
+   sin rotar ni deformar los puntos de cada cara. En la esquina A queda arriba y B abajo. */
+:root{
+  --domino-path-step:48px;
+  --domino-path-half-step:24px;
+  --domino-path-corner-gap:20px;
+  --domino-board-row-w:528px;
+}
+.domino-board-row{
+  width:min(100%,var(--domino-board-row-w))!important;
+  gap:0!important;column-gap:0!important;row-gap:0!important;
+  overflow:visible!important;
+}
+.domino-board-row.flow-right:not(.only-row){
+  transform:translateX(var(--domino-path-half-step))!important;
+  justify-content:flex-start!important;
+}
+.domino-board-row.flow-left:not(.only-row){
+  transform:translateX(calc(-1 * var(--domino-path-half-step)))!important;
+  justify-content:flex-start!important;
+}
+.domino-board-row.partial-last.flow-right,
+.domino-board-row.partial-last.flow-left{justify-content:flex-start!important}
+
+/* Todos los pasos de la cadena ocupan exactamente una celda; así no se separan al haber dobles. */
+.domino-piece.board-piece{flex:0 0 var(--domino-path-step)!important;margin:0!important}
+.domino-piece.board-piece.domino-double{
+  width:var(--domino-board-tile-h)!important;min-width:var(--domino-board-tile-h)!important;max-width:var(--domino-board-tile-h)!important;
+  height:var(--domino-board-tile-w)!important;min-height:var(--domino-board-tile-w)!important;max-height:var(--domino-board-tile-w)!important;
+  flex:0 0 var(--domino-path-step)!important;
+  margin-left:calc(var(--domino-path-corner-gap) / 2)!important;
+  margin-right:calc(var(--domino-path-corner-gap) / 2)!important;
+}
+
+/* La ficha de esquina es vertical de verdad, pero sus puntos NO se giran ni se redistribuyen. */
+.domino-piece.board-piece.domino-turn-down{
+  width:var(--domino-board-tile-h)!important;min-width:var(--domino-board-tile-h)!important;max-width:var(--domino-board-tile-h)!important;
+  height:var(--domino-board-tile-w)!important;min-height:var(--domino-board-tile-w)!important;max-height:var(--domino-board-tile-w)!important;
+  flex:0 0 var(--domino-path-step)!important;
+  transform:translateY(calc(var(--domino-path-corner-gap) / 2))!important;
+  display:grid!important;grid-template-columns:1fr!important;grid-template-rows:1fr 1fr!important;
+  z-index:7!important;
+}
+.domino-board-row.turn-right .domino-turn-down{
+  margin-left:0!important;margin-right:var(--domino-path-corner-gap)!important;
+}
+.domino-board-row.turn-left .domino-turn-down{
+  margin-left:var(--domino-path-corner-gap)!important;margin-right:0!important;
+}
+.domino-piece.board-piece.domino-turn-down>.domino-face:first-child{grid-column:1!important;grid-row:1!important}
+.domino-piece.board-piece.domino-turn-down>.domino-face:last-child{grid-column:1!important;grid-row:2!important}
+.domino-piece.board-piece.domino-turn-down>.domino-divider{
+  left:3px!important;right:3px!important;top:50%!important;bottom:auto!important;width:auto!important;height:1px!important;transform:translateY(-.5px)!important
+}
+
+/* Al regresar de derecha a izquierda, la ficha conserva sus puntos y solo intercambia qué mitad queda a cada extremo. */
+.domino-piece.board-piece.domino-reverse-horizontal:not(.domino-double):not(.domino-turn-down)>.domino-face:first-child{
+  grid-column:2!important;grid-row:1!important
+}
+.domino-piece.board-piece.domino-reverse-horizontal:not(.domino-double):not(.domino-turn-down)>.domino-face:last-child{
+  grid-column:1!important;grid-row:1!important
+}
+.domino-piece.board-piece.domino-reverse-horizontal:not(.domino-double):not(.domino-turn-down)>.domino-divider{
+  left:50%!important;right:auto!important;top:3px!important;bottom:3px!important;width:1px!important;height:auto!important;transform:translateX(-.5px)!important
+}
+
+@media(max-width:740px){
+  :root{
+    --domino-path-step:40px;
+    --domino-path-half-step:20px;
+    --domino-path-corner-gap:16px;
+    --domino-board-row-w:400px;
+  }
+}
+</style>
+<script id="mfV01CornerContinuityFixJS">
+(function(){
+  /* Render visual continuo: la lista del servidor NO se altera; solo cambia la orientación visual del tramo. */
+  window.dominoRows=function(board,lastMove,animateMove){
+    if(!board?.length)return '';
+    const compact=window.matchMedia?.('(max-width:740px)').matches;
+    const perRow=compact?10:11;
+    const rows=[];
+    const totalRows=Math.ceil(board.length/perRow);
+    for(let i=0;i<board.length;i+=perRow){
+      const rowNo=rows.length;
+      const slice=board.slice(i,i+perRow);
+      const flowRight=rowNo%2===0;
+      const hasNext=i+slice.length<board.length;
+      const turnLogicalIndex=hasNext?(i+slice.length-1):-1;
+      const directionClass=flowRight?'flow-right':'flow-left';
+      const onlyRow=totalRows===1?'only-row':'';
+      const partialLast=!hasNext&&totalRows>1&&slice.length<perRow?'partial-last':'';
+      const turnClass=hasNext?(flowRight?'turn-right':'turn-left'):'';
+      const html=slice.map((tile,j)=>{
+        const idx=i+j;
+        const side=lastMove?.side||'right';
+        const newIndex=side==='left'?0:board.length-1;
+        const isTurn=idx===turnLogicalIndex;
+        const endClasses=`${idx===0?'domino-end-left ':''}${idx===board.length-1?'domino-end-right ':''}`.trim();
+        const bendClass=isTurn?'domino-turn-down':'';
+        /* En un tramo que corre hacia la izquierda, A debe quedar en el extremo derecho.
+           La esquina no se invierte: A arriba, B abajo, para enlazar la ficha anterior y la siguiente. */
+        const reverseClass=!flowRight&&!isTurn?'domino-reverse-horizontal':'';
+        const dropClass=animateMove&&idx===newIndex?'just-dropped':'';
+        return dominoPiece(tile,idx,false,true,`${endClasses} ${bendClass} ${reverseClass} ${dropClass}`.trim());
+      }).join('');
+      rows.push(`<div class="domino-board-row ${directionClass} ${turnClass} ${onlyRow} ${partialLast}" data-domino-row="${rowNo}">${html}</div>`);
+    }
+    return rows.join('');
+  };
 })();
 </script>
 
