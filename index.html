@@ -7423,6 +7423,7 @@ body.mf-keyboard-open{
 }
 </style>
 
+<!-- FIX 0.1: evita bucle MutationObserver en colores de ruleta; corrige pantalla blanca/carga infinita. -->
 <script id="mfV01KeyboardRouletteColorPatchJS">
 (function(){
   const root=document.documentElement;
@@ -7555,24 +7556,36 @@ body.mf-keyboard-open{
   function paintRouletteNumbers(){
     document.querySelectorAll('#numbers .num').forEach(btn=>{
       if(btn.id==='repeatActionBtn'||btn.classList.contains('num-action'))return;
-      const node=[...btn.childNodes].find(n=>n.nodeType===Node.TEXT_NODE&&String(n.textContent).trim()!=='');
-      const n=Number(String(node?.textContent||btn.textContent||'').trim().match(/^\d+/)?.[0]);
+      const node=[...btn.childNodes].find(x=>x.nodeType===3&&String(x.textContent).trim()!=='');
+      const match=String(node?.textContent||btn.textContent||'').trim().match(/^\d+/);
+      const n=Number(match?.[0]);
       if(!Number.isFinite(n))return;
-      btn.classList.remove('roulette-green','roulette-red','roulette-black');
-      btn.classList.add('roulette-'+rouletteColor(n));
-      btn.dataset.rouletteColor=rouletteColor(n);
-      btn.setAttribute('aria-label',`Número ${n}, ${rouletteColor(n)==='green'?'verde':rouletteColor(n)==='red'?'rojo':'negro'}`);
+      const color=rouletteColor(n);
+      /* Importante: solo toca la clase cuando el color realmente cambia.
+         Así evitamos el bucle de MutationObserver que bloqueaba Safari/iPhone y Mac. */
+      if(btn.dataset.rouletteColor!==color||!btn.classList.contains('roulette-'+color)){
+        btn.classList.remove('roulette-green','roulette-red','roulette-black');
+        btn.classList.add('roulette-'+color);
+        btn.dataset.rouletteColor=color;
+      }
+      const label=`Número ${n}, ${color==='green'?'verde':color==='red'?'rojo':'negro'}`;
+      if(btn.getAttribute('aria-label')!==label)btn.setAttribute('aria-label',label);
     });
     document.querySelectorAll('#wheel .wn').forEach(el=>{
       const n=Number(el.textContent?.trim());if(!Number.isFinite(n))return;
-      el.classList.remove('roulette-green','roulette-red','roulette-black');
-      el.classList.add('roulette-'+rouletteColor(n));
+      const color=rouletteColor(n);
+      if(!el.classList.contains('roulette-'+color)){
+        el.classList.remove('roulette-green','roulette-red','roulette-black');
+        el.classList.add('roulette-'+color);
+      }
     });
   }
 
   const numbers=document.getElementById('numbers');
   if(numbers){
-    new MutationObserver(()=>paintRouletteNumbers()).observe(numbers,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+    /* Solo observa cambios reales de contenido. No observa class= porque paintRouletteNumbers
+       modifica esas clases y eso generaba un ciclo infinito de repintado. */
+    new MutationObserver(()=>paintRouletteNumbers()).observe(numbers,{childList:true,subtree:true});
   }
   const wheel=document.getElementById('wheel');
   if(wheel)new MutationObserver(()=>paintRouletteNumbers()).observe(wheel,{childList:true,subtree:true});
