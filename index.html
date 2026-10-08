@@ -6954,6 +6954,397 @@ buildWheel();
 })();
 </script>
 
+
+
+<style id="mfV01PremiumLobbySpectatorCSS">
+/* ============================================================
+   HTML 0.1 · LOBBY PREMIUM + ESPECTADOR SIN SALDO
+   Mantiene las mismas mesas, botones y lógica de juego.
+   Cambia la presentación del lobby y añade visualización segura.
+   ============================================================ */
+#dominoLobbyPanel{
+  padding:0!important;
+  background:#020306!important;
+  align-items:stretch!important;
+  justify-content:stretch!important;
+}
+#dominoLobbyPanel>.domino-lobby-shell{
+  width:100vw!important;height:var(--mf-vh,100dvh)!important;max-width:none!important;max-height:none!important;
+  margin:0!important;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))!important;
+  border:0!important;border-radius:0!important;overflow:hidden!important;
+  background:
+    radial-gradient(circle at 50% -6%,rgba(255,194,50,.20),transparent 34%),
+    radial-gradient(circle at 8% 50%,rgba(17,106,255,.13),transparent 33%),
+    radial-gradient(circle at 92% 48%,rgba(255,92,32,.11),transparent 32%),
+    linear-gradient(180deg,rgba(2,4,8,.55),rgba(1,3,5,.86)),
+    var(--domino-table-image) center/cover no-repeat!important;
+  box-shadow:none!important;
+}
+#dominoLobbyPanel>.domino-lobby-shell:before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:linear-gradient(180deg,rgba(0,0,0,.10),rgba(0,0,0,.55)),radial-gradient(ellipse at center,transparent 20%,rgba(0,0,0,.66) 92%)!important;
+}
+#dominoLobbyPanel .close{
+  z-index:80!important;top:max(9px,env(safe-area-inset-top))!important;right:max(9px,env(safe-area-inset-right))!important;
+  width:40px!important;height:40px!important;border-radius:50%!important;border:1px solid rgba(255,203,71,.70)!important;
+  background:linear-gradient(145deg,#1b1a17,#050607)!important;color:#ffe7a0!important;box-shadow:0 9px 26px rgba(0,0,0,.48),0 0 16px rgba(255,187,45,.16)!important
+}
+#dominoLobbyPanel .domino-lobby-content{
+  height:100%!important;min-height:0!important;display:flex!important;flex-direction:column!important;position:relative!important;z-index:2!important;
+  width:min(1180px,100%)!important;margin:0 auto!important;
+}
+#dominoLobbyPanel .domino-lobby-head{
+  flex:0 0 auto!important;margin:0 48px 8px!important;padding:2px 0 7px!important;text-align:center!important;
+  border-bottom:1px solid rgba(255,210,85,.22)!important;
+}
+#dominoLobbyPanel .domino-lobby-head h2{
+  margin:0!important;font-size:clamp(24px,5.4vw,43px)!important;line-height:.98!important;font-style:italic!important;font-weight:1000!important;
+  color:#fff5d2!important;letter-spacing:.035em!important;text-transform:uppercase!important;
+  text-shadow:0 4px 8px #000,0 0 23px rgba(255,175,31,.42)!important;
+}
+#dominoLobbyPanel .domino-lobby-head h2:before{content:"MAIKET ⚡ FLASH";display:block;font-size:.36em;letter-spacing:.13em;color:#ffd45b;margin-bottom:2px;text-shadow:0 0 15px rgba(255,184,31,.48)}
+#dominoLobbyPanel .domino-lobby-head p{margin:4px 0 0!important;font-size:9px!important;color:#d8dfdc!important}
+#dominoBuildBadge{display:inline-flex!important;margin-top:4px!important;padding:3px 8px!important;border-radius:999px!important;font-size:6.8px!important;background:rgba(2,7,7,.62)!important;border:1px solid rgba(255,211,84,.18)!important;color:#b9c6bf!important}
+.domino-lobby-wallet{
+  position:absolute;top:5px;left:0;z-index:5;display:flex;align-items:center;gap:7px;min-height:38px;padding:5px 10px 5px 6px;border-radius:999px;
+  background:linear-gradient(145deg,rgba(24,21,11,.94),rgba(4,7,9,.94));border:1px solid rgba(255,205,68,.62);box-shadow:0 8px 22px rgba(0,0,0,.40),0 0 15px rgba(255,191,44,.13);font-weight:950;color:#ffe780;font-size:10px
+}
+.domino-lobby-wallet:before{content:"";width:27px;height:27px;flex:0 0 27px;border-radius:50%;background:var(--fc-coin-image) center/cover no-repeat;box-shadow:0 0 11px rgba(255,197,43,.38)}
+.domino-lobby-wallet.spectator-ready{border-color:rgba(78,171,255,.62);color:#bfe1ff}
+.domino-lobby-wallet.spectator-ready:after{content:"· espectador";font-size:7px;color:#8fc7ff;text-transform:uppercase;letter-spacing:.06em}
+#dominoLobbyMsg{flex:0 0 auto!important;min-height:0!important;margin:0 0 4px!important;text-align:center!important;font-size:9px!important}
+#dominoLobbyModes.domino-two-tables{
+  flex:1 1 auto!important;min-height:0!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  grid-template-rows:repeat(3,minmax(0,1fr))!important;gap:8px!important;overflow:hidden!important;padding:1px!important;
+}
+#dominoLobbyModes .domino-choice-card{
+  --lobby-accent:#ffc84a;position:relative!important;isolation:isolate!important;overflow:hidden!important;min-width:0!important;min-height:0!important;
+  margin:0!important;padding:0!important;border-radius:18px!important;border:1px solid rgba(241,190,67,.58)!important;
+  background:linear-gradient(180deg,rgba(8,11,12,.28),rgba(3,6,8,.96) 57%,rgba(1,3,5,.99))!important;
+  box-shadow:0 13px 30px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.07),0 0 18px rgba(255,190,48,.10)!important;
+  display:flex!important;flex-direction:column!important;justify-content:flex-end!important;
+}
+#dominoLobbyModes .domino-choice-card:nth-child(6n+1){--lobby-accent:#4ba8ff}
+#dominoLobbyModes .domino-choice-card:nth-child(6n+2){--lobby-accent:#ff6a39}
+#dominoLobbyModes .domino-choice-card:nth-child(6n+3){--lobby-accent:#45e09a}
+#dominoLobbyModes .domino-choice-card:nth-child(6n+4){--lobby-accent:#c678ff}
+#dominoLobbyModes .domino-choice-card:nth-child(6n+5){--lobby-accent:#ffb736}
+#dominoLobbyModes .domino-choice-card:nth-child(6n+6){--lobby-accent:#ff5a65}
+#dominoLobbyModes .domino-choice-card:before{
+  content:"";position:absolute;inset:0 0 44% 0;z-index:-2;
+  background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.54)),var(--domino-table-image) center 53%/cover no-repeat!important;
+  filter:saturate(1.22) contrast(1.05);transform:scale(1.05)
+}
+#dominoLobbyModes .domino-choice-card:after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,transparent 17%,rgba(0,0,0,.18) 36%,rgba(0,0,0,.88) 56%,rgba(0,0,0,.98) 100%)}
+.domino-premium-card-head{position:absolute;left:7px;right:7px;top:6px;display:flex;align-items:center;justify-content:space-between;gap:5px;z-index:2}
+.domino-premium-card-head h3{margin:0!important;min-width:0;padding:4px 8px!important;border-radius:999px!important;background:rgba(0,0,0,.72)!important;border:1px solid rgba(244,199,78,.52)!important;color:#fff6dc!important;font-size:10px!important;line-height:1!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;box-shadow:0 5px 16px rgba(0,0,0,.36)!important}
+.domino-premium-status{flex:0 0 auto;display:flex;align-items:center;gap:4px;padding:4px 7px;border-radius:999px;background:rgba(0,0,0,.72);font-size:6.5px;font-weight:950;text-transform:uppercase;letter-spacing:.04em;color:#cfd8d3}
+.domino-premium-status i{width:7px;height:7px;border-radius:50%;background:#45e879;box-shadow:0 0 8px #45e879}
+.domino-premium-status.playing i{background:#ff5b48;box-shadow:0 0 8px #ff5b48}.domino-premium-status.full i{background:#ffb62f;box-shadow:0 0 8px #ffb62f}
+.domino-premium-card-body{padding:0 8px 7px!important;display:flex;flex-direction:column;gap:4px}
+.domino-premium-card-body .mode-desc{font-size:6.6px!important;line-height:1.16!important;color:#c7d0cb!important;margin:0!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#dominoLobbyModes .table-stats{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px!important;margin:0!important}
+#dominoLobbyModes .table-stat{min-width:0!important;padding:4px 5px!important;border-radius:9px!important;background:rgba(8,12,14,.84)!important;border:1px solid rgba(255,255,255,.08)!important;color:#aeb8b3!important;font-size:5.8px!important;line-height:1.05!important}
+#dominoLobbyModes .table-stat b{display:block!important;margin-top:2px!important;font-size:8px!important;color:#ffe073!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#dominoLobbyModes .online-line{margin:0!important;font-size:6.3px!important;line-height:1.1!important;color:#dce6df!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#dominoLobbyModes .domino-join-mode{min-height:30px!important;margin:0!important;padding:5px 8px!important;border:1px solid #ffe18a!important;border-radius:10px!important;background:linear-gradient(180deg,#ffe57d,#e99b19)!important;color:#191000!important;font-size:7.8px!important;font-weight:1000!important;text-shadow:none!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.70),0 7px 16px rgba(0,0,0,.35),0 0 15px rgba(255,185,42,.17)!important}
+#dominoLobbyModes .domino-join-mode.spectator{background:linear-gradient(180deg,#6ec4ff,#1a75d5)!important;border-color:#bfe5ff!important;color:#03111d!important}
+#dominoLobbyModes>.card{grid-column:1/-1!important;position:absolute!important;z-index:30!important;left:50%!important;transform:translateX(-50%)!important;top:max(51px,env(safe-area-inset-top))!important;width:min(92%,560px)!important;padding:8px 10px!important;border-radius:14px!important;background:rgba(3,8,9,.96)!important;border:1px solid rgba(255,213,90,.50)!important;box-shadow:0 16px 38px rgba(0,0,0,.58)!important}
+
+/* Espectador: no ocupa asiento y no puede interactuar con la partida. */
+#dominoSpectatorBar{display:none}
+body.domino-spectating #dominoSpectatorBar{
+  display:flex!important;position:absolute;left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);z-index:70;
+  align-items:center;justify-content:center;gap:6px;max-width:58%;padding:4px 6px;border-radius:999px;background:rgba(2,7,9,.90);border:1px solid rgba(91,180,255,.58);box-shadow:0 8px 24px rgba(0,0,0,.40),0 0 14px rgba(38,147,255,.18)
+}
+.domino-spectator-nav{width:29px;height:29px;border-radius:50%;border:1px solid rgba(150,210,255,.55);background:#09131c;color:#dff3ff;font-size:16px;font-weight:1000;display:grid;place-items:center;padding:0}
+.domino-spectator-nav:disabled{opacity:.26}
+#dominoSpectatorLabel{min-width:98px;max-width:220px;text-align:center;color:#dff2ff;font-size:7px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
+#dominoSpectatorLabel b{display:block;color:#fff;font-size:8.5px}
+body.domino-spectating #dominoHand,
+body.domino-spectating #dominoReadyBtn,
+body.domino-spectating #dominoMiniChat,
+body.domino-spectating #dominoAllMessagesBtn,
+body.domino-spectating #dominoEmojiTray{display:none!important}
+body.domino-spectating #dominoCenterStatus{display:none!important}
+body.domino-spectating #dominoSurrenderBtn{display:grid!important;background:rgba(8,25,39,.92)!important;border-color:rgba(99,190,255,.62)!important}
+body.domino-spectating #dominoSurrenderBtn:after{content:"↩";font-size:15px;color:#c9edff;position:absolute}
+body.domino-spectating #dominoSurrenderBtn{font-size:0!important;position:relative}
+body.domino-spectating .domino-seat.mine{box-shadow:none!important}
+
+/* La nueva trayectoria L usa posiciones absolutas: ficha con ficha, sin saltos. */
+.domino-board{display:grid!important;place-items:center!important;overflow:visible!important}
+.domino-board-path{position:relative!important;flex:0 0 auto!important;overflow:visible!important;pointer-events:none!important}
+.domino-board-path .domino-piece.board-piece{position:absolute!important;margin:0!important;transform:none!important;flex:none!important;box-sizing:border-box!important}
+.domino-board-path .domino-piece.board-piece:not(.domino-double):not(.domino-path-vertical){width:var(--domino-board-tile-w)!important;height:var(--domino-board-tile-h)!important;min-width:var(--domino-board-tile-w)!important;max-width:var(--domino-board-tile-w)!important;min-height:var(--domino-board-tile-h)!important;max-height:var(--domino-board-tile-h)!important;display:grid!important;grid-template-columns:1fr 1fr!important;grid-template-rows:1fr!important}
+.domino-board-path .domino-piece.board-piece.domino-double,
+.domino-board-path .domino-piece.board-piece.domino-path-vertical{width:var(--domino-board-tile-h)!important;height:var(--domino-board-tile-w)!important;min-width:var(--domino-board-tile-h)!important;max-width:var(--domino-board-tile-h)!important;min-height:var(--domino-board-tile-w)!important;max-height:var(--domino-board-tile-w)!important;display:grid!important;grid-template-columns:1fr!important;grid-template-rows:1fr 1fr!important}
+.domino-board-path .domino-piece.board-piece.domino-double .domino-divider,
+.domino-board-path .domino-piece.board-piece.domino-path-vertical .domino-divider{left:3px!important;right:3px!important;top:50%!important;bottom:auto!important;width:auto!important;height:1px!important;transform:translateY(-.5px)!important}
+.domino-board-path .domino-piece.board-piece.domino-path-reverse:not(.domino-double):not(.domino-path-vertical)>.domino-face:first-child{grid-column:2!important;grid-row:1!important}
+.domino-board-path .domino-piece.board-piece.domino-path-reverse:not(.domino-double):not(.domino-path-vertical)>.domino-face:last-child{grid-column:1!important;grid-row:1!important}
+.domino-board-path .domino-piece.board-piece.domino-path-reverse:not(.domino-double):not(.domino-path-vertical)>.domino-divider{left:50%!important;right:auto!important;top:3px!important;bottom:3px!important;width:1px!important;height:auto!important;transform:translateX(-.5px)!important}
+
+@media(orientation:landscape){
+  #dominoLobbyModes.domino-two-tables{grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:740px){
+  #dominoLobbyPanel>.domino-lobby-shell{padding:max(6px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right)) max(6px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left))!important}
+  #dominoLobbyPanel .domino-lobby-head{margin:0 42px 5px!important;padding-bottom:4px!important}
+  #dominoLobbyPanel .domino-lobby-head h2{font-size:clamp(19px,5vw,28px)!important}
+  #dominoLobbyPanel .domino-lobby-head p{display:none!important}
+  .domino-lobby-wallet{top:2px;left:0;min-height:31px;padding:3px 8px 3px 4px;font-size:8px}.domino-lobby-wallet:before{width:23px;height:23px;flex-basis:23px}.domino-lobby-wallet.spectator-ready:after{display:none}
+  #dominoLobbyModes.domino-two-tables{gap:5px!important}
+  #dominoLobbyModes .domino-choice-card{border-radius:13px!important}
+  .domino-premium-card-head{left:5px;right:5px;top:4px}.domino-premium-card-head h3{font-size:7.5px!important;padding:3px 6px!important}.domino-premium-status{font-size:5.4px;padding:3px 5px}
+  .domino-premium-card-body{padding:0 5px 5px!important;gap:3px}.domino-premium-card-body .mode-desc{font-size:5.3px!important}.domino-premium-status i{width:5px;height:5px}
+  #dominoLobbyModes .table-stat{padding:3px!important;font-size:4.9px!important}#dominoLobbyModes .table-stat b{font-size:6.3px!important}
+  #dominoLobbyModes .online-line{font-size:5.2px!important}#dominoLobbyModes .domino-join-mode{min-height:24px!important;font-size:6px!important;border-radius:8px!important;padding:3px 5px!important}
+  body.domino-spectating #dominoSpectatorBar{max-width:63%;top:max(5px,env(safe-area-inset-top));padding:3px 5px}.domino-spectator-nav{width:25px;height:25px;font-size:13px}#dominoSpectatorLabel{font-size:6px;min-width:80px}#dominoSpectatorLabel b{font-size:7.2px}
+}
+</style>
+
+<script id="mfV01PremiumLobbySpectatorJS">
+(function(){
+  let spectatorMode=false;
+  let spectatorTables=[];
+  let spectatorRefreshAt=0;
+  let spectatorSwipeStart=null;
+
+  const mainBalance=()=>Math.max(0,Number(me?.balance||0));
+  const noMainBalance=()=>mainBalance()<=0.0004;
+  const liveTables=(lobby=dominoLobbyData)=>((lobby?.tables||[]).filter(t=>Number(t.players||0)>0&&['playing','shuffling'].includes(String(t.hand_status||''))));
+  const tableLabel=t=>{
+    const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(t?.config_id));
+    return `${c?.name||'Dominó'} · Mesa ${t?.table_no||t?.id}`;
+  };
+
+  function ensureLobbyWallet(){
+    const head=document.querySelector('#dominoLobbyPanel .domino-lobby-head');if(!head)return null;
+    let chip=document.getElementById('dominoLobbyBalance');
+    if(!chip){chip=document.createElement('div');chip.id='dominoLobbyBalance';chip.className='domino-lobby-wallet';head.parentNode.insertBefore(chip,head)}
+    chip.textContent=`${dominoMoney(mainBalance())} FC`;
+    chip.classList.toggle('spectator-ready',noMainBalance());
+    return chip;
+  }
+
+  function ensureSpectatorBar(){
+    const stage=document.getElementById('dominoStage');if(!stage)return null;
+    let bar=document.getElementById('dominoSpectatorBar');
+    if(!bar){
+      bar=document.createElement('div');bar.id='dominoSpectatorBar';
+      bar.innerHTML='<button id="dominoSpectatorPrev" class="domino-spectator-nav" type="button" aria-label="Mesa anterior">‹</button><div id="dominoSpectatorLabel"><b>Modo espectador</b><span>Mesa activa</span></div><button id="dominoSpectatorNext" class="domino-spectator-nav" type="button" aria-label="Mesa siguiente">›</button>';
+      stage.appendChild(bar);
+      document.getElementById('dominoSpectatorPrev').onclick=()=>switchSpectatorTable(-1);
+      document.getElementById('dominoSpectatorNext').onclick=()=>switchSpectatorTable(1);
+    }
+    return bar;
+  }
+
+  function updateSpectatorBar(){
+    ensureSpectatorBar();
+    const label=document.getElementById('dominoSpectatorLabel');
+    const prev=document.getElementById('dominoSpectatorPrev'),next=document.getElementById('dominoSpectatorNext');
+    const t=(dominoLobbyData?.tables||[]).find(x=>Number(x.id)===Number(dominoCurrentTableId));
+    if(label)label.innerHTML=`<b>👁️ ESPECTADOR · ${Number(t?.players||0)}/4</b><span>${esc(tableLabel(t))}</span>`;
+    const can=spectatorTables.length>1;if(prev)prev.disabled=!can;if(next)next.disabled=!can;
+  }
+
+  async function refreshSpectatorTables(force=false){
+    if(!force&&Date.now()<spectatorRefreshAt)return spectatorTables;
+    spectatorRefreshAt=Date.now()+3000;
+    try{
+      const r=await sb.rpc('rf_domino_get_lobby_v11');
+      if(!r.error&&r.data){dominoLobbyData=r.data;spectatorTables=liveTables(r.data).sort((a,b)=>Number(a.config_id)-Number(b.config_id)||Number(a.table_no)-Number(b.table_no));}
+    }catch(_){ }
+    updateSpectatorBar();
+    return spectatorTables;
+  }
+
+  async function enterSpectator(tableId){
+    if(!tableId)return false;
+    spectatorMode=true;window.dominoSpectatorMode=true;
+    document.body.classList.add('domino-spectating');
+    dominoCurrentTableId=Number(tableId);dominoResetTableEffects();
+    hide('gamesPanel');hide('dominoLobbyPanel');hide('dominoBuyinPanel');show('dominoTablePanel');
+    const exit=document.getElementById('dominoSurrenderBtn');if(exit)exit.title='Volver a las mesas';
+    await dominoForceLandscape().catch(()=>{});await dominoAcquireWakeLock().catch(()=>{});
+    await dominoStopRealtime().catch(()=>{});
+    await refreshSpectatorTables(true);
+    dominoStartPolling();
+    await loadDominoState(true,true);
+    return true;
+  }
+
+  async function enterBestSpectator(){
+    try{await loadMe();renderMe()}catch(_){ }
+    let lobby;
+    try{const r=await sb.rpc('rf_domino_get_lobby_v11');if(r.error)throw r.error;lobby=r.data||{};dominoLobbyData=lobby;}catch(e){alert(errText(e));return false}
+    const active=liveTables(lobby).sort((a,b)=>Number(b.players||0)-Number(a.players||0)||Number(a.table_no||0)-Number(b.table_no||0));
+    spectatorTables=[...active].sort((a,b)=>Number(a.config_id)-Number(b.config_id)||Number(a.table_no)-Number(b.table_no));
+    if(!active.length){await openDominoLobby();msg('dominoLobbyMsg','Ahora mismo no hay una partida activa para mirar.');return false}
+    return enterSpectator(active[0].id);
+  }
+
+  async function switchSpectatorTable(delta){
+    if(!spectatorMode)return;
+    await refreshSpectatorTables(true);
+    if(spectatorTables.length<=1)return;
+    let i=spectatorTables.findIndex(t=>Number(t.id)===Number(dominoCurrentTableId));if(i<0)i=0;
+    i=(i+(delta>0?1:-1)+spectatorTables.length)%spectatorTables.length;
+    dominoCurrentTableId=Number(spectatorTables[i].id);dominoResetTableEffects();
+    await dominoStopRealtime().catch(()=>{});updateSpectatorBar();await loadDominoState(true,true);
+  }
+
+  async function exitSpectator(){
+    if(!spectatorMode)return;
+    spectatorMode=false;window.dominoSpectatorMode=false;document.body.classList.remove('domino-spectating');
+    dominoStopPolling();await dominoStopRealtime().catch(()=>{});await dominoReleaseWakeLock().catch(()=>{});dominoReleaseLandscape();
+    dominoCurrentTableId=null;dominoState=null;hide('dominoTablePanel');
+    await openDominoLobby();
+  }
+
+  window.enterDominoSpectatorBest=enterBestSpectator;
+  window.dominoSpectatorSwitch=switchSpectatorTable;
+  window.dominoExitSpectator=exitSpectator;
+
+  /* Lobby premium: conserva exactamente las configuraciones y el mismo botón funcional. */
+  window.renderDominoLobby=function(){
+    const host=document.getElementById('dominoLobbyModes');if(!host)return;
+    ensureLobbyWallet();
+    const configs=(dominoLobbyData?.configs||[]),tables=dominoLobbyData?.tables||[],myTable=dominoLobbyData?.my_table,myState=dominoLobbyData?.my_state;
+    const spectatorOnly=noMainBalance()&&!myTable;
+    host.innerHTML=configs.map((c,idx)=>{
+      const tt=tables.filter(t=>Number(t.config_id)===Number(c.id));
+      const players=tt.reduce((a,t)=>a+Number(t.players||0),0);
+      const active=tt.filter(t=>['playing','shuffling'].includes(String(t.hand_status||''))&&Number(t.players||0)>0);
+      const full=tt.length>0&&tt.every(t=>Number(t.players||0)>=4);
+      const status=active.length?'Jugando':(full?'Llena':'Esperando');
+      const statusClass=active.length?'playing':(full?'full':'');
+      const desc=c.mode==='paid_pass'?'Pase paga · crédito directo al saldo de mesa':'Pase no paga · modalidad clásica';
+      const action=spectatorOnly?'VER MESA MÁS LLENA':'JUGAR EN ESTA MESA';
+      return `<div class="domino-choice-card" data-config-card="${c.id}">
+        <div class="domino-premium-card-head"><h3>${esc(c.name)}</h3><span class="domino-premium-status ${statusClass}"><i></i>${status}</span></div>
+        <div class="domino-premium-card-body">
+          <div class="mode-desc">${desc}</div>
+          <div class="table-stats"><div class="table-stat">Entrada mínima<b>${dominoMoney(c.min_entry)} FC</b></div><div class="table-stat">Jugadores<b>${players} conectados</b></div><div class="table-stat">Bote/jugador<b>${dominoMoney(c.hand_stake)} FC</b></div><div class="table-stat">${c.mode==='paid_pass'?'Cada pase':'Mínimo seguir'}<b>${c.mode==='paid_pass'?dominoMoney(c.pass_fee)+' FC':dominoMoney(c.min_continue_balance)+' FC'}</b></div></div>
+          <div class="online-line"><span class="domino-live-dot"></span>${active.length?active.length+' partida'+(active.length===1?'':'s')+' activa'+(active.length===1?'':'s'):'Esperando la próxima partida'} · ${full?'sin asiento libre':'mesa disponible'}</div>
+          <button class="action green domino-join-mode ${spectatorOnly?'spectator':''}" data-config="${c.id}">${action}</button>
+        </div>
+      </div>`;
+    }).join('');
+    if(myTable)host.insertAdjacentHTML('afterbegin',myState==='abandoned'?`<div class="card"><strong>Salida confirmada</strong><div class="tiny">Tu asiento terminará esta mano automáticamente y después quedará libre.</div></div>`:`<div class="card"><strong>Tu asiento sigue activo</strong><div class="tiny">Puedes volver a tu mesa y continuar la mano si todavía no ha terminado.</div><button id="dominoResumeTableBtn" class="action blue">VOLVER A MI MESA</button></div>`);
+    host.querySelectorAll('.domino-join-mode').forEach(b=>b.onclick=()=>spectatorOnly?enterBestSpectator():openDominoBuyin(Number(b.dataset.config)));
+    const resume=document.getElementById('dominoResumeTableBtn');
+    if(resume)resume.onclick=async()=>{spectatorMode=false;window.dominoSpectatorMode=false;document.body.classList.remove('domino-spectating');dominoCurrentTableId=Number(myTable);dominoViewAway=false;dominoResetTableEffects();await sb.rpc('rf_domino_resume_v11',{p_table_id:dominoCurrentTableId});hide('dominoLobbyPanel');show('dominoTablePanel');dominoAcquireWakeLock().catch(()=>{});dominoForceLandscape().catch(()=>{});dominoStartPolling();await dominoHeartbeat(true);await dominoStartRealtime();await loadDominoState(true)};
+  };
+
+  /* Si pulsa Jugar sin saldo, salta directamente a la mesa activa más llena. */
+  const playBtn=document.getElementById('dominoPlayBtn');
+  if(playBtn)playBtn.addEventListener('click',async e=>{
+    if(!noMainBalance()||dominoLobbyData?.my_table)return;
+    e.preventDefault();e.stopImmediatePropagation();
+    dominoForceLandscape().catch(()=>{});
+    try{await loadMe();renderMe()}catch(_){ }
+    if(noMainBalance()&&!dominoLobbyData?.my_table)await enterBestSpectator();
+    else await openDominoLobby();
+  },true);
+
+  const originalOpenBuyin=window.openDominoBuyin;
+  if(typeof originalOpenBuyin==='function')window.openDominoBuyin=function(configId){if(noMainBalance()&&!dominoLobbyData?.my_table)return enterBestSpectator();return originalOpenBuyin(configId)};
+
+  /* Polling de espectador: nunca heartbeat, nunca tick, solo lectura segura. */
+  const originalHeartbeat=window.dominoHeartbeat;
+  if(typeof originalHeartbeat==='function')window.dominoHeartbeat=async function(force=false){if(spectatorMode)return true;return originalHeartbeat(force)};
+  const originalStartPolling=window.dominoStartPolling;
+  if(typeof originalStartPolling==='function')window.dominoStartPolling=function(){
+    if(!spectatorMode)return originalStartPolling();
+    clearInterval(dominoPollTimer);
+    dominoPollTimer=setInterval(()=>{if(dominoCurrentTableId)loadDominoState(false,true).catch(()=>{})},1000);
+  };
+  const originalSyncMessages=window.syncDominoTableMessages;
+  if(typeof originalSyncMessages==='function')window.syncDominoTableMessages=async function(){if(spectatorMode)return true;return originalSyncMessages.apply(this,arguments)};
+  const originalLoadState=window.loadDominoState;
+  if(typeof originalLoadState==='function')window.loadDominoState=async function(force,skipTick=false){
+    if(!spectatorMode)return originalLoadState(force,skipTick);
+    if(!dominoCurrentTableId)return;
+    const r=await sb.rpc('rf_domino_spectate_state_v01',{p_table_id:Number(dominoCurrentTableId)});
+    if(r.error){if(force)alert(errText(r.error));return}
+    if(dominoDragState?.active&&!force)return;
+    renderDominoState(r.data);updateSpectatorBar();
+    if(Date.now()>=spectatorRefreshAt)refreshSpectatorTables(false).catch(()=>{});
+  };
+
+  const originalRender=window.renderDominoState;
+  if(typeof originalRender==='function')window.renderDominoState=function(st){
+    const r=originalRender(st);
+    if(spectatorMode){
+      const hand=document.getElementById('dominoHand');if(hand)hand.innerHTML='';
+      const ready=document.getElementById('dominoReadyBtn');if(ready)ready.classList.add('hidden');
+      const center=document.getElementById('dominoCenterStatus');if(center){center.innerHTML='';center.classList.add('playing-quiet')}
+      updateSpectatorBar();
+    }
+    return r;
+  };
+
+  /* Botón salir y gesto lateral en espectador. */
+  const surrender=document.getElementById('dominoSurrenderBtn');
+  if(surrender)surrender.addEventListener('click',e=>{if(!spectatorMode)return;e.preventDefault();e.stopImmediatePropagation();exitSpectator()},true);
+  const stage=document.getElementById('dominoStage');
+  if(stage){
+    stage.addEventListener('pointerdown',e=>{if(spectatorMode)spectatorSwipeStart={x:e.clientX,y:e.clientY,id:e.pointerId}});
+    stage.addEventListener('pointerup',e=>{if(!spectatorMode||!spectatorSwipeStart||spectatorSwipeStart.id!==e.pointerId)return;const dx=e.clientX-spectatorSwipeStart.x,dy=e.clientY-spectatorSwipeStart.y;spectatorSwipeStart=null;if(Math.abs(dx)>62&&Math.abs(dx)>Math.abs(dy)*1.35)switchSpectatorTable(dx<0?1:-1)});
+  }
+
+  /* Trayectoria real en L. Cada conexión usa el orden lógico A→B del servidor.
+     Al doblar, la siguiente ficha baja vertical y la nueva fila continúa desde su B. */
+  window.dominoRows=function(board,lastMove,animateMove){
+    if(!board?.length)return '';
+    const compact=window.matchMedia?.('(max-width:740px)').matches;
+    const W=compact?40:48,H=compact?24:28,MAX=compact?360:528;
+    const pieces=[];let idx=0,dir=1,cursor=0,y=0,minX=0,maxX=0,minY=0,maxY=H;
+    const dims=(tile,vertical=false)=>{const a=Number(tile?.a??tile?.[0]??0),b=Number(tile?.b??tile?.[1]??0),dbl=a===b;return vertical||dbl?{w:H,h:W,dbl}:{w:W,h:H,dbl}};
+    const add=(tile,i,x,yy,vertical,reverse)=>{
+      const d=dims(tile,vertical);let top=yy;
+      if(!vertical&&d.dbl)top=yy-(W-H)/2;
+      pieces.push({tile,i,x,top,vertical,reverse,w:d.w,h:d.h});
+      minX=Math.min(minX,x);maxX=Math.max(maxX,x+d.w);minY=Math.min(minY,top);maxY=Math.max(maxY,top+d.h);
+    };
+    while(idx<board.length){
+      let used=0,rowCount=0;
+      while(idx<board.length){
+        const d=dims(board[idx],false);
+        if(rowCount>0&&used+d.w>MAX)break;
+        const x=dir===1?cursor:cursor-d.w;
+        add(board[idx],idx,x,y,false,dir===-1);
+        cursor+=dir*d.w;used+=d.w;rowCount++;idx++;
+        if(used>=MAX-W*.45)break;
+      }
+      if(idx>=board.length)break;
+      const cx=dir===1?cursor-H:cursor;
+      const cy=y+H;
+      add(board[idx],idx,cx,cy,true,false);idx++;
+      y=cy+W-H;
+      cursor=dir===1?cx:cx+H;
+      dir*=-1;
+    }
+    const shiftX=-minX,shiftY=-minY;
+    const side=lastMove?.side||'right',newIndex=side==='left'?0:board.length-1;
+    const html=pieces.map(p=>{
+      const end=`${p.i===0?'domino-end-left ':''}${p.i===board.length-1?'domino-end-right ':''}`.trim();
+      const cls=`${end} ${p.vertical?'domino-path-vertical ':''}${p.reverse?'domino-path-reverse ':''}${animateMove&&p.i===newIndex?'just-dropped':''}`.trim();
+      const piece=dominoPiece(p.tile,p.i,false,true,cls);
+      const style=`left:${(p.x+shiftX).toFixed(1)}px;top:${(p.top+shiftY).toFixed(1)}px;`;
+      return piece.replace('<div ',`<div style="${style}" `);
+    }).join('');
+    const width=Math.max(1,maxX-minX),height=Math.max(H,maxY-minY);
+    return `<div class="domino-board-path" style="width:${width.toFixed(1)}px;height:${height.toFixed(1)}px">${html}</div>`;
+  };
+
+  ensureSpectatorBar();
+})();
+</script>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
