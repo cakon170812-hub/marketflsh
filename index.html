@@ -5419,7 +5419,7 @@ function dominoShowSeatMessage(row){
   bubble.classList.add('show');
   if(isReaction)dominoShowBigEmoji(row?.message||'');
   clearTimeout(bubble._hideTimer);
-  bubble._hideTimer=setTimeout(()=>bubble.classList.remove('show'),isReaction?5000:5000);
+  bubble._hideTimer=setTimeout(()=>bubble.classList.remove('show'),isReaction?5000:10000);
 }
 async function syncDominoTableMessages(force=false){
   if(!dominoCurrentTableId)return;
@@ -6559,6 +6559,398 @@ buildWheel();
     }
     return rows.join('');
   };
+})();
+</script>
+
+
+<style id="mfV01FinalVisualCreditPatch">
+/* ===== HTML 0.1 · corrección final: caras, dobles, curvas, créditos y barra de ruleta ===== */
+
+/* La cara 0–6 usa exactamente la misma geometría en mano y mesa.
+   Los puntos nunca se redistribuyen por girar o colocar una ficha. */
+.domino-piece .domino-face{
+  position:relative!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-width:0!important;
+  min-height:0!important;
+  flex:1 1 50%!important;
+  padding:0!important;
+  overflow:visible!important;
+}
+.domino-piece .domino-face .domino-pip{
+  position:absolute!important;
+  margin:0!important;
+  transform:translate(-50%,-50%)!important;
+}
+.domino-piece .domino-face .p1{left:22%!important;top:18%!important}
+.domino-piece .domino-face .p2{left:50%!important;top:18%!important}
+.domino-piece .domino-face .p3{left:78%!important;top:18%!important}
+.domino-piece .domino-face .p4{left:22%!important;top:50%!important}
+.domino-piece .domino-face .p5{left:50%!important;top:50%!important}
+.domino-piece .domino-face .p6{left:78%!important;top:50%!important}
+.domino-piece .domino-face .p7{left:22%!important;top:82%!important}
+.domino-piece .domino-face .p8{left:50%!important;top:82%!important}
+.domino-piece .domino-face .p9{left:78%!important;top:82%!important}
+
+/* El 6 queda siempre como dos columnas verticales de tres puntos. */
+.domino-piece .domino-face .p1.on,
+.domino-piece .domino-face .p4.on,
+.domino-piece .domino-face .p7.on{left:24%!important}
+.domino-piece .domino-face .p3.on,
+.domino-piece .domino-face .p6.on,
+.domino-piece .domino-face .p9.on{left:76%!important}
+
+/* La cadena se mantiene pegada incluso cuando aparece un doble. */
+.domino-board-row{gap:0!important;column-gap:0!important;row-gap:0!important}
+.domino-board-row .domino-piece.board-piece{margin-top:0!important;margin-bottom:0!important}
+.domino-piece.board-piece.domino-double{
+  margin-left:0!important;
+  margin-right:0!important;
+}
+.domino-piece.board-piece.domino-double + .domino-piece.board-piece,
+.domino-piece.board-piece + .domino-piece.board-piece.domino-double{
+  margin-left:0!important;margin-right:0!important;
+}
+
+/* Curva continua. La fila nueva queda alineada con el extremo real de la curva. */
+:root{
+  --domino-corner-align:20px;
+  --domino-board-row-step:38px;
+}
+.domino-board-row.first-row{transform:none!important}
+.domino-board-row.flow-right:not(.first-row):not(.only-row){
+  transform:translateX(var(--domino-corner-align))!important
+}
+.domino-board-row.flow-left:not(.only-row){
+  transform:translateX(calc(-1 * var(--domino-corner-align)))!important
+}
+.domino-piece.board-piece.domino-turn-down{
+  margin-left:0!important;margin-right:0!important;
+  transform:translateY(10px)!important;
+}
+.domino-board-row .domino-corner-approach{
+  z-index:7!important;
+}
+.domino-board-row .domino-corner-approach-2,
+.domino-board-row .domino-corner-approach-1{
+  margin-left:0!important;margin-right:0!important;
+}
+
+/* Bote a un lado y saldo principal visible al lado contrario. */
+.domino-inside-pot{
+  left:16%!important;
+  top:10.5%!important;
+  right:auto!important;
+  transform:none!important;
+  min-width:122px!important;
+  z-index:46!important;
+}
+.domino-live-top-controls{
+  top:max(8px,env(safe-area-inset-top))!important;
+  right:max(8px,env(safe-area-inset-right))!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+}
+.domino-compact-balance{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:145px!important;
+  min-height:40px!important;
+  padding:5px 10px!important;
+  background:rgba(4,9,14,.91)!important;
+  border:1px solid rgba(255,215,90,.48)!important;
+  border-radius:14px!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.38),0 0 17px rgba(255,205,73,.12)!important;
+}
+.domino-compact-balance .fc-balance{font-size:11px!important}
+
+/* Destino visible de monedas: saldo redondo del perfil. */
+.domino-seat .seat-bal.domino-credit-pulse{
+  animation:mfSeatCreditPulse .82s ease!important;
+}
+@keyframes mfSeatCreditPulse{
+  0%{transform:scale(1)}
+  35%{transform:scale(1.17);box-shadow:0 0 30px rgba(255,214,72,.86),inset 0 1px 0 rgba(255,248,201,.18)}
+  100%{transform:scale(1)}
+}
+
+/* Fijar monto + Apostado quedan juntos arriba de Resultado global. */
+#appView .roulette-result-tools{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  min-height:36px!important;
+}
+#appView .roulette-result-tools #roundBetTotal{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  min-width:126px!important;
+  min-height:34px!important;
+  padding:6px 10px!important;
+  margin:0!important;
+  border-radius:12px!important;
+  color:#e8edf5!important;
+  background:rgba(7,10,16,.94)!important;
+  border:1px solid rgba(255,211,82,.34)!important;
+  box-shadow:0 7px 18px rgba(0,0,0,.25)!important;
+  font-size:9px!important;
+  white-space:nowrap!important;
+}
+#appView .roulette-result-tools #roundBetTotal b{
+  color:#ffd75a!important;
+  font-size:11px!important;
+}
+#appView #roundBetTotal.hidden-total{display:flex!important}
+
+/* En pantallas pequeñas mantiene el mismo orden y nada se pisa. */
+@media(max-width:740px){
+  :root{
+    --domino-corner-align:16px;
+    --domino-board-row-step:32px;
+  }
+  .domino-piece.board-piece.domino-turn-down{transform:translateY(8px)!important}
+  .domino-inside-pot{left:12%!important;top:10%!important;min-width:102px!important}
+  .domino-compact-balance{min-width:122px!important;min-height:36px!important;padding:4px 8px!important}
+  .domino-compact-balance .fc-balance{font-size:9px!important}
+  #appView .roulette-result-tools{gap:5px!important}
+  #appView .roulette-result-tools #fixedStakeActionBtn{min-width:112px!important}
+  #appView .roulette-result-tools #roundBetTotal{min-width:108px!important;padding:5px 7px!important;font-size:8px!important}
+  #appView .roulette-result-tools #roundBetTotal b{font-size:9px!important}
+}
+</style>
+
+<script id="mfV01FinalVisualCreditPatchJS">
+(function(){
+  /* Resultado de ruleta: Fijar monto y Apostado viven encima de la barra. */
+  const result=document.getElementById('resultText');
+  let tools=document.querySelector('#appView .roulette-result-tools');
+  if(result&&!tools){
+    tools=document.createElement('div');
+    tools.className='roulette-result-tools';
+    result.parentNode.insertBefore(tools,result);
+  }
+  const fixed=document.getElementById('fixedStakeActionBtn');
+  const total=document.getElementById('roundBetTotal');
+  if(tools&&fixed)tools.appendChild(fixed);
+  if(tools&&total)tools.appendChild(total);
+
+  /* Apostado nunca desaparece. Durante el giro se muestra 0.000 y en la ronda nueva
+     vuelve a reflejar únicamente lo que realmente esté apostado en esa ronda. */
+  window.setBetTotalVisible=function(v){
+    betTotalVisible=true;
+    const el=document.getElementById('roundBetTotal');
+    if(!el)return;
+    if(v===false){
+      el.innerHTML='Apostado <b>0.000 FC</b>';
+      el.classList.remove('hidden-total');
+      el.dataset.spinReset='1';
+      return;
+    }
+    delete el.dataset.spinReset;
+    updateBetTotal();
+    el.classList.remove('hidden-total');
+  };
+
+  /* Curva de tres fichas: dos preparan el borde y la tercera baja.
+     La secuencia lógica A→B del servidor nunca se altera. */
+  window.dominoRows=function(board,lastMove,animateMove){
+    if(!board?.length)return '';
+    const compact=window.matchMedia?.('(max-width:740px)').matches;
+    const perRow=compact?10:11;
+    const rows=[];
+    const totalRows=Math.ceil(board.length/perRow);
+
+    for(let i=0;i<board.length;i+=perRow){
+      const rowNo=rows.length;
+      const slice=board.slice(i,i+perRow);
+      const flowRight=rowNo%2===0;
+      const hasNext=i+slice.length<board.length;
+      const turnLogicalIndex=hasNext?(i+slice.length-1):-1;
+      const pre1=hasNext?(turnLogicalIndex-1):-1;
+      const pre2=hasNext?(turnLogicalIndex-2):-1;
+      const directionClass=flowRight?'flow-right':'flow-left';
+      const onlyRow=totalRows===1?'only-row':'';
+      const firstRow=rowNo===0?'first-row':'';
+      const partialLast=!hasNext&&totalRows>1&&slice.length<perRow?'partial-last':'';
+      const turnClass=hasNext?(flowRight?'turn-right':'turn-left'):'';
+
+      const html=slice.map((tile,j)=>{
+        const idx=i+j;
+        const side=lastMove?.side||'right';
+        const newIndex=side==='left'?0:board.length-1;
+        const isTurn=idx===turnLogicalIndex;
+        const isPre1=idx===pre1;
+        const isPre2=idx===pre2;
+        const endClasses=`${idx===0?'domino-end-left ':''}${idx===board.length-1?'domino-end-right ':''}`.trim();
+        const bendClass=isTurn?'domino-turn-down domino-corner-approach':'';
+        const approachClass=isPre1?'domino-corner-approach domino-corner-approach-1':(isPre2?'domino-corner-approach domino-corner-approach-2':'');
+        const reverseClass=!flowRight&&!isTurn?'domino-reverse-horizontal':'';
+        const dropClass=animateMove&&idx===newIndex?'just-dropped':'';
+        return dominoPiece(tile,idx,false,true,`${endClasses} ${bendClass} ${approachClass} ${reverseClass} ${dropClass}`.trim());
+      }).join('');
+
+      rows.push(`<div class="domino-board-row ${directionClass} ${turnClass} ${onlyRow} ${firstRow} ${partialLast}" data-domino-row="${rowNo}">${html}</div>`);
+    }
+    return rows.join('');
+  };
+
+  function seatBalanceEl(userId){
+    if(!userId)return null;
+    const nodes=[...document.querySelectorAll('#dominoSeats .domino-seat[data-seat-user]')];
+    const node=nodes.find(n=>String(n.dataset.seatUser)===String(userId));
+    return node?.querySelector('.seat-bal')||null;
+  }
+  function seatNode(userId){
+    if(!userId)return null;
+    return [...document.querySelectorAll('#dominoSeats .domino-seat[data-seat-user]')]
+      .find(n=>String(n.dataset.seatUser)===String(userId))||null;
+  }
+  function flyCoinsToProfile(userId,sourceEl,count=14){
+    const target=seatBalanceEl(userId);
+    const source=sourceEl||document.querySelector('.domino-inside-pot')||document.getElementById('dominoBoard');
+    if(!target||!source)return;
+    const tr=target.getBoundingClientRect(),sr=source.getBoundingClientRect();
+    const tx=tr.left+tr.width/2,ty=tr.top+tr.height/2;
+    const sx=sr.left+sr.width/2,sy=sr.top+sr.height/2;
+    for(let i=0;i<count;i++){
+      const coin=document.createElement('div');
+      coin.className='domino-win-coin';
+      const x=sx+(Math.random()*70-35),y=sy+(Math.random()*38-19);
+      coin.style.left=x+'px';coin.style.top=y+'px';
+      document.body.appendChild(coin);
+      const dx=tx-x,dy=ty-y;
+      const anim=coin.animate([
+        {transform:'translate(-50%,-50%) scale(.35)',opacity:0},
+        {transform:`translate(-50%,-50%) translate(${dx*.18}px,${dy*.08-34}px) scale(1.02)`,opacity:1,offset:.24},
+        {transform:`translate(-50%,-50%) translate(${dx*.68}px,${dy*.60-14}px) scale(.78)`,opacity:1,offset:.72},
+        {transform:`translate(-50%,-50%) translate(${dx}px,${dy}px) scale(.22)`,opacity:0}
+      ],{duration:690+i*22,delay:i*18,easing:'cubic-bezier(.18,.76,.2,1)',fill:'forwards'});
+      anim.onfinish=()=>coin.remove();
+    }
+    target.classList.remove('domino-credit-pulse');
+    void target.offsetWidth;
+    target.classList.add('domino-credit-pulse');
+    setTimeout(()=>target.classList.remove('domino-credit-pulse'),900);
+  }
+
+  function animateSeatNumber(userId,fromValue,toValue,duration=720){
+    const el=seatBalanceEl(userId);
+    const from=Number(fromValue),to=Number(toValue);
+    if(!el||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)return;
+    const t0=performance.now();
+    const frame=now=>{
+      const p=Math.min(1,(now-t0)/duration);
+      const e=1-Math.pow(1-p,3);
+      el.textContent=dominoMoney(from+(to-from)*e)+' FC';
+      if(p<1)requestAnimationFrame(frame);
+      else el.textContent=dominoMoney(to)+' FC';
+    };
+    requestAnimationFrame(frame);
+  }
+
+  function playProfileCreditSound(){
+    try{
+      if(typeof dominoSoundIsEnabled==='function'&&!dominoSoundIsEnabled())return;
+      if(typeof playBalanceCreditSound==='function'){playBalanceCreditSound(480);return}
+      if(typeof coinChime==='function'){coinChime(0,1760,.065);coinChime(.07,2380,.055)}
+    }catch(_){}
+  }
+
+  /* La celebración manda las monedas al saldo redondo del perfil del ganador. */
+  window.dominoAnimateWinCoins=function(){
+    const uid=dominoState?.me;
+    const source=document.querySelector('#dominoVictory .domino-victory-card')||document.getElementById('dominoVictory');
+    flyCoinsToProfile(uid,source,20);
+    const d=window.__mfDominoVictoryBalanceDelta;
+    if(d&&String(d.userId)===String(uid)){
+      setTimeout(()=>animateSeatNumber(uid,d.from,d.to,900),100);
+      setTimeout(()=>{window.__mfDominoVictoryBalanceDelta=null},1300);
+    }
+  };
+
+  let lastBalances=new Map();
+  let lastPassCreditMoveId=null;
+  let lastVictorySeen=null;
+
+  function isMyVictory(st){
+    const lr=st?.last_result,uid=st?.me,seats=st?.seats||[];
+    if(!lr||!uid)return false;
+    if(String(lr.winner_user_id)===String(uid))return true;
+    if(Number(lr.player_count||0)!==4)return false;
+    const mine=seats.find(x=>String(x.user_id)===String(uid));
+    const winner=seats.find(x=>String(x.user_id)===String(lr.winner_user_id));
+    return !!(mine&&winner&&Math.abs(Number(mine.seat_no)-Number(winner.seat_no))===2);
+  }
+
+  const previousRender=window.renderDominoState;
+  if(typeof previousRender==='function'&&!previousRender.__mfFinalCreditWrapped){
+    const wrapped=function(st){
+      const before=new Map(lastBalances);
+      const lr=st?.last_result;
+      const myWinNew=!!(lr&&String(lr.id)!==String(lastVictorySeen)&&isMyVictory(st));
+      if(lr&&String(lr.id)!==String(lastVictorySeen))lastVictorySeen=lr.id;
+
+      if(myWinNew){
+        const uid=st?.me;
+        const s=(st?.seats||[]).find(x=>String(x.user_id)===String(uid));
+        const old=before.get(String(uid));
+        const neu=Number(s?.table_balance);
+        if(Number.isFinite(old)&&Number.isFinite(neu)&&neu>old){
+          window.__mfDominoVictoryBalanceDelta={userId:uid,from:old,to:neu};
+        }else{
+          window.__mfDominoVictoryBalanceDelta={userId:uid,from:neu,to:neu};
+        }
+      }
+
+      const r=previousRender.apply(this,arguments);
+
+      const current=new Map();
+      for(const s of (st?.seats||[]))current.set(String(s.user_id),Number(s.table_balance||0));
+
+      const mv=st?.last_move;
+      const action=String(mv?.action||'').toUpperCase();
+      const amount=Number(mv?.amount||0);
+      const recipient=mv?.recipient_user_id||st?.hand?.last_play_user_id||null;
+      if(mv?.id&&String(mv.id)!==String(lastPassCreditMoveId)&&action.includes('PASS')){
+        const age=Date.now()-new Date(mv.created_at||0).getTime();
+        lastPassCreditMoveId=mv.id;
+        if(amount>0&&recipient&&age<6500){
+          const old=before.get(String(recipient));
+          const neu=current.get(String(recipient));
+          const payer=mv.user_id;
+          const source=seatNode(payer)||document.querySelector('.domino-inside-pot');
+          setTimeout(()=>{
+            flyCoinsToProfile(recipient,source,13);
+            playProfileCreditSound();
+            if(Number.isFinite(old)&&Number.isFinite(neu)&&neu>old)animateSeatNumber(recipient,old,neu,720);
+          },90);
+        }
+      }
+
+      lastBalances=current;
+      return r;
+    };
+    wrapped.__mfFinalCreditWrapped=true;
+    window.renderDominoState=wrapped;
+  }
+
+  /* Recoloca elementos por si otro bloque antiguo intentó moverlos de vuelta. */
+  requestAnimationFrame(()=>{
+    const res=document.getElementById('resultText');
+    let host=document.querySelector('#appView .roulette-result-tools');
+    if(res&&!host){
+      host=document.createElement('div');host.className='roulette-result-tools';res.parentNode.insertBefore(host,res);
+    }
+    if(host&&document.getElementById('fixedStakeActionBtn'))host.appendChild(document.getElementById('fixedStakeActionBtn'));
+    if(host&&document.getElementById('roundBetTotal'))host.appendChild(document.getElementById('roundBetTotal'));
+  });
 })();
 </script>
 
