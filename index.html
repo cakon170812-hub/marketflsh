@@ -7345,6 +7345,242 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 })();
 </script>
 
+
+
+<style id="mfV01KeyboardRouletteColorPatch">
+/* ===== HTML 0.1 · teclado estable + colores oficiales de la ruleta ===== */
+:root{--mf-keyboard-safe-bottom:0px}
+body.mf-keyboard-open{
+  /* La app conserva su composición completa; no se comprime al alto del teclado. */
+  height:var(--mf-vh,100dvh)!important;
+  max-height:var(--mf-vh,100dvh)!important;
+}
+.mf-keyboard-lift{
+  position:relative!important;
+  z-index:99998!important;
+  transform:translate3d(0,calc(-1 * var(--mf-keyboard-lift,0px)),0)!important;
+  transition:transform .18s ease!important;
+  will-change:transform;
+}
+.mf-keyboard-active{
+  box-shadow:0 0 0 2px rgba(255,212,90,.58),0 12px 34px rgba(0,0,0,.45)!important;
+}
+
+/* Colores oficiales: 0 verde y el resto alterna rojo/negro siguiendo WHEEL_ORDER. */
+#appView .num.roulette-green{
+  background:linear-gradient(150deg,#19a65b,#075c35)!important;
+  border-color:#49ef93!important;
+  color:#fff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20),0 5px 14px rgba(0,0,0,.30)!important;
+}
+#appView .num.roulette-red{
+  background:linear-gradient(150deg,#d83a43,#7d1119)!important;
+  border-color:#ff6b73!important;
+  color:#fff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.17),0 5px 14px rgba(0,0,0,.30)!important;
+}
+#appView .num.roulette-black{
+  background:linear-gradient(150deg,#242a34,#05070b)!important;
+  border-color:#6c7481!important;
+  color:#fff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 5px 14px rgba(0,0,0,.34)!important;
+}
+#appView .num.roulette-green.selected{
+  outline:2px solid #7effaf!important;
+  box-shadow:0 0 0 2px rgba(22,236,117,.28),0 0 22px rgba(22,236,117,.92),inset 0 0 16px rgba(255,255,255,.14)!important;
+  animation:mfRoulettePickGreen .34s ease;
+}
+#appView .num.roulette-red.selected{
+  outline:2px solid #ff8d94!important;
+  box-shadow:0 0 0 2px rgba(255,56,72,.25),0 0 22px rgba(255,56,72,.86),inset 0 0 16px rgba(255,255,255,.12)!important;
+  animation:mfRoulettePickRed .34s ease;
+}
+#appView .num.roulette-black.selected{
+  outline:2px solid #f5f7fb!important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.16),0 0 22px rgba(210,221,238,.56),inset 0 0 18px rgba(255,255,255,.12)!important;
+  animation:mfRoulettePickBlack .34s ease;
+}
+#appView .num.roulette-green .tap-count,
+#appView .num.roulette-red .tap-count,
+#appView .num.roulette-black .tap-count{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.65)}
+#appView .num.roulette-green .amt,
+#appView .num.roulette-red .amt,
+#appView .num.roulette-black .amt{color:#ffe990!important;text-shadow:0 1px 2px rgba(0,0,0,.75)}
+@keyframes mfRoulettePickGreen{0%{transform:scale(.95)}55%{transform:scale(1.07)}100%{transform:scale(1)}}
+@keyframes mfRoulettePickRed{0%{transform:scale(.95)}55%{transform:scale(1.07)}100%{transform:scale(1)}}
+@keyframes mfRoulettePickBlack{0%{transform:scale(.95)}55%{transform:scale(1.07)}100%{transform:scale(1)}}
+
+/* Los números alrededor de la rueda reflejan el mismo color sin alterar el giro. */
+#appView .wn.roulette-green{color:#6dffa7!important;text-shadow:0 0 8px rgba(54,255,141,.70),0 2px 3px #000!important}
+#appView .wn.roulette-red{color:#ff666f!important;text-shadow:0 0 8px rgba(255,67,81,.62),0 2px 3px #000!important}
+#appView .wn.roulette-black{color:#fff!important;text-shadow:0 0 7px rgba(210,220,236,.48),0 2px 3px #000!important}
+
+/* En iPhone el campo activo se mantiene visible justo encima del teclado. */
+@media(max-width:900px){
+  body.mf-keyboard-open input:focus,
+  body.mf-keyboard-open textarea:focus,
+  body.mf-keyboard-open select:focus{font-size:16px!important}
+}
+</style>
+
+<script id="mfV01KeyboardRouletteColorPatchJS">
+(function(){
+  const root=document.documentElement;
+  const WHEEL=Array.isArray(window.WHEEL_ORDER)?window.WHEEL_ORDER:[0,7,2,11,4,9,1,12,5,8,3,10,6];
+  let stableViewportHeight=Math.round(window.visualViewport?.height||window.innerHeight||844);
+  let keyboardBaseline=stableViewportHeight;
+  let activeField=null,liftTarget=null,raf=0;
+
+  function isEditable(el){
+    if(!el||!el.matches)return false;
+    if(el.matches('textarea,select'))return true;
+    if(!el.matches('input'))return false;
+    const type=String(el.type||'text').toLowerCase();
+    return !['button','submit','reset','checkbox','radio','range','file','color','hidden'].includes(type);
+  }
+
+  function setInputMode(el){
+    if(!el||!el.matches?.('input'))return;
+    const type=String(el.type||'text').toLowerCase();
+    if(type==='number'){
+      const step=String(el.getAttribute('step')||'');
+      el.setAttribute('inputmode',(/\.|any/i.test(step)||!step)?'decimal':'numeric');
+      el.setAttribute('enterkeyhint','done');
+    }else if(type==='tel') el.setAttribute('inputmode','tel');
+  }
+  document.querySelectorAll('input').forEach(setInputMode);
+  new MutationObserver(muts=>{
+    for(const m of muts)for(const n of m.addedNodes||[]){
+      if(n.nodeType!==1)continue;
+      if(n.matches?.('input'))setInputMode(n);
+      n.querySelectorAll?.('input').forEach(setInputMode);
+    }
+  }).observe(document.documentElement,{childList:true,subtree:true});
+
+  function clearLift(){
+    if(liftTarget){
+      liftTarget.classList.remove('mf-keyboard-lift');
+      liftTarget.style.removeProperty('--mf-keyboard-lift');
+    }
+    if(activeField)activeField.classList.remove('mf-keyboard-active');
+    liftTarget=null;
+  }
+
+  function chooseLiftTarget(el){
+    /* Mantiene junto el input con sus botones +/- o Buscar cuando corresponda. */
+    const row=el.closest('.stake-row,.row');
+    if(row&&row.getBoundingClientRect().height<110)return row;
+    const label=el.closest('label');
+    if(label&&label.getBoundingClientRect().height<130)return label;
+    return el;
+  }
+
+  function fitActiveField(){
+    cancelAnimationFrame(raf);
+    raf=requestAnimationFrame(()=>{
+      const vv=window.visualViewport;
+      if(!activeField||!isEditable(activeField)||document.activeElement!==activeField)return;
+      const visibleTop=Math.round(vv?.offsetTop||0);
+      const visibleHeight=Math.round(vv?.height||window.innerHeight||keyboardBaseline);
+      const visibleBottom=visibleTop+visibleHeight;
+      const keyboardLikely=visibleHeight<keyboardBaseline-90;
+
+      if(keyboardLikely){
+        document.body.classList.add('mf-keyboard-open');
+        /* Neutraliza los listeners antiguos que encogían toda la aplicación. */
+        root.style.setProperty('--mf-vh',keyboardBaseline+'px');
+        root.style.setProperty('--mf-screen-h',keyboardBaseline+'px');
+      }
+
+      clearLift();
+      activeField.classList.add('mf-keyboard-active');
+      liftTarget=chooseLiftTarget(activeField);
+      const rect=liftTarget.getBoundingClientRect();
+      const reserve=14;
+      let lift=Math.max(0,Math.ceil(rect.bottom-(visibleBottom-reserve)));
+      /* No desplaza exageradamente; solo lo necesario para quedar encima del teclado. */
+      lift=Math.min(lift,Math.max(0,keyboardBaseline*.58));
+      if(lift>0){
+        liftTarget.style.setProperty('--mf-keyboard-lift',lift+'px');
+        liftTarget.classList.add('mf-keyboard-lift');
+      }
+    });
+  }
+
+  document.addEventListener('focusin',e=>{
+    if(!isEditable(e.target))return;
+    activeField=e.target;
+    keyboardBaseline=Math.max(stableViewportHeight,Math.round(window.visualViewport?.height||window.innerHeight||stableViewportHeight));
+    setInputMode(activeField);
+    setTimeout(fitActiveField,80);
+    setTimeout(fitActiveField,260);
+  },true);
+
+  document.addEventListener('focusout',e=>{
+    if(e.target!==activeField)return;
+    setTimeout(()=>{
+      if(isEditable(document.activeElement)){activeField=document.activeElement;fitActiveField();return;}
+      clearLift();activeField=null;
+      document.body.classList.remove('mf-keyboard-open');
+      const h=Math.round(window.visualViewport?.height||window.innerHeight||stableViewportHeight);
+      stableViewportHeight=Math.max(stableViewportHeight,h);
+      root.style.setProperty('--mf-vh',h+'px');
+      root.style.setProperty('--mf-screen-h',h+'px');
+    },120);
+  },true);
+
+  function viewportChanged(){
+    const h=Math.round(window.visualViewport?.height||window.innerHeight||stableViewportHeight);
+    if(!activeField){
+      stableViewportHeight=h;
+      keyboardBaseline=h;
+      root.style.setProperty('--mf-vh',h+'px');
+      root.style.setProperty('--mf-screen-h',h+'px');
+    }else{
+      fitActiveField();
+    }
+  }
+  window.visualViewport?.addEventListener('resize',viewportChanged,{passive:true});
+  window.visualViewport?.addEventListener('scroll',()=>{if(activeField)fitActiveField()},{passive:true});
+  window.addEventListener('orientationchange',()=>setTimeout(()=>{stableViewportHeight=Math.round(window.visualViewport?.height||window.innerHeight||stableViewportHeight);keyboardBaseline=stableViewportHeight;viewportChanged()},350),{passive:true});
+
+  function rouletteColor(n){
+    n=Number(n);
+    if(n===0)return 'green';
+    const idx=WHEEL.indexOf(n);
+    if(idx<0)return 'black';
+    return idx%2===1?'red':'black';
+  }
+
+  function paintRouletteNumbers(){
+    document.querySelectorAll('#numbers .num').forEach(btn=>{
+      if(btn.id==='repeatActionBtn'||btn.classList.contains('num-action'))return;
+      const node=[...btn.childNodes].find(n=>n.nodeType===Node.TEXT_NODE&&String(n.textContent).trim()!=='');
+      const n=Number(String(node?.textContent||btn.textContent||'').trim().match(/^\d+/)?.[0]);
+      if(!Number.isFinite(n))return;
+      btn.classList.remove('roulette-green','roulette-red','roulette-black');
+      btn.classList.add('roulette-'+rouletteColor(n));
+      btn.dataset.rouletteColor=rouletteColor(n);
+      btn.setAttribute('aria-label',`Número ${n}, ${rouletteColor(n)==='green'?'verde':rouletteColor(n)==='red'?'rojo':'negro'}`);
+    });
+    document.querySelectorAll('#wheel .wn').forEach(el=>{
+      const n=Number(el.textContent?.trim());if(!Number.isFinite(n))return;
+      el.classList.remove('roulette-green','roulette-red','roulette-black');
+      el.classList.add('roulette-'+rouletteColor(n));
+    });
+  }
+
+  const numbers=document.getElementById('numbers');
+  if(numbers){
+    new MutationObserver(()=>paintRouletteNumbers()).observe(numbers,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  }
+  const wheel=document.getElementById('wheel');
+  if(wheel)new MutationObserver(()=>paintRouletteNumbers()).observe(wheel,{childList:true,subtree:true});
+  paintRouletteNumbers();
+  setTimeout(paintRouletteNumbers,250);
+})();
+</script>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
