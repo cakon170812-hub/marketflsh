@@ -4787,14 +4787,28 @@ async function dominoHeartbeat(force=false){
     dominoHeartbeatBusy=false;
   }
 }
+
+let mfDominoServerClockOffsetMs=0, mfDominoClockSyncAt=0;
+function mfDominoNow(){return Date.now()+mfDominoServerClockOffsetMs}
+async function mfDominoSyncClock(){
+  if(Date.now()-mfDominoClockSyncAt<25000)return;
+  mfDominoClockSyncAt=Date.now();
+  try{
+    const a=Date.now(),r=await sb.rpc('rf_mf_server_clock_v1'),b=Date.now();
+    if(!r.error&&r.data){const ms=Date.parse(r.data);if(Number.isFinite(ms))mfDominoServerClockOffsetMs=ms-(a+b)/2;}
+  }catch(e){/* fallback al reloj local sin alterar el resultado del servidor */}
+}
+
 function dominoStartPolling(){
+  mfDominoSyncClock().catch(()=>{});
   clearInterval(dominoPollTimer);
   dominoHeartbeatLast=0;
   dominoHeartbeat(true).catch(()=>{});
   dominoPollTimer=setInterval(()=>{
     if(!dominoCurrentTableId)return;
     dominoHeartbeat(false).catch(()=>{});
-    loadDominoState(false).catch(()=>dominoSetSyncState('Reconectando…','warn'));
+    mfDominoSyncClock().catch(()=>{});
+    if(!mfDominoPlayPending)loadDominoState(false).catch(()=>dominoSetSyncState('Reconectando…','warn'));
   },1000);
 }
 function dominoStopPolling(){
@@ -5493,7 +5507,7 @@ function dominoRenderSeatsStable(st){
     const turn=!!(h&&String(h.turn_user_id)===String(seat.user_id));
     const mine=String(seat.user_id)===String(uid),name=seat.name||seat.full_name||seat.public_id||'Jugador';
     const seatDetail=h&&Number(seat.tile_count||0)===0?'Próxima mano':`${seat.tile_count||0} fichas`;
-    const turnSec=turn&&h?.status==='playing'?Math.max(0,Math.ceil((new Date(h.turn_deadline)-Date.now())/1000)):null;
+    const turnSec=turn&&h?.status==='playing'?Math.max(0,Math.ceil((new Date(h.turn_deadline)-mfDominoNow())/1000)):null;
     const turnTotal=Math.max(1,Number(c.turn_seconds||20));
     const turnAngle=turnSec===null?0:Math.max(0,Math.min(360,(turnSec/turnTotal)*360));
     const urgent=turn&&turnSec!==null&&turnSec<=5;
@@ -5528,8 +5542,11 @@ function renderDominoState(st){
   const myTurn=!!(h&&h.status==='playing'&&String(h.turn_user_id)===String(uid)),tiles=h?.my_tiles||[],hasLegal=myTurn&&tiles.some(t=>dominoTileLegal(t,h));
   const animateDeal=!!(h&&h.status==='shuffling'&&dominoDealAnimationHandId!==h.id);
   if(animateDeal)dominoDealAnimationHandId=h.id;
-  $('dominoHand').innerHTML=tiles.map((t,i)=>dominoPiece(t,i,myTurn&&dominoTileLegal(t,h),false,animateDeal?`dealing deal-${i}`:'')).join('');
-  dominoBindHandInteractions();
+  const mfHand=$('dominoHand');
+  const mfNewHand=tiles.map((t,i)=>dominoPiece(t,i,myTurn&&dominoTileLegal(t,h),false,animateDeal?`dealing deal-${i}`:'')).join('');
+  if(!dominoDragState?.active && (mfHand.dataset.mfHandHtml!==mfNewHand || mfHand.querySelectorAll('.hand-piece').length!==tiles.length)){
+    mfHand.innerHTML=mfNewHand; mfHand.dataset.mfHandHtml=mfNewHand; dominoBindHandInteractions();
+  }
   if(dominoSelectedTile!==null){
     if(!myTurn||!tiles[dominoSelectedTile]||!dominoTileLegal(tiles[dominoSelectedTile],h))dominoHideDropZones();
     else dominoSetDropZones(dominoSelectedTile);
@@ -5553,14 +5570,14 @@ function renderDominoState(st){
   }else if(!h){
     status='Preparando el reparto...';
   }else if(h.status==='shuffling'){
-    const sec=Math.max(0,Math.ceil((new Date(h.play_starts_at)-Date.now())/1000));
+    const sec=Math.max(0,Math.ceil((new Date(h.play_starts_at)-mfDominoNow())/1000));
     status=`Preparando fichas · <span class="domino-timer">${sec}</span>s`;
   }else if(h.status==='playing'){
     const inCurrentHand=!!h?.me_in_hand;
     if(!inCurrentHand){
       status=meReady?'Confirmado · entrarás en la próxima mano':'Confirma tu asiento · entrarás en la próxima mano';
     }else{
-      const sec=Math.max(0,Math.ceil((new Date(h.turn_deadline)-Date.now())/1000));
+      const sec=Math.max(0,Math.ceil((new Date(h.turn_deadline)-mfDominoNow())/1000));
       dominoUrgentTick(h,sec);
       if(myTurn&&!hasLegal){
         status=`<span class="domino-auto-pass">No tienes ficha válida · pase automático en 2 s…</span>`;
@@ -5575,7 +5592,7 @@ function renderDominoState(st){
   dominoUpdateLiveControls(st,myTurn,hasLegal);
   syncDominoTableMessages().catch(()=>{});
   if($('dominoChatPanel')?.classList.contains('active'))loadDominoChat().catch(()=>{});
-  const lr=st?.last_result;if(lr&&lr.id!==dominoLastWinnerHand){dominoLastWinnerHand=lr.id;const mySeat=seats.find(x=>String(x.user_id)===String(uid));const winSeat=seats.find(x=>String(x.user_id)===String(lr.winner_user_id));let iWon=String(lr.winner_user_id)===String(uid);if(!iWon&&Number(h?.player_count||st?.last_result?.player_count||0)===4&&mySeat&&winSeat)iWon=Math.abs(Number(mySeat.seat_no)-Number(winSeat.seat_no))===2;if(iWon){$('dominoVictoryText').textContent=lr.winner_reason==='TRANQUE_MENOS_PUNTOS'?'Ganaste por tener menos puntos':'Cerraste con tu última ficha';$('dominoVictory').classList.add('show');try{playDominoWinSound()}catch(e){}setTimeout(()=>$('dominoVictory').classList.remove('show'),2800)}}
+  const lr=st?.last_result;if(lr&&lr.id!==dominoLastWinnerHand){dominoLastWinnerHand=lr.id;const mySeat=seats.find(x=>String(x.user_id)===String(uid));const winSeat=seats.find(x=>String(x.user_id)===String(lr.winner_user_id));let iWon=String(lr.winner_user_id)===String(uid);if(!iWon&&Number(h?.player_count||st?.last_result?.player_count||0)===4&&mySeat&&winSeat)iWon=Math.abs(Number(mySeat.seat_no)-Number(winSeat.seat_no))===2;if(iWon){$('dominoVictoryText').textContent=/CAPIC[UÚ]A/i.test(String(lr.winner_reason||''))?'¡CAPICÚA! ¡FELICIDADES! Tu jugada especial ha sido registrada.':(lr.winner_reason==='TRANQUE_MENOS_PUNTOS'?'¡FELICIDADES! Ganaste por tener menos puntos':'¡FELICIDADES! Cerraste con tu última ficha');$('dominoVictory').classList.add('show');try{playDominoWinSound()}catch(e){}setTimeout(()=>$('dominoVictory').classList.remove('show'),2800)}}
 }
 async function loadDominoState(force,skipTick=false){
   if(!dominoCurrentTableId)return;
@@ -5631,15 +5648,21 @@ async function loadDominoState(force,skipTick=false){
     if(force)alert('Error visual de Dominó: '+errText(e));
   }
 }
+let mfDominoPlayPending=false;
 async function dominoPlayTile(index,side='right',sourceEl=null){
-  if(!dominoCurrentTableId)return;
+  if(!dominoCurrentTableId||mfDominoPlayPending)return;
   const tile=dominoState?.hand?.my_tiles?.[index],sides=dominoTileSides(tile,dominoState?.hand);
   if(!sides[side]){if(sourceEl){sourceEl.classList.add('invalid-return');setTimeout(()=>sourceEl.classList.remove('invalid-return'),320)}playDominoInvalidSound();return}
-  const {error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:side});
-  if(error){playDominoInvalidSound();return alert(errText(error))}
-  playDominoClackSound();dominoSkipOwnPlaySoundUntil=Date.now()+1200;dominoSuppressTickUntil=Date.now()+360;
-  await loadDominoState(false,true);dominoWinPulse();
-  setTimeout(()=>{if(dominoCurrentTableId)loadDominoState(false).catch(()=>{})},390);
+  mfDominoPlayPending=true;
+  try{
+    const {error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:side});
+    if(error){playDominoInvalidSound();alert(errText(error));return}
+    playDominoClackSound();dominoSkipOwnPlaySoundUntil=Date.now()+1200;dominoSuppressTickUntil=Date.now()+360;
+    await loadDominoState(false,true); // No cerrar la celebración tras una ficha ganadora
+    setTimeout(()=>{if(dominoCurrentTableId)loadDominoState(false).catch(()=>{})},390);
+  }catch(e){console.warn('Jugada Dominó:',e);dominoSetSyncState('Revisando confirmación de jugada…','warn');await loadDominoState(false,true).catch(()=>{});}
+  finally{mfDominoPlayPending=false;}
+
 }
 async function dominoPass(){if(!dominoCurrentTableId)return;const {error}=await sb.rpc('rf_domino_pass_v11',{p_table_id:dominoCurrentTableId});if(error)return alert(errText(error));await loadDominoState(false)}
 function dominoWinPulse(){const v=$('dominoVictory');if(!v)return;v.classList.remove('show')}
@@ -6447,7 +6470,6 @@ buildWheel();
     target.classList.remove('domino-win-balance-pulse');void target.offsetWidth;target.classList.add('domino-win-balance-pulse');setTimeout(()=>target.classList.remove('domino-win-balance-pulse'),900);
   };
   window.playDominoWinSound=function(){
-    if(!dominoSoundIsEnabled())return;
     const fire=()=>{
       playOscTone(190,.18,.09,'sine',96,0,'domino');
       [1180,1560,2040,2860].forEach((f,i)=>{try{coinChime(i*.075,f,.060)}catch(_){playOscTone(f,.075,.045,'triangle',f*1.08,i*.075,'domino')}});
@@ -6890,9 +6912,9 @@ buildWheel();
 
   function playProfileCreditSound(){
     try{
-      if(typeof dominoSoundIsEnabled==='function'&&!dominoSoundIsEnabled())return;
-      if(typeof playBalanceCreditSound==='function'){playBalanceCreditSound(480);return}
-      if(typeof coinChime==='function'){coinChime(0,1760,.065);coinChime(.07,2380,.055)}
+      const fire=()=>{if(typeof coinChime==='function'){coinChime(0,1320,.055);coinChime(.08,1760,.055);coinChime(.16,2380,.075)}};
+      if(typeof webAudioRunning==='function'&&webAudioRunning())fire();
+      else if(typeof unlockAudio==='function')unlockAudio().then(ok=>{if(ok)fire()}).catch(()=>{});
     }catch(_){}
   }
 
@@ -7477,6 +7499,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
   else initAppInformation();
 })();
 </script>
+<!-- MAIKET FLASH: parche estabilidad DOMINÓ / reloj de servidor / audio crédito. Bono Capicúa requiere función SQL transaccional ver notas. -->
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
