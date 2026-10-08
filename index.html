@@ -2397,7 +2397,7 @@ html[data-app-mode="standalone"] #mfInstallHint{display:none!important}
 
 <div id="onlineUsersPanel" class="overlay"><div class="panel"><button class="close" data-close="onlineUsersPanel">✕</button><h2>🟢 Usuarios en línea</h2><div id="onlineUsersRound" class="online-round-note">Cargando última ronda...</div><div id="onlineUsersList"></div></div></div>
 
-<div id="settingsPanel" class="overlay"><div class="panel"><button class="close" data-close="settingsPanel">✕</button><h2>⚙️ Configuración</h2><button id="editProfileBtn" class="action blue">Editar perfil</button><button id="inviteSettingsBtn" class="action dark">🔗 Invitar usuarios</button><div id="referralSummary" class="ref-card"><b>Referidos</b><div class="tiny">Invita usuarios con tu enlace · sin bonificaciones automáticas</div><div class="ref-stats"><div><b id="refInvited">0</b><span class="tiny">Invitados</span></div><div><b id="refPlayed">0</b><span class="tiny">Jugaron</span></div><div><b id="refEarned">0.000</b><span class="tiny">FC ganadas</span></div></div></div><button id="leaderBtn" class="action hidden">👑 Administrador Líder</button><button id="logoutBtn" class="action red">Cerrar sesión</button></div></div>
+<div id="settingsPanel" class="overlay"><div class="panel"><button class="close" data-close="settingsPanel">✕</button><h2>⚙️ Configuración</h2><button id="editProfileBtn" class="action blue">Editar perfil</button><button id="inviteSettingsBtn" class="action dark">🔗 Invitar usuarios</button><div id="referralSummary" class="ref-card"><b>Referidos</b><div class="tiny">Invita usuarios con tu enlace · sin bonificaciones automáticas</div><div class="ref-stats"><div><b id="refInvited">0</b><span class="tiny">Invitados</span></div><div><b id="refPlayed">0</b><span class="tiny">Jugaron</span></div><div><b id="refEarned">0.000</b><span class="tiny">FC ganadas</span></div></div></div><button id="appInformationBtn" type="button" class="action dark" style="font-size:13px;padding:9px 12px">ⓘ Información de la aplicación</button><button id="leaderBtn" class="action hidden">👑 Administrador Líder</button><button id="logoutBtn" class="action red">Cerrar sesión</button></div></div>
 
 <div id="editProfilePanel" class="overlay"><div class="panel"><button class="close" data-close="editProfilePanel">✕</button><h2>Editar perfil</h2><input id="editFirst" class="field" placeholder="Nombre"><input id="editLast" class="field" placeholder="Apellido"><button id="saveProfileBtn" class="action green">Guardar</button><div id="profileMsg" class="msg"></div></div></div>
 
@@ -7444,6 +7444,39 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 })();
 </script>
 
+
+<!-- Información general: apartado independiente, sin alterar los juegos -->
+<div id="appInformationPanel" class="overlay" role="dialog" aria-modal="true" aria-labelledby="appInformationTitle">
+  <div class="panel" style="max-height:86dvh;overflow-y:auto;text-align:left">
+    <button type="button" class="close" id="closeAppInformationBtn" aria-label="Cerrar información">✕</button>
+    <h2 id="appInformationTitle">ⓘ Información de MAIKET FLASH</h2>
+    <div style="font-size:14px;line-height:1.65;color:#e5e9f1">
+      <p>MAIKET FLASH es una plataforma de entretenimiento con juegos interactivos y funciones sociales para sus usuarios registrados.</p>
+      <h3>Cuenta y perfil</h3><p>Los usuarios pueden crear su cuenta, iniciar sesión, consultar su identificador personal y administrar los datos disponibles en su perfil.</p>
+      <h3>Ruleta Flash Coin</h3><p>En la ruleta, cada participante selecciona números y asigna créditos Flash Coin a sus jugadas. Los resultados de las rondas determinan la actualización de sus créditos virtuales según las reglas del juego.</p>
+      <h3>Dominó</h3><p>El área de dominó permite participar en partidas desde las mesas disponibles, interactuar con otros jugadores y consultar el desarrollo de las partidas.</p>
+      <h3>Flash Coin y movimientos</h3><p>Los créditos Flash Coin se muestran en el saldo de la cuenta. La aplicación permite consultar movimientos y utilizar las funciones internas habilitadas para el usuario.</p>
+      <h3>Promotores y asistencia</h3><p>Los promotores autorizados pueden distribuir créditos virtuales gratuitamente. La sección «Promotores Info» facilita consultar los contactos disponibles.</p>
+      <h3>Uso responsable</h3><p>Se recomienda mantener la seguridad de la cuenta y consultar las indicaciones y reglas visibles de cada juego antes de participar.</p>
+      <p style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,.16);font-size:12px;color:#b4bdca">Nota sobre los créditos: Flash Coin es un recurso virtual destinado exclusivamente al entretenimiento dentro de la aplicación. Su distribución es gratuita; no tiene valor monetario ni puede comprarse, venderse o canjearse por dinero real, bienes o premios de valor económico.</p>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  function initAppInformation(){
+    const trigger=document.getElementById('appInformationBtn');
+    const panel=document.getElementById('appInformationPanel');
+    const close=document.getElementById('closeAppInformationBtn');
+    if(!trigger||!panel||!close)return;
+    trigger.addEventListener('click',()=>panel.classList.add('active'));
+    close.addEventListener('click',()=>panel.classList.remove('active'));
+    panel.addEventListener('click',event=>{if(event.target===panel)panel.classList.remove('active')});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initAppInformation);
+  else initAppInformation();
+})();
+</script>
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
