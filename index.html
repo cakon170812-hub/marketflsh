@@ -2097,6 +2097,107 @@ input,textarea{touch-action:auto}
 }
 </style>
 
+
+<style id="mfV01TurnResponsivePwaPatch">
+/* ============================================================
+   HTML 0.1 · AJUSTE FINAL: TURNO / FICHAS UNIDAS / IPHONE 12 / PWA IOS
+   ============================================================ */
+
+/* Perfil propio un poco mayor, ocupando mejor su esquina sin tocar el rack. */
+.domino-seat.s1.mine{
+  min-width:126px!important;max-width:162px!important;gap:6px!important;
+  left:1.4%!important;bottom:2.4%!important;
+}
+.domino-seat.s1.mine .domino-avatar-wrap{width:58px!important;height:58px!important;min-width:58px!important;flex-basis:58px!important}
+.domino-seat.s1.mine .domino-avatar{width:54px!important;height:54px!important;border-width:2px!important;box-shadow:0 7px 18px rgba(0,0,0,.5),0 0 0 1px rgba(255,214,103,.14)!important}
+.domino-seat.s1.mine .domino-seat-name{max-width:78px!important;font-size:9px!important;padding:5px 7px!important}
+.domino-seat.s1.mine .seat-bal{width:50px!important;height:50px!important;flex-basis:50px!important;font-size:6.7px!important}
+
+/* Cuando es TU turno, toda tu mano se ilumina suavemente; las jugables resaltan todavía más. */
+.domino-hand.domino-my-turn .domino-piece.hand-piece{
+  opacity:1!important;filter:brightness(1.08)!important;
+  box-shadow:0 0 0 2px rgba(255,221,96,.82),0 0 16px rgba(255,208,66,.42),0 5px 11px rgba(0,0,0,.38)!important;
+  animation:dominoMyTurnGlow 1.05s ease-in-out infinite alternate;
+}
+.domino-hand.domino-my-turn .domino-piece.hand-piece.playable{
+  box-shadow:0 0 0 2px #ffe36f,0 0 22px rgba(255,213,70,.66),0 5px 12px rgba(0,0,0,.42)!important;
+}
+@keyframes dominoMyTurnGlow{from{filter:brightness(1.02)}to{filter:brightness(1.14)}}
+
+/* Cadena: cero huecos. Cada ficha toca visualmente la siguiente. */
+:root{
+  --domino-board-tile-w:48px;
+  --domino-board-tile-h:28px;
+  --domino-board-row-step:28px;
+  --domino-board-row-w:508px;
+}
+.domino-board-row{gap:0!important;margin:0!important;height:var(--domino-board-row-step)!important;min-height:var(--domino-board-row-step)!important}
+.domino-piece.board-piece{margin:0!important;border-radius:5px!important;transform:none!important}
+.domino-piece.board-piece.domino-double{
+  width:var(--domino-board-tile-h)!important;min-width:var(--domino-board-tile-h)!important;max-width:var(--domino-board-tile-h)!important;
+  height:var(--domino-board-tile-w)!important;min-height:var(--domino-board-tile-w)!important;max-height:var(--domino-board-tile-w)!important;
+  flex:0 0 var(--domino-board-tile-h)!important;margin:0!important;
+}
+/* La ficha que hace el giro se construye vertical de verdad: no se rota una caja horizontal. */
+.domino-piece.board-piece.domino-turn-down:not(.domino-double){
+  width:var(--domino-board-tile-h)!important;min-width:var(--domino-board-tile-h)!important;max-width:var(--domino-board-tile-h)!important;
+  height:var(--domino-board-tile-w)!important;min-height:var(--domino-board-tile-w)!important;max-height:var(--domino-board-tile-w)!important;
+  flex:0 0 var(--domino-board-tile-h)!important;
+  display:grid!important;grid-template-columns:1fr!important;grid-template-rows:1fr 1fr!important;
+  transform:none!important;margin:0!important;z-index:5!important;
+}
+.domino-piece.board-piece.domino-turn-down:not(.domino-double) .domino-divider{
+  left:4px!important;right:4px!important;top:50%!important;bottom:auto!important;width:auto!important;height:1px!important;transform:translateY(-.5px)!important;
+}
+.domino-piece.board-piece.domino-turn-down:not(.domino-double) .domino-face{width:100%!important;height:100%!important;padding:2px!important}
+.domino-board-row.turn-right .domino-turn-down,.domino-board-row.turn-left .domino-turn-down{margin:0!important}
+
+/* Misma geometría real del punto 6 en mano y mesa: dos columnas de tres, sin "cuadrito" raro. */
+.domino-piece .domino-face{grid-template-columns:1fr .34fr 1fr!important;grid-template-rows:1fr 1fr 1fr!important;place-items:center!important}
+
+/* Ruleta basada en la proporción visual de iPhone 12; se adapta sin desordenarse. */
+#appView .game-layout{width:100%!important;display:flex!important;justify-content:center!important}
+#appView .machine{width:min(100%,430px)!important;max-width:430px!important;margin-left:auto!important;margin-right:auto!important}
+#appView .wheel-wrap{width:min(76vw,38svh,318px)!important;max-width:318px!important;max-height:38svh!important;margin:1px auto 3px!important}
+#appView .numbers{justify-content:center!important;align-items:stretch!important;justify-items:stretch!important;gap:5px!important}
+#appView .num,#appView .num-action{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;text-align:center!important;line-height:1!important}
+#appView .num{font-size:clamp(15px,4vw,18px)!important}
+#appView .stake-row,#appView .roulette-option-btn,#appView .roulette-result-tools{flex-shrink:0!important}
+
+@media(max-width:430px){
+  #appView .machine{width:100%!important}
+  #appView .wheel-wrap{width:min(74vw,37svh,304px)!important;max-width:304px!important}
+  #appView .numbers{gap:4px!important}
+}
+@media(max-width:375px){
+  #appView .wheel-wrap{width:min(72vw,35svh,278px)!important;max-width:278px!important}
+  #appView .num,#appView .num-action{min-height:44px!important}
+}
+@media(max-height:700px){
+  #appView .wheel-wrap{width:min(70vw,32svh,270px)!important;max-width:270px!important;max-height:32svh!important}
+}
+
+/* iPhone/Android: aviso para abrir como aplicación sin la barra normal de Safari. */
+#mfInstallHint{
+  position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:1000000;width:min(92vw,390px);display:flex;align-items:center;gap:9px;
+  padding:10px 11px;border-radius:15px;border:1px solid rgba(255,213,91,.58);
+  background:rgba(7,11,15,.96);box-shadow:0 14px 42px rgba(0,0,0,.58);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:#eef4f8;font-size:11px;line-height:1.3
+}
+#mfInstallHint b{color:#ffe17a}
+#mfInstallHint button{margin-left:auto;flex:0 0 30px;width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.17);background:#151b22;color:#fff;font-size:15px}
+html[data-app-mode="standalone"] #mfInstallHint{display:none!important}
+
+@media(max-width:740px){
+  :root{--domino-board-tile-w:40px;--domino-board-tile-h:24px;--domino-board-row-step:24px;--domino-board-row-w:384px}
+  .domino-seat.s1.mine{min-width:108px!important;max-width:136px!important;left:.7%!important;bottom:1.8%!important}
+  .domino-seat.s1.mine .domino-avatar-wrap{width:50px!important;height:50px!important;min-width:50px!important;flex-basis:50px!important}
+  .domino-seat.s1.mine .domino-avatar{width:46px!important;height:46px!important}
+  .domino-seat.s1.mine .seat-bal{width:44px!important;height:44px!important;flex-basis:44px!important;font-size:5.9px!important}
+}
+</style>
+
 </head>
 <body>
 
@@ -6067,6 +6168,64 @@ buildWheel();
 </script>
 
 <!-- HTML 0.1 FINAL: mesa realista cercana, perfiles compactos, chat por Ver mensajes, burbujas 10 s, fichas centradas y ruleta reorganizada. -->
+
+<script id="mfV01TurnResponsivePwaPatchJS">
+(function(){
+  /* Marca visualmente toda la mano cuando el turno pertenece al usuario actual. */
+  const originalRender=window.renderDominoState;
+  if(typeof originalRender==='function'&&!originalRender.__mfTurnWrapped){
+    const wrapped=function(st){
+      const result=originalRender.apply(this,arguments);
+      try{
+        const h=st?.hand,uid=st?.me;
+        const myTurn=!!(h&&h.status==='playing'&&String(h.turn_user_id)===String(uid));
+        document.getElementById('dominoHand')?.classList.toggle('domino-my-turn',myTurn);
+      }catch(e){}
+      return result;
+    };
+    wrapped.__mfTurnWrapped=true;
+    window.renderDominoState=wrapped;
+  }
+
+  /* Mantiene la composición del iPhone 12 como referencia, pero ajustada al viewport real. */
+  function mfFitViewport(){
+    const vv=window.visualViewport;
+    const w=Math.round(vv?.width||window.innerWidth||390);
+    const h=Math.round(vv?.height||window.innerHeight||844);
+    document.documentElement.style.setProperty('--mf-screen-w',w+'px');
+    document.documentElement.style.setProperty('--mf-screen-h',h+'px');
+  }
+  mfFitViewport();
+  window.addEventListener('resize',mfFitViewport,{passive:true});
+  window.visualViewport?.addEventListener('resize',mfFitViewport,{passive:true});
+
+  /* Safari iPhone: no puede ocultar su barra por fuerza; mostramos el camino correcto a modo app. */
+  const ua=navigator.userAgent||'';
+  const isIOS=/iPad|iPhone|iPod/i.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const isSafari=/Safari/i.test(ua)&&!/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua);
+  const isStandalone=()=>window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true;
+  let hintCreated=false;
+  function maybeShowInstallHint(){
+    if(hintCreated||!isIOS||!isSafari||isStandalone())return;
+    const app=document.getElementById('appView');
+    if(!app||app.classList.contains('hidden'))return;
+    hintCreated=true;
+    const hint=document.createElement('div');
+    hint.id='mfInstallHint';
+    hint.innerHTML='<span>📱 <b>Pantalla completa:</b> toca Compartir y luego <b>Añadir a pantalla de inicio</b>.</span><button type="button" aria-label="Cerrar">✕</button>';
+    hint.querySelector('button').onclick=()=>hint.remove();
+    document.body.appendChild(hint);
+  }
+  setTimeout(maybeShowInstallHint,1300);
+  const hintTimer=setInterval(()=>{
+    if(hintCreated||isStandalone()){clearInterval(hintTimer);return;}
+    maybeShowInstallHint();
+  },1200);
+  setTimeout(()=>clearInterval(hintTimer),30000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(maybeShowInstallHint,300)});
+})();
+</script>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
