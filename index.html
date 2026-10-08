@@ -2365,7 +2365,7 @@ html[data-app-mode="standalone"] #mfInstallHint{display:none!important}
   <button type="button" data-domino-reaction="💪">💪</button>
 </div>
 <div id="dominoToast" class="domino-toast"></div>
-<div id="dominoVictory" class="domino-victory"><div class="domino-victory-card"><b>¡FELICIDADES!</b><strong>¡GANASTE!</strong><span id="dominoVictoryText">Victoria</span><small>Tu premio entró a tu saldo Flash Coin</small></div></div>
+<div id="dominoVictory" class="domino-victory"><div class="domino-victory-card"><b>¡FELICIDADES!</b><strong>¡GANASTE!</strong><span id="dominoVictoryText">Victoria</span><small>Premio acreditado al saldo correspondiente</small></div></div>
 </div></div></div>
 <input id="dominoAvatarFile" type="file" accept="image/*" class="hidden" aria-hidden="true">
 
@@ -3092,6 +3092,10 @@ async function unlockAudio(){
   return audioUnlockPromise;
 }
 function ensureAudio(){resumeAudioOnGesture();return audioCtx;}
+// Preparar el contexto de monedas desde el primer gesto real del usuario.
+document.addEventListener('pointerdown',()=>{
+  if(!audioSessionArmed)armAudioFromGesture(false);
+}, {capture:true});
 
 function playOscTone(freq=620,duration=.055,volume=.045,type='sine',endFreq=null,delay=0,domain='roulette'){
   if(!audioDomainEnabled(domain))return false;
@@ -3286,7 +3290,7 @@ function playRouletteLandingSound(){
   if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire();}).catch(()=>{});
 }
 function coinChime(delay=0,freq=1300,volume=.055){
-  if(!soundIsEnabled())return;
+  // La acreditacion suena con cualquier configuracion de musica/efectos.
   const ctx=getAudioContext();if(!ctx)return;
   const make=()=>{
     try{
@@ -3301,18 +3305,19 @@ function coinChime(delay=0,freq=1300,volume=.055){
   if(ctx.state==='running')make();else unlockAudio().then(ok=>{if(ok)make();}).catch(()=>{});
 }
 function playWinnerSound(){
-  if(!soundIsEnabled())return;
   const fire=()=>{
-    // Golpe de victoria "pum" + firma elegante del panel ¡GANASTE!.
-    playOscTone(185,.210,.085,'sine',82,0);
-    playOscTone(620,.100,.040,'triangle',980,.015);
+    // Mantener golpe opcional, pero monedas de premio obligatorias.
+    if(soundIsEnabled()){
+      playOscTone(185,.210,.085,'sine',82,0);
+      playOscTone(620,.100,.040,'triangle',980,.015);
+    }
     [1046,1318,1568,2093].forEach((f,i)=>coinChime(.085+i*.095,f,.050+i*.004));
     [1760,2093,2637].forEach((f,i)=>coinChime(.560+i*.085,f,.054));
   };
   if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire();}).catch(()=>{});
 }
 function playBalanceCreditSound(delayMs=0){
-  if(!soundIsEnabled())return;
+  // Efecto de monedas siempre, aunque la ruleta o el domino esten silenciados.
   const base=Math.max(0,Number(delayMs)||0)/1000;
   const fire=()=>{
     // Monedas entrando + "cling" final de acreditación.
@@ -5592,10 +5597,68 @@ function renderDominoState(st){
   dominoUpdateLiveControls(st,myTurn,hasLegal);
   syncDominoTableMessages().catch(()=>{});
   if($('dominoChatPanel')?.classList.contains('active'))loadDominoChat().catch(()=>{});
-  const lr=st?.last_result;if(lr&&lr.id!==dominoLastWinnerHand){dominoLastWinnerHand=lr.id;const mySeat=seats.find(x=>String(x.user_id)===String(uid));const winSeat=seats.find(x=>String(x.user_id)===String(lr.winner_user_id));let iWon=String(lr.winner_user_id)===String(uid);if(!iWon&&Number(h?.player_count||st?.last_result?.player_count||0)===4&&mySeat&&winSeat)iWon=Math.abs(Number(mySeat.seat_no)-Number(winSeat.seat_no))===2;if(iWon){$('dominoVictoryText').textContent=/CAPIC[UÚ]A/i.test(String(lr.winner_reason||''))?'¡CAPICÚA! ¡FELICIDADES! Tu jugada especial ha sido registrada.':(lr.winner_reason==='TRANQUE_MENOS_PUNTOS'?'¡FELICIDADES! Ganaste por tener menos puntos':'¡FELICIDADES! Cerraste con tu última ficha');$('dominoVictory').classList.add('show');try{playDominoWinSound()}catch(e){}setTimeout(()=>$('dominoVictory').classList.remove('show'),2800)}}
+  // Una celebracion por mano y usuario, sin repetir un premio viejo al reconectar.
+  const lr=st?.last_result;
+  if(lr && String(lr.id)!==String(dominoLastWinnerHand)){
+    dominoLastWinnerHand=lr.id;
+    const mySeat=seats.find(x=>String(x.user_id)===String(uid));
+    const winSeat=seats.find(x=>String(x.user_id)===String(lr.winner_user_id));
+    let iWon=String(lr.winner_user_id)===String(uid);
+    if(!iWon && Number(lr.player_count||0)===4 && mySeat && winSeat){
+      iWon=Math.abs(Number(mySeat.seat_no)-Number(winSeat.seat_no))===2;
+    }
+    const settledAt=Date.parse(lr.settled_at||'');
+    const recent=Number.isFinite(settledAt)&&Math.abs(Date.now()-settledAt)<45000;
+    const seenKey='mf-domino-victory-v15-'+String(uid)+'-'+String(lr.id);
+    let alreadySeen=false;
+    try{alreadySeen=sessionStorage.getItem(seenKey)==='1'}catch(_){ }
+    if(iWon&&recent&&!alreadySeen){
+      try{sessionStorage.setItem(seenKey,'1')}catch(_){ }
+      const capicua=/CAPIC[UÚ]A/i.test(String(lr.winner_reason||''));
+      const ownCapicua=capicua&&String(lr.winner_user_id)===String(uid);
+      const normalPrize=Math.max(0,Number(lr.pot||0)-Number(lr.commission||0));
+      const share=Number(lr.player_count||0)===4?Math.round(normalPrize*500)/1000:normalPrize;
+      const basic='¡FELICIDADES! Premio de la partida: '+Number(share).toFixed(3)+' FC.';
+      $('dominoVictoryText').textContent=ownCapicua
+        ? '¡CAPICÚA! ¡FELICIDADES! '+basic+' Verificando tu bono adicional del 1%…'
+        : capicua ? '¡FELICIDADES! Tu equipo ganó por capicúa. '+basic
+        : (lr.winner_reason==='TRANQUE_MENOS_PUNTOS'?'¡FELICIDADES! Ganaste por tener menos puntos. ':'¡FELICIDADES! Cerraste con tu última ficha. ')+basic;
+      const victory=$('dominoVictory');
+      victory.classList.add('show');
+      const subtitle=victory.querySelector('small');
+      if(subtitle)subtitle.textContent=mySeat?'Premio acreditado a tu saldo de mesa':'Premio acreditado al saldo correspondiente';
+      try{playDominoWinSound()}catch(_){ }
+      if(ownCapicua){
+        const pollBonus=async(tries=0)=>{
+          if(String(dominoState?.me)!==String(uid))return;
+          const {data,error}=await sb.rpc('rf_domino_capicua_bonus_v14',{p_hand_id:lr.id});
+          if(error || !data){
+            if(tries<4)setTimeout(()=>pollBonus(tries+1),1800);
+            return;
+          }
+          if(data.status==='paid'){
+            const scope=data.credited_to==='mesa'?'saldo de tu mesa':'balance principal';
+            $('dominoVictoryText').textContent='¡CAPICÚA! ¡FELICIDADES! '+basic+' ¡Has recibido +'+Number(data.amount).toFixed(3)+' FC de bono especial (1% del bote), acreditados al '+scope+'!';
+            try{await loadMe();renderMe()}catch(_){ }
+            // Refrescar el saldo de mesa confirmado por Supabase.
+            if(dominoCurrentTableId)loadDominoState(false,true).catch(()=>{});
+          }else if(data.status==='pending'){
+            $('dominoVictoryText').textContent='¡CAPICÚA! ¡FELICIDADES! '+basic+' Bono especial de '+Number(data.amount).toFixed(3)+' FC pendiente de fondos administrativos; aún no acreditado.';
+            if(tries<12)setTimeout(()=>pollBonus(tries+1),2500);
+          }
+        };
+        pollBonus().catch(()=>{});
+      }
+      setTimeout(()=>victory.classList.remove('show'),7500);
+    }
+  }
 }
+let mfDominoStateLoading=false,mfDominoStateRefreshQueued=false;
 async function loadDominoState(force,skipTick=false){
   if(!dominoCurrentTableId)return;
+  if(mfDominoStateLoading){mfDominoStateRefreshQueued=true;return;}
+  mfDominoStateLoading=true;
+  try {
 
   if(!skipTick&&Date.now()>=dominoSuppressTickUntil){
     try{
@@ -5646,6 +5709,13 @@ async function loadDominoState(force,skipTick=false){
     console.error('Dominó visual:',e);
     dominoSetSyncState('Error visual de mesa','bad');
     if(force)alert('Error visual de Dominó: '+errText(e));
+  }
+  } finally {
+    mfDominoStateLoading=false;
+    if(mfDominoStateRefreshQueued){
+      mfDominoStateRefreshQueued=false;
+      if(dominoCurrentTableId)setTimeout(()=>loadDominoState(false,true).catch(()=>{}),0);
+    }
   }
 }
 let mfDominoPlayPending=false;
@@ -6074,7 +6144,7 @@ buildWheel();
   },{capture:false,passive:true,once:true});
 
   if('serviceWorker' in navigator && location.protocol==='https:'){
-    navigator.serviceWorker.register('./sw.js?v=0.1-stable-4',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
+    navigator.serviceWorker.register('./sw.js?v=1.5-domino-capicua',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
   }
 
   // Impide arrastrar la página completa; los paneles internos conservan su propio scroll.
@@ -6471,9 +6541,9 @@ buildWheel();
   };
   window.playDominoWinSound=function(){
     const fire=()=>{
-      playOscTone(190,.18,.09,'sine',96,0,'domino');
-      [1180,1560,2040,2860].forEach((f,i)=>{try{coinChime(i*.075,f,.060)}catch(_){playOscTone(f,.075,.045,'triangle',f*1.08,i*.075,'domino')}});
-      playOscTone(3120,.13,.065,'sine',3600,.30,'domino');
+      if(dominoSoundIsEnabled())playOscTone(190,.18,.09,'sine',96,0,'domino');
+      [1180,1560,2040,2860].forEach((f,i)=>coinChime(i*.075,f,.060));
+      if(dominoSoundIsEnabled())playOscTone(3120,.13,.065,'sine',3600,.30,'domino');
     };
     if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire()}).catch(()=>{});
     setTimeout(()=>dominoAnimateWinCoins(),90);
@@ -7499,7 +7569,55 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
   else initAppInformation();
 })();
 </script>
-<!-- MAIKET FLASH: parche estabilidad DOMINÓ / reloj de servidor / audio crédito. Bono Capicúa requiere función SQL transaccional ver notas. -->
+<!-- MAIKET FLASH 1.5: capicua 1% en mesa, sonido y realtime. -->
+
+<script id="mfRealtimeNoticeV15">
+// Actualizar comunicados para todos sin reiniciar juego o mesas.
+(function(){
+  let channel=null,checking=false,noticeSignature=null;
+  function signature(x){return JSON.stringify([
+    x?.public_notice,x?.public_notice_enabled,
+    x?.public_notice_visible_seconds,x?.public_notice_repeat_seconds
+  ]);}
+  async function refresh(){
+    if(!me||!settings||checking)return;
+    checking=true;
+    try{
+      const {data,error}=await sb.from('rf_app_settings')
+        .select('public_notice,public_notice_enabled,public_notice_visible_seconds,public_notice_repeat_seconds')
+        .eq('id',1).single();
+      if(error||!data)return;
+      const next=signature(data);
+      if(noticeSignature===null)noticeSignature=signature(settings);
+      if(next!==noticeSignature){
+        Object.assign(settings,data);
+        noticeSignature=next;
+        schedulePublicNotice(true);
+      }
+    }catch(e){console.warn('Comunicado:',e)}
+    finally{checking=false}
+  }
+  function begin(){
+    if(!me||channel||!sb?.channel)return;
+    noticeSignature=signature(settings);
+    channel=sb.channel('maiket-notices-v15')
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'rf_notice_events_v15'},
+        ()=>refresh().catch(()=>{}))
+      .subscribe(status=>{
+        if(status==='CHANNEL_ERROR'||status==='CLOSED'||status==='TIMED_OUT'){
+          const last=channel;channel=null;
+          if(last)sb.removeChannel(last).catch(()=>{});
+        }
+      });
+  }
+  setInterval(()=>{if(me)begin()},5000);
+  setInterval(()=>{if(me)refresh().catch(()=>{})},15000);
+  document.addEventListener('visibilitychange',()=>{
+    if(!document.hidden&&me)refresh().catch(()=>{});
+  });
+})();
+</script>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
