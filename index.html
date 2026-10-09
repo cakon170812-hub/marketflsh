@@ -8117,7 +8117,12 @@ function mfShowVerifiedTieWin(result,key,uid){
   if(activeLoop||botUnavailable||document.hidden||!ready())return;activeLoop=true;
   try{
    await publicRefresh();
-   const ids=enabledTables.slice(0,30);
+   // Los clientes normales solo hacen avanzar la mesa en la que participan;
+   // el lider, cuando mantiene una sesion abierta, puede impulsar todas las mesas.
+   const tableHere=(typeof dominoCurrentTableId!=='undefined'&&dominoCurrentTableId)?Number(dominoCurrentTableId):null;
+   const ids=leader()?enabledTables.slice(0,30):(
+     tableHere!==null&&enabledTables.includes(tableHere)?[tableHere]:[]
+   );
    if(ids.length){await Promise.allSettled(ids.map(t=>rpc('rf_domino_bot_tick_v18',{p_table_id:t})));}
   }catch(e){if(/not found|does not exist|schema cache/i.test(errText(e)))botUnavailable=true;}
   finally{activeLoop=false;}
