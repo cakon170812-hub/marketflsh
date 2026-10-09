@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<!-- MAIKET FLASH · HTML 0.1 · ESTABLE · PWA / DOMINÓ PREMIUM -->
+<!-- MAIKET FLASH 1.6 · DOMINÓ / RULETA · CAMBIOS ADITIVOS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html lang="es" data-app-build="0.1">
+<html lang="es" data-app-build="1.6">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="application-version" content="0.1">
+<meta name="application-version" content="1.6">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest?v=0.1-stable-4">
-<title>MAIKET FLASH — HTML 0.1 · Base Oficial Visual</title>
+<title>MAIKET FLASH — 1.6 · Dominó, Ruleta y Póker en desarrollo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -2249,7 +2249,7 @@ html[data-app-mode="standalone"] #mfInstallHint{display:none!important}
 
 <main id="appView" class="bg hidden">
   <div class="topbar">
-    <div class="brand-mini">⚡ FC</div>
+    <button id="mfPokerTopBtn" class="mf-poker-top" type="button" aria-label="Póker, juego en desarrollo" title="Póker"><span class="mf-cards"><span class="mf-card mf-heart">A♥</span><span class="mf-card mf-spade">A♠</span></span><span>PÓKER</span></button>
     <div class="top-tools">
       <button id="onlineUsersBtn" type="button" class="online-chip" title="Ver usuarios conectados"><span class="online-dot"></span><span id="onlinePublic">0</span> en línea</button><div class="live-game-counts" title="Actividad en tiempo real">
   <span>🎲 <b id="dominoPlayingPublic">0</b> dominó</span>
@@ -2302,7 +2302,7 @@ html[data-app-mode="standalone"] #mfInstallHint{display:none!important}
         <div class="stake-row"><button id="stakeDown" type="button">−</button><input id="stakeInput" class="field stake" type="number" step="0.01" value="0.01"><button id="stakeUp" type="button">+</button></div>
       </div>
       <div class="roulette-modern-options">
-        <button id="flashActionBtn" type="button" class="roulette-option-btn roulette-flash-side" aria-pressed="true">✨ <span>Destello</span></button>
+        <!-- El destello de victoria permanece habilitado; no existe interruptor visible. -->
       </div>
     </div>
 
@@ -2602,10 +2602,15 @@ function authErrorText(e){
   if(/email not confirmed|email.*confirm/i.test(t))return 'Primero confirma tu correo desde el mensaje que te envió MAIKET FLASH.';
   return t;
 }
+function mfCash(value){
+  const n=Number(value);
+  const safe=Number.isFinite(n)?n:0;
+  return (safe<0?'-':'')+'$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(Math.abs(safe));
+}
 function setBalanceDisplay(v){
   const n=Number(v||0);
   displayedBalanceValue=Number.isFinite(n)?n:0;
-  const value=money(displayedBalanceValue)+' FC';
+  const value=mfCash(displayedBalanceValue);
   if($('balanceTop'))$('balanceTop').textContent=value;
   if($('balancePanelValue'))$('balancePanelValue').textContent=value;
 }
@@ -2640,7 +2645,7 @@ function animateBalanceIncrease(fromValue,toValue,duration=1250){
 function updateBetTotal(){
   const el=$('roundBetTotal');if(!el)return;
   const total=Object.values(myBets||{}).reduce((sum,b)=>sum+Number(b?.amount||0),0);
-  el.innerHTML=`Apostado <b>${money(total)} FC</b>`;
+  el.innerHTML=`Apostado <b>${mfCash(total)}</b>`;
   el.classList.toggle('hidden-total',!betTotalVisible);
 }
 function setBetTotalVisible(v){betTotalVisible=!!v;updateBetTotal()}
@@ -2944,7 +2949,7 @@ function renderMe(){
   $('fixedStakeSwitch').checked=!!me.fixed_stake_enabled;
   loadScopedSoundPreferences();
   setSoundSwitchUI();
-  $('flashSwitch').checked=me.flash_enabled!==false;
+  $('flashSwitch').checked=true;
   syncRouletteModernButtons();
   if(me.fixed_stake_enabled&&Number(me.fixed_stake_amount)>0&&document.activeElement!==$('stakeInput'))$('stakeInput').value=money(Math.max(Number(me.fixed_stake_amount),Number(settings?.min_bet||0)));
   $('promoterBtn').classList.toggle('hidden',me.role!=='promoter');
@@ -3357,9 +3362,9 @@ function animateCoinsToBalance(sourceEl=null){
 
 function showWinnerCelebration(winner,prize){
   $('winNumber').textContent='Número ganador: '+winner;
-  $('winPrize').textContent='+'+money(prize)+' FC';
+  $('winPrize').textContent='+'+mfCash(prize);
   const layer=$('winFlash');
-  layer.classList.toggle('no-flash',me?.flash_enabled===false);
+  layer.classList.remove('no-flash');
   layer.classList.add('show');
   playWinnerSound();
   setTimeout(()=>layer.classList.remove('show'),3000);
@@ -3697,11 +3702,9 @@ if($('dominoSoundBtn'))$('dominoSoundBtn').addEventListener('click',async()=>{
   }
 });
 
-$('flashSwitch').addEventListener('change',async()=>{
-  const enabled=$('flashSwitch').checked;syncRouletteModernButtons();
-  const {error}=await sb.rpc('rf_set_flash_enabled',{p_enabled:enabled});
-  if(error){$('flashSwitch').checked=!enabled;syncRouletteModernButtons();return alert(errText(error));}
-  if(me)me.flash_enabled=enabled;
+$('flashSwitch').addEventListener('change',()=>{
+  $('flashSwitch').checked=true;
+  if(me)me.flash_enabled=true;
 });
 
 $('repeatSwitch').addEventListener('change',async()=>{
@@ -5526,7 +5529,7 @@ function dominoRenderSeatsStable(st){
     }
     nameEl.textContent=name+(mine?' · TÚ':'');
     infoEl.textContent=`ID ${seat.public_id||'———'} · ${seatDetail}`;
-    balEl.textContent=dominoMoney(seat.table_balance)+' FC';
+    balEl.textContent=mfCash(seat.table_balance);
     if(turnSec!==null){secEl.textContent=String(turnSec);secEl.classList.remove('hidden')}else{secEl.textContent='';secEl.classList.add('hidden')}
     const hasMessages=dominoUserMessageCache.has(String(seat.user_id));
     msgBtn.dataset.messageUser=String(seat.user_id);msgBtn.dataset.messageName=name;msgBtn.classList.toggle('hidden',!hasMessages);
@@ -5538,7 +5541,7 @@ function renderDominoState(st){
   dominoState=st;setSoundSwitchUI();const h=st?.hand,c=st?.config||{},seats=st?.seats||[],uid=st?.me,effects=dominoHandleMoveEffects(st);
   $('dominoTableTitle').textContent=c.name||'Dominó Flash Coin';
   $('dominoTableSub').textContent=`Mesa #${(dominoLobbyData?.tables||[]).find(t=>Number(t.id)===Number(dominoCurrentTableId))?.table_no||dominoCurrentTableId}`;
-  if($('dominoPotBadge'))$('dominoPotBadge').textContent=`${dominoMoney(h?.pot||0)} FC`;
+  if($('dominoPotBadge'))$('dominoPotBadge').textContent=mfCash(h?.pot||0);
   if($('dominoGlobalBalance'))$('dominoGlobalBalance').textContent=$('balanceTop')?.textContent||'0.000 FC';
   dominoRenderSeatsStable(st);
   $('dominoBoard').innerHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
@@ -5599,7 +5602,7 @@ function renderDominoState(st){
   if($('dominoChatPanel')?.classList.contains('active'))loadDominoChat().catch(()=>{});
   // Una celebracion por mano y usuario, sin repetir un premio viejo al reconectar.
   const lr=st?.last_result;
-  if(lr && String(lr.id)!==String(dominoLastWinnerHand)){
+  if(lr && (String(lr.id)!==String(dominoLastWinnerHand) || (lr.winner_reason==='TRANQUE_MENOS_PUNTOS' && !(function(){try{return sessionStorage.getItem('mf-domino-victory-v15-'+String(uid)+'-'+String(lr.id))==='1'}catch(_){return false}})()))){
     dominoLastWinnerHand=lr.id;
     const mySeat=seats.find(x=>String(x.user_id)===String(uid));
     const winSeat=seats.find(x=>String(x.user_id)===String(lr.winner_user_id));
@@ -5608,17 +5611,20 @@ function renderDominoState(st){
       iWon=Math.abs(Number(mySeat.seat_no)-Number(winSeat.seat_no))===2;
     }
     const settledAt=Date.parse(lr.settled_at||'');
-    const recent=Number.isFinite(settledAt)&&Math.abs(Date.now()-settledAt)<45000;
+    const recent=Number.isFinite(settledAt)&&Math.abs(mfDominoNow()-settledAt)<600000;
     const seenKey='mf-domino-victory-v15-'+String(uid)+'-'+String(lr.id);
     let alreadySeen=false;
     try{alreadySeen=sessionStorage.getItem(seenKey)==='1'}catch(_){ }
-    if(iWon&&recent&&!alreadySeen){
+    if(lr.winner_reason==='TRANQUE_MENOS_PUNTOS' && recent && !alreadySeen && !window.__mfTiePayoutPending?.has(seenKey)){
+      mfShowVerifiedTieWin(lr,seenKey,uid);
+    }
+    if(iWon&&recent&&!alreadySeen&&lr.winner_reason!=='TRANQUE_MENOS_PUNTOS'){
       try{sessionStorage.setItem(seenKey,'1')}catch(_){ }
       const capicua=/CAPIC[UÚ]A/i.test(String(lr.winner_reason||''));
       const ownCapicua=capicua&&String(lr.winner_user_id)===String(uid);
       const normalPrize=Math.max(0,Number(lr.pot||0)-Number(lr.commission||0));
       const share=Number(lr.player_count||0)===4?Math.round(normalPrize*500)/1000:normalPrize;
-      const basic='¡FELICIDADES! Premio de la partida: '+Number(share).toFixed(3)+' FC.';
+      const basic='¡FELICIDADES! Premio de la partida: '+mfCash(share)+'.';
       $('dominoVictoryText').textContent=ownCapicua
         ? '¡CAPICÚA! ¡FELICIDADES! '+basic+' Verificando tu bono adicional del 1%…'
         : capicua ? '¡FELICIDADES! Tu equipo ganó por capicúa. '+basic
@@ -5638,12 +5644,12 @@ function renderDominoState(st){
           }
           if(data.status==='paid'){
             const scope=data.credited_to==='mesa'?'saldo de tu mesa':'balance principal';
-            $('dominoVictoryText').textContent='¡CAPICÚA! ¡FELICIDADES! '+basic+' ¡Has recibido +'+Number(data.amount).toFixed(3)+' FC de bono especial (1% del bote), acreditados al '+scope+'!';
+            $('dominoVictoryText').textContent='¡CAPICÚA! ¡FELICIDADES! '+basic+' ¡Has recibido +'+Number(data.amount).toFixed(3)+' de bono especial (1% del bote), acreditados al '+scope+'!';
             try{await loadMe();renderMe()}catch(_){ }
             // Refrescar el saldo de mesa confirmado por Supabase.
             if(dominoCurrentTableId)loadDominoState(false,true).catch(()=>{});
           }else if(data.status==='pending'){
-            $('dominoVictoryText').textContent='¡CAPICÚA! ¡FELICIDADES! '+basic+' Bono especial de '+Number(data.amount).toFixed(3)+' FC pendiente de fondos administrativos; aún no acreditado.';
+            $('dominoVictoryText').textContent='¡CAPICÚA! ¡FELICIDADES! '+basic+' Bono especial de '+mfCash(data.amount)+' pendiente de fondos administrativos; aún no acreditado.';
             if(tries<12)setTimeout(()=>pollBonus(tries+1),2500);
           }
         };
@@ -6873,7 +6879,7 @@ buildWheel();
     const el=document.getElementById('roundBetTotal');
     if(!el)return;
     if(v===false){
-      el.innerHTML='Apostado <b>0.000 FC</b>';
+      el.innerHTML='Apostado <b>$0.00</b>';
       el.classList.remove('hidden-total');
       el.dataset.spinReset='1';
       return;
@@ -6973,9 +6979,9 @@ buildWheel();
     const frame=now=>{
       const p=Math.min(1,(now-t0)/duration);
       const e=1-Math.pow(1-p,3);
-      el.textContent=dominoMoney(from+(to-from)*e)+' FC';
+      el.textContent=mfCash(from+(to-from)*e);
       if(p<1)requestAnimationFrame(frame);
-      else el.textContent=dominoMoney(to)+' FC';
+      else el.textContent=mfCash(to);
     };
     requestAnimationFrame(frame);
   }
@@ -7006,7 +7012,7 @@ buildWheel();
 
   function isMyVictory(st){
     const lr=st?.last_result,uid=st?.me,seats=st?.seats||[];
-    if(!lr||!uid)return false;
+    if(!lr||!uid||lr.winner_reason==='TRANQUE_MENOS_PUNTOS')return false;
     if(String(lr.winner_user_id)===String(uid))return true;
     if(Number(lr.player_count||0)!==4)return false;
     const mine=seats.find(x=>String(x.user_id)===String(uid));
@@ -7618,6 +7624,213 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 })();
 </script>
 
+<style id="mfUpgrade16CSS">
+/* MAIKET FLASH 1.6: accesos, tarjetas de administración y montos. */
+#appView .topbar{gap:6px;align-items:center!important;flex-wrap:wrap}
+#appView .top-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end;min-width:0;flex:1}
+.mf-poker-top{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:12px;
+ background:linear-gradient(135deg,#2b1c10,#07111d);border:1px solid #dcb65c;color:#ffe5a2;
+ box-shadow:0 5px 16px #0008;font-weight:950;font-size:11px;white-space:nowrap}
+.mf-cards{display:flex;align-items:center;min-width:39px;height:25px;position:relative}
+.mf-card{display:inline-flex;justify-content:center;align-items:center;position:absolute;width:24px;height:32px;
+ border-radius:4px;background:#faf8f3;color:#16151d;font:900 13px Georgia,serif;border:1px solid #e4cc9e;box-shadow:0 2px 5px #000a}
+.mf-card.mf-heart{left:1px;top:-3px;color:#a10f25;transform:rotate(-16deg)}
+.mf-card.mf-spade{left:14px;top:-3px;transform:rotate(15deg)}
+#leaderBtn.mf-admin-top{display:inline-flex;align-items:center;border-radius:11px;padding:8px 9px;
+ font-size:10px;font-weight:950;white-space:nowrap;box-shadow:0 4px 16px #0005}
+#leaderBtn.mf-admin-top.hidden{display:none!important}
+#appView .roulette-result-tools #roundBetTotal{min-width:144px!important;min-height:44px!important;
+ font-size:12px!important;gap:8px!important;padding:8px 10px!important;border-radius:14px!important;
+ border-color:rgba(255,216,112,.69)!important}
+#appView .roulette-result-tools #roundBetTotal b{font-size:17px!important;font-variant-numeric:tabular-nums}
+#appView .roulette-result-tools{min-height:45px!important}
+@media(max-width:740px){
+ #appView .roulette-result-tools #roundBetTotal{min-width:126px!important;padding:7px 8px!important;font-size:10px!important}
+ #appView .roulette-result-tools #roundBetTotal b{font-size:15px!important}
+ #appView .top-tools{gap:4px}
+ #leaderBtn.mf-admin-top{font-size:9px;padding:7px 8px}
+}
+.mf-admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:15px 0}
+.mf-admin-card{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;text-align:left;
+ gap:6px;padding:16px 12px;min-height:110px;border-radius:17px;border:1px solid rgba(252,204,111,.4);
+ color:#fff4d7;background:linear-gradient(150deg,rgba(39,41,53,.96),rgba(9,14,25,.97));box-shadow:0 9px 21px #0004}
+.mf-admin-card:active{transform:scale(.98)}.mf-admin-card strong{font-size:13px}
+.mf-admin-card span{font-size:21px}.mf-admin-card small{font-size:10px;color:#c2bbc1;line-height:1.4}
+.mf-admin-subpanel{width:min(95vw,620px);max-height:88dvh;overflow:auto}
+.mf-admin-subpanel .section{margin-top:12px}
+.mf-admin-subpanel .section h3{margin-bottom:14px}
+.mf-admin-head{display:flex;align-items:center;gap:8px;justify-content:space-between;margin-bottom:10px}
+.mf-admin-return{border:1px solid #ac8950;padding:9px 11px;background:#24200f;color:#ffe6a6;border-radius:10px;font-weight:800}
+.domino-seat .seat-bal{pointer-events:auto!important;touch-action:manipulation;cursor:pointer}
+.mf-domino-balance-peek{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+ pointer-events:none;z-index:11000;opacity:0;transition:opacity .15s;background:rgba(0,0,0,.18)}
+.mf-domino-balance-peek.show{opacity:1}
+.mf-domino-balance-card{min-width:200px;max-width:80vw;text-align:center;padding:23px 26px;
+ border:2px solid #f2c45f;border-radius:20px;background:linear-gradient(155deg,#151710,#030908);
+ box-shadow:0 15px 60px #000c,0 0 35px #e6b83c55}
+.mf-domino-balance-card small{display:block;color:#f1d690;font-size:12px;font-weight:700;margin-bottom:8px}
+.mf-domino-balance-card strong{display:block;font-size:clamp(25px,5vw,45px);color:#fff0a8;font-variant-numeric:tabular-nums}
+#flashActionBtn,.roulette-modern-options:empty{display:none!important}
+#winFlash.no-flash{animation:winPulse .42s ease-in-out infinite alternate!important;
+ background:radial-gradient(circle,rgba(255,230,94,.50),rgba(255,164,0,.22) 38%,rgba(0,0,0,.78) 78%)!important}
+</style>
+<script id="mfUpgrade16JS">
+// ACTUALIZACIÓN VISUAL Y DE PREMIO: NO SE ALTERAN LOS CÁLCULOS DE FLASH COIN.
+window.__mfTiePayoutPending=new Set();
+function mfShowVerifiedTieWin(result,key,uid){
+  if(window.__mfTiePayoutPending.has(key))return;
+  window.__mfTiePayoutPending.add(key);
+  sb.rpc('rf_domino_tranque_user_award_v16',{p_hand_id:Number(result.id)}).then(async({data,error})=>{
+    if(error){console.warn('Premio por tranque no confirmado',error);return}
+    const amount=Number(data?.amount);
+    if(!(amount>0)){try{sessionStorage.setItem(key,'1')}catch(_){ }return;}
+    if(String(uid)!==String(dominoState?.me))return;
+    try{sessionStorage.setItem(key,'1')}catch(_){ }
+    const count=Number(data?.winner_count||1);
+    const vc=document.getElementById('dominoVictory');
+    const msg=document.getElementById('dominoVictoryText');
+    if(!vc||!msg)return;
+    msg.textContent=count>1
+      ?'¡FELICIDADES! Empate por tranque entre '+count+' jugadores. ¡Has recibido '+mfCash(amount)+' de tu parte del bote!'
+      :'¡FELICIDADES! Ganaste el tranque por tener menos puntos. Premio: '+mfCash(amount)+'.';
+    const sub=vc.querySelector('small');
+    if(sub)sub.textContent=data?.credited_to==='mesa'?'Premio acreditado al saldo de tu mesa':'Premio acreditado al balance principal';
+    vc.classList.add('show');
+    try{playDominoWinSound()}catch(_){ }
+    try{await loadMe();renderMe()}catch(_){ }
+    if(dominoCurrentTableId)loadDominoState(false,true).catch(()=>{});
+    setTimeout(()=>vc.classList.remove('show'),7500);
+  }).catch(e=>console.warn('Premio tranque:',e))
+   .finally(()=>window.__mfTiePayoutPending.delete(key));
+}
+(function(){
+  // Accesos superior: usamos el MISMO botón de líder y sus permisos originales.
+  const top=document.querySelector('#appView .top-tools');
+  const leader=document.getElementById('leaderBtn');
+  if(top&&leader){leader.textContent='👑 Administrador';leader.classList.add('mf-admin-top');top.insertBefore(leader,top.firstChild)}
+  const poker=document.getElementById('mfPokerTopBtn');
+  if(poker)poker.addEventListener('click',()=>{
+    const title=document.getElementById('gameDevelopmentTitle');
+    const ic=document.getElementById('gameDevelopmentIcon');
+    if(title)title.textContent='PÓKER · Juego en desarrollo';
+    if(ic)ic.textContent='🂱 🂡';
+    show('gameDevelopmentPanel');
+  });
+  // Pestañas exclusivas de administrador: conserva los controles existentes.
+  const panel=document.querySelector('#leaderPanel > .panel');
+  if(panel){
+    const dashboard=document.createElement('div'); dashboard.className='mf-admin-grid';
+    const stat=panel.querySelector(':scope > .stat-grid');
+    if(stat)stat.insertAdjacentElement('afterend',dashboard);
+    const items=[
+      ['👥','Todos los usuarios','Consultar y gestionar','users'],
+      ['🪙','Mi Flash Coin','Enviar y solicitar','personal'],
+      ['🧑‍💼','Promotores','Asignar permisos','promoters'],
+      ['📢','Comunicados','Mensajes y avisos','notices'],
+      ['💸','Recarga por ID','Buscar y acreditar','recharge'],
+      ['🎰','Ruleta','Ajustes del juego','roulette'],
+      ['🁫','Mesas de dominó','Editar mesas','domino'],
+      ['🔐','Seguridad','Contraseña y acceso','security'],
+      ['🏦','Cartera Administrativa','Movimientos y fondos','wallet'],
+      ['🎯','Cartera de la Ruleta','Saldo y estadísticas','rouletteWallet']
+    ];
+    const sections=[...panel.querySelectorAll(':scope > .section')];
+    const sectionByKey={personal:sections[1],promoters:sections[2],notices:sections[3],
+      recharge:sections[4],roulette:sections[5],domino:sections[6],security:sections[7]};
+    if(sections[0])sections[0].classList.add('hidden');
+    const wallets=panel.querySelector(':scope > .wallet-admin-grid');
+    if(wallets)wallets.classList.add('hidden');
+    const closeDashboard=()=>{hide('leaderPanel')};
+    for(const [emoji,name,desc,key] of items){
+      const b=document.createElement('button');b.type='button';b.className='mf-admin-card';
+      const sym=document.createElement('span'),head=document.createElement('strong'),sm=document.createElement('small');
+      sym.textContent=emoji;head.textContent=name;sm.textContent=desc;b.append(sym,head,sm);
+      dashboard.append(b);
+      if(sectionByKey[key]){
+        const id='mfAdmin16_'+key;
+        const overlay=document.createElement('div');overlay.id=id;overlay.className='overlay';
+        const content=document.createElement('div');content.className='panel mf-admin-subpanel';
+        const back=document.createElement('button');back.className='mf-admin-return';back.type='button';back.textContent='← Volver al Administrador';
+        const title=document.createElement('h2');title.textContent=emoji+' '+name;
+        content.append(back,title,sectionByKey[key]);overlay.append(content);document.body.append(overlay);
+        b.addEventListener('click',()=>{if(me?.role!=='leader')return;hide('leaderPanel');show(id)});
+        back.addEventListener('click',()=>{hide(id);show('leaderPanel')});
+      }else{
+        const btnId={users:'allUsersBtn',wallet:'adminWalletBtn',rouletteWallet:'rouletteWalletBtn'}[key];
+        b.addEventListener('click',()=>{if(me?.role!=='leader')return;document.getElementById(btnId)?.click()});
+      }
+    }
+    // Vuelve al panel administrativo al cerrar subpaneles ya existentes.
+    for(const id of ['allUsersPanel','adminWalletPanel','rouletteWalletPanel']){
+      document.querySelectorAll('#'+id+' [data-close="'+id+'"]').forEach(btn=>btn.addEventListener('click',()=>{
+        if(me?.role==='leader')setTimeout(()=>show('leaderPanel'),0);
+      }));
+    }
+  }
+  // Saldo de cualquier asiento: grande durante 3 segundos, sin interferir con la mesa.
+  const peek=document.createElement('div');peek.id='mfDominoBalancePeek';peek.className='mf-domino-balance-peek';
+  peek.innerHTML='<div class="mf-domino-balance-card"><small id="mfPeekName">Saldo de mesa</small><strong id="mfPeekAmount">$0.00</strong></div>';
+  document.body.append(peek);
+  let peekUser=null,peekTimer=null;
+  const closePeek=()=>{peek.classList.remove('show');peekUser=null};
+  document.addEventListener('click',e=>{
+    const el=e.target?.closest?.('#dominoTablePanel #dominoSeats .seat-bal');
+    if(!el||!document.getElementById('dominoTablePanel')?.classList.contains('active'))return;
+    e.preventDefault();e.stopImmediatePropagation();
+    const seatEl=el.closest('.domino-seat');
+    peekUser=String(seatEl?.dataset.seatUser||'');
+    const s=(dominoState?.seats||[]).find(v=>String(v.user_id)===peekUser);
+    if(!s)return;
+    document.getElementById('mfPeekName').textContent=(s.name||s.full_name||'Jugador')+' · Saldo de mesa';
+    document.getElementById('mfPeekAmount').textContent=mfCash(s.table_balance);
+    peek.classList.add('show');clearTimeout(peekTimer);peekTimer=setTimeout(closePeek,3000);
+  },true);
+  const oldRender=window.renderDominoState;
+  if(typeof oldRender==='function')window.renderDominoState=function(st){
+    const out=oldRender.apply(this,arguments);
+    if(peekUser&&peek.classList.contains('show')){
+      const updated=(st?.seats||[]).find(v=>String(v.user_id)===peekUser);
+      if(updated)document.getElementById('mfPeekAmount').textContent=mfCash(updated.table_balance);
+    }
+    return out;
+  };
+  // Presentación global ($ y dos decimales); únicamente nodos de texto.
+  const moneyRx=/([+−-]?)(\s*)(\$?)(\d+(?:\.\d{1,3})?)\s*(?:BFC|FC)\b/g;
+  const exactRx=/^\s*([+−-]?)(\d+(?:\.\d{1,3})?)\s*$/;
+  const bareMoney='#rouletteWalletBalance,#rouletteWalletNet,#rouletteBetsTotal,#roulettePrizesTotal,#refEarned,#dominoBuyinValue,#dominoProfileBalance';
+  function normalize(node){
+    if(!node||node.nodeType!==3||!node.parentElement)return;
+    const parent=node.parentElement;
+    if(parent.closest('script,style,textarea,.domino-chat-list,.domino-mini-chat-list,.domino-seat-bubble,.public-notice-side'))return;
+    const text=node.nodeValue||'';
+    let changed=text.replace(moneyRx,(_m,sign,space,_symbol,raw)=>(sign==='-'||sign==='−'?'-':sign)+space+mfCash(Number(raw)));
+    if(parent.matches(bareMoney)&&!changed.includes('$')){
+      const m=changed.match(exactRx);if(m)changed=(m[1]||'')+mfCash(Number(m[2]));
+    }
+    if(changed!==text)node.nodeValue=changed;
+  }
+  function scan(node){
+    if(!node)return;
+    if(node.nodeType===3){normalize(node);return}
+    if(node.nodeType!==1||node.matches('script,style,textarea,iframe'))return;
+    const walker=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);
+    let next;
+    while((next=walker.nextNode()))normalize(next);
+  }
+  // Evitar tocar cada frame del reloj; solo se revisan nodos modificados.
+  const mutations=new Set();let queued=false;
+  const flush=()=>{queued=false;const items=[...mutations];mutations.clear();items.forEach(scan)};
+  const obs=new MutationObserver(changes=>{
+    for(const x of changes){
+      if(x.type==='characterData')mutations.add(x.target);
+      else x.addedNodes.forEach(n=>mutations.add(n));
+    }
+    if(!queued){queued=true;requestAnimationFrame(flush)}
+  });
+  scan(document.body);
+  obs.observe(document.body,{subtree:true,childList:true,characterData:true});
+})();
+</script>
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
