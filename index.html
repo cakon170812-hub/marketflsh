@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest?v=0.1-stable-4">
-<title>MAIKET FLASH — 1.8.0 · Dominó, Ruleta y Póker en desarrollo</title>
+<title>MAIKET FLASH — 1.9.2 · Dominó, Ruleta y Póker en desarrollo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -7429,9 +7429,11 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
           <div class="mode-desc">${desc}</div>
           <div class="table-stats"><div class="table-stat">Entrada mínima<b>${dominoMoney(c.min_entry)} FC</b></div><div class="table-stat">Jugadores<b>${players} conectados</b></div><div class="table-stat">Bote/jugador<b>${dominoMoney(c.hand_stake)} FC</b></div><div class="table-stat">${c.mode==='paid_pass'?'Cada pase':'Mínimo seguir'}<b>${c.mode==='paid_pass'?dominoMoney(c.pass_fee)+' FC':dominoMoney(c.min_continue_balance)+' FC'}</b></div></div>
           <div class="online-line"><span class="domino-live-dot"></span>${active.length?active.length+' partida'+(active.length===1?'':'s')+' activa'+(active.length===1?'':'s'):'Esperando la próxima partida'} · ${full?'sin asiento libre':'mesa disponible'}</div>
-          <div class="mf191-ids-box"><div class="mf191-ids-title">🆔 ID de cada mesa · copiar para Panel BOTS</div>
-            ${tt.length?tt.map(t=>{const id=String(t.id).padStart(6,'0');return `<div class="mf191-id-row"><span>Mesa ${esc(String(t.table_no??t.id))}</span><b>${esc(id)}</b><button type="button" class="mf191-copy-table-id" data-table-id="${esc(id)}">Copiar ID</button></div>`}).join(''):'<small>Aún no se ha creado una mesa de esta modalidad.</small>'}
-          </div>
+          ${tt.length?`<div class="mf192-id-corner">
+            <span class="mf192-id-mini-label">ID mesa</span>
+            <span class="mf192-id-chip" title="Mesa ${esc(String(tt[0].table_no??tt[0].id))}"><b>${esc(String(tt[0].id).padStart(6,'0'))}</b><button type="button" class="mf191-copy-table-id" data-table-id="${esc(String(tt[0].id).padStart(6,'0'))}" aria-label="Copiar ID ${esc(String(tt[0].id).padStart(6,'0'))}">⧉</button></span>
+            ${tt.length>1?`<details class="mf192-id-details"><summary title="Mostrar los demás ID de esta modalidad">+${tt.length-1} ▾</summary><div class="mf192-id-rows">${tt.slice(1).map(t=>{const id=String(t.id).padStart(6,'0');return `<span class="mf192-id-chip" title="Mesa ${esc(String(t.table_no??t.id))}"><b>${esc(id)}</b><button type="button" class="mf191-copy-table-id" data-table-id="${esc(id)}" aria-label="Copiar ID ${esc(id)} de mesa ${esc(String(t.table_no??t.id))}">⧉</button></span>`}).join('')}</div></details>`:''}
+          </div>`:''}
           <button class="action green domino-join-mode ${spectatorOnly?'spectator':''}" data-config="${c.id}">${action}</button>
         </div>
       </div>`;
@@ -7959,13 +7961,30 @@ function mfShowVerifiedTieWin(result,key,uid){
 #mf184BotConfirm .mf184-confirm-inner{width:min(92vw,420px);border-radius:18px;border:1px solid #d5b56e;background:linear-gradient(135deg,#172e35,#09151d);color:#fff;padding:23px;text-align:center;box-shadow:0 20px 60px #0009}
 #mf184BotConfirm button{border:1px solid #d5b56e;background:#295346;color:#fff5cc;border-radius:9px;padding:12px 28px;margin-top:12px;font-weight:800;cursor:pointer}
 </style>
-<style id="mf191TableIdsStyles">
-/* Mesas reales del lobby (ID primaria SQL), no identificador de modalidad. */
-.mf191-ids-box{margin:8px 0 10px;padding:8px;border:1px solid rgba(245,203,91,.33);border-radius:11px;background:rgba(10,16,25,.86);max-height:185px;overflow-y:auto;overscroll-behavior:contain}
-.mf191-ids-title{font-size:10px;font-weight:850;color:#f5d886;margin-bottom:7px}
-.mf191-id-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:5px 0;border-top:1px solid rgba(255,255,255,.08);font-size:11px}
-.mf191-id-row span{flex:1;min-width:65px}.mf191-id-row b{font-variant-numeric:tabular-nums;letter-spacing:1px;color:#ffda74}
-.mf191-id-row button{background:#21453c;border:1px solid #c8ac69;border-radius:8px;padding:6px 10px;color:#fff;font-size:10px;font-weight:900;cursor:pointer}
+<style id="mf192TableIdsStyles">
+/* ID reales por mesa, esquina discreta del lobby, sin recuadro grande. */
+#dominoLobbyModes .mf192-id-corner{display:flex;justify-content:flex-end;margin:2px 0 6px;max-width:100%;position:relative;z-index:2}
+#dominoLobbyModes .mf192-id-mini-label{font-size:8px;color:#c9bc9a;margin-right:2px}
+#dominoLobbyModes .mf192-id-details{max-width:100%;text-align:right;color:#cbbd97;font-size:8px;letter-spacing:.15px}
+#dominoLobbyModes .mf192-id-details>summary{cursor:pointer;list-style:none;display:inline-block;padding:3px 5px;border:1px solid #695b36;border-radius:6px;background:#111820;color:#bfc8d3;font-size:8px;font-weight:750;user-select:none}
+#dominoLobbyModes .mf192-id-details>summary::-webkit-details-marker{display:none}
+#dominoLobbyModes .mf192-id-rows{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:3px;margin-top:4px;max-height:85px;overflow-y:auto}
+#dominoLobbyModes .mf192-id-chip{display:inline-flex;align-items:center;gap:3px;padding:2px 3px;background:#111923;border:1px solid #665635;border-radius:6px;font-size:8px;white-space:nowrap}
+#dominoLobbyModes .mf192-id-chip b{font-size:8px;font-variant-numeric:tabular-nums;letter-spacing:.3px;color:#f8d984}
+#dominoLobbyModes .mf192-id-chip button{padding:3px 5px!important;margin:0!important;background:#214038;border:1px solid #79704a;border-radius:5px;color:#f8edd6;font-size:8px!important;line-height:1.2;cursor:pointer;min-height:26px}
+@media(max-width:420px){#dominoLobbyModes .mf192-id-corner{margin:0 0 3px}#dominoLobbyModes .mf192-id-details>summary{font-size:7px}}
+/* BOTS: secciones limpias con acceso voluntario desde botones. */
+#mfBots17Panel .mf192-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:13px 0}
+#mfBots17Panel .mf192-navbtn{display:flex;align-items:center;justify-content:space-between;gap:5px;padding:13px 11px;border:1px solid #856833;border-radius:13px;background:linear-gradient(135deg,#192e37,#111a25);color:#ffdc8b;text-align:left;font-size:12px;font-weight:800;min-height:59px}
+#mfBots17Panel .mf192-main-screen,#mfBots17Panel .mf192-subpage{min-width:0}
+#mfBots17Panel .mf192-subpage[hidden],#mfBots17Panel .mf192-main-screen[hidden]{display:none!important}
+#mfBots17Panel .mf192-back{margin:2px 0 13px;padding:10px 13px;min-height:40px;border-radius:10px;border:1px solid #7e7259;background:#152538;color:#fff}
+#mfBots17Panel .mf192-subpage h3{font-size:17px;margin-bottom:8px;color:#ffe09b}
+#mfBots17Panel .mf192-search-section{margin:12px 0}
+#mfBots17Panel .mf192-search-section .mf19-search{margin:8px 0}
+#mfBots17Panel .mf192-table-hint{font-size:12px;color:#b3c0d3;padding:14px 11px;border:1px dashed #4a5c75;border-radius:11px}
+#mfBots17Panel .mf192-quick-tip{font-size:11px;color:#b7c5d6;margin-top:6px}
+@media(max-width:380px){#mfBots17Panel .mf192-nav{grid-template-columns:1fr}}
 </style>
 <style id="mf19FeedbackStyles">
 #mfBots17Panel .mf19-search{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:12px 0}
@@ -8085,36 +8104,49 @@ function mfShowVerifiedTieWin(result,key,uid){
  }
  const overlay=document.createElement('div');overlay.id='mfBots17Panel';overlay.className='overlay';
  overlay.innerHTML=`<div class="panel mf17-panel">
- <button type="button" class="close" id="mf18Close">✕</button>
- <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.1</p><div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor 24/7 de Supabase…</div>
- <p class="tiny">Hasta tres jugadores automáticos por mesa, creados desde Supabase sin registrar cuentas manualmente. Un único fondo compartido. Cada jugador se identifica como automático.</p>
- <div class="mf17-grid">
+ <button type="button" class="close" id="mf18Close" aria-label="Cerrar panel">✕</button>
+ <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.2</p>
+ <div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor automático de Supabase…</div>
+ <section id="mf192MainScreen" class="mf192-main-screen">
   <div class="mf17-card">
-   <b>💰 Fondo compartido</b><div id="mf18Balance">$0.00</div><div class="mf17-hint">En mesas: <strong id="mf18InPlay">$0.00</strong> · Total: <strong id="mf18Total">$0.00</strong></div>
-   <label>ID único para recibir transferencias</label>
-   <div class="mf17-row"><strong id="mf18ReceiveId">Consultando Supabase…</strong><button type="button" id="mf18CopyId">Copiar ID</button></div>
-   <small class="mf17-hint">Este ID permanente se genera en Supabase y recibe transferencias directamente al fondo compartido. No requiere vincular una cuenta personal.</small>
+   <b>💰 Fondo compartido</b><div id="mf18Balance">Consultando…</div>
+   <div class="mf17-hint">En mesas: <strong id="mf18InPlay">—</strong> · Total: <strong id="mf18Total">—</strong></div>
+   <label>ID permanente del fondo</label>
+   <div class="mf17-row"><strong id="mf18ReceiveId">Consultando Supabase…</strong><button type="button" id="mf18CopyId">⧉ Copiar ID</button></div>
+   <small class="mf17-hint">El fondo es único para todas las mesas. No se reemplaza ni se reinicia su ID.</small>
    <label>Monto</label><input id="mf18Amount" type="number" min="0.001" step="0.001" value="1.00">
    <label>ID destinatario (solo Enviar)</label><input id="mf18SendTo" maxlength="6" inputmode="numeric" placeholder="ID de usuario">
    <div class="mf17-row"><button type="button" data-bot18-money="cargar">Recargar</button><button type="button" data-bot18-money="retirar">Retirar</button><button type="button" data-bot18-money="enviar">Enviar</button></div>
-   <p class="mf17-hint">Recargar: Cartera Administrativa → fondo. Retirar: fondo → Cartera Administrativa. Enviar: fondo → ID destinatario. Las transferencias recibidas en el ID receptor también se suman al fondo.</p>
   </div>
-  <div class="mf17-card">
-   <b>⚙️ Configuración general</b>
-   <p class="mf17-hint">Los nombres, fotografías y dificultad de Robot 1/2/3 se comparten en todas las mesas. La dificultad controla estrategia: no garantiza victorias ni pérdidas.</p>
-   <div id="mf18Templates"></div>
-   <hr><b>Autorización automática por ID de mesa</b>
-   <p class="mf17-hint">Ya no tienes que abrir cuentas ni copiar enlaces. Busca el ID de una mesa, elige cuántos robots activar y confirma. Solo el Líder puede autorizar la operación. Las cuentas se crean desde una función segura de Supabase.</p>
+  <div class="mf17-card mf192-search-section">
+   <h3>🎯 Asignar robots por ID</h3>
+   <p class="mf17-hint">Copia el ID pequeño de una mesa en Juegos → Dominó, pégalo aquí y búscala. Después selecciona de 0 a 3 robots.</p>
+   <div class="mf19-search"><label for="mf19TableFind">ID de la mesa</label><input id="mf19TableFind" type="text" inputmode="numeric" placeholder="Pegar ID de mesa" maxlength="18"><button type="button" id="mf19SearchBtn">🔎 Buscar</button><button type="button" id="mf19ShowAll">Limpiar</button></div>
+   <div id="mf18Tables" aria-live="polite"><p class="mf192-table-hint">Pega el ID de la mesa y pulsa Buscar.</p></div>
   </div>
- </div>
- <div class="mf17-card"><h3>🎯 Mesas con robots</h3>
-  <p class="mf17-hint">Introduce el ID de la mesa para buscarla o deja el campo vacío para ver todas. Elige 0, 1, 2 o 3 robots. Las personas reales tienen prioridad y las salidas se respetan al acabar la mano.</p>
-  <div class="mf19-search"><label for="mf19TableFind">Pegar ID de la mesa</label><input id="mf19TableFind" type="text" inputmode="numeric" placeholder="Pega aquí el ID de 6 dígitos" maxlength="18"><button type="button" id="mf19SearchBtn">🔎 Buscar</button><button type="button" id="mf19ShowAll">Todas</button></div>
-  <div id="mf18Tables">Consultando mesas…</div>
- </div>
- <div class="mf17-card"><b>Movimientos recientes del fondo</b><div id="mf18History" class="tiny">Sin movimientos</div></div>
- <div id="mf18Status" role="status"></div>
- <button id="mf18Refresh" type="button" class="action blue">Actualizar panel</button>
+  <div class="mf192-nav" aria-label="Más opciones de robots y mesas">
+   <button type="button" id="mf192GoRobots" class="mf192-navbtn">⚙️ Configurar robots <span>›</span></button>
+   <button type="button" id="mf192GoAllTables" class="mf192-navbtn">🁫 Todas las mesas BOTS <span>›</span></button>
+   <button type="button" id="mf192GoDominoSettings" class="mf192-navbtn">🎛️ Configurar mesas <span>›</span></button>
+   <button type="button" id="mf192GoHistory" class="mf192-navbtn">📜 Historial del fondo <span>›</span></button>
+  </div>
+  <div id="mf18Status" role="status" aria-live="polite"></div>
+  <button id="mf18Refresh" type="button" class="action blue">↻ Actualizar panel</button>
+ </section>
+ <section id="mf192RobotsPage" class="mf192-subpage" hidden>
+  <button type="button" class="mf192-back">← Volver a BOTS</button><h3>⚙️ Configurar robots</h3>
+  <p class="mf17-hint">Nombre, fotografía y dificultad compartidos en todas las mesas. Cada cambio se confirma desde Supabase.</p>
+  <div id="mf18Templates"></div>
+ </section>
+ <section id="mf192AllTablesPage" class="mf192-subpage" hidden>
+  <button type="button" class="mf192-back">← Volver a BOTS</button><h3>🁫 Todas las mesas BOTS</h3>
+  <p class="mf17-hint">Consulta el ID de cada mesa, su cantidad de robots y la asignación actual. Selecciona un valor y guárdalo para esa mesa.</p>
+  <div id="mf192AllTables" aria-live="polite"></div>
+ </section>
+ <section id="mf192HistoryPage" class="mf192-subpage" hidden>
+  <button type="button" class="mf192-back">← Volver a BOTS</button><h3>📜 Historial del fondo compartido</h3>
+  <div id="mf18History" class="tiny">Cargando movimientos…</div>
+ </section>
  </div>`;
  document.body.append(overlay);
  const templates=q('mf18Templates');
@@ -8192,12 +8224,13 @@ function mfShowVerifiedTieWin(result,key,uid){
     status('Mesa '+tableNo+' habilitada. Si una mano está activa, los cambios de asientos se aplican al terminar.');
   };
  }
- function buildTables(){
-  const host=q('mf18Tables');host.replaceChildren();
+ function buildTables(showAll=false){
+  const host=q(showAll?'mf192AllTables':'mf18Tables');host.replaceChildren();
   const cfgs=Array.isArray(adminState?.lobby?.configs)?adminState.lobby.configs:[];
   const hasConfig=Array.isArray(adminState?.botsV19);
   const entries=hasConfig?adminState.botsV19:tableList.map(t=>({table_id:t.id,table_no:t.table_no,target_count:0,enabled:false,bots:[]}));
-  const query=q('mf19TableFind')?.value.trim()||'';
+  const query=showAll?'':(q('mf19TableFind')?.value.trim()||'');
+  if(!showAll&&!query){host.innerHTML='<p class="mf192-table-hint">Pega el ID de la mesa y pulsa Buscar.</p>';return;}
   const numericQuery=/^[0-9]+$/.test(query)?Number(query):NaN;
   if(!entries.length){host.textContent='No se encontraron mesas creadas en Supabase.';return;}
   let shown=0;
@@ -8241,7 +8274,14 @@ function mfShowVerifiedTieWin(result,key,uid){
       const {data,error}=await sb.functions.invoke('maiket-bot-provision',{
        body:{table_id:tid,count}
       });
-      if(error)throw new Error(error.message||'No se pudo comunicar con la Edge Function.');
+      if(error){
+       let cause='';
+       const response=error.context;
+       if(response&&typeof response.clone==='function'){
+        try{const body=await response.clone().json();cause=String(body?.error||body?.message||'').slice(0,240);}catch(_){/* Algunos fallos son de red y no tienen respuesta JSON. */}
+       }
+       throw new Error(cause||error.message||'No se pudo ejecutar maiket-bot-provision. Revisa Edge Functions → Invocations.');
+      }
       if(!data?.ok)throw new Error(data?.error||'Supabase no confirmó las cuentas automáticas.');
      }
      const result=await rpc('rf_domino_bot_set_count_v19',{p_table_id:tid,p_count:count});
@@ -8255,12 +8295,43 @@ function mfShowVerifiedTieWin(result,key,uid){
    area.querySelector('.mf19-deactivate').addEventListener('click',()=>applyCount(0));
    host.append(area);
   });
-  if(!shown)host.textContent='No existe una mesa con ese ID. Revisa el número o pulsa Todas.';
+  if(!shown)host.textContent='No existe una mesa con ese ID. Revisa el número e intenta nuevamente.';
  }
- q('mf19SearchBtn').addEventListener('click',buildTables);
- q('mf19ShowAll').addEventListener('click',()=>{q('mf19TableFind').value='';buildTables();});
- q('mf19TableFind').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();buildTables();}});
- q('mf19TableFind').addEventListener('input',buildTables); // Al pegar ID, muestra la mesa sin un clic adicional.
+ q('mf19SearchBtn').addEventListener('click',()=>buildTables(false));
+ q('mf19ShowAll').addEventListener('click',()=>{q('mf19TableFind').value='';buildTables(false);q('mf19TableFind').focus();});
+ q('mf19TableFind').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();buildTables(false);}});
+ q('mf19TableFind').addEventListener('input',()=>buildTables(false)); // Al pegar ID se muestra esa mesa.
+ function mf192ShowPage(page){
+  const main=q('mf192MainScreen');
+  main.hidden=!!page;
+  for(const name of ['Robots','AllTables','History']){
+   const p=q('mf192'+name+'Page');if(p)p.hidden=page!==name;
+  }
+  const frame=q('mfBots17Panel')?.querySelector('.mf17-panel');
+  if(frame)frame.scrollTop=0;
+  if(page==='AllTables')buildTables(true);
+ }
+ q('mf192GoRobots').addEventListener('click',()=>mf192ShowPage('Robots'));
+ q('mf192GoAllTables').addEventListener('click',()=>mf192ShowPage('AllTables'));
+ q('mf192GoHistory').addEventListener('click',()=>mf192ShowPage('History'));
+ q('mf192GoDominoSettings').addEventListener('click',async()=>{
+  // Se reutiliza el formulario original de las mesas para no duplicar ni alterar su lógica SQL.
+  try{
+   hide('mfBots17Panel');
+   if(typeof openLeaderPanel==='function')await openLeaderPanel();
+   else show('leaderPanel');
+   if(typeof window.loadDominoAdminConfigs==='function')await window.loadDominoAdminConfigs();
+   const host=q('dominoAdminConfigs');if(host){host.closest('.section')?.scrollIntoView({block:'start',behavior:'smooth'});}
+   const returnSpot=host?.closest('.section');
+   if(returnSpot&&!q('mf192ReturnToBots')){
+    const b=document.createElement('button');b.id='mf192ReturnToBots';b.type='button';
+    b.className='action blue';b.textContent='← Volver a Panel BOTS';
+    returnSpot.insertBefore(b,returnSpot.firstChild);
+    b.addEventListener('click',()=>{hide('leaderPanel');show('mfBots17Panel');mf192ShowPage(null);loadAdmin();});
+   }
+  }catch(e){show('mfBots17Panel');status('No se pudo abrir la configuración: '+errText(e),true);}
+ });
+ overlay.querySelectorAll('.mf192-back').forEach(btn=>btn.addEventListener('click',()=>mf192ShowPage(null)));
  async function loadAdmin(){
   if(!leader())return;
   status('Consultando fondo, mesas y servidor por separado…');
@@ -8309,7 +8380,8 @@ function mfShowVerifiedTieWin(result,key,uid){
     if(!(data.history||[]).length)movements.textContent='Sin movimientos.';
     for(const x of data.history||[]){const p=document.createElement('p');p.textContent=(Number(x.delta)>0?'+':'')+cash(x.delta)+' · '+x.movement_type+' · '+new Date(x.created_at).toLocaleString('es-DO');movements.append(p);}
   }
-  buildTables();
+  buildTables(false);
+  if(!q('mf192AllTablesPage').hidden)buildTables(true);
   const failed=calls.map((call,i)=>call.status==='rejected'?['Fondo','Mesas','Configuración BOTS','Motor'][i]:null).filter(Boolean);
   if(!data&&!recovery)failed.push('Lectura de rescate del fondo');
   if(failed.length)status('Carga parcial: no respondió '+failed.join(', ')+'. Los saldos y el ID NO se han borrado por este aviso.',true);
@@ -8340,13 +8412,13 @@ function mfShowVerifiedTieWin(result,key,uid){
   }catch(e){status('Movimiento no confirmado: '+errText(e),true);}finally{botsBusy=false;}
  }
  q('mf18CopyId').addEventListener('click',()=>{const id=q('mf18ReceiveId').textContent.trim();if(!/^\d{6}$/.test(id)){status('El ID del fondo no está disponible en esta consulta; comprueba SQL 1.8.3 y la conexión.',true);return;}copy(id);});
- q('mf18Close').addEventListener('click',()=>hide('mfBots17Panel'));
+  q('mf18Close').addEventListener('click',()=>{mf192ShowPage(null);hide('mfBots17Panel');});
  q('mf18Refresh').addEventListener('click',loadAdmin);
  overlay.querySelectorAll('[data-bot18-money]').forEach(b=>b.addEventListener('click',()=>moneyAction(b.dataset.bot18Money)));
  const dash=document.querySelector('#leaderPanel .mf-admin-grid');
  if(dash){const b=document.createElement('button');b.type='button';b.className='mf-admin-card';
   b.innerHTML='<span>🤖</span><strong>BOTS</strong><small>Un fondo compartido · Mesas múltiples</small>';
-  dash.append(b);b.addEventListener('click',()=>{if(!leader())return;hide('leaderPanel');show('mfBots17Panel');loadAdmin();});
+  dash.append(b);b.addEventListener('click',()=>{if(!leader())return;hide('leaderPanel');mf192ShowPage(null);show('mfBots17Panel');loadAdmin();});
  }
  async function backgroundTick(){
   if(activeLoop||botUnavailable||document.hidden||!ready())return;activeLoop=true;
