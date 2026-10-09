@@ -7947,6 +7947,61 @@ function mfShowVerifiedTieWin(result,key,uid){
 #mf184BotConfirm .mf184-confirm-inner{width:min(92vw,420px);border-radius:18px;border:1px solid #d5b56e;background:linear-gradient(135deg,#172e35,#09151d);color:#fff;padding:23px;text-align:center;box-shadow:0 20px 60px #0009}
 #mf184BotConfirm button{border:1px solid #d5b56e;background:#295346;color:#fff5cc;border-radius:9px;padding:12px 28px;margin-top:12px;font-weight:800;cursor:pointer}
 </style>
+<style id="mf19FeedbackStyles">
+#mfBots17Panel .mf19-search{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:12px 0}
+#mfBots17Panel .mf19-search input{flex:1;min-width:130px;padding:10px;border-radius:9px}
+#mfBots17Panel .mf19-count{width:100%;margin:9px 0;padding:10px;border-radius:10px;background:#142b3e;color:#fff}
+#mfBots17Panel .mf19-robot-ready{font-size:12px;color:#b4fae7;margin:5px 0}
+.mf19-btn-flash{position:relative;overflow:hidden!important}
+.mf19-btn-flash::after{content:'';pointer-events:none;position:absolute;inset:0;background:linear-gradient(115deg,transparent 24%,rgba(255,255,255,.56) 48%,transparent 69%);transform:translateX(-180%);animation:mf19glint .52s ease-out 1}
+@keyframes mf19glint{to{transform:translateX(180%)}}
+#mf19ActionToast{position:fixed;top:max(18px,env(safe-area-inset-top));left:50%;transform:translateX(-50%) translateY(-20px);width:min(90vw,420px);padding:16px 18px;background:#112d2f;color:white;border:1px solid #5ee6a4;border-radius:16px;box-shadow:0 15px 45px #0009;z-index:1000000;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;text-align:center;font-size:14px}
+#mf19ActionToast.visible{opacity:1;transform:translateX(-50%) translateY(0)}
+#mf19ActionToast.error{border-color:#f67676;background:#321719}
+#mf19ActionToast.wait{border-color:#f4ce66;background:#2c2618}
+#mf19ActionToast .mf19-toast-icon{font-size:30px;display:block;margin-bottom:4px}
+@media(prefers-reduced-motion:reduce){.mf19-btn-flash::after{animation:none}}
+</style>
+<script id="mf19FeedbackScript">
+(()=>{
+ 'use strict';
+ const box=document.createElement('div');box.id='mf19ActionToast';box.setAttribute('role','status');box.setAttribute('aria-live','polite');
+ document.body.append(box);let timer=null;
+ window.mf19Toast=(message,type='ok')=>{
+  if(timer)clearTimeout(timer);
+  const symbol=type==='error'?'⚠️':type==='wait'?'⏳':'✅';
+  box.replaceChildren();const icon=document.createElement('span');icon.className='mf19-toast-icon';icon.textContent=symbol;
+  const txt=document.createElement('div');txt.textContent=message;box.append(icon,txt);
+  box.className='visible '+type;
+  timer=setTimeout(()=>box.className='',type==='error'?4500:2400);
+ };
+ // En todos los botones hay destello de PULSACIÓN, que NO equivale a guardado.
+ let lastClick=null;
+ document.addEventListener('click',e=>{
+  const btn=e.target.closest?.('button,[role="button"]');if(!btn||btn.disabled)return;
+  lastClick={at:Date.now(),label:(btn.textContent||'Operación').trim().slice(0,70),id:btn.id||'',insideBots:!!btn.closest('#mfBots17Panel')};
+  btn.classList.remove('mf19-btn-flash');void btn.offsetWidth;btn.classList.add('mf19-btn-flash');
+  setTimeout(()=>btn.classList.remove('mf19-btn-flash'),600);
+ },true);
+ // Confirmación general: solo cuando un RPC QUE MODIFICA datos respondió sin error.
+ // No se anuncian como "guardadas" las búsquedas ni se promete éxito al tocar.
+ const originalRPC=sb.rpc.bind(sb);
+ const mutates=name=>/^(rf_admin_(?!get_|list_|search_|dashboard_)[a-z_]+|rf_set_[a-z_]+|rf_update_[a-z_]+|rf_leader_(?:change_password|set_password_required|set_initial_password|send_fc|request_fc)|rf_promoter_(?:send_|request_|set_)|rf_respond_[a-z_]+|rf_place_bet|rf_domino_(?:play_|pass_|join_|leave_|back_|set_|sit_|stand_|ready_|admin_|configure_|save_))/.test(name);
+ sb.rpc=function(name,...args){
+  const request=originalRPC(name,...args);
+  const origin=lastClick;
+  if(!origin||Date.now()-origin.at>3500||!mutates(String(name))||origin.insideBots)return request;
+  // Mantener la interfaz pública compatible: estos RPC se consumen como promesas.
+  return Promise.resolve(request).then(result=>{
+   if(result?.error)window.mf19Toast?.('No se confirmó: '+result.error.message,'error');
+   else if(result?.data?.ok===false||result?.data===false)window.mf19Toast?.('El servidor no confirmó el cambio.','error');
+   else window.mf19Toast?.('✅ Supabase confirmó la operación: '+origin.label);
+   return result;
+  },err=>{window.mf19Toast?.('Error de conexión: '+(err?.message||String(err)),'error');throw err;});
+ };
+ // Los GUARDADOS con panel propio mantienen además su confirmación detallada.
+})();
+</script>
 <script id="mfBots18Script">
 /* MAIKET FLASH 1.8 · Panel de bots con un fondo y múltiples mesas.
    Todas las decisiones financieras se verifican en funciones SQL, no aquí. */
@@ -7961,7 +8016,7 @@ function mfShowVerifiedTieWin(result,key,uid){
  let onlineBots=[],enabledTables=[],botsBusy=false,botUnavailable=false,lastFetch=0,activeLoop=false;
  let adminState=null,tableList=[];
  async function rpc(fn,params={}){const {data,error}=await sb.rpc(fn,params);if(error)throw error;return data;}
- function status(s,bad=false){const el=q('mf18Status');if(el){el.textContent=s;el.style.color=bad?'#ffbcbc':'#b7ffe3';}}
+ function status(s,bad=false){const el=q('mf18Status');if(el){el.textContent=s;el.style.color=bad?'#ffbcbc':'#b7ffe3';}if(bad&&window.mf19Toast)window.mf19Toast(s,'error');}
  const copy=async value=>{
   if(!value||!/^[0-9]{6}$/.test(value)){status('No se recibió el ID del fondo. Revisa la conexión a Supabase.',true);return;}
   try{await navigator.clipboard.writeText(value);status('ID copiado: '+value);}catch(e){prompt('Copia el ID del fondo:',value);}
@@ -8011,8 +8066,8 @@ function mfShowVerifiedTieWin(result,key,uid){
  const overlay=document.createElement('div');overlay.id='mfBots17Panel';overlay.className='overlay';
  overlay.innerHTML=`<div class="panel mf17-panel">
  <button type="button" class="close" id="mf18Close">✕</button>
- <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · galería y activación 1.8.4</p>
- <p class="tiny">Tres modelos de jugadores automáticos por mesa seleccionada. Un único fondo compartido y cuentas independientes por asiento. En las mesas se identifican como automáticos.</p>
+ <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9</p><div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor 24/7 de Supabase…</div>
+ <p class="tiny">Hasta tres jugadores automáticos por mesa, creados desde Supabase sin registrar cuentas manualmente. Un único fondo compartido. Cada jugador se identifica como automático.</p>
  <div class="mf17-grid">
   <div class="mf17-card">
    <b>💰 Fondo compartido</b><div id="mf18Balance">$0.00</div><div class="mf17-hint">En mesas: <strong id="mf18InPlay">$0.00</strong> · Total: <strong id="mf18Total">$0.00</strong></div>
@@ -8028,13 +8083,13 @@ function mfShowVerifiedTieWin(result,key,uid){
    <b>⚙️ Configuración general</b>
    <p class="mf17-hint">Los nombres, fotografías y dificultad de Robot 1/2/3 se comparten en todas las mesas. La dificultad controla estrategia: no garantiza victorias ni pérdidas.</p>
    <div id="mf18Templates"></div>
-   <hr><b>Autorizar cuentas dedicadas</b>
-   <p class="mf17-hint">Registra tres cuentas por cada mesa donde quieras 3 robots simultáneos. Inicia sesión en cada cuenta y autorízala desde el siguiente enlace. No uses tu cuenta administrativa.</p>
-   <button type="button" id="mf18CopySetup">Copiar enlace de autorización</button>
+   <hr><b>Autorización automática por ID de mesa</b>
+   <p class="mf17-hint">Ya no tienes que abrir cuentas ni copiar enlaces. Busca el ID de una mesa, elige cuántos robots activar y confirma. Solo el Líder puede autorizar la operación. Las cuentas se crean desde una función segura de Supabase.</p>
   </div>
  </div>
  <div class="mf17-card"><h3>🎯 Mesas con robots</h3>
-  <p class="mf17-hint">Selecciona cualquier combinación de mesas. Vincula tres cuentas distintas por mesa y activa esa mesa. Al entrar personas, los robots ceden el puesto entre manos sin cambiar el bote.</p>
+  <p class="mf17-hint">Introduce el ID de la mesa para buscarla o deja el campo vacío para ver todas. Elige 0, 1, 2 o 3 robots. Las personas reales tienen prioridad y las salidas se respetan al acabar la mano.</p>
+  <div class="mf19-search"><label for="mf19TableFind">ID de la mesa</label><input id="mf19TableFind" type="text" inputmode="numeric" placeholder="Buscar ID de mesa"><button type="button" id="mf19SearchBtn">🔎 Buscar</button><button type="button" id="mf19ShowAll">Todas</button></div>
   <div id="mf18Tables">Consultando mesas…</div>
  </div>
  <div class="mf17-card"><b>Movimientos recientes del fondo</b><div id="mf18History" class="tiny">Sin movimientos</div></div>
@@ -8098,23 +8153,21 @@ function mfShowVerifiedTieWin(result,key,uid){
       p_difficulty:Number(q('mf18Level'+i).value),p_avatar:url});
     q('mf18Avatar'+i).value=url;photo.src=url;
     label.textContent='Fotografía guardada correctamente.';
-    status('La nueva foto del robot '+i+' está guardada y aparecerá en las mesas.');
+    status('La nueva foto del robot '+i+' está guardada y aparecerá en las mesas.');window.mf19Toast?.('Foto del robot '+i+' guardada');
     await publicRefresh(true);
   }catch(e){photo.src=prior;q('mf18Avatar'+i).value=oldUrl;label.textContent='No se guardó la foto: '+errText(e);status(label.textContent,true);}
   finally{URL.revokeObjectURL(temp);field.value='';btn.disabled=false;botsBusy=false;}
  }
  // Ventana de confirmación visible solo después de una respuesta exitosa del servidor.
  const mf184Confirm=document.createElement('div');mf184Confirm.id='mf184BotConfirm';mf184Confirm.setAttribute('role','dialog');mf184Confirm.setAttribute('aria-modal','true');
- mf184Confirm.innerHTML='<div class="mf184-confirm-inner"><h2>✅ Robots activados</h2><p id="mf184ConfirmText">La mesa está habilitada.</p><button type="button" id="mf184ConfirmOk">Aceptar</button></div>';
+ mf184Confirm.innerHTML='<div class="mf184-confirm-inner"><h2>✅ Configuración guardada</h2><p id="mf184ConfirmText">Mesa configurada.</p><button type="button" id="mf184ConfirmOk">Aceptar</button></div>';
  document.body.append(mf184Confirm);
  async function showBotActivated(tableId,tableNo){
   const message=q('mf184ConfirmText');
-  message.textContent='Los robots están habilitados para la mesa '+tableNo+'. Pulsa Aceptar para actualizar los asientos.';
+  message.textContent='Configuración de mesa '+tableNo+' guardada en Supabase. El motor 24/7 necesita aparecer como ACTIVO en el panel para ejecutar turnos sin navegadores.';
   mf184Confirm.classList.add('mf184-open');
   q('mf184ConfirmOk').onclick=async()=>{
     mf184Confirm.classList.remove('mf184-open');
-    try{await rpc('rf_domino_bot_tick_v18',{p_table_id:tableId});}
-    catch(e){status('Mesa habilitada; pendiente actualizar los asientos: '+errText(e),true);}
     await loadAdmin();await publicRefresh(true);
     status('Mesa '+tableNo+' habilitada. Si una mano está activa, los cambios de asientos se aplican al terminar.');
   };
@@ -8122,61 +8175,74 @@ function mfShowVerifiedTieWin(result,key,uid){
  function buildTables(){
   const host=q('mf18Tables');host.replaceChildren();
   const cfgs=Array.isArray(adminState?.lobby?.configs)?adminState.lobby.configs:[];
-  const enabled=new Map((adminState?.tables||[]).map(t=>[Number(t.table_id),!!t.enabled]));
-  const assigned=new Map((adminState?.assignments||[]).map(a=>[Number(a.table_id)+'-'+Number(a.slot),a]));
-  if(!tableList.length){host.textContent='No se encontraron mesas creadas.';return;}
-  tableList.forEach(t=>{
-   const c=cfgs.find(z=>Number(z.id)===Number(t.config_id));
+  const entries=Array.isArray(adminState?.botsV19)?adminState.botsV19:[];
+  const query=q('mf19TableFind')?.value.trim()||'';
+  if(!entries.length){host.textContent='No se encontraron mesas creadas o falta SQL 1.9.';return;}
+  let shown=0;
+  entries.forEach(t=>{
+   const tid=Number(t.table_id);
+   if(query&&String(tid)!==query&&String(t.table_no)!==query)return;
+   shown++;
+   const cfg=tableList.find(row=>Number(row.id)===tid);
+   const c=cfgs.find(row=>Number(row.id)===Number(cfg?.config_id));
    const area=document.createElement('div');area.className='mf18-table';
-   const tid=Number(t.id);
-   const ids=[1,2,3].map(i=>{
-    const a=assigned.get(tid+'-'+i);
-    return `<label>Robot ${i} · ID propio</label><input class="mf18-seat-id" data-slot="${i}" maxlength="6" inputmode="numeric" placeholder="ID de 6 cifras" value="${escv(a?.public_id||'')}">${a?.seated?'<small class="mf17-hint">Jugando ahora · '+escv(cash(a.seat_balance))+'</small>':''}`;
+   const slots=Array.isArray(t.bots)?t.bots:[];
+   const selected=Math.max(0,Math.min(3,Number(t.target_count)||0));
+   const idList=[1,2,3].map(i=>{
+    const b=slots.find(o=>Number(o.slot)===i);
+    return `<div class="mf19-robot-ready">Robot ${i}: ${b?.public_id?('ID '+escv(b.public_id)):('Cuenta automática pendiente')}${b?.seated?' · En mesa':''}</div>`;
    }).join('');
-   area.innerHTML=`<div class="mf18-table-head"><b>${escv(c?.name||'Dominó')} · Mesa ${escv(t.table_no)} (#${tid})</b>
-     <span class="mf18-state">${enabled.get(tid)?'ACTIVA':'INACTIVA'}</span></div>
-     ${ids}<div class="mf17-row"><button type="button" class="mf18-link-ids">Guardar IDs</button>
-     <button type="button" class="mf18-turn-on">Activar robots</button>
-     <button type="button" class="mf18-turn-off mf17-negative">Desactivar robots</button></div>`;
-   area.querySelector('.mf18-link-ids').addEventListener('click',async()=>{
-    if(botsBusy)return;botsBusy=true;
-    try{
-     for(const input of area.querySelectorAll('.mf18-seat-id')){
-      const id=input.value.trim();if(id&&!/^\d{6}$/.test(id))throw Error('ID inválido en robot '+input.dataset.slot);
-      await rpc('rf_domino_bot_instance_v18',{p_table_id:tid,p_slot:Number(input.dataset.slot),p_public_id:id});
-     }
-     status('IDs de la mesa '+t.table_no+' guardados.');await loadAdmin();
-    }catch(e){status('Error guardando mesa: '+errText(e),true);}finally{botsBusy=false;}
+   area.innerHTML=`<div class="mf18-table-head"><b>${escv(c?.name||'Dominó')} · Mesa ${escv(t.table_no)}</b>
+    <span class="mf18-state">${t.enabled?'ACTIVA':'INACTIVA'}</span></div>
+    <div class="mf17-row"><strong>ID de mesa: ${escv(tid)}</strong><button type="button" class="mf19-copy-table">Copiar ID</button></div>
+    <label for="mf19Count${tid}">Cantidad de robots a activar</label>
+    <select id="mf19Count${tid}" class="mf19-count"><option value="0" ${selected===0?'selected':''}>0 robots</option><option value="1" ${selected===1?'selected':''}>1 robot</option><option value="2" ${selected===2?'selected':''}>2 robots</option><option value="3" ${selected===3?'selected':''}>3 robots</option></select>
+    ${idList}
+    <div class="mf17-row"><button type="button" class="mf19-activate">✅ Activar / guardar cantidad</button><button type="button" class="mf19-deactivate mf17-negative">🛑 Desactivar</button></div>`;
+   area.querySelector('.mf19-copy-table').addEventListener('click',async()=>{
+    try{await navigator.clipboard.writeText(String(tid));window.mf19Toast?.('ID de mesa copiado: '+tid);}
+    catch(e){prompt('Copia el ID de la mesa:',String(tid));}
    });
-   for(const [selector,on] of [['.mf18-turn-on',true],['.mf18-turn-off',false]]){
-    area.querySelector(selector).addEventListener('click',async()=>{
-     if(botsBusy)return;botsBusy=true;
-     try{
-      if(on){
-        const publicIds=Array.from(area.querySelectorAll('.mf18-seat-id'),field=>field.value.trim());
-        if(publicIds.length!==3||publicIds.some(id=>!/^[0-9]{6}$/.test(id))||new Set(publicIds).size!==3){
-          throw Error('Introduce tres IDs válidos y diferentes para activar esta mesa.');
-        }
-        // Asignación y activación en UNA transacción SQL, sin guardados parciales.
-        await rpc('rf_domino_bot_configure_activate_v184',{p_table_id:tid,p_public_ids:publicIds});
-        await showBotActivated(tid,t.table_no);
-      }else{
-        await rpc('rf_domino_bot_enable_table_v18',{p_table_id:tid,p_enabled:false});
-        await loadAdmin();await publicRefresh(true);
-        status('Bots desactivados en mesa '+t.table_no+'. Saldrán al finalizar una mano activa.');
-      }
-     }catch(e){status('No se pudo cambiar la mesa: '+errText(e),true);}finally{botsBusy=false;}
-    });
+   async function applyCount(count){
+    if(!leader()||botsBusy)return;
+    if(!Number.isInteger(count)||count<0||count>3){status('Cantidad inválida de robots.',true);return;}
+    botsBusy=true;
+    const actionButton=area.querySelector(count===0?'.mf19-deactivate':'.mf19-activate');
+    actionButton.disabled=true;
+    window.mf19Toast?.(count?'Preparando robots en Supabase…':'Desactivando robots…','wait');
+    try{
+     if(count>0){
+      // Autorización segura: la función verifica la sesión y el rol Lider.
+      // La service_role NUNCA aparece en HTML.
+      const {data,error}=await sb.functions.invoke('maiket-bot-provision',{
+       body:{table_id:tid,count}
+      });
+      if(error)throw new Error(error.message||'No se pudo comunicar con la Edge Function.');
+      if(!data?.ok)throw new Error(data?.error||'Supabase no confirmó las cuentas automáticas.');
+     }
+     const result=await rpc('rf_domino_bot_set_count_v19',{p_table_id:tid,p_count:count});
+     if(!result?.ok||Number(result.target_count)!==count)throw Error('Supabase no confirmó el ajuste.');
+     if(count>0){window.mf19Toast?.('Guardado: '+count+' robot(s) asignado(s) a mesa '+tid);await showBotActivated(tid,t.table_no);}
+     else{window.mf19Toast?.('Robots desactivados en mesa '+tid);await loadAdmin();await publicRefresh(true);}
+    }catch(e){status('No se aplicó el cambio: '+errText(e),true);}
+    finally{actionButton.disabled=false;botsBusy=false;}
    }
+   area.querySelector('.mf19-activate').addEventListener('click',()=>applyCount(Number(area.querySelector('.mf19-count').value)));
+   area.querySelector('.mf19-deactivate').addEventListener('click',()=>applyCount(0));
    host.append(area);
   });
+  if(!shown)host.textContent='No existe una mesa con ese ID. Revisa el número o pulsa Todas.';
  }
+ q('mf19SearchBtn').addEventListener('click',buildTables);
+ q('mf19ShowAll').addEventListener('click',()=>{q('mf19TableFind').value='';buildTables();});
+ q('mf19TableFind').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();buildTables();}});
  async function loadAdmin(){
   if(!leader())return;
   status('Cargando fondo y mesas…');
   try{
-   const [data,lobby]=await Promise.all([rpc('rf_domino_bot_admin_v18'),rpc('rf_domino_get_lobby_v11')]);
-   adminState={...data,lobby};
+   const [data,lobby,botsV19,health]=await Promise.all([rpc('rf_domino_bot_admin_v18'),rpc('rf_domino_get_lobby_v11'),rpc('rf_domino_bot_config_v19'),rpc('rf_domino_bot_health_status_v19')]);
+   adminState={...data,lobby,botsV19,health};
+   q('mf19ServerHealth').textContent=health?.running?'🟢 Motor del servidor ACTIVO · ejecutándose sin navegador':'🟠 Motor del servidor NO CONFIRMADO · revisa Supabase Cron';
    tableList=Array.isArray(lobby?.tables)?lobby.tables:[];
    q('mf18Balance').textContent=cash(data?.fund?.balance);
    q('mf18InPlay').textContent=cash(data.in_play_balance);
@@ -8201,7 +8267,7 @@ function mfShowVerifiedTieWin(result,key,uid){
   try{
    await rpc('rf_domino_bot_template_v18',{p_slot:i,p_name:q('mf18Name'+i).value.trim(),
     p_difficulty:Number(q('mf18Level'+i).value),p_avatar:q('mf18Avatar'+i).value.trim()});
-   status('Nombre, fotografía y dificultad del robot '+i+' guardados.');
+   status('Nombre, fotografía y dificultad del robot '+i+' guardados.');window.mf19Toast?.('Robot '+i+': configuración confirmada por Supabase');
   }catch(e){status(errText(e),true);}finally{botsBusy=false;}
  }
  async function moneyAction(action){
@@ -8217,14 +8283,10 @@ function mfShowVerifiedTieWin(result,key,uid){
    const uuid=typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():null;
    if(!uuid)throw Error('El navegador no puede generar una referencia segura. Abre la web mediante HTTPS.');
    const result=await rpc('rf_domino_bot_transfer_v18',{p_action:action,p_amount:amount,p_public_id:dest||null,p_request_id:uuid});
-   status('Movimiento confirmado por Supabase. Saldo del fondo: '+cash(result.balance));await loadAdmin();
+   status('Movimiento confirmado por Supabase. Saldo del fondo: '+cash(result.balance));window.mf19Toast?.('Transferencia confirmada por Supabase');await loadAdmin();
   }catch(e){status('Movimiento no confirmado: '+errText(e),true);}finally{botsBusy=false;}
  }
  q('mf18CopyId').addEventListener('click',()=>{const id=q('mf18ReceiveId').textContent.trim();if(!/^\d{6}$/.test(id)){status('Instala SQL 1.8.3 y actualiza este panel para obtener el ID.',true);return;}copy(id);});
- q('mf18CopySetup').addEventListener('click',async()=>{
-  const u=new URL(location.href);u.search='?bot_setup=1';u.hash='';
-  try{await navigator.clipboard.writeText(u.toString());status('Enlace de autorización copiado.');}catch(e){prompt('Copia el enlace:',u.toString());}
- });
  q('mf18Close').addEventListener('click',()=>hide('mfBots17Panel'));
  q('mf18Refresh').addEventListener('click',loadAdmin);
  overlay.querySelectorAll('[data-bot18-money]').forEach(b=>b.addEventListener('click',()=>moneyAction(b.dataset.bot18Money)));
@@ -8233,26 +8295,12 @@ function mfShowVerifiedTieWin(result,key,uid){
   b.innerHTML='<span>🤖</span><strong>BOTS</strong><small>Un fondo compartido · Mesas múltiples</small>';
   dash.append(b);b.addEventListener('click',()=>{if(!leader())return;hide('leaderPanel');show('mfBots17Panel');loadAdmin();});
  }
- if(new URLSearchParams(location.search).get('bot_setup')==='1'){
-  const claimBtn=document.createElement('button');claimBtn.id='mfBotClaimBtn';claimBtn.type='button';claimBtn.textContent='🤖 Autorizar esta cuenta dedicada';
-  q('appView')?.querySelector('.wallet-row')?.prepend(claimBtn);
-  claimBtn.addEventListener('click',async()=>{
-   if(!ready()){alert('Inicia sesión con la cuenta dedicada.');return;}
-   if(!confirm('¿Autorizas que esta cuenta se use exclusivamente para el fondo o como jugador automático?'))return;
-   try{alert(await rpc('rf_domino_bot_claim_v17'));}catch(e){alert('Error: '+errText(e));}
-  });
- }
  async function backgroundTick(){
   if(activeLoop||botUnavailable||document.hidden||!ready())return;activeLoop=true;
   try{
    await publicRefresh();
-   // Los clientes normales solo hacen avanzar la mesa en la que participan;
-   // el lider, cuando mantiene una sesion abierta, puede impulsar todas las mesas.
-   const tableHere=(typeof dominoCurrentTableId!=='undefined'&&dominoCurrentTableId)?Number(dominoCurrentTableId):null;
-   const ids=leader()?enabledTables.slice(0,30):(
-     tableHere!==null&&enabledTables.includes(tableHere)?[tableHere]:[]
-   );
-   if(ids.length){await Promise.allSettled(ids.map(t=>rpc('rf_domino_bot_tick_v18',{p_table_id:t})));}
+   // La ejecución del motor corre en el servidor (SQL Cron), no aquí.
+   // El navegador consulta únicamente el estado público para mostrar AUTO.
   }catch(e){if(/not found|does not exist|schema cache/i.test(errText(e)))botUnavailable=true;}
   finally{activeLoop=false;}
  }
