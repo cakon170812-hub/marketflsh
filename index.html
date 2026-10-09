@@ -4081,16 +4081,23 @@ $('adminRechargeId').addEventListener('input',()=>{selectedAdminRechargeUser=nul
 $('adminFindRechargeBtn').onclick=async()=>{
   const id=$('adminRechargeId').value.trim();
   if(!/^\d{6}$/.test(id))return msg('adminMsg','Escribe un ID válido de 6 dígitos.');
-  const {data,error}=await sb.rpc('rf_search_user_by_public_id',{p_public_id:id});
-  if(error)return msg('adminMsg',errText(error));
-  const u=Array.isArray(data)?data[0]:data;selectedAdminRechargeUser=u||null;
-  $('adminRechargeUserResult').innerHTML=u?`<div class="card"><strong>${esc(u.full_name)}</strong><span class="tiny">ID ${esc(u.public_id)} <button type="button" class="copy-btn" data-copy-id="${esc(u.public_id)}">Copiar</button> · Saldo ${money(u.balance)} FC</span></div>`:'<div class="card">ID no encontrado.</div>';
+  try{
+    const u=await searchTransferTarget(id);
+    selectedAdminRechargeUser=u||null;
+    $('adminRechargeUserResult').innerHTML=targetCardHTML(u,false);
+    msg('adminMsg',u?'Destinatario confirmado.':'ID no encontrado.');
+  }catch(e){selectedAdminRechargeUser=null;msg('adminMsg',errText(e));}
 };
 $('adminRechargeBtn').onclick=async()=>{
   const id=$('adminRechargeId').value.trim(),amount=Number($('adminRechargeAmount').value);
   if(!selectedAdminRechargeUser||selectedAdminRechargeUser.public_id!==id)return msg('adminMsg','Busca y confirma primero el ID del usuario.');
   if(!(amount>0))return msg('adminMsg','Monto inválido.');
-  const {data,error}=await sb.rpc('rf_admin_recharge_v04',{p_public_id:id,p_amount:amount});
+  let data,error;
+  if(selectedAdminRechargeUser.target_type==='bot_fund'){
+    try{data=await mf183SendToBots(id,amount,'admin_wallet');}catch(e){error=e;}
+  }else{
+    ({data,error}=await sb.rpc('rf_admin_recharge_v04',{p_public_id:id,p_amount:amount}));
+  }
   if(error)return msg('adminMsg',errText(error));
   const receipt=Array.isArray(data)?data[0]:data;
   $('adminRechargeId').value='';$('adminRechargeAmount').value='';$('adminRechargeUserResult').innerHTML='';selectedAdminRechargeUser=null;msg('adminMsg','');
@@ -4446,7 +4453,12 @@ leaderTransferAction=async function(kind){
   if(!(amount>0))return msg('leaderTransferMsg','Monto inválido.');
   if(kind==='request'&&selectedLeaderTransferUser.target_type!=='user')return msg('leaderTransferMsg','La solicitud debe dirigirse a una cuenta de usuario/promotor.');
   const fn=kind==='send'?'rf_leader_send_fc_v08':'rf_leader_request_fc_v08';
-  const {data,error}=await sb.rpc(fn,{p_public_id:id,p_amount:amount});
+  let data,error;
+  if(kind==='send'&&selectedLeaderTransferUser.target_type==='bot_fund'){
+    try{data=await mf183SendToBots(id,amount,'leader');}catch(e){error=e;}
+  }else{
+    ({data,error}=await sb.rpc(fn,{p_public_id:id,p_amount:amount}));
+  }
   if(error)return msg('leaderTransferMsg',errText(error));
   const receipt=oneRow(data);
   if(kind==='send'){
@@ -7926,6 +7938,14 @@ function mfShowVerifiedTieWin(result,key,uid){
 #mfBots17Panel .mf18-seat-id{max-width:220px;display:block}
 #mfBots17Panel .mf17-row{flex-wrap:wrap}
 #mfBots17Panel .mf17-row button{min-width:95px}
+#mfBots17Panel .mf184-photo-row{display:flex;align-items:center;gap:12px;margin:9px 0 12px}
+#mfBots17Panel .mf184-photo-preview{width:64px;height:64px;border-radius:50%;border:2px solid #d5b56e;background:#122634;object-fit:cover}
+#mfBots17Panel .mf184-photo-pick{font-size:13px;min-height:40px}
+#mfBots17Panel .mf184-photo-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+#mf184BotConfirm{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:2147483646;padding:20px}
+#mf184BotConfirm.mf184-open{display:flex}
+#mf184BotConfirm .mf184-confirm-inner{width:min(92vw,420px);border-radius:18px;border:1px solid #d5b56e;background:linear-gradient(135deg,#172e35,#09151d);color:#fff;padding:23px;text-align:center;box-shadow:0 20px 60px #0009}
+#mf184BotConfirm button{border:1px solid #d5b56e;background:#295346;color:#fff5cc;border-radius:9px;padding:12px 28px;margin-top:12px;font-weight:800;cursor:pointer}
 </style>
 <script id="mfBots18Script">
 /* MAIKET FLASH 1.8 · Panel de bots con un fondo y múltiples mesas.
@@ -7943,7 +7963,7 @@ function mfShowVerifiedTieWin(result,key,uid){
  async function rpc(fn,params={}){const {data,error}=await sb.rpc(fn,params);if(error)throw error;return data;}
  function status(s,bad=false){const el=q('mf18Status');if(el){el.textContent=s;el.style.color=bad?'#ffbcbc':'#b7ffe3';}}
  const copy=async value=>{
-  if(!value||!/^[0-9]{6}$/.test(value)){status('Primero vincula el ID receptor del fondo.',true);return;}
+  if(!value||!/^[0-9]{6}$/.test(value)){status('No se recibió el ID del fondo. Revisa la conexión a Supabase.',true);return;}
   try{await navigator.clipboard.writeText(value);status('ID copiado: '+value);}catch(e){prompt('Copia el ID del fondo:',value);}
  };
  async function publicRefresh(force=false){
@@ -7991,7 +8011,7 @@ function mfShowVerifiedTieWin(result,key,uid){
  const overlay=document.createElement('div');overlay.id='mfBots17Panel';overlay.className='overlay';
  overlay.innerHTML=`<div class="panel mf17-panel">
  <button type="button" class="close" id="mf18Close">✕</button>
- <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · actualización ID 1.8.3</p>
+ <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · galería y activación 1.8.4</p>
  <p class="tiny">Tres modelos de jugadores automáticos por mesa seleccionada. Un único fondo compartido y cuentas independientes por asiento. En las mesas se identifican como automáticos.</p>
  <div class="mf17-grid">
   <div class="mf17-card">
@@ -8027,13 +8047,77 @@ function mfShowVerifiedTieWin(result,key,uid){
   const box=document.createElement('div');box.className='mf18-template';
   box.innerHTML=`<b>Jugador automático ${i}</b>
    <label>Nombre</label><input id="mf18Name${i}" maxlength="36" placeholder="Nombre visible">
-   <label>URL foto HTTPS</label><input id="mf18Avatar${i}" placeholder="https://...">
+   <label>Fotografía del jugador automático</label>
+   <div class="mf184-photo-row"><img id="mf184Preview${i}" class="mf184-photo-preview" alt="Foto del jugador automático ${i}" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Crect width='60' height='60' fill='%23122634'/%3E%3Ctext x='30' y='43' font-size='37' text-anchor='middle'%3E%F0%9F%A4%96%3C/text%3E%3C/svg%3E">
+   <button class="mf184-photo-pick" type="button" id="mf184Pick${i}">📷 Seleccionar foto</button>
+   <input class="mf184-photo-input" type="file" id="mf184File${i}" accept="image/jpeg,image/png,image/webp" aria-label="Elegir foto del robot ${i}"></div>
+   <input type="hidden" id="mf18Avatar${i}" value="">
+   <small class="mf17-hint" id="mf184PhotoStatus${i}">Selecciona una foto desde la galería.</small>
    <label>Dificultad <span id="mf18LevelLabel${i}">50%</span></label>
    <input id="mf18Level${i}" type="range" min="0" max="100" step="5" value="50">
    <button type="button" id="mf18SaveTemplate${i}">Guardar robot ${i}</button>`;
   templates.append(box);
   q('mf18Level'+i).addEventListener('input',()=>q('mf18LevelLabel'+i).textContent=q('mf18Level'+i).value+'%');
   q('mf18SaveTemplate'+i).addEventListener('click',()=>saveTemplate(i));
+  q('mf184Pick'+i).addEventListener('click',()=>q('mf184File'+i).click());
+  q('mf184File'+i).addEventListener('change',()=>uploadBotPhoto(i));
+ }
+ const mf184EmptyPhoto='data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60"%3E%3Crect width="60" height="60" fill="%23122634"/%3E%3C/svg%3E';
+ async function compressBotPhoto(file){
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw Error('Elige una imagen JPG, PNG o WebP.');
+  if(file.size>5*1024*1024)throw Error('La imagen supera 5 MB. Elige una más pequeña.');
+  const obj=URL.createObjectURL(file);
+  try{
+    const pic=new Image();
+    await new Promise((resolve,reject)=>{pic.onload=resolve;pic.onerror=()=>reject(Error('No se pudo abrir la foto.'));pic.src=obj;});
+    const edge=640,ratio=Math.min(1,edge/Math.max(pic.naturalWidth,pic.naturalHeight));
+    const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(pic.naturalWidth*ratio));canvas.height=Math.max(1,Math.round(pic.naturalHeight*ratio));
+    canvas.getContext('2d').drawImage(pic,0,0,canvas.width,canvas.height);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.86));
+    if(!blob)throw Error('El navegador no pudo preparar la foto.');
+    return blob;
+  }finally{URL.revokeObjectURL(obj);}
+ }
+ async function uploadBotPhoto(i){
+  if(!leader()){status('Solo el Administrador Líder puede cambiar fotos.',true);return;}
+  const field=q('mf184File'+i),file=field.files?.[0];if(!file)return;
+  if(botsBusy){status('Hay otra operación en curso. Intenta nuevamente.',true);field.value='';return;}
+  botsBusy=true;const btn=q('mf184Pick'+i),label=q('mf184PhotoStatus'+i);
+  const oldUrl=q('mf18Avatar'+i).value,photo=q('mf184Preview'+i),prior=photo.src;
+  const temp=URL.createObjectURL(file);photo.src=temp;btn.disabled=true;label.textContent='Guardando foto en Supabase…';
+  try{
+    const blob=await compressBotPhoto(file);
+    if(!crypto?.randomUUID)throw Error('Abre MAIKET FLASH por HTTPS para subir fotografías.');
+    const key='robot-'+i+'/'+crypto.randomUUID()+'.jpg';
+    const {error}=await sb.storage.from('mf-bot-avatars').upload(key,blob,{contentType:'image/jpeg',cacheControl:'3600',upsert:false});
+    if(error)throw error;
+    const {data}=sb.storage.from('mf-bot-avatars').getPublicUrl(key);
+    const url=data?.publicUrl;
+    if(!url||!url.startsWith('https://'))throw Error('Supabase no devolvió el enlace HTTPS de la foto.');
+    await rpc('rf_domino_bot_template_v18',{p_slot:i,p_name:q('mf18Name'+i).value.trim()||'Jugador '+i,
+      p_difficulty:Number(q('mf18Level'+i).value),p_avatar:url});
+    q('mf18Avatar'+i).value=url;photo.src=url;
+    label.textContent='Fotografía guardada correctamente.';
+    status('La nueva foto del robot '+i+' está guardada y aparecerá en las mesas.');
+    await publicRefresh(true);
+  }catch(e){photo.src=prior;q('mf18Avatar'+i).value=oldUrl;label.textContent='No se guardó la foto: '+errText(e);status(label.textContent,true);}
+  finally{URL.revokeObjectURL(temp);field.value='';btn.disabled=false;botsBusy=false;}
+ }
+ // Ventana de confirmación visible solo después de una respuesta exitosa del servidor.
+ const mf184Confirm=document.createElement('div');mf184Confirm.id='mf184BotConfirm';mf184Confirm.setAttribute('role','dialog');mf184Confirm.setAttribute('aria-modal','true');
+ mf184Confirm.innerHTML='<div class="mf184-confirm-inner"><h2>✅ Robots activados</h2><p id="mf184ConfirmText">La mesa está habilitada.</p><button type="button" id="mf184ConfirmOk">Aceptar</button></div>';
+ document.body.append(mf184Confirm);
+ async function showBotActivated(tableId,tableNo){
+  const message=q('mf184ConfirmText');
+  message.textContent='Los robots están habilitados para la mesa '+tableNo+'. Pulsa Aceptar para actualizar los asientos.';
+  mf184Confirm.classList.add('mf184-open');
+  q('mf184ConfirmOk').onclick=async()=>{
+    mf184Confirm.classList.remove('mf184-open');
+    try{await rpc('rf_domino_bot_tick_v18',{p_table_id:tableId});}
+    catch(e){status('Mesa habilitada; pendiente actualizar los asientos: '+errText(e),true);}
+    await loadAdmin();await publicRefresh(true);
+    status('Mesa '+tableNo+' habilitada. Si una mano está activa, los cambios de asientos se aplican al terminar.');
+  };
  }
  function buildTables(){
   const host=q('mf18Tables');host.replaceChildren();
@@ -8068,8 +8152,19 @@ function mfShowVerifiedTieWin(result,key,uid){
     area.querySelector(selector).addEventListener('click',async()=>{
      if(botsBusy)return;botsBusy=true;
      try{
-      await rpc('rf_domino_bot_enable_table_v18',{p_table_id:tid,p_enabled:on});
-      status('Mesa '+t.table_no+(on?' activada.':' desactivada.'));await loadAdmin();await publicRefresh(true);
+      if(on){
+        const publicIds=Array.from(area.querySelectorAll('.mf18-seat-id'),field=>field.value.trim());
+        if(publicIds.length!==3||publicIds.some(id=>!/^[0-9]{6}$/.test(id))||new Set(publicIds).size!==3){
+          throw Error('Introduce tres IDs válidos y diferentes para activar esta mesa.');
+        }
+        // Asignación y activación en UNA transacción SQL, sin guardados parciales.
+        await rpc('rf_domino_bot_configure_activate_v184',{p_table_id:tid,p_public_ids:publicIds});
+        await showBotActivated(tid,t.table_no);
+      }else{
+        await rpc('rf_domino_bot_enable_table_v18',{p_table_id:tid,p_enabled:false});
+        await loadAdmin();await publicRefresh(true);
+        status('Bots desactivados en mesa '+t.table_no+'. Saldrán al finalizar una mano activa.');
+      }
      }catch(e){status('No se pudo cambiar la mesa: '+errText(e),true);}finally{botsBusy=false;}
     });
    }
@@ -8091,6 +8186,7 @@ function mfShowVerifiedTieWin(result,key,uid){
    for(const tpl of data.templates||[]){const i=Number(tpl.slot);if(i<1||i>3)continue;
     q('mf18Name'+i).value=tpl.display_name||'';
     q('mf18Avatar'+i).value=tpl.avatar_url||'';
+    q('mf184Preview'+i).src=tpl.avatar_url||mf184EmptyPhoto;
     q('mf18Level'+i).value=Number(tpl.difficulty??50);
     q('mf18LevelLabel'+i).textContent=q('mf18Level'+i).value+'%';
    }
