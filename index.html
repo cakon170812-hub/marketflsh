@@ -7429,12 +7429,24 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
           <div class="mode-desc">${desc}</div>
           <div class="table-stats"><div class="table-stat">Entrada mínima<b>${dominoMoney(c.min_entry)} FC</b></div><div class="table-stat">Jugadores<b>${players} conectados</b></div><div class="table-stat">Bote/jugador<b>${dominoMoney(c.hand_stake)} FC</b></div><div class="table-stat">${c.mode==='paid_pass'?'Cada pase':'Mínimo seguir'}<b>${c.mode==='paid_pass'?dominoMoney(c.pass_fee)+' FC':dominoMoney(c.min_continue_balance)+' FC'}</b></div></div>
           <div class="online-line"><span class="domino-live-dot"></span>${active.length?active.length+' partida'+(active.length===1?'':'s')+' activa'+(active.length===1?'':'s'):'Esperando la próxima partida'} · ${full?'sin asiento libre':'mesa disponible'}</div>
+          <div class="mf191-ids-box"><div class="mf191-ids-title">🆔 ID de cada mesa · copiar para Panel BOTS</div>
+            ${tt.length?tt.map(t=>{const id=String(t.id).padStart(6,'0');return `<div class="mf191-id-row"><span>Mesa ${esc(String(t.table_no??t.id))}</span><b>${esc(id)}</b><button type="button" class="mf191-copy-table-id" data-table-id="${esc(id)}">Copiar ID</button></div>`}).join(''):'<small>Aún no se ha creado una mesa de esta modalidad.</small>'}
+          </div>
           <button class="action green domino-join-mode ${spectatorOnly?'spectator':''}" data-config="${c.id}">${action}</button>
         </div>
       </div>`;
     }).join('');
     if(myTable)host.insertAdjacentHTML('afterbegin',myState==='abandoned'?`<div class="card"><strong>Salida confirmada</strong><div class="tiny">Tu asiento terminará esta mano automáticamente y después quedará libre.</div></div>`:`<div class="card"><strong>Tu asiento sigue activo</strong><div class="tiny">Puedes volver a tu mesa y continuar la mano si todavía no ha terminado.</div><button id="dominoResumeTableBtn" class="action blue">VOLVER A MI MESA</button></div>`);
     host.querySelectorAll('.domino-join-mode').forEach(b=>b.onclick=()=>spectatorOnly?enterBestSpectator():openDominoBuyin(Number(b.dataset.config)));
+    host.querySelectorAll('.mf191-copy-table-id').forEach(btn=>btn.addEventListener('click',async e=>{
+      e.preventDefault();e.stopPropagation();
+      const code=btn.dataset.tableId||'';
+      try{
+        await navigator.clipboard.writeText(code);
+        if(window.mf19Toast)window.mf19Toast('ID de mesa copiado: '+code);
+        else if(typeof showCopyToast==='function')showCopyToast('ID copiado: '+code);
+      }catch(_){window.prompt('Selecciona y copia el ID de la mesa:',code);}
+    }));
     const resume=document.getElementById('dominoResumeTableBtn');
     if(resume)resume.onclick=async()=>{spectatorMode=false;window.dominoSpectatorMode=false;document.body.classList.remove('domino-spectating');dominoCurrentTableId=Number(myTable);dominoViewAway=false;dominoResetTableEffects();await sb.rpc('rf_domino_resume_v11',{p_table_id:dominoCurrentTableId});hide('dominoLobbyPanel');show('dominoTablePanel');dominoAcquireWakeLock().catch(()=>{});dominoForceLandscape().catch(()=>{});dominoStartPolling();await dominoHeartbeat(true);await dominoStartRealtime();await loadDominoState(true)};
   };
@@ -7947,6 +7959,14 @@ function mfShowVerifiedTieWin(result,key,uid){
 #mf184BotConfirm .mf184-confirm-inner{width:min(92vw,420px);border-radius:18px;border:1px solid #d5b56e;background:linear-gradient(135deg,#172e35,#09151d);color:#fff;padding:23px;text-align:center;box-shadow:0 20px 60px #0009}
 #mf184BotConfirm button{border:1px solid #d5b56e;background:#295346;color:#fff5cc;border-radius:9px;padding:12px 28px;margin-top:12px;font-weight:800;cursor:pointer}
 </style>
+<style id="mf191TableIdsStyles">
+/* Mesas reales del lobby (ID primaria SQL), no identificador de modalidad. */
+.mf191-ids-box{margin:8px 0 10px;padding:8px;border:1px solid rgba(245,203,91,.33);border-radius:11px;background:rgba(10,16,25,.86);max-height:185px;overflow-y:auto;overscroll-behavior:contain}
+.mf191-ids-title{font-size:10px;font-weight:850;color:#f5d886;margin-bottom:7px}
+.mf191-id-row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:5px 0;border-top:1px solid rgba(255,255,255,.08);font-size:11px}
+.mf191-id-row span{flex:1;min-width:65px}.mf191-id-row b{font-variant-numeric:tabular-nums;letter-spacing:1px;color:#ffda74}
+.mf191-id-row button{background:#21453c;border:1px solid #c8ac69;border-radius:8px;padding:6px 10px;color:#fff;font-size:10px;font-weight:900;cursor:pointer}
+</style>
 <style id="mf19FeedbackStyles">
 #mfBots17Panel .mf19-search{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:12px 0}
 #mfBots17Panel .mf19-search input{flex:1;min-width:130px;padding:10px;border-radius:9px}
@@ -8066,13 +8086,13 @@ function mfShowVerifiedTieWin(result,key,uid){
  const overlay=document.createElement('div');overlay.id='mfBots17Panel';overlay.className='overlay';
  overlay.innerHTML=`<div class="panel mf17-panel">
  <button type="button" class="close" id="mf18Close">✕</button>
- <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9</p><div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor 24/7 de Supabase…</div>
+ <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.1</p><div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor 24/7 de Supabase…</div>
  <p class="tiny">Hasta tres jugadores automáticos por mesa, creados desde Supabase sin registrar cuentas manualmente. Un único fondo compartido. Cada jugador se identifica como automático.</p>
  <div class="mf17-grid">
   <div class="mf17-card">
    <b>💰 Fondo compartido</b><div id="mf18Balance">$0.00</div><div class="mf17-hint">En mesas: <strong id="mf18InPlay">$0.00</strong> · Total: <strong id="mf18Total">$0.00</strong></div>
    <label>ID único para recibir transferencias</label>
-   <div class="mf17-row"><strong id="mf18ReceiveId">Sin vincular</strong><button type="button" id="mf18CopyId">Copiar ID</button></div>
+   <div class="mf17-row"><strong id="mf18ReceiveId">Consultando Supabase…</strong><button type="button" id="mf18CopyId">Copiar ID</button></div>
    <small class="mf17-hint">Este ID permanente se genera en Supabase y recibe transferencias directamente al fondo compartido. No requiere vincular una cuenta personal.</small>
    <label>Monto</label><input id="mf18Amount" type="number" min="0.001" step="0.001" value="1.00">
    <label>ID destinatario (solo Enviar)</label><input id="mf18SendTo" maxlength="6" inputmode="numeric" placeholder="ID de usuario">
@@ -8089,7 +8109,7 @@ function mfShowVerifiedTieWin(result,key,uid){
  </div>
  <div class="mf17-card"><h3>🎯 Mesas con robots</h3>
   <p class="mf17-hint">Introduce el ID de la mesa para buscarla o deja el campo vacío para ver todas. Elige 0, 1, 2 o 3 robots. Las personas reales tienen prioridad y las salidas se respetan al acabar la mano.</p>
-  <div class="mf19-search"><label for="mf19TableFind">ID de la mesa</label><input id="mf19TableFind" type="text" inputmode="numeric" placeholder="Buscar ID de mesa"><button type="button" id="mf19SearchBtn">🔎 Buscar</button><button type="button" id="mf19ShowAll">Todas</button></div>
+  <div class="mf19-search"><label for="mf19TableFind">Pegar ID de la mesa</label><input id="mf19TableFind" type="text" inputmode="numeric" placeholder="Pega aquí el ID de 6 dígitos" maxlength="18"><button type="button" id="mf19SearchBtn">🔎 Buscar</button><button type="button" id="mf19ShowAll">Todas</button></div>
   <div id="mf18Tables">Consultando mesas…</div>
  </div>
  <div class="mf17-card"><b>Movimientos recientes del fondo</b><div id="mf18History" class="tiny">Sin movimientos</div></div>
@@ -8175,17 +8195,20 @@ function mfShowVerifiedTieWin(result,key,uid){
  function buildTables(){
   const host=q('mf18Tables');host.replaceChildren();
   const cfgs=Array.isArray(adminState?.lobby?.configs)?adminState.lobby.configs:[];
-  const entries=Array.isArray(adminState?.botsV19)?adminState.botsV19:[];
+  const hasConfig=Array.isArray(adminState?.botsV19);
+  const entries=hasConfig?adminState.botsV19:tableList.map(t=>({table_id:t.id,table_no:t.table_no,target_count:0,enabled:false,bots:[]}));
   const query=q('mf19TableFind')?.value.trim()||'';
-  if(!entries.length){host.textContent='No se encontraron mesas creadas o falta SQL 1.9.';return;}
+  const numericQuery=/^[0-9]+$/.test(query)?Number(query):NaN;
+  if(!entries.length){host.textContent='No se encontraron mesas creadas en Supabase.';return;}
   let shown=0;
   entries.forEach(t=>{
    const tid=Number(t.table_id);
-   if(query&&String(tid)!==query&&String(t.table_no)!==query)return;
+   if(query&&tid!==numericQuery&&Number(t.table_no)!==numericQuery)return;
    shown++;
    const cfg=tableList.find(row=>Number(row.id)===tid);
    const c=cfgs.find(row=>Number(row.id)===Number(cfg?.config_id));
    const area=document.createElement('div');area.className='mf18-table';
+   const displayId=String(tid).padStart(6,'0');
    const slots=Array.isArray(t.bots)?t.bots:[];
    const selected=Math.max(0,Math.min(3,Number(t.target_count)||0));
    const idList=[1,2,3].map(i=>{
@@ -8194,14 +8217,15 @@ function mfShowVerifiedTieWin(result,key,uid){
    }).join('');
    area.innerHTML=`<div class="mf18-table-head"><b>${escv(c?.name||'Dominó')} · Mesa ${escv(t.table_no)}</b>
     <span class="mf18-state">${t.enabled?'ACTIVA':'INACTIVA'}</span></div>
-    <div class="mf17-row"><strong>ID de mesa: ${escv(tid)}</strong><button type="button" class="mf19-copy-table">Copiar ID</button></div>
+    <div class="mf17-row"><strong>ID de mesa: ${escv(displayId)}</strong><button type="button" class="mf19-copy-table">Copiar ID</button></div>
+    ${!hasConfig?'<div class="mf17-hint danger">No se confirmó SQL 1.9: puedes copiar el ID, pero activar robots está deshabilitado.</div>':''}
     <label for="mf19Count${tid}">Cantidad de robots a activar</label>
     <select id="mf19Count${tid}" class="mf19-count"><option value="0" ${selected===0?'selected':''}>0 robots</option><option value="1" ${selected===1?'selected':''}>1 robot</option><option value="2" ${selected===2?'selected':''}>2 robots</option><option value="3" ${selected===3?'selected':''}>3 robots</option></select>
     ${idList}
-    <div class="mf17-row"><button type="button" class="mf19-activate">✅ Activar / guardar cantidad</button><button type="button" class="mf19-deactivate mf17-negative">🛑 Desactivar</button></div>`;
+    <div class="mf17-row"><button type="button" class="mf19-activate" ${hasConfig?'':'disabled'}>✅ Activar / guardar cantidad</button><button type="button" class="mf19-deactivate mf17-negative" ${hasConfig?'':'disabled'}>🛑 Desactivar</button></div>`;
    area.querySelector('.mf19-copy-table').addEventListener('click',async()=>{
-    try{await navigator.clipboard.writeText(String(tid));window.mf19Toast?.('ID de mesa copiado: '+tid);}
-    catch(e){prompt('Copia el ID de la mesa:',String(tid));}
+    try{await navigator.clipboard.writeText(displayId);window.mf19Toast?.('ID de mesa copiado: '+displayId);}
+    catch(e){prompt('Selecciona y copia el ID de la mesa:',displayId);}
    });
    async function applyCount(count){
     if(!leader()||botsBusy)return;
@@ -8236,31 +8260,60 @@ function mfShowVerifiedTieWin(result,key,uid){
  q('mf19SearchBtn').addEventListener('click',buildTables);
  q('mf19ShowAll').addEventListener('click',()=>{q('mf19TableFind').value='';buildTables();});
  q('mf19TableFind').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();buildTables();}});
+ q('mf19TableFind').addEventListener('input',buildTables); // Al pegar ID, muestra la mesa sin un clic adicional.
  async function loadAdmin(){
   if(!leader())return;
-  status('Cargando fondo y mesas…');
-  try{
-   const [data,lobby,botsV19,health]=await Promise.all([rpc('rf_domino_bot_admin_v18'),rpc('rf_domino_get_lobby_v11'),rpc('rf_domino_bot_config_v19'),rpc('rf_domino_bot_health_status_v19')]);
-   adminState={...data,lobby,botsV19,health};
-   q('mf19ServerHealth').textContent=health?.running?'🟢 Motor del servidor ACTIVO · ejecutándose sin navegador':'🟠 Motor del servidor NO CONFIRMADO · revisa Supabase Cron';
-   tableList=Array.isArray(lobby?.tables)?lobby.tables:[];
-   q('mf18Balance').textContent=cash(data?.fund?.balance);
-   q('mf18InPlay').textContent=cash(data.in_play_balance);
-   q('mf18Total').textContent=cash(Number(data?.fund?.balance||0)+Number(data.in_play_balance||0));
-   q('mf18ReceiveId').textContent=data.receive_public_id||'Sin vincular';
-   // El ID del fondo se asigna en Supabase; no necesita vinculacion manual.
-   for(const tpl of data.templates||[]){const i=Number(tpl.slot);if(i<1||i>3)continue;
-    q('mf18Name'+i).value=tpl.display_name||'';
-    q('mf18Avatar'+i).value=tpl.avatar_url||'';
-    q('mf184Preview'+i).src=tpl.avatar_url||mf184EmptyPhoto;
-    q('mf18Level'+i).value=Number(tpl.difficulty??50);
-    q('mf18LevelLabel'+i).textContent=q('mf18Level'+i).value+'%';
-   }
-   const movements=q('mf18History');movements.replaceChildren();
-   if(!(data.history||[]).length)movements.textContent='Sin movimientos.';
-   for(const x of data.history||[]){const p=document.createElement('p');p.textContent=(Number(x.delta)>0?'+':'')+cash(x.delta)+' · '+x.movement_type+' · '+new Date(x.created_at).toLocaleString('es-DO');movements.append(p);}
-   buildTables();status('Panel actualizado.');
-  }catch(e){status('No se pudo cargar: '+errText(e),true);}
+  status('Consultando fondo, mesas y servidor por separado…');
+  // Una RPC faltante (por ejemplo salud v19) NO debe ocultar el ID ni los saldos del fondo.
+  const calls=await Promise.allSettled([
+    rpc('rf_domino_bot_admin_v18'),
+    rpc('rf_domino_get_lobby_v11'),
+    rpc('rf_domino_bot_config_v19'),
+    rpc('rf_domino_bot_health_status_v19')
+  ]);
+  let [fundResult,lobbyResult,configResult,healthResult]=calls;
+  let data=fundResult.status==='fulfilled'?fundResult.value:null;
+  let recovery=null;
+  if(!data){
+    try{recovery=await rpc('rf_domino_bot_fund_status_v191');}catch(_){/* Mostrar problema, no simular saldo 0 */}
+  }
+  const lobby=lobbyResult.status==='fulfilled'?lobbyResult.value:null;
+  const botsV19=configResult.status==='fulfilled'?configResult.value:null;
+  const health=healthResult.status==='fulfilled'?healthResult.value:null;
+  adminState={...(data||{}),lobby,botsV19,health};
+  q('mf19ServerHealth').textContent=health?.running?'🟢 Motor del servidor ACTIVO · último ciclo reciente':
+    health?'🟠 Motor no confirmado: revisa Supabase Cron':
+    '🔴 No se pudo consultar el estado del motor (SQL 1.9 pendiente o RPC falló)';
+  tableList=Array.isArray(lobby?.tables)?lobby.tables:[];
+  const fund=(data?.fund||recovery?.fund)||null;
+  if(fund){
+    const inPlay=Number(data?.in_play_balance??recovery?.in_play_balance??0);
+    q('mf18Balance').textContent=cash(fund.balance);
+    q('mf18InPlay').textContent=cash(inPlay);
+    q('mf18Total').textContent=cash(Number(fund.balance||0)+inPlay);
+  }else{
+    q('mf18Balance').textContent='No disponible';
+    q('mf18InPlay').textContent='—';q('mf18Total').textContent='—';
+  }
+  const received=String(data?.receive_public_id||recovery?.receive_public_id||fund?.wallet_public_id||'');
+  q('mf18ReceiveId').textContent=/^[0-9]{6}$/.test(received)?received:(fund?'ID pendiente de revisión':'No disponible');
+  if(data){
+    for(const tpl of data.templates||[]){const i=Number(tpl.slot);if(i<1||i>3)continue;
+      q('mf18Name'+i).value=tpl.display_name||'';
+      q('mf18Avatar'+i).value=tpl.avatar_url||'';
+      q('mf184Preview'+i).src=tpl.avatar_url||mf184EmptyPhoto;
+      q('mf18Level'+i).value=Number(tpl.difficulty??50);
+      q('mf18LevelLabel'+i).textContent=q('mf18Level'+i).value+'%';
+    }
+    const movements=q('mf18History');movements.replaceChildren();
+    if(!(data.history||[]).length)movements.textContent='Sin movimientos.';
+    for(const x of data.history||[]){const p=document.createElement('p');p.textContent=(Number(x.delta)>0?'+':'')+cash(x.delta)+' · '+x.movement_type+' · '+new Date(x.created_at).toLocaleString('es-DO');movements.append(p);}
+  }
+  buildTables();
+  const failed=calls.map((call,i)=>call.status==='rejected'?['Fondo','Mesas','Configuración BOTS','Motor'][i]:null).filter(Boolean);
+  if(!data&&!recovery)failed.push('Lectura de rescate del fondo');
+  if(failed.length)status('Carga parcial: no respondió '+failed.join(', ')+'. Los saldos y el ID NO se han borrado por este aviso.',true);
+  else status('Panel, ID del fondo y mesas actualizados desde Supabase.');
  }
  async function saveTemplate(i){
   if(!leader()||botsBusy)return;botsBusy=true;
@@ -8286,7 +8339,7 @@ function mfShowVerifiedTieWin(result,key,uid){
    status('Movimiento confirmado por Supabase. Saldo del fondo: '+cash(result.balance));window.mf19Toast?.('Transferencia confirmada por Supabase');await loadAdmin();
   }catch(e){status('Movimiento no confirmado: '+errText(e),true);}finally{botsBusy=false;}
  }
- q('mf18CopyId').addEventListener('click',()=>{const id=q('mf18ReceiveId').textContent.trim();if(!/^\d{6}$/.test(id)){status('Instala SQL 1.8.3 y actualiza este panel para obtener el ID.',true);return;}copy(id);});
+ q('mf18CopyId').addEventListener('click',()=>{const id=q('mf18ReceiveId').textContent.trim();if(!/^\d{6}$/.test(id)){status('El ID del fondo no está disponible en esta consulta; comprueba SQL 1.8.3 y la conexión.',true);return;}copy(id);});
  q('mf18Close').addEventListener('click',()=>hide('mfBots17Panel'));
  q('mf18Refresh').addEventListener('click',loadAdmin);
  overlay.querySelectorAll('[data-bot18-money]').forEach(b=>b.addEventListener('click',()=>moneyAction(b.dataset.bot18Money)));
