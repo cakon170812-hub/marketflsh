@@ -3987,7 +3987,12 @@ async function leaderTransferAction(kind){
   if(selectedLeaderTransferUser.public_id!==id)return msg('leaderTransferMsg','Vuelve a buscar y confirmar el ID del usuario.');
   if(!(amount>0))return msg('leaderTransferMsg','Monto inválido.');
   const fn=kind==='send'?'rf_leader_send_fc_v07':'rf_leader_request_fc';
-  const {data,error}=await sb.rpc(fn,{p_public_id:id,p_amount:amount});
+  let data,error;
+  if(kind==='send'&&selectedLeaderTransferUser.target_type==='bot_fund'){
+    try{data=await mf183SendToBots(id,amount,'leader');}catch(e){error=e;}
+  }else{
+    ({data,error}=await sb.rpc(fn,{p_public_id:id,p_amount:amount}));
+  }
   if(error)return msg('leaderTransferMsg',errText(error));
   if(kind==='send'){
     const receipt=Array.isArray(data)?data[0]:data;
@@ -4033,7 +4038,13 @@ async function adminWalletAction(kind){
   const id=$('adminWalletUserId').value.trim(),amount=Number($('adminWalletAmount').value);if(!(amount>0))return msg('adminWalletMsg','Monto inválido.');
   if(selectedAdminWalletUser.public_id!==id)return msg('adminWalletMsg','Vuelve a buscar y confirmar el ID.');
   const fn=kind==='send'?'rf_admin_wallet_send_fc':(kind==='request'?'rf_admin_wallet_request_fc':'rf_admin_wallet_withdraw_fc');
-  const {data,error}=await sb.rpc(fn,{p_public_id:id,p_amount:amount});if(error)return msg('adminWalletMsg',errText(error));
+  let data,error;
+  if(kind==='send'&&selectedAdminWalletUser.target_type==='bot_fund'){
+    try{data=await mf183SendToBots(id,amount,'admin_wallet');}catch(e){error=e;}
+  }else{
+    ({data,error}=await sb.rpc(fn,{p_public_id:id,p_amount:amount}));
+  }
+  if(error)return msg('adminWalletMsg',errText(error));
   await Promise.all([loadLeaderWallets(),loadAdminWalletHistory(),loadMe(),loadLedger()]);renderMe();
   $('adminWalletAmount').value='';
   msg('adminWalletMsg',kind==='send'?'Flash Coin enviadas desde la Cartera Administrativa.':(kind==='request'?'Solicitud enviada.':'Saldo retirado a la Cartera Administrativa.'));
@@ -4325,7 +4336,28 @@ window.respondReq=async(id,accept)=>{
 async function searchTransferTarget(id){
   const {data,error}=await sb.rpc('rf_search_transfer_target_v08',{p_public_id:id});
   if(error)throw error;
-  return oneRow(data);
+  const existing=oneRow(data);
+  if(existing)return existing;
+  // Cartera BOTS con ID propio: buscar solo cuando no exista cuenta ordinaria.
+  const {data:fund,error:fundError}=await sb.rpc('rf_domino_bot_lookup_v183',{p_public_id:id});
+  if(fundError)throw fundError;
+  return fund||null;
+}
+function mf183RequestId(){
+  if(typeof crypto==='undefined'||!crypto.randomUUID)throw Error('Se requiere HTTPS para enviar de forma segura.');
+  return crypto.randomUUID();
+}
+let mf183SendBusy=false;
+async function mf183SendToBots(id,amount,source){
+  if(mf183SendBusy)throw Error('Ya hay un envio al fondo en proceso. Espera la confirmacion.');
+  mf183SendBusy=true;
+  try{
+    const {data,error}=await sb.rpc('rf_domino_bot_deposit_v183',{
+     p_public_id:id,p_amount:amount,p_source:source,p_request_id:mf183RequestId()
+    });
+    if(error)throw error;
+    return data;
+  }finally{mf183SendBusy=false;}
 }
 function targetCardHTML(u,withOpen=false){
   if(!u)return '<div class="card">ID no encontrado.</div>';
@@ -4378,7 +4410,12 @@ $('promConfirmDoBtn').onclick=async()=>{
   try{
     if(me?.role!=='promoter')throw new Error('Ya no tienes permiso de promotor.');
     const fn=op.kind==='send'?'rf_promoter_send_fc_v08':'rf_promoter_request_fc_v08';
-    const {data,error}=await sb.rpc(fn,{p_public_id:op.public_id,p_amount:op.amount});
+    let data,error;
+    if(op.kind==='send'&&op.target_type==='bot_fund'){
+      try{data=await mf183SendToBots(op.public_id,op.amount,'promoter');}catch(e){error=e;}
+    }else{
+      ({data,error}=await sb.rpc(fn,{p_public_id:op.public_id,p_amount:op.amount}));
+    }
     if(error)throw error;
     const receipt=oneRow(data);
     pendingPromAction=null;msg('promConfirmMsg','');hide('promConfirmPanel');
@@ -4523,7 +4560,12 @@ async function adminWalletActionV10(kind){
   msg('adminWalletMsg',kind==='request'?'Enviando solicitud...':'Procesando movimiento...');
   try{
     if(kind==='send'){
-      const {data,error}=await sb.rpc('rf_admin_wallet_send_fc_v08',{p_public_id:id,p_amount:amount});
+      let data,error;
+      if(selectedAdminWalletUser.target_type==='bot_fund'){
+        try{data=await mf183SendToBots(id,amount,'admin_wallet');}catch(e){error=e;}
+      }else{
+        ({data,error}=await sb.rpc('rf_admin_wallet_send_fc_v08',{p_public_id:id,p_amount:amount}));
+      }
       if(error)throw error;
       await refreshAllWalletData();
       $('adminWalletAmount').value='';
@@ -7949,15 +7991,14 @@ function mfShowVerifiedTieWin(result,key,uid){
  const overlay=document.createElement('div');overlay.id='mfBots17Panel';overlay.className='overlay';
  overlay.innerHTML=`<div class="panel mf17-panel">
  <button type="button" class="close" id="mf18Close">✕</button>
- <h2>🤖 BOTS · Administración del dominó</h2>
+ <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · actualización ID 1.8.3</p>
  <p class="tiny">Tres modelos de jugadores automáticos por mesa seleccionada. Un único fondo compartido y cuentas independientes por asiento. En las mesas se identifican como automáticos.</p>
  <div class="mf17-grid">
   <div class="mf17-card">
    <b>💰 Fondo compartido</b><div id="mf18Balance">$0.00</div><div class="mf17-hint">En mesas: <strong id="mf18InPlay">$0.00</strong> · Total: <strong id="mf18Total">$0.00</strong></div>
    <label>ID único para recibir transferencias</label>
    <div class="mf17-row"><strong id="mf18ReceiveId">Sin vincular</strong><button type="button" id="mf18CopyId">Copiar ID</button></div>
-   <small class="mf17-hint">Vincula UNA cuenta receptora dedicada. Su ID de seis dígitos será el ID permanente del fondo; no corresponde al Robot 1.</small>
-   <div class="mf17-row"><input id="mf18ReceiverInput" inputmode="numeric" maxlength="6" placeholder="ID de cuenta receptora"><button type="button" id="mf18BindReceiver">Vincular ID</button></div>
+   <small class="mf17-hint">Este ID permanente se genera en Supabase y recibe transferencias directamente al fondo compartido. No requiere vincular una cuenta personal.</small>
    <label>Monto</label><input id="mf18Amount" type="number" min="0.001" step="0.001" value="1.00">
    <label>ID destinatario (solo Enviar)</label><input id="mf18SendTo" maxlength="6" inputmode="numeric" placeholder="ID de usuario">
    <div class="mf17-row"><button type="button" data-bot18-money="cargar">Recargar</button><button type="button" data-bot18-money="retirar">Retirar</button><button type="button" data-bot18-money="enviar">Enviar</button></div>
@@ -7968,7 +8009,7 @@ function mfShowVerifiedTieWin(result,key,uid){
    <p class="mf17-hint">Los nombres, fotografías y dificultad de Robot 1/2/3 se comparten en todas las mesas. La dificultad controla estrategia: no garantiza victorias ni pérdidas.</p>
    <div id="mf18Templates"></div>
    <hr><b>Autorizar cuentas dedicadas</b>
-   <p class="mf17-hint">Registra una cuenta receptora y tres cuentas por cada mesa donde quieras 3 robots simultáneos. Inicia sesión en cada cuenta y autorízala desde el siguiente enlace. No uses tu cuenta administrativa.</p>
+   <p class="mf17-hint">Registra tres cuentas por cada mesa donde quieras 3 robots simultáneos. Inicia sesión en cada cuenta y autorízala desde el siguiente enlace. No uses tu cuenta administrativa.</p>
    <button type="button" id="mf18CopySetup">Copiar enlace de autorización</button>
   </div>
  </div>
@@ -8046,7 +8087,7 @@ function mfShowVerifiedTieWin(result,key,uid){
    q('mf18InPlay').textContent=cash(data.in_play_balance);
    q('mf18Total').textContent=cash(Number(data?.fund?.balance||0)+Number(data.in_play_balance||0));
    q('mf18ReceiveId').textContent=data.receive_public_id||'Sin vincular';
-   q('mf18ReceiverInput').value=data.receive_public_id||'';
+   // El ID del fondo se asigna en Supabase; no necesita vinculacion manual.
    for(const tpl of data.templates||[]){const i=Number(tpl.slot);if(i<1||i>3)continue;
     q('mf18Name'+i).value=tpl.display_name||'';
     q('mf18Avatar'+i).value=tpl.avatar_url||'';
@@ -8083,15 +8124,7 @@ function mfShowVerifiedTieWin(result,key,uid){
    status('Movimiento confirmado por Supabase. Saldo del fondo: '+cash(result.balance));await loadAdmin();
   }catch(e){status('Movimiento no confirmado: '+errText(e),true);}finally{botsBusy=false;}
  }
- q('mf18CopyId').addEventListener('click',()=>copy(q('mf18ReceiveId').textContent));
- q('mf18BindReceiver').addEventListener('click',async()=>{
-  if(!leader()||botsBusy)return;
-  const id=q('mf18ReceiverInput').value.trim();
-  if(!/^\d{6}$/.test(id)){status('Ingresa un ID receptor de seis cifras.',true);return;}
-  botsBusy=true;
-  try{await rpc('rf_domino_bot_receiver_v18',{p_public_id:id});status('ID del fondo vinculado.');await loadAdmin();}
-  catch(e){status('No se pudo vincular: '+errText(e),true);}finally{botsBusy=false;}
- });
+ q('mf18CopyId').addEventListener('click',()=>{const id=q('mf18ReceiveId').textContent.trim();if(!/^\d{6}$/.test(id)){status('Instala SQL 1.8.3 y actualiza este panel para obtener el ID.',true);return;}copy(id);});
  q('mf18CopySetup').addEventListener('click',async()=>{
   const u=new URL(location.href);u.search='?bot_setup=1';u.hash='';
   try{await navigator.clipboard.writeText(u.toString());status('Enlace de autorización copiado.');}catch(e){prompt('Copia el enlace:',u.toString());}
