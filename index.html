@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<!-- MAIKET FLASH 1.6 · DOMINÓ / RULETA · CAMBIOS ADITIVOS -->
+<!-- MAIKET FLASH 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html lang="es" data-app-build="1.6">
+<html lang="es" data-app-build="1.6.1">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="application-version" content="1.6">
+<meta name="application-version" content="1.6.1">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest?v=0.1-stable-4">
-<title>MAIKET FLASH — 1.6 · Dominó, Ruleta y Póker en desarrollo</title>
+<title>MAIKET FLASH — 1.6.1 · Dominó, Ruleta y Póker en desarrollo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -2217,6 +2217,13 @@ html[data-app-mode="standalone"] #mfInstallHint{display:none!important}
 @media(max-width:900px){body.mf-keyboard-open input:focus,body.mf-keyboard-open textarea:focus,body.mf-keyboard-open select:focus{font-size:16px!important}}
 </style>
 
+<style id="mfUpdate161CSS">
+#mfUpdateToast .mf-update-confirm{
+  display:inline-block;margin:7px 0 0 10px;padding:7px 12px;
+  border:1px solid #ffda75;border-radius:9px;
+  background:#23210f;color:#fff3bf;font-size:12px;font-weight:850;
+}
+</style>
 </head>
 <body>
 
@@ -5956,49 +5963,68 @@ buildWheel();
 <!-- HTML 1.2.3: Botón Juegos blindado: ID del lobby correcto + listener de seguridad independiente + apertura inmediata antes de consultar Supabase. -->
 
 <script id="mfBuildSync">
+/* Versión 1.6.1: detector de versiones sin recargas automáticas.
+   Nunca reiniciar una partida ni romper una jugada por una actualización. */
 (function(){
-  const CURRENT_BUILD='0.1';
-  let checking=false,noticeShown=false,lastReloadTarget='';
-
+  // Una sola versión oficial, leída del documento abierto (evita 0.1 vs 1.6).
+  const CURRENT_BUILD=document.documentElement.getAttribute('data-app-build')||'1.6.1';
+  let checking=false;
+  const PENDING_KEY='mf_pending_build';
+  const noticeId='mfUpdateToast';
   function parseVersion(v){
     const m=String(v||'').trim().match(/^(\d+)\.(\d+)(?:\.(\d+))?$/);
-    return m ? [Number(m[1]),Number(m[2]),Number(m[3]||0)] : null;
+    return m?[Number(m[1]),Number(m[2]),Number(m[3]||0)]:null;
   }
   function compareVersions(a,b){
     const A=parseVersion(a),B=parseVersion(b);
     if(!A||!B)return 0;
     for(let i=0;i<3;i++){
-      if(A[i]>B[i])return 1;
-      if(A[i]<B[i])return -1;
+      if(A[i]!==B[i])return A[i]>B[i]?1:-1;
     }
     return 0;
   }
-  function showUpdateNotice(latest){
-    if(noticeShown)return;
-    noticeShown=true;
-    const box=document.createElement('div');
-    box.className='mf-update-toast';
-    box.id='mfUpdateToast';
-    box.innerHTML='Nueva versión disponible ('+latest+'). Se actualizará al salir de la mesa.';
-    document.body.appendChild(box);
+  function inDominoGame(){
+    return typeof dominoCurrentTableId!=='undefined'&&!!dominoCurrentTableId;
   }
   function clearBadPending(){
     try{
-      const pending=localStorage.getItem('mf_pending_build');
-      if(pending && compareVersions(pending,CURRENT_BUILD)<=0){
-        localStorage.removeItem('mf_pending_build');
-      }
-    }catch(e){}
+      const pending=localStorage.getItem(PENDING_KEY);
+      if(pending&&compareVersions(pending,CURRENT_BUILD)<=0)localStorage.removeItem(PENDING_KEY);
+    }catch(_){}
   }
-  function goToNewerBuild(latest){
-    if(compareVersions(latest,CURRENT_BUILD)<=0)return;
-    if(lastReloadTarget===latest)return;
-    lastReloadTarget=latest;
-    const next=new URL(location.href);
-    next.searchParams.delete('__mf_check');
-    next.searchParams.set('v',latest);
-    next.searchParams.set('_refresh',Date.now().toString());
-    location.replace(next.toString());
+  function showUpdateNotice(latest){
+    if(!parseVersion(latest)||compareVersions(latest,CURRENT_BUILD)<=0)return;
+    let box=document.getElementById(noticeId);
+    if(!box){
+      box=document.createElement('div');
+      box.id=noticeId;
+      box.className='mf-update-toast';
+      const note=document.createElement('span');
+      note.className='mf-update-message';
+      const button=document.createElement('button');
+      button.type='button';
+      button.className='mf-update-confirm';
+      button.textContent='Actualizar';
+      box.append(note,button);
+      document.body.appendChild(box);
+    }
+    box.querySelector('.mf-update-message').textContent=
+      'Nueva versión disponible ('+latest+'). Tu partida NO se interrumpirá. ';
+    const btn=box.querySelector('.mf-update-confirm');
+    btn.onclick=()=>{
+      if(inDominoGame()){
+        box.querySelector('.mf-update-message').textContent=
+          'Termina o sal de tu mesa antes de actualizar. Tu partida está protegida. ';
+        return;
+      }
+      try{localStorage.removeItem(PENDING_KEY)}catch(_){}
+      const next=new URL(location.href);
+      next.searchParams.delete('__mf_check');
+      next.searchParams.set('v',latest);
+      next.searchParams.set('_refresh',Date.now().toString());
+      // SOLO un toque real en el botón autoriza cambiar de versión.
+      location.replace(next.toString());
+    };
   }
   async function checkBuild(){
     if(checking)return;
@@ -6008,52 +6034,41 @@ buildWheel();
       url.searchParams.delete('v');
       url.searchParams.delete('_refresh');
       url.searchParams.set('__mf_check',Date.now().toString());
-      const r=await fetch(url.toString(),{
+      const result=await fetch(url.toString(),{
         cache:'no-store',
         headers:{'Cache-Control':'no-cache, no-store, must-revalidate','Pragma':'no-cache'}
       });
-      if(!r.ok)return;
-      const text=await r.text();
-      const m=text.match(/data-app-build=["']([^"']+)["']/i);
-      const latest=m&&m[1];
-      if(!latest)return;
-
+      if(!result.ok)return;
+      const text=await result.text();
+      const match=text.match(/data-app-build=["']([^"']+)["']/i);
+      const latest=match?.[1];
+      if(!parseVersion(latest))return;
       if(compareVersions(latest,CURRENT_BUILD)<=0){
         clearBadPending();
         return;
       }
-
-      const inDomino=(typeof dominoCurrentTableId!=='undefined'&&!!dominoCurrentTableId);
-      if(inDomino){
-        localStorage.setItem('mf_pending_build',latest);
-        showUpdateNotice(latest);
-        return;
-      }
-      goToNewerBuild(latest);
+      try{localStorage.setItem(PENDING_KEY,latest)}catch(_){}
+      showUpdateNotice(latest);
     }catch(e){
+      // Sin internet no se reinicia ni se interrumpe el juego.
     }finally{
       checking=false;
     }
   }
   function applyPendingBuild(){
     try{
-      const pending=localStorage.getItem('mf_pending_build');
-      if(!pending)return;
-      const inDomino=(typeof dominoCurrentTableId!=='undefined'&&!!dominoCurrentTableId);
-      if(compareVersions(pending,CURRENT_BUILD)>0 && !inDomino){
-        localStorage.removeItem('mf_pending_build');
-        goToNewerBuild(pending);
-      }else if(compareVersions(pending,CURRENT_BUILD)<=0){
-        localStorage.removeItem('mf_pending_build');
-      }
-    }catch(e){}
+      const pending=localStorage.getItem(PENDING_KEY);
+      if(compareVersions(pending,CURRENT_BUILD)>0)showUpdateNotice(pending);
+      else clearBadPending();
+    }catch(_){}
   }
-
   clearBadPending();
   window.mfCheckBuild=checkBuild;
   window.addEventListener('focus',checkBuild);
   window.addEventListener('online',checkBuild);
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkBuild();});
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible')checkBuild();
+  });
   setTimeout(applyPendingBuild,300);
   setTimeout(checkBuild,1200);
   setInterval(checkBuild,15000);
