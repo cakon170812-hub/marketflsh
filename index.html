@@ -1,3 +1,5 @@
+<!-- MAIKET FLASH 1.9.8 · Ajuste de sincronizacion de asiento + servidor SQL 1.9.8.
+     La lógica de premios, saldos y partidas original se conserva. -->
 <!DOCTYPE html>
 <!-- MAIKET FLASH 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
@@ -5781,6 +5783,24 @@ async function loadDominoState(force,skipTick=false){
         });
       }
     }catch(e){}
+  }
+
+  // 1.9.8: si una compactación anterior movió al usuario, también seguirlo
+  // cuando la lectura vieja responde sin error pero ya no lo muestra sentado.
+  if(!stateResult.error && !window.dominoSpectatorMode &&
+     stateResult.data?.me && Array.isArray(stateResult.data?.seats) &&
+     !stateResult.data.seats.some(s=>String(s.user_id)===String(stateResult.data.me))){
+    try{
+      const lobby=await sb.rpc('rf_domino_get_lobby_v11');
+      const actual=Number(lobby.data?.my_table||0);
+      if(!lobby.error && actual && actual!==Number(dominoCurrentTableId)){
+        dominoLobbyData=lobby.data||dominoLobbyData;
+        dominoCurrentTableId=actual;dominoResetTableEffects();
+        await dominoStartRealtime();
+        stateResult=await sb.rpc('rf_domino_get_state_v160',{p_table_id:actual});
+        dominoSetSyncState('Asiento sincronizado con la mesa correcta','ok');
+      }
+    }catch(e){console.warn('Sincronizar asiento Dominó:',e)}
   }
 
   if(stateResult.error){
