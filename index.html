@@ -1,24 +1,25 @@
-<!-- MAIKET FLASH 1.9.10 · Asientos reservados antes de cada mano + rapidez real.
+<!-- Domino Flash Coin · HTML 0.01 · Nueva versión oficial -->
+<!-- Domino Flash Coin 1.9.10 · Asientos reservados antes de cada mano + rapidez real.
      La lógica de premios, saldos y partidas original se conserva. -->
 <!DOCTYPE html>
-<!-- MAIKET FLASH 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
+<!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html lang="es" data-app-build="1.9.9">
+<html lang="es" data-app-build="0.01">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="application-version" content="1.9.9">
+<meta name="application-version" content="0.01">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
+<meta name="apple-mobile-web-app-title" content="Domino Flash Coin">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.webmanifest?v=0.1-stable-4">
-<title>MAIKET FLASH — 1.9.10 · Dominó, Ruleta y Póker en desarrollo</title>
+<link rel="manifest" href="manifest.webmanifest?v=0.01">
+<title>Domino Flash Coin — 0.01</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -2247,8 +2248,8 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 
 <section id="authView" class="auth">
   <div class="auth-card">
-    <div class="brand">⚡ RULETA FLASH COIN</div>
-    <div class="sub">HTML actualizado · Supabase conectado</div>
+    <div class="brand">⚡ Domino Flash Coin</div>
+    <div class="sub">Dominó y ruleta · entretenimiento con créditos virtuales gratuitos</div>
     <div class="tabs"><button id="tabRegister" class="tab active">Registrarse</button><button id="tabLogin" class="tab">Iniciar sesión</button></div>
     <form id="registerForm">
       <input id="regFirst" class="field" placeholder="Nombre" autocomplete="given-name" required>
@@ -2256,21 +2257,24 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
       <input id="regEmail" class="field" type="email" placeholder="Correo" autocomplete="email" required>
       <input id="regPass" class="field" type="password" placeholder="Contraseña" minlength="6" required>
       <input id="regPass2" class="field" type="password" placeholder="Confirmar contraseña" minlength="6" autocomplete="new-password" required>
-      <label class="save-login"><input id="regSavePassword" type="checkbox"><span>Guardar contraseña en este dispositivo</span></label>
+      <label class="save-login"><input id="regSavePassword" type="checkbox"><span>Guardar acceso con el gestor del navegador</span></label>
+      <div class="dfc-privacy-note">Usamos tu nombre y correo para tu cuenta. Tu nombre, ID público y foto elegida son visibles en las funciones sociales. La sesión se guarda en este dispositivo. Flash Coin son créditos gratuitos de entretenimiento, sin valor monetario.</div>
+      <label class="save-login"><input id="regPrivacyRead" type="checkbox" required><span>He leído la <a data-dfc-privacy href="https://cakon170812-hub.github.io/marketflsh/privacidad.html" target="_blank" rel="noopener noreferrer">política de privacidad</a> y confirmo que tengo 18 años o más.</span></label>
       <button class="primary" type="submit">CREAR CUENTA</button>
     </form>
     <form id="loginForm" class="hidden">
       <input id="loginEmail" class="field" type="email" placeholder="Correo" autocomplete="email" required>
       <input id="loginPass" class="field" type="password" placeholder="Contraseña" autocomplete="current-password" required>
-      <label class="save-login"><input id="loginSavePassword" type="checkbox"><span>Guardar contraseña en este dispositivo</span></label>
+      <label class="save-login"><input id="loginSavePassword" type="checkbox"><span>Guardar acceso con el gestor del navegador</span></label>
       <button class="primary" type="submit">INICIAR SESIÓN</button>
       <button id="forgotPasswordBtn" class="auth-link" type="button">¿Olvidaste tu contraseña?</button>
     </form>
     <div id="authMsg" class="msg"></div>
+    <div class="dfc-privacy-links"><a data-dfc-privacy href="https://cakon170812-hub.github.io/marketflsh/privacidad.html" target="_blank" rel="noopener noreferrer">Privacidad y eliminación de cuenta</a><a data-dfc-support href="mailto:julioangel170812@gmail.com">Soporte</a></div>
   </div>
 </section>
 
-<div id="emailConfirmPanel" class="overlay"><div class="panel email-confirm-card"><h2>📧 Confirma tu correo</h2><div class="mail-icon">✉️</div><p class="tiny">Te enviamos un enlace de confirmación a:</p><strong id="emailConfirmAddress">—</strong><p class="tiny" style="margin-top:12px">Abre el mensaje y toca <b>Confirmar correo</b>. Al confirmarlo, regresarás automáticamente a MAIKET FLASH y entrarás a la pantalla principal con esta misma cuenta.</p><button id="emailConfirmResendBtn" type="button" class="action blue">Reenviar correo de confirmación</button><button id="emailConfirmLoginBtn" type="button" class="action dark">Volver a iniciar sesión</button><div id="emailConfirmMsg" class="msg"></div></div></div>
+<div id="emailConfirmPanel" class="overlay"><div class="panel email-confirm-card"><h2>📧 Confirma tu correo</h2><div class="mail-icon">✉️</div><p class="tiny">Te enviamos un enlace de confirmación a:</p><strong id="emailConfirmAddress">—</strong><p class="tiny" style="margin-top:12px">Abre el mensaje y toca <b>Confirmar correo</b>. Al confirmarlo, regresarás automáticamente a Domino Flash Coin y entrarás a la pantalla principal con esta misma cuenta.</p><button id="emailConfirmResendBtn" type="button" class="action blue">Reenviar correo de confirmación</button><button id="emailConfirmLoginBtn" type="button" class="action dark">Volver a iniciar sesión</button><div id="emailConfirmMsg" class="msg"></div></div></div>
 
 <main id="appView" class="bg hidden">
   <div class="topbar">
@@ -2416,13 +2420,13 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 
 <div id="dominoExitConfirmPanel" class="overlay"><div class="panel domino-exit-choice-panel"><button id="dominoExitCancelBtn" type="button" class="close">✕</button><h2>¿Cómo quieres salir?</h2><div class="domino-exit-choice"><button id="dominoExitTemporaryBtn" type="button" class="action blue">↩ SALIR UN MOMENTO</button><div class="tiny">Regresas a las mesas sin abandonar tu lugar. Puedes tocar <b>VOLVER A MI MESA</b> y continuar si la mano sigue activa. Si llega tu turno mientras estás fuera, el sistema respetará el tiempo del turno y actuará al vencer.</div></div><div class="domino-exit-choice danger"><button id="dominoExitAbandonBtn" type="button" class="action red">🚪 ABANDONAR MESA</button><div class="tiny">Libera tu asiento de forma definitiva. Si la mano ya comenzó, el servidor termina automáticamente las acciones pendientes de esa mano.</div></div></div></div>
 
-<div id="gameDevelopmentPanel" class="overlay"><div class="panel"><button class="close" data-close="gameDevelopmentPanel">✕</button><div class="game-dev-message"><div id="gameDevelopmentIcon" class="big">🎮</div><h3 id="gameDevelopmentTitle">Juego</h3><p>Este juego está en desarrollo. Muy pronto estará disponible dentro de MAIKET FLASH.</p></div></div></div>
+<div id="gameDevelopmentPanel" class="overlay"><div class="panel"><button class="close" data-close="gameDevelopmentPanel">✕</button><div class="game-dev-message"><div id="gameDevelopmentIcon" class="big">🎮</div><h3 id="gameDevelopmentTitle">Juego</h3><p>Este juego está en desarrollo. Muy pronto estará disponible dentro de Domino Flash Coin.</p></div></div></div>
 
 <div id="balancePanel" class="overlay"><div class="panel"><button class="close" data-close="balancePanel">✕</button><h2>💰 Flash Coin</h2><div class="card"><span class="tiny">Saldo disponible</span><strong style="font-size:28px" id="balancePanelValue" class="fc-balance">0.000 FC</strong><span class="tiny">Tu ID: <b id="balancePublicId"></b><button id="copyBalanceIdBtn" type="button" class="copy-btn">Copiar</button></span></div><h3>Solicitudes</h3><div id="requestsList"></div><h3>Historial</h3><div id="ledgerList"></div></div></div>
 
 <div id="onlineUsersPanel" class="overlay"><div class="panel"><button class="close" data-close="onlineUsersPanel">✕</button><h2>🟢 Usuarios en línea</h2><div id="onlineUsersRound" class="online-round-note">Cargando última ronda...</div><div id="onlineUsersList"></div></div></div>
 
-<div id="settingsPanel" class="overlay"><div class="panel"><button class="close" data-close="settingsPanel">✕</button><h2>⚙️ Configuración</h2><button id="editProfileBtn" class="action blue">Editar perfil</button><button id="inviteSettingsBtn" class="action dark">🔗 Invitar usuarios</button><div id="referralSummary" class="ref-card"><b>Referidos</b><div class="tiny">Invita usuarios con tu enlace · sin bonificaciones automáticas</div><div class="ref-stats"><div><b id="refInvited">0</b><span class="tiny">Invitados</span></div><div><b id="refPlayed">0</b><span class="tiny">Jugaron</span></div><div><b id="refEarned">0.000</b><span class="tiny">FC ganadas</span></div></div></div><button id="appInformationBtn" type="button" class="action dark" style="font-size:13px;padding:9px 12px">ⓘ Información de la aplicación</button><button id="leaderBtn" class="action hidden">👑 Administrador Líder</button><button id="logoutBtn" class="action red">Cerrar sesión</button></div></div>
+<div id="settingsPanel" class="overlay"><div class="panel"><button class="close" data-close="settingsPanel">✕</button><h2>⚙️ Configuración</h2><button id="editProfileBtn" class="action blue">Editar perfil</button><button id="inviteSettingsBtn" class="action dark">🔗 Invitar usuarios</button><div id="referralSummary" class="ref-card"><b>Referidos</b><div class="tiny">Invita usuarios con tu enlace · sin bonificaciones automáticas</div><div class="ref-stats"><div><b id="refInvited">0</b><span class="tiny">Invitados</span></div><div><b id="refPlayed">0</b><span class="tiny">Jugaron</span></div><div><b id="refEarned">0.000</b><span class="tiny">FC ganadas</span></div></div></div><button id="appInformationBtn" type="button" class="action dark" style="font-size:13px;padding:9px 12px">ⓘ Información de la aplicación</button><button id="leaderBtn" class="action hidden">👑 Administrador Líder</button><button id="dfcPrivacyBtn" type="button" class="action dark">Privacidad y soporte</button><button id="dfcDeletionAdminBtn" type="button" class="action dark hidden">Solicitudes de eliminación de cuentas</button><button id="logoutBtn" class="action red">Cerrar sesión</button></div></div>
 
 <div id="editProfilePanel" class="overlay"><div class="panel"><button class="close" data-close="editProfilePanel">✕</button><h2>Editar perfil</h2><input id="editFirst" class="field" placeholder="Nombre"><input id="editLast" class="field" placeholder="Apellido"><button id="saveProfileBtn" class="action green">Guardar</button><div id="profileMsg" class="msg"></div></div></div>
 
@@ -2624,7 +2628,7 @@ function authErrorText(e){
   const t=errText(e);
   if(/invalid login credentials/i.test(t))return 'Correo o contraseña incorrectos. Si olvidaste la contraseña, usa “¿Olvidaste tu contraseña?”.';
   if(/user already registered/i.test(t))return 'Ese correo ya tiene una cuenta. Usa Iniciar sesión o recupera tu contraseña.';
-  if(/email not confirmed|email.*confirm/i.test(t))return 'Primero confirma tu correo desde el mensaje que te envió MAIKET FLASH.';
+  if(/email not confirmed|email.*confirm/i.test(t))return 'Primero confirma tu correo desde el mensaje que te envió Domino Flash Coin.';
   return t;
 }
 function mfCash(value){
@@ -2734,7 +2738,7 @@ function showEmailConfirmationPending(email){
   show('emailConfirmPanel');
 }
 function recoveryReturnUrl(){return appReturnUrl('password_recovery');}
-async function rememberCredential(email,password,checked,name='MAIKET FLASH'){
+async function rememberCredential(email,password,checked,name='Domino Flash Coin'){
   localStorage.setItem(SAVE_LOGIN_KEY,checked?'1':'0');
   if(checked)localStorage.setItem(SAVED_EMAIL_KEY,email);else localStorage.removeItem(SAVED_EMAIL_KEY);
   if(!checked||!('credentials' in navigator)||!window.PasswordCredential)return;
@@ -2761,13 +2765,14 @@ $('tabLogin').onclick=()=>setAuthMode('login');
 
 $('registerForm').addEventListener('submit',async e=>{
   e.preventDefault();
+  if(!$('regPrivacyRead').checked)return msg('authMsg','Lee la política de privacidad y confirma que tienes 18 años o más.');
   msg('authMsg','Creando cuenta y preparando confirmación...');
   const first=$('regFirst').value.trim(),last=$('regLast').value.trim(),email=normalizeEmail($('regEmail').value),pass=$('regPass').value,pass2=$('regPass2').value;
   if(!first||!last)return msg('authMsg','Escribe nombre y apellido.');
   if(!email)return msg('authMsg','Escribe un correo válido.');
   if(pass!==pass2)return msg('authMsg','Las contraseñas no coinciden.');
   const referrer=(localStorage.getItem(REF_KEY)||'').trim();
-  const metadata={first_name:first,last_name:last};
+  const metadata={first_name:first,last_name:last,privacy_policy_read_version:'2026-10-10',adult_confirmation:true};
   if(/^\d{6}$/.test(referrer))metadata.referrer_public_id=referrer;
   const {data,error}=await sb.auth.signUp({
     email,
@@ -2775,7 +2780,7 @@ $('registerForm').addEventListener('submit',async e=>{
     options:{data:metadata,emailRedirectTo:emailConfirmationReturnUrl()}
   });
   if(error)return msg('authMsg',authErrorText(error));
-  await rememberCredential(email,pass,$('regSavePassword').checked,`${first} ${last}`.trim()||'MAIKET FLASH');
+  await rememberCredential(email,pass,$('regSavePassword').checked,`${first} ${last}`.trim()||'Domino Flash Coin');
   localStorage.removeItem(AWAY_KEY);
   localStorage.removeItem(REF_KEY);
   if(data?.session){
@@ -3044,7 +3049,7 @@ function showReceipt(title,r){
     <article class="premium-receipt" aria-label="Comprobante interno Flash Coin">
       <header class="receipt-head">
         <div class="receipt-brand">⚡ FLASH COIN</div>
-        <div class="receipt-subbrand">COMPROBANTE INTERNO · CASINO ONLINE</div>
+        <div class="receipt-subbrand">COMPROBANTE INTERNO · CRÉDITOS VIRTUALES</div>
         <div class="receipt-check">✓</div>
         <div class="receipt-success">Transferencia exitosa</div>
         <div class="receipt-kicker">La operación fue procesada correctamente</div>
@@ -3907,7 +3912,7 @@ async function processTransferQueue(){
       const senderName=n.sender_name||n.promoter_name||senderLabel;
       const senderPublicId=n.sender_public_id||n.promoter_public_id||'—';
       const senderWhatsapp=n.sender_whatsapp||n.promoter_whatsapp||'No configurado';
-      $('incomingTransferContent').innerHTML=`<div class="transfer-confirm-card"><div class="receipt-coin"><span class="fc-coin"></span></div><h3>Transferencia confirmada</h3><div class="tiny" style="text-align:center">El dinero ya entró a tu saldo Flash Coin</div><div class="transfer-amount">+${money(n.amount)} FC</div><div class="transfer-line"><span>Origen</span><b>${esc(senderLabel)}</b></div><div class="transfer-line"><span>Nombre</span><b>${esc(senderName)}</b></div><div class="transfer-line"><span>ID origen</span><b>${esc(senderPublicId)}</b></div>${senderRole==='admin_wallet'?'':`<div class="transfer-line"><span>WhatsApp</span><b>${esc(senderWhatsapp)}</b></div>`}<div class="transfer-line"><span>Comprobante</span><b>FC${String(n.receipt_id||'').padStart(10,'0')}</b></div><div class="transfer-line"><span>Fecha</span><b>${esc(dt.toLocaleDateString('es-DO'))} ${esc(dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}))}</b></div><div class="transfer-line"><span>Saldo resultante</span><b>${money(n.balance_after)} FC</b></div></div>`;
+      $('incomingTransferContent').innerHTML=`<div class="transfer-confirm-card"><div class="receipt-coin"><span class="fc-coin"></span></div><h3>Transferencia confirmada</h3><div class="tiny" style="text-align:center">Los créditos virtuales ya entraron a tu saldo Flash Coin</div><div class="transfer-amount">+${money(n.amount)} FC</div><div class="transfer-line"><span>Origen</span><b>${esc(senderLabel)}</b></div><div class="transfer-line"><span>Nombre</span><b>${esc(senderName)}</b></div><div class="transfer-line"><span>ID origen</span><b>${esc(senderPublicId)}</b></div>${senderRole==='admin_wallet'?'':`<div class="transfer-line"><span>WhatsApp</span><b>${esc(senderWhatsapp)}</b></div>`}<div class="transfer-line"><span>Comprobante</span><b>FC${String(n.receipt_id||'').padStart(10,'0')}</b></div><div class="transfer-line"><span>Fecha</span><b>${esc(dt.toLocaleDateString('es-DO'))} ${esc(dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'}))}</b></div><div class="transfer-line"><span>Saldo resultante</span><b>${money(n.balance_after)} FC</b></div></div>`;
       show('incomingTransferPanel');
       playBalanceCreditSound(700);animateCoinsToBalance();
       await animateBalanceIncrease(startBalance,targetBalance,1350);
@@ -4228,7 +4233,7 @@ showReceipt=function(title,r){
     <article class="premium-receipt" aria-label="Comprobante interno Flash Coin">
       <header class="receipt-head">
         <div class="receipt-brand">FLASH COIN</div>
-        <div class="receipt-subbrand">COMPROBANTE INTERNO · CASINO ONLINE</div>
+        <div class="receipt-subbrand">COMPROBANTE INTERNO · CRÉDITOS VIRTUALES</div>
         <div class="receipt-coin"><span class="fc-coin"></span></div>
         <div class="receipt-success">Transferencia exitosa</div>
         <div class="receipt-kicker">La operación fue procesada correctamente</div>
@@ -5181,6 +5186,7 @@ async function uploadDominoAvatar(file){
   if(!file||!me?.id)return;
   if(!String(file.type||'').startsWith('image/'))return alert('Selecciona una imagen válida.');
   if(file.size>5*1024*1024)return alert('La foto debe pesar menos de 5 MB.');
+  if(!confirm('La foto que seleccionaste se subirá a tu perfil de Domino Flash Coin y será visible para otros usuarios en las mesas. ¿Quieres continuar?'))return;
   const ext=(file.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,5)||'jpg';
   const path=`${me.id}/avatar.${ext}`;
   dominoShowToast('Subiendo foto…');
@@ -6045,7 +6051,7 @@ buildWheel();
     }
   });
 })().catch(e=>{
-  console.error('Inicio MAIKET FLASH:',e);
+  console.error('Inicio Domino Flash Coin:',e);
   try{
     $('appView')?.classList.add('hidden');
     $('authView')?.classList.remove('hidden');
@@ -6065,7 +6071,7 @@ buildWheel();
   // Una sola versión oficial, leída del documento abierto (evita 0.1 vs 1.6).
   const CURRENT_BUILD=document.documentElement.getAttribute('data-app-build')||'1.6.1';
   let checking=false;
-  const PENDING_KEY='mf_pending_build';
+  const PENDING_KEY='dfc_pending_build_001';
   const noticeId='mfUpdateToast';
   function parseVersion(v){
     const m=String(v||'').trim().match(/^(\d+)\.(\d+)(?:\.(\d+))?$/);
@@ -6261,7 +6267,7 @@ buildWheel();
   },{capture:false,passive:true,once:true});
 
   if('serviceWorker' in navigator && location.protocol==='https:'){
-    navigator.serviceWorker.register('./sw.js?v=1.5-domino-capicua',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
+    navigator.serviceWorker.register('./sw.js?v=0.01',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
   }
 
   // Impide arrastrar la página completa; los paneles internos conservan su propio scroll.
@@ -7387,7 +7393,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
         const t=(dominoLobbyData?.tables||[]).find(x=>Number(x.id)===Number(dominoCurrentTableId));
         const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(t?.config_id))||dominoState?.config;
         if(!c)return window.mf19Toast?.('No se pudo identificar la modalidad de esta mesa','error');
-        if(mainBalance()+0.000001<Number(c.min_entry||0))return window.mf19Toast?.('Saldo insuficiente: recarga hasta '+dominoMoney(c.min_entry)+' FC para sentarte.','error');
+        if(noMainBalance()||mainBalance()+0.000001<Number(c.min_entry||0))return window.mf19Toast?.('Saldo insuficiente: recarga hasta '+dominoMoney(c.min_entry)+' FC para sentarte.','error');
         // Abrimos el mismo selector de fichas, PERO la confirmación posterior
         // usa el ID exacto del espectador y no el emparejamiento automático.
         originalOpenBuyin(Number(c.id));
@@ -7409,10 +7415,10 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     const sit=document.getElementById('mf110SpectatorSit');
     const config=(dominoLobbyData?.configs||[]).find(c=>Number(c.id)===Number(t?.config_id))||dominoState?.config;
     if(sit){const min=Number(config?.min_entry||0);
-      const enough=!!config&&mainBalance()+0.000001>=min;
+      const enough=!!config&&!noMainBalance()&&mainBalance()+0.000001>=min;
       sit.disabled=!enough;
-      sit.textContent=!config?'Consultando…':enough?'🁫 SENTARME · CONFIRMAR':'Recarga '+dominoMoney(min)+' FC';
-      sit.title=enough?'Escoge tus fichas y confirma entrada a esta mesa':'Cuando recargues podrás sentarte sin salir';
+      sit.textContent=!config?'Consultando…':enough?'🁫 SENTARME · CONFIRMAR':'👁️ MIRAR ES GRATIS';
+      sit.title=enough?'Escoge tus fichas y confirma entrada a esta mesa':'Mirar es gratis. Para jugar necesitas saldo suficiente.';
     }
     const can=spectatorTables.length>1;if(prev)prev.disabled=!can;if(next)next.disabled=!can;
   }
@@ -7532,7 +7538,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     const configs=(dominoLobbyData?.configs||[]),tables=dominoLobbyData?.tables||[],myTable=dominoLobbyData?.my_table,myState=dominoLobbyData?.my_state;
     host.innerHTML=configs.map((c,idx)=>{
       const minimum=Number(c.min_entry||0);
-      const insufficientBalance=!myTable && mainBalance()+0.0000001<minimum;
+      const insufficientBalance=!myTable && (noMainBalance() || mainBalance()+0.0000001<minimum);
       const tt=tables.filter(t=>Number(t.config_id)===Number(c.id));
       const players=tt.reduce((a,t)=>a+Number(t.players||0),0);
       const active=tt.filter(t=>['playing','shuffling'].includes(String(t.hand_status||''))&&Number(t.players||0)>0);
@@ -7583,7 +7589,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
   },true);
 
   const originalOpenBuyin=window.openDominoBuyin;
-  if(typeof originalOpenBuyin==='function')window.openDominoBuyin=function(configId){const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(configId));const ts=(dominoLobbyData?.tables||[]).filter(t=>Number(t.config_id)===Number(configId));const full=ts.length>0&&ts.every(t=>Number(t.players||0)>=4);if(!dominoLobbyData?.my_table && c && (mainBalance()+0.0000001<Number(c.min_entry||0)||full))return enterSpectatorForConfig(configId);return originalOpenBuyin(configId)};
+  if(typeof originalOpenBuyin==='function')window.openDominoBuyin=function(configId){const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(configId));const ts=(dominoLobbyData?.tables||[]).filter(t=>Number(t.config_id)===Number(configId));const full=ts.length>0&&ts.every(t=>Number(t.players||0)>=4);if(!dominoLobbyData?.my_table && c && (noMainBalance()||mainBalance()+0.0000001<Number(c.min_entry||0)||full))return enterSpectatorForConfig(configId);return originalOpenBuyin(configId)};
 
   // Confirmar entrada desde espectador SIN cambiar arbitrariamente de mesa.
   // La operación del servidor es atómica y nunca cobra una mesa llena.
@@ -7813,14 +7819,15 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 <div id="appInformationPanel" class="overlay" role="dialog" aria-modal="true" aria-labelledby="appInformationTitle">
   <div class="panel" style="max-height:86dvh;overflow-y:auto;text-align:left">
     <button type="button" class="close" id="closeAppInformationBtn" aria-label="Cerrar información">✕</button>
-    <h2 id="appInformationTitle">ⓘ Información de MAIKET FLASH</h2>
+    <h2 id="appInformationTitle">ⓘ Información de Domino Flash Coin</h2>
     <div style="font-size:14px;line-height:1.65;color:#e5e9f1">
-      <p>MAIKET FLASH es una plataforma de entretenimiento con juegos interactivos y funciones sociales para sus usuarios registrados.</p>
+      <p>Domino Flash Coin es una plataforma de entretenimiento con juegos interactivos y funciones sociales para sus usuarios registrados.</p>
       <h3>Cuenta y perfil</h3><p>Los usuarios pueden crear su cuenta, iniciar sesión, consultar su identificador personal y administrar los datos disponibles en su perfil.</p>
       <h3>Ruleta Flash Coin</h3><p>En la ruleta, cada participante selecciona números y asigna créditos Flash Coin a sus jugadas. Los resultados de las rondas determinan la actualización de sus créditos virtuales según las reglas del juego.</p>
-      <h3>Dominó</h3><p>El área de dominó permite participar en partidas desde las mesas disponibles, interactuar con otros jugadores y consultar el desarrollo de las partidas.</p>
+      <h3>Dominó</h3><p>El área de dominó permite participar en partidas desde las mesas disponibles, interactuar con otros jugadores y consultar el desarrollo de las partidas. El botón «Ver mesa» permite observar sin Flash Coin y sin ocupar un asiento; para jugar se confirma una entrada con saldo suficiente.</p>
       <h3>Flash Coin y movimientos</h3><p>Los créditos Flash Coin se muestran en el saldo de la cuenta. La aplicación permite consultar movimientos y utilizar las funciones internas habilitadas para el usuario.</p>
       <h3>Promotores y asistencia</h3><p>Los promotores autorizados pueden distribuir créditos virtuales gratuitamente. La sección «Promotores Info» facilita consultar los contactos disponibles.</p>
+      <h3>Privacidad y soporte</h3><p>Dirigida a personas de 18 años o más. Consulta la <a data-dfc-privacy href="https://cakon170812-hub.github.io/marketflsh/privacidad.html" target="_blank" rel="noopener noreferrer">política de privacidad</a>. Para soporte o eliminación de cuenta: <a data-dfc-support href="mailto:julioangel170812@gmail.com">julioangel170812@gmail.com</a>. También puedes iniciar la solicitud desde Configuración → Privacidad y soporte.</p>
       <h3>Uso responsable</h3><p>Se recomienda mantener la seguridad de la cuenta y consultar las indicaciones y reglas visibles de cada juego antes de participar.</p>
       <p style="margin-top:18px;padding-top:12px;border-top:1px solid rgba(255,255,255,.16);font-size:12px;color:#b4bdca">Nota sobre los créditos: Flash Coin es un recurso virtual destinado exclusivamente al entretenimiento dentro de la aplicación. Su distribución es gratuita; no tiene valor monetario ni puede comprarse, venderse o canjearse por dinero real, bienes o premios de valor económico.</p>
     </div>
@@ -7841,7 +7848,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
   else initAppInformation();
 })();
 </script>
-<!-- MAIKET FLASH 1.5: capicua 1% en mesa, sonido y realtime. -->
+<!-- Domino Flash Coin 1.5: capicua 1% en mesa, sonido y realtime. -->
 
 <script id="mfRealtimeNoticeV15">
 // Actualizar comunicados para todos sin reiniciar juego o mesas.
@@ -7891,7 +7898,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 </script>
 
 <style id="mfUpgrade16CSS">
-/* MAIKET FLASH 1.6: accesos, tarjetas de administración y montos. */
+/* Domino Flash Coin 1.6: accesos, tarjetas de administración y montos. */
 #appView .topbar{gap:6px;align-items:center!important;flex-wrap:wrap}
 #appView .top-tools{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end;min-width:0;flex:1}
 .mf-poker-top{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:12px;
@@ -8241,7 +8248,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
 })();
 </script>
 <script id="mfBots18Script">
-/* MAIKET FLASH 1.8 · Panel de bots con un fondo y múltiples mesas.
+/* Domino Flash Coin 1.8 · Panel de bots con un fondo y múltiples mesas.
    Todas las decisiones financieras se verifican en funciones SQL, no aquí. */
 (function(){
  'use strict';
@@ -8461,7 +8468,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   const temp=URL.createObjectURL(file);photo.src=temp;btn.disabled=true;label.textContent='Guardando foto en Supabase…';
   try{
     const blob=await compressBotPhoto(file);
-    if(!crypto?.randomUUID)throw Error('Abre MAIKET FLASH por HTTPS para subir fotografías.');
+    if(!crypto?.randomUUID)throw Error('Abre Domino Flash Coin por HTTPS para subir fotografías.');
     const key='robot-'+i+'/'+crypto.randomUUID()+'.jpg';
     const {error}=await sb.storage.from('mf-bot-avatars').upload(key,blob,{contentType:'image/jpeg',cacheControl:'3600',upsert:false});
     if(error)throw error;
@@ -8730,7 +8737,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
 </script>
 <style id="mf196DominoStyle">
 
-/* MAIKET FLASH 1.9.6: perfiles, saldos de mesa y tranque sincronizado */
+/* Domino Flash Coin 1.9.6: perfiles, saldos de mesa y tranque sincronizado */
 #dominoSeats .domino-seat .domino-seat-name {
   white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;
   text-overflow:clip!important;overflow:visible!important;max-width:112px!important;
@@ -8887,7 +8894,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
 </script>
 
 
-<!-- MAIKET FLASH 1.9.10 · espectador/ganadores. No altera pagos. -->
+<!-- Domino Flash Coin 1.9.10 · espectador/ganadores. No altera pagos. -->
 <style id="mf110Styles">
 body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;flex-wrap:wrap;border-radius:15px!important}
 #dominoSpectatorBar .mf110-spectator-sit{
@@ -8967,6 +8974,174 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
   }
   check().catch(()=>{});
  },1600);
+})();
+</script>
+
+<style id="dfcPrivacyStylesV111">
+.dfc-privacy-note{font-size:13px;line-height:1.6;color:#cbd5e1;margin:12px 0;padding:12px;border:1px solid rgba(255,215,90,.25);border-radius:12px;text-align:left}
+.dfc-privacy-note a,.dfc-privacy-links a{color:#ffd45a;text-decoration:underline;overflow-wrap:anywhere}
+.dfc-privacy-links{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin:14px 0;font-size:13px;line-height:1.6}
+.dfc-privacy-panel .panel{max-height:86dvh;overflow-y:auto;text-align:left}
+.dfc-privacy-panel p{margin:12px 0;font-size:14px;line-height:1.65}
+.dfc-privacy-panel a{color:#ffd45a;overflow-wrap:anywhere}
+.dfc-privacy-panel label{display:flex;align-items:flex-start;gap:10px;line-height:1.6;font-size:14px;margin:14px 0}
+.dfc-privacy-panel input[type=checkbox]{width:20px;height:20px;flex:none;margin-top:2px}
+.dfc-privacy-status{white-space:pre-line;line-height:1.6;font-size:14px;margin:12px 0}
+.dfc-deletion-item{padding:12px;border:1px solid rgba(255,255,255,.16);border-radius:12px;margin:10px 0;overflow-wrap:anywhere;font-size:13px;line-height:1.6}
+</style>
+<div id="dfcPrivacyPanel" class="overlay dfc-privacy-panel" role="dialog" aria-modal="true" aria-labelledby="dfcPrivacyTitle">
+ <div class="panel">
+  <button type="button" class="close" id="dfcPrivacyClose" aria-label="Cerrar privacidad">✕</button>
+  <h2 id="dfcPrivacyTitle">Privacidad y soporte</h2>
+  <p>Domino Flash Coin utiliza tu nombre, correo y credenciales para tu cuenta; tu actividad de juego y movimientos de Flash Coin permiten mantener las partidas y tu saldo virtual. La autenticación y los datos de la aplicación se gestionan con Supabase.</p>
+  <p>Tu nombre de perfil, ID público, foto elegida, presencia y actividad visible de juego pueden mostrarse a otros usuarios. Tu correo y contraseña no se muestran en los perfiles públicos. Evita publicar datos personales en mensajes de partida.</p>
+  <p>Tu foto de perfil es opcional. Solo se sube la imagen que seleccionas y se muestra como parte de tu perfil público. Los enlaces de WhatsApp abren un servicio externo cuando eliges utilizarlos.</p>
+  <p>La sesión y tus preferencias se guardan en este dispositivo. Si eliges guardar tu contraseña, se utiliza el gestor de contraseñas del navegador; úsalo solo en un dispositivo de confianza.</p>
+  <p>Aplicación dirigida a personas de 18 años o más. Los Flash Coin se distribuyen gratis y solo sirven para entretenimiento: no se compran, venden ni canjean por dinero, bienes o premios de valor económico. Puedes mirar las mesas de dominó aunque tengas 0 Flash Coin.</p>
+  <a class="action dark" href="https://cakon170812-hub.github.io/marketflsh/privacidad.html" target="_blank" rel="noopener noreferrer">Leer política de privacidad completa</a>
+  <a class="action blue" href="mailto:julioangel170812@gmail.com">Contactar con soporte</a>
+  <button id="dfcDeleteAccountBtn" type="button" class="action red">Solicitar eliminación de cuenta y datos</button>
+ </div>
+</div>
+<div id="dfcDeletePanel" class="overlay dfc-privacy-panel" role="dialog" aria-modal="true" aria-labelledby="dfcDeleteTitle">
+ <div class="panel">
+  <button type="button" class="close" id="dfcDeleteClose" aria-label="Cerrar solicitud">✕</button>
+  <h2 id="dfcDeleteTitle">Eliminar cuenta y datos</h2>
+  <p>Puedes solicitar la eliminación de tu cuenta de Domino Flash Coin y los datos asociados. La solicitud será revisada por el responsable de la aplicación. Si se requiere verificar tu identidad, se pedirá solo la información necesaria. No envíes tu contraseña.</p>
+  <p>Al completar la eliminación perderás el acceso, tu perfil y los Flash Coin virtuales. Puede conservarse información mínima cuando sea necesaria por motivos de seguridad u obligaciones legales, según la política de privacidad. Te informaremos del plazo y de la finalización por el correo asociado a tu cuenta.</p>
+  <p>Enviar la solicitud no elimina ni bloquea tu cuenta inmediatamente.</p>
+  <div id="dfcDeletionStatus" class="dfc-privacy-status" role="status" aria-live="polite"></div>
+  <label id="dfcDeletionConfirmLabel"><input id="dfcDeletionConfirm" type="checkbox"><span>Solicito la eliminación de mi cuenta y sus datos. Entiendo que perderé el acceso y mis créditos virtuales cuando se complete.</span></label>
+  <button id="dfcDeletionSubmit" type="button" class="action red">Enviar solicitud de eliminación</button>
+  <p>También puedes solicitarla fuera de la aplicación, desde tu correo registrado:</p>
+  <a id="dfcDeletionEmail" class="action dark" href="mailto:julioangel170812@gmail.com?subject=Eliminar%20mi%20cuenta%20de%20Domino%20Flash%20Coin">Solicitar por correo</a>
+  <a href="https://cakon170812-hub.github.io/marketflsh/privacidad.html" target="_blank" rel="noopener noreferrer">Consultar política de privacidad</a>
+ </div>
+</div>
+<div id="dfcDeletionAdminPanel" class="overlay dfc-privacy-panel" role="dialog" aria-modal="true" aria-labelledby="dfcDeletionAdminTitle">
+ <div class="panel">
+  <button type="button" class="close" id="dfcDeletionAdminClose" aria-label="Cerrar solicitudes">✕</button>
+  <h2 id="dfcDeletionAdminTitle">Solicitudes de eliminación</h2>
+  <p>Contacta al usuario por su correo registrado para comunicar el plazo o verificar su identidad cuando sea necesario. «Marcar en revisión» solo actualiza el seguimiento de la solicitud.</p>
+  <p>La eliminación real debe completarse desde la administración segura de Supabase: revisar los datos asociados, retirar las fotos almacenadas y eliminar la cuenta de autenticación. El HTML no realiza este borrado. Confirma al usuario cuando termines.</p>
+  <button id="dfcDeletionAdminRefresh" type="button" class="action dark">Actualizar solicitudes</button>
+  <div id="dfcDeletionAdminStatus" class="dfc-privacy-status" role="status" aria-live="polite"></div>
+  <div id="dfcDeletionAdminList"></div>
+ </div>
+</div>
+<script id="dfcPrivacyV111">
+(function(){
+ 'use strict';
+ const byId=id=>document.getElementById(id);
+ const privacyUrl='https://cakon170812-hub.github.io/marketflsh/privacidad.html';
+ const support='julioangel170812@gmail.com';
+ let deletionReadSequence=0,adminReadSequence=0,privacyUserId=null;
+ const statusText=s=>s==='in_review'?'En revisión':'Pendiente de atención';
+ function openPanel(id){byId(id)?.classList.add('active')}
+ function closePanel(id){byId(id)?.classList.remove('active')}
+ function setStatus(id,value){byId(id).textContent=value}
+ function clearPrivatePanels(){
+  deletionReadSequence++;adminReadSequence++;
+  byId('dfcDeletionAdminList').replaceChildren();
+  setStatus('dfcDeletionAdminStatus','');setStatus('dfcDeletionStatus','');
+  byId('dfcDeletionConfirm').checked=false;
+  byId('dfcDeletionAdminBtn').classList.add('hidden');
+  closePanel('dfcPrivacyPanel');closePanel('dfcDeletePanel');closePanel('dfcDeletionAdminPanel');
+ }
+ function renderRequest(request){
+  const pending=!!request;
+  byId('dfcDeletionConfirmLabel').hidden=pending;
+  byId('dfcDeletionSubmit').hidden=pending;
+  byId('dfcDeletionConfirm').checked=false;
+  if(request)setStatus('dfcDeletionStatus',statusText(request.status)+'\nSolicitud: '+request.id+'\nTu cuenta todavía no ha sido eliminada.');
+ }
+ async function loadDeletionRequest(){
+  const sequence=++deletionReadSequence;
+  byId('dfcDeletionConfirmLabel').hidden=true;byId('dfcDeletionSubmit').hidden=true;
+  setStatus('dfcDeletionStatus','Consultando tu solicitud…');
+  try{
+   const result=await sb.rpc('dfc_my_deletion_request_v111');
+   if(sequence!==deletionReadSequence)return;
+   if(result.error)throw result.error;
+   renderRequest(result.data);
+   if(!result.data)setStatus('dfcDeletionStatus','Todavía no has registrado una solicitud en la aplicación.');
+  }catch(_){
+   if(sequence!==deletionReadSequence)return;
+   renderRequest(null);
+   setStatus('dfcDeletionStatus','No pudimos consultar el registro. Puedes reintentar o solicitar la eliminación por correo.');
+  }
+ }
+ async function submitDeletion(){
+  if(!byId('dfcDeletionConfirm').checked){setStatus('dfcDeletionStatus','Marca la casilla para confirmar tu solicitud.');return}
+  const owner=privacyUserId,button=byId('dfcDeletionSubmit');button.disabled=true;
+  setStatus('dfcDeletionStatus','Enviando tu solicitud…');
+  try{
+   const result=await sb.rpc('dfc_request_account_deletion_v111');
+   if(owner!==privacyUserId)return;
+   if(result.error)throw result.error;
+   if(!result.data?.id)throw Error('No se confirmó el registro');
+   renderRequest(result.data);
+  }catch(_){
+   if(owner===privacyUserId)setStatus('dfcDeletionStatus','No se confirmó el registro de tu solicitud. Puedes reintentar; si ya se registró, no se duplicará. También puedes solicitar la eliminación por correo.');
+  }finally{button.disabled=false}
+ }
+ async function loadAdminRequests(){
+  const sequence=++adminReadSequence;
+  if(me?.role!=='leader'){setStatus('dfcDeletionAdminStatus','Este apartado requiere una cuenta de Administrador Líder.');byId('dfcDeletionAdminList').replaceChildren();return}
+  setStatus('dfcDeletionAdminStatus','Consultando solicitudes…');
+  byId('dfcDeletionAdminList').replaceChildren();
+  try{
+   const result=await sb.rpc('dfc_admin_deletion_requests_v111');
+   if(sequence!==adminReadSequence||me?.role!=='leader')return;
+   if(result.error)throw result.error;
+   if(!Array.isArray(result.data))throw Error('Respuesta de solicitudes inválida');
+   setStatus('dfcDeletionAdminStatus',result.data.length?result.data.length+' solicitud(es) pendiente(s).':'No hay solicitudes pendientes.');
+   for(const request of result.data){
+    const card=document.createElement('div');card.className='dfc-deletion-item';
+    const details=document.createElement('div');
+    details.textContent='ID público: '+(request.public_id||'—')+'\nUsuario: '+request.user_id+'\nCorreo: '+(request.email||'No disponible')+'\nEstado: '+statusText(request.status)+'\nFecha: '+new Date(request.created_at).toLocaleString('es-DO');
+    details.style.whiteSpace='pre-line';card.append(details);
+    if(request.email){const contact=document.createElement('a');contact.className='action blue';contact.textContent='Contactar al usuario';contact.href='mailto:'+encodeURIComponent(request.email)+'?subject='+encodeURIComponent('Solicitud de eliminación de Domino Flash Coin');card.append(contact)}
+    if(request.status==='pending'){
+     const review=document.createElement('button');review.type='button';review.className='action dark';review.textContent='Marcar en revisión';
+     review.onclick=async()=>{
+      review.disabled=true;
+      try{const response=await sb.rpc('dfc_admin_review_deletion_v111',{p_request_id:request.id});if(response.error)throw response.error;await loadAdminRequests()}
+      catch(_){setStatus('dfcDeletionAdminStatus','No se confirmó el cambio. Actualiza las solicitudes antes de reintentar.');review.disabled=false}
+     };card.append(review);
+    }
+    byId('dfcDeletionAdminList').append(card);
+   }
+  }catch(_){if(sequence===adminReadSequence)setStatus('dfcDeletionAdminStatus','No se pudieron cargar las solicitudes. Comprueba la conexión y la instalación del SQL 0.01.');}
+ }
+ function init(){
+  byId('dfcPrivacyBtn').onclick=()=>{closePanel('settingsPanel');openPanel('dfcPrivacyPanel')};
+  byId('dfcDeleteAccountBtn').onclick=()=>{closePanel('dfcPrivacyPanel');openPanel('dfcDeletePanel');loadDeletionRequest()};
+  byId('dfcDeletionSubmit').onclick=submitDeletion;
+  byId('dfcDeletionAdminBtn').onclick=()=>{if(me?.role!=='leader')return;closePanel('settingsPanel');openPanel('dfcDeletionAdminPanel');loadAdminRequests()};
+  byId('dfcDeletionAdminRefresh').onclick=loadAdminRequests;
+  for(const [close,panel] of [['dfcPrivacyClose','dfcPrivacyPanel'],['dfcDeleteClose','dfcDeletePanel'],['dfcDeletionAdminClose','dfcDeletionAdminPanel']]){
+   byId(close).onclick=()=>{if(panel==='dfcDeletePanel')deletionReadSequence++;closePanel(panel)};
+   byId(panel).addEventListener('click',e=>{if(e.target===byId(panel)){if(panel==='dfcDeletePanel')deletionReadSequence++;closePanel(panel)}});
+  }
+  // RenderMe ya conserva las funciones del perfil y los saldos anteriores.
+  const originalRenderMe=window.renderMe;
+  window.renderMe=function(){
+   if(privacyUserId!==me?.id){clearPrivatePanels();privacyUserId=me?.id||null}
+   if(me?.role!=='leader'){adminReadSequence++;byId('dfcDeletionAdminList').replaceChildren();closePanel('dfcDeletionAdminPanel')}
+   const value=originalRenderMe.apply(this,arguments);byId('dfcDeletionAdminBtn').classList.toggle('hidden',me?.role!=='leader');return value
+  };
+  privacyUserId=me?.id||null;
+  byId('dfcDeletionAdminBtn').classList.toggle('hidden',me?.role!=='leader');
+  if(sb.auth?.onAuthStateChange)sb.auth.onAuthStateChange((event,session)=>{
+   if(event==='SIGNED_OUT'||(event==='SIGNED_IN'&&session?.user?.id!==privacyUserId)){
+    clearPrivatePanels();privacyUserId=session?.user?.id||null;
+   }
+  });
+  document.querySelectorAll('[data-dfc-privacy]').forEach(link=>{link.href=privacyUrl});
+  document.querySelectorAll('[data-dfc-support]').forEach(link=>{link.href='mailto:'+support});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 </script>
 
