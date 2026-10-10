@@ -2231,6 +2231,15 @@ html[data-app-mode="standalone"] #mfInstallHint{display:none!important}
 body.domino-spectating #dominoSpectatorBar{z-index:20!important}
 body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:none}
 </style>
+<style id="mf197OnlineCss">
+.mf197-online-who{display:flex;align-items:center;gap:8px;min-width:0}
+.mf197-online-who>div{min-width:0}
+.mf197-online-photo{height:40px;width:40px;flex:0 0 40px;border-radius:50%;object-fit:cover;border:2px solid #a9c89d;background:#172a28;display:inline-flex;align-items:center;justify-content:center}
+.mf197-online-counter{cursor:pointer;border-radius:7px;transition:background .12s ease,transform .12s ease}
+.mf197-online-counter:active{transform:scale(.97);background:rgba(40,180,130,.16)}
+.mf197-online-counter:focus-visible{outline:2px solid #60d89c}
+#mf197WorkerErrors{margin:4px 0;white-space:normal;line-height:1.35}
+</style>
 </head>
 <body>
 
@@ -3802,20 +3811,26 @@ async function trackPresence(){
   const fullName=((me.first_name||'')+' '+(me.last_name||'')).trim()||me.public_id;
   try{await presenceChannel.track({user_id:me.id,public_id:me.public_id,name:fullName,playing:true,at:new Date().toISOString()});}catch{}
 }
-function renderOnline(){[$('onlinePublic'),$('promOnline'),$('adminOnline')].forEach(el=>{if(el)el.textContent=onlineCount})}
+function renderOnline(){
+ const humanIds=new Set((onlineUsers||[]).map(x=>String(x.user_id||'')).filter(Boolean));
+ const bots=Array.isArray(window.mf197ActiveBotRows)?window.mf197ActiveBotRows:[];
+ const total=humanIds.size+bots.filter(b=>!humanIds.has(String(b.user_id||''))).length;
+ [$('onlinePublic'),$('promOnline'),$('adminOnline')].forEach(el=>{if(el)el.textContent=String(total)});
+}
 
 let mfActivityTimer=null;
 async function refreshPublicActivityCounts(){
   const dominoEl=$('dominoPlayingPublic'),rouletteEl=$('roulettePlayingPublic');
   if(!dominoEl||!rouletteEl)return;
   const ids=[...new Set((onlineUsers||[]).map(x=>x.user_id).filter(Boolean))];
+  const activeBots=(window.mf197ActiveBotRows||[]).length;
   if(!ids.length){
-    dominoEl.textContent='0';rouletteEl.textContent='0';return;
+    dominoEl.textContent=String(activeBots);rouletteEl.textContent='0';return;
   }
   try{
     const {data,error}=await sb.rpc('rf_online_activity_v180',{p_online_ids:ids});
     if(error)return;
-    dominoEl.textContent=Number(data?.domino||0);
+    dominoEl.textContent=Number(data?.domino||0)+activeBots;
     rouletteEl.textContent=Number(data?.roulette||0);
   }catch(e){}
 }
@@ -8138,11 +8153,19 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   if(!ready()||(!force&&Date.now()-lastFetch<15000))return;
   lastFetch=Date.now();
   try{
-   const [pub,tables]=await Promise.all([rpc('rf_domino_bot_public_v18'),rpc('rf_domino_bot_active_tables_v18')]);
+   const [pub,tables]=await Promise.all([rpc('rf_domino_bot_online_v197'),rpc('rf_domino_bot_active_tables_v18')]);
    onlineBots=Array.isArray(pub)?pub:[];
+   window.mf197ActiveBotRows=onlineBots.slice();
    enabledTables=Array.isArray(tables)?tables.map(Number):[];
    markBots();
-  }catch(e){if(/not found|does not exist|schema cache/i.test(errText(e)))botUnavailable=true;}
+   if(typeof renderOnline==='function')renderOnline();
+   if(typeof refreshPublicActivityCounts==='function')refreshPublicActivityCounts().catch(()=>{});
+  }catch(e){
+   // Ante un error de red o permisos NO dejar bots falsamente "en línea".
+   onlineBots=[];window.mf197ActiveBotRows=[];
+   if(typeof renderOnline==='function')renderOnline();
+   if(/not found|does not exist|schema cache/i.test(errText(e)))botUnavailable=true;
+  }
  }
  function markBots(){
   const mp=new Map(onlineBots.map(b=>[String(b.user_id),b]));
@@ -8179,12 +8202,52 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   const ret=await onlineOld.apply(this,args);await publicRefresh(true);
   const host=q('onlineUsersList');if(!host)return ret;
   host.querySelectorAll('.mf18-auto-online').forEach(x=>x.remove());
+  if(onlineBots.length){
+    const noHumans=host.querySelector('.card');
+    if(noHumans&&/No hay usuarios conectados/.test(noHumans.textContent||''))noHumans.remove();
+  }
   onlineBots.forEach(b=>{
    const row=document.createElement('div');row.className='online-user-row mf18-auto-online';
-   row.innerHTML='<div class="who"><b>'+escv(b.name)+'</b><span class="mf17-roster-label">Jugador automático</span><span class="tiny">ID: '+escv(b.public_id||'—')+'</span></div><div class="won">En mesa</div>';
+   const safePhoto=/^https:\/\//i.test(String(b.avatar_url||''))?String(b.avatar_url):'';
+   const photo=safePhoto?'<img class="mf197-online-photo" src="'+escv(safePhoto)+'" alt="Foto de perfil">':'<span class="mf197-online-photo mf197-fallback">🤖</span>';
+   row.innerHTML='<div class="who mf197-online-who">'+photo+'<div><b>'+escv(b.name||'Jugador automático')+'</b><span class="mf17-roster-label">🟢 En línea · Jugador automático</span><span class="tiny">ID: '+escv(b.public_id||'—')+' · Mesa '+escv(b.table_no||b.table_id||'—')+'</span></div></div><div class="won">'+escv(cash(b.table_balance))+'<span class="tiny">Saldo de mesa</span></div>';
    host.append(row);
   });return ret;
  };
+ // Los bots viven en Supabase: actualizar listado aun con navegadores cerrados.
+ window.mf197ActiveBotRows=[];
+ setInterval(()=>{
+   if(ready()&&!document.hidden)publicRefresh(false).catch(()=>{});
+ },10000);
+ document.addEventListener('visibilitychange',()=>{
+   if(!document.hidden&&ready())publicRefresh(true).catch(()=>{});
+ });
+ // El contador junto a cada juego también abre la lista de conectados.
+ const bindOnlineCounter=id=>{
+   const item=q(id)?.parentElement;if(!item)return;
+   item.setAttribute('role','button');item.tabIndex=0;
+   item.title='Ver usuarios y robots conectados';item.classList.add('mf197-online-counter');
+   const open=async()=>{
+     if(!ready())return;
+     try{await window.loadOnlinePanel?.();}catch(e){console.warn('Lista en línea:',e)}
+     if(typeof show==='function')show('onlineUsersPanel');
+   };
+   item.addEventListener('click',open);
+   item.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
+ };
+ bindOnlineCounter('dominoPlayingPublic');bindOnlineCounter('roulettePlayingPublic');
+ async function showWorkerErrors(){
+   const el=q('mf197WorkerErrors');if(!el||!leader())return;
+   const panel=q('mfBots17Panel');if(!panel?.classList.contains('active'))return;
+   try{
+     const rows=await rpc('rf_domino_bot_errors_v197');
+     const last=Array.isArray(rows)?rows.slice(0,3):[];
+     if(!last.length){el.textContent='Motor: sin errores registrados en el historial reciente.';return;}
+     el.textContent='Últimos errores por mesa: '+last.map(x=>'Mesa '+(x.table_id??'—')+': '+String(x.details||'Error').slice(0,110)).join(' · ');
+     el.style.color='#ffd19d';
+   }catch(e){el.textContent='No se pudo consultar el registro del motor: '+errText(e).slice(0,130);}
+ }
+ setInterval(showWorkerErrors,12000);
  // Conserva acceso de administrador junto a PÓKER de 1.7.
  const poker=q('mfPokerTopBtn'),leaderBtn=q('leaderBtn'),top=q('appView')?.querySelector('.topbar');
  if(poker&&leaderBtn&&top&&!top.querySelector('.mf17-main-access')){
@@ -8193,8 +8256,9 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
  const overlay=document.createElement('div');overlay.id='mfBots17Panel';overlay.className='overlay';
  overlay.innerHTML=`<div class="panel mf17-panel">
  <button type="button" class="close" id="mf18Close" aria-label="Cerrar panel">✕</button>
- <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.6</p>
+ <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.7</p>
  <div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor automático de Supabase…</div>
+ <div id="mf197WorkerErrors" class="mf17-hint" aria-live="polite"></div>
  <section id="mf192MainScreen" class="mf192-main-screen">
   <div class="mf17-card">
    <b>💰 Fondo compartido</b><div id="mf18Balance">Consultando…</div>
