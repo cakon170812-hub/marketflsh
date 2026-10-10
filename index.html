@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest?v=0.1-stable-4">
-<title>MAIKET FLASH — 1.9.2 · Dominó, Ruleta y Póker en desarrollo</title>
+<title>MAIKET FLASH — 1.9.3 · Dominó, Ruleta y Póker en desarrollo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -8105,7 +8105,7 @@ function mfShowVerifiedTieWin(result,key,uid){
  const overlay=document.createElement('div');overlay.id='mfBots17Panel';overlay.className='overlay';
  overlay.innerHTML=`<div class="panel mf17-panel">
  <button type="button" class="close" id="mf18Close" aria-label="Cerrar panel">✕</button>
- <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.2</p>
+ <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.3</p>
  <div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor automático de Supabase…</div>
  <section id="mf192MainScreen" class="mf192-main-screen">
   <div class="mf17-card">
@@ -8267,6 +8267,7 @@ function mfShowVerifiedTieWin(result,key,uid){
     const actionButton=area.querySelector(count===0?'.mf19-deactivate':'.mf19-activate');
     actionButton.disabled=true;
     window.mf19Toast?.(count?'Preparando robots en Supabase…':'Desactivando robots…','wait');
+    let serverConfirmed=false;
     try{
      if(count>0){
       // Autorización segura: la función verifica la sesión y el rol Lider.
@@ -8278,17 +8279,27 @@ function mfShowVerifiedTieWin(result,key,uid){
        let cause='';
        const response=error.context;
        if(response&&typeof response.clone==='function'){
-        try{const body=await response.clone().json();cause=String(body?.error||body?.message||'').slice(0,240);}catch(_){/* Algunos fallos son de red y no tienen respuesta JSON. */}
+        try{
+         const body=await response.clone().json();
+         cause=String(body?.error||body?.message||'').slice(0,260);
+         if(Number(body?.completed)>0)cause+=' '+body.completed+' cuenta(s) preparada(s), pero la mesa NO se activó. Reintentar es seguro.';
+        }catch(_){/* Un error de red puede no tener cuerpo JSON. */}
        }
-       throw new Error(cause||error.message||'No se pudo ejecutar maiket-bot-provision. Revisa Edge Functions → Invocations.');
+       throw new Error(cause||error.message||'Edge Function rechazada. Revisa Invocations y Logs de maiket-bot-provision.');
       }
       if(!data?.ok)throw new Error(data?.error||'Supabase no confirmó las cuentas automáticas.');
      }
      const result=await rpc('rf_domino_bot_set_count_v19',{p_table_id:tid,p_count:count});
      if(!result?.ok||Number(result.target_count)!==count)throw Error('Supabase no confirmó el ajuste.');
+     serverConfirmed=true;
      if(count>0){window.mf19Toast?.('Guardado: '+count+' robot(s) asignado(s) a mesa '+tid);await showBotActivated(tid,t.table_no);}
      else{window.mf19Toast?.('Robots desactivados en mesa '+tid);await loadAdmin();await publicRefresh(true);}
-    }catch(e){status('No se aplicó el cambio: '+errText(e),true);}
+    }catch(e){
+      const prefix=serverConfirmed?'Cantidad guardada; falló la actualización de pantalla: ':'No se aplicó el cambio: ';
+      const reason=prefix+errText(e);
+      await loadAdmin().catch(()=>{});
+      status(reason,true);
+    }
     finally{actionButton.disabled=false;botsBusy=false;}
    }
    area.querySelector('.mf19-activate').addEventListener('click',()=>applyCount(Number(area.querySelector('.mf19-count').value)));
