@@ -2434,7 +2434,7 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 
 <div id="promoterPanel" class="overlay"><div class="panel"><button class="close" data-close="promoterPanel">✕</button><h2>💼 Panel de Promotor</h2><div class="stat-grid"><div class="stat"><b id="promRegistered">0</b><span class="tiny">Registrados</span></div><div class="stat"><b id="promOnline">0</b><span class="tiny">Jugando ahora</span></div></div><h3>Mi WhatsApp</h3><input id="promWhatsApp" class="field" type="tel" inputmode="tel" autocomplete="tel" placeholder="Ej: 18095551234"><div id="whatsappPreview" class="whatsapp-preview"></div><button id="saveWhatsAppBtn" class="action green">Confirmar / Guardar WhatsApp</button><h3>Buscar usuario por ID</h3><div class="row"><input id="promSearchId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="promSearchBtn" class="action blue">Buscar</button></div><div id="promSearchResult"></div></div></div>
 
-<div id="promUserPanel" class="overlay"><div class="panel"><button class="close" data-close="promUserPanel">✕</button><h2>Destino Flash Coin</h2><div id="promUserCard" class="card"></div><input id="promAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="promSendBtn" class="action green">Enviar Flash Coin</button><button id="promRequestBtn" class="action">Solicitar Flash Coin</button><div id="promUserMsg" class="msg"></div></div></div>
+<div id="promUserPanel" class="overlay"><div class="panel"><button class="close" data-close="promUserPanel">✕</button><h2>Destino Flash Coin</h2><div id="promUserCard" class="card"></div><input id="promAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="promSendBtn" class="action green">Enviar Flash Coin</button><div id="promUserMsg" class="msg"></div></div></div>
 
 <div id="promActionFlash" class="action-confirm-flash"></div>
 <div id="promConfirmPanel" class="overlay"><div class="panel"><button class="close" data-close="promConfirmPanel">✕</button><h2 id="promConfirmTitle">Confirmar operación</h2><div id="promConfirmContent"></div><div class="request-actions"><button id="promConfirmCancelBtn" type="button" class="action red">Cancelar</button><button id="promConfirmDoBtn" type="button" class="action green">Confirmar</button></div><div id="promConfirmMsg" class="msg"></div></div></div>
@@ -3952,13 +3952,14 @@ $('promSearchBtn').onclick=async()=>{
   };
 };
 $('promSendBtn').onclick=async()=>promAction('send');
-$('promRequestBtn').onclick=async()=>promAction('request');
+// 0.01: los promotores solo envían Flash Coin gratuitos; no solicitan.
 async function promAction(kind){
+  if(kind!=='send')return msg('promUserMsg','Esta operación no está disponible para promotores.');
   if(me?.role!=='promoter')return msg('promUserMsg','Ya no tienes permiso de promotor.');
   if(!selectedPromUser)return msg('promUserMsg','Busca y abre primero el usuario.');
   const amount=Number($('promAmount').value);
   if(!(amount>0))return msg('promUserMsg','Monto inválido.');
-  const fn=kind==='send'?'rf_promoter_send_fc_v04':'rf_promoter_request_fc';
+  const fn='rf_promoter_send_fc_v04';
   const {data,error}=await sb.rpc(fn,{p_public_id:selectedPromUser.public_id,p_amount:amount});
   if(error)return msg('promUserMsg',errText(error));
   if(kind==='send'){
@@ -4430,6 +4431,7 @@ function openPromConfirmation(kind,amount,user){
   setTimeout(()=>show('promConfirmPanel'),145);
 }
 promAction=async function(kind){
+  if(kind!=='send')return msg('promUserMsg','Los promotores solo pueden enviar Flash Coin gratuitos.');
   if(me?.role!=='promoter')return msg('promUserMsg','Ya no tienes permiso de promotor.');
   if(!selectedPromUser)return msg('promUserMsg','Busca y abre primero el destino.');
   const amount=Number($('promAmount').value);
@@ -4445,7 +4447,8 @@ $('promConfirmDoBtn').onclick=async()=>{
   const btn=$('promConfirmDoBtn'),oldText=btn.textContent;btn.disabled=true;btn.textContent='Procesando...';
   try{
     if(me?.role!=='promoter')throw new Error('Ya no tienes permiso de promotor.');
-    const fn=op.kind==='send'?'rf_promoter_send_fc_v08':'rf_promoter_request_fc_v08';
+    if(op.kind!=='send')throw new Error('La solicitud de Flash Coin no está disponible para promotores.');
+    const fn='rf_promoter_send_fc_v08';
     let data,error;
     if(op.kind==='send'&&op.target_type==='bot_fund'){
       try{data=await mf183SendToBots(op.public_id,op.amount,'promoter');}catch(e){error=e;}
@@ -7436,7 +7439,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 
   const spectatorRequest=async id=>{
     const res=await Promise.race([
-      sb.rpc('rf_domino_spectate_state_v110',{p_table_id:Number(id)}),
+      sb.rpc('dfc_domino_spectate_state_v001',{p_table_id:Number(id)}),
       new Promise((_,reject)=>setTimeout(()=>reject(Error('La mesa tardó demasiado en responder. Pulsa Ver mesa otra vez.')),10000))
     ]);
     if(res.error)throw res.error;
