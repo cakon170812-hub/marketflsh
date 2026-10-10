@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <!-- MAIKET FLASH 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html lang="es" data-app-build="1.8.0">
+<html lang="es" data-app-build="1.9.5">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="application-version" content="1.8.0">
+<meta name="application-version" content="1.9.5">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest?v=0.1-stable-4">
-<title>MAIKET FLASH — 1.9.3 · Dominó, Ruleta y Póker en desarrollo</title>
+<title>MAIKET FLASH — 1.9.5 · Dominó, Ruleta y Póker en desarrollo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -2223,6 +2223,13 @@ html[data-app-mode="standalone"] #mfInstallHint{display:none!important}
   border:1px solid #ffda75;border-radius:9px;
   background:#23210f;color:#fff3bf;font-size:12px;font-weight:850;
 }
+</style>
+
+<style id="mf195SpeedSpectatorStyle">
+.mf195-speed-hint{display:flex;justify-content:space-between;color:#a8c4d8;font-size:11px;margin:3px 0 12px}
+#mf18Templates input[id^="mf195Speed"]{width:100%;accent-color:#49c5ff;margin-bottom:3px}
+body.domino-spectating #dominoSpectatorBar{z-index:20!important}
+body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:none}
 </style>
 </head>
 <body>
@@ -7310,10 +7317,11 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
   let spectatorTables=[];
   let spectatorRefreshAt=0;
   let spectatorSwipeStart=null;
+  let spectatorReadInFlight=false;
 
   const mainBalance=()=>Math.max(0,Number(me?.balance||0));
   const noMainBalance=()=>mainBalance()<=0.0004;
-  const liveTables=(lobby=dominoLobbyData)=>((lobby?.tables||[]).filter(t=>Number(t.players||0)>0&&['playing','shuffling'].includes(String(t.hand_status||''))));
+  const liveTables=(lobby=dominoLobbyData)=>((lobby?.tables||[]).filter(t=>Number(t.players||0)>0));
   const tableLabel=t=>{
     const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(t?.config_id));
     return `${c?.name||'Dominó'} · Mesa ${t?.table_no||t?.id}`;
@@ -7334,6 +7342,9 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     if(!bar){
       bar=document.createElement('div');bar.id='dominoSpectatorBar';
       bar.innerHTML='<button id="dominoSpectatorPrev" class="domino-spectator-nav" type="button" aria-label="Mesa anterior">‹</button><div id="dominoSpectatorLabel"><b>Modo espectador</b><span>Mesa activa</span></div><button id="dominoSpectatorNext" class="domino-spectator-nav" type="button" aria-label="Mesa siguiente">›</button>';
+      const retry=document.createElement('button');retry.id='mf195SpectatorRetry';retry.type='button';
+      retry.className='mf195-spectator-retry';retry.textContent='↻ Reintentar';retry.hidden=true;
+      retry.onclick=()=>loadDominoState(true,true).catch(()=>{});bar.appendChild(retry);
       stage.appendChild(bar);
       document.getElementById('dominoSpectatorPrev').onclick=()=>switchSpectatorTable(-1);
       document.getElementById('dominoSpectatorNext').onclick=()=>switchSpectatorTable(1);
@@ -7361,23 +7372,41 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     return spectatorTables;
   }
 
+  const spectatorRequest=async id=>{
+    const res=await Promise.race([
+      sb.rpc('rf_domino_spectate_state_v195',{p_table_id:Number(id)}),
+      new Promise((_,reject)=>setTimeout(()=>reject(Error('La mesa tardó demasiado en responder. Pulsa Ver mesa otra vez.')),10000))
+    ]);
+    if(res.error)throw res.error;
+    if(!res.data||res.data.ok===false)throw Error(res.data?.error||'No se recibieron datos para mirar la mesa.');
+    return res.data;
+  };
+
   async function enterSpectator(tableId){
     if(!tableId)return false;
+    const button=document.querySelector('#dominoLobbyModes .domino-join-mode.spectator');
+    if(button){button.disabled=true;button.textContent='ABRIENDO MESA…';}
+    let snapshot;
+    try{snapshot=await spectatorRequest(tableId)}catch(e){
+      const notice='No se pudo abrir la mesa como espectador: '+errText(e);
+      window.mf19Toast?.(notice,'error');msg('dominoLobbyMsg',notice);
+      if(button){button.disabled=false;button.textContent='VER MESA MÁS LLENA';}
+      return false;
+    }
     spectatorMode=true;window.dominoSpectatorMode=true;
     document.body.classList.add('domino-spectating');
     dominoCurrentTableId=Number(tableId);dominoResetTableEffects();
     hide('gamesPanel');hide('dominoLobbyPanel');hide('dominoBuyinPanel');show('dominoTablePanel');
     const exit=document.getElementById('dominoSurrenderBtn');if(exit)exit.title='Volver a las mesas';
-    await dominoForceLandscape().catch(()=>{});await dominoAcquireWakeLock().catch(()=>{});
-    await dominoStopRealtime().catch(()=>{});
-    await refreshSpectatorTables(true);
+    dominoForceLandscape().catch(()=>{});dominoAcquireWakeLock().catch(()=>{});
+    dominoStopRealtime().catch(()=>{});
+    renderDominoState(snapshot);updateSpectatorBar();
+    refreshSpectatorTables(true).catch(()=>{});
     dominoStartPolling();
-    await loadDominoState(true,true);
     return true;
   }
 
   async function enterBestSpectator(){
-    try{await loadMe();renderMe()}catch(_){ }
     let lobby;
     try{const r=await sb.rpc('rf_domino_get_lobby_v11');if(r.error)throw r.error;lobby=r.data||{};dominoLobbyData=lobby;}catch(e){alert(errText(e));return false}
     const active=liveTables(lobby).sort((a,b)=>Number(b.players||0)-Number(a.players||0)||Number(a.table_no||0)-Number(b.table_no||0));
@@ -7392,8 +7421,12 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     if(spectatorTables.length<=1)return;
     let i=spectatorTables.findIndex(t=>Number(t.id)===Number(dominoCurrentTableId));if(i<0)i=0;
     i=(i+(delta>0?1:-1)+spectatorTables.length)%spectatorTables.length;
-    dominoCurrentTableId=Number(spectatorTables[i].id);dominoResetTableEffects();
-    await dominoStopRealtime().catch(()=>{});updateSpectatorBar();await loadDominoState(true,true);
+    const nextId=Number(spectatorTables[i].id);
+    try{
+      const snapshot=await spectatorRequest(nextId);
+      dominoCurrentTableId=nextId;dominoResetTableEffects();
+      dominoStopRealtime().catch(()=>{});renderDominoState(snapshot);updateSpectatorBar();
+    }catch(e){window.mf19Toast?.('No se pudo cambiar de mesa: '+errText(e),'error');}
   }
 
   async function exitSpectator(){
@@ -7481,12 +7514,22 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
   const originalLoadState=window.loadDominoState;
   if(typeof originalLoadState==='function')window.loadDominoState=async function(force,skipTick=false){
     if(!spectatorMode)return originalLoadState(force,skipTick);
-    if(!dominoCurrentTableId)return;
-    const r=await sb.rpc('rf_domino_spectate_state_v01',{p_table_id:Number(dominoCurrentTableId)});
-    if(r.error){if(force)alert(errText(r.error));return}
-    if(dominoDragState?.active&&!force)return;
-    renderDominoState(r.data);updateSpectatorBar();
-    if(Date.now()>=spectatorRefreshAt)refreshSpectatorTables(false).catch(()=>{});
+    if(!dominoCurrentTableId||spectatorReadInFlight)return;
+    spectatorReadInFlight=true;
+    try{
+      let snapshot;
+      try{snapshot=await spectatorRequest(dominoCurrentTableId)}catch(e){
+        dominoSetSyncState('Espectador: conexión pendiente, puedes reintentar','warn');
+        const retry=document.getElementById('mf195SpectatorRetry');if(retry)retry.hidden=false;
+        if(force)window.mf19Toast?.('No se pudo actualizar la mesa: '+errText(e),'error');
+        return;
+      }
+      const retry=document.getElementById('mf195SpectatorRetry');if(retry)retry.hidden=true;
+      if(dominoDragState?.active&&!force)return;
+      renderDominoState(snapshot);updateSpectatorBar();
+      dominoSetSyncState('Espectador conectado','ok');
+      if(Date.now()>=spectatorRefreshAt)refreshSpectatorTables(false).catch(()=>{});
+    } finally { spectatorReadInFlight=false; }
   };
 
   const originalRender=window.renderDominoState;
@@ -8001,6 +8044,22 @@ function mfShowVerifiedTieWin(result,key,uid){
 #mf19ActionToast .mf19-toast-icon{font-size:30px;display:block;margin-bottom:4px}
 @media(prefers-reduced-motion:reduce){.mf19-btn-flash::after{animation:none}}
 </style>
+<style id="mf195TactileOnly">
+/* Toques físicos, no confirmaciones ficticias. */
+.mf19-btn-flash::after{display:none!important}
+button,.num,.domino-piece.hand-piece,[role="button"]{ -webkit-tap-highlight-color:transparent; }
+button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[role="button"]:active{
+  filter:brightness(1.22)!important;
+  box-shadow:inset 0 2px 8px rgba(0,0,0,.35),0 0 0 1px rgba(255,223,116,.34)!important;
+}
+#dominoSeats .domino-seat.turn .domino-turn-ring{opacity:1!important;z-index:3!important}
+#dominoSeats .domino-seat .domino-avatar-photo{
+  background-position:center!important;background-size:cover!important;background-repeat:no-repeat!important;
+}
+#dominoSpectatorBar .mf195-spectator-retry[hidden]{display:none!important}
+#dominoSpectatorBar .mf195-spectator-retry{background:#293b4b;border:1px solid #b6e6ff;
+  color:white;font-weight:700;font-size:10px;border-radius:8px;padding:5px 8px;}
+</style>
 <script id="mf19FeedbackScript">
 (()=>{
  'use strict';
@@ -8019,13 +8078,13 @@ function mfShowVerifiedTieWin(result,key,uid){
  document.addEventListener('click',e=>{
   const btn=e.target.closest?.('button,[role="button"]');if(!btn||btn.disabled)return;
   lastClick={at:Date.now(),label:(btn.textContent||'Operación').trim().slice(0,70),id:btn.id||'',insideBots:!!btn.closest('#mfBots17Panel')};
-  btn.classList.remove('mf19-btn-flash');void btn.offsetWidth;btn.classList.add('mf19-btn-flash');
-  setTimeout(()=>btn.classList.remove('mf19-btn-flash'),600);
+  btn.classList.add('mf195-touched');
+  setTimeout(()=>btn.classList.remove('mf195-touched'),160);
  },true);
  // Confirmación general: solo cuando un RPC QUE MODIFICA datos respondió sin error.
  // No se anuncian como "guardadas" las búsquedas ni se promete éxito al tocar.
  const originalRPC=sb.rpc.bind(sb);
- const mutates=name=>/^(rf_admin_(?!get_|list_|search_|dashboard_)[a-z_]+|rf_set_[a-z_]+|rf_update_[a-z_]+|rf_leader_(?:change_password|set_password_required|set_initial_password|send_fc|request_fc)|rf_promoter_(?:send_|request_|set_)|rf_respond_[a-z_]+|rf_place_bet|rf_domino_(?:play_|pass_|join_|leave_|back_|set_|sit_|stand_|ready_|admin_|configure_|save_))/.test(name);
+ const mutates=name=>/^(rf_admin_(?!get_|list_|search_|dashboard_)[a-z_]+|rf_set_[a-z_]+|rf_update_[a-z_]+|rf_leader_(?:change_password|set_password_required|set_initial_password|send_fc|request_fc)|rf_promoter_(?:send_|request_|set_)|rf_respond_[a-z_]+|rf_domino_(?:admin_|configure_|save_))/.test(name);
  sb.rpc=function(name,...args){
   const request=originalRPC(name,...args);
   const origin=lastClick;
@@ -8084,8 +8143,22 @@ function mfShowVerifiedTieWin(result,key,uid){
  }
  const renderOld=window.renderDominoState;
  if(typeof renderOld==='function')window.renderDominoState=function(...args){
+  const state=args[0];
+  if(state&&Array.isArray(state.seats)&&onlineBots.length){
+    const byUser=new Map(onlineBots.map(b=>[String(b.user_id),b]));
+    state.seats=state.seats.map(s=>{
+      const bot=byUser.get(String(s.user_id));
+      if(!bot)return s;
+      return {...s,name:bot.name||s.name,avatar_url:bot.avatar_url||s.avatar_url,automated:true};
+    });
+  }
   const ret=renderOld.apply(this,args);markBots();return ret;
  };
+ // Fotografía de los bots sincronizada también para espectadores y tras editarla.
+ setInterval(()=>{
+   const panel=document.getElementById('dominoTablePanel');
+   if(panel&&(panel.classList.contains('active')||getComputedStyle(panel).display!=='none'))publicRefresh(false).catch(()=>{});
+ },15000);
  const onlineOld=window.loadOnlinePanel;
  if(typeof onlineOld==='function')window.loadOnlinePanel=async function(...args){
   const ret=await onlineOld.apply(this,args);await publicRefresh(true);
@@ -8105,7 +8178,7 @@ function mfShowVerifiedTieWin(result,key,uid){
  const overlay=document.createElement('div');overlay.id='mfBots17Panel';overlay.className='overlay';
  overlay.innerHTML=`<div class="panel mf17-panel">
  <button type="button" class="close" id="mf18Close" aria-label="Cerrar panel">✕</button>
- <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.3</p>
+ <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.5</p>
  <div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor automático de Supabase…</div>
  <section id="mf192MainScreen" class="mf192-main-screen">
   <div class="mf17-card">
@@ -8162,9 +8235,13 @@ function mfShowVerifiedTieWin(result,key,uid){
    <small class="mf17-hint" id="mf184PhotoStatus${i}">Selecciona una foto desde la galería.</small>
    <label>Dificultad <span id="mf18LevelLabel${i}">50%</span></label>
    <input id="mf18Level${i}" type="range" min="0" max="100" step="5" value="50">
+   <label for="mf195Speed${i}">Rapidez de jugada <strong id="mf195SpeedLabel${i}">3 s</strong></label>
+   <input id="mf195Speed${i}" type="range" min="1" max="10" step="1" value="3" aria-label="Segundos antes de la jugada del robot ${i}">
+   <div class="mf195-speed-hint"><span>Rápido · 1 s</span><span>Lento · 10 s</span></div>
    <button type="button" id="mf18SaveTemplate${i}">Guardar robot ${i}</button>`;
   templates.append(box);
   q('mf18Level'+i).addEventListener('input',()=>q('mf18LevelLabel'+i).textContent=q('mf18Level'+i).value+'%');
+  q('mf195Speed'+i).addEventListener('input',()=>q('mf195SpeedLabel'+i).textContent=q('mf195Speed'+i).value+' s');
   q('mf18SaveTemplate'+i).addEventListener('click',()=>saveTemplate(i));
   q('mf184Pick'+i).addEventListener('click',()=>q('mf184File'+i).click());
   q('mf184File'+i).addEventListener('change',()=>uploadBotPhoto(i));
@@ -8201,8 +8278,8 @@ function mfShowVerifiedTieWin(result,key,uid){
     const {data}=sb.storage.from('mf-bot-avatars').getPublicUrl(key);
     const url=data?.publicUrl;
     if(!url||!url.startsWith('https://'))throw Error('Supabase no devolvió el enlace HTTPS de la foto.');
-    await rpc('rf_domino_bot_template_v18',{p_slot:i,p_name:q('mf18Name'+i).value.trim()||'Jugador '+i,
-      p_difficulty:Number(q('mf18Level'+i).value),p_avatar:url});
+    await rpc('rf_domino_bot_save_template_v195',{p_slot:i,p_name:q('mf18Name'+i).value.trim()||'Jugador '+i,
+      p_difficulty:Number(q('mf18Level'+i).value),p_avatar:url,p_seconds:Number(q('mf195Speed'+i).value)});
     q('mf18Avatar'+i).value=url;photo.src=url;
     label.textContent='Fotografía guardada correctamente.';
     status('La nueva foto del robot '+i+' está guardada y aparecerá en las mesas.');window.mf19Toast?.('Foto del robot '+i+' guardada');
@@ -8351,9 +8428,10 @@ function mfShowVerifiedTieWin(result,key,uid){
     rpc('rf_domino_bot_admin_v18'),
     rpc('rf_domino_get_lobby_v11'),
     rpc('rf_domino_bot_config_v19'),
-    rpc('rf_domino_bot_health_status_v19')
+    rpc('rf_domino_bot_health_status_v19'),
+    rpc('rf_domino_bot_speeds_v195')
   ]);
-  let [fundResult,lobbyResult,configResult,healthResult]=calls;
+  let [fundResult,lobbyResult,configResult,healthResult,speedsResult]=calls;
   let data=fundResult.status==='fulfilled'?fundResult.value:null;
   let recovery=null;
   if(!data){
@@ -8380,12 +8458,16 @@ function mfShowVerifiedTieWin(result,key,uid){
   const received=String(data?.receive_public_id||recovery?.receive_public_id||fund?.wallet_public_id||'');
   q('mf18ReceiveId').textContent=/^[0-9]{6}$/.test(received)?received:(fund?'ID pendiente de revisión':'No disponible');
   if(data){
+    const speedList=speedsResult.status==='fulfilled'&&Array.isArray(speedsResult.value)?speedsResult.value:[];
     for(const tpl of data.templates||[]){const i=Number(tpl.slot);if(i<1||i>3)continue;
       q('mf18Name'+i).value=tpl.display_name||'';
       q('mf18Avatar'+i).value=tpl.avatar_url||'';
       q('mf184Preview'+i).src=tpl.avatar_url||mf184EmptyPhoto;
       q('mf18Level'+i).value=Number(tpl.difficulty??50);
       q('mf18LevelLabel'+i).textContent=q('mf18Level'+i).value+'%';
+      const speed=Number(speedList.find(x=>Number(x.slot)===i)?.play_delay_seconds??3);
+      q('mf195Speed'+i).value=String(Math.max(1,Math.min(10,speed)));
+      q('mf195SpeedLabel'+i).textContent=q('mf195Speed'+i).value+' s';
     }
     const movements=q('mf18History');movements.replaceChildren();
     if(!(data.history||[]).length)movements.textContent='Sin movimientos.';
@@ -8393,7 +8475,7 @@ function mfShowVerifiedTieWin(result,key,uid){
   }
   buildTables(false);
   if(!q('mf192AllTablesPage').hidden)buildTables(true);
-  const failed=calls.map((call,i)=>call.status==='rejected'?['Fondo','Mesas','Configuración BOTS','Motor'][i]:null).filter(Boolean);
+  const failed=calls.map((call,i)=>call.status==='rejected'?['Fondo','Mesas','Configuración BOTS','Motor','Rapidez de robots'][i]:null).filter(Boolean);
   if(!data&&!recovery)failed.push('Lectura de rescate del fondo');
   if(failed.length)status('Carga parcial: no respondió '+failed.join(', ')+'. Los saldos y el ID NO se han borrado por este aviso.',true);
   else status('Panel, ID del fondo y mesas actualizados desde Supabase.');
@@ -8401,9 +8483,10 @@ function mfShowVerifiedTieWin(result,key,uid){
  async function saveTemplate(i){
   if(!leader()||botsBusy)return;botsBusy=true;
   try{
-   await rpc('rf_domino_bot_template_v18',{p_slot:i,p_name:q('mf18Name'+i).value.trim(),
-    p_difficulty:Number(q('mf18Level'+i).value),p_avatar:q('mf18Avatar'+i).value.trim()});
-   status('Nombre, fotografía y dificultad del robot '+i+' guardados.');window.mf19Toast?.('Robot '+i+': configuración confirmada por Supabase');
+   await rpc('rf_domino_bot_save_template_v195',{p_slot:i,p_name:q('mf18Name'+i).value.trim(),
+    p_difficulty:Number(q('mf18Level'+i).value),p_avatar:q('mf18Avatar'+i).value.trim(),
+    p_seconds:Number(q('mf195Speed'+i).value)});
+   status('Nombre, fotografía, dificultad y rapidez del robot '+i+' guardados en Supabase.');window.mf19Toast?.('Robot '+i+': configuración confirmada por Supabase');
   }catch(e){status(errText(e),true);}finally{botsBusy=false;}
  }
  async function moneyAction(action){
