@@ -2543,7 +2543,7 @@ function enforceExclusiveAudio(domain,enabled){
 function setSoundSwitchUI(){
   const sw=$('soundSwitch'),label=$('soundSwitchLabel');
   const roulettePref=rouletteSoundPreferenceEnabled(),dominoPref=dominoSoundPreferenceEnabled();
-  const rouletteOn=audioSessionArmed&&roulettePref,dominoOn=audioSessionArmed&&dominoPref;
+  const rouletteOn=audioSessionArmed&&roulettePref,dominoOn=audioSessionArmed&&dominoPref&&webAudioRunning();
   if(sw)sw.checked=roulettePref;
   if(label)label.textContent=rouletteOn?'🔊 Sonido Ruleta':(roulettePref?'🔈 Toca para activar Ruleta':'🔇 Sonido Ruleta');
   const rb=$('rouletteSoundBtn');
@@ -3705,9 +3705,12 @@ if($('rouletteSoundBtn'))$('rouletteSoundBtn').addEventListener('click',async()=
     setSoundSwitchUI();
   }
 });
+if($('dominoSoundBtn'))$('dominoSoundBtn').addEventListener(immediatePressEvent,()=>{
+  if(!dominoSoundPreferenceEnabled()||!audioSessionArmed||!webAudioRunning())armAudioFromGesture(true);
+},{capture:true,passive:true});
 if($('dominoSoundBtn'))$('dominoSoundBtn').addEventListener('click',async()=>{
   const pref=dominoSoundPreferenceEnabled();
-  if(pref&&!audioSessionArmed){
+  if(pref&&(!audioSessionArmed||!webAudioRunning())){
     armAudioFromGesture(true);
     await unlockAudio().catch(()=>false);
     setSoundSwitchUI();
@@ -3726,9 +3729,11 @@ if($('dominoSoundBtn'))$('dominoSoundBtn').addEventListener('click',async()=>{
     await unlockAudio().catch(()=>false);
   }
   setSoundSwitchUI();
-  if(enabled&&dominoSoundIsEnabled()){
-    playOscTone(610,.055,.035,'triangle',860,0,'domino');
-    playOscTone(970,.045,.018,'sine',1180,.035,'domino');
+  if(enabled&&dominoSoundIsEnabled()&&webAudioRunning()){
+    playOscTone(610,.085,.065,'triangle',860,0,'domino');
+    playOscTone(970,.070,.035,'sine',1180,.045,'domino');
+  }else if(enabled&&!webAudioRunning()){
+    window.mf19Toast?.('El navegador no pudo activar el audio. Toca de nuevo el botón de sonido.', 'warn');
   }
 });
 
@@ -7706,6 +7711,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
           const until=Date.parse(handState.turn_deadline||'');
           const secs=Number.isFinite(until)?Math.max(0,Math.ceil((until-mfDominoNow())/1000)):null;
           spectatorText=secs===null?'Observando · turno en curso':(secs===0 && mfDominoNow()-until>10000?'Observando · esperando al motor de juego':`Observando · turno <span class="domino-timer">${secs}</span> s`);
+          if(secs!==null)dominoUrgentTick(handState,secs); // Cuenta regresiva audible para espectadores
         }
         center.innerHTML=spectatorText;
         center.classList.remove('playing-quiet');
