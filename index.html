@@ -4,13 +4,13 @@
 <!DOCTYPE html>
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html lang="es" data-app-build="0.01">
+<html lang="es" data-app-build="0.02">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="application-version" content="0.01">
+<meta name="application-version" content="0.02">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -19,7 +19,7 @@
 <meta name="apple-mobile-web-app-title" content="Domino Flash Coin">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest?v=0.01">
-<title>Domino Flash Coin — 0.01</title>
+<title>Domino Flash Coin — 0.02</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -1723,6 +1723,11 @@ input,textarea{touch-action:auto}
   #appView .stake-row,#appView .stake-row button,#appView .stake-row .stake{min-height:38px!important;height:38px!important}
 }
 
+
+/* Version 0.02: proteccion de usuarios en chat de domino */
+.dfc-mod-actions{display:flex;gap:5px;justify-content:flex-end;margin-top:4px;flex-wrap:wrap}
+.dfc-mod-actions button{background:#172438;color:#f6f8ff;border:1px solid #6b7791;border-radius:8px;padding:5px 8px;font-size:11px}
+#dominoModerationMsg{font-size:12px;min-height:18px;margin-top:5px;color:#fcd06a}
 </style>
 
 <style id="mfV01RealisticDominoFinal">
@@ -2406,7 +2411,7 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
     <input id="dominoChatInput" class="field" maxlength="200" placeholder="Escribe un mensaje…" autocomplete="off" inputmode="text" enterkeyhint="send" aria-label="Escribe tu mensaje">
     <button id="dominoChatSendBtn" type="button" class="action green">Enviar</button>
   </div>
-  <div id="dominoChatMsg" class="msg"></div>
+  <div id="dominoChatMsg" class="msg"></div><div id="dominoModerationMsg" role="status" aria-live="polite"></div>
 </div></div>
 
 <div id="dominoUserMessagesPanel" class="overlay"><div class="panel domino-chat-panel">
@@ -2434,7 +2439,7 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 
 <div id="promoterPanel" class="overlay"><div class="panel"><button class="close" data-close="promoterPanel">✕</button><h2>💼 Panel de Promotor</h2><div class="stat-grid"><div class="stat"><b id="promRegistered">0</b><span class="tiny">Registrados</span></div><div class="stat"><b id="promOnline">0</b><span class="tiny">Jugando ahora</span></div></div><h3>Mi WhatsApp</h3><input id="promWhatsApp" class="field" type="tel" inputmode="tel" autocomplete="tel" placeholder="Ej: 18095551234"><div id="whatsappPreview" class="whatsapp-preview"></div><button id="saveWhatsAppBtn" class="action green">Confirmar / Guardar WhatsApp</button><h3>Buscar usuario por ID</h3><div class="row"><input id="promSearchId" class="field" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"><button id="promSearchBtn" class="action blue">Buscar</button></div><div id="promSearchResult"></div></div></div>
 
-<div id="promUserPanel" class="overlay"><div class="panel"><button class="close" data-close="promUserPanel">✕</button><h2>Destino Flash Coin</h2><div id="promUserCard" class="card"></div><input id="promAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="promSendBtn" class="action green">Enviar Flash Coin</button><div id="promUserMsg" class="msg"></div></div></div>
+<div id="promUserPanel" class="overlay"><div class="panel"><button class="close" data-close="promUserPanel">✕</button><h2>Destino Flash Coin</h2><div id="promUserCard" class="card"></div><input id="promAmount" class="field" type="number" min="0.001" step="0.001" placeholder="Monto FC"><button id="promSendBtn" class="action green">Enviar Flash Coin</button><button id="promRequestBtn" class="action">Solicitar Flash Coin</button><div id="promUserMsg" class="msg"></div></div></div>
 
 <div id="promActionFlash" class="action-confirm-flash"></div>
 <div id="promConfirmPanel" class="overlay"><div class="panel"><button class="close" data-close="promConfirmPanel">✕</button><h2 id="promConfirmTitle">Confirmar operación</h2><div id="promConfirmContent"></div><div class="request-actions"><button id="promConfirmCancelBtn" type="button" class="action red">Cancelar</button><button id="promConfirmDoBtn" type="button" class="action green">Confirmar</button></div><div id="promConfirmMsg" class="msg"></div></div></div>
@@ -2543,7 +2548,7 @@ function enforceExclusiveAudio(domain,enabled){
 function setSoundSwitchUI(){
   const sw=$('soundSwitch'),label=$('soundSwitchLabel');
   const roulettePref=rouletteSoundPreferenceEnabled(),dominoPref=dominoSoundPreferenceEnabled();
-  const rouletteOn=audioSessionArmed&&roulettePref,dominoOn=audioSessionArmed&&dominoPref&&webAudioRunning();
+  const rouletteOn=audioSessionArmed&&roulettePref,dominoOn=audioSessionArmed&&dominoPref;
   if(sw)sw.checked=roulettePref;
   if(label)label.textContent=rouletteOn?'🔊 Sonido Ruleta':(roulettePref?'🔈 Toca para activar Ruleta':'🔇 Sonido Ruleta');
   const rb=$('rouletteSoundBtn');
@@ -3705,12 +3710,9 @@ if($('rouletteSoundBtn'))$('rouletteSoundBtn').addEventListener('click',async()=
     setSoundSwitchUI();
   }
 });
-if($('dominoSoundBtn'))$('dominoSoundBtn').addEventListener(immediatePressEvent,()=>{
-  if(!dominoSoundPreferenceEnabled()||!audioSessionArmed||!webAudioRunning())armAudioFromGesture(true);
-},{capture:true,passive:true});
 if($('dominoSoundBtn'))$('dominoSoundBtn').addEventListener('click',async()=>{
   const pref=dominoSoundPreferenceEnabled();
-  if(pref&&(!audioSessionArmed||!webAudioRunning())){
+  if(pref&&!audioSessionArmed){
     armAudioFromGesture(true);
     await unlockAudio().catch(()=>false);
     setSoundSwitchUI();
@@ -3729,11 +3731,9 @@ if($('dominoSoundBtn'))$('dominoSoundBtn').addEventListener('click',async()=>{
     await unlockAudio().catch(()=>false);
   }
   setSoundSwitchUI();
-  if(enabled&&dominoSoundIsEnabled()&&webAudioRunning()){
-    playOscTone(610,.085,.065,'triangle',860,0,'domino');
-    playOscTone(970,.070,.035,'sine',1180,.045,'domino');
-  }else if(enabled&&!webAudioRunning()){
-    window.mf19Toast?.('El navegador no pudo activar el audio. Toca de nuevo el botón de sonido.', 'warn');
+  if(enabled&&dominoSoundIsEnabled()){
+    playOscTone(610,.055,.035,'triangle',860,0,'domino');
+    playOscTone(970,.045,.018,'sine',1180,.035,'domino');
   }
 });
 
@@ -3957,14 +3957,13 @@ $('promSearchBtn').onclick=async()=>{
   };
 };
 $('promSendBtn').onclick=async()=>promAction('send');
-// 0.01: los promotores solo envían Flash Coin gratuitos; no solicitan.
+$('promRequestBtn').onclick=async()=>promAction('request');
 async function promAction(kind){
-  if(kind!=='send')return msg('promUserMsg','Esta operación no está disponible para promotores.');
   if(me?.role!=='promoter')return msg('promUserMsg','Ya no tienes permiso de promotor.');
   if(!selectedPromUser)return msg('promUserMsg','Busca y abre primero el usuario.');
   const amount=Number($('promAmount').value);
   if(!(amount>0))return msg('promUserMsg','Monto inválido.');
-  const fn='rf_promoter_send_fc_v04';
+  const fn=kind==='send'?'rf_promoter_send_fc_v04':'rf_promoter_request_fc';
   const {data,error}=await sb.rpc(fn,{p_public_id:selectedPromUser.public_id,p_amount:amount});
   if(error)return msg('promUserMsg',errText(error));
   if(kind==='send'){
@@ -4436,7 +4435,6 @@ function openPromConfirmation(kind,amount,user){
   setTimeout(()=>show('promConfirmPanel'),145);
 }
 promAction=async function(kind){
-  if(kind!=='send')return msg('promUserMsg','Los promotores solo pueden enviar Flash Coin gratuitos.');
   if(me?.role!=='promoter')return msg('promUserMsg','Ya no tienes permiso de promotor.');
   if(!selectedPromUser)return msg('promUserMsg','Busca y abre primero el destino.');
   const amount=Number($('promAmount').value);
@@ -4452,8 +4450,7 @@ $('promConfirmDoBtn').onclick=async()=>{
   const btn=$('promConfirmDoBtn'),oldText=btn.textContent;btn.disabled=true;btn.textContent='Procesando...';
   try{
     if(me?.role!=='promoter')throw new Error('Ya no tienes permiso de promotor.');
-    if(op.kind!=='send')throw new Error('La solicitud de Flash Coin no está disponible para promotores.');
-    const fn='rf_promoter_send_fc_v08';
+    const fn=op.kind==='send'?'rf_promoter_send_fc_v08':'rf_promoter_request_fc_v08';
     let data,error;
     if(op.kind==='send'&&op.target_type==='bot_fund'){
       try{data=await mf183SendToBots(op.public_id,op.amount,'promoter');}catch(e){error=e;}
@@ -5444,6 +5441,48 @@ function dominoHandleMoveEffects(st){
   return {animate:action.includes('PLAY')};
 }
 
+
+// CHAT PROTEGIDO 0.02: no altera el motor de juego ni la ruleta.
+let dfcBlockedUsers=new Set();
+async function dfcReloadBlocked(){
+  const {data,error}=await sb.rpc('dfc_mod_blocked_list_v002');
+  if(error){console.warn('No se pudieron cargar los bloqueos',error);return false;}
+  dfcBlockedUsers=new Set((data||[]).map(v=>String(v)));
+  return true;
+}
+function dfcVisibleMessages(rows){
+  return (Array.isArray(rows)?rows:[]).filter(r=>!dfcBlockedUsers.has(String(r.user_id)));
+}
+function dfcMessageActions(r){
+  const userId=String(r.user_id||'');
+  if(!userId||userId===String(dominoState?.me||''))return '';
+  return `<div class="dfc-mod-actions"><button type="button" data-dfc-report="${esc(userId)}">⚑ Denunciar</button><button type="button" data-dfc-block="${esc(userId)}">🚫 Bloquear</button></div>`;
+}
+function dfcModerationFeedback(t){
+  const el=$('dominoModerationMsg');if(el)el.textContent=t;
+}
+async function dfcReportUser(userId){
+  const reason=window.prompt('Motivo de la denuncia (acoso, insultos, spam u otro):','Comportamiento inapropiado en el chat');
+  if(reason===null)return;
+  if(!reason.trim()){dfcModerationFeedback('Escribe el motivo de la denuncia.');return;}
+  const {error}=await sb.rpc('dfc_mod_report_user_v002',{p_target_user:userId,p_table_id:dominoCurrentTableId,p_reason:reason.trim()});
+  dfcModerationFeedback(error?'No se pudo denunciar: '+errText(error):'Denuncia recibida para revisión por administración.');
+}
+async function dfcBlockUser(userId){
+  if(!window.confirm('¿Bloquear a este usuario? Dejarás de ver sus mensajes en el chat.'))return;
+  const {error}=await sb.rpc('dfc_mod_block_user_v002',{p_target_user:userId});
+  if(error){dfcModerationFeedback('Error: '+errText(error));return;}
+  dfcBlockedUsers.add(String(userId));
+  dfcModerationFeedback('Usuario bloqueado. Sus mensajes quedarán ocultos.');
+  await loadDominoChat(true);
+}
+document.addEventListener('click',e=>{
+  const report=e.target.closest('[data-dfc-report]');
+  const block=e.target.closest('[data-dfc-block]');
+  if(report){e.preventDefault();dfcReportUser(report.getAttribute('data-dfc-report')).catch(console.error);}
+  if(block){e.preventDefault();dfcBlockUser(block.getAttribute('data-dfc-block')).catch(console.error);}
+});
+
 let dominoChatLastLoadAt=0,dominoToastTimer=null;
 let dominoDealAnimationHandId=null;
 
@@ -5477,7 +5516,8 @@ async function loadDominoChat(force=false){
     $('dominoChatList').innerHTML=`<div class="tiny">${esc(errText(error))}</div>`;
     return;
   }
-  const rows=data||[];
+  await dfcReloadBlocked();
+  const rows=dfcVisibleMessages(data||[]);
   renderDominoMiniChat(rows);
   rows.forEach(r=>{if(String(r.kind||'text')==='text'&&String(r.message||'').trim())dominoUserMessageCache.set(String(r.user_id),r)});
   dominoUpdateUserMessageButtons();
@@ -5485,7 +5525,7 @@ async function loadDominoChat(force=false){
     const mine=String(r.user_id)===String(dominoState?.me);
     return `<div class="domino-chat-line ${mine?'me':''} ${r.kind==='reaction'?'reaction':''}">
       <div><span class="who">${esc(r.full_name||r.public_id||'Jugador')}</span><span class="when">${esc(dominoFormatClock(r.created_at))}</span></div>
-      <div class="body">${esc(r.message)}</div>
+      <div class="body">${esc(r.message)}</div>${dfcMessageActions(r)}
     </div>`;
   }).join(''):'<div class="tiny">Todavía no hay mensajes en esta mesa.</div>';
   $('dominoChatList').scrollTop=$('dominoChatList').scrollHeight;
@@ -5493,7 +5533,7 @@ async function loadDominoChat(force=false){
 async function sendDominoChat(message,kind='text'){
   const text=String(message||'').trim();
   if(!dominoCurrentTableId||!text)return false;
-  const {error}=await sb.rpc('rf_domino_chat_send_v150',{p_table_id:dominoCurrentTableId,p_message:text,p_kind:kind});
+  const {error}=await sb.rpc('dfc_mod_chat_send_v002',{p_table_id:dominoCurrentTableId,p_message:text,p_kind:kind});
   if(error){msg('dominoChatMsg',errText(error));return false}
   msg('dominoChatMsg','');
   await loadDominoChat(true);
@@ -5513,7 +5553,8 @@ async function openDominoUserMessages(userId,userName='Jugador'){
   show('dominoUserMessagesPanel');
   const {data,error}=await sb.rpc('rf_domino_chat_list_v150',{p_table_id:dominoCurrentTableId,p_limit:40});
   if(error){$('dominoUserMessagesList').innerHTML=`<div class="tiny">${esc(errText(error))}</div>`;return}
-  const rows=(data||[]).filter(r=>String(r.user_id)===String(userId)&&String(r.kind||'text')==='text');
+  await dfcReloadBlocked();
+  const rows=dfcVisibleMessages(data||[]).filter(r=>String(r.user_id)===String(userId)&&String(r.kind||'text')==='text');
   $('dominoUserMessagesList').innerHTML=rows.length?rows.map(r=>`<div class="domino-chat-line"><div><span class="who">${esc(r.full_name||r.public_id||userName)}</span><span class="when">${esc(dominoFormatClock(r.created_at))}</span></div><div class="body">${esc(r.message)}</div></div>`).join(''):'<div class="tiny">Este jugador todavía no ha enviado mensajes de texto.</div>';
   $('dominoUserMessagesList').scrollTop=$('dominoUserMessagesList').scrollHeight;
 }
@@ -5568,7 +5609,7 @@ async function syncDominoTableMessages(force=false){
   dominoTableMessageCheckAt=Date.now();
   const {data,error}=await sb.rpc('rf_domino_chat_list_v150',{p_table_id:dominoCurrentTableId,p_limit:20});
   if(error)return;
-  const rows=data||[];renderDominoMiniChat(rows);if(!rows.length)return;
+  await dfcReloadBlocked();const rows=dfcVisibleMessages(data||[]);renderDominoMiniChat(rows);if(!rows.length)return;
   rows.forEach(r=>{if(String(r.kind||'text')==='text'&&String(r.message||'').trim())dominoUserMessageCache.set(String(r.user_id),r)});
   dominoUpdateUserMessageButtons();
   const row=rows[rows.length-1];
@@ -7322,7 +7363,7 @@ body.domino-spectating #dominoReadyBtn,
 body.domino-spectating #dominoMiniChat,
 body.domino-spectating #dominoAllMessagesBtn,
 body.domino-spectating #dominoEmojiTray{display:none!important}
-body.domino-spectating #dominoCenterStatus{display:block!important;visibility:visible!important;top:11%!important;min-width:120px!important;max-width:48%!important;padding:5px 8px!important;pointer-events:none!important;font-size:11px!important}
+body.domino-spectating #dominoCenterStatus{display:none!important}
 body.domino-spectating #dominoSurrenderBtn{display:grid!important;background:rgba(8,25,39,.92)!important;border-color:rgba(99,190,255,.62)!important}
 body.domino-spectating #dominoSurrenderBtn:after{content:"↩";font-size:15px;color:#c9edff;position:absolute}
 body.domino-spectating #dominoSurrenderBtn{font-size:0!important;position:relative}
@@ -7444,7 +7485,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 
   const spectatorRequest=async id=>{
     const res=await Promise.race([
-      sb.rpc('dfc_domino_spectate_state_v001',{p_table_id:Number(id)}),
+      sb.rpc('rf_domino_spectate_state_v110',{p_table_id:Number(id)}),
       new Promise((_,reject)=>setTimeout(()=>reject(Error('La mesa tardó demasiado en responder. Pulsa Ver mesa otra vez.')),10000))
     ]);
     if(res.error)throw res.error;
@@ -7661,12 +7702,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
   if(typeof originalStartPolling==='function')window.dominoStartPolling=function(){
     if(!spectatorMode)return originalStartPolling();
     clearInterval(dominoPollTimer);
-    mfDominoSyncClock().catch(()=>{});
-    dominoPollTimer=setInterval(()=>{
-      if(!dominoCurrentTableId)return;
-      mfDominoSyncClock().catch(()=>{});
-      loadDominoState(false,true).catch(()=>dominoSetSyncState('Espectador: reconectando…','warn'));
-    },1000);
+    dominoPollTimer=setInterval(()=>{if(dominoCurrentTableId)loadDominoState(false,true).catch(()=>{})},1000);
   };
   const originalSyncMessages=window.syncDominoTableMessages;
   if(typeof originalSyncMessages==='function')window.syncDominoTableMessages=async function(){if(spectatorMode)return true;return originalSyncMessages.apply(this,arguments)};
@@ -7697,25 +7733,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     if(spectatorMode){
       const hand=document.getElementById('dominoHand');if(hand)hand.innerHTML='';
       const ready=document.getElementById('dominoReadyBtn');if(ready)ready.classList.add('hidden');
-      // En espectador el reloj también es visible: nunca llama tick ni ejecuta bots.
-      // El progreso de la mano continúa siendo responsabilidad exclusiva de Supabase.
-      const center=document.getElementById('dominoCenterStatus');
-      if(center){
-        const handState=st?.hand||null;
-        let spectatorText='Observando · esperando reparto';
-        if(handState?.status==='shuffling'){
-          const until=Date.parse(handState.play_starts_at||'');
-          const secs=Number.isFinite(until)?Math.max(0,Math.ceil((until-mfDominoNow())/1000)):null;
-          spectatorText=secs===null?'Observando · preparando fichas':`Observando · reparto en <span class="domino-timer">${secs}</span> s`;
-        }else if(handState?.status==='playing'){
-          const until=Date.parse(handState.turn_deadline||'');
-          const secs=Number.isFinite(until)?Math.max(0,Math.ceil((until-mfDominoNow())/1000)):null;
-          spectatorText=secs===null?'Observando · turno en curso':(secs===0 && mfDominoNow()-until>10000?'Observando · esperando al motor de juego':`Observando · turno <span class="domino-timer">${secs}</span> s`);
-          if(secs!==null)dominoUrgentTick(handState,secs); // Cuenta regresiva audible para espectadores
-        }
-        center.innerHTML=spectatorText;
-        center.classList.remove('playing-quiet');
-      }
+      const center=document.getElementById('dominoCenterStatus');if(center){center.innerHTML='';center.classList.add('playing-quiet')}
       updateSpectatorBar();
     }
     return r;
@@ -8669,11 +8687,9 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   const botsV19=configResult.status==='fulfilled'?configResult.value:null;
   const health=healthResult.status==='fulfilled'?healthResult.value:null;
   adminState={...(data||{}),lobby,botsV19,health};
-  q('mf19ServerHealth').textContent=(health?.running&&Number(health?.recent_table_errors||0)>0)
-    ?'🟠 Motor ejecutándose, pero hay '+Number(health.recent_table_errors)+' errores recientes de mesa · revisar registro SQL'
-    :health?.running?'🟢 Motor del servidor ACTIVO · último ciclo reciente':
-    health?'🟠 Motor sin actividad reciente: revisa Supabase Cron':
-    '🔴 No se pudo consultar el estado del motor (SQL 0.01 o RPC falló)';
+  q('mf19ServerHealth').textContent=health?.running?'🟢 Motor del servidor ACTIVO · último ciclo reciente':
+    health?'🟠 Motor no confirmado: revisa Supabase Cron':
+    '🔴 No se pudo consultar el estado del motor (SQL 1.9 pendiente o RPC falló)';
   tableList=Array.isArray(lobby?.tables)?lobby.tables:[];
   const fund=(data?.fund||recovery?.fund)||null;
   if(fund){
