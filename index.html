@@ -1,15 +1,15 @@
-<!-- MAIKET FLASH 1.9.8 · Ajuste de sincronizacion de asiento + servidor SQL 1.9.8.
+<!-- MAIKET FLASH 1.9.9 · Asientos reservados antes de cada mano + rapidez real.
      La lógica de premios, saldos y partidas original se conserva. -->
 <!DOCTYPE html>
 <!-- MAIKET FLASH 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html lang="es" data-app-build="1.9.6">
+<html lang="es" data-app-build="1.9.9">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="application-version" content="1.9.6">
+<meta name="application-version" content="1.9.9">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -18,7 +18,7 @@
 <meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest?v=0.1-stable-4">
-<title>MAIKET FLASH — 1.9.6 · Dominó, Ruleta y Póker en desarrollo</title>
+<title>MAIKET FLASH — 1.9.9 · Dominó, Ruleta y Póker en desarrollo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -8276,7 +8276,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
  const overlay=document.createElement('div');overlay.id='mfBots17Panel';overlay.className='overlay';
  overlay.innerHTML=`<div class="panel mf17-panel">
  <button type="button" class="close" id="mf18Close" aria-label="Cerrar panel">✕</button>
- <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.7</p>
+ <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.9</p>
  <div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor automático de Supabase…</div>
  <div id="mf197WorkerErrors" class="mf17-hint" aria-live="polite"></div>
  <section id="mf192MainScreen" class="mf192-main-screen">
@@ -8293,6 +8293,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   <div class="mf17-card mf192-search-section">
    <h3>🎯 Asignar robots por ID</h3>
    <p class="mf17-hint">Copia el ID pequeño de una mesa en Juegos → Dominó, pégalo aquí y búscala. Después selecciona de 0 a 3 robots.</p>
+   <p class="mf17-hint">Regla automática: al finalizar cada mano, sale un bot si entró otro jugador real. Siempre queda un asiento reservado para la próxima persona.</p>
    <div class="mf19-search"><label for="mf19TableFind">ID de la mesa</label><input id="mf19TableFind" type="text" inputmode="numeric" placeholder="Pegar ID de mesa" maxlength="18"><button type="button" id="mf19SearchBtn">🔎 Buscar</button><button type="button" id="mf19ShowAll">Limpiar</button></div>
    <div id="mf18Tables" aria-live="polite"><p class="mf192-table-hint">Pega el ID de la mesa y pulsa Buscar.</p></div>
   </div>
@@ -8582,10 +8583,20 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
  async function saveTemplate(i){
   if(!leader()||botsBusy)return;botsBusy=true;
   try{
-   await rpc('rf_domino_bot_save_template_v195',{p_slot:i,p_name:q('mf18Name'+i).value.trim(),
+   const chosenSeconds=Number(q('mf195Speed'+i).value);
+   const saved=await rpc('rf_domino_bot_save_template_v195',{p_slot:i,p_name:q('mf18Name'+i).value.trim(),
     p_difficulty:Number(q('mf18Level'+i).value),p_avatar:q('mf18Avatar'+i).value.trim(),
-    p_seconds:Number(q('mf195Speed'+i).value)});
-   status('Nombre, fotografía, dificultad y rapidez del robot '+i+' guardados en Supabase.');window.mf19Toast?.('Robot '+i+': configuración confirmada por Supabase');
+    p_seconds:chosenSeconds});
+   if(saved?.ok===false)throw Error('Supabase rechazó el guardado de rapidez.');
+   // Consultar de nuevo el servidor: no confirmar 3 s solo porque movimos la barra.
+   const speeds=await rpc('rf_domino_bot_speeds_v195');
+   const confirmed=Array.isArray(speeds)?speeds.find(s=>Number(s.slot)===i):null;
+   if(!confirmed||Number(confirmed.play_delay_seconds)!==chosenSeconds)
+     throw Error('La rapidez no coincide con el valor guardado en Supabase.');
+   q('mf195Speed'+i).value=String(chosenSeconds);
+   q('mf195SpeedLabel'+i).textContent=chosenSeconds+' s';
+   status('Robot '+i+': nombre, foto y dificultad guardados; rapidez '+chosenSeconds+' s comprobada en Supabase.');
+   window.mf19Toast?.('Robot '+i+': rapidez '+chosenSeconds+' s guardada');
   }catch(e){status(errText(e),true);}finally{botsBusy=false;}
  }
  async function moneyAction(action){
