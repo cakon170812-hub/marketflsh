@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <!-- MAIKET FLASH 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html lang="es" data-app-build="1.9.5">
+<html lang="es" data-app-build="1.9.6">
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta name="application-version" content="1.9.5">
+<meta name="application-version" content="1.9.6">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#05070d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest?v=0.1-stable-4">
-<title>MAIKET FLASH — 1.9.5 · Dominó, Ruleta y Póker en desarrollo</title>
+<title>MAIKET FLASH — 1.9.6 · Dominó, Ruleta y Póker en desarrollo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -7415,6 +7415,20 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     return enterSpectator(active[0].id);
   }
 
+  async function enterSpectatorForConfig(configId){
+    let lobby=dominoLobbyData||{};
+    try{
+      const latest=await sb.rpc('rf_domino_get_lobby_v11');
+      if(latest.error)throw latest.error;
+      lobby=latest.data||{};dominoLobbyData=lobby;
+    }catch(e){window.mf19Toast?.('No fue posible consultar las mesas: '+errText(e),'error');return false;}
+    const choices=(lobby.tables||[]).filter(t=>Number(t.config_id)===Number(configId)&&Number(t.players||0)>0)
+      .sort((a,b)=>Number(b.players||0)-Number(a.players||0)||Number(a.table_no||0)-Number(b.table_no||0));
+    spectatorTables=liveTables(lobby).sort((a,b)=>Number(a.config_id)-Number(b.config_id)||Number(a.table_no)-Number(b.table_no));
+    if(!choices.length){window.mf19Toast?.('No hay jugadores en esta modalidad para observar.','error');return false;}
+    return enterSpectator(choices[0].id);
+  }
+
   async function switchSpectatorTable(delta){
     if(!spectatorMode)return;
     await refreshSpectatorTables(true);
@@ -7446,16 +7460,18 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     const host=document.getElementById('dominoLobbyModes');if(!host)return;
     ensureLobbyWallet();
     const configs=(dominoLobbyData?.configs||[]),tables=dominoLobbyData?.tables||[],myTable=dominoLobbyData?.my_table,myState=dominoLobbyData?.my_state;
-    const spectatorOnly=noMainBalance()&&!myTable;
     host.innerHTML=configs.map((c,idx)=>{
+      const minimum=Number(c.min_entry||0);
+      const insufficientBalance=!myTable && mainBalance()+0.0000001<minimum;
       const tt=tables.filter(t=>Number(t.config_id)===Number(c.id));
       const players=tt.reduce((a,t)=>a+Number(t.players||0),0);
       const active=tt.filter(t=>['playing','shuffling'].includes(String(t.hand_status||''))&&Number(t.players||0)>0);
       const full=tt.length>0&&tt.every(t=>Number(t.players||0)>=4);
+      const spectatorOnly=insufficientBalance||(!myTable&&full);
       const status=active.length?'Jugando':(full?'Llena':'Esperando');
       const statusClass=active.length?'playing':(full?'full':'');
       const desc=c.mode==='paid_pass'?'Pase paga · crédito directo al saldo de mesa':'Pase no paga · modalidad clásica';
-      const action=spectatorOnly?'VER MESA MÁS LLENA':'JUGAR EN ESTA MESA';
+      const action=spectatorOnly?'VER MESA':'JUGAR EN ESTA MESA';
       return `<div class="domino-choice-card" data-config-card="${c.id}">
         <div class="domino-premium-card-head"><h3>${esc(c.name)}</h3><span class="domino-premium-status ${statusClass}"><i></i>${status}</span></div>
         <div class="domino-premium-card-body">
@@ -7472,7 +7488,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
       </div>`;
     }).join('');
     if(myTable)host.insertAdjacentHTML('afterbegin',myState==='abandoned'?`<div class="card"><strong>Salida confirmada</strong><div class="tiny">Tu asiento terminará esta mano automáticamente y después quedará libre.</div></div>`:`<div class="card"><strong>Tu asiento sigue activo</strong><div class="tiny">Puedes volver a tu mesa y continuar la mano si todavía no ha terminado.</div><button id="dominoResumeTableBtn" class="action blue">VOLVER A MI MESA</button></div>`);
-    host.querySelectorAll('.domino-join-mode').forEach(b=>b.onclick=()=>spectatorOnly?enterBestSpectator():openDominoBuyin(Number(b.dataset.config)));
+    host.querySelectorAll('.domino-join-mode').forEach(b=>b.onclick=()=>b.classList.contains('spectator')?enterSpectatorForConfig(Number(b.dataset.config)):openDominoBuyin(Number(b.dataset.config)));
     host.querySelectorAll('.mf191-copy-table-id').forEach(btn=>btn.addEventListener('click',async e=>{
       e.preventDefault();e.stopPropagation();
       const code=btn.dataset.tableId||'';
@@ -7493,12 +7509,11 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     e.preventDefault();e.stopImmediatePropagation();
     dominoForceLandscape().catch(()=>{});
     try{await loadMe();renderMe()}catch(_){ }
-    if(noMainBalance()&&!dominoLobbyData?.my_table)await enterBestSpectator();
-    else await openDominoLobby();
+    await openDominoLobby();
   },true);
 
   const originalOpenBuyin=window.openDominoBuyin;
-  if(typeof originalOpenBuyin==='function')window.openDominoBuyin=function(configId){if(noMainBalance()&&!dominoLobbyData?.my_table)return enterBestSpectator();return originalOpenBuyin(configId)};
+  if(typeof originalOpenBuyin==='function')window.openDominoBuyin=function(configId){const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(configId));const ts=(dominoLobbyData?.tables||[]).filter(t=>Number(t.config_id)===Number(configId));const full=ts.length>0&&ts.every(t=>Number(t.players||0)>=4);if(!dominoLobbyData?.my_table && c && (mainBalance()+0.0000001<Number(c.min_entry||0)||full))return enterSpectatorForConfig(configId);return originalOpenBuyin(configId)};
 
   /* Polling de espectador: nunca heartbeat, nunca tick, solo lectura segura. */
   const originalHeartbeat=window.dominoHeartbeat;
@@ -8149,7 +8164,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
     state.seats=state.seats.map(s=>{
       const bot=byUser.get(String(s.user_id));
       if(!bot)return s;
-      return {...s,name:bot.name||s.name,avatar_url:bot.avatar_url||s.avatar_url,automated:true};
+      return {...s,name:s.full_name||s.name||bot.name,avatar_url:s.avatar_url||bot.avatar_url,automated:true};
     });
   }
   const ret=renderOld.apply(this,args);markBots();return ret;
@@ -8178,7 +8193,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
  const overlay=document.createElement('div');overlay.id='mfBots17Panel';overlay.className='overlay';
  overlay.innerHTML=`<div class="panel mf17-panel">
  <button type="button" class="close" id="mf18Close" aria-label="Cerrar panel">✕</button>
- <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.5</p>
+ <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.6</p>
  <div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor automático de Supabase…</div>
  <section id="mf192MainScreen" class="mf192-main-screen">
   <div class="mf17-card">
@@ -8528,6 +8543,164 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
 })();
 
 </script>
+<style id="mf196DominoStyle">
+
+/* MAIKET FLASH 1.9.6: perfiles, saldos de mesa y tranque sincronizado */
+#dominoSeats .domino-seat .domino-seat-name {
+  white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;
+  text-overflow:clip!important;overflow:visible!important;max-width:112px!important;
+  width:max-content!important;min-width:58px!important;text-align:center!important;
+  line-height:1.14!important;font-size:clamp(8px,1vw,11px)!important;
+  border-radius:9px!important;
+}
+#dominoSeats .domino-seat .seat-bal{visibility:visible!important;opacity:1!important;font-size:clamp(8px,1vw,11px)!important;white-space:normal!important}
+#dominoSeats .domino-seat .domino-avatar-photo{background-position:center!important;background-size:cover!important;opacity:1!important}
+#dominoSeats .domino-seat .domino-turn-ring{pointer-events:none!important}
+@media(max-width:620px){
+ #dominoSeats .domino-seat .domino-seat-name{max-width:90px!important;font-size:8px!important;line-height:1.05!important}
+ #dominoSeats .domino-seat .seat-bal{font-size:8px!important}
+}
+#mf196TranqueOverlay{position:absolute;inset:0;z-index:25000;display:none;align-items:center;justify-content:center;
+  padding:8px;box-sizing:border-box;background:rgba(1,8,12,.91);pointer-events:auto;overflow:auto}
+#mf196TranqueOverlay.show{display:flex}
+#mf196TranqueOverlay .mf196-report{max-width:min(700px,98%);width:100%;max-height:100%;overflow:auto;
+  background:linear-gradient(150deg,#102d28,#0b111c);border:1px solid #c7a550;border-radius:15px;
+  padding:10px;box-shadow:0 4px 35px #000}
+#mf196TranqueOverlay .mf196-title{font-size:clamp(16px,3vw,27px);color:#ffde77;font-weight:1000;text-align:center}
+#mf196TranqueOverlay .mf196-countdown{text-align:center;color:#d6f8ff;font-size:11px;font-weight:750;margin:5px 0}
+#mf196TranqueOverlay .mf196-players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+#mf196TranqueOverlay .mf196-player{min-width:0;background:rgba(0,0,0,.32);border:1px solid #566053;border-radius:10px;padding:6px;text-align:center}
+#mf196TranqueOverlay .mf196-player.mf196-winner{border-color:#f4ce65;background:rgba(129,103,10,.18)}
+#mf196TranqueOverlay .mf196-photo{width:35px;height:35px;margin:0 auto 3px;border-radius:50%;border:2px solid #d5be67;
+ background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;color:#e0d1a3;font-size:13px;font-weight:900}
+#mf196TranqueOverlay .mf196-name{color:#fff;font-size:clamp(9px,1.45vw,13px);font-weight:850;line-height:1.12;overflow-wrap:anywhere}
+#mf196TranqueOverlay .mf196-points{font-size:clamp(11px,2vw,16px);font-weight:950;color:#fbd771;margin:3px 0}
+#mf196TranqueOverlay .mf196-tiles{display:flex;gap:3px;align-items:center;justify-content:center;flex-wrap:wrap;min-height:27px}
+#mf196TranqueOverlay .mf196-tiles .domino-piece{margin:0!important;transform:scale(.62);transform-origin:center;width:38px!important;height:24px!important;flex:0 0 38px!important;}
+#mf196TranqueOverlay .mf196-hint{text-align:center;color:#b5d2c9;font-size:10px;margin-top:6px}
+
+</style>
+
+<script id="mfDomino196PerfilesYTranqueJS">
+(()=>{
+ 'use strict';
+ const $=id=>document.getElementById(id);
+ const escapeText=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const isTableVisible=()=>{
+  const p=$('dominoTablePanel');return !!(p&&p.classList.contains('active')&&dominoCurrentTableId);
+ };
+ const profiles=new Map();let latestTable=0,fetching=false,lastFetch=0,lastHash='',pendingReport=null,lastReportCheck=0,reportChecking=false;
+ function takePhoto(value,old){
+  const url=String(value||'').trim();
+  // Conservar última foto válida si el estado de un segundo llega incompleto.
+  if(url&&/^https:\/\//i.test(url))return url;
+  return old||'';
+ }
+ async function refreshProfiles(force=false){
+  if(!isTableVisible()||fetching)return;
+  const tableId=Number(dominoCurrentTableId);
+  if(!force && tableId===latestTable && Date.now()-lastFetch<5000)return;
+  fetching=true;lastFetch=Date.now();
+  try{
+   const {data,error}=await sb.rpc('rf_domino_public_seat_profiles_v196',{p_table_id:tableId});
+   if(error)throw error;
+   if(Number(dominoCurrentTableId)!==tableId)return;
+   const seats=Array.isArray(data)?data:[];
+   let changed=false;
+   for(const s of seats){
+    const id=String(s.user_id||'');if(!id)continue;
+    const old=profiles.get(id)||{};
+    const next={
+     name:String(s.full_name||s.name||old.name||'Jugador'),
+     avatar_url:takePhoto(s.avatar_url,old.avatar_url),
+     is_bot:!!s.automated,table_balance:s.table_balance
+    };
+    if(JSON.stringify(old)!==JSON.stringify(next))changed=true;
+    profiles.set(id,next);
+   }
+   latestTable=tableId;
+   if(changed&&dominoState&&Number(dominoCurrentTableId)===tableId){
+    // Solo refresca perfiles, sin regenerar el tablero ni volver a cobrar.
+    for(const seat of dominoState.seats||[]){
+     const p=profiles.get(String(seat.user_id));if(!p)continue;
+     seat.name=p.name;seat.full_name=p.name;seat.avatar_url=p.avatar_url||seat.avatar_url;
+     if(seat.table_balance==null&&p.table_balance!=null)seat.table_balance=p.table_balance;
+    }
+    if(typeof dominoRenderSeatsStable==='function')dominoRenderSeatsStable(dominoState);
+   }
+  }catch(e){console.warn('Perfiles de mesa 1.9.6:',e?.message||e)}
+  finally{fetching=false}
+ }
+ const oldRender=window.renderDominoState;
+ if(typeof oldRender==='function')window.renderDominoState=function(st,...args){
+  if(st&&Array.isArray(st.seats))for(const seat of st.seats){
+   const p=profiles.get(String(seat.user_id));if(!p)continue;
+   seat.name=p.name;seat.full_name=p.name;seat.avatar_url=p.avatar_url||seat.avatar_url;
+   if(seat.table_balance==null&&p.table_balance!=null)seat.table_balance=p.table_balance;
+  }
+  const result=oldRender.call(this,st,...args);
+  if(isTableVisible())refreshProfiles(false).catch(()=>{});
+  return result;
+ };
+ function ensureOverlay(){
+  const stage=$('dominoStage');if(!stage)return null;
+  let host=$('mf196TranqueOverlay');if(host)return host;
+  host=document.createElement('div');host.id='mf196TranqueOverlay';host.setAttribute('role','status');
+  host.setAttribute('aria-live','polite');stage.appendChild(host);return host;
+ }
+ const now=()=>typeof mfDominoNow==='function'?mfDominoNow():Date.now();
+ function timeLeft(report){const expiry=Date.parse(report?.expires_at||'');return Number.isFinite(expiry)?Math.max(0,expiry-now()):0}
+ function buildReport(report){
+  const host=ensureOverlay();if(!host)return;
+  const players=Array.isArray(report.players)?report.players:[];
+  const minimum=Math.min(...players.filter(p=>p.eligible!==false).map(p=>Number(p.points??999)));
+  const winnerCount=players.filter(p=>p.eligible!==false&&Number(p.points)===minimum).length;
+  const html=players.map(p=>{
+   const profile=profiles.get(String(p.user_id))||{};
+   const name=String(p.full_name||p.name||profile.name||'Jugador');
+   const avatar=takePhoto(p.avatar_url,profile.avatar_url);
+   const img=avatar?`<img src="${escapeText(avatar)}" alt="Foto de ${escapeText(name)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" loading="eager">`:escapeText(name.slice(0,1).toUpperCase());
+   const tiles=Array.isArray(p.tiles)?p.tiles:[];
+   const tilesHtml=tiles.map((t,i)=>typeof dominoPiece==='function'?dominoPiece(t,i,false,true):escapeText(JSON.stringify(t))).join('');
+   const winner=p.eligible!==false&&Number(p.points)===minimum;
+   return `<div class="mf196-player ${winner?'mf196-winner':''}"><div class="mf196-photo">${img}</div><div class="mf196-name">${escapeText(name)}</div><div class="mf196-points">${Number(p.points)||0} puntos ${winner?'★':''}</div><div class="mf196-tiles">${tilesHtml}</div></div>`;
+  }).join('');
+  host.innerHTML=`<div class="mf196-report"><div class="mf196-title">🁫 ¡TRANQUE! · Conteo de fichas</div><div class="mf196-countdown" id="mf196TranqueCountdown"></div><div class="mf196-players">${html}</div><div class="mf196-hint">${winnerCount>1?'Empate: el premio se distribuye según las reglas de la mesa.':'Menor cantidad de puntos gana la mano.'} · Las fichas se descubren solo después de terminar la mano.</div></div>`;
+  host.classList.add('show');
+ }
+ function displayReport(){
+  const host=$('mf196TranqueOverlay');if(!pendingReport){host?.classList.remove('show');return;}
+  const left=timeLeft(pendingReport);
+  if(left<=0){pendingReport=null;host?.classList.remove('show');return;}
+  const countdown=$('mf196TranqueCountdown');
+  if(countdown)countdown.textContent='Fichas descubiertas · '+Math.ceil(left/1000)+' segundos para continuar';
+ }
+ async function refreshReport(){
+  if(!isTableVisible()||reportChecking)return;
+  const tableId=Number(dominoCurrentTableId);
+  if(Date.now()-lastReportCheck<900)return;lastReportCheck=Date.now();reportChecking=true;
+  try{
+   const {data,error}=await sb.rpc('rf_domino_tranque_reveal_v196',{p_table_id:tableId});
+   if(error)throw error;
+   if(tableId!==Number(dominoCurrentTableId))return;
+   if(data?.hand_id&&timeLeft(data)>0){
+    const key=tableId+':'+String(data.hand_id);
+    if(lastHash!==key){lastHash=key;pendingReport=data;buildReport(data)}
+   }
+  }catch(e){if(!String(e?.message||'').includes('schema cache'))console.warn('Lectura de tranque:',e?.message||e)}
+  finally{reportChecking=false}
+ }
+ setInterval(()=>{
+  if(!isTableVisible()){pendingReport=null;$('mf196TranqueOverlay')?.classList.remove('show');lastHash='';return;}
+  const tid=Number(dominoCurrentTableId);
+  if(tid!==latestTable){profiles.clear();latestTable=0;lastHash='';pendingReport=null}
+  refreshProfiles(false).catch(()=>{});
+  refreshReport().catch(()=>{});
+  displayReport();
+ },350);
+})();
+</script>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
