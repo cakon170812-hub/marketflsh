@@ -9213,3 +9213,61 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
 <!-- HTML 1.2: Juegos abre directo al Dominó; lobby con solo dos mesas, fondo Dominó, tira de entrada, espera con spinner y sincronización Realtime + respaldo por polling. -->
 <!-- HTML 1.2.1: Corrección del botón Juegos: el panel de las dos mesas abre inmediatamente y carga Supabase dentro del panel. -->
 <!-- HTML 1.2.2: Reparación real del botón Juegos: se corrige el id malformed de dominoLobbyPanel y show/hide quedan protegidos. -->
+<!-- Domino Flash Coin 0.02 · BANDEJA LIDER DE DENUNCIAS; UI APENDICE -->
+<style>
+#dfcAdminModerationPanel .panel{max-width:720px;max-height:90vh;overflow:auto}
+.dfc-report-card{border:1px solid rgba(255,211,91,.35);padding:12px;border-radius:13px;margin:10px 0;background:#101a24}
+.dfc-report-card p{margin:5px 0;overflow-wrap:anywhere}
+.dfc-report-card .action{display:inline-block;margin:4px;min-width:100px}
+</style>
+<div id="dfcAdminModerationPanel" class="overlay"><div class="panel">
+ <button type="button" id="dfcAdminModClose" class="close">✕</button>
+ <h2>🚨 Denuncias del chat</h2><p class="tiny">Solo Administrador Líder · bloqueos de chat verificados en Supabase.</p>
+ <button type="button" id="dfcAdminModRefresh" class="action blue">↻ Actualizar denuncias</button>
+ <div id="dfcAdminModStatus" class="tiny" role="status"></div>
+ <div id="dfcAdminModList"></div>
+</div></div>
+<script>
+(function(){
+ const byId=id=>document.getElementById(id);
+ const button=document.createElement('button');button.id='dfcAdminModOpen';button.type='button';button.className='mf-admin-card';
+ button.innerHTML='<span>🚨</span><strong>Denuncias del chat</strong><small id="dfcAdminModCount">Consultar pendientes</small>';
+ const grid=document.querySelector('#leaderPanel .mf-admin-grid');if(grid)grid.appendChild(button);
+ const panel=byId('dfcAdminModerationPanel'),list=byId('dfcAdminModList'),status=byId('dfcAdminModStatus');
+ let seq=0;
+ const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text!=null)e.textContent=String(text);if(cls)e.className=cls;return e};
+ function toggle(open){if(open){if(typeof hide==='function')hide('leaderPanel');if(typeof show==='function')show('dfcAdminModerationPanel');else panel.classList.add('active')}else{if(typeof hide==='function')hide('dfcAdminModerationPanel');else panel.classList.remove('active');if(me?.role==='leader'&&typeof show==='function')show('leaderPanel')}}
+ async function fetchReports(){
+   const req=++seq;list.replaceChildren();status.textContent='Consultando denuncias…';
+   if(me?.role!=='leader'){status.textContent='Acceso exclusivo del Administrador Líder';return}
+   const result=await sb.rpc('dfc_admin_mod_list_v003');if(req!==seq)return;
+   if(result.error){status.textContent='No se pudieron cargar: '+(result.error.message||String(result.error));return}
+   const arr=Array.isArray(result.data)?result.data:[];status.textContent=arr.length+' denuncias registradas';
+   const count=byId('dfcAdminModCount');if(count)count.textContent=arr.filter(r=>r.state==='pending').length+' pendientes';
+   if(!arr.length){list.append(el('p','Todavía no hay denuncias.','tiny'));return}
+   arr.forEach(r=>{
+     const card=el('div',null,'dfc-report-card');
+     card.append(el('h3', 'Caso #'+r.report_id+' · '+r.state),
+       el('p','Denunciado: '+(r.target_name||'Jugador')+' · ID: '+(r.target_public_id||'sin ID')),
+       el('p','Denunciante: '+(r.reporter_name||'Jugador')+' · ID: '+(r.reporter_public_id||'sin ID')),
+       el('p','Mesa: '+(r.table_id_bigint??'sin mesa')+' · '+(r.created_at?new Date(r.created_at).toLocaleString('es-DO'):'sin fecha')),
+       el('p','Motivo: '+(r.reason||'')),
+       el('p','Bloqueo administrativo de chat: '+(r.chat_blocked?'ACTIVO':'NO')));
+     const actions=el('div');
+     [['block','🚫 Bloquear chat'],['unblock','🔓 Desbloquear'],['review','✓ Revisada'],['dismiss','Descartar']].forEach(([action,label])=>{
+       const b=el('button',label,'action '+(action==='block'?'red':'dark'));b.type='button';
+       b.onclick=async()=>{
+         if(!window.confirm('¿Confirmas '+label.toLowerCase()+' para este caso?'))return;
+         let note='';if(action==='block'||action==='unblock'){note=window.prompt('Motivo de la decisión administrativa:','Revisión de denuncia de chat')??'';if(!note.trim())return}
+         b.disabled=true;status.textContent='Guardando decisión…';
+         const res=await sb.rpc('dfc_admin_mod_action_v003',{p_report_id:Number(r.report_id),p_action:action,p_note:note.trim()});
+         if(res.error){status.textContent='Error: '+(res.error.message||String(res.error));b.disabled=false;return}await fetchReports();
+       };actions.appendChild(b);
+     });card.appendChild(actions);list.appendChild(card);
+   });
+ }
+ button.onclick=()=>{if(me?.role!=='leader')return;toggle(true);fetchReports()};
+ byId('dfcAdminModClose').onclick=()=>{seq++;toggle(false)};
+ byId('dfcAdminModRefresh').onclick=fetchReports;
+})();
+</script>
