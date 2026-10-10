@@ -7317,7 +7317,7 @@ body.domino-spectating #dominoReadyBtn,
 body.domino-spectating #dominoMiniChat,
 body.domino-spectating #dominoAllMessagesBtn,
 body.domino-spectating #dominoEmojiTray{display:none!important}
-body.domino-spectating #dominoCenterStatus{display:none!important}
+body.domino-spectating #dominoCenterStatus{display:block!important;visibility:visible!important;top:11%!important;min-width:120px!important;max-width:48%!important;padding:5px 8px!important;pointer-events:none!important;font-size:11px!important}
 body.domino-spectating #dominoSurrenderBtn{display:grid!important;background:rgba(8,25,39,.92)!important;border-color:rgba(99,190,255,.62)!important}
 body.domino-spectating #dominoSurrenderBtn:after{content:"↩";font-size:15px;color:#c9edff;position:absolute}
 body.domino-spectating #dominoSurrenderBtn{font-size:0!important;position:relative}
@@ -7656,7 +7656,12 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
   if(typeof originalStartPolling==='function')window.dominoStartPolling=function(){
     if(!spectatorMode)return originalStartPolling();
     clearInterval(dominoPollTimer);
-    dominoPollTimer=setInterval(()=>{if(dominoCurrentTableId)loadDominoState(false,true).catch(()=>{})},1000);
+    mfDominoSyncClock().catch(()=>{});
+    dominoPollTimer=setInterval(()=>{
+      if(!dominoCurrentTableId)return;
+      mfDominoSyncClock().catch(()=>{});
+      loadDominoState(false,true).catch(()=>dominoSetSyncState('Espectador: reconectando…','warn'));
+    },1000);
   };
   const originalSyncMessages=window.syncDominoTableMessages;
   if(typeof originalSyncMessages==='function')window.syncDominoTableMessages=async function(){if(spectatorMode)return true;return originalSyncMessages.apply(this,arguments)};
@@ -7687,7 +7692,24 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     if(spectatorMode){
       const hand=document.getElementById('dominoHand');if(hand)hand.innerHTML='';
       const ready=document.getElementById('dominoReadyBtn');if(ready)ready.classList.add('hidden');
-      const center=document.getElementById('dominoCenterStatus');if(center){center.innerHTML='';center.classList.add('playing-quiet')}
+      // En espectador el reloj también es visible: nunca llama tick ni ejecuta bots.
+      // El progreso de la mano continúa siendo responsabilidad exclusiva de Supabase.
+      const center=document.getElementById('dominoCenterStatus');
+      if(center){
+        const handState=st?.hand||null;
+        let spectatorText='Observando · esperando reparto';
+        if(handState?.status==='shuffling'){
+          const until=Date.parse(handState.play_starts_at||'');
+          const secs=Number.isFinite(until)?Math.max(0,Math.ceil((until-mfDominoNow())/1000)):null;
+          spectatorText=secs===null?'Observando · preparando fichas':`Observando · reparto en <span class="domino-timer">${secs}</span> s`;
+        }else if(handState?.status==='playing'){
+          const until=Date.parse(handState.turn_deadline||'');
+          const secs=Number.isFinite(until)?Math.max(0,Math.ceil((until-mfDominoNow())/1000)):null;
+          spectatorText=secs===null?'Observando · turno en curso':(secs===0 && mfDominoNow()-until>10000?'Observando · esperando al motor de juego':`Observando · turno <span class="domino-timer">${secs}</span> s`);
+        }
+        center.innerHTML=spectatorText;
+        center.classList.remove('playing-quiet');
+      }
       updateSpectatorBar();
     }
     return r;
@@ -8641,9 +8663,11 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   const botsV19=configResult.status==='fulfilled'?configResult.value:null;
   const health=healthResult.status==='fulfilled'?healthResult.value:null;
   adminState={...(data||{}),lobby,botsV19,health};
-  q('mf19ServerHealth').textContent=health?.running?'🟢 Motor del servidor ACTIVO · último ciclo reciente':
-    health?'🟠 Motor no confirmado: revisa Supabase Cron':
-    '🔴 No se pudo consultar el estado del motor (SQL 1.9 pendiente o RPC falló)';
+  q('mf19ServerHealth').textContent=(health?.running&&Number(health?.recent_table_errors||0)>0)
+    ?'🟠 Motor ejecutándose, pero hay '+Number(health.recent_table_errors)+' errores recientes de mesa · revisar registro SQL'
+    :health?.running?'🟢 Motor del servidor ACTIVO · último ciclo reciente':
+    health?'🟠 Motor sin actividad reciente: revisa Supabase Cron':
+    '🔴 No se pudo consultar el estado del motor (SQL 0.01 o RPC falló)';
   tableList=Array.isArray(lobby?.tables)?lobby.tables:[];
   const fund=(data?.fund||recovery?.fund)||null;
   if(fund){
