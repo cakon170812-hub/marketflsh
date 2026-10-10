@@ -1,4 +1,4 @@
-<!-- MAIKET FLASH 1.9.9 · Asientos reservados antes de cada mano + rapidez real.
+<!-- MAIKET FLASH 1.9.10 · Asientos reservados antes de cada mano + rapidez real.
      La lógica de premios, saldos y partidas original se conserva. -->
 <!DOCTYPE html>
 <!-- MAIKET FLASH 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
@@ -18,7 +18,7 @@
 <meta name="apple-mobile-web-app-title" content="MAIKET FLASH">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.webmanifest?v=0.1-stable-4">
-<title>MAIKET FLASH — 1.9.9 · Dominó, Ruleta y Póker en desarrollo</title>
+<title>MAIKET FLASH — 1.9.10 · Dominó, Ruleta y Póker en desarrollo</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -7356,7 +7356,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 
   const mainBalance=()=>Math.max(0,Number(me?.balance||0));
   const noMainBalance=()=>mainBalance()<=0.0004;
-  const liveTables=(lobby=dominoLobbyData)=>((lobby?.tables||[]).filter(t=>Number(t.players||0)>0));
+  const liveTables=(lobby=dominoLobbyData)=>(lobby?.tables||[]); // Espectador puede mirar también mesa esperando jugadores.
   const tableLabel=t=>{
     const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(t?.config_id));
     return `${c?.name||'Dominó'} · Mesa ${t?.table_no||t?.id}`;
@@ -7380,6 +7380,19 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
       const retry=document.createElement('button');retry.id='mf195SpectatorRetry';retry.type='button';
       retry.className='mf195-spectator-retry';retry.textContent='↻ Reintentar';retry.hidden=true;
       retry.onclick=()=>loadDominoState(true,true).catch(()=>{});bar.appendChild(retry);
+      const sit=document.createElement('button');sit.id='mf110SpectatorSit';sit.type='button';
+      sit.className='mf110-spectator-sit';sit.textContent='Consultar saldo…';sit.disabled=true;
+      sit.onclick=async()=>{
+        try{await loadMe();renderMe()}catch(e){window.mf19Toast?.('No se pudo consultar tu saldo: '+errText(e),'error');return}
+        const t=(dominoLobbyData?.tables||[]).find(x=>Number(x.id)===Number(dominoCurrentTableId));
+        const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(t?.config_id))||dominoState?.config;
+        if(!c)return window.mf19Toast?.('No se pudo identificar la modalidad de esta mesa','error');
+        if(mainBalance()+0.000001<Number(c.min_entry||0))return window.mf19Toast?.('Saldo insuficiente: recarga hasta '+dominoMoney(c.min_entry)+' FC para sentarte.','error');
+        // Abrimos el mismo selector de fichas, PERO la confirmación posterior
+        // usa el ID exacto del espectador y no el emparejamiento automático.
+        originalOpenBuyin(Number(c.id));
+      };
+      bar.appendChild(sit);
       stage.appendChild(bar);
       document.getElementById('dominoSpectatorPrev').onclick=()=>switchSpectatorTable(-1);
       document.getElementById('dominoSpectatorNext').onclick=()=>switchSpectatorTable(1);
@@ -7393,6 +7406,14 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     const prev=document.getElementById('dominoSpectatorPrev'),next=document.getElementById('dominoSpectatorNext');
     const t=(dominoLobbyData?.tables||[]).find(x=>Number(x.id)===Number(dominoCurrentTableId));
     if(label)label.innerHTML=`<b>👁️ ESPECTADOR · ${Number(t?.players||0)}/4</b><span>${esc(tableLabel(t))}</span>`;
+    const sit=document.getElementById('mf110SpectatorSit');
+    const config=(dominoLobbyData?.configs||[]).find(c=>Number(c.id)===Number(t?.config_id))||dominoState?.config;
+    if(sit){const min=Number(config?.min_entry||0);
+      const enough=!!config&&mainBalance()+0.000001>=min;
+      sit.disabled=!enough;
+      sit.textContent=!config?'Consultando…':enough?'🁫 SENTARME · CONFIRMAR':'Recarga '+dominoMoney(min)+' FC';
+      sit.title=enough?'Escoge tus fichas y confirma entrada a esta mesa':'Cuando recargues podrás sentarte sin salir';
+    }
     const can=spectatorTables.length>1;if(prev)prev.disabled=!can;if(next)next.disabled=!can;
   }
 
@@ -7409,7 +7430,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 
   const spectatorRequest=async id=>{
     const res=await Promise.race([
-      sb.rpc('rf_domino_spectate_state_v195',{p_table_id:Number(id)}),
+      sb.rpc('rf_domino_spectate_state_v110',{p_table_id:Number(id)}),
       new Promise((_,reject)=>setTimeout(()=>reject(Error('La mesa tardó demasiado en responder. Pulsa Ver mesa otra vez.')),10000))
     ]);
     if(res.error)throw res.error;
@@ -7446,7 +7467,11 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     try{const r=await sb.rpc('rf_domino_get_lobby_v11');if(r.error)throw r.error;lobby=r.data||{};dominoLobbyData=lobby;}catch(e){alert(errText(e));return false}
     const active=liveTables(lobby).sort((a,b)=>Number(b.players||0)-Number(a.players||0)||Number(a.table_no||0)-Number(b.table_no||0));
     spectatorTables=[...active].sort((a,b)=>Number(a.config_id)-Number(b.config_id)||Number(a.table_no)-Number(b.table_no));
-    if(!active.length){await openDominoLobby();msg('dominoLobbyMsg','Ahora mismo no hay una partida activa para mirar.');return false}
+    if(!active.length){
+      const config=(lobby.configs||[])[0];
+      if(!config){window.mf19Toast?.('No hay modalidades de dominó disponibles','error');return false}
+      return enterSpectatorForConfig(Number(config.id));
+    }
     return enterSpectator(active[0].id);
   }
 
@@ -7457,10 +7482,20 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
       if(latest.error)throw latest.error;
       lobby=latest.data||{};dominoLobbyData=lobby;
     }catch(e){window.mf19Toast?.('No fue posible consultar las mesas: '+errText(e),'error');return false;}
-    const choices=(lobby.tables||[]).filter(t=>Number(t.config_id)===Number(configId)&&Number(t.players||0)>0)
+    const choices=(lobby.tables||[]).filter(t=>Number(t.config_id)===Number(configId))
       .sort((a,b)=>Number(b.players||0)-Number(a.players||0)||Number(a.table_no||0)-Number(b.table_no||0));
     spectatorTables=liveTables(lobby).sort((a,b)=>Number(a.config_id)-Number(b.config_id)||Number(a.table_no)-Number(b.table_no));
-    if(!choices.length){window.mf19Toast?.('No hay jugadores en esta modalidad para observar.','error');return false;}
+    if(!choices.length){
+      try{
+        const created=await sb.rpc('rf_domino_spectate_prepare_v110',{p_config_id:Number(configId)});
+        if(created.error)throw created.error;
+        const tableId=Number(created.data);
+        if(!tableId)throw Error('Supabase no devolvió una mesa para observar');
+        const newLobby=await sb.rpc('rf_domino_get_lobby_v11');
+        if(!newLobby.error&&newLobby.data){dominoLobbyData=newLobby.data;spectatorTables=liveTables(newLobby.data)}
+        return enterSpectator(tableId);
+      }catch(e){window.mf19Toast?.('No se pudo abrir una mesa para espectadores: '+errText(e),'error');return false}
+    }
     return enterSpectator(choices[0].id);
   }
 
@@ -7549,6 +7584,61 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 
   const originalOpenBuyin=window.openDominoBuyin;
   if(typeof originalOpenBuyin==='function')window.openDominoBuyin=function(configId){const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(configId));const ts=(dominoLobbyData?.tables||[]).filter(t=>Number(t.config_id)===Number(configId));const full=ts.length>0&&ts.every(t=>Number(t.players||0)>=4);if(!dominoLobbyData?.my_table && c && (mainBalance()+0.0000001<Number(c.min_entry||0)||full))return enterSpectatorForConfig(configId);return originalOpenBuyin(configId)};
+
+  // Confirmar entrada desde espectador SIN cambiar arbitrariamente de mesa.
+  // La operación del servidor es atómica y nunca cobra una mesa llena.
+  const mf110RegularJoin=$('dominoConfirmJoinBtn')?.onclick;
+  if($('dominoConfirmJoinBtn'))$('dominoConfirmJoinBtn').onclick=async function(){
+    if(!spectatorMode)return mf110RegularJoin?.call(this);
+    const button=this,tableId=Number(dominoCurrentTableId);
+    const amount=Number($('dominoBuyinInput')?.value||0);
+    const minimum=Number(dominoJoinConfig?.min_entry||0);
+    if(!Number.isFinite(amount)||amount<minimum||amount<=0){msg('dominoBuyinMsg','Introduce un monto igual o mayor que la entrada mínima.');return}
+    button.disabled=true;msg('dominoBuyinMsg','Confirmando asiento y saldo con Supabase…');
+    let joined=false;
+    try{
+      await loadMe();renderMe();
+      if(mainBalance()+0.000001<amount)throw Error('Saldo Flash Coin insuficiente. Espera la recarga.');
+      const {data,error}=await sb.rpc('rf_domino_spectator_join_v110',{
+        p_table_id:tableId,p_buyin:Number(amount.toFixed(3))
+      });
+      if(error)throw error;
+      if(!data?.ok){
+        const description=data?.message||'No se pudo confirmar la entrada';
+        if(data?.status==='waiting'){
+          hide('dominoBuyinPanel');
+          window.mf19Toast?.('Mesa llena. Sigue mirando; vuelve a confirmar cuando haya asiento.','info');
+        }else msg('dominoBuyinMsg',description);
+        return;
+      }
+      joined=true; // No repetir el cargo aunque falle después el refresco visual.
+      const admitted=Number(data.table_id);
+      spectatorMode=false;window.dominoSpectatorMode=false;
+      document.body.classList.remove('domino-spectating');
+      dominoStopPolling();await dominoStopRealtime().catch(()=>{});
+      dominoCurrentTableId=admitted;dominoResetTableEffects();
+      hide('dominoBuyinPanel');hide('dominoLobbyPanel');show('dominoTablePanel');
+      try{const l=await sb.rpc('rf_domino_get_lobby_v11');if(!l.error&&l.data)dominoLobbyData=l.data}catch(_){ }
+      try{await loadMe();renderMe()}catch(_){ }
+      dominoStartPolling();
+      await dominoStartRealtime().catch(()=>{});
+      await dominoHeartbeat(true).catch(()=>{});
+      try{await loadDominoState(true,true)}catch(e){console.warn('Asiento confirmado: refresco pendiente',e)}
+      window.mf19Toast?.('¡Ya estás sentado! Jugarás en la siguiente mano.','success');
+    }catch(e){
+      if(!joined)msg('dominoBuyinMsg',errText(e));
+      else window.mf19Toast?.('Asiento confirmado. Reintentando cargar la mesa.','info');
+    }finally{button.disabled=false;updateSpectatorBar()}
+  };
+
+  // Una recarga recibida mientras observa debe habilitar el botón sin salir.
+  let mf110BalanceBusy=false;
+  setInterval(async()=>{
+    if(!spectatorMode||document.hidden||mf110BalanceBusy)return;
+    mf110BalanceBusy=true;
+    try{await loadMe();renderMe();updateSpectatorBar()}catch(_){ }
+    finally{mf110BalanceBusy=false}
+  },3500);
 
   /* Polling de espectador: nunca heartbeat, nunca tick, solo lectura segura. */
   const originalHeartbeat=window.dominoHeartbeat;
@@ -8793,6 +8883,90 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   refreshReport().catch(()=>{});
   displayReport();
  },350);
+})();
+</script>
+
+
+<!-- MAIKET FLASH 1.9.10 · espectador/ganadores. No altera pagos. -->
+<style id="mf110Styles">
+body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;flex-wrap:wrap;border-radius:15px!important}
+#dominoSpectatorBar .mf110-spectator-sit{
+  appearance:none;border:1px solid #e6c46b;border-radius:9px;padding:5px 8px;
+  background:linear-gradient(145deg,#c6a54c,#f7d772);color:#171106;
+  font-size:clamp(8px,1vw,11px);font-weight:950;line-height:1.1;
+  max-width:150px;cursor:pointer;white-space:normal;flex-shrink:0;
+}
+#dominoSpectatorBar .mf110-spectator-sit:disabled{
+  background:#263038;color:#c6cbd2;border-color:#4a5360;opacity:.92;cursor:default;
+}
+#mf110WinnerOverlay{position:absolute;inset:0;z-index:14000;display:none;align-items:center;
+ justify-content:center;pointer-events:none;padding:10px;box-sizing:border-box;}
+#mf110WinnerOverlay.show{display:flex;animation:mf110WinFlash .35s ease-out}
+#mf110WinnerOverlay .mf110-winner-card{width:min(370px,85%);max-height:88%;overflow:auto;
+ text-align:center;border:2px solid #edc75c;border-radius:22px;padding:15px 14px;
+ background:linear-gradient(155deg,rgba(41,34,8,.97),rgba(11,21,15,.96));
+ box-shadow:0 0 65px #daa53788,0 12px 35px #000;color:#fff;}
+#mf110WinnerOverlay .mf110-winner-title{color:#ffdf6c;font-size:clamp(18px,4vw,28px);font-weight:1000}
+#mf110WinnerOverlay .mf110-winner-photo{width:62px;height:62px;display:block;object-fit:cover;
+ border-radius:50%;border:3px solid #ffdf6c;margin:9px auto 5px;background:#283325}
+#mf110WinnerOverlay .mf110-winner-names{font-size:clamp(14px,3vw,21px);font-weight:950;overflow-wrap:anywhere}
+#mf110WinnerOverlay .mf110-winner-sub{color:#f2e3b5;font-size:11px;margin-top:5px}
+#dominoSeats .domino-seat.mf110-winner-seat{filter:drop-shadow(0 0 12px #fcd665)!important}
+@keyframes mf110WinFlash{from{opacity:.2;transform:scale(.89)}to{opacity:1;transform:scale(1)}}
+@media(max-width:650px){#dominoSpectatorBar .mf110-spectator-sit{max-width:93px;font-size:8px;padding:4px 5px}}
+</style>
+<script id="mf110WinnerJS">
+(()=>{
+ 'use strict';
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ let checking=false,lastTable=null,lastShown='',pending=null,hideTimer=null;
+ function tableVisible(){const p=document.getElementById('dominoTablePanel');return !!(p&&p.classList.contains('active')&&dominoCurrentTableId)}
+ function ensureBox(){const stage=document.getElementById('dominoStage');if(!stage)return null;
+  let box=document.getElementById('mf110WinnerOverlay');if(!box){box=document.createElement('div');box.id='mf110WinnerOverlay';box.setAttribute('role','status');box.setAttribute('aria-live','polite');stage.appendChild(box)}return box}
+ function clear(){const box=document.getElementById('mf110WinnerOverlay');box?.classList.remove('show');
+  document.querySelectorAll('#dominoSeats .mf110-winner-seat').forEach(e=>e.classList.remove('mf110-winner-seat'));
+  if(hideTimer)clearTimeout(hideTimer);hideTimer=null}
+ function showWinner(result){const winners=Array.isArray(result?.winners)?result.winners:[];if(!winners.length)return;
+  const box=ensureBox();if(!box)return;
+  const multiple=winners.length>1;
+  const names=winners.map(w=>String(w.name||'Jugador')).join(' y ');
+  const photo=winners.length===1 && /^https:\/\//i.test(String(winners[0].avatar_url||''))
+    ?`<img class="mf110-winner-photo" src="${esc(winners[0].avatar_url)}" alt="Fotografía del ganador">`:'';
+  box.innerHTML=`<div class="mf110-winner-card"><div class="mf110-winner-title">🏆 ${multiple?'¡GANARON!':'¡TENEMOS UN GANADOR!'}</div>${photo}<div class="mf110-winner-names">${esc(names)}</div><div class="mf110-winner-sub">${multiple?'Ganadores de esta mano':'¡Ganó esta mano de dominó!'}</div></div>`;
+  box.classList.add('show');
+  const ids=new Set(winners.map(w=>String(w.user_id)));
+  document.querySelectorAll('#dominoSeats .domino-seat[data-seat-user]').forEach(el=>{if(ids.has(String(el.dataset.seatUser)))el.classList.add('mf110-winner-seat')});
+  if(hideTimer)clearTimeout(hideTimer);
+  hideTimer=setTimeout(clear,3700);
+ }
+ async function check(){
+  if(!tableVisible()){if(lastTable!==null){lastTable=null;pending=null;clear()}return}
+  const table=Number(dominoCurrentTableId);if(lastTable!==table){lastTable=table;pending=null;clear()}
+  if(checking)return;checking=true;
+  try{
+   const {data,error}=await sb.rpc('rf_domino_public_winner_v110',{p_table_id:table});
+   if(error)throw error;
+   if(Number(dominoCurrentTableId)!==table || !data?.active)return;
+   const key=table+':'+data.hand_id;
+   let seen=false;try{seen=sessionStorage.getItem('mf110-win-'+key)==='1'}catch(_){ }
+   if(lastShown===key || seen)return;
+   pending={key,data};
+  }catch(e){if(!String(e?.message||'').includes('schema cache'))console.warn('Anuncio de ganador:',e?.message||e)}
+  finally{checking=false}
+ }
+ setInterval(()=>{
+  if(!tableVisible())return;
+  if(pending){
+    // El tranque mantiene visibles las fichas seis segundos antes del anuncio.
+    if(!document.getElementById('mf196TranqueOverlay')?.classList.contains('show') &&
+       !document.getElementById('dominoVictory')?.classList.contains('show')){
+      const {key,data}=pending;pending=null;lastShown=key;
+      try{sessionStorage.setItem('mf110-win-'+key,'1')}catch(_){ }
+      showWinner(data);
+    }
+  }
+  check().catch(()=>{});
+ },1600);
 })();
 </script>
 
