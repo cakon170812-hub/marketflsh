@@ -2369,7 +2369,7 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
   <button id="dominoSurrenderBtn" type="button" class="domino-live-icon dfc-lux-exit" title="Salir de la mesa">🚪</button>
 </div>
 <div class="dfc-photo-center-cover" aria-hidden="true"></div><div class="dfc-photo-top-controls-cover" aria-hidden="true"></div>
-<button id="dfcLuxMesasBtn" type="button" aria-label="Ver otras mesas de dominó" title="Ver otras mesas de dominó">🁫 <span>Mesas</span> <span aria-hidden="true">›</span></button>
+<button id="dfcLuxMesasBtn" type="button" aria-label="Ver otras mesas de dominó" title="Ver otras mesas de dominó">🁫 <span>Mesa</span> <span aria-hidden="true">›</span></button>
 <div id="dominoSeats"></div>
 <div id="dominoCenterStatus" class="domino-center-status">Esperando jugadores...</div>
 <button id="dominoReadyBtn" type="button" class="domino-ready-btn hidden">CONFIRMAR</button>
@@ -5637,7 +5637,7 @@ function dominoRenderSeatsStable(st){
     if(!node){
       node=document.createElement('div');
       node.dataset.visualSeat=String(visualSeat);
-      node.innerHTML=`<div class="domino-avatar-wrap"><span class="domino-turn-ring" aria-hidden="true"></span><div class="domino-avatar"></div></div><div class="domino-seat-heading"><div class="domino-seat-name"></div><span class="domino-turn-seconds hidden"></span></div><div class="domino-seat-info"></div><span class="domino-tile-count" hidden></span><span class="seat-bal"></span><button type="button" class="domino-see-message hidden">Ver mensaje</button>`;
+      node.innerHTML=`<div class="domino-avatar-wrap"><span class="domino-turn-ring" aria-hidden="true"></span><div class="domino-avatar"></div></div><div class="domino-seat-heading"><div class="domino-seat-name"></div><span class="seat-bal" title="Saldo de mesa" aria-label="Saldo de mesa"></span><span class="domino-turn-seconds hidden"></span></div><div class="domino-seat-info"></div><span class="domino-tile-count" hidden></span><button type="button" class="domino-see-message hidden">Ver mensaje</button>`;
       host.appendChild(node);
     }
     const seat=seats.find(x=>dominoVisualSeatForReal(x.seat_no)===visualSeat);
@@ -9778,6 +9778,154 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
   }
 })();
 </script>
+
+
+<!-- DOMINOS FLASH COIN 0.02 · PERFILES SIN RECUADROS / SALDOS VISIBLES / MESA SIGUIENTE -->
+<style id="dfcVisualPerfilesSinRecuadros002">
+/* Todos los asientos conservan su posición, avatar, ID de usuario y actualizaciones en vivo.
+   Solo quitamos la tarjeta con bordes que tapaba la fotografía. */
+#dominoTablePanel #dominoSeats .domino-seat,
+#dominoTablePanel #dominoSeats .domino-seat.s1,
+#dominoTablePanel #dominoSeats .domino-seat.s2,
+#dominoTablePanel #dominoSeats .domino-seat.s3,
+#dominoTablePanel #dominoSeats .domino-seat.s4 {
+  border:0!important;
+  outline:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  background:radial-gradient(ellipse at center,
+    rgba(5,5,5,.99) 0%,rgba(5,5,5,.98) 64%,
+    rgba(5,5,5,.91) 79%,rgba(5,5,5,.36) 92%,transparent 100%)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.turn {
+  filter:none!important;
+}
+/* Foto, nombre, saldo actualizado y reloj se ordenan de manera compacta.
+   La misma clase seat-bal continúa siendo actualizada desde la lógica existente. */
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading{
+  display:flex!important;flex-direction:column!important;
+  align-items:flex-start!important;justify-content:center!important;
+  gap:clamp(1px,.35vw,4px)!important;
+  min-width:0!important;min-height:0!important;
+  overflow:visible!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading .domino-seat-name{
+  order:0!important;position:static!important;display:block!important;
+  font-size:clamp(9px,1.25vw,19px)!important;
+  color:#fff3cf!important;background:transparent!important;border:0!important;
+  text-shadow:0 2px 5px #000!important;
+  margin:0!important;padding:0!important;
+  line-height:1.12!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading .seat-bal{
+  order:1!important;position:static!important;
+  display:inline-flex!important;visibility:visible!important;opacity:1!important;
+  align-items:center!important;justify-content:flex-start!important;
+  width:auto!important;max-width:100%!important;height:auto!important;
+  min-width:0!important;min-height:0!important;
+  flex:0 0 auto!important;
+  padding:0!important;margin:0!important;
+  border:none!important;border-radius:0!important;
+  background:transparent!important;box-shadow:none!important;
+  font-size:clamp(9px,1.13vw,17px)!important;
+  line-height:1.12!important;color:#ffe099!important;
+  font-weight:950!important;white-space:nowrap!important;
+  font-variant-numeric:tabular-nums!important;
+  text-shadow:0 1px 5px #000,0 0 8px rgba(236,175,50,.16)!important;
+  text-overflow:ellipsis!important;overflow:hidden!important;
+  pointer-events:auto!important;cursor:pointer!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading .seat-bal::before{
+  content:""!important;display:inline-block!important;
+  flex:0 0 clamp(9px,1.25vw,17px)!important;
+  width:clamp(9px,1.25vw,17px)!important;height:clamp(9px,1.25vw,17px)!important;
+  margin-right:clamp(2px,.25vw,5px)!important;
+  background-image:var(--fc-coin-image,none)!important;
+  background-size:contain!important;background-repeat:no-repeat!important;
+  background-position:center!important;
+  border-radius:50%!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading .domino-turn-seconds{
+  order:2!important;
+  margin-top:0!important;
+  font-size:clamp(8px,.95vw,13px)!important;
+}
+/* Sin bandeja ni cuadro que rodee las fichas boca abajo. */
+#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count,
+#dominoTablePanel #dominoSeats .domino-seat.s2 .domino-tile-count,
+#dominoTablePanel #dominoSeats .domino-seat.s3 .domino-tile-count,
+#dominoTablePanel #dominoSeats .domino-seat.s4 .domino-tile-count{
+  background:transparent!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+  padding:1% 0!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count[hidden],
+#dominoTablePanel #dominoSeats .domino-seat.empty .domino-tile-count{
+  display:none!important;
+}
+/* La mano propia se sigue mostrando en el rack activo, NO se duplican fichas. */
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-tile-count{display:none!important}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-seat-heading{
+  grid-column:2!important;grid-row:1!important;
+  align-items:flex-start!important;justify-content:center!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-seat-heading .domino-seat-name{
+  font-size:clamp(12px,1.65vw,25px)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-seat-heading .seat-bal{
+  font-size:clamp(10px,1.25vw,18px)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.empty .seat-bal{display:none!important}
+/* Botón navegable, fuera del logo y por encima de las capas visuales. */
+#dominoTablePanel #dfcLuxMesasBtn{
+  position:absolute!important;
+  left:1.2%!important;top:25.2%!important;right:auto!important;bottom:auto!important;
+  display:inline-flex!important;visibility:visible!important;opacity:1!important;
+  align-items:center!important;justify-content:center!important;gap:4px!important;
+  width:max-content!important;max-width:18%!important;
+  height:clamp(25px,3.1vw,34px)!important;min-height:25px!important;
+  padding:3px clamp(6px,.65vw,10px)!important;
+  margin:0!important;border:1px solid #e6b95e!important;
+  border-radius:999px!important;background:linear-gradient(180deg,#18130b,#060504)!important;
+  color:#fff0bf!important;box-shadow:0 4px 10px rgba(0,0,0,.48)!important;
+  font-size:clamp(8px,.83vw,11px)!important;font-weight:900!important;
+  letter-spacing:0!important;line-height:1!important;white-space:nowrap!important;
+  overflow:visible!important;clip-path:none!important;
+  z-index:310!important;pointer-events:auto!important;cursor:pointer!important;
+}
+#dominoTablePanel #dfcLuxMesasBtn:focus-visible{
+  outline:2px solid #fff0a9!important;outline-offset:3px!important;
+}
+@media(max-height:550px) and (orientation:landscape){
+  #dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading{
+    gap:0!important;justify-content:flex-start!important;
+  }
+  #dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading .domino-seat-name{
+    font-size:clamp(8px,1.15vw,13px)!important;
+  }
+  #dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading .seat-bal{
+    font-size:clamp(8px,1.05vw,12px)!important;
+    line-height:1.1!important;
+  }
+  #dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading .seat-bal::before{
+    width:clamp(8px,1.05vw,11px)!important;height:clamp(8px,1.05vw,11px)!important;
+    flex-basis:clamp(8px,1.05vw,11px)!important;
+  }
+  #dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading .domino-turn-seconds{
+    font-size:8px!important;min-width:29px!important;height:15px!important;
+  }
+  #dominoTablePanel #dfcLuxMesasBtn{
+    left:.8%!important;top:24.7%!important;
+    height:26px!important;min-height:26px!important;
+    padding:3px 6px!important;font-size:9px!important;
+  }
+}
+</style>
 
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
