@@ -9937,143 +9937,116 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
 </style>
 
 
-<!-- DFC 0.02 · CORRECCION DE ENCAJE DE FICHAS EN LA MESA · SOLO ESTILOS -->
-<style id="dfcRecessedTilePlacement025">
-/* El tablero jugado se centra en la superficie interior hundida:
-   la cadena completa conserva las proporciones y nunca se agranda. */
-#dominoTablePanel #dominoStage #dominoBoard {
-  position:absolute!important;
-  left:50%!important;
-  top:48%!important;
-  width:52%!important;
-  max-width:570px!important;
-  height:35%!important;
-  min-height:0!important;
-  transform:translate(-50%,-50%)!important;
-  padding:0!important;
-  margin:0!important;
-  overflow:visible!important;
-  z-index:16!important;
-  background:transparent!important;
-  border:0!important;
-  box-shadow:none!important;
+<!-- DFC 0.02 - Bandejas doradas: fichas PARADAS en el hueco de cada asiento -->
+<style id="dfcRackPlacementApproved026">
+/* Las fichas jugadas quedan en el centro original; solo las manos van en bandejas. */
+#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count{display:none!important}
+#dominoTablePanel #dominoStage .dfc-real-rack{
+  position:absolute!important;pointer-events:none!important;box-sizing:border-box!important;
+  z-index:35!important;display:flex!important;align-items:flex-end!important;
+  justify-content:center!important;flex-wrap:nowrap!important;overflow:visible!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  padding:0!important;margin:0!important;
 }
-/* El motor ya ajusta TODA la cadena al espacio. Nunca se modifica
-   individualmente el tamaño de una ficha durante el ajuste. */
-#dominoTablePanel #dominoBoard .domino-board-path{
-  transform-origin:center center!important;
+/* Coordenadas correspondientes a los 4 huecos de la FOTO, NO al centro. */
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="3"]{
+ left:39%!important;top:18.8%!important;width:22%!important;height:4.5%!important;
 }
-#dominoTablePanel #dominoBoard .domino-board-path .domino-piece.board-piece{
-  opacity:1!important;
-  filter:none!important;
-  background:linear-gradient(160deg,#fffcf2 0%,#f5e9d5 63%,#dfd0b2 100%)!important;
-  border:1px solid #b6a78e!important;
-  box-shadow:inset 1px 1px 1px rgba(255,255,255,.96),0 2px 4px rgba(0,0,0,.63)!important;
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="4"]{
+ left:12.4%!important;top:34.3%!important;width:5%!important;height:20%!important;
+ flex-direction:column-reverse!important;align-items:center!important;
 }
-#dominoTablePanel #dominoBoard .domino-piece .domino-pip{
-  background:#131313!important;
-  box-shadow:inset 0 0 1px #000!important;
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="2"]{
+ right:12.4%!important;top:34.3%!important;width:5%!important;height:20%!important;
+ flex-direction:column!important;align-items:center!important;
 }
-
-/* Los dorsos de cada rival se muestran en una hilera realista, sin tarjetas
-   o fichas transparentes. Sus cantidades las sigue dictando el servidor. */
-#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count{
-  display:flex!important;
-  position:absolute!important;
-  top:auto!important;
-  bottom:auto!important;
-  left:50%!important;
-  right:auto!important;
-  transform:translateX(-50%)!important;
-  width:max-content!important;
-  max-width:172px!important;
-  min-height:0!important;
-  margin:0!important;
-  padding:4px 5px!important;
-  justify-content:center!important;
-  align-items:center!important;
-  border:0!important;
-  border-radius:7px!important;
-  background:transparent!important;
-  box-shadow:none!important;
-  pointer-events:none!important;
-  overflow:visible!important;
-  z-index:22!important;
+#dominoTablePanel #dominoStage .dfc-real-rack .dfc-standing-back{
+ box-sizing:border-box!important;position:relative!important;display:block!important;
+ flex:0 1 17px!important;width:clamp(7px,1.1vw,17px)!important;
+ height:clamp(19px,3.4vw,47px)!important;min-width:0!important;min-height:0!important;
+ margin:0 1px!important;border-radius:3px!important;
+ border:1px solid #d7bc79!important;
+ background:linear-gradient(110deg,#34302a 0%,#0a0a0a 18%,#1e1b16 64%,#060606 100%)!important;
+ box-shadow:inset 2px 0 1px rgba(255,235,185,.32),inset -2px 0 0 rgba(0,0,0,.72),0 2px 3px rgba(0,0,0,.83)!important;
+ opacity:1!important;transform:none!important;
 }
-/* Colocación de las hileras junto al perímetro del hueco jugable. */
-#dominoTablePanel #dominoSeats .domino-seat.s3 .domino-tile-count{
-  top:calc(100% + 7px)!important;
+#dominoTablePanel #dominoStage .dfc-real-rack .dfc-standing-back::before{
+ content:'✦';position:absolute;inset:2px;border:1px solid rgba(221,172,67,.55);
+ color:#b48c42;font-size:clamp(5px,.65vw,9px);line-height:1;display:grid;place-items:center;
 }
-#dominoTablePanel #dominoSeats .domino-seat.s2 .domino-tile-count{
-  left:auto!important;
-  right:calc(100% + 5px)!important;
-  top:48%!important;
-  transform:translateY(-50%)!important;
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="2"] .dfc-standing-back,
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="4"] .dfc-standing-back{
+ width:clamp(11px,1.25vw,19px)!important;height:clamp(16px,2.7vw,38px)!important;
+ flex:0 1 auto!important;margin:-3px 0!important;
 }
-#dominoTablePanel #dominoSeats .domino-seat.s4 .domino-tile-count{
-  left:calc(100% + 5px)!important;
-  top:48%!important;
-  transform:translateY(-50%)!important;
+/* Mano propia: vertical dentro de la BANDEJA INFERIOR, por encima del borde. */
+#dominoTablePanel #dominoStage #dominoHand{
+ position:absolute!important;top:72%!important;bottom:auto!important;left:50%!important;
+ transform:translateX(-50%)!important;width:33%!important;max-width:none!important;
+ height:7%!important;min-height:0!important;padding:0 2px!important;margin:0!important;
+ display:flex!important;align-items:flex-end!important;justify-content:center!important;
+ flex-wrap:nowrap!important;gap:clamp(1px,.32vw,5px)!important;
+ border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+ overflow:visible!important;z-index:37!important;
 }
-#dominoTablePanel #dominoSeats .domino-seat .domino-seat-back-row{
-  width:max-content!important;
-  max-width:100%!important;
-  display:flex!important;
-  flex-wrap:nowrap!important;
-  gap:2px!important;
-  align-items:center!important;
-  justify-content:center!important;
-  overflow:visible!important;
+#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece{
+ box-sizing:border-box!important;flex:0 1 auto!important;
+ width:clamp(17px,2.85vw,40px)!important;max-width:calc(100% / 7 - 3px)!important;
+ height:clamp(33px,5.4vw,72px)!important;min-height:0!important;
+ margin:0!important;border-radius:4px!important;opacity:1!important;
+ background:linear-gradient(105deg,#fffdf3,#e7dbbe)!important;
+ border:1px solid #b59e77!important;
+ box-shadow:inset 2px 1px 1px #fff,0 3px 5px #0009!important;
 }
-#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count .domino-piece.domino-seat-back-tile{
-  display:block!important;
-  flex:0 0 13px!important;
-  width:13px!important;
-  min-width:13px!important;
-  height:29px!important;
-  min-height:29px!important;
-  padding:0!important;
-  border-radius:4px!important;
-  opacity:1!important;
-  filter:none!important;
-  border:1px solid #d1bc8b!important;
-  background:linear-gradient(145deg,#24211c 0%,#0b0b0b 54%,#22211d 100%)!important;
-  box-shadow:inset 1px 1px 1px rgba(255,222,145,.24),0 3px 4px rgba(0,0,0,.8)!important;
+#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece:not(.playable){opacity:1!important;filter:none!important}
+#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece.playable{
+ box-shadow:0 0 10px 2px rgba(255,215,91,.9),inset 1px 1px 2px white!important;
 }
-#dominoTablePanel #dominoSeats .domino-seat .domino-back-stripe{
-  background:linear-gradient(90deg,#63451e,#dfaf55,#63451e)!important;
-}
-#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-tile-count,
-#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count[hidden],
-#dominoTablePanel #dominoSeats .domino-seat.empty .domino-tile-count{
-  display:none!important;
-}
-/* La mano del propio jugador permanece en su espacio inferior; no se duplica. */
-#dominoTablePanel #dominoHand .domino-piece.hand-piece{
-  opacity:1!important;
-  background:linear-gradient(165deg,#fffef6,#eee1c7)!important;
-  border-color:#c1ab86!important;
-  box-shadow:inset 1px 1px 2px #fff,0 4px 8px rgba(0,0,0,.63)!important;
-}
-#dominoTablePanel #dominoHand .hand-piece:not(.playable){
-  opacity:1!important;
-  filter:none!important;
-}
-@media(max-width:740px) and (orientation:landscape){
-  #dominoTablePanel #dominoStage #dominoBoard{
-    top:48%!important;
-    width:49%!important;
-    height:34%!important;
-  }
-  #dominoTablePanel #dominoSeats .domino-seat .domino-tile-count .domino-piece.domino-seat-back-tile{
-    width:10px!important;min-width:10px!important;flex-basis:10px!important;
-    height:23px!important;min-height:23px!important;
-  }
-  #dominoTablePanel #dominoSeats .domino-seat .domino-seat-back-row{gap:1px!important}
-  #dominoTablePanel #dominoSeats .domino-seat.s2 .domino-tile-count{right:calc(100% + 2px)!important}
-  #dominoTablePanel #dominoSeats .domino-seat.s4 .domino-tile-count{left:calc(100% + 2px)!important}
+@media(max-width:720px){
+ #dominoTablePanel #dominoStage #dominoHand{width:37%!important;top:71.5%!important}
+ #dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece{height:clamp(24px,5vw,46px)!important;width:clamp(12px,2.4vw,29px)!important}
+ #dominoTablePanel #dominoStage .dfc-real-rack[data-rack="3"]{top:18.9%!important}
+ #dominoTablePanel #dominoStage .dfc-real-rack[data-rack="4"]{left:12%!important}
+ #dominoTablePanel #dominoStage .dfc-real-rack[data-rack="2"]{right:12%!important}
 }
 </style>
+<script id="dfcRackPlacementApproved026JS">
+(function(){
+  'use strict';
+  function updateStandingRacks(){
+    const stage=document.getElementById('dominoStage');
+    const host=document.getElementById('dominoSeats');
+    if(!stage||!host)return;
+    [2,3,4].forEach(function(i){
+      let rack=stage.querySelector('.dfc-real-rack[data-rack="'+i+'"]');
+      if(!rack){rack=document.createElement('div');rack.className='dfc-real-rack';rack.dataset.rack=String(i);rack.setAttribute('aria-hidden','true');stage.appendChild(rack);}
+      const seat=host.querySelector('.domino-seat[data-visual-seat="'+i+'"]');
+      const count=seat&&seat.querySelector('.domino-tile-count');
+      const visible=seat&&!seat.classList.contains('empty')&&count&&!count.hidden;
+      const total=visible?count.querySelectorAll('.domino-seat-back-tile').length:0;
+      const old=Number(rack.dataset.count||0);
+      if(total!==old){
+        rack.replaceChildren();
+        for(let t=0;t<total;t++){let tile=document.createElement('span');tile.className='dfc-standing-back';rack.appendChild(tile);}
+        rack.dataset.count=String(total);
+      }
+      rack.style.display=total?'flex':'none';
+    });
+  }
+  function init(){
+    const host=document.getElementById('dominoSeats');
+    if(!host)return;
+    let waiting=false;
+    const observer=new MutationObserver(function(){
+      if(waiting)return;waiting=true;
+      requestAnimationFrame(function(){waiting=false;updateStandingRacks();});
+    });
+    observer.observe(host,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});
+    updateStandingRacks();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
 
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
