@@ -9218,6 +9218,240 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
 })();
 </script>
 
+
+
+<!-- DOMINO FLASH COIN 0.02 · VISUAL LUJOSA NEGRO / ORO · MESA Y PANELES UNIFICADOS -->
+<style id="dfcDominoLuxuryVisual002">
+/* Escena general más lujosa, inspirada en la referencia negro/dorado elegida. */
+#dominoTablePanel .domino-game-panel{
+  background:
+    radial-gradient(circle at 50% -8%, rgba(255,208,96,.16), transparent 26%),
+    radial-gradient(circle at 15% 15%, rgba(255,190,72,.08), transparent 18%),
+    radial-gradient(circle at 85% 18%, rgba(255,190,72,.08), transparent 16%),
+    linear-gradient(180deg,#1a1309 0%, #090705 28%, #050505 100%) !important;
+  border:1px solid rgba(233,186,78,.90) !important;
+  box-shadow:0 26px 78px rgba(0,0,0,.82), inset 0 0 0 1px rgba(255,220,132,.12) !important;
+}
+#dominoTablePanel .domino-topbar{
+  border-bottom:1px solid rgba(234,190,81,.24)!important;
+  background:linear-gradient(180deg,rgba(0,0,0,.22),rgba(0,0,0,0))!important;
+}
+#dominoTablePanel .domino-stage{
+  border-radius:34px !important;
+  border:3px solid rgba(231,185,77,.92) !important;
+  outline:1px solid rgba(255,230,154,.28) !important;
+  outline-offset:-6px !important;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(255,197,93,.08), transparent 24%),
+    linear-gradient(135deg, rgba(255,201,98,.14) 0 1px, transparent 1px) 0 0/100% 100%,
+    linear-gradient(145deg,#121213 0%,#1d1a17 18%,#0a0a0a 44%,#15120f 78%,#070707 100%) !important;
+  box-shadow:
+    inset 0 0 0 2px rgba(255,222,126,.10),
+    inset 0 0 80px rgba(0,0,0,.84),
+    0 22px 40px rgba(0,0,0,.52) !important;
+}
+#dominoTablePanel .domino-stage:before{
+  content:"";
+  position:absolute;
+  inset:14px;
+  border-radius:28px;
+  border:1px solid rgba(249,205,103,.22);
+  box-shadow: inset 0 0 30px rgba(255,205,103,.05);
+  pointer-events:none;
+}
+#dominoTablePanel .domino-stage:after{
+  content:"DOMINOS\AFLASH COIN";
+  white-space:pre;
+  position:absolute;
+  left:50%;
+  top:45%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  font-weight:950;
+  line-height:1.03;
+  letter-spacing:.18em;
+  font-size:clamp(14px,2.2vw,34px);
+  color:rgba(243,198,90,.16);
+  text-shadow:0 0 10px rgba(0,0,0,.4);
+  pointer-events:none;
+  z-index:0;
+}
+#dominoTablePanel .domino-board{
+  width:min(58%,560px)!important;
+  top:50%!important;
+}
+#dominoTablePanel .domino-board-row{gap:3px!important}
+
+/* Paneles de jugadores: misma visual para arriba, abajo, izquierda y derecha. */
+#dominoSeats .domino-seat{
+  position:absolute!important;
+  width:174px!important;
+  min-height:116px!important;
+  padding:10px 10px 12px!important;
+  border-radius:24px!important;
+  border:1.4px solid rgba(236,190,84,.82)!important;
+  background:linear-gradient(180deg,rgba(12,12,12,.98),rgba(6,6,6,.96) 100%)!important;
+  box-shadow:0 16px 28px rgba(0,0,0,.52), inset 0 0 0 1px rgba(255,224,136,.06)!important;
+  display:grid!important;
+  grid-template-columns:52px 1fr!important;
+  grid-template-areas:
+    "avatar meta"
+    "tiles tiles"
+    "actions actions"!important;
+  column-gap:10px!important;
+  row-gap:7px!important;
+  align-items:start!important;
+  justify-items:stretch!important;
+  text-align:left!important;
+  pointer-events:none!important;
+  overflow:visible!important;
+}
+#dominoSeats .domino-seat.s1{left:50%!important;bottom:96px!important;transform:translateX(-50%)!important}
+#dominoSeats .domino-seat.s3{left:50%!important;top:12px!important;transform:translateX(-50%)!important}
+#dominoSeats .domino-seat.s2{right:8px!important;top:50%!important;transform:translateY(-50%)!important}
+#dominoSeats .domino-seat.s4{left:8px!important;top:50%!important;transform:translateY(-50%)!important}
+#dominoSeats .domino-seat.s1.mine{width:320px!important;min-height:128px!important;padding:10px 14px 12px!important;grid-template-columns:60px 1fr!important}
+
+#dominoSeats .domino-seat .domino-avatar-wrap{
+  grid-area:avatar!important;
+  width:52px!important;height:52px!important;min-width:52px!important;flex-basis:52px!important;
+  margin:0!important;
+  align-self:start!important;
+}
+#dominoSeats .domino-seat.s1.mine .domino-avatar-wrap{width:60px!important;height:60px!important;min-width:60px!important;flex-basis:60px!important}
+#dominoSeats .domino-seat .domino-avatar{
+  width:48px!important;height:48px!important;
+  border:2px solid #d7a648!important;
+  background:radial-gradient(circle at 35% 28%,#3a3021,#0d0b08 72%)!important;
+  box-shadow:0 8px 16px rgba(0,0,0,.52)!important;
+}
+#dominoSeats .domino-seat.s1.mine .domino-avatar{width:56px!important;height:56px!important}
+#dominoSeats .domino-seat.turn .domino-avatar:after{border-color:#ffe27a!important;box-shadow:0 0 22px rgba(255,226,122,.74)!important}
+#dominoSeats .domino-seat .domino-turn-seconds{
+  top:-12px!important;
+  min-width:58px!important;
+  height:26px!important;
+  padding:0 10px!important;
+  background:linear-gradient(180deg,#15120d,#070604)!important;
+  border:1px solid rgba(240,191,77,.9)!important;
+  color:#ffeaa2!important;
+  font-size:14px!important;
+  box-shadow:0 6px 14px rgba(0,0,0,.44)!important;
+}
+#dominoSeats .domino-seat .domino-seat-name{
+  grid-area:meta!important;
+  margin:2px 0 0!important;
+  padding:0!important;
+  max-width:none!important;
+  background:none!important;
+  border:0!important;
+  color:#fff5cf!important;
+  font-size:clamp(12px,1.1vw,18px)!important;
+  font-weight:950!important;
+  line-height:1.05!important;
+  text-shadow:0 2px 5px rgba(0,0,0,.65)!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+#dominoSeats .domino-seat.s1.mine .domino-seat-name{font-size:clamp(16px,1.4vw,26px)!important}
+#dominoSeats .domino-seat .domino-seat-info,
+#dominoSeats .domino-seat .seat-bal{display:none!important}
+
+/* Dorso de fichas dentro del panel, con mismo estilo para todos. */
+#dominoSeats .domino-seat .domino-tile-count{
+  position:static!important;
+  grid-area:tiles!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  transform:none!important;
+  left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-height:44px!important;
+  padding:6px 6px!important;
+  border-radius:14px!important;
+  border:1px solid rgba(255,220,121,.18)!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.08))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)!important;
+}
+#dominoSeats .domino-seat.s1.mine .domino-tile-count{min-height:54px!important;padding:8px 8px!important}
+#dominoSeats .domino-seat .domino-seat-back-row{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  justify-content:center!important;
+  align-items:center!important;
+  gap:3px!important;
+  width:100%!important;
+  overflow:hidden!important;
+}
+#dominoSeats .domino-seat .domino-tile-count .domino-piece.domino-seat-back-tile{
+  width:clamp(16px,1.75vw,22px)!important;
+  height:clamp(34px,4vw,46px)!important;
+  flex:0 1 auto!important;
+  border-radius:6px!important;
+  border:1px solid #e6d7bd!important;
+  background:linear-gradient(180deg,#fbf6ea 0%,#ebe0ca 100%)!important;
+  box-shadow:0 2px 6px rgba(0,0,0,.26), inset 0 0 0 1px rgba(255,255,255,.28)!important;
+}
+#dominoSeats .domino-seat .domino-back-stripe{
+  left:3px!important;right:3px!important;height:1px!important;
+  background:linear-gradient(90deg,#c8bb9e,#f5ebd5,#c8bb9e)!important;
+  box-shadow:none!important;
+}
+#dominoSeats .domino-seat .domino-back-none{
+  display:block!important;
+  width:100%!important;
+  text-align:center!important;
+  color:#ffe5a1!important;
+  font-size:12px!important;
+  font-weight:900!important;
+}
+#dominoSeats .domino-seat .domino-see-message{
+  grid-area:actions!important;
+  justify-self:center!important;
+  pointer-events:auto!important;
+}
+#dominoSeats .domino-seat.mine .domino-avatar{pointer-events:auto!important}
+#dominoSeats .domino-seat.empty{
+  opacity:.86!important;
+}
+#dominoSeats .domino-seat.empty .domino-seat-name{color:#e4d4a1!important}
+#dominoSeats .domino-seat.mf110-winner-seat{filter:drop-shadow(0 0 14px rgba(255,220,103,.54))!important}
+
+/* Ajustes móviles: conservar la visual sin cortarse. */
+@media (max-width:980px){
+  #dominoTablePanel .domino-board{width:min(54%,360px)!important}
+  #dominoSeats .domino-seat{width:152px!important;min-height:108px!important;padding:9px 9px 11px!important;grid-template-columns:48px 1fr!important}
+  #dominoSeats .domino-seat.s1.mine{width:280px!important}
+  #dominoSeats .domino-seat .domino-avatar-wrap{width:48px!important;height:48px!important;min-width:48px!important;flex-basis:48px!important}
+  #dominoSeats .domino-seat .domino-avatar{width:44px!important;height:44px!important}
+  #dominoSeats .domino-seat .domino-turn-seconds{min-width:52px!important;height:24px!important;font-size:12px!important}
+  #dominoSeats .domino-seat .domino-tile-count .domino-piece.domino-seat-back-tile{width:15px!important;height:32px!important}
+}
+@media (max-width:640px){
+  #dominoTablePanel .domino-stage{border-radius:26px!important}
+  #dominoTablePanel .domino-stage:after{font-size:clamp(12px,3.8vw,20px)!important;top:44%!important}
+  #dominoTablePanel .domino-board{width:min(60%,250px)!important}
+  #dominoSeats .domino-seat{width:122px!important;min-height:92px!important;padding:8px 8px 10px!important;grid-template-columns:40px 1fr!important;column-gap:7px!important;row-gap:5px!important;border-radius:18px!important}
+  #dominoSeats .domino-seat.s1.mine{width:236px!important;bottom:92px!important;grid-template-columns:46px 1fr!important}
+  #dominoSeats .domino-seat.s2{right:4px!important}
+  #dominoSeats .domino-seat.s4{left:4px!important}
+  #dominoSeats .domino-seat .domino-avatar-wrap{width:40px!important;height:40px!important;min-width:40px!important;flex-basis:40px!important}
+  #dominoSeats .domino-seat.s1.mine .domino-avatar-wrap{width:46px!important;height:46px!important;min-width:46px!important;flex-basis:46px!important}
+  #dominoSeats .domino-seat .domino-avatar{width:36px!important;height:36px!important}
+  #dominoSeats .domino-seat.s1.mine .domino-avatar{width:42px!important;height:42px!important}
+  #dominoSeats .domino-seat .domino-turn-seconds{top:-10px!important;min-width:46px!important;height:22px!important;font-size:11px!important;padding:0 8px!important}
+  #dominoSeats .domino-seat .domino-seat-name{font-size:10px!important}
+  #dominoSeats .domino-seat.s1.mine .domino-seat-name{font-size:14px!important}
+  #dominoSeats .domino-seat .domino-tile-count{min-height:34px!important;padding:5px 4px!important;border-radius:11px!important}
+  #dominoSeats .domino-seat.s1.mine .domino-tile-count{min-height:42px!important}
+  #dominoSeats .domino-seat .domino-seat-back-row{gap:2px!important}
+  #dominoSeats .domino-seat .domino-tile-count .domino-piece.domino-seat-back-tile{width:11px!important;height:24px!important;border-radius:4px!important}
+}
+</style>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
