@@ -9927,6 +9927,240 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
 }
 </style>
 
+
+
+<!-- DOMINOS FLASH COIN 0.02 · CORRECCION FINAL ESTILO FOTO EN PERFILES Y DOMINOS -->
+<style id="dfcPhotoExactProfilesAndDominoes003">
+/* ============================================================
+   PERFIL Y DOMINOS CON EL MISMO LENGUAJE VISUAL DE LA FOTO.
+   Se conserva la lógica original; solo se rehace la piel visual.
+   ============================================================ */
+
+/* Asientos: sin tarjeta rectangular vieja. El asiento actúa como ancla invisible. */
+#dominoTablePanel #dominoSeats .domino-seat{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+  overflow:visible!important;
+}
+
+/* Columna interna del perfil: avatar a la izquierda, datos a la derecha, fichas debajo. */
+#dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{
+  position:relative!important;
+  z-index:4!important;
+  flex:0 0 auto!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading{
+  position:relative!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  align-items:flex-start!important;
+  gap:1px!important;
+  margin-left:0!important;
+  padding:8px 12px 8px 40px!important;
+  min-height:48px!important;
+  min-width:132px!important;
+  max-width:200px!important;
+  border-radius:20px!important;
+  border:1px solid rgba(231,185,91,.85)!important;
+  background:linear-gradient(180deg,rgba(14,14,14,.98),rgba(4,4,4,.95))!important;
+  box-shadow:0 8px 18px rgba(0,0,0,.58), inset 0 0 0 1px rgba(255,227,151,.06)!important;
+  overflow:visible!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{
+  position:absolute!important;
+  left:-10px!important;
+  top:0!important;
+  width:52px!important;height:52px!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-avatar{
+  width:52px!important;height:52px!important;
+  border:3px solid #c78e2f!important;
+  box-shadow:0 6px 16px rgba(0,0,0,.55)!important;
+  background:radial-gradient(circle at 35% 28%,#2e2b24,#0d0d0c 72%)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-name{
+  max-width:100%!important;
+  margin:0!important;padding:0!important;
+  background:transparent!important;border:0!important;
+  color:#fff6da!important;
+  font-size:clamp(11px,1.15vw,20px)!important;
+  font-weight:950!important;
+  line-height:1.05!important;
+  letter-spacing:0!important;
+  text-shadow:0 2px 6px rgba(0,0,0,.75)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:4px!important;
+  margin:0!important;padding:0!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  color:#f3d67c!important;
+  font-size:clamp(10px,1vw,16px)!important;
+  font-weight:900!important;
+  line-height:1.05!important;
+  text-shadow:0 1px 5px rgba(0,0,0,.8)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal::before{
+  content:"FC"!important;
+  display:inline-flex!important;
+  align-items:center!important;justify-content:center!important;
+  min-width:16px!important;height:16px!important;
+  padding:0 4px!important;
+  border-radius:999px!important;
+  background:linear-gradient(180deg,#f1c866,#9a6617)!important;
+  color:#231301!important;
+  font-size:9px!important;font-weight:950!important;
+  box-shadow:inset 0 0 0 1px rgba(255,238,180,.35)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-turn-seconds{
+  position:absolute!important;
+  right:8px!important;top:50%!important;left:auto!important;bottom:auto!important;
+  transform:translateY(-50%)!important;
+  min-width:50px!important;height:28px!important;
+  padding:0 10px!important;
+  border-radius:999px!important;
+  border:1px solid rgba(232,186,90,.92)!important;
+  background:linear-gradient(180deg,#171209,#060505)!important;
+  color:#ffd977!important;
+  font-size:13px!important;font-weight:950!important;
+  box-shadow:0 3px 10px rgba(0,0,0,.5)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.turn .domino-avatar:after{border-color:#ffe28c!important;box-shadow:0 0 20px rgba(255,226,140,.65)!important}
+
+/* Fichas restantes de rivales: visibles debajo del perfil, sin caja alrededor. */
+#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  margin-top:8px!important;
+  padding:0!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+  border-radius:0!important;
+  min-height:0!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-back-row{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  gap:3px!important;
+  flex-wrap:nowrap!important;
+  overflow:visible!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count .domino-piece.domino-seat-back-tile{
+  width:16px!important;height:42px!important;
+  border-radius:6px!important;
+  border:1px solid #d7d0c2!important;
+  background:linear-gradient(180deg,#fffdf6,#e9decb)!important;
+  box-shadow:0 3px 6px rgba(0,0,0,.36)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-back-stripe{
+  left:3px!important;right:3px!important;height:1px!important;
+  background:#d4c6ac!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-tile-count{display:none!important}
+
+/* Perfil propio más grande, como la imagen. */
+#dominoTablePanel #dominoSeats .domino-seat.s1{
+  width:340px!important;min-height:110px!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-seat-heading{
+  min-width:190px!important;min-height:58px!important;padding:10px 68px 10px 52px!important;border-radius:24px!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-avatar-wrap{left:-2px!important;top:-1px!important;width:64px!important;height:64px!important}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-avatar{width:64px!important;height:64px!important}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-seat-name{font-size:clamp(18px,1.9vw,34px)!important}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .seat-bal{font-size:clamp(11px,1.1vw,17px)!important}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-turn-seconds{min-width:64px!important;height:32px!important;font-size:16px!important}
+
+/* Laterales y parte superior más compactos. */
+#dominoTablePanel #dominoSeats .domino-seat.s2,
+#dominoTablePanel #dominoSeats .domino-seat.s3,
+#dominoTablePanel #dominoSeats .domino-seat.s4{width:170px!important;min-height:92px!important}
+#dominoTablePanel #dominoSeats .domino-seat.s2 .domino-seat-heading,
+#dominoTablePanel #dominoSeats .domino-seat.s3 .domino-seat-heading,
+#dominoTablePanel #dominoSeats .domino-seat.s4 .domino-seat-heading{padding-right:62px!important}
+
+/* Fichas del jugador y cadena del tablero: color marfil / puntos negros como en la foto. */
+#dominoTablePanel .domino-piece{
+  background:linear-gradient(180deg,#fffefb 0%,#efe5d3 100%)!important;
+  border:1px solid #d7d0c2!important;
+  color:#141414!important;
+  box-shadow:0 4px 12px rgba(0,0,0,.44)!important;
+}
+#dominoTablePanel .domino-piece .domino-divider{
+  background:linear-gradient(90deg,#cfc3a8,#e9dfc9,#cfc3a8)!important;
+  box-shadow:none!important;
+}
+#dominoTablePanel .domino-piece .domino-pip,
+#dominoTablePanel .domino-piece.board-piece .domino-pip,
+#dominoTablePanel .domino-piece.hand-piece .domino-pip{
+  background:#151515!important;
+  box-shadow:none!important;
+}
+#dominoTablePanel #dominoHand .domino-piece.hand-piece{
+  border-radius:8px!important;
+  background:linear-gradient(180deg,#fffefb 0%,#efe5d3 100%)!important;
+}
+#dominoTablePanel #dominoHand{
+  left:50%!important;bottom:7.7%!important;width:34%!important;height:11.6%!important;
+}
+
+/* Botón pequeño de mesa, totalmente visible a la izquierda. */
+#dominoTablePanel #dfcLuxMesasBtn{
+  top:20.8%!important;left:1.2%!important;max-width:none!important;
+  height:28px!important;padding:3px 8px!important;font-size:10px!important;z-index:330!important;
+}
+
+/* Selector de mesas con la misma familia visual. */
+#dominoLobbyPanel .domino-choice-card,
+#dominoLobbyPanel .card,
+#dominoLobbyPanel .panel{
+  border:1px solid rgba(231,185,91,.72)!important;
+  background:linear-gradient(180deg,rgba(12,12,12,.97),rgba(4,4,4,.95))!important;
+  box-shadow:0 14px 26px rgba(0,0,0,.42)!important;
+}
+#dominoLobbyPanel .domino-choice-card h3,
+#dominoLobbyPanel .domino-lobby-head h2{color:#fff1c5!important}
+#dominoLobbyPanel .mode-desc,
+#dominoLobbyPanel .tiny,
+#dominoLobbyPanel .online-line{color:#d6c7a0!important}
+#dominoLobbyPanel .table-stat{background:rgba(255,255,255,.03)!important;border:1px solid rgba(231,185,91,.18)!important}
+#dominoLobbyPanel .domino-join-mode,
+#dominoLobbyPanel .action.green{
+  background:linear-gradient(180deg,#1b1710,#080706)!important;
+  border:1px solid #e3b660!important;
+  color:#ffefbf!important;
+}
+
+@media (max-width:740px) and (orientation:landscape){
+  #dominoTablePanel #dominoSeats .domino-seat.s1{width:270px!important;min-height:94px!important}
+  #dominoTablePanel #dominoSeats .domino-seat.s1 .domino-seat-heading{min-width:162px!important;min-height:50px!important;padding:8px 52px 8px 44px!important}
+  #dominoTablePanel #dominoSeats .domino-seat.s1 .domino-avatar-wrap{width:52px!important;height:52px!important}
+  #dominoTablePanel #dominoSeats .domino-seat.s1 .domino-avatar{width:52px!important;height:52px!important}
+  #dominoTablePanel #dominoSeats .domino-seat.s1 .domino-seat-name{font-size:15px!important}
+  #dominoTablePanel #dominoSeats .domino-seat.s1 .domino-turn-seconds{min-width:48px!important;height:25px!important;font-size:12px!important}
+  #dominoTablePanel #dominoSeats .domino-seat.s2,
+  #dominoTablePanel #dominoSeats .domino-seat.s3,
+  #dominoTablePanel #dominoSeats .domino-seat.s4{width:132px!important;min-height:82px!important}
+  #dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading{min-width:108px!important;max-width:146px!important;min-height:40px!important;padding:6px 50px 6px 34px!important;border-radius:18px!important}
+  #dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{width:42px!important;height:42px!important;left:-6px!important}
+  #dominoTablePanel #dominoSeats .domino-seat .domino-avatar{width:42px!important;height:42px!important}
+  #dominoTablePanel #dominoSeats .domino-seat .domino-seat-name{font-size:10px!important}
+  #dominoTablePanel #dominoSeats .domino-seat .seat-bal{font-size:8.5px!important}
+  #dominoTablePanel #dominoSeats .domino-seat .domino-turn-seconds{min-width:38px!important;height:20px!important;font-size:10px!important;padding:0 7px!important}
+  #dominoTablePanel #dominoSeats .domino-seat .domino-tile-count .domino-piece.domino-seat-back-tile{width:12px!important;height:31px!important;border-radius:4px!important}
+  #dominoTablePanel #dominoHand{width:36%!important;height:11.3%!important}
+  #dominoTablePanel #dominoHand .domino-piece.hand-piece{width:41px!important;height:64px!important}
+  #dominoTablePanel #dfcLuxMesasBtn{top:20.4%!important;left:.8%!important;height:24px!important;padding:2px 6px!important;font-size:9px!important}
+}
+</style>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
