@@ -2363,11 +2363,13 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 <div class="domino-photo-veil" aria-hidden="true"></div>
 <div class="domino-live-top-controls">
   <div class="domino-compact-balance balance-chip" title="Saldo Flash Coin"><strong id="dominoGlobalBalance" class="fc-balance">0.000 FC</strong></div>
+  <button id="dfcLuxBalancePlus" type="button" class="domino-live-icon dfc-lux-plus" aria-label="Abrir saldo Flash Coin" title="Saldo Flash Coin">＋</button>
   <button id="dominoSoundBtn" type="button" class="domino-live-icon" aria-pressed="false" aria-label="Encender sonido de la mesa" title="Sonido de Dominó">🔇</button>
   <button id="dominoGearBtn" type="button" class="domino-live-icon" aria-label="Configuración de mesa" title="Configuración">⚙️</button>
   <button id="dominoSurrenderBtn" type="button" class="domino-live-icon dfc-lux-exit" title="Salir de la mesa">🚪</button>
 </div>
 <div class="dfc-photo-center-cover" aria-hidden="true"></div><div class="dfc-photo-top-controls-cover" aria-hidden="true"></div>
+<button id="dfcLuxMesasBtn" type="button" aria-label="Ver otras mesas de dominó" title="Ver otras mesas de dominó">🁫 <span>Mesas</span> <span aria-hidden="true">›</span></button>
 <div id="dominoSeats"></div>
 <div id="dominoCenterStatus" class="domino-center-status">Esperando jugadores...</div>
 <button id="dominoReadyBtn" type="button" class="domino-ready-btn hidden">CONFIRMAR</button>
@@ -5635,7 +5637,7 @@ function dominoRenderSeatsStable(st){
     if(!node){
       node=document.createElement('div');
       node.dataset.visualSeat=String(visualSeat);
-      node.innerHTML=`<div class="domino-avatar-wrap"><span class="domino-turn-ring" aria-hidden="true"></span><div class="domino-avatar"></div><span class="domino-turn-seconds hidden"></span></div><div class="domino-seat-name"></div><div class="domino-seat-info"></div><span class="domino-tile-count" hidden></span><span class="seat-bal"></span><button type="button" class="domino-see-message hidden">Ver mensaje</button>`;
+      node.innerHTML=`<div class="domino-avatar-wrap"><span class="domino-turn-ring" aria-hidden="true"></span><div class="domino-avatar"></div></div><div class="domino-seat-heading"><div class="domino-seat-name"></div><span class="domino-turn-seconds hidden"></span></div><div class="domino-seat-info"></div><span class="domino-tile-count" hidden></span><span class="seat-bal"></span><button type="button" class="domino-see-message hidden">Ver mensaje</button>`;
       host.appendChild(node);
     }
     const seat=seats.find(x=>dominoVisualSeatForReal(x.seat_no)===visualSeat);
@@ -7802,8 +7804,10 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
       const cx=dir===1?cursor-H:cursor;
       const cy=y+H;
       add(board[idx],idx,cx,cy,true,false);idx++;
-      y=cy+W-H;
-      cursor=dir===1?cx:cx+H;
+      // La siguiente fila comienza justo al final del conector vertical:
+      // sin huecos, sin superponer fichas ni alterar los valores del tablero.
+      y=cy+W;
+      cursor=dir===1?cx+H:cx;
       dir*=-1;
     }
     const shiftX=-minX,shiftY=-minY;
@@ -9492,6 +9496,288 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
   }
 }
 </style>
+
+
+<!-- DFC 0.02 · ESTILO APROBADO: FOTO REAL + CONTROLES FUNCIONALES -->
+<style id="dfcLuxFunctionalFinal002">
+:root{--dfc-lux-gold:#f4c966;--dfc-lux-black:#070606}
+/* LOBBY: misma fotografía, brillo dorado y tarjetas realmente legibles. */
+#dominoLobbyPanel .domino-lobby-shell,
+#gamesPanel .domino-lobby-shell{
+  background-color:#080604!important;
+  background-image:linear-gradient(180deg,rgba(5,4,3,.80),rgba(6,5,4,.84)),var(--dfc-lux-photo,none)!important;
+  background-size:cover!important;background-position:center center!important;
+  border:1px solid rgba(232,182,75,.86)!important;
+}
+#dominoLobbyPanel .domino-lobby-head h2,
+#gamesPanel .domino-lobby-head h2{color:#ffdf92!important;text-shadow:0 3px 13px #000!important;letter-spacing:.06em!important}
+#dominoLobbyModes.domino-two-tables{
+  gap:clamp(6px,1.1vw,12px)!important;padding:4px!important;
+  overflow-x:hidden!important;overflow-y:auto!important;scrollbar-width:thin!important;
+  grid-template-rows:repeat(3,minmax(130px,1fr))!important;
+}
+#dominoLobbyModes .domino-choice-card{
+  --lobby-accent:#f3c868!important;
+  border:1.5px solid rgba(240,194,91,.80)!important;
+  background:linear-gradient(180deg,rgba(14,12,10,.76),rgba(4,4,4,.94) 56%,#060504)!important;
+  box-shadow:0 12px 23px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,228,160,.12)!important;
+}
+#dominoLobbyModes .domino-choice-card:before{
+  background:linear-gradient(180deg,rgba(0,0,0,.33),rgba(0,0,0,.76)),var(--dfc-lux-photo,none) center/cover no-repeat!important;
+  filter:saturate(.85)!important;
+}
+#dominoLobbyModes .domino-choice-card h3{color:#fff3cf!important}
+#dominoLobbyModes .domino-premium-status{border:1px solid rgba(244,193,80,.26)!important;color:#ffdd92!important}
+#dominoLobbyModes .domino-choice-card .mode-desc,
+#dominoLobbyModes .domino-choice-card .online-line{color:#e0d7c7!important;font-size:clamp(8px,.85vw,11px)!important;line-height:1.2!important}
+#dominoLobbyModes .domino-choice-card .table-stat{
+  background:rgba(9,8,7,.86)!important;border:1px solid rgba(236,194,97,.22)!important;
+  color:#d5c7ab!important;font-size:clamp(7px,.7vw,10px)!important;
+}
+#dominoLobbyModes .domino-choice-card .table-stat b{color:#ffde8a!important;font-size:clamp(8px,.95vw,12px)!important}
+#dominoLobbyModes .domino-join-mode,
+#dominoLobbyModes .domino-join-mode.spectator{
+  border:1px solid #f1bf60!important;background:linear-gradient(180deg,#ffdc83,#bb812c)!important;
+  color:#160e04!important;font-size:clamp(9px,.9vw,12px)!important;min-height:31px!important;
+  font-weight:950!important;border-radius:10px!important;cursor:pointer!important;
+}
+#dominoLobbyPanel #dominoLobbyCloseBtn{border:1px solid #e8bd6c!important;border-radius:10px!important;background:#080705!important;color:#ffe5ab!important}
+
+/* MESA: la foto aprobada sigue siendo la base; los cuatro perfiles ahora son datos reales. */
+#dominoTablePanel #dominoStage{isolation:isolate!important}
+#dominoTablePanel #dominoSeats .domino-seat{
+  border:1px solid rgba(255,206,102,.88)!important;
+  border-radius:clamp(10px,1.3vw,20px)!important;
+  background:linear-gradient(160deg,rgba(12,11,10,.99),rgba(2,2,2,.99))!important;
+  box-shadow:0 7px 22px rgba(0,0,0,.68),inset 0 1px 0 rgba(255,232,169,.13)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1{
+  position:absolute!important;left:33%!important;right:auto!important;
+  top:70.7%!important;bottom:auto!important;transform:none!important;
+  width:34%!important;height:23%!important;min-width:0!important;min-height:0!important;
+  display:grid!important;grid-template-columns:minmax(34px,22%) minmax(0,1fr)!important;
+  grid-template-rows:auto 1fr auto!important;padding:1% 1.2%!important;
+  border-radius:clamp(10px,1.3vw,20px)!important;
+  font-size:initial!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s3{
+  top:1.6%!important;left:38%!important;width:24%!important;height:22.5%!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s4{left:.9%!important;top:32.5%!important;width:17.3%!important;height:29%!important}
+#dominoTablePanel #dominoSeats .domino-seat.s2{right:.9%!important;top:32.5%!important;width:17.3%!important;height:29%!important}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-avatar-wrap{
+  display:grid!important;grid-column:1!important;grid-row:1!important;
+  margin:0!important;align-self:start!important;justify-self:center!important;
+  width:clamp(36px,5.5vw,77px)!important;height:clamp(36px,5.5vw,77px)!important;
+  min-width:0!important;min-height:0!important;flex-basis:auto!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-avatar{
+  width:clamp(34px,5.3vw,74px)!important;height:clamp(34px,5.3vw,74px)!important;
+  border:2px solid #f3c369!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-seat-name{
+  display:block!important;grid-column:2!important;grid-row:1!important;
+  max-width:100%!important;padding:0!important;margin:0!important;
+  font-size:clamp(12px,1.6vw,25px)!important;
+  text-align:left!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-tile-count{display:none!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading{
+  grid-column:2!important;grid-row:1!important;
+  display:flex!important;flex-direction:column!important;align-items:flex-start!important;
+  justify-content:center!important;gap:clamp(2px,.5vw,6px)!important;
+  min-width:0!important;overflow:visible!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading .domino-seat-name{order:0!important;position:static!important;align-self:flex-start!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-turn-seconds{
+  order:1!important;position:static!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  transform:none!important;justify-self:start!important;
+  min-width:clamp(30px,4.2vw,74px)!important;height:clamp(17px,2.7vw,29px)!important;
+  font-size:clamp(9px,1.3vw,18px)!important;line-height:1!important;
+  border:1px solid #f3c167!important;border-radius:999px!important;
+  color:#ffe398!important;background:rgba(3,3,3,.97)!important;
+  box-shadow:0 4px 10px #000!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-turn-seconds.hidden{display:none!important}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-turn-seconds{
+  position:absolute!important;right:5%!important;top:9%!important;left:auto!important;bottom:auto!important;
+  transform:none!important;z-index:6!important;
+}
+#dominoTablePanel #dominoHand{
+  left:50%!important;bottom:7.9%!important;width:31%!important;height:10.9%!important;
+  z-index:45!important;
+}
+#dominoTablePanel #dominoHand .domino-piece.hand-piece{
+  border:1px solid #dfd2b6!important;background:linear-gradient(145deg,#fffef8,#e8ddca)!important;
+  box-shadow:0 4px 10px rgba(0,0,0,.6)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-back-row{gap:1.2%!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count .domino-piece.domino-seat-back-tile{
+  background:linear-gradient(160deg,#fffaf0,#ded4c0)!important;
+  border:1px solid #e5dbc8!important;
+  box-shadow:0 3px 5px rgba(0,0,0,.35)!important;
+}
+
+/* Fichas de tablero: escala solo LA CADENA, nunca cada pieza individual. */
+#dominoTablePanel #dominoBoard{overflow:visible!important}
+#dominoTablePanel #dominoBoard .domino-board-path{
+  display:block!important;position:relative!important;transform-origin:center center!important;
+  will-change:transform;
+}
+#dominoTablePanel #dominoBoard .domino-board-path .domino-piece.board-piece,
+#dominoTablePanel #dominoBoard .domino-board-path .domino-piece.board-piece.domino-double,
+#dominoTablePanel #dominoBoard .domino-board-path .domino-piece.board-piece.domino-path-vertical{
+  margin:0!important;transform:none!important;scale:1!important;
+}
+
+/* Boton pequeño Mesas: izquierda, conectado al selector o al navegador de espectadores. */
+#dominoTablePanel #dfcLuxMesasBtn{
+  position:absolute!important;left:1.5%!important;top:25.8%!important;
+  z-index:84!important;pointer-events:auto!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:clamp(2px,.45vw,6px)!important;
+  min-width:0!important;min-height:0!important;
+  padding:clamp(5px,.68vw,9px) clamp(8px,1vw,14px)!important;
+  font-size:clamp(9px,1vw,13px)!important;line-height:1.05!important;font-weight:900!important;
+  white-space:nowrap!important;border-radius:10px!important;
+  border:1px solid #e8b95d!important;color:#ffebbb!important;
+  background:linear-gradient(180deg,#15100a,#060505)!important;
+  box-shadow:0 4px 13px rgba(0,0,0,.55)!important;
+  cursor:pointer!important;
+}
+#dominoTablePanel #dfcLuxMesasBtn:active{filter:brightness(1.35)!important}
+
+/* Cabecera exactamente de la familia visual de la foto. Los botones reutilizan las funciones previas. */
+#dominoTablePanel .domino-live-top-controls{gap:clamp(2px,.6vw,8px)!important}
+#dominoTablePanel .domino-compact-balance{
+  position:relative!important;padding-left:clamp(26px,3vw,46px)!important;
+  border-radius:999px!important;background:linear-gradient(180deg,#171107,#050403)!important;
+}
+#dominoTablePanel .domino-compact-balance:before{
+  content:"⚡";position:absolute;left:clamp(4px,.8vw,10px);top:50%;transform:translateY(-50%);
+  width:clamp(19px,2.3vw,31px);height:clamp(19px,2.3vw,31px);
+  display:grid;place-items:center;border-radius:50%;
+  background:linear-gradient(140deg,#ffe99c,#b47b1d);color:#120b02;
+  box-shadow:inset 0 0 0 1px #fde095,0 0 7px rgba(240,184,68,.4);
+}
+#dominoTablePanel #dfcLuxBalancePlus{
+  display:grid!important;place-items:center!important;font-size:clamp(17px,2vw,27px)!important;
+  border-radius:50%!important;cursor:pointer!important;
+  width:clamp(25px,3vw,40px)!important;height:clamp(25px,3vw,40px)!important;
+  min-width:0!important;min-height:0!important;
+  padding:0!important;
+}
+#dominoTablePanel #dominoChatBtn,
+#dominoTablePanel #dominoEmojiBtn,
+#dominoTablePanel #dfcAutoPassInfo{border:1.4px solid #e4b664!important;border-radius:12px!important;background:linear-gradient(180deg,#19140e,#050403)!important;color:#ffe6b0!important}
+#dominoTablePanel #dfcAutoPassInfo{font-size:clamp(8px,1.05vw,14px)!important}
+
+@media(max-width:740px) and (orientation:landscape){
+  #dominoLobbyModes.domino-two-tables{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    grid-template-rows:repeat(2,minmax(142px,1fr))!important;
+  }
+  #dominoTablePanel #dfcLuxMesasBtn{top:24.5%!important;left:1.0%!important;font-size:9px!important;padding:5px 7px!important}
+  #dominoTablePanel #dominoSeats .domino-seat.s1 .domino-seat-name{font-size:clamp(10px,1.4vw,15px)!important}
+  #dominoTablePanel #dominoSeats .domino-seat.s1 .domino-avatar-wrap{
+    width:clamp(30px,5.2vw,44px)!important;height:clamp(30px,5.2vw,44px)!important;
+  }
+  #dominoTablePanel #dominoSeats .domino-seat.s1 .domino-avatar{
+    width:clamp(28px,5vw,42px)!important;height:clamp(28px,5vw,42px)!important;
+  }
+  #dominoTablePanel #dominoSeats .domino-seat.s1{padding:.75% .8%!important}
+  #dominoTablePanel #dominoSeats .domino-seat .domino-turn-seconds{
+    min-width:34px!important;height:17px!important;font-size:9px!important;padding:0 3px!important
+  }
+  #dominoTablePanel #dominoHand{height:10.2%!important}
+}
+@media(orientation:portrait){
+  #dominoLobbyModes.domino-two-tables{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-rows:repeat(3,minmax(155px,1fr))!important;
+  }
+}
+</style>
+
+
+<script id="dfcLuxFunctionalFinalJS002">
+(function(){
+  'use strict';
+  const stage=document.getElementById('dominoStage');
+  const lobby=document.getElementById('dominoLobbyPanel');
+  const table=document.getElementById('dominoTablePanel');
+  const board=document.getElementById('dominoBoard');
+  if(stage){
+    // Misma imagen incrustada del escenario principal también en el selector de mesas.
+    const syncPhoto=()=>{
+      const src=getComputedStyle(stage).backgroundImage;
+      if(src&&src!=='none') document.documentElement.style.setProperty('--dfc-lux-photo',src);
+    };
+    syncPhoto();
+  }
+  const btn=document.getElementById('dfcLuxMesasBtn');
+  if(btn){
+    btn.addEventListener('click', async ev=>{
+      ev.preventDefault();ev.stopPropagation();
+      if(window.dominoSpectatorMode){
+        // En espectador se cambia a la siguiente mesa real, no se mueve un asiento.
+        if(typeof window.dominoSpectatorSwitch==='function')await window.dominoSpectatorSwitch(1);
+        else window.alert('No hay otra mesa disponible para observar.');
+        return;
+      }
+      // Jugador activo: abre el selector como capa SIN abandonar su mesa ni alterar el saldo.
+      const panel=document.getElementById('dominoLobbyPanel');
+      if(panel){
+        if(panel.classList.contains('active')){panel.classList.remove('active');return;}
+        panel.classList.add('active');
+        const host=document.getElementById('dominoLobbyModes');
+        if(host&&!host.children.length)host.textContent='Consultando mesas…';
+        try{
+          // Actualiza solamente la lista. No toca las fichas ni la partida activa.
+          const result=await sb.rpc('rf_domino_get_lobby_v11');
+          if(result.error)throw result.error;
+          dominoLobbyData=result.data||{};
+          if(typeof renderDominoLobby==='function')renderDominoLobby();
+          else if(typeof window.renderDominoLobby==='function')window.renderDominoLobby();
+        }catch(err){
+          const notice=document.getElementById('dominoLobbyMsg');
+          if(notice)notice.textContent='No se pudieron actualizar las mesas: '+(err?.message||String(err));
+        }
+      }
+    });
+  }
+  const plus=document.getElementById('dfcLuxBalancePlus');
+  if(plus)plus.addEventListener('click',ev=>{
+    ev.preventDefault();ev.stopPropagation();
+    // Reutiliza el flujo existente de saldo: no crea una cartera ni un RPC nuevo.
+    const original=document.getElementById('balanceBtn');
+    if(original)original.click();
+  });
+  // Mantén la cadena pegada también cuando la mano se hace más larga: escalamos
+  // el contenedor completo, NUNCA una ficha individual (eso generaría huecos).
+  if(board){
+    let frame=0;
+    const fit=()=>{
+      frame=0;
+      const path=board.querySelector('.domino-board-path');
+      if(!path)return;
+      const w=parseFloat(path.style.width)||path.offsetWidth;
+      const h=parseFloat(path.style.height)||path.offsetHeight;
+      const a=board.getBoundingClientRect();
+      if(!(w>0&&h>0&&a.width>0&&a.height>0))return;
+      const scale=Math.min(1,(a.width-6)/w,(a.height-6)/h);
+      path.style.setProperty('transform',`scale(${Math.max(.13,scale).toFixed(5)})`,'important');
+      path.style.setProperty('transform-origin','center center','important');
+    };
+    const schedule=()=>{if(!frame)frame=requestAnimationFrame(fit)};
+    const observer=new MutationObserver(schedule);
+    observer.observe(board,{childList:true,subtree:false});
+    if(typeof ResizeObserver!=='undefined')new ResizeObserver(schedule).observe(board);
+    window.addEventListener('resize',schedule,{passive:true});
+    schedule();
+  }
+})();
+</script>
 
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
