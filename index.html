@@ -9936,6 +9936,145 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
 }
 </style>
 
+
+<!-- DFC 0.02 · CORRECCION DE ENCAJE DE FICHAS EN LA MESA · SOLO ESTILOS -->
+<style id="dfcRecessedTilePlacement025">
+/* El tablero jugado se centra en la superficie interior hundida:
+   la cadena completa conserva las proporciones y nunca se agranda. */
+#dominoTablePanel #dominoStage #dominoBoard {
+  position:absolute!important;
+  left:50%!important;
+  top:48%!important;
+  width:52%!important;
+  max-width:570px!important;
+  height:35%!important;
+  min-height:0!important;
+  transform:translate(-50%,-50%)!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:visible!important;
+  z-index:16!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+/* El motor ya ajusta TODA la cadena al espacio. Nunca se modifica
+   individualmente el tamaño de una ficha durante el ajuste. */
+#dominoTablePanel #dominoBoard .domino-board-path{
+  transform-origin:center center!important;
+}
+#dominoTablePanel #dominoBoard .domino-board-path .domino-piece.board-piece{
+  opacity:1!important;
+  filter:none!important;
+  background:linear-gradient(160deg,#fffcf2 0%,#f5e9d5 63%,#dfd0b2 100%)!important;
+  border:1px solid #b6a78e!important;
+  box-shadow:inset 1px 1px 1px rgba(255,255,255,.96),0 2px 4px rgba(0,0,0,.63)!important;
+}
+#dominoTablePanel #dominoBoard .domino-piece .domino-pip{
+  background:#131313!important;
+  box-shadow:inset 0 0 1px #000!important;
+}
+
+/* Los dorsos de cada rival se muestran en una hilera realista, sin tarjetas
+   o fichas transparentes. Sus cantidades las sigue dictando el servidor. */
+#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count{
+  display:flex!important;
+  position:absolute!important;
+  top:auto!important;
+  bottom:auto!important;
+  left:50%!important;
+  right:auto!important;
+  transform:translateX(-50%)!important;
+  width:max-content!important;
+  max-width:172px!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:4px 5px!important;
+  justify-content:center!important;
+  align-items:center!important;
+  border:0!important;
+  border-radius:7px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  pointer-events:none!important;
+  overflow:visible!important;
+  z-index:22!important;
+}
+/* Colocación de las hileras junto al perímetro del hueco jugable. */
+#dominoTablePanel #dominoSeats .domino-seat.s3 .domino-tile-count{
+  top:calc(100% + 7px)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s2 .domino-tile-count{
+  left:auto!important;
+  right:calc(100% + 5px)!important;
+  top:48%!important;
+  transform:translateY(-50%)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s4 .domino-tile-count{
+  left:calc(100% + 5px)!important;
+  top:48%!important;
+  transform:translateY(-50%)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-back-row{
+  width:max-content!important;
+  max-width:100%!important;
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  gap:2px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:visible!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count .domino-piece.domino-seat-back-tile{
+  display:block!important;
+  flex:0 0 13px!important;
+  width:13px!important;
+  min-width:13px!important;
+  height:29px!important;
+  min-height:29px!important;
+  padding:0!important;
+  border-radius:4px!important;
+  opacity:1!important;
+  filter:none!important;
+  border:1px solid #d1bc8b!important;
+  background:linear-gradient(145deg,#24211c 0%,#0b0b0b 54%,#22211d 100%)!important;
+  box-shadow:inset 1px 1px 1px rgba(255,222,145,.24),0 3px 4px rgba(0,0,0,.8)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-back-stripe{
+  background:linear-gradient(90deg,#63451e,#dfaf55,#63451e)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1 .domino-tile-count,
+#dominoTablePanel #dominoSeats .domino-seat .domino-tile-count[hidden],
+#dominoTablePanel #dominoSeats .domino-seat.empty .domino-tile-count{
+  display:none!important;
+}
+/* La mano del propio jugador permanece en su espacio inferior; no se duplica. */
+#dominoTablePanel #dominoHand .domino-piece.hand-piece{
+  opacity:1!important;
+  background:linear-gradient(165deg,#fffef6,#eee1c7)!important;
+  border-color:#c1ab86!important;
+  box-shadow:inset 1px 1px 2px #fff,0 4px 8px rgba(0,0,0,.63)!important;
+}
+#dominoTablePanel #dominoHand .hand-piece:not(.playable){
+  opacity:1!important;
+  filter:none!important;
+}
+@media(max-width:740px) and (orientation:landscape){
+  #dominoTablePanel #dominoStage #dominoBoard{
+    top:48%!important;
+    width:49%!important;
+    height:34%!important;
+  }
+  #dominoTablePanel #dominoSeats .domino-seat .domino-tile-count .domino-piece.domino-seat-back-tile{
+    width:10px!important;min-width:10px!important;flex-basis:10px!important;
+    height:23px!important;min-height:23px!important;
+  }
+  #dominoTablePanel #dominoSeats .domino-seat .domino-seat-back-row{gap:1px!important}
+  #dominoTablePanel #dominoSeats .domino-seat.s2 .domino-tile-count{right:calc(100% + 2px)!important}
+  #dominoTablePanel #dominoSeats .domino-seat.s4 .domino-tile-count{left:calc(100% + 2px)!important}
+}
+</style>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
