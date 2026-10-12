@@ -2331,7 +2331,7 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 <div class="dfc-home-kicker">⚡ DOMINOS FLASH COIN</div>
 <h1>DOMINÓ EN LÍNEA</h1>
 <p>Elige tu mesa y juega con tus Flash Coin virtuales.</p>
-<div class="dfc-home-action" id="dfcHomeAction"><button class="action green dfc-open-domino" id="gamesBtn" type="button">🁫 Entrar a las mesas</button></div>
+<div class="dfc-home-action" id="dfcHomeAction"><button class="action green dfc-open-domino" id="gamesBtn" type="button">🁫 Entrar a las mesas</button><button class="action blue dfc-open-send" id="dfcGiftOpen004" type="button">⚡ Enviar Flash Coin</button></div>
 <div class="dfc-home-id">ID de jugador: <strong id="dfcHomeIdHolder"><b id="myPublicId">———</b></strong><span id="dfcHomeCopyHolder"><button class="copy-btn" id="copyMyIdBtn" type="button">Copiar</button></span></div>
 <div class="dfc-home-virtual">Monedas virtuales de juego · sin compra, retiro ni conversión a dinero real</div>
 </div>
@@ -2411,7 +2411,7 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 <div class="overlay" id="dominoMenuPanel"><div class="panel"><button class="close" id="dominoMenuCloseBtn" type="button">✕</button><h2>⚙️ Mesa de Dominó</h2><div class="domino-menu-actions"><button class="action dark" id="dominoBackBtn">↩ Opciones de salida</button><div class="tiny">Elige entre salir un momento para poder volver rápido, o abandonar la mesa definitivamente.</div><button class="action red" id="dominoExitBtn">🚪 Salir</button></div></div></div>
 <div class="overlay" id="dominoExitConfirmPanel"><div class="panel domino-exit-choice-panel"><button class="close" id="dominoExitCancelBtn" type="button">✕</button><h2>¿Cómo quieres salir?</h2><div class="domino-exit-choice"><button class="action blue" id="dominoExitTemporaryBtn" type="button">↩ SALIR UN MOMENTO</button><div class="tiny">Regresas a las mesas sin abandonar tu lugar. Puedes tocar <b>VOLVER A MI MESA</b> y continuar si la mano sigue activa. Si llega tu turno mientras estás fuera, el sistema respetará el tiempo del turno y actuará al vencer.</div></div><div class="domino-exit-choice danger"><button class="action red" id="dominoExitAbandonBtn" type="button">🚪 ABANDONAR MESA</button><div class="tiny">Libera tu asiento de forma definitiva. Si la mano ya comenzó, el servidor termina automáticamente las acciones pendientes de esa mano.</div></div></div></div>
 <div class="overlay" id="gameDevelopmentPanel"><div class="panel"><button class="close" data-close="gameDevelopmentPanel">✕</button><div class="game-dev-message"><div class="big" id="gameDevelopmentIcon">🎮</div><h3 id="gameDevelopmentTitle">Juego</h3><p>Este juego está en desarrollo. Muy pronto estará disponible dentro de Domino Flash Coin.</p></div></div></div>
-<div class="overlay" id="balancePanel"><div class="panel"><button class="close" data-close="balancePanel">✕</button><h2>💰 Flash Coin</h2><div class="card"><span class="tiny">Saldo disponible</span><strong class="fc-balance" id="balancePanelValue" style="font-size:28px">0.000 FC</strong><span class="tiny">Tu ID: <b id="balancePublicId"></b><button class="copy-btn" id="copyBalanceIdBtn" type="button">Copiar</button></span></div><h3>Solicitudes</h3><div id="requestsList"></div><h3>Historial</h3><div id="ledgerList"></div></div></div>
+<div class="overlay" id="balancePanel"><div class="panel"><button class="close" data-close="balancePanel">✕</button><h2>💰 Flash Coin</h2><button class="action blue dfc-open-send" id="dfcGiftOpenBalance004" type="button">⚡ Enviar Flash Coin</button><div class="card"><span class="tiny">Saldo disponible</span><strong class="fc-balance" id="balancePanelValue" style="font-size:28px">0.000 FC</strong><span class="tiny">Tu ID: <b id="balancePublicId"></b><button class="copy-btn" id="copyBalanceIdBtn" type="button">Copiar</button></span></div><h3>Solicitudes</h3><div id="requestsList"></div><h3>Historial</h3><div id="ledgerList"></div></div></div>
 <div class="overlay" id="onlineUsersPanel"><div class="panel"><button class="close" data-close="onlineUsersPanel">✕</button><h2>🟢 Usuarios en línea</h2><div class="online-round-note" id="onlineUsersRound">Usuarios conectados · Actividad del dominó</div><div id="onlineUsersList"></div></div></div>
 <div class="overlay" id="settingsPanel"><div class="panel"><button class="close" data-close="settingsPanel">✕</button><h2>⚙️ Configuración</h2><button class="action blue" id="editProfileBtn">Editar perfil</button><button class="action dark" id="inviteSettingsBtn">🔗 Invitar usuarios</button><div class="ref-card" id="referralSummary"><b>Referidos</b><div class="tiny">Invita usuarios con tu enlace · sin bonificaciones automáticas</div><div class="ref-stats"><div><b id="refInvited">0</b><span class="tiny">Invitados</span></div><div><b id="refPlayed">0</b><span class="tiny">Jugaron</span></div><div><b id="refEarned">0.000</b><span class="tiny">FC ganadas</span></div></div></div><button class="action dark" id="appInformationBtn" style="font-size:13px;padding:9px 12px" type="button">ⓘ Información de la aplicación</button><button class="action hidden" id="leaderBtn">👑 Administrador Líder</button><button class="action dark" id="dfcPrivacyBtn" type="button">Privacidad y soporte</button><button class="action dark hidden" id="dfcDeletionAdminBtn" type="button">Solicitudes de eliminación de cuentas</button><button class="action red" id="logoutBtn">Cerrar sesión</button></div></div>
 <div class="overlay" id="editProfilePanel"><div class="panel"><button class="close" data-close="editProfilePanel">✕</button><h2>Editar perfil</h2><input class="field" id="editFirst" placeholder="Nombre"/><input class="field" id="editLast" placeholder="Apellido"/><button class="action green" id="saveProfileBtn">Guardar</button><div class="msg" id="profileMsg"></div></div></div>
@@ -10083,6 +10083,212 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
  #dominoTablePanel #dominoSeats .domino-seat .seat-bal{font-size:clamp(7px,.95cqw,10px)!important;padding:1px 2px!important}
 }
 </style>
+<!-- DOMINOS FLASH COIN 0.04 · BLANCOS DE ESPALDA, PERFILES MAS CLAROS Y MANO TACTIL -->
+<style id="dfcAppearanceV004">
+/* Sólo elementos existentes de la partida. La cantidad de dorsos sigue
+   viniendo de seat.tile_count (el servidor NO revela sus valores). */
+#dominoTablePanel #dominoStage .dfc-real-rack{align-items:flex-end!important;overflow:hidden!important;z-index:34!important}
+#dominoTablePanel #dominoStage .dfc-real-rack .dfc-standing-back{
+  background:linear-gradient(118deg,#fffff8 0%,#f9f5e9 22%,#e6dac5 84%,#ccbea2 100%)!important;
+  border:1px solid #afa18c!important;border-radius:clamp(2px,.32cqw,4px)!important;
+  box-shadow:inset 1px 1px 2px rgba(255,255,255,.98),inset -1px 0 2px rgba(111,87,58,.19),0 3px 3px rgba(0,0,0,.7)!important;
+  opacity:1!important;filter:none!important;
+}
+/* Un dorso sin puntos ni números: discreta moldura blanca de la misma ficha. */
+#dominoTablePanel #dominoStage .dfc-real-rack .dfc-standing-back::before{
+  content:""!important;inset:clamp(2px,.36cqw,4px)!important;
+  border:1px solid rgba(178,161,136,.66)!important;border-radius:1px!important;
+  background:linear-gradient(135deg,#fdfbf4,#ece4d6)!important;display:block!important;
+}
+/* Que las fichas queden erguida dentro del hueco, con tamaños consistentes entre rivales. */
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="3"] .dfc-standing-back{
+  width:clamp(7px,1.4cqw,17px)!important;height:clamp(15px,4.45cqw,45px)!important;
+  flex:0 1 auto!important;margin:0!important;max-height:95%!important;
+}
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="2"] .dfc-standing-back,
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="4"] .dfc-standing-back{
+  width:clamp(10px,1.95cqw,22px)!important;height:clamp(13px,3.35cqw,35px)!important;
+  flex:0 1 auto!important;margin:clamp(-3px,-.3cqw,-1px) 0!important;
+}
+/* Agrandar ligeramente las fotos y asegurar nombre/saldo FUERA de la bandeja. */
+#dominoTablePanel #dominoSeats .domino-seat{z-index:39!important;max-width:120px!important;overflow:visible!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{
+  width:clamp(28px,4.9cqw,61px)!important;height:clamp(28px,4.9cqw,61px)!important;
+  flex-shrink:0!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s3{top:.4%!important;left:50%!important;transform:translateX(-50%)!important}
+#dominoTablePanel #dominoSeats .domino-seat.s4{top:45%!important;left:.8%!important;transform:translateY(-50%)!important}
+#dominoTablePanel #dominoSeats .domino-seat.s2{top:45%!important;right:.8%!important;transform:translateY(-50%)!important}
+#dominoTablePanel #dominoSeats .domino-seat.s1{bottom:1%!important;left:2.5%!important;max-width:16%!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading,
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-name,
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal{
+  max-width:100%!important;white-space:nowrap!important;overflow:hidden!important;
+  text-overflow:ellipsis!important;position:relative!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-name{font-size:clamp(9px,1.19cqw,14px)!important;line-height:1.2!important}
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal{font-size:clamp(9px,1.14cqw,13px)!important;line-height:1.18!important}
+/* Tu mano: fichas un poco mayores, sin ocupar espacio de los perfiles.
+   Hit area se amplía a través de la propia ficha para tap/arrastre real. */
+#dominoTablePanel #dominoStage #dominoHand{
+  top:68%!important;width:38%!important;height:9%!important;max-height:9%!important;
+  align-items:flex-end!important;justify-content:center!important;
+  gap:clamp(1px,.33cqw,5px)!important;z-index:37!important;
+}
+#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece{
+  flex:0 1 auto!important;width:clamp(19px,3.3cqw,46px)!important;
+  max-width:calc((100% - 6 * clamp(1px,.33cqw,5px)) / 7)!important;
+  height:clamp(34px,6.1cqw,74px)!important;max-height:96%!important;
+  min-width:0!important;min-height:0!important;
+  background:linear-gradient(150deg,#fffffc,#eee4d4)!important;
+  border-color:#b2a285!important;border-radius:clamp(3px,.4cqw,6px)!important;
+  touch-action:none!important;cursor:grab!important;
+  box-shadow:inset 1px 2px 2px white,0 3px 5px rgba(0,0,0,.8)!important;
+}
+#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece:active{cursor:grabbing!important}
+#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece.playable{
+  box-shadow:0 0 0 2px #f9d774,0 0 15px rgba(255,210,75,.78),inset 1px 2px 2px white!important;
+}
+/* Sillas y bandejas se mantienen separadas a escalas estrechas. */
+@media(max-width:760px){
+ #dominoTablePanel #dominoStage #dominoHand{width:40%!important;top:68.5%!important;height:9%!important}
+ #dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece{width:clamp(15px,3.3cqw,32px)!important;height:clamp(26px,6cqw,52px)!important}
+ #dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{width:clamp(24px,4.25cqw,39px)!important;height:clamp(24px,4.25cqw,39px)!important}
+}
+@media(max-height:490px) and (orientation:landscape){
+ #dominoTablePanel #dominoStage #dominoHand{top:68%!important;height:9%!important}
+ #dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{width:clamp(22px,3.65cqw,38px)!important;height:clamp(22px,3.65cqw,38px)!important}
+ #dominoTablePanel #dominoSeats .domino-seat .domino-seat-name,
+ #dominoTablePanel #dominoSeats .domino-seat .seat-bal{font-size:clamp(8px,.92cqw,10px)!important}
+}
+#appView .dfc-home-action{display:flex!important;flex-direction:column!important;gap:10px!important}
+#appView .dfc-home-action .dfc-open-send{min-height:48px;display:block;width:100%;border:1px solid #f1cd7b!important;background:linear-gradient(150deg,#1b2639,#101725)!important;color:#ffe29a!important;font-weight:850;border-radius:12px}
+#dfcGiftPanel004 .panel{max-width:470px;max-height:92dvh;overflow-y:auto;border:1px solid #e2bc66;border-radius:18px;background:linear-gradient(145deg,#171718,#06090f)}
+#dfcGiftPanel004 .field{width:100%;margin:8px 0 12px}
+#dfcGiftPanel004 .dfc-gift-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+#dfcGiftPanel004 .dfc-gift-actions .action{flex:1}
+#dfcGiftPanel004 #dfcGiftTarget004,#dfcGiftPanel004 #dfcGiftReceipt004{margin:10px 0;padding:12px;border:1px solid #796234;border-radius:12px;background:#14171e;overflow-wrap:anywhere}
+#dfcGiftPanel004 #dfcGiftReceipt004{border-color:#b48e43;background:linear-gradient(160deg,#1a160e,#090b12)}
+#dfcGiftPanel004 #dfcGiftStatus004{min-height:18px;margin:7px 0;color:#f8d48e;font-size:12px}
+</style>
+<!-- Envíos para TODOS los usuarios (saldo personal, no cartera administrativa) -->
+<div class="overlay" id="dfcGiftPanel004" aria-label="Enviar Flash Coin">
+  <div class="panel">
+    <button type="button" class="close" id="dfcGiftClose004" aria-label="Cerrar">✕</button>
+    <h2>⚡ Enviar Flash Coin</h2>
+    <p class="tiny">Transferencia entre cuentas de juego. Solo monedas virtuales; no equivalen a dinero real.</p>
+    <label for="dfcGiftId004">ID del destinatario (6 dígitos)</label>
+    <div class="row"><input id="dfcGiftId004" class="field" maxlength="6" inputmode="numeric" autocomplete="off" placeholder="Ej. 123456"/><button class="action blue" id="dfcGiftFind004" type="button">🔎 Buscar</button></div>
+    <div id="dfcGiftTarget004" class="tiny" hidden></div>
+    <label for="dfcGiftAmount004">Cantidad de Flash Coin</label>
+    <input class="field" id="dfcGiftAmount004" type="number" min="0.001" step="0.001" inputmode="decimal" placeholder="0.000"/>
+    <button type="button" class="action green" id="dfcGiftPrepare004">Revisar envío</button>
+    <div id="dfcGiftConfirm004" class="hidden">
+      <div class="card" id="dfcGiftConfirmText004"></div>
+      <div class="dfc-gift-actions"><button type="button" class="action dark" id="dfcGiftCancel004">Cancelar</button><button type="button" class="action green" id="dfcGiftSend004">Confirmar y enviar</button></div>
+    </div>
+    <div id="dfcGiftReceipt004" hidden></div>
+    <button class="action dark hidden" type="button" id="dfcGiftCopyReceipt004">📋 Copiar comprobante</button>
+    <p id="dfcGiftStatus004" role="status" aria-live="polite"></p>
+  </div>
+</div>
+<script id="dfcGiftForAllV004">
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+let target=null,requestId=null,prepared=null,busy=false,receiptText='';
+function status(t){$('dfcGiftStatus004').textContent=t||''}
+function checkedClient(){if(typeof sb==='undefined'||!sb)throw Error('La conexión con Supabase no está disponible.');if(typeof me==='undefined'||!me?.id)throw Error('Debes iniciar sesión.');return sb}
+function open(){
+ try{checkedClient();}catch(e){alert(e.message);return}
+ target=null;prepared=null;requestId=null;receiptText='';busy=false;
+ $('dfcGiftId004').value='';$('dfcGiftAmount004').value='';
+ $('dfcGiftTarget004').hidden=true;$('dfcGiftTarget004').textContent='';
+ $('dfcGiftReceipt004').hidden=true;$('dfcGiftReceipt004').replaceChildren();
+ $('dfcGiftConfirm004').classList.add('hidden');$('dfcGiftCopyReceipt004').classList.add('hidden');
+ $('dfcGiftSend004').disabled=false;$('dfcGiftFind004').disabled=false;status('');
+ if(typeof show==='function')show('dfcGiftPanel004');else $('dfcGiftPanel004').classList.add('active');
+}
+function close(){if(busy)return; if(typeof hide==='function')hide('dfcGiftPanel004');else $('dfcGiftPanel004').classList.remove('active')}
+function amountValue(){
+ const raw=$('dfcGiftAmount004').value.trim();
+ if(!/^\d+(?:\.\d{1,3})?$/.test(raw))throw Error('Ingresa un monto con máximo tres decimales.');
+ const n=Number(raw);if(!Number.isFinite(n)||n<.001||n>999999999999.999)throw Error('Monto no permitido.');return n;
+}
+async function find(){
+ if(busy)return;
+ const id=$('dfcGiftId004').value.trim();
+ target=null;prepared=null;requestId=null;$('dfcGiftConfirm004').classList.add('hidden');
+ $('dfcGiftTarget004').hidden=true;
+ if(!/^\d{6}$/.test(id))return status('Escribe un ID de seis dígitos.');
+ if(String(me.public_id)===id)return status('No puedes enviarte monedas a ti mismo.');
+ status('Buscando destinatario…');
+ const {data,error}=await checkedClient().rpc('dfc_gift_lookup_v003',{p_public_id:id});
+ if(error)return status('No se pudo buscar el ID. Comprueba que el SQL 0.04 esté instalado: '+error.message);
+ if(!data||data.public_id!==id)return status('No se encontró ese ID.');
+ target={id:data.public_id,name:String(data.full_name||'Usuario'),role:String(data.role||'user')};
+ $('dfcGiftTarget004').hidden=false;
+ $('dfcGiftTarget004').textContent='Destinatario: '+target.name+' · ID '+target.id;
+ status('Destinatario encontrado. Comprueba su nombre antes de enviar.');
+}
+function prepare(){
+ try{
+   checkedClient();if(!target)throw Error('Primero busca el ID del destinatario.');
+   if($('dfcGiftId004').value.trim()!==target.id)throw Error('El ID cambió. Búscalo nuevamente.');
+   const amount=amountValue();if(amount>Number(me.balance))throw Error('Saldo insuficiente.');
+   const key=target.id+':'+amount.toFixed(3);
+   if(prepared?.key!==key){requestId=crypto.randomUUID();}
+   prepared={key,amount,id:target.id,name:target.name};
+   $('dfcGiftConfirmText004').textContent='Vas a enviar '+amount.toFixed(3)+' FC a '+target.name+' (ID '+target.id+'). Confirma solo si el destinatario es correcto.';
+   $('dfcGiftConfirm004').classList.remove('hidden');status('Revisa el destinatario y el monto.');
+ }catch(e){status(e.message||'Error al preparar el envío')}
+}
+function safePrintBalance(v){return Number.isFinite(Number(v))?Number(v).toFixed(3)+' FC':'—'}
+async function send(){
+ if(busy||!prepared)return;
+ try{
+   checkedClient();if($('dfcGiftId004').value.trim()!==prepared.id||amountValue()!==prepared.amount)throw Error('Cambiaste los datos. Vuelve a revisar el envío.');
+   if(!requestId||typeof crypto.randomUUID!=='function')throw Error('Necesitas una conexión segura HTTPS para enviar.');
+   busy=true;$('dfcGiftSend004').disabled=true;status('Procesando envío… no cierres esta ventana.');
+   const {data,error}=await sb.rpc('dfc_gift_send_v003',{p_public_id:prepared.id,p_amount:prepared.amount,p_request_id:requestId});
+   if(error)throw error;
+   if(!data||!data.reference)throw Error('Supabase no devolvió comprobante; verifica el historial antes de repetir.');
+   const amount=Number(data.amount).toFixed(3);
+   const date=new Date(data.created_at||Date.now()).toLocaleString('es-DO');
+   const sender=String(me?.public_id||'—');
+   receiptText=['DOMINOS FLASH COIN · COMPROBANTE', 'Operación: Envío de monedas virtuales', 'Referencia: FC'+data.reference,'De: ID '+sender,'Para: '+(data.recipient_name||prepared.name)+' · ID '+data.recipient_public_id,'Cantidad: '+amount+' FC','Fecha: '+date,'Saldo disponible: '+safePrintBalance(data.sender_balance),'Estado: Completado'].join('\n');
+   const box=$('dfcGiftReceipt004');box.replaceChildren();
+   const head=document.createElement('h3');head.textContent='✓ Transferencia completada';box.appendChild(head);
+   for(const line of receiptText.split('\n').slice(1)){
+     const p=document.createElement('p');p.className='tiny';p.textContent=line;box.appendChild(p);
+   }
+   box.hidden=false;$('dfcGiftCopyReceipt004').classList.remove('hidden');
+   $('dfcGiftConfirm004').classList.add('hidden');status('Envío acreditado. Puedes copiar el comprobante o tomar una captura de pantalla.');
+   prepared=null;requestId=null;target=null;
+   try{if(typeof loadMe==='function')await loadMe();if(typeof renderMe==='function')renderMe();if(typeof loadLedger==='function')await loadLedger();}catch(e){console.warn('No se pudo refrescar el saldo inmediatamente',e)}
+ }catch(e){
+   // Si hubo fallo de red, conservamos el MISMO UUID para un reintento idempotente.
+   status('No se confirmó el envío: '+(e?.message||String(e))+' Comprueba el historial antes de reintentar.');
+ }finally{busy=false;$('dfcGiftSend004').disabled=false}
+}
+function init(){
+ ['dfcGiftOpen004','dfcGiftOpenBalance004'].forEach(id=>$(id)?.addEventListener('click',open));
+ $('dfcGiftClose004')?.addEventListener('click',close);
+ $('dfcGiftFind004')?.addEventListener('click',find);
+ $('dfcGiftPrepare004')?.addEventListener('click',prepare);
+ $('dfcGiftSend004')?.addEventListener('click',send);
+ $('dfcGiftCancel004')?.addEventListener('click',()=>{$('dfcGiftConfirm004').classList.add('hidden');status('Envío cancelado.');});
+ $('dfcGiftCopyReceipt004')?.addEventListener('click',async()=>{
+   if(!receiptText)return;
+   try{await navigator.clipboard.writeText(receiptText);status('Comprobante copiado.');}
+   catch(e){status('No se pudo copiar automáticamente; toma una captura del comprobante.');}
+ });
+ $('dfcGiftId004')?.addEventListener('input',()=>{target=null;prepared=null;requestId=null;$('dfcGiftTarget004').hidden=true;$('dfcGiftConfirm004').classList.add('hidden')});
+ $('dfcGiftAmount004')?.addEventListener('input',()=>{$('dfcGiftConfirm004').classList.add('hidden');if(prepared&&Number($('dfcGiftAmount004').value)!==prepared.amount){prepared=null;requestId=null}});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
