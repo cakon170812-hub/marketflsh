@@ -5708,7 +5708,7 @@ function renderDominoState(st){
   dominoState=st;setSoundSwitchUI();const h=st?.hand,c=st?.config||{},seats=st?.seats||[],uid=st?.me,effects=dominoHandleMoveEffects(st);
   $('dominoTableTitle').textContent=c.name||'Dominó Flash Coin';
   $('dominoTableSub').textContent=`Mesa #${(dominoLobbyData?.tables||[]).find(t=>Number(t.id)===Number(dominoCurrentTableId))?.table_no||dominoCurrentTableId}`;
-  if($('dominoPotBadge'))$('dominoPotBadge').textContent=mfCash(h?.pot||0);
+  if($('dominoPotBadge')){$('dominoPotBadge').textContent=(Number(h?.pot||0)||0).toFixed(2)+' FC';$('dominoPotBadge').title='Valor del bote según la partida: '+mfCash(h?.pot||0);}
   if($('dominoGlobalBalance'))$('dominoGlobalBalance').textContent=$('balanceTop')?.textContent||'0.000 FC';
   dominoRenderSeatsStable(st);
   $('dominoBoard').innerHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
@@ -9940,6 +9940,7 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
       const visible=seat&&!seat.classList.contains('empty')&&count&&!count.hidden;
       const total=visible?count.querySelectorAll('.domino-seat-back-tile').length:0;
       const old=Number(rack.dataset.count||0);
+      if(total<old&&old>0){rack.classList.remove('dfc05-used');void rack.offsetWidth;rack.classList.add('dfc05-used');}
       if(total!==old){
         rack.replaceChildren();
         for(let t=0;t<total;t++){let tile=document.createElement('span');tile.className='dfc-standing-back';rack.appendChild(tile);}
@@ -10181,7 +10182,8 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
     <div class="row"><input id="dfcGiftId004" class="field" maxlength="6" inputmode="numeric" autocomplete="off" placeholder="Ej. 123456"/><button class="action blue" id="dfcGiftFind004" type="button">🔎 Buscar</button></div>
     <div id="dfcGiftTarget004" class="tiny" hidden></div>
     <label for="dfcGiftAmount004">Cantidad de Flash Coin</label>
-    <input class="field" id="dfcGiftAmount004" type="number" min="0.001" step="0.001" inputmode="decimal" placeholder="0.000"/>
+    <input class="field" id="dfcGiftAmount004" type="number" min="2.00" step="0.01" inputmode="decimal" placeholder="2.00"/>
+    <p class="tiny" id="dfcGiftLimit005">Envío mínimo: 2.00 FC para usuarios · 0.50 FC para promotores.</p>
     <button type="button" class="action green" id="dfcGiftPrepare004">Revisar envío</button>
     <div id="dfcGiftConfirm004" class="hidden">
       <div class="card" id="dfcGiftConfirmText004"></div>
@@ -10197,6 +10199,11 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
 'use strict';
 const $=id=>document.getElementById(id);
 let target=null,requestId=null,prepared=null,busy=false,receiptText='';
+function giftRole(){return String(me?.role||'user')}
+function giftMin(){return giftRole()==='promoter'?0.50:(giftRole()==='leader'?0.001:2.00)}
+function giftDecimals(){return giftRole()==='leader'?3:2}
+function giftFmt(n){return Number(n).toFixed(giftDecimals())}
+function giftRulesUI(){const m=giftMin(),input=$('dfcGiftAmount004'),note=$('dfcGiftLimit005');if(input){input.min=String(m);input.step=giftDecimals()===3?'0.001':'0.01';input.placeholder=giftFmt(m);}if(note){note.textContent=giftRole()==='leader'?'Administrador: envío mínimo según configuración actual.':('Envío mínimo para '+(giftRole()==='promoter'?'promotor':'usuario')+': '+giftFmt(m)+' FC. Máximo dos decimales.')}}
 function status(t){$('dfcGiftStatus004').textContent=t||''}
 function checkedClient(){if(typeof sb==='undefined'||!sb)throw Error('La conexión con Supabase no está disponible.');if(typeof me==='undefined'||!me?.id)throw Error('Debes iniciar sesión.');return sb}
 function open(){
@@ -10206,14 +10213,19 @@ function open(){
  $('dfcGiftTarget004').hidden=true;$('dfcGiftTarget004').textContent='';
  $('dfcGiftReceipt004').hidden=true;$('dfcGiftReceipt004').replaceChildren();
  $('dfcGiftConfirm004').classList.add('hidden');$('dfcGiftCopyReceipt004').classList.add('hidden');
+ giftRulesUI();
  $('dfcGiftSend004').disabled=false;$('dfcGiftFind004').disabled=false;status('');
  if(typeof show==='function')show('dfcGiftPanel004');else $('dfcGiftPanel004').classList.add('active');
 }
 function close(){if(busy)return; if(typeof hide==='function')hide('dfcGiftPanel004');else $('dfcGiftPanel004').classList.remove('active')}
 function amountValue(){
  const raw=$('dfcGiftAmount004').value.trim();
- if(!/^\d+(?:\.\d{1,3})?$/.test(raw))throw Error('Ingresa un monto con máximo tres decimales.');
- const n=Number(raw);if(!Number.isFinite(n)||n<.001||n>999999999999.999)throw Error('Monto no permitido.');return n;
+ const dec=giftDecimals();
+ const valid=new RegExp('^\\d+(?:\\.\\d{1,'+dec+'})?$');
+ if(!valid.test(raw))throw Error('Introduce una cantidad con máximo '+dec+' decimales.');
+ const n=Number(raw);
+ if(!Number.isFinite(n)||n>999999999999.999||n<giftMin())throw Error('El mínimo de envío para tu cuenta es '+giftFmt(giftMin())+' FC.');
+ return n;
 }
 async function find(){
  if(busy)return;
@@ -10236,14 +10248,14 @@ function prepare(){
    checkedClient();if(!target)throw Error('Primero busca el ID del destinatario.');
    if($('dfcGiftId004').value.trim()!==target.id)throw Error('El ID cambió. Búscalo nuevamente.');
    const amount=amountValue();if(amount>Number(me.balance))throw Error('Saldo insuficiente.');
-   const key=target.id+':'+amount.toFixed(3);
+   const key=target.id+':'+giftFmt(amount);
    if(prepared?.key!==key){requestId=crypto.randomUUID();}
    prepared={key,amount,id:target.id,name:target.name};
-   $('dfcGiftConfirmText004').textContent='Vas a enviar '+amount.toFixed(3)+' FC a '+target.name+' (ID '+target.id+'). Confirma solo si el destinatario es correcto.';
+   $('dfcGiftConfirmText004').textContent='Vas a enviar '+giftFmt(amount)+' FC a '+target.name+' (ID '+target.id+'). Confirma solo si el destinatario es correcto.';
    $('dfcGiftConfirm004').classList.remove('hidden');status('Revisa el destinatario y el monto.');
  }catch(e){status(e.message||'Error al preparar el envío')}
 }
-function safePrintBalance(v){return Number.isFinite(Number(v))?Number(v).toFixed(3)+' FC':'—'}
+function safePrintBalance(v){return Number.isFinite(Number(v))?giftFmt(Number(v))+' FC':'—'}
 async function send(){
  if(busy||!prepared)return;
  try{
@@ -10253,7 +10265,7 @@ async function send(){
    const {data,error}=await sb.rpc('dfc_gift_send_v003',{p_public_id:prepared.id,p_amount:prepared.amount,p_request_id:requestId});
    if(error)throw error;
    if(!data||!data.reference)throw Error('Supabase no devolvió comprobante; verifica el historial antes de repetir.');
-   const amount=Number(data.amount).toFixed(3);
+   const amount=giftFmt(data.amount);
    const date=new Date(data.created_at||Date.now()).toLocaleString('es-DO');
    const sender=String(me?.public_id||'—');
    receiptText=['DOMINOS FLASH COIN · COMPROBANTE', 'Operación: Envío de monedas virtuales', 'Referencia: FC'+data.reference,'De: ID '+sender,'Para: '+(data.recipient_name||prepared.name)+' · ID '+data.recipient_public_id,'Cantidad: '+amount+' FC','Fecha: '+date,'Saldo disponible: '+safePrintBalance(data.sender_balance),'Estado: Completado'].join('\n');
@@ -10289,6 +10301,140 @@ function init(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+\n<!-- DFC 0.05: Bandejas reales en los cuatro huecos, bote y mejor ergonomía. -->
+<style id="dfcRackFitRealistic005">
+/* No se altera #dominoBoard ni el algoritmo de la cadena central. */
+#dominoTablePanel #dominoStage{container-type:inline-size!important}
+/* El conteo viene de rf_domino_* y se representa con dorsos: sin puntos, números ni manos reveladas. */
+#dominoTablePanel #dominoStage .dfc-real-rack{
+  position:absolute!important;box-sizing:border-box!important;
+  display:flex;justify-content:center!important;
+  overflow:visible!important;gap:clamp(1px,.2cqw,3px)!important;
+  z-index:32!important;pointer-events:none!important;
+  filter:drop-shadow(1px 2px 2px rgba(0,0,0,.63))!important;
+}
+/* Bandeja superior horizontal, incrustada sobre la ranura larga y dorada. */
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="3"]{
+  left:39.1%!important;right:auto!important;top:17.5%!important;
+  width:21.8%!important;height:4.7%!important;
+  transform:none!important;flex-direction:row!important;
+  align-items:flex-end!important;
+}
+/* Ranuras laterales inclinadas: inclinación acorde con la perspectiva fotográfica. */
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="4"]{
+  left:15.2%!important;right:auto!important;top:30.5%!important;
+  width:3.9%!important;height:23.3%!important;
+  transform:rotate(19deg)!important;flex-direction:column-reverse!important;
+  align-items:center!important;justify-content:center!important;
+}
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="2"]{
+  right:15.2%!important;left:auto!important;top:30.5%!important;
+  width:3.9%!important;height:23.3%!important;
+  transform:rotate(-19deg)!important;flex-direction:column!important;
+  align-items:center!important;justify-content:center!important;
+}
+/* Fichas de marfil mate, con lomo y relieve, totalmente opacas. */
+#dominoTablePanel #dominoStage .dfc-real-rack .dfc-standing-back{
+  position:relative!important;display:block!important;box-sizing:border-box!important;
+  flex:0 1 auto!important;min-width:0!important;min-height:0!important;
+  opacity:1!important;filter:none!important;margin:0!important;
+  background:linear-gradient(110deg,#fffef7 0%,#f8f3e8 29%,#e5dac5 80%,#c9baa1 100%)!important;
+  border:1px solid #b1a48e!important;border-radius:3px!important;
+  box-shadow:inset 1px 0 1px #fff,inset -2px 0 2px #c1b39b,1px 3px 3px rgba(0,0,0,.65)!important;
+}
+#dominoTablePanel #dominoStage .dfc-real-rack .dfc-standing-back::before{
+  content:""!important;display:block!important;position:absolute!important;
+  inset:2px!important;border:1px solid rgba(167,152,126,.52)!important;
+  background:linear-gradient(120deg,#fffdf5,#ebe2d1)!important;
+  border-radius:2px!important;
+}
+#dominoTablePanel #dominoStage .dfc-real-rack .dfc-standing-back::after{
+  content:""!important;position:absolute!important;left:1px!important;top:2px!important;
+  bottom:2px!important;width:1px!important;background:rgba(255,255,255,.96)!important;
+}
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="3"] .dfc-standing-back{
+  width:clamp(12px,2cqw,29px)!important;
+  height:clamp(20px,3.35cqw,36px)!important;max-height:100%!important;
+}
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="2"] .dfc-standing-back,
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="4"] .dfc-standing-back{
+  width:clamp(13px,2.4cqw,29px)!important;
+  height:clamp(15px,2.6cqw,27px)!important;
+  max-width:94%!important;margin:0!important;
+}
+/* Señal sutil cuando disminuye la cantidad de dorsos (una ficha fue jugada). */
+#dominoTablePanel #dominoStage .dfc-real-rack.dfc05-used .dfc-standing-back{
+  animation:dfc05-resettle .32s ease-out both;
+}
+@keyframes dfc05-resettle{from{opacity:.72;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+/* Ubicación separada de perfiles: no cubren sus propias bandejas ni la cadena. */
+#dominoTablePanel #dominoSeats .domino-seat.s3{
+  left:28.2%!important;right:auto!important;top:17.0%!important;bottom:auto!important;
+  transform:translateX(-50%)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s4{
+  left:.8%!important;right:auto!important;top:45%!important;
+  transform:translateY(-50%)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s2{
+  right:.8%!important;left:auto!important;top:45%!important;
+  transform:translateY(-50%)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1{
+  left:2.0%!important;right:auto!important;bottom:2%!important;top:auto!important;
+  transform:none!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{
+  width:clamp(30px,5cqw,63px)!important;height:clamp(30px,5cqw,63px)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat{
+  width:clamp(70px,11.2cqw,122px)!important;max-width:122px!important;
+  overflow:visible!important;z-index:38!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-name,
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal{
+  display:block!important;max-width:100%!important;white-space:nowrap!important;
+  text-overflow:ellipsis!important;overflow:hidden!important;
+  font-size:clamp(9px,1.05cqw,14px)!important;
+}
+/* La mano personal permanece en su ranura: fichas erguidas ligeramente más largas. */
+#dominoTablePanel #dominoStage #dominoHand{
+  left:50%!important;top:69.6%!important;bottom:auto!important;
+  width:35.5%!important;height:9.5%!important;max-height:9.5%!important;
+  transform:translateX(-50%)!important;gap:clamp(1px,.31cqw,5px)!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  overflow:visible!important;z-index:37!important;
+}
+#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece{
+  flex:0 1 auto!important;
+  width:clamp(19px,3.16cqw,44px)!important;
+  max-width:calc((100% - 6 * clamp(1px,.31cqw,5px)) / 7)!important;
+  height:clamp(35px,5.9cqw,72px)!important;
+  max-height:100%!important;min-height:0!important;
+  opacity:1!important;touch-action:none!important;
+  border-radius:clamp(3px,.4cqw,5px)!important;
+  box-shadow:inset 2px 1px 2px #fff,0 3px 4px #000b!important;
+}
+#dominoTablePanel .domino-inside-pot{
+  display:flex!important;flex-direction:column!important;align-items:center!important;
+  position:absolute!important;left:67%!important;right:auto!important;top:23.5%!important;
+  transform:none!important;z-index:42!important;
+  min-width:clamp(85px,11cqw,155px)!important;
+  padding:5px 9px!important;background:rgba(3,5,6,.9)!important;
+  border:1px solid rgba(237,194,100,.78)!important;border-radius:11px!important;
+  box-shadow:0 3px 10px #0009!important;pointer-events:none!important;
+}
+#dominoTablePanel .domino-inside-pot span{font-size:clamp(8px,.9cqw,12px)!important;color:#ead6a4!important}
+#dominoTablePanel .domino-inside-pot b{font-size:clamp(12px,1.45cqw,19px)!important;color:#ffdb83!important;font-variant-numeric:tabular-nums!important}
+#dfcGiftPanel004 #dfcGiftLimit005{margin:-6px 0 11px;color:#ffe09b;font-size:12px}
+@media(max-height:520px) and (orientation:landscape){
+ #dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{width:clamp(25px,3.5cqw,42px)!important;height:clamp(25px,3.5cqw,42px)!important}
+ #dominoTablePanel #dominoSeats .domino-seat .domino-seat-name,#dominoTablePanel #dominoSeats .domino-seat .seat-bal{font-size:clamp(8px,.85cqw,11px)!important;padding:1px 2px!important}
+ #dominoTablePanel #dominoStage .dfc-real-rack[data-rack="2"],#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="4"]{top:30%!important;height:23%!important}
+ #dominoTablePanel #dominoStage #dominoHand{top:69%!important;height:9.5%!important}
+}
+</style>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
