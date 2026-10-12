@@ -5377,18 +5377,37 @@ function dominoBindBoardEndInteractions(){
     if(side)await dominoPlaySelectedSide(side);
   };
 }
+// UI exclusiva: solo reorganiza la representación; NO toca my_tiles ni el servidor.
+let dfcHandVisualOrder=[];
+let dfcHandVisualSig='';
+function dfcApplyHandVisualOrder(hand,tiles){
+  if(!hand)return;
+  const sig=(tiles||[]).map(t=>JSON.stringify(t)).join('|');
+  if(sig!==dfcHandVisualSig){dfcHandVisualSig=sig;dfcHandVisualOrder=(tiles||[]).map((_,i)=>i)}
+  const nodes=new Map([...hand.querySelectorAll('.hand-piece[data-domino-tile]')].map(el=>[Number(el.dataset.dominoTile),el]));
+  dfcHandVisualOrder.forEach(i=>{const el=nodes.get(i);if(el)hand.appendChild(el)});
+}
+function dfcMoveHandTile(from,to,hand){
+  const order=dfcHandVisualOrder;
+  const fromAt=order.indexOf(from),toAt=order.indexOf(to);
+  if(fromAt<0||toAt<0||fromAt===toAt)return false;
+  order.splice(fromAt,1);order.splice(toAt,0,from);
+  const nodes=new Map([...hand.querySelectorAll('.hand-piece[data-domino-tile]')].map(el=>[Number(el.dataset.dominoTile),el]));
+  order.forEach(i=>{const node=nodes.get(i);if(node)hand.appendChild(node)});
+  return true;
+}
 function dominoBindHandInteractions(){
   const hand=$('dominoHand'),stage=$('dominoStage');if(!hand||!stage)return;
-  hand.querySelectorAll('.hand-piece.playable[data-domino-tile]').forEach(piece=>{
+  hand.querySelectorAll('.hand-piece[data-domino-tile]').forEach(piece=>{
     piece.addEventListener('click',e=>{
       if(piece.dataset.dragged==='1'){piece.dataset.dragged='';return}
-      if(dominoDragState?.moved)return;
+      if(!piece.classList.contains('playable')||dominoDragState?.moved)return;
       const idx=Number(piece.dataset.dominoTile);playDominoPickSound();dominoSetDropZones(dominoSelectedTile===idx?null:idx);
     });
     piece.addEventListener('pointerdown',e=>{
       if(e.button!==undefined&&e.button!==0)return;
       const idx=Number(piece.dataset.dominoTile),tile=dominoState?.hand?.my_tiles?.[idx];if(!tile)return;
-      e.preventDefault();resumeAudioOnGesture();playDominoPickSound();dominoSetDropZones(idx);
+      e.preventDefault();resumeAudioOnGesture();if(piece.classList.contains('playable')){playDominoPickSound();dominoSetDropZones(idx)}
       try{piece.setPointerCapture(e.pointerId)}catch{}
       dominoDragState={active:true,moved:false,pointerId:e.pointerId,idx,startX:e.clientX,startY:e.clientY,el:piece,dx:0,dy:0};piece.classList.add('dragging');
     });
@@ -5396,8 +5415,8 @@ function dominoBindHandInteractions(){
       const d=dominoDragState;if(!d?.active||d.pointerId!==e.pointerId||d.el!==piece)return;
       const dx=e.clientX-d.startX,dy=e.clientY-d.startY;d.dx=dx;d.dy=dy;if(Math.hypot(dx,dy)>9)d.moved=true;
       piece.style.transform=`translate(${dx}px,${dy}px) rotate(${Math.max(-8,Math.min(8,dx/18))}deg) scale(1.08)`;
-      d.hoverSide=d.moved?dominoSideAtPoint(e.clientX,e.clientY,d.idx):null;
-      dominoSetDropZones(d.idx,d.hoverSide);
+      d.hoverSide=d.moved&&piece.classList.contains('playable')?dominoSideAtPoint(e.clientX,e.clientY,d.idx):null;
+      if(piece.classList.contains('playable'))dominoSetDropZones(d.idx,d.hoverSide);
     });
     const finish=async e=>{
       const d=dominoDragState;if(!d?.active||d.pointerId!==e.pointerId||d.el!==piece)return;
@@ -5406,13 +5425,25 @@ function dominoBindHandInteractions(){
       if(moved)piece.dataset.dragged='1';
       piece.style.transform='';
       dominoDragState=null;
-      if(moved&&side&&sides[side]){
+      // Soltar una ficha sobre otra dentro de la propia mano cambia solo el orden visual.
+      const handBox=hand.getBoundingClientRect();
+      if(moved && e.clientX>=handBox.left && e.clientX<=handBox.right && e.clientY>=handBox.top && e.clientY<=handBox.bottom){
+        const others=[...hand.querySelectorAll('.hand-piece[data-domino-tile]')].filter(el=>el!==piece);
+        const target=others.reduce((best,el)=>{
+          const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+          const delta=Math.hypot(cx-e.clientX,cy-e.clientY);
+          return !best||delta<best.delta?{el,delta}:best;
+        },null);
+        if(target){dfcMoveHandTile(d.idx,Number(target.el.dataset.dominoTile),hand);piece.dataset.dragged='1';}
+        dominoHideDropZones();return;
+      }
+      if(moved&&side&&sides[side]&&piece.classList.contains('playable')){
         dominoHideDropZones();await dominoPlayTile(d.idx,side,piece);return;
       }
       if(moved){
         piece.classList.add('invalid-return');playDominoInvalidSound();setTimeout(()=>piece.classList.remove('invalid-return'),320);
       }
-      dominoSetDropZones(d.idx);
+      if(piece.classList.contains('playable'))dominoSetDropZones(d.idx);
     };
     piece.addEventListener('pointerup',finish);piece.addEventListener('pointercancel',finish);
   });
@@ -5719,9 +5750,10 @@ function renderDominoState(st){
   const animateDeal=!!(h&&h.status==='shuffling'&&dominoDealAnimationHandId!==h.id);
   if(animateDeal)dominoDealAnimationHandId=h.id;
   const mfHand=$('dominoHand');
+  mfHand?.classList.toggle('dfc-my-active-turn',myTurn);
   const mfNewHand=tiles.map((t,i)=>dominoPiece(t,i,myTurn&&dominoTileLegal(t,h),false,animateDeal?`dealing deal-${i}`:'')).join('');
   if(!dominoDragState?.active && (mfHand.dataset.mfHandHtml!==mfNewHand || mfHand.querySelectorAll('.hand-piece').length!==tiles.length)){
-    mfHand.innerHTML=mfNewHand; mfHand.dataset.mfHandHtml=mfNewHand; dominoBindHandInteractions();
+    mfHand.innerHTML=mfNewHand; mfHand.dataset.mfHandHtml=mfNewHand; dfcApplyHandVisualOrder(mfHand,tiles); dominoBindHandInteractions();
   }
   if(dominoSelectedTile!==null){
     if(!myTurn||!tiles[dominoSelectedTile]||!dominoTileLegal(tiles[dominoSelectedTile],h))dominoHideDropZones();
@@ -9851,6 +9883,59 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
  #dominoTablePanel .domino-inside-pot{top:16%!important}
 }
 </style>
+
+<!-- DFC 0.02 · AJUSTES MANO ORDENABLE, HUECO CENTRAL Y LADOS · SOLO UI -->
+<style id="dfcHandBoardFitTurn024">
+/* Mesa hundida: la cadena respeta el hueco y conserva proporciones de cada ficha. */
+#dominoTablePanel #dominoBoard{
+  left:50%!important;top:49%!important;
+  width:min(55%,550px)!important;
+  height:43%!important;
+  transform:translate(-50%,-50%)!important;
+  overflow:visible!important;
+}
+#dominoTablePanel #dominoBoard .domino-board-path{transform-origin:center center!important}
+#dominoTablePanel #dominoBoard .domino-piece.board-piece{
+  background:linear-gradient(135deg,#fffdf4 0%,#f7eedc 55%,#e4d7bb 100%)!important;
+  border:1px solid #a89a81!important;
+  opacity:1!important;filter:none!important;
+}
+#dominoTablePanel #dominoHand .hand-piece{
+  touch-action:none!important;user-select:none!important;
+  opacity:1!important;filter:none!important;
+}
+/* Solo se ilumina una ficha permitida cuando el servidor indica que es tu turno. */
+#dominoTablePanel #dominoHand.dfc-my-active-turn .hand-piece.playable{
+  animation:dfcTileTurnGlow 1.4s ease-in-out infinite alternate!important;
+  outline:2px solid #ffe17b!important;
+  box-shadow:0 0 0 2px #ffd46d,0 0 16px rgba(255,210,82,.65)!important;
+  cursor:grab!important;
+}
+#dominoTablePanel #dominoHand.dfc-my-active-turn .hand-piece.playable.selected{
+  animation:none!important;outline:3px solid #ffe680!important;
+  box-shadow:0 0 0 2px #ffd46d,0 0 24px rgba(255,214,75,.95)!important;
+}
+@keyframes dfcTileTurnGlow{
+  from{outline-offset:0px;}
+  to{outline-offset:3px;}
+}
+/* Destino elegido: se aprovechan las zonas izquierda/derecha de la lógica existente. */
+#dominoTablePanel .domino-drop-zone.show.allowed{
+  border:2px solid #ffe47c!important;
+  background:rgba(30,22,4,.89)!important;
+  box-shadow:0 0 0 2px rgba(255,204,92,.18),0 0 23px rgba(255,194,50,.46)!important;
+  animation:dfcSidePulse .85s ease-in-out infinite alternate!important;
+}
+#dominoTablePanel .domino-drop-zone.hover{
+  transform:translateY(-50%) scale(1.08)!important;
+  box-shadow:0 0 28px rgba(255,224,114,.88)!important;
+}
+@keyframes dfcSidePulse{from{filter:brightness(.90)}to{filter:brightness(1.35)}}
+@media(max-width:740px) and (orientation:landscape){
+  #dominoTablePanel #dominoBoard{width:54%!important;height:44%!important;top:49%!important}
+}
+</style>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
