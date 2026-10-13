@@ -2272,45 +2272,7 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
  #appView .dfc-home-content{margin:15px auto;backdrop-filter:blur(5px)}
 }
 @media (prefers-reduced-motion: reduce){#appView .dfc-domino-home *{animation-duration:.01ms!important}}
-</style><style id="dominosFlashCoin06ApprovedTheme">
-/* DOMINOS FLASH COIN 0.06 — MEJORA VISUAL SOBRE EL HTML EXISTENTE.
-   No agrega botones, listeners, tablas, rutas ni cambios de motor. */
-:root{--dfc-neon-blue:#148dff;--dfc-neon-gold:#ffcb58;--dfc-deep:#050b18}
-#appView.bg{background-color:#050b18;background-image:radial-gradient(ellipse at 12% 15%,rgba(0,108,255,.25),transparent 44%),radial-gradient(ellipse at 90% 80%,rgba(229,143,23,.19),transparent 48%),linear-gradient(145deg,rgba(1,8,25,.89),rgba(1,4,12,.90))!important;background-position:center;background-attachment:fixed}
-#appView .topbar,#appView .wallet-row{position:relative;z-index:2;border:1px solid rgba(87,166,255,.27);border-radius:18px;background:linear-gradient(120deg,rgba(3,13,32,.96),rgba(6,14,24,.90));box-shadow:0 8px 26px #0008,inset 0 1px rgba(190,229,255,.12);margin:10px auto;padding:11px 13px;max-width:1150px}
-#appView .top-tools,#appView .wallet-row{gap:9px}
-#appView .icon-btn,#appView .online-chip,#appView .balance-chip{border-radius:14px!important;background:linear-gradient(145deg,#132d4e,#060d1c)!important;border:1px solid rgba(80,172,255,.6)!important;box-shadow:inset 0 1px 0 #ffffff28,0 4px 10px #0009,0 0 14px #0867dc1f!important;color:#f3f8ff!important;transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
-#appView .balance-chip{border-color:#ffc85a!important;background:linear-gradient(145deg,#413011,#11101a)!important;box-shadow:0 0 15px #eeac2929,inset 0 1px #fff4b743!important}
-#appView .icon-btn:hover,#appView .online-chip:hover,#appView .balance-chip:hover{filter:brightness(1.16);transform:translateY(-1px)}
-#dfcDominoHome.dfc-domino-home{max-width:1150px!important;margin:14px auto 22px!important;position:relative;isolation:isolate;overflow:hidden;border:2px solid rgba(255,198,68,.75)!important;border-radius:26px!important;box-shadow:0 22px 55px #000b,0 0 34px #c7812b38,inset 0 1px #ffebb566!important;background:radial-gradient(ellipse at 50% 15%,rgba(255,190,46,.25),transparent 43%),radial-gradient(ellipse at 16% 70%,rgba(17,100,213,.34),transparent 53%),linear-gradient(135deg,#030d1d,#0d1223 45%,#160e16)!important}
-#dfcDominoHome:before{content:'🁣  🁫  🁥';position:absolute;inset:auto -4% -11% auto;color:rgba(255,218,142,.10);font-size:clamp(92px,17vw,225px);letter-spacing:-.14em;transform:rotate(-19deg);pointer-events:none;z-index:0;text-shadow:0 0 30px #a26929}
-#dfcDominoHome:after{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(125deg,transparent 30%,rgba(255,227,157,.09) 48%,transparent 65%)}
-#dfcDominoHome .dfc-home-veil{background:linear-gradient(90deg,rgba(1,8,24,.6),rgba(2,7,18,.18))!important}
-#dfcDominoHome .dfc-home-content{position:relative;z-index:1;max-width:900px;margin:auto;padding:clamp(24px,5vw,68px) clamp(15px,4vw,40px)!important;text-align:center}
-#dfcDominoHome .dfc-home-kicker{display:inline-block;letter-spacing:.16em;padding:8px 16px;border:1px solid #dba6447a;border-radius:999px;background:linear-gradient(90deg,#332710a8,#0c162ab3);font-weight:800;color:#ffe49a!important;text-shadow:0 0 13px #ffc75565}
-#dfcDominoHome h1{font-size:clamp(36px,7vw,82px)!important;line-height:1.08!important;letter-spacing:.02em!important;color:#ffe7a0!important;text-shadow:0 3px #6f3b03,0 6px 2px #120a06,0 0 24px #e7a93283!important;margin:16px 0!important}
-#dfcDominoHome p{color:#e3efff!important;font-size:clamp(14px,2.2vw,19px)!important;text-shadow:0 2px 8px #000}
-#dfcDominoHome .dfc-home-action{display:flex!important;justify-content:center;gap:16px!important;flex-wrap:wrap;margin:25px auto!important}
-#dfcDominoHome .dfc-home-action .action{min-width:min(100%,235px);min-height:67px;padding:15px 24px!important;border-radius:17px!important;font-weight:900!important;font-size:clamp(15px,2.3vw,20px)!important;letter-spacing:.015em;text-transform:uppercase;transition:transform .17s ease,filter .17s ease;position:relative;overflow:hidden}
-#dfcDominoHome .dfc-open-domino{background:linear-gradient(180deg,#ffe48b 0%,#e8a52e 43%,#995207 100%)!important;border:2px solid #fff2b4!important;color:#231404!important;box-shadow:0 7px 0 #673807,0 13px 24px #000b,0 0 20px #e6ae4d77!important;text-shadow:0 1px #fff4b080}
-#dfcDominoHome .dfc-open-send{background:linear-gradient(180deg,#55baff,#096bd6 52%,#063b88)!important;border:2px solid #b5e8ff!important;color:#fff!important;box-shadow:0 7px 0 #063b73,0 13px 24px #000b,0 0 20px #128bff7a!important}
-#dfcDominoHome .dfc-home-action .action:hover{filter:brightness(1.12);transform:translateY(-3px)}
-#dfcDominoHome .dfc-home-action .action:active{transform:translateY(3px)}
-#dfcDominoHome .dfc-home-id{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:9px 16px;border:1px solid #5198d078;border-radius:13px;background:#050d1dd9;box-shadow:inset 0 1px #ffffff24}
-#dfcDominoHome .copy-btn{border-radius:9px!important;background:#1a4c8a!important;border:1px solid #48baff!important;color:white!important}
-#dfcDominoHome .dfc-home-virtual{margin-top:18px;color:#adbed3!important;font-size:12px!important}
-/* Lobby y botones REALES existentes: no tocar DOM ni la mesa en curso */
-#gamesPanel .panel,#dominoLobbyPanel .panel,#dominoBuyinPanel .panel{border:1px solid #f0b842b3!important;border-radius:23px!important;background:radial-gradient(ellipse at 90% 0%,#133b5a88,transparent 48%),linear-gradient(160deg,#0a1428,#050a14 70%)!important;box-shadow:0 16px 60px #000d,0 0 25px #ab812344!important}
-#gamesPanel h2,#dominoLobbyPanel h2{color:#ffe6a5!important;text-shadow:0 2px 14px #d69a3160}
-#gamesPanel .action,#dominoLobbyPanel .action,#dominoBuyinPanel .action{border-radius:14px!important;font-weight:850!important;box-shadow:inset 0 2px #ffffff32,0 5px 12px #0007}
-#dominoLobbyPanel .domino-two-tables{gap:14px}
-#dominoLobbyPanel button:not(.close),#dominoBuyinPanel button:not(.close){transition:filter .15s ease,transform .15s ease}
-#dominoLobbyPanel button:not(.close):hover,#dominoBuyinPanel button:not(.close):hover{filter:brightness(1.12);transform:translateY(-1px)}
-@media(max-width:600px){#appView .topbar,#appView .wallet-row{margin:7px 8px!important;padding:8px!important;border-radius:13px!important}#dfcDominoHome.dfc-domino-home{margin:10px 8px 16px!important;border-radius:19px!important}#dfcDominoHome .dfc-home-content{padding:32px 14px!important}#dfcDominoHome .dfc-home-action{flex-direction:column;align-items:stretch}#dfcDominoHome .dfc-home-action .action{min-width:0;width:100%;min-height:62px}#dfcDominoHome h1{font-size:clamp(32px,10vw,54px)!important}}
-@media(prefers-reduced-motion:reduce){#dfcDominoHome .dfc-home-action .action,#appView .icon-btn,#appView .online-chip{transition:none!important}}
-
-</style>
-</head>
+</style></head>
 <body>
 <section class="auth" id="authView">
 <div class="auth-card">
@@ -2428,7 +2390,7 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 <button data-domino-reaction="💪" type="button">💪</button>
 </div>
 <div class="domino-toast" id="dominoToast"></div>
-<div class="domino-victory" id="dominoVictory"><div class="domino-victory-card"><b>¡FELICIDADES!</b><strong>¡GANASTE!</strong><span id="dominoVictoryText">Victoria</span><small>Premio acreditado al saldo correspondiente</small></div></div>
+<div class="domino-victory" id="dominoVictory"><div class="domino-victory-card"><b>¡FELICIDADES!</b><strong>¡GANASTE!</strong><span id="dominoVictoryText">Victoria</span><div id="dfcWinningLastTile" class="dfc-winning-last-tile" hidden><div class="dfc-last-label">ÚLTIMA FICHA JUGADA</div><div class="dfc-final-domino" id="dfcWinningTileFace"></div></div><small>Premio acreditado al saldo correspondiente</small></div></div>
 </div></div></div>
 <input accept="image/*" aria-hidden="true" class="hidden" id="dominoAvatarFile" type="file"/>
 <div class="overlay" id="dominoChatPanel"><div class="panel domino-chat-panel">
@@ -5804,6 +5766,7 @@ function renderDominoState(st){
   $('dominoCenterStatus').innerHTML=status;
   $('dominoCenterStatus').classList.toggle('playing-quiet',h?.status==='playing'&&!status);
   dominoUpdateLiveControls(st,myTurn,hasLegal);
+  if(typeof window.dfc07VisualUpdate==='function')window.dfc07VisualUpdate(st);
   syncDominoTableMessages().catch(()=>{});
   if($('dominoChatPanel')?.classList.contains('active'))loadDominoChat().catch(()=>{});
   // Una celebracion por mano y usuario, sin repetir un premio viejo al reconectar.
@@ -5837,6 +5800,7 @@ function renderDominoState(st){
         : (lr.winner_reason==='TRANQUE_MENOS_PUNTOS'?'¡FELICIDADES! Ganaste por tener menos puntos. ':'¡FELICIDADES! Cerraste con tu última ficha. ')+basic;
       const victory=$('dominoVictory');
       victory.classList.add('show');
+      if(typeof window.dfc07VisualUpdate==='function')window.dfc07VisualUpdate(st);
       const subtitle=victory.querySelector('small');
       if(subtitle)subtitle.textContent=mySeat?'Premio acreditado a tu saldo de mesa':'Premio acreditado al saldo correspondiente';
       try{playDominoWinSound()}catch(_){ }
@@ -10473,6 +10437,69 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 }
 </style>
 
+<style id="dfcV07ProfessionalVisual">
+/* Estilo visual coherente con la mesa clásica de cuatro bandejas aprobada */
+#dominoStage{--dfc-navy:#071b2e;--dfc-gold:#e5b75b;--dfc-blue:#2c8ff5}
+#dominoVictory .domino-victory-card{border:1.5px solid #e9c47d;border-radius:20px;padding:clamp(16px,3vw,28px);background:linear-gradient(145deg,#092840,#070f1d 64%,#1c2132);box-shadow:0 16px 55px #000a,0 0 28px #f5cc6644;max-width:min(93vw,470px)}
+#dominoVictory .domino-victory-card b{color:#ffdc81;letter-spacing:.07em}
+#dominoVictory .domino-victory-card strong{display:block;font-size:clamp(23px,4.5vw,42px);color:#fff6c4}
+.dfc-winning-last-tile:not([hidden]){display:grid;justify-items:center;gap:8px;margin:12px auto}
+.dfc-last-label{font-size:10px;letter-spacing:.15em;font-weight:800;color:#ffdc95}
+.dfc-final-domino{display:flex;gap:0;filter:drop-shadow(0 0 11px #ffd36c70);border:2px solid #d8ad59;border-radius:10px;overflow:hidden;transform:scale(1.12);margin:7px 0}
+.dfc-final-domino span{display:grid;place-items:center;width:48px;height:51px;color:#12243a;background:linear-gradient(135deg,#fffdf4,#d7d2c0);font-size:30px;font-weight:800}
+.dfc-final-domino span+span{border-left:2px solid #9b8e70}
+#dfcShufflePresentation{position:absolute;inset:0;z-index:18;pointer-events:none;display:none;align-items:center;justify-content:center;overflow:hidden;border-radius:inherit}
+#dfcShufflePresentation.active{display:flex}
+#dfcShufflePresentation .dfc-shuffle-shade{position:absolute;inset:0;background:radial-gradient(ellipse,#092539c9,#00111aaa 68%)}
+#dfcShufflePresentation .dfc-shuffle-tile{position:absolute;width:clamp(14px,2.4vw,24px);height:clamp(29px,4.5vw,44px);border:2px solid #d3ad64;border-radius:5px;background:linear-gradient(130deg,#162f45,#071424 54%,#2a465b);box-shadow:0 3px 12px #0007,inset 0 0 0 2px #647383;animation:dfcMixMove 1.5s ease-in-out infinite alternate;animation-delay:var(--delay);transform:translate(var(--dx),var(--dy)) rotate(var(--angle))}
+#dfcShufflePresentation .dfc-shuffle-tile:after{content:'⚡';display:grid;place-items:center;position:absolute;inset:0;color:#dcb563;font-size:12px}
+#dfcShufflePresentation .dfc-shuffle-copy{position:absolute;top:13%;padding:8px 16px;border:1px solid #cda351;background:#061728de;color:#f6d892;border-radius:14px;font-size:clamp(12px,2vw,17px);font-weight:850;letter-spacing:.06em;box-shadow:0 0 25px #e7c77b44}
+@keyframes dfcMixMove{from{transform:translate(calc(var(--dx) * -.55),calc(var(--dy) * -.6)) rotate(calc(var(--angle) * -1))}to{transform:translate(var(--dx),var(--dy)) rotate(var(--angle))}}
+#dfcDealPresentation{position:absolute;inset:0;z-index:18;pointer-events:none;display:none;overflow:hidden;border-radius:inherit}
+#dfcDealPresentation.active{display:block}
+#dfcDealPresentation .dfc-fly-tile{position:absolute;left:50%;top:48%;width:clamp(16px,2.9vw,29px);height:clamp(32px,5vw,49px);border:2px solid #f2d48b;border-radius:5px;background:linear-gradient(135deg,#fff6d9,#bbc8cc);box-shadow:0 0 20px #ffdb75aa;display:grid;place-items:center;color:#8c6a30;animation:dfcFlyTile .43s cubic-bezier(.12,.5,.3,1) forwards}
+#dfcDealPresentation .dfc-fly-tile:before{content:'⚡';font-size:12px}
+@keyframes dfcFlyTile{0%{opacity:0;transform:translate(-50%,-50%) scale(.55) rotate(-24deg)}12%{opacity:1}90%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(.88) rotate(8deg)}}
+@media(prefers-reduced-motion:reduce){#dfcShufflePresentation .dfc-shuffle-tile,#dfcDealPresentation .dfc-fly-tile{animation-duration:.01ms!important}}
+</style>
+<script id="dfcV07SharedPhaseVisual">
+/* Animación únicamente: ningún cambio de fichas, dinero, acciones ni temporizadores del servidor. */
+(function(){'use strict';
+ let stage=null,mix=null,deal=null,handKey=null,phase='',dealTimers=[],mixTicker=null;
+ const E=id=>document.getElementById(id);
+ function init(){stage=E('dominoStage');if(!stage)return false;
+  if(!mix){mix=document.createElement('div');mix.id='dfcShufflePresentation';mix.setAttribute('aria-hidden','true');mix.innerHTML='<div class="dfc-shuffle-shade"></div><div class="dfc-shuffle-copy">BARAJANDO FICHAS · 7 SEGUNDOS</div>';for(let i=0;i<28;i++){let t=document.createElement('i');t.className='dfc-shuffle-tile';const a=i*2.39996,r=18+(i%7)*8;t.style.setProperty('--dx',(Math.cos(a)*r)+'px');t.style.setProperty('--dy',(Math.sin(a)*r*.7)+'px');t.style.setProperty('--angle',((i*29)%150-75)+'deg');t.style.setProperty('--delay',-(i%9)*.18+'s');mix.append(t)}stage.append(mix)}
+  if(!deal){deal=document.createElement('div');deal.id='dfcDealPresentation';deal.setAttribute('aria-hidden','true');stage.append(deal)}return true;
+ }
+ function clearDeal(){dealTimers.forEach(clearTimeout);dealTimers=[];if(deal){deal.classList.remove('active');deal.replaceChildren()}}
+ function clearMix(){if(mixTicker){clearInterval(mixTicker);mixTicker=null}if(mix)mix.classList.remove('active')}
+ function shuffle(st){if(!init())return;clearDeal();mix.classList.add('active'); const label=mix.querySelector('.dfc-shuffle-copy');
+  const tick=()=>{let until=Date.parse(st?.hand?.play_starts_at||'');let remaining=Number.isFinite(until)?Math.max(0,Math.ceil((until-Date.now())/1000)):7;
+   if(label)label.textContent='BARAJANDO FICHAS · '+remaining+' S';};tick();mixTicker=setInterval(tick,300);
+ }
+ function launchOne(which){if(!deal||!deal.classList.contains('active'))return;let tile=document.createElement('i');tile.className='dfc-fly-tile';let w=stage.clientWidth||360,h=stage.clientHeight||220;
+  let dest=[[-w*.39,0],[0,-h*.38],[w*.39,0],[0,h*.38]][which];tile.style.setProperty('--tx',dest[0]+'px');tile.style.setProperty('--ty',dest[1]+'px');deal.append(tile);setTimeout(()=>tile.remove(),490);
+ }
+ function showDeal(){if(!init())return;clearDeal();deal.classList.add('active');for(let i=0;i<28;i++)dealTimers.push(setTimeout(()=>launchOne(i%4),i*115));dealTimers.push(setTimeout(clearDeal,28*115+550));}
+ function ownWinningTile(st){const r=st?.last_result,m=st?.last_move;if(!r||!m)return null;
+  if(String(m.user_id||'')!==String(r.winner_user_id||'')||!String(m.action||'').toUpperCase().includes('PLAY'))return null;
+  let t=m.tile||m.played_tile||m.domino||m.tile_value;
+  if(typeof t==='string'){try{t=JSON.parse(t)}catch(_){const n=t.match(/(\d)\D+(\d)/);if(n)t=[Number(n[1]),Number(n[2])]}}
+  if(!t&&Number.isInteger(Number(m.a))&&Number.isInteger(Number(m.b))&&m.a!=null&&m.b!=null)t=[m.a,m.b];
+  const a=Number(t?.a??t?.[0]),b=Number(t?.b??t?.[1]);return Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&a<=6&&b>=0&&b<=6?[a,b]:null;
+ }
+ function winTile(st){const host=E('dfcWinningLastTile'),face=E('dfcWinningTileFace');if(!host||!face)return;
+  const tile=ownWinningTile(st);host.hidden=!tile;if(tile){face.replaceChildren();tile.forEach(n=>{let el=document.createElement('span');el.textContent=['','⚀','⚁','⚂','⚃','⚄','⚅'][n]||'●';face.append(el)})}
+ }
+ let lastVictoryId=null;
+ window.dfc07VisualUpdate=function(st){if(!st||!init())return;const h=st.hand,key=String(h?.id||'');const state=String(h?.status||'');
+  if(E('dominoVictory')?.classList.contains('show')&&st.last_result?.id&&lastVictoryId!==String(st.last_result.id)){lastVictoryId=String(st.last_result.id);winTile(st)}
+  if(state==='shuffling'&&key){if(phase!=='shuffling'||key!==handKey){clearMix();shuffle(st);phase='shuffling';handKey=key}}
+  else if(state==='playing'&&key){if(phase==='shuffling'&&key===handKey){clearMix();showDeal()}else if(handKey!==key){clearMix();clearDeal()}phase='playing';handKey=key}
+  else {if(phase!==''){clearMix();clearDeal()}phase='';if(!key)handKey=null}
+ };
+})();
+</script>
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
@@ -10768,87 +10795,3 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 }
 
 </style>
-
-
-<!-- DOMINOS FLASH COIN 0.06 · capa visual y audiovisual sin alterar el servidor -->
-<style id="dfc006Visual">
-/* Mantiene la bandeja anterior y da a las fichas propias proporción y
-   acabado de la ficha doble del tablero. El toque sigue usando el motor original. */
-#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece{
-  width:clamp(23px,3.72cqw,49px)!important;
-  height:clamp(39px,6.40cqw,80px)!important;
-  max-width:calc((100% - 6 * clamp(1px,.32cqw,5px)) / 7)!important;
-  max-height:100%!important;
-  aspect-ratio:0.58!important;
-  padding:3px!important;
-  border-radius:5px!important;
-  border:1px solid #b2a48c!important;
-  background:linear-gradient(150deg,#fffdf4 2%,#f3ead7 62%,#dbceb7)!important;
-  box-shadow:inset 1px 1px 1px #fff,0 3px 5px #0009!important;
-}
-#dominoTablePanel #dominoHand .domino-piece.hand-piece .domino-pip{background:#141310!important}
-#dominoTablePanel #dominoSeats .domino-seat.s3{top:20.8%!important}
-/* Capa de mezcla: visual, sin repartos ni cambios de fichas en el cliente. */
-#dominoTablePanel #dfc006Shuffle{
-  position:absolute;left:28%;top:28%;width:44%;height:39%;z-index:35;
-  pointer-events:none;display:none;contain:layout paint;
-}
-#dominoTablePanel #dfc006Shuffle.on{display:block}
-#dfc006Shuffle .dfc006-back{position:absolute;left:50%;top:50%;width:clamp(14px,2.35cqw,25px);height:clamp(26px,4.1cqw,42px);border:1px solid #dcc7a7;border-radius:4px;background:linear-gradient(110deg,#fefcf5,#eee5d7);box-shadow:0 2px 4px #0008;transform:translate(-50%,-50%) rotate(var(--a)) translate(var(--dx),var(--dy));animation:dfc006Mix var(--t) ease-in-out infinite alternate;animation-delay:var(--delay);}
-@keyframes dfc006Mix{to{transform:translate(-50%,-50%) rotate(calc(var(--a) + 115deg)) translate(calc(var(--dx) * -.55),calc(var(--dy) * -.55))}}
-#dominoTablePanel #dfc006FinalFlash{position:absolute;inset:19% 20% 23%;z-index:52;pointer-events:none;opacity:0;border-radius:50%;background:radial-gradient(circle,#fff5bd 0%,#f6c94c99 17%,#ffd96c26 45%,transparent 72%);}
-#dominoTablePanel #dfc006FinalFlash.on{animation:dfc006Flash .85s ease-out both}
-@keyframes dfc006Flash{0%{opacity:0;transform:scale(.22)}22%{opacity:1;transform:scale(.68)}55%{opacity:.82;transform:scale(1.07)}100%{opacity:0;transform:scale(1.42)}}
-#dominoTablePanel #dfc006WinLabel{position:absolute;top:29%;left:50%;transform:translateX(-50%);z-index:53;opacity:0;pointer-events:none;color:#fff3a4;text-shadow:0 0 15px #ffa900,0 2px 3px #000;font-weight:900;letter-spacing:.08em;white-space:nowrap;font-size:clamp(12px,2.4cqw,27px)}
-#dominoTablePanel #dfc006WinLabel.on{animation:dfc006Label 1.5s ease-out both}
-@keyframes dfc006Label{0%,100%{opacity:0;transform:translate(-50%,8px)}25%,78%{opacity:1;transform:translate(-50%,-5px)}}
-@media(prefers-reduced-motion:reduce){#dfc006Shuffle .dfc006-back{animation:none!important}#dominoTablePanel #dfc006FinalFlash.on,#dominoTablePanel #dfc006WinLabel.on{animation-duration:.1s!important}}
-@media(max-height:520px) and (orientation:landscape){#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece{height:100%!important;width:clamp(19px,3.45cqw,34px)!important}#dominoTablePanel #dominoSeats .domino-seat.s3{top:21.5%!important}}
-</style>
-<script id="dfc006Events">
-(function(){'use strict';
-  const get=(id)=>document.getElementById(id);
-  const stage=get('dominoStage'); if(!stage)return;
-  const shuffle=document.createElement('div');shuffle.id='dfc006Shuffle';shuffle.setAttribute('aria-hidden','true');
-  const fragment=document.createDocumentFragment();
-  for(let i=0;i<28;i++){
-    const d=document.createElement('span');d.className='dfc006-back';
-    const a=(i*137.5)%360, x=((i*37)%160)-80,y=((i*53)%130)-65;
-    d.style.setProperty('--a',a+'deg');d.style.setProperty('--dx',x+'px');d.style.setProperty('--dy',y+'px');d.style.setProperty('--t',(1.6+(i%5)*.13)+'s');d.style.setProperty('--delay','-'+(i%7)*.24+'s');
-    fragment.appendChild(d);
-  }
-  shuffle.appendChild(fragment);stage.appendChild(shuffle);
-  const flash=document.createElement('div');flash.id='dfc006FinalFlash';flash.setAttribute('aria-hidden','true');stage.appendChild(flash);
-  const label=document.createElement('div');label.id='dfc006WinLabel';label.setAttribute('aria-hidden','true');label.textContent='¡DOMINÓ!';stage.appendChild(label);
-  let previousStatus='';let lastLocalWin='';
-  let fxCleanup=0;
-  function celebrate(result){
-    // Una mano solo una celebración por cliente, sin modificar premio ni bote.
-    if(!result?.id || /TRANQUE/i.test(String(result.winner_reason||'')))return;
-    const at=Date.parse(result.settled_at||'');
-    if(!Number.isFinite(at)||Math.abs(Date.now()-at)>18000)return;
-    const key='dfc006-win-'+String(result.id);
-    try{if(sessionStorage.getItem(key)==='1')return;sessionStorage.setItem(key,'1')}catch(_){if(lastLocalWin===key)return;lastLocalWin=key}
-    clearTimeout(fxCleanup);
-    flash.classList.remove('on');label.classList.remove('on');void flash.offsetWidth;
-    flash.classList.add('on');label.classList.add('on');
-    fxCleanup=setTimeout(()=>{flash.classList.remove('on');label.classList.remove('on')},1650);
-    // Usa el sonido de victoria que ya respeta el botón de sonido.
-    try{if(String(result.winner_user_id)!==String(window.dominoState?.me)&&typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled()&&typeof playDominoWinSound==='function')playDominoWinSound()}catch(_){ }
-  }
-  if(typeof renderDominoState==='function'){
-    const original=renderDominoState;
-    renderDominoState=function(st){
-      const value=original.apply(this,arguments);
-      try{
-        const status=st?.hand?.status||'';
-        const isMix=status==='shuffling' && get('dominoTablePanel')?.classList.contains('active');
-        if(isMix!==shuffle.classList.contains('on'))shuffle.classList.toggle('on',isMix);
-        previousStatus=status;
-        celebrate(st?.last_result);
-      }catch(_){ }
-      return value;
-    };
-  }
-})();
-</script>
