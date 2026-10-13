@@ -1,14 +1,27 @@
 {
   "id": "./",
-  "name": "MAIKET FLASH",
-  "short_name": "MAIKET FLASH",
-  "description": "MAIKET FLASH · Ruleta Flash Coin y Dominó Flash Coin",
-  "start_url": "./",
+  "name": "Dominos Flash Coin",
+  "short_name": "Dominos FC",
+  "description": "Juego de dominó en línea con Flash Coin virtuales",
+  "lang": "es",
+  "start_url": "./?source=pwa",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["standalone", "fullscreen"],
+  "background_color": "#050b16",
+  "theme_color": "#071629",
   "orientation": "any",
-  "background_color": "#020504",
-  "theme_color": "#05070d",
-  "lang": "es"
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
