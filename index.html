@@ -2272,7 +2272,45 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
  #appView .dfc-home-content{margin:15px auto;backdrop-filter:blur(5px)}
 }
 @media (prefers-reduced-motion: reduce){#appView .dfc-domino-home *{animation-duration:.01ms!important}}
-</style></head>
+</style><style id="dominosFlashCoin06ApprovedTheme">
+/* DOMINOS FLASH COIN 0.06 — MEJORA VISUAL SOBRE EL HTML EXISTENTE.
+   No agrega botones, listeners, tablas, rutas ni cambios de motor. */
+:root{--dfc-neon-blue:#148dff;--dfc-neon-gold:#ffcb58;--dfc-deep:#050b18}
+#appView.bg{background-color:#050b18;background-image:radial-gradient(ellipse at 12% 15%,rgba(0,108,255,.25),transparent 44%),radial-gradient(ellipse at 90% 80%,rgba(229,143,23,.19),transparent 48%),linear-gradient(145deg,rgba(1,8,25,.89),rgba(1,4,12,.90))!important;background-position:center;background-attachment:fixed}
+#appView .topbar,#appView .wallet-row{position:relative;z-index:2;border:1px solid rgba(87,166,255,.27);border-radius:18px;background:linear-gradient(120deg,rgba(3,13,32,.96),rgba(6,14,24,.90));box-shadow:0 8px 26px #0008,inset 0 1px rgba(190,229,255,.12);margin:10px auto;padding:11px 13px;max-width:1150px}
+#appView .top-tools,#appView .wallet-row{gap:9px}
+#appView .icon-btn,#appView .online-chip,#appView .balance-chip{border-radius:14px!important;background:linear-gradient(145deg,#132d4e,#060d1c)!important;border:1px solid rgba(80,172,255,.6)!important;box-shadow:inset 0 1px 0 #ffffff28,0 4px 10px #0009,0 0 14px #0867dc1f!important;color:#f3f8ff!important;transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
+#appView .balance-chip{border-color:#ffc85a!important;background:linear-gradient(145deg,#413011,#11101a)!important;box-shadow:0 0 15px #eeac2929,inset 0 1px #fff4b743!important}
+#appView .icon-btn:hover,#appView .online-chip:hover,#appView .balance-chip:hover{filter:brightness(1.16);transform:translateY(-1px)}
+#dfcDominoHome.dfc-domino-home{max-width:1150px!important;margin:14px auto 22px!important;position:relative;isolation:isolate;overflow:hidden;border:2px solid rgba(255,198,68,.75)!important;border-radius:26px!important;box-shadow:0 22px 55px #000b,0 0 34px #c7812b38,inset 0 1px #ffebb566!important;background:radial-gradient(ellipse at 50% 15%,rgba(255,190,46,.25),transparent 43%),radial-gradient(ellipse at 16% 70%,rgba(17,100,213,.34),transparent 53%),linear-gradient(135deg,#030d1d,#0d1223 45%,#160e16)!important}
+#dfcDominoHome:before{content:'🁣  🁫  🁥';position:absolute;inset:auto -4% -11% auto;color:rgba(255,218,142,.10);font-size:clamp(92px,17vw,225px);letter-spacing:-.14em;transform:rotate(-19deg);pointer-events:none;z-index:0;text-shadow:0 0 30px #a26929}
+#dfcDominoHome:after{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;background:linear-gradient(125deg,transparent 30%,rgba(255,227,157,.09) 48%,transparent 65%)}
+#dfcDominoHome .dfc-home-veil{background:linear-gradient(90deg,rgba(1,8,24,.6),rgba(2,7,18,.18))!important}
+#dfcDominoHome .dfc-home-content{position:relative;z-index:1;max-width:900px;margin:auto;padding:clamp(24px,5vw,68px) clamp(15px,4vw,40px)!important;text-align:center}
+#dfcDominoHome .dfc-home-kicker{display:inline-block;letter-spacing:.16em;padding:8px 16px;border:1px solid #dba6447a;border-radius:999px;background:linear-gradient(90deg,#332710a8,#0c162ab3);font-weight:800;color:#ffe49a!important;text-shadow:0 0 13px #ffc75565}
+#dfcDominoHome h1{font-size:clamp(36px,7vw,82px)!important;line-height:1.08!important;letter-spacing:.02em!important;color:#ffe7a0!important;text-shadow:0 3px #6f3b03,0 6px 2px #120a06,0 0 24px #e7a93283!important;margin:16px 0!important}
+#dfcDominoHome p{color:#e3efff!important;font-size:clamp(14px,2.2vw,19px)!important;text-shadow:0 2px 8px #000}
+#dfcDominoHome .dfc-home-action{display:flex!important;justify-content:center;gap:16px!important;flex-wrap:wrap;margin:25px auto!important}
+#dfcDominoHome .dfc-home-action .action{min-width:min(100%,235px);min-height:67px;padding:15px 24px!important;border-radius:17px!important;font-weight:900!important;font-size:clamp(15px,2.3vw,20px)!important;letter-spacing:.015em;text-transform:uppercase;transition:transform .17s ease,filter .17s ease;position:relative;overflow:hidden}
+#dfcDominoHome .dfc-open-domino{background:linear-gradient(180deg,#ffe48b 0%,#e8a52e 43%,#995207 100%)!important;border:2px solid #fff2b4!important;color:#231404!important;box-shadow:0 7px 0 #673807,0 13px 24px #000b,0 0 20px #e6ae4d77!important;text-shadow:0 1px #fff4b080}
+#dfcDominoHome .dfc-open-send{background:linear-gradient(180deg,#55baff,#096bd6 52%,#063b88)!important;border:2px solid #b5e8ff!important;color:#fff!important;box-shadow:0 7px 0 #063b73,0 13px 24px #000b,0 0 20px #128bff7a!important}
+#dfcDominoHome .dfc-home-action .action:hover{filter:brightness(1.12);transform:translateY(-3px)}
+#dfcDominoHome .dfc-home-action .action:active{transform:translateY(3px)}
+#dfcDominoHome .dfc-home-id{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:9px 16px;border:1px solid #5198d078;border-radius:13px;background:#050d1dd9;box-shadow:inset 0 1px #ffffff24}
+#dfcDominoHome .copy-btn{border-radius:9px!important;background:#1a4c8a!important;border:1px solid #48baff!important;color:white!important}
+#dfcDominoHome .dfc-home-virtual{margin-top:18px;color:#adbed3!important;font-size:12px!important}
+/* Lobby y botones REALES existentes: no tocar DOM ni la mesa en curso */
+#gamesPanel .panel,#dominoLobbyPanel .panel,#dominoBuyinPanel .panel{border:1px solid #f0b842b3!important;border-radius:23px!important;background:radial-gradient(ellipse at 90% 0%,#133b5a88,transparent 48%),linear-gradient(160deg,#0a1428,#050a14 70%)!important;box-shadow:0 16px 60px #000d,0 0 25px #ab812344!important}
+#gamesPanel h2,#dominoLobbyPanel h2{color:#ffe6a5!important;text-shadow:0 2px 14px #d69a3160}
+#gamesPanel .action,#dominoLobbyPanel .action,#dominoBuyinPanel .action{border-radius:14px!important;font-weight:850!important;box-shadow:inset 0 2px #ffffff32,0 5px 12px #0007}
+#dominoLobbyPanel .domino-two-tables{gap:14px}
+#dominoLobbyPanel button:not(.close),#dominoBuyinPanel button:not(.close){transition:filter .15s ease,transform .15s ease}
+#dominoLobbyPanel button:not(.close):hover,#dominoBuyinPanel button:not(.close):hover{filter:brightness(1.12);transform:translateY(-1px)}
+@media(max-width:600px){#appView .topbar,#appView .wallet-row{margin:7px 8px!important;padding:8px!important;border-radius:13px!important}#dfcDominoHome.dfc-domino-home{margin:10px 8px 16px!important;border-radius:19px!important}#dfcDominoHome .dfc-home-content{padding:32px 14px!important}#dfcDominoHome .dfc-home-action{flex-direction:column;align-items:stretch}#dfcDominoHome .dfc-home-action .action{min-width:0;width:100%;min-height:62px}#dfcDominoHome h1{font-size:clamp(32px,10vw,54px)!important}}
+@media(prefers-reduced-motion:reduce){#dfcDominoHome .dfc-home-action .action,#appView .icon-btn,#appView .online-chip{transition:none!important}}
+
+</style>
+</head>
 <body>
 <section class="auth" id="authView">
 <div class="auth-card">
