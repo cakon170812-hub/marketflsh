@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.02" lang="es">
+<html data-app-build="0.08" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -19,8 +19,10 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="Domino Flash Coin" name="apple-mobile-web-app-title"/>
 <meta content="telephone=no" name="format-detection"/>
-<link href="manifest.webmanifest?v=0.01" rel="manifest"/>
-<title>Domino Flash Coin — 0.02</title>
+<link href="manifest.webmanifest?v=0.08" rel="manifest"/>
+<title>Dominos Flash Coin — Aplicación 0.08</title>
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<meta name="description" content="Dominos Flash Coin: mesas de dominó multijugador y Flash Coin virtuales.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--gold:#ffd45a;--gold2:#e79a00;--blue:#258cff;--panel:rgba(8,12,20,.92);--line:rgba(255,215,90,.30);--muted:#a9b2c1;--red:#d32934;--green:#12a755}
@@ -2272,7 +2274,30 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
  #appView .dfc-home-content{margin:15px auto;backdrop-filter:blur(5px)}
 }
 @media (prefers-reduced-motion: reduce){#appView .dfc-domino-home *{animation-duration:.01ms!important}}
-</style></head>
+</style><style id="dfc-app-v08">
+:root{--dfc08Gold:#f4c85f;--dfc08Blue:#2d8efa}
+#appView{padding-bottom:82px!important;background:radial-gradient(ellipse at 40% -20%,#163960 0%,#071423 38%,#03070f 75%)}
+#appView .topbar{border-bottom:1px solid rgba(244,200,95,.18)!important;background:linear-gradient(145deg,#071426,#0c1728)!important;box-shadow:0 8px 26px #0005}
+#appView .wallet-row{border:1px solid rgba(244,200,95,.25);border-radius:18px;padding:10px!important;margin:12px auto!important;width:calc(100% - 22px);max-width:900px;background:linear-gradient(130deg,rgba(12,30,52,.94),rgba(13,13,24,.95));box-shadow:0 9px 24px #0006}
+#appView .dfc-domino-home{border:2px solid rgba(244,200,95,.55)!important;border-radius:26px!important;box-shadow:0 25px 70px #0009,inset 0 0 38px #d7a74716!important;overflow:hidden}
+#appView .dfc-home-content{max-width:540px!important;border-radius:24px!important;box-shadow:0 18px 46px #0008!important}
+#appView .dfc-home-content h1{background:linear-gradient(#fff4c5,#ffcc55,#bd7935);background-clip:text;-webkit-background-clip:text;color:transparent;text-shadow:0 4px 22px #ffbf3d38;letter-spacing:.03em}
+#appView .dfc-home-action{display:grid!important;grid-template-columns:1fr 1fr;gap:12px!important}
+#appView .dfc-home-action .action{min-height:80px!important;border:1px solid #ffffff4d!important;border-radius:18px!important;box-shadow:inset 0 2px 5px #ffffff52,0 10px 20px #0009!important;font-weight:900!important;letter-spacing:.02em;transition:transform .12s ease}
+#appView .dfc-home-action .action:active,.dfc-app-nav button:active{transform:scale(.96)}
+#appView #gamesBtn{background:linear-gradient(155deg,#f9de8c,#d28b22 70%,#835018)!important;color:#231406!important}
+#appView #dfcGiftOpen004{background:linear-gradient(145deg,#7bc6ff,#226ed9 70%,#133368)!important;color:white!important}
+.dfc-pwa-install-row{margin:18px auto 8px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.dfc-pwa-install{width:min(100%,340px);min-height:53px;border:1px solid #ebd392;border-radius:16px;background:linear-gradient(160deg,#243d55,#0b1b32);color:#ffdf8b;font-weight:900;font-size:16px;box-shadow:0 8px 22px #0008;cursor:pointer}
+.dfc-pwa-install-row small{color:#e0d5bf;font-size:11px;text-align:center}
+.dfc-pwa-install-row.dfc-installed{display:none}
+.dfc-app-nav{position:fixed;z-index:190;bottom:env(safe-area-inset-bottom,0px);left:50%;transform:translateX(-50%);width:min(100%,700px);display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:8px 5px 9px;background:linear-gradient(180deg,#0c223b,#040c18);border:1px solid #a981413d;border-radius:18px 18px 0 0;box-shadow:0 -10px 40px #000b}
+.dfc-app-nav button{border:0;background:none;color:#ffde9d;font-size:23px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;min-height:48px;cursor:pointer}
+.dfc-app-nav span{font-size:10px;font-weight:700;color:#d9dce7}
+@media(max-width:500px){#appView .dfc-home-action{grid-template-columns:1fr!important}#appView .dfc-home-action .action{min-height:67px!important}#appView .dfc-home-content{padding:16px!important}#appView .dfc-domino-home{margin-bottom:12px!important}}
+@media(display-mode:standalone){.dfc-pwa-install-row{display:none}}
+</style>
+</head>
 <body>
 <section class="auth" id="authView">
 <div class="auth-card">
@@ -2332,10 +2357,11 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 <h1>DOMINÓ EN LÍNEA</h1>
 <p>Elige tu mesa y juega con tus Flash Coin virtuales.</p>
 <div class="dfc-home-action" id="dfcHomeAction"><button class="action green dfc-open-domino" id="gamesBtn" type="button">🁫 Entrar a las mesas</button><button class="action blue dfc-open-send" id="dfcGiftOpen004" type="button">⚡ Enviar Flash Coin</button></div>
+<div class="dfc-pwa-install-row" id="dfcPwaInstallRow"><button type="button" class="dfc-pwa-install" id="dfcPwaInstallBtn">📲 Instalar aplicación</button><small id="dfcPwaInstallHint">Juega desde la pantalla de inicio de tu teléfono</small></div>
 <div class="dfc-home-id">ID de jugador: <strong id="dfcHomeIdHolder"><b id="myPublicId">———</b></strong><span id="dfcHomeCopyHolder"><button class="copy-btn" id="copyMyIdBtn" type="button">Copiar</button></span></div>
 <div class="dfc-home-virtual">Monedas virtuales de juego · sin compra, retiro ni conversión a dinero real</div>
 </div>
-</section></main>
+</section><nav class="dfc-app-nav" aria-label="Navegación de Dominos Flash Coin"><button type="button" data-dfc-open="gamesBtn">🁫<span>Mesas</span></button><button type="button" data-dfc-open="balanceBtn">⚡<span>Saldo</span></button><button type="button" data-dfc-open="dfcGiftOpen004">⇄<span>Enviar</span></button><button type="button" data-dfc-open="promotersInfoBtn">♛<span>Promotores</span></button><button type="button" data-dfc-open="settingsBtn">⚙<span>Ajustes</span></button></nav></main>
 <div class="overlay" id="gamesPanel"><div class="panel domino-panel domino-lobby-shell"><button class="close" data-close="gamesPanel">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p>El área de Juegos está dedicada al Dominó.</p></div><img alt="Dominó Flash Coin" class="domino-hero" src="domino_lobby_dorado.png?v=0.1"/><button class="action green" id="dominoPlayBtn" type="button">ENTRAR A LAS MESAS</button></div></div></div>
 <div class="overlay" id="dominoLobbyPanel"><div class="panel domino-panel domino-lobby-shell"><button class="close" id="dominoLobbyCloseBtn" type="button">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p><span class="domino-live-dot"></span>Mesas en línea · entra, elige tu saldo de mesa y juega</p><div class="domino-build-badge" id="dominoBuildBadge">HTML 1.6.0 · verificando servidor…</div></div><div class="msg" id="dominoLobbyMsg"></div><div class="domino-two-tables" id="dominoLobbyModes"></div></div></div></div>
 <div class="overlay" id="dominoBuyinPanel"><div class="panel domino-buyin-card"><button class="close" id="dominoBuyinCloseBtn" type="button">✕</button><h2 id="dominoBuyinTitle">Sentarse</h2><div class="tiny">Elige cuántas Flash Coin vas a llevar a la mesa. Se descuentan del saldo principal y vuelven al salir solamente las que realmente te queden.</div><div class="domino-buyin-value" id="dominoBuyinValue">0.000 FC</div><input class="domino-buyin-range" id="dominoBuyinRange" max="1" min="0.3" step="0.01" type="range"/><input class="field" id="dominoBuyinInput" min="0.001" placeholder="Monto FC" step="0.001" type="number"/><button class="action green" id="dominoConfirmJoinBtn">SENTARME EN LA MESA</button><div class="msg" id="dominoBuyinMsg"></div></div></div>
@@ -6336,7 +6362,7 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
   },{capture:false,passive:true,once:true});
 
   if('serviceWorker' in navigator && location.protocol==='https:'){
-    navigator.serviceWorker.register('./sw.js?v=0.01',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
+    navigator.serviceWorker.register('./sw.js?v=0.08',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
   }
 
   // Impide arrastrar la página completa; los paneles internos conservan su propio scroll.
@@ -10498,6 +10524,28 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   else if(state==='playing'&&key){if(phase==='shuffling'&&key===handKey){clearMix();showDeal()}else if(handKey!==key){clearMix();clearDeal()}phase='playing';handKey=key}
   else {if(phase!==''){clearMix();clearDeal()}phase='';if(!key)handKey=null}
  };
+})();
+</script>
+<script id="dfc-pwa-v08">
+(function(){
+  'use strict';
+  var deferredPrompt=null;
+  var btn=document.getElementById('dfcPwaInstallBtn');
+  var row=document.getElementById('dfcPwaInstallRow');
+  var hint=document.getElementById('dfcPwaInstallHint');
+  var ua=navigator.userAgent||'';
+  var isiOS=/iPhone|iPad|iPod/.test(ua);
+  var standalone=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+  if(standalone&&row)row.classList.add('dfc-installed');
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;if(btn)btn.textContent='📲 Instalar aplicación';if(hint)hint.textContent='Toca para instalar Dominos Flash Coin en Android';});
+  window.addEventListener('appinstalled',function(){deferredPrompt=null;if(row)row.classList.add('dfc-installed');});
+  if(isiOS&&hint)hint.textContent='iPhone: Compartir → Añadir a pantalla de inicio';
+  if(btn)btn.addEventListener('click',async function(){
+    if(deferredPrompt){var p=deferredPrompt;deferredPrompt=null;try{await p.prompt();var choice=await p.userChoice;if(choice&&choice.outcome!=='accepted'&&hint)hint.textContent='Puedes instalarla desde el menú de Chrome';}catch(e){if(hint)hint.textContent='Abre el menú de Chrome → Instalar aplicación';}return;}
+    if(isiOS){alert('En Safari: toca Compartir y selecciona “Añadir a pantalla de inicio”.');return;}
+    alert('En Chrome Android, abre el menú ⋮ y selecciona “Instalar aplicación” o “Añadir a pantalla de inicio”. Si no aparece, revisa que estés usando HTTPS.');
+  });
+  document.querySelectorAll('.dfc-app-nav [data-dfc-open]').forEach(function(item){item.addEventListener('click',function(){var id=item.getAttribute('data-dfc-open');var target=document.getElementById(id);if(target&&!target.disabled)target.click();});});
 })();
 </script>
 </body>
