@@ -10730,3 +10730,87 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 }
 
 </style>
+
+
+<!-- DOMINOS FLASH COIN 0.06 · capa visual y audiovisual sin alterar el servidor -->
+<style id="dfc006Visual">
+/* Mantiene la bandeja anterior y da a las fichas propias proporción y
+   acabado de la ficha doble del tablero. El toque sigue usando el motor original. */
+#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece{
+  width:clamp(23px,3.72cqw,49px)!important;
+  height:clamp(39px,6.40cqw,80px)!important;
+  max-width:calc((100% - 6 * clamp(1px,.32cqw,5px)) / 7)!important;
+  max-height:100%!important;
+  aspect-ratio:0.58!important;
+  padding:3px!important;
+  border-radius:5px!important;
+  border:1px solid #b2a48c!important;
+  background:linear-gradient(150deg,#fffdf4 2%,#f3ead7 62%,#dbceb7)!important;
+  box-shadow:inset 1px 1px 1px #fff,0 3px 5px #0009!important;
+}
+#dominoTablePanel #dominoHand .domino-piece.hand-piece .domino-pip{background:#141310!important}
+#dominoTablePanel #dominoSeats .domino-seat.s3{top:20.8%!important}
+/* Capa de mezcla: visual, sin repartos ni cambios de fichas en el cliente. */
+#dominoTablePanel #dfc006Shuffle{
+  position:absolute;left:28%;top:28%;width:44%;height:39%;z-index:35;
+  pointer-events:none;display:none;contain:layout paint;
+}
+#dominoTablePanel #dfc006Shuffle.on{display:block}
+#dfc006Shuffle .dfc006-back{position:absolute;left:50%;top:50%;width:clamp(14px,2.35cqw,25px);height:clamp(26px,4.1cqw,42px);border:1px solid #dcc7a7;border-radius:4px;background:linear-gradient(110deg,#fefcf5,#eee5d7);box-shadow:0 2px 4px #0008;transform:translate(-50%,-50%) rotate(var(--a)) translate(var(--dx),var(--dy));animation:dfc006Mix var(--t) ease-in-out infinite alternate;animation-delay:var(--delay);}
+@keyframes dfc006Mix{to{transform:translate(-50%,-50%) rotate(calc(var(--a) + 115deg)) translate(calc(var(--dx) * -.55),calc(var(--dy) * -.55))}}
+#dominoTablePanel #dfc006FinalFlash{position:absolute;inset:19% 20% 23%;z-index:52;pointer-events:none;opacity:0;border-radius:50%;background:radial-gradient(circle,#fff5bd 0%,#f6c94c99 17%,#ffd96c26 45%,transparent 72%);}
+#dominoTablePanel #dfc006FinalFlash.on{animation:dfc006Flash .85s ease-out both}
+@keyframes dfc006Flash{0%{opacity:0;transform:scale(.22)}22%{opacity:1;transform:scale(.68)}55%{opacity:.82;transform:scale(1.07)}100%{opacity:0;transform:scale(1.42)}}
+#dominoTablePanel #dfc006WinLabel{position:absolute;top:29%;left:50%;transform:translateX(-50%);z-index:53;opacity:0;pointer-events:none;color:#fff3a4;text-shadow:0 0 15px #ffa900,0 2px 3px #000;font-weight:900;letter-spacing:.08em;white-space:nowrap;font-size:clamp(12px,2.4cqw,27px)}
+#dominoTablePanel #dfc006WinLabel.on{animation:dfc006Label 1.5s ease-out both}
+@keyframes dfc006Label{0%,100%{opacity:0;transform:translate(-50%,8px)}25%,78%{opacity:1;transform:translate(-50%,-5px)}}
+@media(prefers-reduced-motion:reduce){#dfc006Shuffle .dfc006-back{animation:none!important}#dominoTablePanel #dfc006FinalFlash.on,#dominoTablePanel #dfc006WinLabel.on{animation-duration:.1s!important}}
+@media(max-height:520px) and (orientation:landscape){#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece{height:100%!important;width:clamp(19px,3.45cqw,34px)!important}#dominoTablePanel #dominoSeats .domino-seat.s3{top:21.5%!important}}
+</style>
+<script id="dfc006Events">
+(function(){'use strict';
+  const get=(id)=>document.getElementById(id);
+  const stage=get('dominoStage'); if(!stage)return;
+  const shuffle=document.createElement('div');shuffle.id='dfc006Shuffle';shuffle.setAttribute('aria-hidden','true');
+  const fragment=document.createDocumentFragment();
+  for(let i=0;i<28;i++){
+    const d=document.createElement('span');d.className='dfc006-back';
+    const a=(i*137.5)%360, x=((i*37)%160)-80,y=((i*53)%130)-65;
+    d.style.setProperty('--a',a+'deg');d.style.setProperty('--dx',x+'px');d.style.setProperty('--dy',y+'px');d.style.setProperty('--t',(1.6+(i%5)*.13)+'s');d.style.setProperty('--delay','-'+(i%7)*.24+'s');
+    fragment.appendChild(d);
+  }
+  shuffle.appendChild(fragment);stage.appendChild(shuffle);
+  const flash=document.createElement('div');flash.id='dfc006FinalFlash';flash.setAttribute('aria-hidden','true');stage.appendChild(flash);
+  const label=document.createElement('div');label.id='dfc006WinLabel';label.setAttribute('aria-hidden','true');label.textContent='¡DOMINÓ!';stage.appendChild(label);
+  let previousStatus='';let lastLocalWin='';
+  let fxCleanup=0;
+  function celebrate(result){
+    // Una mano solo una celebración por cliente, sin modificar premio ni bote.
+    if(!result?.id || /TRANQUE/i.test(String(result.winner_reason||'')))return;
+    const at=Date.parse(result.settled_at||'');
+    if(!Number.isFinite(at)||Math.abs(Date.now()-at)>18000)return;
+    const key='dfc006-win-'+String(result.id);
+    try{if(sessionStorage.getItem(key)==='1')return;sessionStorage.setItem(key,'1')}catch(_){if(lastLocalWin===key)return;lastLocalWin=key}
+    clearTimeout(fxCleanup);
+    flash.classList.remove('on');label.classList.remove('on');void flash.offsetWidth;
+    flash.classList.add('on');label.classList.add('on');
+    fxCleanup=setTimeout(()=>{flash.classList.remove('on');label.classList.remove('on')},1650);
+    // Usa el sonido de victoria que ya respeta el botón de sonido.
+    try{if(String(result.winner_user_id)!==String(window.dominoState?.me)&&typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled()&&typeof playDominoWinSound==='function')playDominoWinSound()}catch(_){ }
+  }
+  if(typeof renderDominoState==='function'){
+    const original=renderDominoState;
+    renderDominoState=function(st){
+      const value=original.apply(this,arguments);
+      try{
+        const status=st?.hand?.status||'';
+        const isMix=status==='shuffling' && get('dominoTablePanel')?.classList.contains('active');
+        if(isMix!==shuffle.classList.contains('on'))shuffle.classList.toggle('on',isMix);
+        previousStatus=status;
+        celebrate(st?.last_result);
+      }catch(_){ }
+      return value;
+    };
+  }
+})();
+</script>
