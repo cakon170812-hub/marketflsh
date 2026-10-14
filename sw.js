@@ -1,5 +1,5 @@
-// Dominos Flash Coin PWA 0.08: network-first for application code, no API caching.
-const CACHE='dfc-static-v008';
+// Dominos Flash Coin PWA 0.09: network-first for application code, no API caching.
+const CACHE='dfc-static-v009';
 const SHELL=['./','./index.html','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>Promise.allSettled(SHELL.map(url=>cache.add(url)))));self.skipWaiting();});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()));});
