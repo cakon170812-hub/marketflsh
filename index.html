@@ -2297,6 +2297,24 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 @media(max-width:500px){#appView .dfc-home-action{grid-template-columns:1fr!important}#appView .dfc-home-action .action{min-height:67px!important}#appView .dfc-home-content{padding:16px!important}#appView .dfc-domino-home{margin-bottom:12px!important}}
 @media(display-mode:standalone){.dfc-pwa-install-row{display:none}}
 </style>
+<style id="dfc-virtual-only-008">
+/* DFC 0.08 · Modalidad exclusivamente virtual. Ocultar operaciones antiguas de
+   recarga/retiro/acreditacion que requieren validacion adicional en Supabase.
+   No modifica lógica de partidas, premios ni transferencias gratuitas. */
+#leaderUsersRechargeBtn,
+#adminWalletWithdrawBtn,
+#rouletteWithdrawToAdminBtn,
+#leaderPanel .section:has(#adminRechargeBtn),
+#leaderPanel .section:has(#adminRechargeId),
+button[data-bot18-money="cargar"],
+button[data-bot18-money="retirar"],
+#dfcLegacyRouletteCompatibility,
+#rouletteWalletPanel .panel button#rouletteWithdrawToAdminBtn {
+  display:none!important;
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+</style>
 </head>
 <body>
 <section class="auth" id="authView">
@@ -2449,7 +2467,7 @@ body.domino-spectating #dominoSeats .domino-seat .domino-avatar{pointer-events:n
 <div class="overlay" id="leaderGatePanel"><div class="panel"><button class="close" data-close="leaderGatePanel">✕</button><h2>👑 Administrador Líder</h2><div class="hidden" id="leaderFirstSetup"><p class="tiny">Primera entrada: crea ahora la contraseña del panel.</p><input class="field" id="leaderNewPass" placeholder="Nueva contraseña" type="password"/><input class="field" id="leaderNewPass2" placeholder="Confirmar contraseña" type="password"/><button class="action green" id="leaderCreatePassBtn">Crear contraseña</button></div><div class="hidden" id="leaderLoginBox"><input class="field" id="leaderPass" placeholder="Contraseña del panel" type="password"/><button class="action" id="leaderUnlockBtn">Entrar</button></div><div class="msg" id="leaderGateMsg"></div></div></div>
 <div class="overlay" id="leaderPanel"><div class="panel"><button class="close" data-close="leaderPanel">✕</button><h2>👑 Administrador Líder</h2><div class="stat-grid"><div class="stat"><b id="adminRegistered">0</b><span class="tiny">Registrados</span></div><div class="stat"><b id="adminOnline">0</b><span class="tiny">Jugando ahora</span></div></div>
 <div class="section"><button class="action blue" id="allUsersBtn" type="button">👥 Todos los usuarios</button><div class="tiny">Consulta IDs y saldos, busca directamente y realiza operaciones desde una misma pantalla.</div></div>
-<div class="wallet-admin-grid"><button class="wallet-admin-card" id="adminWalletBtn" type="button"><span class="wallet-pair-label"><i class="fc-coin"></i> Cartera Administrativa</span><b class="fc-balance" id="adminWalletPreview">0.000 FC</b><div class="wallet-id-line">ID <strong id="adminWalletIdPreview">———</strong></div><small>Enviar · solicitar · retirar</small></button></div>
+<div class="wallet-admin-grid"><button class="wallet-admin-card" id="adminWalletBtn" type="button"><span class="wallet-pair-label"><i class="fc-coin"></i> Cartera Administrativa</span><b class="fc-balance" id="adminWalletPreview">0.000 FC</b><div class="wallet-id-line">ID <strong id="adminWalletIdPreview">———</strong></div><small>Enviar · solicitar · consultar</small></button></div>
 <div class="section"><h3>⚡ Mi Flash Coin</h3><div class="tiny">Envía o solicita Flash Coin usando tu saldo personal de la cuenta líder.</div><div class="row"><input class="field" id="leaderTransferId" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"/><button class="search-mini" id="leaderFindTransferBtn" title="Buscar ID" type="button">🔎</button></div><div id="leaderTransferUserResult"></div><input class="field" id="leaderTransferAmount" min="0.001" placeholder="Monto FC" step="0.001" type="number"/><button class="action green" id="leaderSendFcBtn">Enviar Flash Coin</button><button class="action" id="leaderRequestFcBtn">Solicitar Flash Coin</button><div class="msg" id="leaderTransferMsg"></div></div>
 <div class="section"><h3>Asignar promotores</h3><div class="row"><input class="field" id="adminPromId" inputmode="numeric" maxlength="6" placeholder="ID usuario"/><button class="action blue" id="adminFindPromBtn">Buscar</button></div><div id="adminPromResult"></div></div>
 <div class="section"><h3>Comunicado</h3><label class="switch-line"><input class="switch" id="adminNoticeEnabled" type="checkbox"/><span>Mostrar comunicado a los usuarios</span></label><textarea class="field" id="adminNotice" placeholder="Escribe el comunicado..." rows="3"></textarea><div class="row"><div><label class="tiny">Visible durante (segundos)</label><input class="field" id="adminNoticeVisible" max="3600" min="1" type="number" value="10"/></div><div><label class="tiny">Reaparece cada (segundos)</label><input class="field" id="adminNoticeRepeat" max="86400" min="1" type="number" value="300"/></div></div><button class="action green" id="adminSaveNoticeBtn">Guardar comunicado</button></div>
@@ -3063,7 +3081,7 @@ function showReceipt(title,r){
   const titleText=String(title||'');
   const isPromoter=/promotor/i.test(titleText);
   const isLeaderTransfer=/envío.*administrador líder|envío.*líder/i.test(titleText);
-  const operation=isPromoter?'Recarga por promotor':(isLeaderTransfer?'Envío del Administrador Líder':'Recarga de saldo');
+  const operation=isPromoter?'Entrega gratuita de FC':(isLeaderTransfer?'Envío del Administrador Líder':'Entrega de Flash Coin');
   const issuer=isPromoter?(me?.first_name||'Promotor')+' '+(me?.last_name||''):'Administrador Líder';
   const issuerId=me?.public_id?('ID '+me.public_id):'Sistema Flash Coin';
   const ref='FC'+String(r.receipt_id||Date.now()).padStart(10,'0');
@@ -3094,7 +3112,7 @@ function showReceipt(title,r){
         ${receiptLine('Referencia',ref)}
       </section>
       <div class="receipt-balance"><span>Nuevo saldo del usuario</span><b>${money(r.balance_after)} FC</b></div>
-      <footer class="receipt-foot">FLASH COIN · JUEGA · RECARGA · GANA<div class="receipt-ref">Documento interno · ${esc(ref)}</div></footer>
+      <footer class="receipt-foot">FLASH COIN · JUEGA · PARTICIPA · GANA<div class="receipt-ref">Documento interno · ${esc(ref)}</div></footer>
     </article>`;
   show('receiptPanel');
 }
@@ -3967,7 +3985,7 @@ async function promAction(kind){
   if(kind==='send'){
     const receipt=Array.isArray(data)?data[0]:data;
     $('promSearchId').value='';$('promAmount').value='';$('promSearchResult').innerHTML='';$('promUserCard').innerHTML='';selectedPromUser=null;
-    hide('promUserPanel');await loadMe();renderMe();showReceipt('Comprobante de recarga del promotor',receipt);
+    hide('promUserPanel');await loadMe();renderMe();showReceipt('Comprobante de entrega de FC del promotor',receipt);
   }else{
     msg('promUserMsg','Solicitud enviada al usuario.');
   }
@@ -4133,7 +4151,7 @@ $('adminRechargeBtn').onclick=async()=>{
   if(error)return msg('adminMsg',errText(error));
   const receipt=Array.isArray(data)?data[0]:data;
   $('adminRechargeId').value='';$('adminRechargeAmount').value='';$('adminRechargeUserResult').innerHTML='';selectedAdminRechargeUser=null;msg('adminMsg','');
-  showReceipt('Comprobante de recarga',receipt);
+  showReceipt('Comprobante de entrega de FC',receipt);
 };
 $('adminSaveSettingsBtn').onclick=async()=>{
   const payload={p_round_seconds:Number($('adminSeconds').value),p_min_bet:Number($('adminMinBet').value),p_payout_probability:Number($('adminPayoutPct').value),p_spin_duration_seconds:Number($('adminSpinDuration').value),p_whatsapp_group_url:$('adminGroupUrl').value.trim()};
@@ -4228,7 +4246,7 @@ showReceipt=function(title,r){
   if(/promotor/i.test(titleText))operation='Envío de Promotor';
   else if(/administrativa|cartera/i.test(titleText))operation='Envío de Cartera Administrativa';
   else if(/líder|lider/i.test(titleText))operation='Envío del Administrador Líder';
-  else if(/recarga/i.test(titleText))operation='Recarga de saldo';
+  else if(/recarga/i.test(titleText))operation='Entrega de Flash Coin';
   const ref='FC'+String(r.receipt_id||Date.now()).padStart(10,'0');
   const state=r.status||'Completada';
   $('receiptTitle').textContent=title||'Comprobante';
@@ -4255,7 +4273,7 @@ showReceipt=function(title,r){
         ${receiptLine('Referencia',ref)}
       </section>
       <div class="receipt-balance"><span>Saldo resultante del destino</span><b>${money(r.balance_after)} FC</b></div>
-      <footer class="receipt-foot">FLASH COIN · JUEGA · RECARGA · GANA<div class="receipt-ref">Documento interno · ${esc(ref)}</div></footer>
+      <footer class="receipt-foot">FLASH COIN · JUEGA · PARTICIPA · GANA<div class="receipt-ref">Documento interno · ${esc(ref)}</div></footer>
     </article>`;
   show('receiptPanel');
 };
@@ -4820,7 +4838,7 @@ async function leaderUsersOperation(kind){
       showRequestReceipt('Solicitud del Administrador Líder',oneRow(data));msg('leaderUsersMsg','Solicitud enviada.');
     }else if(kind==='recharge'){
       const {data,error}=await sb.rpc('rf_admin_recharge_v04',{p_public_id:id,p_amount:amount});if(error)throw error;
-      const r=oneRow(data);showReceipt('Recarga por Administrador',r);msg('leaderUsersMsg','Recarga acreditada.');
+      const r=oneRow(data);showReceipt('Entrega del administrador',r);msg('leaderUsersMsg','Recarga acreditada.');
     }
     $('leaderUsersAmount').value='';
     await Promise.all([loadMe(),loadLeaderUsers($('leaderUsersSearch').value)]);renderMe();
@@ -7470,7 +7488,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
         const t=(dominoLobbyData?.tables||[]).find(x=>Number(x.id)===Number(dominoCurrentTableId));
         const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(t?.config_id))||dominoState?.config;
         if(!c)return window.mf19Toast?.('No se pudo identificar la modalidad de esta mesa','error');
-        if(noMainBalance()||mainBalance()+0.000001<Number(c.min_entry||0))return window.mf19Toast?.('Saldo insuficiente: recarga hasta '+dominoMoney(c.min_entry)+' FC para sentarte.','error');
+        if(noMainBalance()||mainBalance()+0.000001<Number(c.min_entry||0))return window.mf19Toast?.('Saldo insuficiente: solicita hasta '+dominoMoney(c.min_entry)+' FC para sentarte.','error');
         // Abrimos el mismo selector de fichas, PERO la confirmación posterior
         // usa el ID exacto del espectador y no el emparejamiento automático.
         originalOpenBuyin(Number(c.id));
@@ -7681,7 +7699,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     let joined=false;
     try{
       await loadMe();renderMe();
-      if(mainBalance()+0.000001<amount)throw Error('Saldo Flash Coin insuficiente. Espera la recarga.');
+      if(mainBalance()+0.000001<amount)throw Error('Saldo Flash Coin insuficiente. Espera recibir Flash Coin.');
       const {data,error}=await sb.rpc('rf_domino_spectator_join_v110',{
         p_table_id:tableId,p_buyin:Number(amount.toFixed(3))
       });
@@ -7714,7 +7732,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     }finally{button.disabled=false;updateSpectatorBar()}
   };
 
-  // Una recarga recibida mientras observa debe habilitar el botón sin salir.
+  // Una entrega de FC recibida mientras observa debe habilitar el botón sin salir.
   let mf110BalanceBusy=false;
   setInterval(async()=>{
     if(!spectatorMode||document.hidden||mf110BalanceBusy)return;
@@ -8073,7 +8091,7 @@ function mfShowVerifiedTieWin(result,key,uid){
       ['🪙','Mi Flash Coin','Enviar y solicitar','personal'],
       ['🧑‍💼','Promotores','Asignar permisos','promoters'],
       ['📢','Comunicados','Mensajes y avisos','notices'],
-      ['💸','Recarga por ID','Buscar y acreditar','recharge'],
+      
       ['🁫','Mesas de dominó','Editar mesas','domino'],
       ['🔐','Seguridad','Contraseña y acceso','security'],
       ['🏦','Cartera Administrativa','Movimientos y fondos','wallet'],
