@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.09" lang="es">
+<html data-app-build="0.10" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -2369,7 +2369,7 @@ button[data-bot18-money="retirar"],
       <button class="action blue dfc-open-send dfc09-tool dfc09-tool-send" id="dfcGiftOpen004" type="button"><span class="dfc09-tool-icon aqua" aria-hidden="true">➤</span><span>Enviar<br>Flash Coin</span></button>
       <button class="icon-btn group-btn dfc09-tool" id="groupBtn" type="button"><span class="dfc09-tool-icon indigo" aria-hidden="true">◉</span><span>Grupo<br>WhatsApp</span></button>
     </div>
-    <div class="dfc09-promoter-zone"><button class="icon-btn promoter-chip hidden" id="promoterBtn" type="button">💼 Panel Promotor</button></div>
+    <div class="dfc09-promoter-zone dfc10-roles" id="dfc10Roles"><button class="icon-btn promoter-chip hidden" id="promoterBtn" type="button">💼 Panel Promotor</button></div>
     <section class="dfc-domino-home dfc09-domino-home" id="dfcDominoHome" aria-label="Dominos Flash Coin en línea">
       <div class="dfc-home-veil" aria-hidden="true"></div>
       <div class="dfc09-hero-table" aria-hidden="true">
@@ -6399,13 +6399,16 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
   },{capture:false,passive:true,once:true});
 
   if('serviceWorker' in navigator && location.protocol==='https:'){
-    navigator.serviceWorker.register('./sw.js?v=0.08',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
+    navigator.serviceWorker.register('./sw.js?v=0.10',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
   }
 
   // Impide arrastrar la página completa; los paneles internos conservan su propio scroll.
   document.addEventListener('touchmove',e=>{
     const scrollable=e.target.closest('.panel,.domino-mini-chat-list,.domino-chat-list,.wallet-history,.admin-user-list');
-    if(!scrollable)e.preventDefault();
+    // La portada PWA debe poder desplazarse verticalmente con el dedo.
+    // Se conserva el bloqueo de arrastre fuera de la portada (mesa horizontal).
+    const inScrollableHome=!!e.target.closest('#appView');
+    if(!scrollable && !inScrollableHome)e.preventDefault();
   },{passive:false});
 })();
 </script>
@@ -10995,3 +10998,131 @@ html,body {background:#020917!important;min-height:100%;overflow-x:hidden!import
 #appView .dfc09-home-card h1 em{color:#2fe4f7!important}
 #appView .dfc09-app-nav .dfc09-active{background:linear-gradient(135deg,#104dba,#112663)!important;color:#e4faff!important}
 </style>
+
+<!-- DFC 0.10 · Corrección de scroll móvil, rol admin y estilos de salas/mesa -->
+<style id="dfc-010-mobile-admin-unified">
+/* DFC 0.10 · Correcciones sobre el HTML 0.09 aprobado.
+   NADA en estas reglas crea fichas, modifica saldos, roles ni resultados. */
+:root{--dfc10-bg:#020a19;--dfc10-panel:#0b1b37;--dfc10-edge:#2878c6;--dfc10-cyan:#26def0;--dfc10-blue:#118cff;--dfc10-green:#05c9a9}
+/* El código anterior fijaba el body y además ocultaba el desbordamiento.
+   Solo #appView se convierte en contenedor desplazable en teléfonos. */
+html,body{max-width:100%!important}
+#appView.dfc09-view{
+  position:fixed!important;inset:0!important;box-sizing:border-box!important;
+  display:block; width:100%!important;
+  height:100dvh!important;max-height:100dvh!important;min-height:0!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  overscroll-behavior-y:contain!important;touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch!important;scroll-behavior:smooth;
+  padding-bottom:calc(108px + env(safe-area-inset-bottom))!important;
+}
+#appView.dfc09-view.hidden{display:none!important}
+#appView .dfc09-shell{display:block!important;height:auto!important;min-height:0!important;overflow:visible!important}
+#appView .dfc09-app-nav{position:fixed!important;z-index:80!important;bottom:0!important}
+#appView button, #appView .dfc09-room-join{touch-action:manipulation}
+/* Se reutiliza el botón ORIGINAL líder y su verificación de permisos. */
+#appView .dfc10-roles{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:9px!important;margin:2px 0 13px!important;min-height:0!important}
+#appView #leaderBtn.dfc10-admin-original:not(.hidden){
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:auto!important;min-width:178px!important;min-height:46px!important;margin:0!important;
+ padding:10px 14px!important;border-radius:15px!important;
+ border:1px solid #53baff!important;
+ background:linear-gradient(125deg,#0756c0,#08789d)!important;
+ color:#f4fcff!important;font-size:13px!important;font-weight:850!important;
+ box-shadow:inset 0 1px 0 #a4f4ff59,0 7px 20px #0056ad48!important;
+}
+#appView #leaderBtn.hidden,#appView #promoterBtn.hidden{display:none!important}
+#appView #promoterBtn:not(.hidden){min-height:46px!important;padding:10px 14px!important;font-size:13px!important}
+/* Salas generadas por Supabase: tarjetas nativas de la misma aplicación. */
+#dominoLobbyPanel{background:linear-gradient(155deg,#031029,#020917)!important}
+#dominoLobbyPanel>.domino-lobby-shell{
+ height:100dvh!important;max-height:100dvh!important;min-height:0!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+ background:radial-gradient(ellipse at 50% -12%,#123c83aa,transparent 65%),linear-gradient(160deg,#0b1b3b,#020916 65%)!important;
+ border:0!important;
+}
+#dominoLobbyPanel>.domino-lobby-shell:before{background:radial-gradient(ellipse at 100% 20%,#166bb22b,transparent 54%)!important}
+#dominoLobbyPanel .domino-lobby-content{height:auto!important;min-height:100%!important;overflow:visible!important;}
+#dominoLobbyPanel .domino-lobby-head{border-color:#198ee075!important}
+#dominoLobbyPanel .domino-lobby-head h2{color:#ecfaff!important;text-shadow:0 0 20px #198fff5a!important;font-style:normal!important;letter-spacing:0!important}
+#dominoLobbyPanel .domino-lobby-head h2:before{content:"DOMINOS FLASH COIN"!important;color:#39d9ef!important;text-shadow:none!important;font-size:.34em!important}
+#dominoLobbyPanel .domino-lobby-head p{color:#a9d9f6!important;font-size:clamp(10px,1.8vw,14px)!important}
+#dominoLobbyPanel .close{border-color:#308ee9!important;background:#081c3b!important;color:#f0fcff!important}
+#dominoLobbyPanel #dominoBuildBadge{color:#a9dafc!important;border-color:#248ad254!important;background:#061e38!important}
+#dominoLobbyPanel #dominoLobbyModes{min-height:0!important;height:auto!important;overflow:visible!important;grid-template-rows:none!important;grid-auto-rows:minmax(150px,auto)!important;gap:10px!important;padding-bottom:25px!important}
+#dominoLobbyPanel #dominoLobbyModes .domino-choice-card{
+ --lobby-accent:#26cdeb!important;
+ min-height:150px!important;max-height:none!important;
+ border:1px solid #2b87cf!important;border-radius:20px!important;
+ background:linear-gradient(150deg,#102d56e8,#07142ce9 72%)!important;
+ box-shadow:inset 0 0 20px #1f95d019,0 9px 24px #0008!important;
+}
+#dominoLobbyPanel #dominoLobbyModes .domino-choice-card:nth-child(3n+2){border-color:#3378e7!important}
+#dominoLobbyPanel #dominoLobbyModes .domino-choice-card:nth-child(3n){border-color:#11bcb5!important}
+#dominoLobbyPanel .domino-premium-card-head h3{border-color:#2378c7!important;background:#04152edd!important;color:#e2f9ff!important}
+#dominoLobbyPanel #dominoLobbyModes .domino-join-mode{
+ min-height:37px!important;background:linear-gradient(115deg,#075fe1,#00b6d2)!important;
+ border-color:#38ceff!important;color:white!important;font-size:clamp(10px,1.4vw,13px)!important;
+ border-radius:12px!important;box-shadow:0 5px 16px #0060ae69!important;
+}
+#dominoLobbyPanel #dominoLobbyModes .domino-join-mode.spectator{background:linear-gradient(110deg,#174788,#1386ca)!important;color:white!important}
+#dominoLobbyPanel .domino-lobby-wallet{background:#071c3df2!important;border-color:#257edb!important;color:#c9efff!important}
+/* Partida: color azul/cian compatible con la geometría ORIGINAL de la mesa.
+   No alterar coordenadas, transformación, tamaños de fichas ni eventos de toque. */
+#dominoTablePanel{background:#030a17!important}
+#dominoTablePanel .domino-game-panel{border-color:#218de1!important;background-color:#051126!important}
+#dominoTablePanel #dominoStage{box-shadow:inset 0 0 0 2px #27c8f75b,inset 0 0 66px #041a44b7!important;border-color:#3b8dd9!important}
+#dominoTablePanel .domino-photo-veil{pointer-events:none!important;background:linear-gradient(180deg,#0b408050 0%,#03193428 50%,#062e654e 100%)!important}
+#dominoTablePanel .domino-live-top-controls button,#dominoTablePanel .domino-live-icon{border-color:#299ee9!important;background:#081e43ed!important;color:#f0fcff!important}
+#dominoTablePanel .domino-inside-pot,#dominoTablePanel .domino-compact-balance{border-color:#279bdd!important;background:#061a37e8!important}
+#dominoTablePanel .domino-inside-pot b,#dominoTablePanel .domino-compact-balance b{color:#30dddb!important}
+#dominoTablePanel .domino-live-action,#dominoTablePanel .domino-ready-btn{border-color:#34c8f5!important;color:#edfbff!important;background:linear-gradient(145deg,#0a3f95,#087fa7)!important}
+#dominoTablePanel .domino-table-brand{color:#ecfaff!important;text-shadow:0 0 12px #067dc988!important}
+/* Las fichas se distinguen sin alterar caras, tamaño, posición ni rotación. */
+#dominoTablePanel #dominoHand .domino-piece.hand-piece,
+#dominoTablePanel #dominoBoard .domino-piece{border-color:#7da7cd!important;box-shadow:inset 0 1px 2px #fff,0 3px 5px #0009,0 0 5px #4da8fa44!important}
+#dominoTablePanel #dominoSeats .domino-seat .dfc-standing-back{border-color:#73b4e0!important;background:linear-gradient(155deg,#edf8ff,#a7c4e7)!important}
+/* Consistencia en las ventanas reales existentes: opciones, perfil, billetera,
+   panel líder, promotores, invitaciones y chat. */
+.overlay:not(#dominoTablePanel)>.panel:not(.domino-game-panel){
+ border-radius:21px!important;border-color:#2d82d4!important;
+ background:linear-gradient(155deg,#0d2649,#041126 78%)!important;
+ color:#e8f8ff!important;box-shadow:0 20px 70px #000c!important;
+}
+.overlay:not(#dominoTablePanel)>.panel .section,
+.overlay:not(#dominoTablePanel)>.panel .card{border-color:#2a70b55b!important;background-color:#09204599!important}
+.overlay:not(#dominoTablePanel)>.panel h2{color:#d9f5ff!important}
+.overlay:not(#dominoTablePanel)>.panel input.field,
+.overlay:not(#dominoTablePanel)>.panel textarea.field{
+ color:#f0fbff!important;background:#04142ce8!important;border-color:#2d71b5!important;
+}
+.overlay:not(#dominoTablePanel)>.panel .action.blue,
+.overlay:not(#dominoTablePanel)>.panel .action.green{background:linear-gradient(110deg,#146ded,#05a9ba)!important;border:1px solid #35caff!important;color:white!important}
+@media(max-width:580px){
+ #appView .dfc10-roles{margin:1px 0 11px!important;gap:8px!important}
+ #appView #leaderBtn.dfc10-admin-original:not(.hidden){min-height:45px!important;font-size:12px!important}
+ #dominoLobbyPanel .domino-lobby-head{margin:0 40px 12px!important}
+ #dominoLobbyPanel #dominoLobbyModes{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:minmax(165px,auto)!important}
+ #dominoLobbyPanel .domino-choice-card .mode-desc{font-size:9px!important;white-space:normal!important}
+}
+@media(max-width:340px){#dominoLobbyPanel #dominoLobbyModes{grid-template-columns:1fr!important}}
+@media(prefers-reduced-motion:reduce){#appView.dfc09-view{scroll-behavior:auto!important}}
+</style>
+<script id="dfc-010-role-placement">
+(function(){
+ 'use strict';
+ function restoreAdminAction(){
+   const original=document.getElementById('leaderBtn');
+   const strip=document.getElementById('dfc10Roles');
+   if(!original||!strip)return;
+   // Same original DOM button: same existing onclick, password check and role logic.
+   if(original.parentElement!==strip)strip.appendChild(original);
+   original.classList.add('dfc10-admin-original');
+   original.textContent='⚙ Panel de administrador';
+   original.type='button';
+ }
+ restoreAdminAction();
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',restoreAdminAction,{once:true});
+})();
+</script>
