@@ -2407,7 +2407,7 @@ button[data-bot18-money="retirar"],
 <div class="hidden" id="dominoTableSub">Mesa</div>
 <div class="hidden" id="dominoSyncState">Conectando…</div>
 <div class="domino-stage" id="dominoStage">
-<!-- DFC 0.11: fondo limpio aprobado; las fichas y los controles siguen siendo reales. -->
+<!-- DFC 0.11B: escenario sin fichas ni perfiles dibujados; todos los elementos interactivos son DOM real. -->
 <div class="dfc11-scene" aria-hidden="true"></div>
 <div class="dfc11-table-light" aria-hidden="true"></div>
 <div class="dfc11-table-mark" aria-hidden="true"><span class="dfc11-mark-crown">♛</span><b>DOMINOS</b><small>FLASH COIN</small></div>
@@ -10860,6 +10860,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  };
 })();
 </script>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
@@ -11378,3 +11379,158 @@ html,body{max-width:100%!important}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',restoreAdminAction,{once:true});
 })();
 </script>
+
+<style id="dfc011b-clean-live-stage">
+/* DOMINO 0.11B - ESCENARIO VACIO: NO incluye figuras, saldos, botones ni fichas. */
+#dominoTablePanel,#dominoTablePanel .domino-game-panel{background:#031020!important}
+#dominoTablePanel #dominoStage{
+  position:relative!important;overflow:hidden!important;isolation:isolate!important;
+  background:#041329!important;background-image:none!important;
+  background-position:center!important;background-size:100% 100%!important;
+  container-type:inline-size!important;
+}
+#dominoTablePanel #dominoStage .dfc11-scene{
+  position:absolute!important;inset:0!important;pointer-events:none!important;
+  display:block!important;z-index:0!important;opacity:1!important;
+  background: #031021 url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNDM5IiBoZWlnaHQ9IjgxMCIgdmlld0JveD0iMCAwIDE0MzkgODEwIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj4KPGRlZnM+CiA8bGluZWFyR3JhZGllbnQgaWQ9InJvb20iIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDIwOTEzIi8+PHN0b3Agb2Zmc2V0PSIuMzgiIHN0b3AtY29sb3I9IiMwNjE3MmUiLz48c3RvcCBvZmZzZXQ9Ii42NyIgc3RvcC1jb2xvcj0iIzAxMDYwZCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzA0MTUyOSIvPjwvbGluZWFyR3JhZGllbnQ+CiA8cmFkaWFsR3JhZGllbnQgaWQ9ImxpZ2h0cyI+PHN0b3Agc3RvcC1jb2xvcj0iIzE2ODJkNiIgc3RvcC1vcGFjaXR5PSIuMjUiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDEyMjEiIHN0b3Atb3BhY2l0eT0iMCIvPjwvcmFkaWFsR3JhZGllbnQ+CiA8cmFkaWFsR3JhZGllbnQgaWQ9ImZlbHQiIGN4PSIuNSIgY3k9Ii40MiIgcj0iLjc1Ij48c3RvcCBzdG9wLWNvbG9yPSIjMTQ0YTk0Ii8+PHN0b3Agb2Zmc2V0PSIuMzgiIHN0b3AtY29sb3I9IiMwNzUxYTIiLz48c3RvcCBvZmZzZXQ9Ii43OCIgc3RvcC1jb2xvcj0iIzA2MjY1ZCIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzAyMTkzNiIvPjwvcmFkaWFsR3JhZGllbnQ+CiA8bGluZWFyR3JhZGllbnQgaWQ9InJpbSIgeDE9IjAiIHgyPSIwIiB5MT0iMCIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMwZTJiNDIiLz48c3RvcCBvZmZzZXQ9Ii40OCIgc3RvcC1jb2xvcj0iIzA3MTUyOCIvPjxzdG9wIG9mZnNldD0iLjc1IiBzdG9wLWNvbG9yPSIjMTYzYTU4Ii8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMDEwOTE0Ii8+PC9saW5lYXJHcmFkaWVudD4KIDxsaW5lYXJHcmFkaWVudCBpZD0idHJheSIgeDE9IjAiIHgyPSIwIiB5MT0iMCIgeTI9IjEiPjxzdG9wIHN0b3AtY29sb3I9IiMwMzEzMjgiLz48c3RvcCBvZmZzZXQ9Ii43IiBzdG9wLWNvbG9yPSIjMDYxNzJhIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMDIwOTEwIi8+PC9saW5lYXJHcmFkaWVudD4KIDxsaW5lYXJHcmFkaWVudCBpZD0ibmVvbiIgeDE9IjAiIHgyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMDk1YmI4Ii8+PHN0b3Agb2Zmc2V0PSIuMiIgc3RvcC1jb2xvcj0iIzI5ZGFmZiIvPjxzdG9wIG9mZnNldD0iLjUiIHN0b3AtY29sb3I9IiM1ZGVhZmEiLz48c3RvcCBvZmZzZXQ9Ii44MyIgc3RvcC1jb2xvcj0iIzA4OGVmYyIvPjxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzA3NDE4NSIvPjwvbGluZWFyR3JhZGllbnQ+CiA8cGF0dGVybiBpZD0iZmxvb3IiIHdpZHRoPSIxMTAiIGhlaWdodD0iNTUiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPjxwYXRoIGQ9Ik0wIDUzSDExMCBNMyAwVjU1IE01OCAwVjU1IiBzdHJva2U9IiMyNjc5YjAiIHN0cm9rZS1vcGFjaXR5PSIuMTYiIHN0cm9rZS13aWR0aD0iMS42IiBmaWxsPSJub25lIi8+PC9wYXR0ZXJuPgogPHBhdHRlcm4gaWQ9IndpbmRvd3MiIHdpZHRoPSI5MiIgaGVpZ2h0PSI4NSIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHJlY3QgeD0iMjgiIHk9IjE0IiB3aWR0aD0iNCIgaGVpZ2h0PSI5IiBmaWxsPSIjNDI4ZGQ0IiBvcGFjaXR5PSIuNDUiLz48cmVjdCB4PSI2MCIgeT0iMTkiIHdpZHRoPSI1IiBoZWlnaHQ9IjgiIGZpbGw9IiMxZTZiYmQiIG9wYWNpdHk9Ii40Ii8+PHJlY3QgeD0iMzQiIHk9IjUwIiB3aWR0aD0iNCIgaGVpZ2h0PSI2IiBmaWxsPSIjMzdiOGZmIiBvcGFjaXR5PSIuMyIvPjxyZWN0IHg9IjY0IiB5PSI1OCIgd2lkdGg9IjQiIGhlaWdodD0iNiIgZmlsbD0iIzhkYmZmYyIgb3BhY2l0eT0iLjI3Ii8+PC9wYXR0ZXJuPgogPGZpbHRlciBpZD0iZ2xvdyI+PGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iOCIvPjwvZmlsdGVyPjxmaWx0ZXIgaWQ9IndpZGUiPjxmZUdhdXNzaWFuQmx1ciBzdGREZXZpYXRpb249IjIyIi8+PC9maWx0ZXI+CjwvZGVmcz4KPHJlY3Qgd2lkdGg9IjE0MzkiIGhlaWdodD0iODEwIiBmaWxsPSJ1cmwoI3Jvb20pIi8+CjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxNDM5IiBoZWlnaHQ9IjIwMCIgZmlsbD0idXJsKCN3aW5kb3dzKSIgb3BhY2l0eT0iLjY1Ii8+CjxwYXRoIGQ9Ik0wIDM2MEw0MDAgMjMySDEwNTBMMTQzOSAzNTRWODEwSDBaIiBmaWxsPSIjMDQxMDFkIi8+PHBhdGggZD0iTTAgMzYwTDQwMCAyMzJIMTA1MEwxNDM5IDM1NFY4MTBIMFoiIGZpbGw9InVybCgjZmxvb3IpIi8+CjxlbGxpcHNlIGN4PSIyNzAiIGN5PSIxNDIiIHJ4PSIzOTAiIHJ5PSIyMzAiIGZpbGw9InVybCgjbGlnaHRzKSIvPjxlbGxpcHNlIGN4PSIxMjUwIiBjeT0iMTQwIiByeD0iMzUwIiByeT0iMjQ1IiBmaWxsPSJ1cmwoI2xpZ2h0cykiLz4KPHBhdGggZD0iTTAgMTMyUTMwMCA0NyA2MDAgODVUMTQzOSA5NSIgc3Ryb2tlPSIjMDA3N2M3IiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1vcGFjaXR5PSIuMzIiIGZpbGw9Im5vbmUiLz4KPHBhdGggZD0iTTIgNDcwTDE2MCA0MTUgTTE0MzkgNDcwTDEyNzUgNDEzIE0wIDcxMEwxNzQgNTgwIE0xNDM5IDcxMEwxMjcwIDU4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMGQ3YmQxIiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZS1vcGFjaXR5PSIuMjUiLz4KPCEtLSB0YWJsZXJvIHZhY8Otbywgc2luIGZpY2hhcyBuaSBjb250cm9sZXMgZGlidWphZG9zIC0tPgo8cmVjdCB4PSIxNjAiIHk9IjEzNyIgd2lkdGg9IjExMTkiIGhlaWdodD0iNDYwIiByeD0iMTg4IiBmaWxsPSIjMDYxMjFjIiBvcGFjaXR5PSIuODUiIGZpbHRlcj0idXJsKCN3aWRlKSIvPgo8cmVjdCB4PSIxNTciIHk9IjEzNiIgd2lkdGg9IjExMjUiIGhlaWdodD0iNDUxIiByeD0iMTkyIiBmaWxsPSJ1cmwoI3JpbSkiIHN0cm9rZT0iIzE2M2M2MCIgc3Ryb2tlLXdpZHRoPSIxMCIvPgo8cmVjdCB4PSIxNjkiIHk9IjE0NSIgd2lkdGg9IjExMDEiIGhlaWdodD0iNDIyIiByeD0iMTg2IiBmaWxsPSIjMDIwZjI0IiBzdHJva2U9IiMyZjRlNWQiIHN0cm9rZS13aWR0aD0iNyIvPgo8cmVjdCB4PSIxODQiIHk9IjE1NCIgd2lkdGg9IjEwNzAiIGhlaWdodD0iMzk5IiByeD0iMTc5IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMGFlZmYiIHN0cm9rZS13aWR0aD0iMTIiIG9wYWNpdHk9Ii45IiBmaWx0ZXI9InVybCgjZ2xvdykiLz4KPHJlY3QgeD0iMTg0IiB5PSIxNTQiIHdpZHRoPSIxMDcwIiBoZWlnaHQ9IjM5OSIgcng9IjE3OSIgZmlsbD0idXJsKCNmZWx0KSIgc3Ryb2tlPSJ1cmwoI25lb24pIiBzdHJva2Utd2lkdGg9IjQiLz4KPHJlY3QgeD0iMTkyIiB5PSIxNjIiIHdpZHRoPSIxMDU0IiBoZWlnaHQ9IjM4MyIgcng9IjE3NCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjNzllZGZmIiBzdHJva2Utb3BhY2l0eT0iLjM1IiBzdHJva2Utd2lkdGg9IjIiLz4KPHJlY3QgeD0iMTgyIiB5PSI1MzgiIHdpZHRoPSIxMDc0IiBoZWlnaHQ9IjM4IiByeD0iMTQiIGZpbGw9IiMwNTBmMjAiIG9wYWNpdHk9Ii43NyIvPgo8cGF0aCBkPSJNMjcwIDU2OFE3MjAgNjA0IDExNjkgNTY4IiBmaWxsPSJub25lIiBzdHJva2U9InVybCgjbmVvbikiIHN0cm9rZS13aWR0aD0iNSIgb3BhY2l0eT0iLjg1Ii8+CjwhLS0gYmFuZGVqYSB2YWPDrWEsIGZpY2hhcyByZWFsZXMgc2UgcGludGFuIGNvbiAjZG9taW5vSGFuZCAtLT4KPHJlY3QgeD0iMjk1IiB5PSI1OTYiIHdpZHRoPSI4NDUiIGhlaWdodD0iMTg0IiByeD0iNDEiIGZpbGw9IiMwMDEzMjIiIG9wYWNpdHk9Ii44NSIgZmlsdGVyPSJ1cmwoI3dpZGUpIi8+CjxyZWN0IHg9IjMwNCIgeT0iNjAwIiB3aWR0aD0iODMwIiBoZWlnaHQ9IjE3NyIgcng9IjMwIiBmaWxsPSJ1cmwoI3RyYXkpIiBzdHJva2U9IiMwMzcyZDQiIHN0cm9rZS13aWR0aD0iMyIvPgo8cmVjdCB4PSIzMTAiIHk9IjYwNiIgd2lkdGg9IjgxNyIgaGVpZ2h0PSIxNjUiIHJ4PSIyNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzFkNWZmIiBzdHJva2Utd2lkdGg9IjIiIG9wYWNpdHk9Ii41NSIvPgo8cGF0aCBkPSJNMzMwIDc2OEgxMTA1IiBzdHJva2U9IiMwMDhlZmYiIHN0cm9rZS13aWR0aD0iNCIgb3BhY2l0eT0iLjQiIGZpbHRlcj0idXJsKCNnbG93KSIvPgo8IS0tIG1hcmNhIGRlIG1lc2EsIGRlY29yYWNpw7NuIChubyByZXByZXNlbnRhIGZpY2hhcykgLS0+CjxnIGZpbGw9IiNiNGQ5ZmYiIG9wYWNpdHk9Ii4xMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsLCBzYW5zLXNlcmlmIj48dGV4dCB4PSI3MjAiIHk9IjQ1MCIgZm9udC1zaXplPSIzNSIgZm9udC13ZWlnaHQ9IjkwMCIgbGV0dGVyLXNwYWNpbmc9IjQiPkRPTUlOw5M8L3RleHQ+PHRleHQgeD0iNzIwIiB5PSI0NzgiIGZvbnQtc2l6ZT0iMjIiIGZvbnQtd2VpZ2h0PSJib2xkIiBsZXR0ZXItc3BhY2luZz0iNiI+RkxBU0ggQ09JTjwvdGV4dD48L2c+Cjwvc3ZnPg==") center center / 100% 100% no-repeat!important;
+  filter:none!important;transform:none!important;
+}
+/* Se eliminan las máscaras que ocultaban fichas pintadas en la foto anterior. */
+#dominoTablePanel #dominoStage .dfc-photo-center-cover,
+#dominoTablePanel #dominoStage .dfc-photo-top-controls-cover,
+#dominoTablePanel #dominoStage .domino-photo-veil,
+#dominoTablePanel #dominoStage .dfc11-table-light,
+#dominoTablePanel #dominoStage .dfc11-table-mark,
+#dominoTablePanel #dominoStage .domino-table-brand{display:none!important}
+#dominoTablePanel #dominoStage .dfc11-app-logo{
+ display:flex!important;position:absolute!important;left:2.5%!important;top:2%!important;
+ z-index:9!important;pointer-events:none!important;opacity:.94!important;
+}
+/* Controles interactivos auténticos; sin moldura dorada. */
+#dominoTablePanel .domino-live-top-controls{display:flex!important;position:absolute!important;top:1.3%!important;right:1.5%!important;left:auto!important;z-index:95!important;transform:none!important;gap:clamp(3px,.55vw,9px)!important;align-items:center!important;padding:0!important;border:0!important;outline:0!important;box-shadow:none!important;background:transparent!important}
+#dominoTablePanel .domino-compact-balance{border:1px solid #2bc8f5!important;border-radius:24px!important;background:#031531e8!important;color:#f9f5df!important;box-shadow:0 0 10px #22b5e044!important}
+#dominoTablePanel .domino-live-icon,#dominoTablePanel #dominoSurrenderBtn{display:grid!important;place-items:center!important;border-radius:50%!important;background:#051a3e!important;border:1px solid #3eaff1!important;color:#fff!important;box-shadow:0 0 8px #00abfa33!important;pointer-events:auto!important}
+/* Todas las tarjetas son el HTML ligado al estado de la partida, no jugadores de ejemplo. */
+#dominoTablePanel #dominoSeats{position:absolute!important;inset:0!important;pointer-events:none!important;z-index:40!important}
+#dominoTablePanel #dominoSeats .domino-seat{
+ position:absolute!important;box-sizing:border-box!important;
+ display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;
+ grid-template-rows:auto auto auto!important;align-items:center!important;justify-items:start!important;
+ width:clamp(135px,16%,220px)!important;max-width:none!important;height:auto!important;max-height:none!important;
+ min-width:0!important;min-height:0!important;gap:1px 7px!important;padding:3px 6px!important;
+ background:transparent!important;border:0!important;outline:0!important;box-shadow:none!important;
+ overflow:visible!important;margin:0!important;z-index:40!important;pointer-events:none!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s3{
+ top:6%!important;left:50%!important;right:auto!important;bottom:auto!important;transform:translateX(-50%)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1{
+ top:58.4%!important;left:50%!important;right:auto!important;bottom:auto!important;transform:translateX(-50%)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s4{
+ top:32.5%!important;left:3.3%!important;right:auto!important;bottom:auto!important;transform:none!important;
+ width:clamp(104px,13%,155px)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s2{
+ top:32.5%!important;right:3.3%!important;left:auto!important;bottom:auto!important;transform:none!important;
+ width:clamp(104px,13%,155px)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{
+ position:relative!important;grid-column:1!important;grid-row:1/4!important;
+ width:clamp(36px,5.8cqw,82px)!important;height:clamp(36px,5.8cqw,82px)!important;
+ min-width:0!important;margin:0!important;justify-self:start!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-avatar{width:100%!important;height:100%!important;border:2px solid #2ad1ff!important;border-radius:50%!important;box-shadow:0 0 11px #00adfa!important;overflow:hidden!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading,
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-name,
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal{
+ position:relative!important;min-width:0!important;max-width:100%!important;
+ background:#020e28dc!important;border:0!important;border-radius:12px!important;
+ padding:1px 5px!important;line-height:1.18!important;white-space:nowrap!important;
+ overflow:hidden!important;text-overflow:ellipsis!important;color:#f1fbff!important;
+ font-size:clamp(9px,1.05cqw,15px)!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading{grid-column:2!important;grid-row:1!important;background:transparent!important;padding:0!important;overflow:visible!important}
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal{grid-column:2!important;grid-row:2!important;color:#f8d88c!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-info{grid-column:2!important;grid-row:3!important;max-width:100%!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+#dominoTablePanel #dominoSeats .dfc011-count{right:-6px!important;top:-6px!important;background:#0876ca!important;color:white!important;z-index:7!important}
+#dominoTablePanel #dominoSeats .dfc011-pass{grid-column:1/3!important;position:relative!important;color:#ffe19a!important;text-align:center!important;font-size:clamp(8px,.75cqw,12px)!important}
+/* Mostradores reales de fichas que quedan (el conteo se obtiene del servidor). */
+#dominoTablePanel #dominoStage .dfc-real-rack{z-index:32!important;pointer-events:none!important;background:transparent!important;border:0!important}
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="3"]{
+ left:41%!important;right:auto!important;top:18.2%!important;width:18%!important;height:5.4%!important;
+ transform:none!important;flex-direction:row!important;align-items:flex-end!important;
+}
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="4"]{
+ left:14.4%!important;right:auto!important;top:33%!important;width:5%!important;height:18%!important;
+ transform:rotate(12deg)!important;flex-direction:column-reverse!important;
+}
+#dominoTablePanel #dominoStage .dfc-real-rack[data-rack="2"]{
+ right:14.4%!important;left:auto!important;top:33%!important;width:5%!important;height:18%!important;
+ transform:rotate(-12deg)!important;flex-direction:column!important;
+}
+#dominoTablePanel #dominoStage .dfc-real-rack .dfc-standing-back{background:linear-gradient(115deg,#4c566b,#071324 22%,#050d19 72%,#1e4060)!important;border:1px solid #4da1c8!important;border-radius:3px!important;box-shadow:0 1px 4px #000!important}
+/* La bandeja inferior muestra únicamente las siete fichas reales recibidas. */
+#dominoTablePanel #dominoStage #dominoHand{
+ position:absolute!important;left:50%!important;top:75%!important;bottom:auto!important;
+ transform:translateX(-50%)!important;width:60%!important;max-width:830px!important;
+ height:18.5%!important;max-height:none!important;min-height:0!important;
+ display:flex!important;flex-wrap:nowrap!important;justify-content:center!important;align-items:center!important;
+ gap:clamp(3px,.6cqw,10px)!important;padding:0!important;margin:0!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;
+ overflow:visible!important;z-index:65!important;pointer-events:auto!important;
+}
+#dominoTablePanel #dominoStage #dominoHand .domino-piece.hand-piece{
+ box-sizing:border-box!important;position:relative!important;
+ flex:0 1 auto!important;min-width:0!important;
+ width:clamp(25px,6cqw,86px)!important;
+ max-width:calc((100% - 6 * clamp(3px,.6cqw,10px)) / 7)!important;
+ height:clamp(42px,10.5cqw,147px)!important;max-height:100%!important;
+ aspect-ratio: .56!important;overflow:visible!important;
+ opacity:1!important;border-radius:6px!important;background:#f8f5ec!important;
+ border:1px solid #aec3d9!important;box-shadow:0 4px 8px #0009!important;
+ pointer-events:auto!important;
+}
+#dominoTablePanel #dominoBoard{z-index:34!important;pointer-events:none!important}
+#dominoTablePanel #dominoBoard .domino-piece{pointer-events:auto!important}
+/* Los avisos de juego siguen vivos y aparecen sólo si la lógica los activa. */
+#dominoTablePanel #dominoCenterStatus{z-index:50!important}
+#dominoTablePanel #dfc011-last{z-index:180!important}
+@media(max-height:500px) and (orientation:landscape){
+ #dominoTablePanel #dominoSeats .domino-seat.s3{top:4.2%!important}
+ #dominoTablePanel #dominoSeats .domino-seat.s1{top:57%!important}
+ #dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{width:clamp(30px,5.8cqw,54px)!important;height:clamp(30px,5.8cqw,54px)!important}
+ #dominoTablePanel #dominoStage #dominoHand{top:74.5%!important;height:19%!important}
+ #dominoTablePanel .domino-live-top-controls{top:.9%!important}
+}
+
+/* Restaurar el flujo real de tarjeta y evitar que los estilos heredados 
+   de cada asiento descuadren nombres, saldos y avatares. */
+#dominoTablePanel #dominoSeats .domino-seat.s1,
+#dominoTablePanel #dominoSeats .domino-seat.s2,
+#dominoTablePanel #dominoSeats .domino-seat.s3,
+#dominoTablePanel #dominoSeats .domino-seat.s4{
+ display:grid!important;
+ grid-template-columns:clamp(34px,5.8cqw,82px) minmax(0,1fr)!important;
+ grid-template-rows:auto auto auto!important;
+ justify-items:stretch!important;align-items:center!important;
+ height:clamp(55px,6.8cqw,94px)!important;
+ min-height:0!important;max-height:unset!important;
+ padding:3px 5px!important;gap:1px 6px!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.s1,
+#dominoTablePanel #dominoSeats .domino-seat.s3{width:clamp(175px,17%,235px)!important}
+#dominoTablePanel #dominoSeats .domino-seat.s2,
+#dominoTablePanel #dominoSeats .domino-seat.s4{width:clamp(125px,14%,194px)!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-avatar-wrap{grid-column:1!important;grid-row:1/4!important;align-self:center!important;justify-self:center!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading{grid-column:2!important;grid-row:1!important;align-self:end!important;min-width:0!important;width:100%!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-name{display:block!important;width:100%!important;min-width:0!important;text-align:left!important;line-height:1.2!important}
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal{grid-column:2!important;grid-row:2!important;min-width:0!important;width:100%!important;align-self:start!important;line-height:1.2!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-info{grid-column:2!important;grid-row:3!important;width:100%!important;min-width:0!important}
+@media(max-height:500px) and (orientation:landscape){
+ #dominoTablePanel #dominoSeats .domino-seat.s1,
+ #dominoTablePanel #dominoSeats .domino-seat.s2,
+ #dominoTablePanel #dominoSeats .domino-seat.s3,
+ #dominoTablePanel #dominoSeats .domino-seat.s4{height:clamp(48px,6.5cqw,68px)!important;grid-template-columns:clamp(32px,5.5cqw,58px) minmax(0,1fr)!important;}
+}
+</style>
