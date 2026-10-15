@@ -11620,3 +11620,61 @@ html,body{max-width:100%!important}
  #dominoTablePanel #dominoSeats .domino-seat.s4{height:clamp(48px,6.5cqw,68px)!important;grid-template-columns:clamp(32px,5.5cqw,58px) minmax(0,1fr)!important;}
 }
 </style>
+
+<style id="dfc011f-terraza-completa-fix">
+/* 0.11F - Corrección visual del fondo de terraza: completo, sin mosaico ni cortes feos */
+#dominoLobbyPanel{
+  background:#030a16 url("DOMINO_FLASH_COIN_PAISAJE_TERRAZA.webp") center center / cover no-repeat !important;
+}
+#dominoLobbyPanel>.domino-lobby-shell{
+  position:relative!important;
+  background:
+    linear-gradient(180deg,rgba(2,10,22,.34),rgba(2,10,22,.58)),
+    url("DOMINO_FLASH_COIN_PAISAJE_TERRAZA.webp") center center / cover no-repeat !important;
+}
+#dominoLobbyPanel>.domino-lobby-shell::after{
+  content:""!important;
+  position:absolute!important; inset:0!important; pointer-events:none!important;
+  background:radial-gradient(circle at 50% 25%, rgba(36,171,233,.08), transparent 40%), linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.18));
+}
+#dominoLobbyPanel .domino-lobby-content,
+#dominoLobbyPanel #dominoLobbyModes{
+  position:relative!important; z-index:1!important;
+}
+
+/* Las tarjetas de mesa llevan la misma terraza dentro del cuadrito */
+#dominoLobbyPanel #dominoLobbyModes .domino-choice-card{
+  position:relative!important;
+  overflow:hidden!important;
+  background:linear-gradient(180deg,rgba(3,13,28,.28),rgba(3,13,28,.72)), url("DOMINO_FLASH_COIN_PAISAJE_TERRAZA.webp") center center / cover no-repeat !important;
+}
+#dominoLobbyPanel #dominoLobbyModes .domino-choice-card::before{
+  content:""!important;
+  position:absolute!important; inset:0!important; pointer-events:none!important;
+  background:linear-gradient(180deg,rgba(7,22,48,.12) 0%,rgba(7,22,48,.35) 44%,rgba(2,8,18,.78) 100%)!important;
+  z-index:0!important;
+}
+#dominoLobbyPanel #dominoLobbyModes .domino-choice-card > *{position:relative!important; z-index:1!important;}
+#dominoLobbyPanel .domino-premium-card-head,
+#dominoLobbyPanel .domino-premium-card-head h3,
+#dominoLobbyPanel .domino-lobby-wallet{
+  background-color:rgba(4,18,39,.74)!important;
+  backdrop-filter:blur(2px)!important;
+}
+
+/* Dentro de la partida: paisaje completo detrás de la mesa real, sin tocar fichas ni perfiles */
+#dominoTablePanel,
+#dominoTablePanel .domino-game-panel{
+  background:#030a16 url("DOMINO_FLASH_COIN_PAISAJE_TERRAZA.webp") center center / cover no-repeat !important;
+}
+#dominoTablePanel #dominoStage{
+  background:transparent!important;
+}
+#dominoTablePanel #dominoStage .dfc11-scene{
+  background:
+    linear-gradient(180deg,rgba(2,10,22,.18),rgba(2,10,22,.12) 18%,rgba(2,10,22,0) 32%,rgba(2,10,22,.06) 60%,rgba(2,10,22,.16) 100%),
+    url("DOMINO_FLASH_COIN_PAISAJE_TERRAZA.webp") center center / cover no-repeat !important;
+  opacity:1!important;
+  filter:none!important;
+}
+</style>
