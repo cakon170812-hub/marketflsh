@@ -11056,6 +11056,13 @@ function finish(id){if(id===run){current?.remove();current=null}}
 async function normal(st,tid){
  let r=st.last_result,m=st.last_move,uid=r.winner_user_id,n=fromMove(m);if(!n)return;
  let {el,id}=start();
+ // El título procede del resultado CONFIRMADO por servidor; no recalcula premios.
+ const reason=String(r.winner_reason||'');
+ const victoryLabel=/CAPIC[UÚ]A/i.test(reason)?'¡CAPICÚA!':'¡DOMINÓ!';
+ const sign=document.createElement('div');
+ sign.className='dfc011n-result-label';
+ sign.textContent=victoryLabel;
+ el.appendChild(sign);
  // Iluminar la ficha REAL colocada en el tablero, conservando su aspecto, posición y tamaño.
  let board=stage()?.querySelector('#dominoBoard');
  // El extremo de la jugada determina la ficha real. El último elemento del DOM
@@ -11113,6 +11120,17 @@ window.dfc011kTranque=function(report){if(!report?.hand_id||!stage())return;let 
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
+<style id="dfc011n-result-style">
+/* Visual 0.11N: título por motivo confirmado por Supabase. */
+#dfc011k-celebration .dfc011n-result-label{
+ position:absolute;top:8%;left:50%;transform:translateX(-50%);
+ z-index:9999;pointer-events:none;text-align:center;white-space:nowrap;
+ font-weight:950;font-size:clamp(20px,4vw,40px);letter-spacing:.08em;
+ color:#ffe599;text-shadow:0 0 9px #f5bb39,0 0 26px #c17d1d,0 2px 5px #10111b;
+ animation:dfc011n-glow 1.5s ease-in-out infinite alternate;
+}
+@keyframes dfc011n-glow{from{filter:brightness(1)}to{filter:brightness(1.45)}}
+</style>
 </html>
 <!-- V0.9: comprobantes de solicitudes, IDs de cartera y moneda Flash Coin opción 7 integrada. -->
 <!-- HTML ACTUALIZADO: conserva la base funcional e integra recuperación de contraseña, reparación de perfil al entrar, contador total apostado y animación de saldo recibido. -->
@@ -11820,3 +11838,5 @@ html,body{max-width:100%!important}
 </style>
 
 <!-- DOMINÓ FLASH COIN 0.11M: ficha ganadora real sincronizada por última jugada confirmada. -->
+
+<!-- DOMINÓ FLASH COIN HTML 0.11N: anuncio visual según motivo de victoria confirmado. -->
