@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.11R" lang="es">
+<html data-app-build="0.11S" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -5863,7 +5863,12 @@ function renderDominoState(st){
   if($('dominoGlobalBalance'))$('dominoGlobalBalance').textContent=$('balanceTop')?.textContent||'0.000 FC';
   dominoRenderSeatsStable(st);
   if(window.dfc11SeatIndicators)window.dfc11SeatIndicators(st);
-  $('dominoBoard').innerHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
+  // 0.11S: preservar visualmente la cadena durante la celebración del cierre.
+  // La lógica y estado del servidor no se suspenden.
+  if(window.dfc011sBeforeBoardRender)window.dfc011sBeforeBoardRender(st);
+  if(!window.dfc011sShouldHoldBoard?.(st)){
+    $('dominoBoard').innerHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
+  }
   if(window.dfc011rCaptureBoard)window.dfc011rCaptureBoard(st);
   dominoBindBoardEndInteractions();
   if(effects.animate)dominoCameraFocusMove();
@@ -11177,13 +11182,67 @@ window.dfc011kTranque=function(report){if(!report?.hand_id||!stage())return;let 
  };
  window.dfc011rGetBoard=function(st){
   const mv=st?.last_move;
-  if(!snap||!mv?.id||String(mv.id)!==snap.moveId||Date.now()-snap.capturedAt>12000)return null;
+  if(!snap||Date.now()-snap.capturedAt>12000)return null;
+  if(mv?.id && String(mv.id)!==snap.moveId && !st?.last_result)return null;
   if(st?.last_result?.id && snap.handId && String(st.last_result.id)!==snap.handId)return null;
   return snap;
  };
 })();
 </script>
 <!-- DOMINÓ FLASH COIN 0.11R: retención sincronizada de cadena real y ficha ganadora. -->
+
+<script id="dfc011s-preserve-victory-board">
+(function(){
+ const HOLD=7000;
+ let held=null;
+ const tiles=el=>[...(el?.querySelectorAll('.domino-piece.board-piece')||[])];
+ function isWin(st){
+  const r=st?.last_result;
+  if(!r?.id || String(r.winner_reason||'').toUpperCase().includes('TRANQUE'))return false;
+  const m=st?.last_move;
+  if(!m || String(m.user_id)!==String(r.winner_user_id) || !String(m.action||'').toUpperCase().includes('PLAY'))return false;
+  const t=Date.parse(r.settled_at||'');
+  return Number.isFinite(t) && Date.now()-t>=0 && Date.now()-t<25000;
+ }
+ window.dfc011sBeforeBoardRender=function(st){
+  const board=document.getElementById('dominoBoard');
+  if(!board)return;
+  const now=Date.now();
+  if(held && now>=held.until)held=null;
+  if(!isWin(st))return;
+  const key=String(st.last_result.id);
+  if(held?.key===key)return;
+  const visible=tiles(board);
+  const server=Array.isArray(st?.hand?.board)?st.hand.board:[];
+  // Priorizar cadena completa enviada por servidor si aún está disponible.
+  if(server.length>visible.length){
+   const old=board.innerHTML;
+   try{board.innerHTML=dominoRows(server,st.last_move,false)}catch(_){board.innerHTML=old}
+  }
+  if(tiles(board).length){
+   const m=st.last_move;
+   const side=String(m.side||'').toLowerCase();
+   const selected=tiles(board)[side==='left'?0:tiles(board).length-1];
+   const n=[Number(m.a??m.tile_a??m.left),Number(m.b??m.tile_b??m.right)];
+   // Destacar solamente si los números se pueden verificar en el tablero renderizado.
+   if(n.every(Number.isInteger) && selected){
+    const bs=server[side==='left'?0:server.length-1];
+    const vals=bs && [Number(bs.a??bs.tile_a??bs.left),Number(bs.b??bs.tile_b??bs.right)];
+    if(vals && vals.every(Number.isInteger) && vals.slice().sort().join(',')===n.slice().sort().join(','))selected.classList.add('dfc011l-last-lit');
+   }
+   held={key,until:now+HOLD,handId:String(st?.hand?.id||''),html:board.innerHTML};
+  }
+ };
+ window.dfc011sShouldHoldBoard=function(st){
+  if(!held)return false;
+  if(Date.now()>=held.until){held=null;return false;}
+  if(!isWin(st) || String(st.last_result.id)!==held.key)return false;
+  const board=document.getElementById('dominoBoard');
+  if(board && !tiles(board).length && held.html)board.innerHTML=held.html;
+  return true;
+ };
+})();
+</script>
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
@@ -11911,3 +11970,5 @@ html,body{max-width:100%!important}
 <!-- 0.11P: victoria al confirmar última jugada; reorganización local libre sin selección fuera de turno. No cambia RPC/SQL/premios. -->
 
 <!-- 0.11Q: conserva visualmente la cadena real y la última ficha durante la celebración, sin cambiar las operaciones del servidor. -->
+
+<!-- 0.11S: retención de cadena al recibir cierre, sin alterar SQL ni premios. -->
