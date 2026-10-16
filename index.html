@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.11S" lang="es">
+<html data-app-build="0.11T" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -5865,10 +5865,14 @@ function renderDominoState(st){
   if(window.dfc11SeatIndicators)window.dfc11SeatIndicators(st);
   // 0.11S: preservar visualmente la cadena durante la celebración del cierre.
   // La lógica y estado del servidor no se suspenden.
-  if(window.dfc011sBeforeBoardRender)window.dfc011sBeforeBoardRender(st);
-  if(!window.dfc011sShouldHoldBoard?.(st)){
+  // 0.11T: captura la cadena ANTES de que el render de Supabase la borre.
+  if(window.dfc011tBeforeRender)window.dfc011tBeforeRender(st);
+  if(window.dfc011tHeldHtml?.(st)){
+    $('dominoBoard').innerHTML=window.dfc011tHeldHtml(st);
+  }else if(!window.dfc011sShouldHoldBoard?.(st)){
     $('dominoBoard').innerHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
   }
+  if(window.dfc011tAfterRender)window.dfc011tAfterRender(st);
   if(window.dfc011rCaptureBoard)window.dfc011rCaptureBoard(st);
   dominoBindBoardEndInteractions();
   if(effects.animate)dominoCameraFocusMove();
@@ -11243,6 +11247,85 @@ window.dfc011kTranque=function(report){if(!report?.hand_id||!stage())return;let 
  };
 })();
 </script>
+<script id="dfc011t-preserve-winning-chain">
+/* Retención visual independiente de la liquidación y del cambio de mano.
+   Guarda los datos reales ANTES de vaciar el DOM; completa la ficha final únicamente
+   si su jugada está confirmada y hay información suficiente para reconstruirla. */
+(function(){
+ 'use strict';
+ const HOLD_MS=7000;
+ let active=null, remembered=null;
+ function pieces(a){return Array.isArray(a)?a:[]}
+ function vals(tile){
+  if(!tile)return null;
+  const a=Number(tile.a??tile.tile_a??tile[0]);
+  const b=Number(tile.b??tile.tile_b??tile[1]);
+  return Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&a<=6&&b>=0&&b<=6?[a,b]:null;
+ }
+ function same(a,b){return a&&b&&a.slice().sort().join(':')===b.slice().sort().join(':')}
+ function validClose(st){
+  const r=st?.last_result,m=st?.last_move;
+  if(!r||!m||String(r.winner_reason||'').includes('TRANQUE'))return false;
+  if(!/PLAY/i.test(String(m.action||''))||String(m.user_id||'')!==String(r.winner_user_id||''))return false;
+  const t=Date.parse(r.settled_at||'');
+  return Number.isFinite(t)&&Date.now()-t>=-2500&&Date.now()-t<25000;
+ }
+ function makeChain(st){
+  const r=st.last_result,m=st.last_move;
+  const last=vals(m), side=String(m.side||'right').toLowerCase();
+  const server=pieces(st.hand?.board);
+  // Snapshot anterior tomado cuando existía la cadena, y de la misma mano.
+  const pre=remembered && Date.now()-remembered.ts<60000 &&
+    (!remembered.handId||String(remembered.handId)===String(r.id)) ? remembered.board : [];
+  let chain=server.length>=pre.length?server.slice():pre.slice();
+  if(!chain.length||!last)return null;
+  let at=side==='left'?0:chain.length-1;
+  // Si la última ficha está presente, no añadir otra ni modificar su orientación.
+  if(!same(vals(chain[at]),last)){
+    // Sólo completar una jugada final confirmada; nunca inventar fichas previas.
+    const tile={a:last[0],b:last[1]};
+    if(side==='left')chain.unshift(tile);
+    else chain.push(tile);
+    at=side==='left'?0:chain.length-1;
+  }
+  // El mismo renderer del tablero: fichas reales pegadas en su cadena.
+  let html=dominoRows(chain,m,false);
+  const host=document.createElement('div');host.innerHTML=html;
+  const tiles=host.querySelectorAll('.domino-piece.board-piece');
+  if(tiles[at])tiles[at].classList.add('dfc011l-last-lit','dfc011t-final-tile');
+  return host.innerHTML;
+ }
+ window.dfc011tBeforeRender=function(st){
+  const now=Date.now();
+  if(active&&now>=active.until)active=null;
+  if(active)return;
+  if(validClose(st)){
+   const html=makeChain(st);
+   if(html)active={key:String(st.last_result.id),until:now+HOLD_MS,html};
+  }
+ };
+ window.dfc011tHeldHtml=function(st){
+  if(!active||Date.now()>=active.until)return '';
+  // Mantener incluso si Supabase ya comunica el nuevo estado/mano.
+  return active.html;
+ };
+ window.dfc011tAfterRender=function(st){
+  if(active)return;
+  const arr=pieces(st?.hand?.board);
+  if(!arr.length)return;
+  const id=String(st?.hand?.id||'');
+  const last=remembered;
+  // No reemplazar una cadena larga por una vacía ni olvidar el último turno.
+  if(!last||last.handId!==id||arr.length>=last.board.length){
+   remembered={board:arr.map(t=>({a:Number(t.a??t[0]),b:Number(t.b??t[1])})),handId:id,ts:Date.now()};
+  }
+ };
+})();
+</script>
+<style id="dfc011t-winning-highlight">
+#dominoBoard .dfc011t-final-tile{filter:drop-shadow(0 0 9px #ffe68c) drop-shadow(0 0 15px #ffc535)!important;z-index:8!important;position:relative;animation:dfc011tGlow 1s ease-in-out infinite alternate!important}
+@keyframes dfc011tGlow{from{filter:drop-shadow(0 0 5px #ffc443)}to{filter:drop-shadow(0 0 18px #ffdf6d) drop-shadow(0 0 23px #ffad20)}}
+</style>
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
