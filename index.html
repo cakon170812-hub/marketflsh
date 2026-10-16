@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.11P" lang="es">
+<html data-app-build="0.11Q" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -11087,21 +11087,46 @@ async function normal(st,tid){
   if(!actual)await wait(110);
  }
  if(id!==run)return;
- // El destello inicia en la propia ficha de la cadena, no en el centro de la mesa.
- // Si el servidor ya limpió la cadena, omitir una ficha inventada y evitar duplicarla.
+ // 0.11Q: conservar la cadena REAL ya dibujada, incluso si el servidor
+ // la limpia para repartir la mano siguiente. No se crean fichas nuevas.
+ const sourceBoard=stage()?.querySelector('#dominoBoard');
+ let frozen=null, hiddenBoard=null;
+ if(actual&&sourceBoard){
+  const boardRect=sourceBoard.getBoundingClientRect();
+  if(boardRect.width>0&&boardRect.height>0){
+   frozen=sourceBoard.cloneNode(true);
+   frozen.removeAttribute('id');
+   frozen.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+   frozen.style.cssText += ';position:fixed!important;left:'+boardRect.left+'px!important;top:'+boardRect.top+'px!important;width:'+boardRect.width+'px!important;height:'+boardRect.height+'px!important;max-width:none!important;max-height:none!important;transform:none!important;margin:0!important;pointer-events:none!important;z-index:2147482000!important;';
+   frozen.setAttribute('aria-hidden','true');
+   const originalTiles=[...sourceBoard.querySelectorAll('.domino-piece.board-piece')];
+   const cloneTiles=[...frozen.querySelectorAll('.domino-piece.board-piece')];
+   const winningIndex=originalTiles.indexOf(actual);
+   if(winningIndex>=0&&cloneTiles[winningIndex])cloneTiles[winningIndex].classList.add('dfc011l-last-lit');
+   document.body.appendChild(frozen);
+   hiddenBoard=sourceBoard;
+   sourceBoard.style.setProperty('visibility','hidden','important');
+  }
+ }
+ const cleanup=()=>{frozen?.remove();if(hiddenBoard)hiddenBoard.style.removeProperty('visibility');};
+ // No hay ficha sustituta: si la cadena ya fue retirada del DOM, no
+ // fingimos haber preservado una jugada que no pudimos observar.
  const anchor=actual||stage()?.querySelector('#dominoBoard .domino-piece.board-piece:last-child');
- if(anchor&&actual)actual.classList.add('dfc011l-last-lit');
+ if(actual)actual.classList.add('dfc011l-last-lit');
  audio();
  let rect=anchor?.getBoundingClientRect()||stage().getBoundingClientRect();
  let x=rect.left+rect.width/2,y=rect.top+rect.height/2;
  const coins=burst(x,y,stage());
- // Retener solo el efecto visual durante siete segundos; no bloquear el estado del servidor.
- await wait(7000);
- if(id!==run){actual?.classList.remove('dfc011l-last-lit');return;}
- await collect(coins,uid,id);
- actual?.classList.remove('dfc011l-last-lit');
- if(id!==run)return;
- await profile(uid,st,id,null);finish(id);
+ try{
+  await wait(7000);
+  if(id!==run)return;
+  await collect(coins,uid,id);
+  if(id!==run)return;
+  await profile(uid,st,id,null);
+ }finally{
+  cleanup();actual?.classList.remove('dfc011l-last-lit');
+  if(id===run)finish(id);
+ }
 }
 window.dfc011dCelebrate=function(st){let r=st?.last_result,m=st?.last_move;
  if(!r?.id||seen.has('normal:'+r.id)||String(r.winner_reason||'').toUpperCase().includes('TRANQUE'))return;
@@ -11853,3 +11878,5 @@ html,body{max-width:100%!important}
 <!-- DOMINÓ FLASH COIN HTML 0.11P: ficha de cierre en cadena y sonido PU-F sin duplicar ficha. -->
 
 <!-- 0.11P: victoria al confirmar última jugada; reorganización local libre sin selección fuera de turno. No cambia RPC/SQL/premios. -->
+
+<!-- 0.11Q: conserva visualmente la cadena real y la última ficha durante la celebración, sin cambiar las operaciones del servidor. -->
