@@ -10999,6 +10999,24 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #dominoStage .dfc011k-avatar img{width:100%;height:100%;object-fit:cover}
 #dominoStage .dfc011k-profile small{font-size:13px}
 </style>
+<style id="dfc011l-same-real-domino-tile">
+/* 0.11L: la última ficha permanece donde se jugó; sin zoom ni clon que la tape. */
+#dominoTablePanel #dominoBoard .domino-piece.board-piece.dfc011l-last-lit{
+  filter:brightness(1.16) drop-shadow(0 0 10px #ffe165) drop-shadow(0 0 17px #ffc52e)!important;
+  box-shadow:0 0 13px 3px rgba(255,221,73,.8),0 0 25px rgba(250,200,25,.62)!important;
+  animation:dfc011l-glow-pulse 1.15s ease-in-out infinite alternate!important;
+  position:relative;z-index:8;
+}
+@keyframes dfc011l-glow-pulse{from{filter:brightness(1.08) drop-shadow(0 0 7px #ffd84d)}to{filter:brightness(1.28) drop-shadow(0 0 17px #ffe767)}}
+#dominoStage .dfc011l-fallback-tile{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);pointer-events:none;filter:drop-shadow(0 0 12px #ffda42)}
+/* Las fichas del tranque usan la misma construcción dominoPiece/dominoFace que la mesa. */
+#dominoStage .dfc011k-hand .domino-piece.board-piece.dfc011l-reveal-tile{
+  display:inline-flex!important;position:relative!important;transform:none!important;
+  width:var(--domino-board-tile-w,48px)!important;height:var(--domino-board-tile-h,28px)!important;
+  flex:none!important;margin:1px!important;max-width:none!important;
+}
+#dominoStage .dfc011k-hand{align-items:center;overflow:visible;gap:2px}
+</style>
 <script id="dfc011d-immediate-victory">
 (()=>{'use strict';
 const seen=new Set();let current=null,run=0;
@@ -11016,7 +11034,7 @@ function namedUser(uid,st){let u=(st?.seats||[]).find(x=>String(x.user_id)===Str
  return {name:String(u.full_name||u.name||el?.querySelector('.domino-seat-name')?.textContent||'Jugador'),photo:String(u.avatar_url||u.photo_url||'')};}
 function stage(){return $('dominoStage')}
 function start(){if(current)current.remove();document.querySelectorAll('.dfc011k-coin').forEach(x=>x.remove());run++;let z=document.createElement('div');z.id='dfc011k-celebration';z.setAttribute('aria-live','polite');stage().appendChild(z);current=z;return {el:z,id:run};}
-function tileMarkup(tile){let x=numTile(tile);if(!x)return '';return `<span class="dfc011k-real-tile"><span>${svgPip[x[0]]}</span><span>${svgPip[x[1]]}</span></span>`}
+function tileMarkup(tile){let x=numTile(tile);if(!x)return '';return typeof dominoPiece==='function'?dominoPiece({a:x[0],b:x[1]},0,false,true,'dfc011l-reveal-tile'):`<span class="dfc011k-real-tile"><span>${svgPip[x[0]]}</span><span>${svgPip[x[1]]}</span></span>`}
 function burst(x,y,container,count=36){let coins=[];let bounds=container.getBoundingClientRect();for(let i=0;i<count;i++){
   const coin=document.createElement('span');coin.className='dfc011k-coin';coin.textContent='ϟ';document.body.appendChild(coin);
   const a=Math.random()*Math.PI*2,r=(.06+Math.random()*.21)*Math.min(bounds.width,bounds.height);
@@ -11035,11 +11053,28 @@ async function collect(coins,uid,id){let r=target(uid)?.getBoundingClientRect(),
 async function profile(uid,st,id,pts){if(id!==run||!current)return;const u=namedUser(uid,st);let photo=/^https:\/\//i.test(u.photo)?`<img src="${esc(u.photo)}" alt="">`:'<span>★</span>';
  let banner=document.createElement('div');banner.className='dfc011k-profile';banner.innerHTML=`<div class="dfc011k-avatar">${photo}</div><strong>${esc(u.name)}</strong>${pts==null?'':`<small>${pts} puntos</small>`}`;current.appendChild(banner);await wait(1800);banner.remove()}
 function finish(id){if(id===run){current?.remove();current=null}}
-async function normal(st,tid){let r=st.last_result,m=st.last_move,uid=r.winner_user_id,n=fromMove(m);if(!n)return;let {el,id}=start();let win=document.createElement('div');win.className='dfc011k-center-tile';win.innerHTML=tileMarkup(n);el.appendChild(win);
- requestAnimationFrame(()=>{win.classList.add('dfc011k-glow');audio()});await wait(240);if(id!==run)return;
- let rect=win.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;const coins=burst(x,y,stage());
- await wait(7000);if(id!==run)return;await collect(coins,uid,id);if(id!==run)return;
- await profile(uid,st,id,null);finish(id)}
+async function normal(st,tid){
+ let r=st.last_result,m=st.last_move,uid=r.winner_user_id,n=fromMove(m);if(!n)return;
+ let {el,id}=start();
+ // Iluminar la ficha REAL colocada en el tablero, conservando su aspecto, posición y tamaño.
+ let board=stage()?.querySelector('#dominoBoard');
+ let actual=board?.querySelector('.domino-piece.board-piece:last-of-type')||board?.querySelector('.domino-piece.board-piece:last-child');
+ let marker=null;
+ if(actual){actual.classList.add('dfc011l-last-lit');}
+ else{
+   // Respaldo visual si el tablero ya se ha limpiado: misma plantilla de ficha, sin agrandarla.
+   marker=document.createElement('div');marker.className='dfc011l-fallback-tile';marker.innerHTML=tileMarkup(n);el.appendChild(marker);
+ }
+ audio();await wait(240);if(id!==run){actual?.classList.remove('dfc011l-last-lit');return;}
+ let rect=(actual||marker)?.getBoundingClientRect()||stage().getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+ const coins=burst(x,y,stage());
+ await wait(7000);
+ if(id!==run){actual?.classList.remove('dfc011l-last-lit');return;}
+ await collect(coins,uid,id);
+ actual?.classList.remove('dfc011l-last-lit');
+ if(id!==run)return;
+ await profile(uid,st,id,null);finish(id);
+}
 window.dfc011dCelebrate=function(st){let r=st?.last_result,m=st?.last_move;
  if(!r?.id||seen.has('normal:'+r.id)||String(r.winner_reason||'').toUpperCase().includes('TRANQUE'))return;
  const age=Date.now()-Date.parse(r.settled_at||'');if(!Number.isFinite(age)||age<0||age>25000)return;
