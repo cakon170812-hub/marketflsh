@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.11O" lang="es">
+<html data-app-build="0.11P" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -5509,59 +5509,66 @@ function dfcMoveHandTile(from,to,hand){
   return true;
 }
 function dominoBindHandInteractions(){
-  const hand=$('dominoHand'),stage=$('dominoStage');if(!hand||!stage)return;
+  const hand=$('dominoHand');if(!hand)return;
+  const canPlay=()=>{const h=dominoState?.hand;return !!(h&&h.status==='playing'&&String(h.turn_user_id)===String(dominoState?.me)&&!mfDominoPlayPending)};
+  const resetSelection=()=>{dominoHideDropZones();hand.querySelectorAll('.hand-piece').forEach(el=>el.classList.remove('selected'))};
   hand.querySelectorAll('.hand-piece[data-domino-tile]').forEach(piece=>{
     piece.addEventListener('click',e=>{
       if(piece.dataset.dragged==='1'){piece.dataset.dragged='';return}
-      if(!piece.classList.contains('playable')||dominoDragState?.moved)return;
-      const idx=Number(piece.dataset.dominoTile);playDominoPickSound();dominoSetDropZones(dominoSelectedTile===idx?null:idx);
+      if(!canPlay()||!piece.classList.contains('playable')){resetSelection();return}
+      const idx=Number(piece.dataset.dominoTile);
+      playDominoPickSound();dominoSetDropZones(dominoSelectedTile===idx?null:idx);
     });
     piece.addEventListener('pointerdown',e=>{
       if(e.button!==undefined&&e.button!==0)return;
       const idx=Number(piece.dataset.dominoTile),tile=dominoState?.hand?.my_tiles?.[idx];if(!tile)return;
-      e.preventDefault();resumeAudioOnGesture();if(piece.classList.contains('playable')){playDominoPickSound();dominoSetDropZones(idx)}
-      try{piece.setPointerCapture(e.pointerId)}catch{}
-      dominoDragState={active:true,moved:false,pointerId:e.pointerId,idx,startX:e.clientX,startY:e.clientY,el:piece,dx:0,dy:0};piece.classList.add('dragging');
+      e.preventDefault();resumeAudioOnGesture();
+      const allowed=canPlay()&&piece.classList.contains('playable');
+      if(!allowed)resetSelection();
+      try{piece.setPointerCapture(e.pointerId)}catch(_){ }
+      dominoDragState={active:true,moved:false,pointerId:e.pointerId,idx,startX:e.clientX,startY:e.clientY,el:piece,dx:0,dy:0,allowed};
+      piece.classList.add('dragging');
     });
     piece.addEventListener('pointermove',e=>{
       const d=dominoDragState;if(!d?.active||d.pointerId!==e.pointerId||d.el!==piece)return;
-      const dx=e.clientX-d.startX,dy=e.clientY-d.startY;d.dx=dx;d.dy=dy;if(Math.hypot(dx,dy)>9)d.moved=true;
-      piece.style.transform=`translate(${dx}px,${dy}px) rotate(${Math.max(-8,Math.min(8,dx/18))}deg) scale(1.08)`;
-      d.hoverSide=d.moved&&piece.classList.contains('playable')?dominoSideAtPoint(e.clientX,e.clientY,d.idx):null;
-      if(piece.classList.contains('playable'))dominoSetDropZones(d.idx,d.hoverSide);
+      const dx=e.clientX-d.startX,dy=e.clientY-d.startY;d.dx=dx;d.dy=dy;
+      if(Math.hypot(dx,dy)>9)d.moved=true;
+      if(!d.moved)return;
+      piece.style.transform=`translate(${dx}px,${dy}px) rotate(${Math.max(-8,Math.min(8,dx/18))}deg) scale(1.05)`;
+      d.hoverSide=d.allowed&&canPlay()?dominoSideAtPoint(e.clientX,e.clientY,d.idx):null;
+      if(d.allowed&&canPlay()&&d.hoverSide)dominoSetDropZones(d.idx,d.hoverSide);
     });
     const finish=async e=>{
       const d=dominoDragState;if(!d?.active||d.pointerId!==e.pointerId||d.el!==piece)return;
-      d.active=false;piece.classList.remove('dragging');
-      const moved=d.moved,side=d.hoverSide||dominoSideAtPoint(e.clientX,e.clientY,d.idx),sides=dominoTileSides(dominoState?.hand?.my_tiles?.[d.idx],dominoState?.hand);
-      if(moved)piece.dataset.dragged='1';
-      piece.style.transform='';
+      d.active=false;piece.classList.remove('dragging');piece.style.transform='';
+      const moved=d.moved,allowed=d.allowed&&canPlay();
+      const side=allowed?(d.hoverSide||dominoSideAtPoint(e.clientX,e.clientY,d.idx)):null;
       dominoDragState=null;
-      // Soltar una ficha sobre otra dentro de la propia mano cambia solo el orden visual.
-      const handBox=hand.getBoundingClientRect();
-      if(moved && e.clientX>=handBox.left && e.clientX<=handBox.right && e.clientY>=handBox.top && e.clientY<=handBox.bottom){
+      if(moved)piece.dataset.dragged='1';
+      const box=hand.getBoundingClientRect();
+      if(moved&&e.clientX>=box.left&&e.clientX<=box.right&&e.clientY>=box.top&&e.clientY<=box.bottom){
         const others=[...hand.querySelectorAll('.hand-piece[data-domino-tile]')].filter(el=>el!==piece);
         const target=others.reduce((best,el)=>{
-          const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
-          const delta=Math.hypot(cx-e.clientX,cy-e.clientY);
-          return !best||delta<best.delta?{el,delta}:best;
+          const r=el.getBoundingClientRect(),distance=Math.hypot(r.left+r.width/2-e.clientX,r.top+r.height/2-e.clientY);
+          return !best||distance<best.distance?{el,distance}:best;
         },null);
-        if(target){dfcMoveHandTile(d.idx,Number(target.el.dataset.dominoTile),hand);piece.dataset.dragged='1';}
-        dominoHideDropZones();return;
+        if(target)dfcMoveHandTile(d.idx,Number(target.el.dataset.dominoTile),hand);
+        resetSelection();return;
       }
-      if(moved&&side&&sides[side]&&piece.classList.contains('playable')){
-        dominoHideDropZones();await dominoPlayTile(d.idx,side,piece);return;
+      if(moved&&allowed&&side&&dominoTileSides(dominoState?.hand?.my_tiles?.[d.idx],dominoState?.hand)[side]){
+        resetSelection();await dominoPlayTile(d.idx,side,piece);return;
       }
-      if(moved){
-        piece.classList.add('invalid-return');playDominoInvalidSound();setTimeout(()=>piece.classList.remove('invalid-return'),320);
-      }
-      if(piece.classList.contains('playable'))dominoSetDropZones(d.idx);
+      // Fuera de turno: se descarta sin sonidos de error ni fichas seleccionadas.
+      if(!allowed)resetSelection();
+      else if(moved){resetSelection();piece.classList.add('invalid-return');setTimeout(()=>piece.classList.remove('invalid-return'),320)}
     };
-    piece.addEventListener('pointerup',finish);piece.addEventListener('pointercancel',finish);
+    piece.addEventListener('pointerup',finish);
+    piece.addEventListener('pointercancel',e=>{const d=dominoDragState;if(d?.el===piece){d.active=false;dominoDragState=null;piece.classList.remove('dragging');piece.style.transform='';resetSelection()}});
   });
 }
 async function dominoPlaySelectedSide(side){
   if(dominoSelectedTile===null||!dominoState?.hand)return;
+  if(dominoState.hand.status!=='playing'||String(dominoState.hand.turn_user_id)!==String(dominoState.me)){dominoHideDropZones();return;}
   const tile=dominoState.hand.my_tiles?.[dominoSelectedTile],sides=dominoTileSides(tile,dominoState.hand);
   if(!sides[side]){playDominoInvalidSound();return}
   const idx=dominoSelectedTile;dominoHideDropZones();await dominoPlayTile(idx,side,null);
@@ -6064,6 +6071,7 @@ async function loadDominoState(force,skipTick=false){
 let mfDominoPlayPending=false;
 async function dominoPlayTile(index,side='right',sourceEl=null){
   if(!dominoCurrentTableId||mfDominoPlayPending)return;
+  if(dominoState?.hand?.status!=='playing'||String(dominoState.hand.turn_user_id)!==String(dominoState.me)){dominoHideDropZones();return;}
   const tile=dominoState?.hand?.my_tiles?.[index],sides=dominoTileSides(tile,dominoState?.hand);
   if(!sides[side]){if(sourceEl){sourceEl.classList.add('invalid-return');setTimeout(()=>sourceEl.classList.remove('invalid-return'),320)}playDominoInvalidSound();return}
   mfDominoPlayPending=true;
@@ -6076,7 +6084,7 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
     for(const delay of [350,1100,2400])setTimeout(()=>{
       if(dominoCurrentTableId===tableAtPlay)loadDominoState(false,true).catch(()=>{});
     },delay);
-    await loadDominoState(false,true); // No cerrar la celebración tras una ficha ganadora
+    await loadDominoState(false,true); // Resultado confirmado y celebración en esta mano, antes del nuevo reparto
     setTimeout(()=>{if(dominoCurrentTableId)loadDominoState(false).catch(()=>{})},390);
   }catch(e){console.warn('Jugada Dominó:',e);dominoSetSyncState('Revisando confirmación de jugada…','warn');await loadDominoState(false,true).catch(()=>{});}
   finally{mfDominoPlayPending=false;}
@@ -6859,7 +6867,7 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
   }
   const prevRender=window.renderDominoState;
   if(typeof prevRender==='function'&&!prevRender.__mfReorderWrapped){
-    const wrapped=function(st){const r=prevRender.apply(this,arguments);try{applyHandOrder(st);bindHandReorder(st)}catch(e){console.warn('Orden de mano:',e)}return r};
+    const wrapped=function(st){const r=prevRender.apply(this,arguments);try{if(!st?.hand||String(st.hand.turn_user_id)!==String(st.me))dominoHideDropZones()}catch(e){console.warn('Estado de fichas:',e)}return r};
     wrapped.__mfReorderWrapped=true;window.renderDominoState=wrapped;
   }
 
@@ -11842,4 +11850,6 @@ html,body{max-width:100%!important}
 
 <!-- DOMINÓ FLASH COIN 0.11M: ficha ganadora real sincronizada por última jugada confirmada. -->
 
-<!-- DOMINÓ FLASH COIN HTML 0.11O: ficha de cierre en cadena y sonido PU-F sin duplicar ficha. -->
+<!-- DOMINÓ FLASH COIN HTML 0.11P: ficha de cierre en cadena y sonido PU-F sin duplicar ficha. -->
+
+<!-- 0.11P: victoria al confirmar última jugada; reorganización local libre sin selección fuera de turno. No cambia RPC/SQL/premios. -->
