@@ -10958,6 +10958,23 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 @keyframes dfc011d-pulse{from{box-shadow:0 0 12px #5cedff}to{box-shadow:0 0 45px #f5f5a2,0 0 28px #5cedff}}
 @media(prefers-reduced-motion:reduce){#dominoTablePanel .dfc011d-tile-reveal{transition:none}#dominoTablePanel .dfc011d-tile-reveal.shine .winner-domino{animation:none}}
 </style>
+
+<style id="dfc011j-explosion-sin-carteles">
+/* Solo presentación final de dominó: no afecta lógica, posiciones ni estilo de mesa. */
+#dominoTablePanel #dominoVictory,
+#dominoTablePanel #mf110WinnerOverlay,
+#dominoTablePanel #dfc011-last,
+#dominoTablePanel #dfcWinningLastTile{display:none!important;visibility:hidden!important;pointer-events:none!important}
+#dominoTablePanel .dfc011j-win-tile .winner-caption{display:none!important}
+#dominoTablePanel .dfc011j-win-tile{z-index:190!important}
+#dominoTablePanel .dfc011j-win-tile.active{transform:translate(-50%,-50%) scale(1.55)!important;filter:drop-shadow(0 0 28px #f6cc4d)!important}
+.dfc011j-coin{position:fixed;z-index:1000003;pointer-events:none;width:25px;height:25px;border-radius:50%;
+ background:var(--fc-coin-image,radial-gradient(circle at 30% 25%,#fff7ac,#ffd447 35%,#c38513 75%,#764306));
+ background-size:cover;background-position:center;border:2px solid #f8d56b;box-shadow:0 0 14px #ffd25baa,inset 0 0 4px #fff9bc}
+.dfc011j-saldo-brillo{animation:dfc011jBalancePulse 1.1s ease-out!important}
+@keyframes dfc011jBalancePulse{35%{filter:drop-shadow(0 0 19px #f9d45d);transform:scale(1.10)}100%{filter:none;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){#dominoTablePanel .dfc011j-win-tile.active{transform:translate(-50%,-50%) scale(1.15)!important}}
+</style>
 <script id="dfc011d-immediate-victory">
 (()=>{'use strict';
 const shown=new Set();let visible=null;
@@ -10967,21 +10984,52 @@ function nums(m){let t=m?.tile??m?.played_tile??m?.domino??m?.tile_value;
  const a=Number(t?.a??t?.[0]),b=Number(t?.b??t?.[1]);
  return Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&a<=6&&b>=0&&b<=6?[a,b]:null;}
 const pips=['○','⚀','⚁','⚂','⚃','⚄','⚅'];
+function playImpact(){try{if(typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled()&&typeof playOscTone==='function'){
+  playOscTone(104,.20,.15,'triangle',42,0,'domino');
+  for(let i=0;i<6;i++)playOscTone(750+i*190,.065,.032,'sine',1150+i*140,.05+i*.072,'domino');
+ }}catch(_){}}
+function targetForWinner(uid){
+ const seat=[...document.querySelectorAll('#dominoSeats .domino-seat')].find(e=>String(e.dataset.seatUser||e.getAttribute('data-user-id')||'')===String(uid));
+ return seat?.querySelector('.domino-seat-balance,.domino-seat-money,.seat-balance,[data-table-balance]')||seat||document.getElementById('dominoPotBadge');
+}
+function shower(tile,uid){
+ const stage=document.getElementById('dominoStage');if(!stage)return;
+ const sr=stage.getBoundingClientRect(),a=tile.getBoundingClientRect();
+ const sx=a.left+a.width/2,sy=a.top+a.height/2;
+ const zone=stage.querySelector('#dominoBoard')||stage;
+ const zr=zone.getBoundingClientRect();
+ const dest=targetForWinner(uid)?.getBoundingClientRect();
+ const ex=dest?dest.left+dest.width/2:sx,ey=dest?dest.top+dest.height/2:sy;
+ for(let i=0;i<36;i++){
+   const coin=document.createElement('div');coin.className='dfc011j-coin';coin.setAttribute('aria-hidden','true');
+   coin.style.left=(sx-12)+'px';coin.style.top=(sy-12)+'px';document.body.appendChild(coin);
+   const xx=zr.left+zr.width*(.15+Math.random()*.7), yy=zr.top+zr.height*(.2+Math.random()*.6);
+   const delay=140+Math.random()*340,fall=600+Math.random()*350;
+   const ani=coin.animate([{transform:'translate(0,0) scale(.3) rotate(0deg)',opacity:0},
+    {transform:`translate(${(xx-sx)*.65}px,${Math.min(-75,-35-Math.random()*120)}px) scale(1.25) rotate(280deg)`,opacity:1,offset:.33},
+    {transform:`translate(${xx-sx}px,${yy-sy}px) scale(1) rotate(720deg)`,opacity:1,offset:.68},
+    {transform:`translate(${ex-sx}px,${ey-sy}px) scale(.35) rotate(1080deg)`,opacity:0}],
+    {duration:fall+850,delay,fill:'forwards',easing:'ease-in-out'});
+   ani.onfinish=()=>coin.remove();setTimeout(()=>coin.remove(),3500);
+ }
+ const target=targetForWinner(uid);
+ if(target)setTimeout(()=>{target.classList.add('dfc011j-saldo-brillo');setTimeout(()=>target.classList.remove('dfc011j-saldo-brillo'),1200)},1700);
+}
 window.dfc011dCelebrate=function(st){
- const r=st?.last_result,m=st?.last_move;if(!r?.id||shown.has(String(r.id)))return;
+ const r=st?.last_result,m=st?.last_move;
+ if(!r?.id||shown.has(String(r.id)))return;
  const age=Date.now()-Date.parse(r.settled_at||'');
  if(!Number.isFinite(age)||age<0||age>12000)return;
  if(!m||String(m.user_id)!==String(r.winner_user_id)||!String(m.action||'').toUpperCase().includes('PLAY'))return;
- const n=nums(m);if(!n)return;shown.add(String(r.id));
+ const n=nums(m);if(!n)return;
  const stage=document.getElementById('dominoStage');if(!stage)return;
- if(visible)visible.remove();
- const panel=document.createElement('div');panel.className='dfc011d-tile-reveal';
+ shown.add(String(r.id));if(visible)visible.remove();
+ const panel=document.createElement('div');panel.className='dfc011d-tile-reveal dfc011j-win-tile';
  const domino=document.createElement('div');domino.className='winner-domino';
  n.forEach(i=>{const half=document.createElement('div');half.className='half';half.textContent=pips[i];domino.appendChild(half)});
- panel.appendChild(domino);const cap=document.createElement('div');cap.className='winner-caption';cap.textContent='¡FICHA GANADORA!';panel.appendChild(cap);
- stage.appendChild(panel);visible=panel;requestAnimationFrame(()=>panel.classList.add('active','shine'));
- // Ficha inmediatamente y Felicidades conserva su funcionamiento y acreditación del servidor.
- setTimeout(()=>{panel.classList.remove('active');setTimeout(()=>{panel.remove();if(visible===panel)visible=null},250)},3000);
+ panel.appendChild(domino);stage.appendChild(panel);visible=panel;
+ requestAnimationFrame(()=>{panel.classList.add('active','shine');playImpact();setTimeout(()=>shower(domino,r.winner_user_id),300)});
+ setTimeout(()=>{panel.classList.remove('active');setTimeout(()=>{panel.remove();if(visible===panel)visible=null},320)},3100);
 };
 })();
 </script>
