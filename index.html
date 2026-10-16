@@ -11058,12 +11058,22 @@ async function normal(st,tid){
  let {el,id}=start();
  // Iluminar la ficha REAL colocada en el tablero, conservando su aspecto, posición y tamaño.
  let board=stage()?.querySelector('#dominoBoard');
- let actual=board?.querySelector('.domino-piece.board-piece:last-of-type')||board?.querySelector('.domino-piece.board-piece:last-child');
+ // El extremo de la jugada determina la ficha real. El último elemento del DOM
+ // NO siempre es la jugada ganadora (por ejemplo, al jugar por la izquierda).
+ const side=String(m?.side||'').toLowerCase();
+ const expected=side==='left'?0:(st?.hand?.board?.length||0)-1;
+ const tiles=[...(board?.querySelectorAll('.domino-piece.board-piece')||[])];
+ const actualTile=(st?.hand?.board||[])[expected];
+ const valid=actualTile&&numTile(actualTile)&&
+   (numTile(actualTile).join(',')===n.join(',')||numTile(actualTile).join(',')===n.slice().reverse().join(','));
+ let actual=valid?tiles[expected]||null:null;
+ // Si el tablero no llegó en el estado de cierre, mostrar la ficha comprobada
+ // usando la misma plantilla de la mesa, sin inventar valores ni agrandarla.
  let marker=null;
  if(actual){actual.classList.add('dfc011l-last-lit');}
  else{
-   // Respaldo visual si el tablero ya se ha limpiado: misma plantilla de ficha, sin agrandarla.
-   marker=document.createElement('div');marker.className='dfc011l-fallback-tile';marker.innerHTML=tileMarkup(n);el.appendChild(marker);
+   marker=document.createElement('div');marker.className='dfc011l-fallback-tile';
+   marker.innerHTML=tileMarkup(n);el.appendChild(marker);
  }
  audio();await wait(240);if(id!==run){actual?.classList.remove('dfc011l-last-lit');return;}
  let rect=(actual||marker)?.getBoundingClientRect()||stage().getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
@@ -11808,3 +11818,5 @@ html,body{max-width:100%!important}
  background-position:center,center!important;
 }
 </style>
+
+<!-- DOMINÓ FLASH COIN 0.11M: ficha ganadora real sincronizada por última jugada confirmada. -->
