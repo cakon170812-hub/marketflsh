@@ -9060,6 +9060,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   }).join('');
   host.innerHTML=`<div class="mf196-report"><div class="mf196-title">🁫 ¡TRANQUE! · Conteo de fichas</div><div class="mf196-countdown" id="mf196TranqueCountdown"></div><div class="mf196-players">${html}</div><div class="mf196-hint">${winnerCount>1?'Empate: el premio se distribuye según las reglas de la mesa.':'Menor cantidad de puntos gana la mano.'} · Las fichas se descubren solo después de terminar la mano.</div></div>`;
   host.classList.add('show');
+  if(typeof window.dfc011kTranque==='function')window.dfc011kTranque(report);
  }
  function displayReport(){
   const host=$('mf196TranqueOverlay');if(!pendingReport){host?.classList.remove('show');return;}
@@ -10975,61 +10976,92 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 @keyframes dfc011jBalancePulse{35%{filter:drop-shadow(0 0 19px #f9d45d);transform:scale(1.10)}100%{filter:none;transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){#dominoTablePanel .dfc011j-win-tile.active{transform:translate(-50%,-50%) scale(1.15)!important}}
 </style>
+<style id="dfc011k-final-animations">
+/* 0.11K solo la celebración: escenario, controles, mesa y economía intactos. */
+#dominoTablePanel #mf196TranqueOverlay,#dominoTablePanel #mf110WinnerOverlay,#dominoTablePanel #dominoVictory{display:none!important;pointer-events:none!important}
+#dominoStage #dfc011k-celebration{position:absolute;inset:0;z-index:26000;pointer-events:none;overflow:visible;font-family:inherit}
+.dfc011k-center-tile{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%) scale(.75);transition:transform .48s ease,filter .35s;filter:drop-shadow(0 0 12px #fbe466)}
+.dfc011k-center-tile.dfc011k-glow{transform:translate(-50%,-50%) scale(1.6);filter:drop-shadow(0 0 22px #ffcf30) drop-shadow(0 0 48px #ffda5b)}
+.dfc011k-real-tile{display:inline-flex;flex-direction:column;align-items:stretch;justify-content:space-between;width:46px;height:78px;border:2px solid #91d9ec;border-radius:8px;background:#fcffff;color:#16202a;box-shadow:0 0 12px #8ee3ff8f;font-size:30px;font-weight:900;line-height:1}
+.dfc011k-real-tile>span{flex:1;display:grid;place-items:center}.dfc011k-real-tile>span+span{border-top:2px solid #273b4a}
+.dfc011k-coin{position:fixed;z-index:1000004;pointer-events:none;display:grid;place-items:center;width:24px;height:24px;border-radius:50%;border:2px solid #a96a05;color:#7d4308;font-size:17px;font-weight:950;text-shadow:0 1px #fff3a4;background:radial-gradient(circle at 30% 25%,#fff5b6,#f8ce43 42%,#c58a1d 80%,#88510e);box-shadow:0 0 13px #f9d055,inset 0 0 3px #fff}
+#dominoStage .dfc011k-score{position:absolute;width:30%;min-width:0;max-height:33%;background:rgba(2,18,38,.87);border:1px solid #56cced;border-radius:9px;padding:5px;text-align:center;color:#fff;box-sizing:border-box;opacity:0;transform:scale(.86);transition:opacity .3s,transform .3s}
+#dominoStage .dfc011k-score.dfc011k-revealed{opacity:1;transform:scale(1)}
+#dominoStage .dfc011k-top{top:2%;left:35%}#dominoStage .dfc011k-bottom{bottom:3%;left:35%}#dominoStage .dfc011k-left{left:1%;top:34%}#dominoStage .dfc011k-right{right:1%;top:34%}
+#dominoStage .dfc011k-score strong{display:block;font-size:clamp(9px,1.35vw,14px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#dominoStage .dfc011k-points{font-size:clamp(11px,1.6vw,17px);font-weight:900;color:#f9d75a}
+#dominoStage .dfc011k-hand{display:flex;gap:2px;flex-wrap:wrap;justify-content:center}
+#dominoStage .dfc011k-hand .dfc011k-real-tile{width:18px;height:30px;font-size:12px;border-width:1px;border-radius:3px}
+#dominoStage .dfc011k-hand .dfc011k-real-tile>span+span{border-top-width:1px}
+#dominoStage .dfc011k-winning.dfc011k-glow{border-color:#ffe875;box-shadow:0 0 22px #f6c434}
+#dominoStage .dfc011k-profile{position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;max-width:76%;padding:12px 20px;color:#ffe77e;background:rgba(0,13,30,.94);border:2px solid #e2bb47;border-radius:15px;box-shadow:0 0 30px #f5ce5290;font-weight:900;font-size:clamp(14px,2.2vw,23px)}
+#dominoStage .dfc011k-avatar{width:64px;height:64px;border-radius:50%;border:2px solid #e8cb6a;overflow:hidden;display:grid;place-items:center;background:#1c3246}
+#dominoStage .dfc011k-avatar img{width:100%;height:100%;object-fit:cover}
+#dominoStage .dfc011k-profile small{font-size:13px}
+</style>
 <script id="dfc011d-immediate-victory">
 (()=>{'use strict';
-const shown=new Set();let visible=null;
-function nums(m){let t=m?.tile??m?.played_tile??m?.domino??m?.tile_value;
- if(typeof t==='string'){try{t=JSON.parse(t)}catch(_){const q=t.match(/([0-6])\D+([0-6])/);if(q)t=[+q[1],+q[2]]}}
- if(!t&&m?.a!=null&&m?.b!=null)t=[m.a,m.b];
- const a=Number(t?.a??t?.[0]),b=Number(t?.b??t?.[1]);
- return Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&a<=6&&b>=0&&b<=6?[a,b]:null;}
-const pips=['○','⚀','⚁','⚂','⚃','⚄','⚅'];
-function playImpact(){try{if(typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled()&&typeof playOscTone==='function'){
-  playOscTone(104,.20,.15,'triangle',42,0,'domino');
-  for(let i=0;i<6;i++)playOscTone(750+i*190,.065,.032,'sine',1150+i*140,.05+i*.072,'domino');
- }}catch(_){}}
-function targetForWinner(uid){
- const seat=[...document.querySelectorAll('#dominoSeats .domino-seat')].find(e=>String(e.dataset.seatUser||e.getAttribute('data-user-id')||'')===String(uid));
- return seat?.querySelector('.domino-seat-balance,.domino-seat-money,.seat-balance,[data-table-balance]')||seat||document.getElementById('dominoPotBadge');
+const seen=new Set();let current=null,run=0;
+const $=id=>document.getElementById(id), svgPip=['·','⚀','⚁','⚂','⚃','⚄','⚅'];
+const esc=t=>String(t??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const wait=t=>new Promise(resolve=>setTimeout(resolve,t));
+function numTile(x){if(typeof x==='string'){try{x=JSON.parse(x)}catch(_){let z=x.match(/([0-6])\D+([0-6])/);x=z?[+z[1],+z[2]]:null}}
+ const a=Number(x?.a??x?.left??x?.[0]),b=Number(x?.b??x?.right??x?.[1]);return Number.isInteger(a)&&a>=0&&a<=6&&Number.isInteger(b)&&b>=0&&b<=6?[a,b]:null}
+function fromMove(m){return numTile(m?.tile??m?.played_tile??m?.domino??m?.tile_value??(m?.a!=null?[m.a,m.b]:null))}
+function audio(){try{if(typeof dominoSoundIsEnabled==='function'&&!dominoSoundIsEnabled())return;
+ if(typeof playOscTone==='function'){playOscTone(110,.22,.13,'triangle',37,0,'domino');for(let i=0;i<6;i++)playOscTone(540+i*160,.08,.025,'sine',950+i*140,.04+i*.07,'domino')}
+ }catch(_){}}
+function target(uid){let e=[...document.querySelectorAll('#dominoSeats .domino-seat')].find(el=>String(el.dataset.seatUser||'')===String(uid));return e?.querySelector('.seat-bal,.domino-seat-balance,.domino-seat-money')||e||$('dominoPotBadge')||$('dominoStage')}
+function namedUser(uid,st){let u=(st?.seats||[]).find(x=>String(x.user_id)===String(uid))||{};let el=[...document.querySelectorAll('#dominoSeats .domino-seat')].find(x=>String(x.dataset.seatUser||'')===String(uid));
+ return {name:String(u.full_name||u.name||el?.querySelector('.domino-seat-name')?.textContent||'Jugador'),photo:String(u.avatar_url||u.photo_url||'')};}
+function stage(){return $('dominoStage')}
+function start(){if(current)current.remove();document.querySelectorAll('.dfc011k-coin').forEach(x=>x.remove());run++;let z=document.createElement('div');z.id='dfc011k-celebration';z.setAttribute('aria-live','polite');stage().appendChild(z);current=z;return {el:z,id:run};}
+function tileMarkup(tile){let x=numTile(tile);if(!x)return '';return `<span class="dfc011k-real-tile"><span>${svgPip[x[0]]}</span><span>${svgPip[x[1]]}</span></span>`}
+function burst(x,y,container,count=36){let coins=[];let bounds=container.getBoundingClientRect();for(let i=0;i<count;i++){
+  const coin=document.createElement('span');coin.className='dfc011k-coin';coin.textContent='ϟ';document.body.appendChild(coin);
+  const a=Math.random()*Math.PI*2,r=(.06+Math.random()*.21)*Math.min(bounds.width,bounds.height);
+  let tx=Math.max(bounds.left+14,Math.min(bounds.right-14,x+Math.cos(a)*r));
+  let ty=Math.max(bounds.top+12,Math.min(bounds.bottom-12,y+Math.sin(a)*r));
+  coin.style.left=(x-12)+'px';coin.style.top=(y-12)+'px';
+  const anim=coin.animate([{transform:'translate(0,0) scale(.3)',opacity:0},{transform:`translate(${(tx-x)*.6}px,${(ty-y)*.7-50}px) scale(1.2)`,opacity:1,offset:.48},{transform:`translate(${tx-x}px,${ty-y}px) rotate(${Math.round(Math.random()*440)}deg)`,opacity:1}],{duration:650+Math.random()*500,fill:'forwards',easing:'ease-out'});
+  coins.push({coin,tx,ty,anim});
+ }return coins}
+async function collect(coins,uid,id){let r=target(uid)?.getBoundingClientRect(),ex=r?r.left+r.width/2:innerWidth/2,ey=r?r.top+r.height/2:innerHeight/2;
+ await Promise.all(coins.map(async({coin,tx,ty,anim},i)=>{try{await anim.finished}catch(_){}if(id!==run){coin.remove();return;}
+ const a=coin.animate([{transform:`translate(${tx-(parseFloat(coin.style.left)+12)}px,${ty-(parseFloat(coin.style.top)+12)}px) scale(1)`,opacity:1},{transform:`translate(${ex-(parseFloat(coin.style.left)+12)}px,${ey-(parseFloat(coin.style.top)+12)}px) scale(.22)`,opacity:0}],{duration:850+i*11,fill:'forwards',easing:'ease-in'});
+ try{await a.finished}catch(_){}coin.remove()}));
+ if(id===run){let t=target(uid);t?.classList.add('dfc011j-saldo-brillo');setTimeout(()=>t?.classList.remove('dfc011j-saldo-brillo'),1200)}
 }
-function shower(tile,uid){
- const stage=document.getElementById('dominoStage');if(!stage)return;
- const sr=stage.getBoundingClientRect(),a=tile.getBoundingClientRect();
- const sx=a.left+a.width/2,sy=a.top+a.height/2;
- const zone=stage.querySelector('#dominoBoard')||stage;
- const zr=zone.getBoundingClientRect();
- const dest=targetForWinner(uid)?.getBoundingClientRect();
- const ex=dest?dest.left+dest.width/2:sx,ey=dest?dest.top+dest.height/2:sy;
- for(let i=0;i<36;i++){
-   const coin=document.createElement('div');coin.className='dfc011j-coin';coin.setAttribute('aria-hidden','true');
-   coin.style.left=(sx-12)+'px';coin.style.top=(sy-12)+'px';document.body.appendChild(coin);
-   const xx=zr.left+zr.width*(.15+Math.random()*.7), yy=zr.top+zr.height*(.2+Math.random()*.6);
-   const delay=140+Math.random()*340,fall=600+Math.random()*350;
-   const ani=coin.animate([{transform:'translate(0,0) scale(.3) rotate(0deg)',opacity:0},
-    {transform:`translate(${(xx-sx)*.65}px,${Math.min(-75,-35-Math.random()*120)}px) scale(1.25) rotate(280deg)`,opacity:1,offset:.33},
-    {transform:`translate(${xx-sx}px,${yy-sy}px) scale(1) rotate(720deg)`,opacity:1,offset:.68},
-    {transform:`translate(${ex-sx}px,${ey-sy}px) scale(.35) rotate(1080deg)`,opacity:0}],
-    {duration:fall+850,delay,fill:'forwards',easing:'ease-in-out'});
-   ani.onfinish=()=>coin.remove();setTimeout(()=>coin.remove(),3500);
- }
- const target=targetForWinner(uid);
- if(target)setTimeout(()=>{target.classList.add('dfc011j-saldo-brillo');setTimeout(()=>target.classList.remove('dfc011j-saldo-brillo'),1200)},1700);
-}
-window.dfc011dCelebrate=function(st){
- const r=st?.last_result,m=st?.last_move;
- if(!r?.id||shown.has(String(r.id)))return;
- const age=Date.now()-Date.parse(r.settled_at||'');
- if(!Number.isFinite(age)||age<0||age>12000)return;
- if(!m||String(m.user_id)!==String(r.winner_user_id)||!String(m.action||'').toUpperCase().includes('PLAY'))return;
- const n=nums(m);if(!n)return;
- const stage=document.getElementById('dominoStage');if(!stage)return;
- shown.add(String(r.id));if(visible)visible.remove();
- const panel=document.createElement('div');panel.className='dfc011d-tile-reveal dfc011j-win-tile';
- const domino=document.createElement('div');domino.className='winner-domino';
- n.forEach(i=>{const half=document.createElement('div');half.className='half';half.textContent=pips[i];domino.appendChild(half)});
- panel.appendChild(domino);stage.appendChild(panel);visible=panel;
- requestAnimationFrame(()=>{panel.classList.add('active','shine');playImpact();setTimeout(()=>shower(domino,r.winner_user_id),300)});
- setTimeout(()=>{panel.classList.remove('active');setTimeout(()=>{panel.remove();if(visible===panel)visible=null},320)},3100);
+async function profile(uid,st,id,pts){if(id!==run||!current)return;const u=namedUser(uid,st);let photo=/^https:\/\//i.test(u.photo)?`<img src="${esc(u.photo)}" alt="">`:'<span>★</span>';
+ let banner=document.createElement('div');banner.className='dfc011k-profile';banner.innerHTML=`<div class="dfc011k-avatar">${photo}</div><strong>${esc(u.name)}</strong>${pts==null?'':`<small>${pts} puntos</small>`}`;current.appendChild(banner);await wait(1800);banner.remove()}
+function finish(id){if(id===run){current?.remove();current=null}}
+async function normal(st,tid){let r=st.last_result,m=st.last_move,uid=r.winner_user_id,n=fromMove(m);if(!n)return;let {el,id}=start();let win=document.createElement('div');win.className='dfc011k-center-tile';win.innerHTML=tileMarkup(n);el.appendChild(win);
+ requestAnimationFrame(()=>{win.classList.add('dfc011k-glow');audio()});await wait(240);if(id!==run)return;
+ let rect=win.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;const coins=burst(x,y,stage());
+ await wait(7000);if(id!==run)return;await collect(coins,uid,id);if(id!==run)return;
+ await profile(uid,st,id,null);finish(id)}
+window.dfc011dCelebrate=function(st){let r=st?.last_result,m=st?.last_move;
+ if(!r?.id||seen.has('normal:'+r.id)||String(r.winner_reason||'').toUpperCase().includes('TRANQUE'))return;
+ const age=Date.now()-Date.parse(r.settled_at||'');if(!Number.isFinite(age)||age<0||age>25000)return;
+ if(!m||String(m.user_id)!==String(r.winner_user_id)||!String(m.action||'').toUpperCase().includes('PLAY')||!fromMove(m)||!stage())return;
+ seen.add('normal:'+r.id);normal(st,r.id).catch(e=>console.warn('Presentación de última ficha:',e));
+};
+window.dfc011kTranque=function(report){if(!report?.hand_id||!stage())return;let table=Number(typeof dominoCurrentTableId!=='undefined'?dominoCurrentTableId:0),key='tranque:'+table+':'+report.hand_id;
+ if(seen.has(key))return;let players=Array.isArray(report.players)?report.players:[];if(!players.length)return;seen.add(key);
+ const score=p=>Number(p.points??999);let eligible=players.filter(p=>p.eligible!==false);if(!eligible.length)return;
+ let min=Math.min(...eligible.map(score)),winners=eligible.filter(p=>score(p)===min);let uid=String(winners[0].user_id);
+ (async()=>{const {el,id}=start();el.classList.add('dfc011k-tranque');let state=typeof dominoState!=='undefined'?dominoState:null;
+ const slots=['top','right','bottom','left'];const seats=state?.seats||[];const sorted=players.map((p,i)=>{let idx=seats.findIndex(s=>String(s.user_id)===String(p.user_id));return {...p,slot:slots[(idx<0?i:idx)%4]}});
+ for(let i=0;i<sorted.length;i++){const p=sorted[i];let part=document.createElement('div');part.className='dfc011k-score dfc011k-'+p.slot+(winners.some(w=>String(w.user_id)===String(p.user_id))?' dfc011k-winning':'');
+ part.innerHTML=`<strong>${esc(p.full_name||p.name||namedUser(p.user_id,state).name)}</strong><div class="dfc011k-points">${Number.isFinite(score(p))?score(p):'—'} puntos</div><div class="dfc011k-hand">${(Array.isArray(p.tiles)?p.tiles:[]).map(tileMarkup).join('')}</div>`;el.appendChild(part);
+ await wait(180);if(id!==run)return;part.classList.add('dfc011k-revealed');}
+ await wait(850);if(id!==run)return;let winnerParts=[...el.querySelectorAll('.dfc011k-winning')];winnerParts.forEach(p=>p.classList.add('dfc011k-glow'));
+ let rect=winnerParts[0]?.getBoundingClientRect()||stage().getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;audio();let coins=burst(x,y,stage(),38);
+ await wait(7000);if(id!==run)return;await collect(coins,uid,id);if(id!==run)return;
+ if(winners.length===1)await profile(uid,state,id,min);
+ else{let prof=document.createElement('div');prof.className='dfc011k-profile';prof.textContent='Empate por tranque: '+winners.map(w=>w.full_name||w.name||'Jugador').join(' y ');el.appendChild(prof);await wait(1800)}
+ finish(id);
+ })().catch(e=>console.warn('Presentación de tranque:',e));
 };
 })();
 </script>
