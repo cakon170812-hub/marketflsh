@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.11T" lang="es">
+<html data-app-build="0.11U" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -6088,6 +6088,11 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
   try{
     const {error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:side});
     if(error){playDominoInvalidSound();alert(errText(error));return}
+    // 0.11U: para la última ficha, visualizar el cierre tras la confirmación RPC,
+    // sin esperar al siguiente reparto. No acredita saldos ni modifica Supabase.
+    if(window.dfc011uAcceptedFinalPlay && dominoState?.hand?.my_tiles?.length===1){
+      try{window.dfc011uAcceptedFinalPlay(dominoState,tile,side)}catch(e){console.warn('Celebración inmediata:',e)}
+    }
     playDominoClackSound();dominoSkipOwnPlaySoundUntil=Date.now()+1200;dominoSuppressTickUntil=Date.now()+360;
     // Actualización inmediata con recuperación independiente; no esperar a tocar pantalla.
     const tableAtPlay=dominoCurrentTableId;
@@ -11326,6 +11331,66 @@ window.dfc011kTranque=function(report){if(!report?.hand_id||!stage())return;let 
 #dominoBoard .dfc011t-final-tile{filter:drop-shadow(0 0 9px #ffe68c) drop-shadow(0 0 15px #ffc535)!important;z-index:8!important;position:relative;animation:dfc011tGlow 1s ease-in-out infinite alternate!important}
 @keyframes dfc011tGlow{from{filter:drop-shadow(0 0 5px #ffc443)}to{filter:drop-shadow(0 0 18px #ffdf6d) drop-shadow(0 0 23px #ffad20)}}
 </style>
+
+<style id="dfc011u-tranque-realista">
+/* Exactamente el mismo componente dominoPiece del tablero, no fichas pintadas. */
+#mf196TranqueOverlay .mf196-tiles .domino-piece.board-piece{
+  flex:none!important; display:inline-flex!important; box-sizing:border-box!important;
+  background:linear-gradient(145deg,#ffffff 0%,#f6f4e9 62%,#deded5 100%)!important;
+  border:1.5px solid #e4e4dc!important; border-radius:6px!important;
+  box-shadow:inset 1px 1px 1px #fff, inset -2px -2px 2px #b1b6b7,0 3px 6px rgba(0,0,0,.5)!important;
+  filter:none!important; opacity:1!important;
+}
+#mf196TranqueOverlay .mf196-tiles .domino-piece.board-piece .domino-half,
+#mf196TranqueOverlay .mf196-tiles .domino-piece.board-piece .domino-face{opacity:1!important;}
+</style>
+<script id="dfc011u-final-play-visual">
+(function(){
+ 'use strict';
+ const HOLD=7000;let current=null;
+ function vals(t){
+  if(!t)return null; const a=Number(t.a??t.tile_a??t[0]),b=Number(t.b??t.tile_b??t[1]);
+  return Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&a<=6&&b>=0&&b<=6?[a,b]:null;
+ }
+ function keyFor(st){return String(st?.hand?.id||'')+'|'+String(st?.me||'');}
+ function ending(st,tile,side){
+  const v=vals(tile), h=st?.hand, board=Array.isArray(h?.board)?h.board:[];
+  if(!v||!board.length||!h||h.my_tiles?.length!==1)return;
+  // RPC has acknowledged the legal move. Keep the original chain for presentation.
+  const chain=board.map(x=>({a:Number(x.a??x[0]),b:Number(x.b??x[1])}));
+  if(side==='left')chain.unshift({a:v[0],b:v[1]});else chain.push({a:v[0],b:v[1]});
+  const at=side==='left'?0:chain.length-1;
+  const move={side:side,a:v[0],b:v[1]};
+  const html=dominoRows(chain,move,false);
+  const host=document.createElement('div');host.innerHTML=html;
+  const tiles=host.querySelectorAll('.domino-piece.board-piece');
+  if(tiles[at])tiles[at].classList.add('dfc011u-winner-tile','dfc011t-final-tile');
+  current={html:host.innerHTML,until:Date.now()+HOLD,key:keyFor(st),handId:String(h.id||'')};
+  const boardEl=document.getElementById('dominoBoard');if(boardEl)boardEl.innerHTML=current.html;
+  const scene=document.getElementById('dominoTablePanel');
+  if(scene){scene.classList.add('dfc011u-celebrating');setTimeout(()=>scene.classList.remove('dfc011u-celebrating'),HOLD)}
+  try{if(typeof playDominoWinSound==='function')playDominoWinSound()}catch(_){}
+  const badge=document.getElementById('dfc011u-announce')||document.createElement('div');
+  badge.id='dfc011u-announce';badge.textContent='¡DOMINÓ!';
+  (scene||document.body).appendChild(badge);
+  setTimeout(()=>{badge.remove();if(current&&Date.now()>=current.until)current=null},HOLD);
+ }
+ window.dfc011uAcceptedFinalPlay=ending;
+ // Guard the immediately confirmed chain against newer empty states.
+ const oldHeld=window.dfc011tHeldHtml;
+ window.dfc011tHeldHtml=function(st){
+  if(current && Date.now()<current.until)return current.html;
+  return typeof oldHeld==='function'?oldHeld(st):'';
+ };
+})();
+</script>
+<style id="dfc011u-announcement-style">
+#dominoTablePanel #dfc011u-announce{position:absolute;top:12%;left:50%;transform:translateX(-50%);
+ z-index:250;pointer-events:none;font-weight:950;font-size:clamp(20px,4vw,40px);letter-spacing:.07em;
+ color:#ffe89e;text-shadow:0 0 12px #ffca45,0 0 20px #ef9d1f,0 2px 4px #141622}
+#dominoBoard .dfc011u-winner-tile{filter:drop-shadow(0 0 12px #ffdd64) drop-shadow(0 0 20px #ffbe31)!important}
+</style>
+
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
