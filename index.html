@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.11" lang="es">
+<html data-app-build="0.11O" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -11026,8 +11026,14 @@ const wait=t=>new Promise(resolve=>setTimeout(resolve,t));
 function numTile(x){if(typeof x==='string'){try{x=JSON.parse(x)}catch(_){let z=x.match(/([0-6])\D+([0-6])/);x=z?[+z[1],+z[2]]:null}}
  const a=Number(x?.a??x?.left??x?.[0]),b=Number(x?.b??x?.right??x?.[1]);return Number.isInteger(a)&&a>=0&&a<=6&&Number.isInteger(b)&&b>=0&&b<=6?[a,b]:null}
 function fromMove(m){return numTile(m?.tile??m?.played_tile??m?.domino??m?.tile_value??(m?.a!=null?[m.a,m.b]:null))}
-function audio(){try{if(typeof dominoSoundIsEnabled==='function'&&!dominoSoundIsEnabled())return;
- if(typeof playOscTone==='function'){playOscTone(110,.22,.13,'triangle',37,0,'domino');for(let i=0;i<6;i++)playOscTone(540+i*160,.08,.025,'sine',950+i*140,.04+i*.07,'domino')}
+function audio(){try{
+ if(typeof dominoSoundIsEnabled==='function'&&!dominoSoundIsEnabled())return;
+ // Impacto grave PU-F al contacto, seguido del brillo de monedas.
+ if(typeof playOscTone==='function'){
+  playOscTone(105,.24,.19,'triangle',42,0,'domino');
+  playOscTone(58,.15,.13,'sine',30,.045,'domino');
+  for(let i=0;i<8;i++)playOscTone(510+i*135,.105,.025,'sine',840+i*130,.12+i*.052,'domino');
+ }
  }catch(_){}}
 function target(uid){let e=[...document.querySelectorAll('#dominoSeats .domino-seat')].find(el=>String(el.dataset.seatUser||'')===String(uid));return e?.querySelector('.seat-bal,.domino-seat-balance,.domino-seat-money')||e||$('dominoPotBadge')||$('dominoStage')}
 function namedUser(uid,st){let u=(st?.seats||[]).find(x=>String(x.user_id)===String(uid))||{};let el=[...document.querySelectorAll('#dominoSeats .domino-seat')].find(x=>String(x.dataset.seatUser||'')===String(uid));
@@ -11056,35 +11062,32 @@ function finish(id){if(id===run){current?.remove();current=null}}
 async function normal(st,tid){
  let r=st.last_result,m=st.last_move,uid=r.winner_user_id,n=fromMove(m);if(!n)return;
  let {el,id}=start();
- // El título procede del resultado CONFIRMADO por servidor; no recalcula premios.
  const reason=String(r.winner_reason||'');
- const victoryLabel=/CAPIC[UÚ]A/i.test(reason)?'¡CAPICÚA!':'¡DOMINÓ!';
- const sign=document.createElement('div');
- sign.className='dfc011n-result-label';
- sign.textContent=victoryLabel;
- el.appendChild(sign);
- // Iluminar la ficha REAL colocada en el tablero, conservando su aspecto, posición y tamaño.
- let board=stage()?.querySelector('#dominoBoard');
- // El extremo de la jugada determina la ficha real. El último elemento del DOM
- // NO siempre es la jugada ganadora (por ejemplo, al jugar por la izquierda).
+ const sign=document.createElement('div');sign.className='dfc011n-result-label';
+ sign.textContent=/CAPIC[UÚ]A/i.test(reason)?'¡CAPICÚA!':'¡DOMINÓ!';el.appendChild(sign);
+ const btiles=Array.isArray(st?.hand?.board)?st.hand.board:[];
  const side=String(m?.side||'').toLowerCase();
- const expected=side==='left'?0:(st?.hand?.board?.length||0)-1;
- const tiles=[...(board?.querySelectorAll('.domino-piece.board-piece')||[])];
- const actualTile=(st?.hand?.board||[])[expected];
- const valid=actualTile&&numTile(actualTile)&&
-   (numTile(actualTile).join(',')===n.join(',')||numTile(actualTile).join(',')===n.slice().reverse().join(','));
- let actual=valid?tiles[expected]||null:null;
- // Si el tablero no llegó en el estado de cierre, mostrar la ficha comprobada
- // usando la misma plantilla de la mesa, sin inventar valores ni agrandarla.
- let marker=null;
- if(actual){actual.classList.add('dfc011l-last-lit');}
- else{
-   marker=document.createElement('div');marker.className='dfc011l-fallback-tile';
-   marker.innerHTML=tileMarkup(n);el.appendChild(marker);
+ const expected=side==='left'?0:btiles.length-1;
+ const match=(t)=>{const v=numTile(t);return !!v&&((v[0]===n[0]&&v[1]===n[1])||(v[0]===n[1]&&v[1]===n[0]));};
+ let actual=null;
+ // Dar tiempo al renderizador real a pintar la última jugada; nunca crear una
+ // ficha suelta de reemplazo, porque visualmente parecería una jugada duplicada.
+ for(let attempt=0;attempt<9&&id===run&&!actual;attempt++){
+  const board=stage()?.querySelector('#dominoBoard');
+  const domTiles=[...(board?.querySelectorAll('.domino-piece.board-piece')||[])];
+  if(expected>=0&&btiles.length===domTiles.length&&match(btiles[expected]))actual=domTiles[expected]||null;
+  if(!actual)await wait(110);
  }
- audio();await wait(240);if(id!==run){actual?.classList.remove('dfc011l-last-lit');return;}
- let rect=(actual||marker)?.getBoundingClientRect()||stage().getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+ if(id!==run)return;
+ // El destello inicia en la propia ficha de la cadena, no en el centro de la mesa.
+ // Si el servidor ya limpió la cadena, omitir una ficha inventada y evitar duplicarla.
+ const anchor=actual||stage()?.querySelector('#dominoBoard .domino-piece.board-piece:last-child');
+ if(anchor&&actual)actual.classList.add('dfc011l-last-lit');
+ audio();
+ let rect=anchor?.getBoundingClientRect()||stage().getBoundingClientRect();
+ let x=rect.left+rect.width/2,y=rect.top+rect.height/2;
  const coins=burst(x,y,stage());
+ // Retener solo el efecto visual durante siete segundos; no bloquear el estado del servidor.
  await wait(7000);
  if(id!==run){actual?.classList.remove('dfc011l-last-lit');return;}
  await collect(coins,uid,id);
@@ -11839,4 +11842,4 @@ html,body{max-width:100%!important}
 
 <!-- DOMINÓ FLASH COIN 0.11M: ficha ganadora real sincronizada por última jugada confirmada. -->
 
-<!-- DOMINÓ FLASH COIN HTML 0.11N: anuncio visual según motivo de victoria confirmado. -->
+<!-- DOMINÓ FLASH COIN HTML 0.11O: ficha de cierre en cadena y sonido PU-F sin duplicar ficha. -->
