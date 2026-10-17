@@ -6040,9 +6040,9 @@ async function loadDominoState(force,skipTick=false){
 
   if(!skipTick&&Date.now()>=dominoSuppressTickUntil){
     try{
-      const tick=await sb.rpc('rf_domino_tick_v11',{p_table_id:dominoCurrentTableId});
+      const tick=await sb.rpc('rf_domino_progress_v012g',{p_table_id:dominoCurrentTableId});
       if(tick.error){
-        console.warn('Dominó tick:',tick.error);
+        console.warn('Dominó 0.12G necesita el SQL actualizado:',tick.error);
         dominoSetSyncState('Mesa conectada · sincronización en reintento','warn');
       }
     }catch(e){
@@ -6120,17 +6120,16 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
   if(dominoState?.hand?.status!=='playing'||String(dominoState.hand.turn_user_id)!==String(dominoState.me)){dominoHideDropZones();return;}
   const tile=dominoState?.hand?.my_tiles?.[index],sides=dominoTileSides(tile,dominoState?.hand);
   if(!sides[side]){if(sourceEl){sourceEl.classList.add('invalid-return');setTimeout(()=>sourceEl.classList.remove('invalid-return'),320)}playDominoInvalidSound();return}
+  // Congelar la última jugada antes de que Supabase actualice la mano.
+  const dfcFinalSnapshot=(dominoState?.hand?.my_tiles?.length===1)?{me:dominoState.me,hand:{...dominoState.hand,board:(dominoState.hand.board||[]).map(x=>({...x})),my_tiles:[tile]}}:null;
   mfDominoPlayPending=true;
   try{
     const {error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:side});
     if(error){playDominoInvalidSound();alert(errText(error));return}
     // 0.11U: para la última ficha, visualizar el cierre tras la confirmación RPC,
     // sin esperar al siguiente reparto. No acredita saldos ni modifica Supabase.
-    if(window.dfc012fAcceptedFinalPlay && dominoState?.hand?.my_tiles?.length===1){
-      try{window.dfc012fAcceptedFinalPlay(dominoState,tile,side)}catch(e){console.warn('Mostrar dominó confirmado:',e)}
-    }
-    if(window.dfc011uAcceptedFinalPlay && dominoState?.hand?.my_tiles?.length===1){
-      try{window.dfc011uAcceptedFinalPlay(dominoState,tile,side)}catch(e){console.warn('Celebración inmediata:',e)}
+    if(dfcFinalSnapshot&&typeof window.dfc012gAcceptedFinalPlay==='function'){
+      try{window.dfc012gAcceptedFinalPlay(dfcFinalSnapshot,tile,side)}catch(e){console.warn('Mostrar dominó confirmado:',e)}
     }
     playDominoClackSound();dominoSkipOwnPlaySoundUntil=Date.now()+1200;dominoSuppressTickUntil=Date.now()+360;
     // Actualización inmediata con recuperación independiente; no esperar a tocar pantalla.
@@ -11186,11 +11185,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #dfc012c-rack{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);display:flex;gap:3px;align-items:center;z-index:22001;pointer-events:none;}
 #dfc012c-rack .domino-piece{position:relative!important;left:auto!important;top:auto!important;transform:none!important;pointer-events:none!important}
 </style>
-<script id="dfc012f-sequence">
+<script id="dfc012g-sequence">
 (()=>{'use strict';
-// 0.12F: controlador único de victoria/reparto. La liquidación sigue en Supabase.
+// 0.12G: controlador único de victoria/reparto. La liquidación sigue en Supabase.
 const $=id=>document.getElementById(id),stage=()=>$('dominoStage'),panel=()=>$('dominoTablePanel');
-const allocated=new Set(),wins=new Set(),boards=new Map();let current='',phase='',timers=[],loop=null,winning=null,lastRequest=0,querying=false,latest=null;
+const allocated=new Set(),wins=new Set(),boards=new Map();let current='',phase='',timers=[],loop=null,winning=null,lastRequest=0,querying=false,latest=null,allocating=false,repairAt=0;
 const schedule=(fn,ms)=>{const t=setTimeout(fn,Math.max(0,ms));timers.push(t);return t};
 function stop(){timers.forEach(clearTimeout);timers=[];if(loop){clearInterval(loop);loop=null}}
 function surface(){let e=$('dfc012c-scene');if(!e&&stage()){e=document.createElement('div');e.id='dfc012c-scene';stage().append(e)}return e}
@@ -11206,19 +11205,31 @@ window.dfc011tBeforeRender=remember;
 window.dfc011tAfterRender=remember;
 window.dfc011tHeldHtml=()=>winning&&Date.now()<winning.until?winning.html:'';
 function client(){return (typeof sb!=='undefined'&&sb)?sb:(window.supabaseClient||window.sb||window.supabaseDb||window.dfcSupabase||window.rfSupabase)}
-async function allocate(id){if(allocated.has(id))return true;try{
- const c=client();if(!c?.rpc)return false;
- const {data,error}=await c.rpc('rf_domino_finish_shuffle_v012d',{p_hand_id:Number(id)});
- if(error||!data?.ok){console.warn('Reparto posbarajado',error?.message||data?.error||data?.status);return false}
- allocated.add(id);return true;
- }catch(e){console.warn('Reparto pendiente',e);return false}}
+async function allocate(id){
+ if(allocated.has(id))return true;
+ if(allocating)return false;
+ allocating=true;
+ try{const c=client();if(!c?.rpc)return false;
+  // Reconciliador 0.12G: reparte una sola vez y activa el tick normal del servidor.
+  const table=Number(dominoCurrentTableId);
+  const {data,error}=await c.rpc('rf_domino_progress_v012g',{p_table_id:table});
+  if(!error && (data?.assigned || data?.status==='already_dealt'|| data?.status==='playing')){allocated.add(id);return true}
+  if(error)console.warn('Reconciliación Dominó:',error.message);
+  // Compatibilidad si hay una migración parcial: nunca asignar antes de los 7 segundos.
+  const h=latest?.hand;
+  if(String(h?.id)!==String(id)||Date.now()<parseTime(h?.play_starts_at)-7000)return false;
+  const alt=await c.rpc('rf_domino_finish_shuffle_v012d',{p_hand_id:Number(id)});
+  if(alt.error||!alt.data?.ok){console.warn('Reparto no completado:',alt.error?.message||alt.data?.error||alt.data?.status);return false}
+  allocated.add(id);return true;
+ }catch(e){console.warn('Reintentando reparto:',e);return false}finally{allocating=false}
+}
 function mixing(st,id,begin){clear();current=id;phase='mix';lock(true);const title=text('BARAJANDO FICHAS'),all=Array.from({length:28},(_,i)=>back(30+i%7*6,27+Math.floor(i/7)*11));let tick=0;
  function animate(){if(phase!=='mix'||current!==id||winning)return;for(let [i,t] of all.entries()){t.style.left=(21+Math.random()*58)+'%';t.style.top=(19+Math.random()*60)+'%';t.style.transform=`rotate(${(i*61+tick*78)%520-260}deg)`}tick++;title.textContent='BARAJANDO FICHAS · '+Math.max(0,Math.ceil((begin+7000-Date.now())/1000))+' S'}
  animate();loop=setInterval(animate,550);schedule(async()=>{if(current!==id||phase!=='mix'||winning)return;if(await allocate(id))dealing(st,id,begin+7000);else{stop();phase='';schedule(()=>onState(latest||st),1250)}},begin+7000-Date.now())}
 function dealing(st,id,at){if(current!==id||winning)return;stop();phase='deal';lock(true);surface()?.replaceChildren();const title=text('REPARTIENDO FICHAS'),n=count(st),total=7*n,step=7000/total,spots=[{x:50,y:85},{x:83,y:50},{x:50,y:15},{x:17,y:50}];
  for(let i=0;i<total;i++)schedule(()=>{if(current!==id||phase!=='deal'||winning)return;const p=back(50,50),pos=spots[i%n];requestAnimationFrame(()=>{p.style.left=pos.x+'%';p.style.top=pos.y+'%';p.classList.add('dealt')});schedule(()=>p.remove(),450);const k=Math.floor(i/n);
  if(i%n===0){const real=Array.from($('dominoHand')?.querySelectorAll('.domino-piece.hand-piece')||[])[k];if(real){const clone=real.cloneNode(true);clone.removeAttribute('id');rack()?.append(clone)}}title.textContent='REPARTIENDO FICHAS · '+(k+1)+'/7'},i*step);
- schedule(()=>{if(current!==id||phase!=='deal'||winning)return;clear()},at+7000-Date.now())}
+ schedule(()=>{if(current!==id||phase!=='deal'||winning)return;clear(); if(latest?.hand?.status==='shuffling') {phase='waiting-server';lock(true);text('INICIANDO LA PARTIDA')}},Math.max(100,at+7000-Date.now()))}
 function parseTime(v){const n=Date.parse(v||'');return Number.isFinite(n)?n:0}
 function renderChain(scene){const key=String(scene.hand_id||scene.id||'');let board=Array.isArray(scene.board)?scene.board:boards.get(key)||[];if(!board.length)board=boards.get(key)||[];
  if(!board.length){const now=$('dominoBoard');const elements=now?.querySelectorAll('.domino-piece.board-piece');if(elements?.length)return {html:now.innerHTML,index:elements.length-1};return null}
@@ -11243,8 +11254,8 @@ function scatter(scene){const host=surface(),parent=stage(),board=$('dominoBoard
  schedule(()=>coin.classList.add('fly'),3200+i*17)}
 }
 function celebrate(scene){const hand=String(scene.hand_id||scene.id||''),reason=String(scene.winner_reason||'');if(!hand||/TRANQUE/i.test(reason)||wins.has(hand)||winning)return false;
- const rep=renderChain(scene);if(!rep)return false;
- wins.add(hand);clear();winning={id:hand,until:Date.now()+5500,html:rep.html};phase='win';lock(true);
+ const rep=renderChain(scene)||{html:$('dominoBoard')?.innerHTML||'',index:-1};
+ wins.add(hand);clear();winning={id:hand,until:Date.now()+6200,html:rep.html};phase='win';lock(true);
  const board=$('dominoBoard');if(board)board.innerHTML=rep.html;
  const final=board?.querySelector('.dfc012f-last')||board?.querySelector('.domino-piece.board-piece:last-child');if(final)final.classList.add('dfc012f-last');
  const isMine=String(latest?.me||dominoState?.me||'')===String(scene.winner_user_id||'');
@@ -11252,7 +11263,7 @@ function celebrate(scene){const hand=String(scene.hand_id||scene.id||''),reason=
  text((isCapicua?'¡CAPICÚA!':'¡DOMINÓ!')+' ¡FELICIDADES!'+(isMine?' ¡GANASTE!':''),'win-title');
  scatter(scene);
  // Mantener la cadena intacta >= 3 segundos, hacer volar monedas y liberar a los 5,5 segundos.
- schedule(()=>{if(!winning||winning.id!==hand)return;winning=null;clear();current='';const b=$('dominoBoard');if(b)b.replaceChildren();if(typeof loadDominoState==='function')Promise.resolve(loadDominoState(false,true)).catch(()=>{})},5500);
+ schedule(()=>{if(!winning||winning.id!==hand)return;winning=null;clear();current='';const b=$('dominoBoard');if(b)b.replaceChildren();if(typeof loadDominoState==='function')Promise.resolve(loadDominoState(false,true)).catch(()=>{})},6200);
  return true}
 function localBoard(pre,tile,side){const h=pre?.hand;if(!h)return null;const original=Array.isArray(h.board)?h.board.map(t=>({...t})):[];
  const a=Number(tile?.a??tile?.[0]),b=Number(tile?.b??tile?.[1]);if(!Number.isInteger(a)||!Number.isInteger(b))return null;
@@ -11260,41 +11271,86 @@ function localBoard(pre,tile,side){const h=pre?.hand;if(!h)return null;const ori
  const left=Number(h.open_left);if(b===left)t={a,b,user_id:pre.me};else if(a===left)t={a:b,b:a,user_id:pre.me};else return null;original.unshift(t);
  }else if(original.length){const right=Number(h.open_right);if(a===right)t={a,b,user_id:pre.me};else if(b===right)t={a:b,b:a,user_id:pre.me};else return null;original.push(t)}else original.push(t);
  return original}
-window.dfc012fAcceptedFinalPlay=function(pre,tile,side){const hand=String(pre?.hand?.id||'');if(!hand||pre?.hand?.my_tiles?.length!==1)return;
+window.dfc012gAcceptedFinalPlay=function(pre,tile,side){const hand=String(pre?.hand?.id||'');if(!hand||pre?.hand?.my_tiles?.length!==1)return;
  const b=localBoard(pre,tile,side);if(!b)return;boards.set(hand,b);
  celebrate({hand_id:hand,winner_user_id:pre.me,winner_reason:'ULTIMA_FICHA',board:b,move:{side:side||'right'}})};
-function fromState(st){const h=st?.hand,r=st?.last_result;if(r?.id&&!wins.has(String(r.id))){const age=Date.now()-parseTime(r.settled_at);if(age>=-3000&&age<9500&& !/TRANQUE/i.test(String(r.winner_reason||''))){
+function fromState(st){const h=st?.hand,r=st?.last_result;if(r?.id&&!wins.has(String(r.id))){const age=Date.now()-parseTime(r.settled_at);if(age>=-3000&&age<24000&& !/TRANQUE/i.test(String(r.winner_reason||''))){
  const key=String(r.id),board=(h&&String(h.id)===key&&Array.isArray(h.board)&&h.board.length)?h.board:boards.get(key);
  if(board?.length)celebrate({...r,hand_id:key,board,move:st?.last_move})}}
- if(h?.status==='settled'&&!wins.has(String(h.id))&&!/TRANQUE/i.test(String(h.winner_reason||''))){const age=Date.now()-parseTime(h.settled_at);if(age>=-3000&&age<9500&&Array.isArray(h.board)&&h.board.length)celebrate({...h,hand_id:h.id})}}
+ if(h?.status==='settled'&&!wins.has(String(h.id))&&!/TRANQUE/i.test(String(h.winner_reason||''))){const age=Date.now()-parseTime(h.settled_at);if(age>=-3000&&age<24000&&Array.isArray(h.board)&&h.board.length)celebrate({...h,hand_id:h.id})}}
 async function fetchWin(){const st=latest;if(!st||!dominoCurrentTableId||querying||Date.now()-lastRequest<1400||winning)return;
  const c=client();if(!c?.rpc)return;lastRequest=Date.now();querying=true;const table=Number(dominoCurrentTableId);
  try{const {data,error}=await c.rpc('rf_domino_last_win_scene_v012f',{p_table_id:table});if(error){if(!window.dfc012fSceneRpcWarned){console.warn('La escena compartida necesita SQL 0.12F:',error.message);window.dfc012fSceneRpcWarned=true}return}
  if(table!==Number(dominoCurrentTableId)||!data?.ok)return;
  const id=String(data.hand_id||'');const age=Date.now()-parseTime(data.settled_at);
- if(id&&!wins.has(id)&&age>=-3000&&age<9500)celebrate(data);
+ if(id&&!wins.has(id)&&age>=-3000&&age<24000)celebrate(data);
  }catch(e){console.warn('Escena ganadora',e)}finally{querying=false}}
-function onState(st){latest=st;remember(st);if(!winning)fromState(st);if(!winning)fetchWin();if(winning)return;
- const h=st?.hand;if(!h?.id)return;const id=String(h.id),end=parseTime(h.play_starts_at);if(!end)return;
- const start=end-14000,now=Date.now(),status=String(h.status||'');if(id!==current){clear();current=id}
- if(status==='shuffling'&&now<end){lock(true);if(phase)return;if(now<start+7000)mixing(st,id,start);else{phase='await-assign';allocate(id).then(ok=>{if(current!==id||winning)return;if(ok)dealing(st,id,start+7000);else{phase='';schedule(()=>onState(latest||st),1300)}})}}
- else if(status==='playing'){if(now<end){lock(true);return}if(phase)clear();lock(false)}
+function onState(st){
+ latest=st;remember(st);
+ if(!winning)fromState(st);
+ if(!winning)fetchWin();
+ if(winning)return;
+ const h=st?.hand;
+ if(!h?.id){if(phase||current){clear();current=''}return}
+ const id=String(h.id),end=parseTime(h.play_starts_at),status=String(h.status||''),now=Date.now();
+ if(!end){if(phase){clear()}return}
+ if(current!==id){clear();current=id}
+ const begin=end-14000;
+ if(status==='shuffling'){
+   lock(true);
+   if(now<begin+7000){
+     if(phase!=='mix')mixing(st,id,begin);
+     return;
+   }
+   // Después del mezclado: el servidor asigna las fichas y ejecuta su tick.
+   if(phase==='mix'){stop();phase=''}
+   if(!allocated.has(id)&&!allocating && now-repairAt>1000){
+     repairAt=now;allocate(id).then(ok=>{
+       if(current!==id||winning)return;
+       if(ok){
+         const updatedEnd=parseTime(latest?.hand?.play_starts_at)||end;
+         // No perder la duración visual del reparto si la solicitud llegó tarde.
+         if(phase!=='deal')dealing(latest||st,id,Math.max(Date.now(),updatedEnd-7000));
+         if(typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{});
+       }else if(phase!=='deal'&&phase!=='waiting-server'){
+         stop();phase='retry';surface()?.replaceChildren();text('PREPARANDO FICHAS · RECONECTANDO');
+       }
+     });
+   }
+   if(allocated.has(id) && phase!=='deal' && phase!=='waiting-server' && now<end){
+     dealing(st,id,Math.max(begin+7000,now));
+   }else if(now>=end&&phase!=='deal'){
+     if(phase!=='waiting-server'){stop();phase='waiting-server';surface()?.replaceChildren();text('INICIANDO PARTIDA · SINCRONIZANDO')}
+   }
+   return;
+ }
+ if(status==='playing'){
+   if(now<end){lock(true);return}
+   if(phase)clear();lock(false);current=id;return;
+ }
+ // Mano terminada: liberar bloqueos si no hay animación ganadora activa.
+ if(phase){clear();current=id}
 }
+
 window.dfc11VisibleTiles=(st,tiles)=>tiles;
 window.dfc07VisualUpdate=onState;
-window.dfc012fTest={celebrate,onState,localBoard,renderChain};
+window.dfc012gTest={celebrate,onState,localBoard,renderChain,allocate};
 })();
 </script>
 
 <style id="dfc012f-victory-visibility">
-/* 0.12F: La ficha no se sustituye, permanece en la posición exacta del tablero. */
+/* 0.12G: La ficha no se sustituye, permanece en la posición exacta del tablero. */
 #dominoTablePanel #dominoBoard .dfc012f-last{position:relative!important;z-index:180!important;animation:dfc012fFinalGlow .70s ease-in-out infinite alternate!important;filter:brightness(1.55) drop-shadow(0 0 11px #ffe596) drop-shadow(0 0 18px #ffb918)!important}
 @keyframes dfc012fFinalGlow{from{filter:brightness(1.16) drop-shadow(0 0 5px #ffe596)}to{filter:brightness(1.65) drop-shadow(0 0 20px #ffd649)}}
 #dominoTablePanel #dfc012c-scene{display:block!important;visibility:visible!important;opacity:1!important;z-index:25000!important;pointer-events:none!important}
 #dominoTablePanel #dfc012c-scene .win-title{position:absolute!important;top:1%!important;left:50%!important;max-width:88%!important;white-space:normal!important;text-align:center!important;font-size:clamp(13px,2.8vw,24px)!important;line-height:1.15!important;padding:5px 12px!important;border-radius:16px!important;color:#ffe5a0!important;background:rgba(4,14,29,.85)!important;border:1px solid #e6ba58!important;box-shadow:0 0 12px #a77e25!important}
 #dominoTablePanel #dfc012c-scene .dfc012f-coin{width:clamp(13px,1.5vw,20px)!important;height:clamp(13px,1.5vw,20px)!important;z-index:3!important}
 </style>
-</body>
+<style id="dfc012g-safety">
+#dominoTablePanel #dfc012c-scene .win-title{z-index:30000!important;min-height:24px!important;top:1%!important;pointer-events:none!important}
+#dominoTablePanel #dominoBoard .dfc012f-last{animation:dfc012fFinalGlow .7s ease-in-out infinite alternate!important}
+#dominoTablePanel #dfc012c-scene .phase-title{z-index:31000!important}
+</style></body>
 <!-- HTML 0.12D: Secuencia única de celebración y reparto. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
