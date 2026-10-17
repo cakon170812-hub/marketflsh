@@ -2390,14 +2390,41 @@ button[data-bot18-money="retirar"],
  100%{transform:translateY(0) scale(1);filter:brightness(1)}
 }
 </style>
-<style id="dfc011xSafariRegistration">
-/* 0.11X: formulario de registro desplazable con teclado de Safari/iOS */
-#authView.auth{min-height:100dvh!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overflow-x:hidden!important;display:block!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain;padding:max(16px,env(safe-area-inset-top)) 16px max(48px,env(safe-area-inset-bottom))!important;touch-action:pan-y!important;}
-#authView .auth-card{margin:0 auto 28px!important;max-height:none!important;overflow:visible!important;transform:none!important;}
-#authView #registerForm{max-height:none!important;overflow:visible!important;touch-action:pan-y!important;}
-#authView #registerForm .primary{margin-bottom:24px!important;min-height:46px!important;}
-#authView input{font-size:16px!important;}
-@supports not (height:100dvh){#authView.auth{height:100vh!important;max-height:100vh!important;}}
+<style id="dfc012bSafariRegistration">
+/* Solo el registro puede desplazarse en Safari, incluso con el teclado visible. */
+#authView.auth:has(#registerForm:not(.hidden)) {
+  display:block!important;
+  position:fixed!important;
+  inset:0!important;
+  box-sizing:border-box!important;
+  height:100dvh!important;
+  min-height:0!important;
+  max-height:100dvh!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior-y:contain!important;
+  touch-action:pan-y!important;
+  padding: max(16px,env(safe-area-inset-top)) 16px max(64px,env(safe-area-inset-bottom))!important;
+}
+#authView.auth:has(#registerForm:not(.hidden)) .auth-card {
+  margin:0 auto 30px!important;
+  max-height:none!important;
+  overflow:visible!important;
+  transform:none!important;
+}
+#authView.auth:has(#registerForm:not(.hidden)) #registerForm {
+  max-height:none!important;
+  overflow:visible!important;
+  touch-action:pan-y!important;
+}
+#authView.auth:has(#registerForm:not(.hidden)) #registerForm button[type="submit"] {
+  display:block!important;
+  min-height:48px!important;
+  margin-bottom:40px!important;
+}
+#authView #registerForm input{font-size:16px!important;}
+@supports not (height:100dvh){#authView.auth:has(#registerForm:not(.hidden)){height:100vh!important;max-height:100vh!important;}}
 </style>
 </head>
 <body>
