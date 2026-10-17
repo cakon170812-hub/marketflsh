@@ -5614,7 +5614,7 @@ function dominoScheduleAutoPass(){
   dominoAutoPassTimer=setTimeout(async()=>{
     dominoAutoPassTimer=null;
     if(!dominoCurrentTableId)return;
-    try{const {error}=await sb.rpc('rf_domino_progress_v012h',{p_table_id:dominoCurrentTableId});if(!error)await loadDominoState(false,true)}catch(e){}
+    try{const {error}=await sb.rpc('rf_domino_progress_v012i',{p_table_id:dominoCurrentTableId});if(!error)await loadDominoState(false,true)}catch(e){}
   },2000);
 }
 function dominoHandleMoveEffects(st){
@@ -6040,10 +6040,10 @@ async function loadDominoState(force,skipTick=false){
 
   if(!skipTick&&Date.now()>=dominoSuppressTickUntil){
     try{
-      const tick=await sb.rpc('rf_domino_progress_v012h',{p_table_id:dominoCurrentTableId});
+      const tick=await sb.rpc('rf_domino_progress_v012i',{p_table_id:dominoCurrentTableId});
       if(tick.error||tick.data?.ok===false){
         const detail=String(tick.error?.message||tick.data?.error||tick.data?.status||'');
-        console.warn('Dominó 0.12H: reparto pendiente:',detail);
+        console.warn('Dominó 0.12I: reparto pendiente:',detail);
         window.dfc012hLastIssue=detail;
         dominoSetSyncState('Reparto detenido: '+detail.slice(0,90),'warn');
       }else{window.dfc012hLastIssue='';}
@@ -11212,11 +11212,11 @@ async function allocate(id){
  allocating=true;
  try{
   const c=client();if(!c?.rpc)return false;
-  const {data,error}=await c.rpc('rf_domino_progress_v012h',{p_table_id:Number(dominoCurrentTableId)});
+  const {data,error}=await c.rpc('rf_domino_progress_v012i',{p_table_id:Number(dominoCurrentTableId)});
   if(error||data?.ok===false){
     const detail=String(error?.message||data?.error||data?.status||'Reparto pendiente');
     window.dfc012hLastIssue=detail;
-    console.warn('Reparto 0.12H:',detail);
+    console.warn('Reparto 0.12I:',detail);
     return false;
   }
   if(data?.assigned){allocated.add(id);return true}
@@ -11367,7 +11367,11 @@ function onState(st){
    return;
  }
  if(status==='playing'){
-   if(h.me_in_hand && !realTiles){
+   // 0.12I: una mano en juego puede tener de 0 a 7 fichas; solo recuperar un arranque
+   // vacío, sin una sola ficha en tablero. Nunca detener una mano con jugadas reales.
+   const onBoard=Array.isArray(h.board)&&h.board.length>0;
+   const myCount=Array.isArray(h.my_tiles)?h.my_tiles.length:0;
+   if(h.me_in_hand && myCount===0 && !onBoard){
      waitingLabel('RECUPERANDO FICHAS');
      if(!allocating&&now-repairAt>1800){repairAt=now;allocate(id).then(()=>{
        if(current===id&&typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{});
@@ -11400,7 +11404,7 @@ window.dfc012hTest={celebrate,onState,localBoard,renderChain,allocate};
 #dominoTablePanel #dominoBoard .dfc012f-last{animation:dfc012fFinalGlow .7s ease-in-out infinite alternate!important}
 #dominoTablePanel #dfc012c-scene .phase-title{z-index:31000!important}
 </style></body>
-<!-- HTML 0.12H: Secuencia única de celebración y reparto. -->
+<!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
 <style id="dfc011n-result-style">
