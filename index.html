@@ -11592,59 +11592,37 @@ window.dfc011kTranque=function(report){if(!report?.hand_id||!stage())return;let 
 </script>
 <!-- 0.11W: retención de ficha ganadora / mesa vacía / tranque uniforme. Pagos y RPC intactos. -->
 
-<!-- 0.11Z: restored side-of-chain final-tile celebration and ordered visual phases. -->
-<style id="dfc011z-sequence-css">
-#dominoTablePanel.dfc011z-winning #dominoBoard .dfc011z-final{
- position:relative!important;z-index:30000!important;
- transform:scale(1.55)!important;
- filter:brightness(1.28) drop-shadow(0 0 14px #ffe569) drop-shadow(0 0 25px #ffc536)!important;
- animation:dfc011z-glow .8s ease-in-out infinite alternate!important;
- transform-origin:center center!important;
-}
-@keyframes dfc011z-glow{from{filter:brightness(1.15) drop-shadow(0 0 11px #ffe569)}to{filter:brightness(1.6) drop-shadow(0 0 26px #ffc536)}}
-#dominoTablePanel.dfc011z-shuffling #dominoBoard,#dominoTablePanel.dfc011z-dealing #dominoBoard{visibility:hidden!important}
-#dominoTablePanel.dfc011z-shuffling #dominoHand{visibility:hidden!important}
-#dominoStage .dfc011z-coin{position:absolute;z-index:32000;pointer-events:none;width:19px;height:19px;border-radius:50%;border:2px solid #ffea91;background:radial-gradient(circle at 30% 27%,#fff8a8,#ffd441 48%,#a36509 89%);box-shadow:0 0 12px #ffdb65;transform:translate(-50%,-50%)}
-#dominoStage .dfc011z-coin.travel{transition:transform 900ms ease-in,opacity 900ms ease-in;opacity:0;transform:translate(var(--dx),var(--dy)) scale(.20)}
-#dominoStage #dfc011z-shuffle{display:none;position:absolute;inset:0;z-index:30005;pointer-events:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,12,25,.22);color:#ffe7aa;text-shadow:0 2px 12px #000;font-weight:900;letter-spacing:.08em}
-#dominoTablePanel.dfc011z-shuffling #dfc011z-shuffle{display:flex}
-#dfc011z-shuffle .dfc011z-shuffle-dots{font-size:48px;animation:dfc011z-spin 1.3s ease-in-out infinite alternate}
-@keyframes dfc011z-spin{from{transform:rotate(-35deg) scale(.85)}to{transform:rotate(35deg) scale(1.2)}}
-#dominoStage #dfc011z-deal{display:none;position:absolute;inset:0;z-index:30005;pointer-events:none;align-items:center;justify-content:center}
-#dominoTablePanel.dfc011z-dealing #dfc011z-deal{display:flex}
-#dfc011z-deal .dfc011z-deal-tile{position:absolute;left:50%;top:50%;width:25px;height:43px;background:linear-gradient(#fff,#ddd);border:2px solid #e7b749;border-radius:5px;box-shadow:0 0 8px #d8b452;animation:dfc011z-fly .5s ease-in forwards;--x:0px;--y:0px}
-@keyframes dfc011z-fly{to{opacity:0;transform:translate(var(--x),var(--y)) rotate(15deg)}}
+<!-- 0.12A: regenerated single-tile visual controller and physical mixing. -->
+<style id="dfc012a-visual">
+/* Fichas de mezcla con la apariencia del dorso actual, sin revelar las manos rivales. */
+#dominoStage #dfc012a-layer{position:absolute;inset:0;z-index:31000;pointer-events:none;display:none;overflow:hidden}
+#dominoTablePanel.dfc012a-mixing #dfc012a-layer,#dominoTablePanel.dfc012a-dealing #dfc012a-layer{display:block}
+#dominoTablePanel.dfc012a-mixing #dominoBoard,#dominoTablePanel.dfc012a-dealing #dominoBoard{visibility:hidden!important}
+#dominoStage .dfc012a-tile{position:absolute;width:26px;height:46px;border-radius:5px;border:2px solid #a6d9ea;background:linear-gradient(145deg,#f5f7f6,#d1e3ee);box-shadow:inset 0 0 0 2px #fff,0 3px 6px #001526b0;transform:translate(-50%,-50%);will-change:left,top,transform;transition:left .65s ease-in-out,top .65s ease-in-out,transform .65s ease-in-out,opacity .5s}
+#dominoStage .dfc012a-tile:before{content:'◆';position:absolute;inset:0;display:grid;place-items:center;color:#315b73;font-size:15px}
+#dominoStage .dfc012a-coin{position:absolute;width:18px;height:18px;border:2px solid #ffe28b;background:radial-gradient(circle at 25% 25%,#fffad0,#eebd24 60%,#a96a04);border-radius:50%;box-shadow:0 0 11px #ffd152;transition:transform 900ms ease-in,opacity 900ms ease-in;z-index:32000}
+#dominoStage .dfc012a-coin.fly{transform:translate(var(--mx),var(--my)) scale(.2);opacity:0}
+#dominoBoard .dfc012a-final{position:relative!important;z-index:30002!important;transform:scale(1.42)!important;filter:brightness(1.4) drop-shadow(0 0 15px gold)!important;animation:dfc012a-glow .8s infinite alternate!important}
+@keyframes dfc012a-glow{to{filter:brightness(1.8) drop-shadow(0 0 26px #ffde68)}}
+#dfc012a-label{position:absolute;top:10%;left:50%;transform:translateX(-50%);font-weight:900;color:#ffda6e;text-shadow:0 0 15px #e0a61b,0 2px 4px #000;font-size:clamp(20px,4vw,34px);z-index:32002}
+#dominoTablePanel.dfc012a-mixing #dominoHand,#dominoTablePanel.dfc012a-dealing #dominoHand{visibility:hidden!important}
 </style>
-<script id="dfc011z-sequence-js">
-(function(){'use strict';
- const WIN=7000,SHUFFLE=7000,DEAL_INTERVAL=280; const seen=new Set();
- let active=null;
- const E=id=>document.getElementById(id),panel=()=>E('dominoTablePanel'),board=()=>E('dominoBoard'),stage=()=>E('dominoStage');
- const vals=t=>{if(!t)return null;let a=Number(t.a??t.tile_a??t[0]),b=Number(t.b??t.tile_b??t[1]);return Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&a<=6&&b>=0&&b<=6?[a,b]:null};
- function containers(){const st=stage();if(!st)return; if(!E('dfc011z-shuffle')){const m=document.createElement('div');m.id='dfc011z-shuffle';m.innerHTML='<div class="dfc011z-shuffle-dots">▰ ▰ ▰</div><span>BARAJANDO FICHAS · 7 SEGUNDOS</span>';st.append(m)} if(!E('dfc011z-deal')){const d=document.createElement('div');d.id='dfc011z-deal';st.append(d)}}
- function clearClass(){panel()?.classList.remove('dfc011z-winning','dfc011z-shuffling','dfc011z-dealing');E('dfc011z-deal')?.replaceChildren();}
- function finalElement(side){const nodes=[...(board()?.querySelectorAll('.domino-piece.board-piece')||[])];return nodes.length?(side==='left'?nodes[0]:nodes[nodes.length-1]):null}
- function winnerDestination(st){const id=String(st?.last_result?.winner_user_id||'');const seat=(st?.seats||[]).find(x=>String(x.user_id)===id);const node=[...(E('dominoSeats')?.querySelectorAll('.domino-seat')||[])].find(n=>String(n.getAttribute('data-seat-user'))===id);return node|| (seat?null:null)}
- function coins(st,target){const host=stage(),area=host?.getBoundingClientRect(),rect=target?.getBoundingClientRect();if(!host||!area||!rect)return;const dest=winnerDestination(st)?.getBoundingClientRect();const x=rect.left+rect.width/2-area.left,y=rect.top+rect.height/2-area.top;const ex=dest?dest.left+dest.width/2-area.left:x,ey=dest?dest.top+dest.height/2-area.top:y;for(let i=0;i<13;i++){const c=document.createElement('i');c.className='dfc011z-coin';let ang=i*Math.PI*2/13,cx=x+Math.cos(ang)*48,cy=y+Math.sin(ang)*33;c.style.left=cx+'px';c.style.top=cy+'px';host.append(c);setTimeout(()=>{c.style.setProperty('--dx',(ex-cx)+'px');c.style.setProperty('--dy',(ey-cy)+'px');c.classList.add('travel')},WIN-1150);setTimeout(()=>c.remove(),WIN+100)}}
- function start(st){const r=st?.last_result,m=st?.last_move;if(!r?.id||String(r.winner_reason||'').toUpperCase().includes('TRANQUE'))return;const age=Date.now()-Date.parse(r.settled_at||'');if(!Number.isFinite(age)||age<0||age>16000)return;const key=String(r.id);if(seen.has(key)||active)return;if(!m||String(m.user_id||'')!==String(r.winner_user_id||'')||!/PLAY/i.test(String(m.action||'')))return;
- const side=String(m.side||'right').toLowerCase()==='left'?'left':'right'; const tile=vals(m.tile||m.played_tile||m);const node=finalElement(side);if(!node||!tile)return;
- seen.add(key);containers();const t0=Date.now();active={key,t0,hand:String(st?.hand?.id||''),st};panel()?.classList.add('dfc011z-winning');node.classList.add('dfc011z-final');coins(st,node);
- // Server settlement remains the sole authority for monetary credits.
- setTimeout(()=>{if(active?.key!==key)return;panel()?.classList.remove('dfc011z-winning');board()?.replaceChildren();panel()?.classList.add('dfc011z-shuffling');E('dfcShufflePresentation')?.classList.remove('active');},WIN);
- setTimeout(()=>{if(active?.key!==key)return;panel()?.classList.remove('dfc011z-shuffling');panel()?.classList.add('dfc011z-dealing');const h=E('dfc011z-deal'),root=stage();if(!h||!root)return;let w=root.clientWidth||500,ht=root.clientHeight||280;for(let i=0;i<28;i++)setTimeout(()=>{if(active?.key!==key)return;const p=document.createElement('i');p.className='dfc011z-deal-tile';const d=[[-w*.34,0],[0,-ht*.32],[w*.34,0],[0,ht*.30]][i%4];p.style.setProperty('--x',d[0]+'px');p.style.setProperty('--y',d[1]+'px');h.append(p);setTimeout(()=>p.remove(),540)},i*DEAL_INTERVAL)},WIN+SHUFFLE);
- setTimeout(()=>{if(active?.key!==key)return;active=null;clearClass();if(typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{})},WIN+SHUFFLE+28*DEAL_INTERVAL+650)
- }
- // Keep the existing 0.11Y chain preservation, but restore end-piece emphasis.
- const before=window.dfc011tBeforeRender;
- window.dfc011tBeforeRender=function(st){if(typeof before==='function')before(st);if(!active)start(st);};
- const previousAfter=window.dfc11AfterRender;
- window.dfc11AfterRender=function(st){if(typeof previousAfter==='function')previousAfter(st);if(active&&Date.now()<active.t0+WIN){const side=String(st?.last_move?.side||'right').toLowerCase()==='left'?'left':'right';finalElement(side)?.classList.add('dfc011z-final');}};
- const oldVisual=window.dfc07VisualUpdate;
- window.dfc07VisualUpdate=function(st){if(active&&Date.now()<active.t0+WIN+SHUFFLE+28*DEAL_INTERVAL+650)return;return typeof oldVisual==='function'?oldVisual(st):undefined};
- const oldHeld=window.dfc011tHeldHtml;
- window.dfc011tHeldHtml=function(st){if(active){const d=Date.now()-active.t0;if(d>=WIN&&d<WIN+SHUFFLE+28*DEAL_INTERVAL+650)return '<span hidden></span>';}return typeof oldHeld==='function'?oldHeld(st):''};
-})();
-</script>
+<script id="dfc012a-controller">(function(){'use strict';
+const WIN=7000, MIX=7000,DEAL_MS=360;const E=id=>document.getElementById(id);
+let current=null;const seen=new Set();const panel=()=>E('dominoTablePanel'),stage=()=>E('dominoStage'),board=()=>E('dominoBoard');
+function layer(){let l=E('dfc012a-layer');if(!l&&stage()){l=document.createElement('div');l.id='dfc012a-layer';stage().appendChild(l)}return l}
+function clear(){panel()?.classList.remove('dfc012a-mixing','dfc012a-dealing');layer()?.replaceChildren();board()?.querySelectorAll('.dfc012a-final').forEach(n=>n.classList.remove('dfc012a-final'))}
+function item(a,b,cl){let e=document.createElement('div');e.className=cl||'dfc012a-tile';e.style.left=a+'%';e.style.top=b+'%';return e}
+function shuffle(key){const l=layer();if(!l||current?.key!==key)return;panel()?.classList.add('dfc012a-mixing');l.replaceChildren();let pieces=Array.from({length:28},(_,i)=>{let e=item(42+i%7*2.5,38+Math.floor(i/7)*7);l.appendChild(e);return e});let n=0;const timer=setInterval(()=>{if(current?.key!==key||n++>=9){clearInterval(timer);return}pieces.forEach((e,i)=>{e.style.left=(24+Math.random()*52)+'%';e.style.top=(24+Math.random()*48)+'%';e.style.transform='translate(-50%,-50%) rotate('+(Math.random()*480-240)+'deg)'})},650);current?.timers.push(timer)}
+function deal(key){if(current?.key!==key)return;panel()?.classList.remove('dfc012a-mixing');panel()?.classList.add('dfc012a-dealing');const l=layer();l?.replaceChildren();for(let i=0;i<28;i++){const timer=setTimeout(()=>{if(current?.key!==key)return;const e=item(50,50);l.appendChild(e);requestAnimationFrame(()=>{const pos=[{x:50,y:86},{x:84,y:51},{x:50,y:15},{x:16,y:51}][i%4];e.style.left=(pos.x+(i%7-3)*1.5)+'%';e.style.top=pos.y+'%';e.style.opacity='0'})},i*DEAL_MS);current?.timers.push(timer)}}
+function pick(st){const r=st?.last_result,m=st?.last_move;if(!r?.id||!m)return null;if(/TRANQUE/i.test(String(r.winner_reason)))return null;if(String(m.user_id)!==String(r.winner_user_id)||!(/PLAY/i.test(String(m.action))))return null;return {r,m}}
+function start(st){const x=pick(st);if(!x||current)return;const stamp=Date.parse(x.r.settled_at||'');if(!Number.isFinite(stamp)||Date.now()-stamp>13000)return;const key=String(x.r.id);if(seen.has(key))return;const side=String(x.m.side)==='left'?'left':'right';const el=[...(board()?.querySelectorAll('.domino-piece.board-piece')||[])];const tile=side==='left'?el[0]:el[el.length-1];if(!tile)return;
+seen.add(key);current={key,timers:[]};clear();tile.classList.add('dfc012a-final');const lbl=document.createElement('div');lbl.id='dfc012a-label';lbl.textContent=/CAPI/i.test(String(x.r.winner_reason))?'¡CAPICÚA!':'¡DOMINÓ!';stage()?.appendChild(lbl);
+const rect=tile.getBoundingClientRect(),sr=stage().getBoundingClientRect(),origin={x:rect.left-sr.left+rect.width/2,y:rect.top-sr.top+rect.height/2};let dest=sr;const profile=[...(E('dominoSeats')?.querySelectorAll('.domino-seat')||[])].find(n=>String(n.getAttribute('data-user-id'))===String(x.r.winner_user_id));if(profile)dest=profile.getBoundingClientRect();for(let i=0;i<25;i++){const theta=i*6.283/25;const c=document.createElement('div');c.className='dfc012a-coin';c.style.left=(origin.x+Math.cos(theta)*48)+'px';c.style.top=(origin.y+Math.sin(theta)*48)+'px';c.style.setProperty('--mx',((dest.left+dest.width/2)-(sr.left+origin.x))+'px');c.style.setProperty('--my',((dest.top+dest.height/2)-(sr.top+origin.y))+'px');stage().appendChild(c);current.timers.push(setTimeout(()=>c.classList.add('fly'),1000+i*30));current.timers.push(setTimeout(()=>c.remove(),2800))}
+current.timers.push(setTimeout(()=>{if(current?.key!==key)return;lbl.remove();board()?.replaceChildren();shuffle(key)},WIN));current.timers.push(setTimeout(()=>deal(key),WIN+MIX));current.timers.push(setTimeout(()=>{if(current?.key!==key)return;clear();current=null; if(typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{})},WIN+MIX+28*DEAL_MS+600));}
+const before=window.dfc011tBeforeRender;window.dfc011tBeforeRender=function(st){if(typeof before==='function')before(st);start(st)};
+const visual=window.dfc07VisualUpdate;window.dfc07VisualUpdate=function(st){if(current)return;return typeof visual==='function'?visual(st):undefined};
+})();</script>
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
