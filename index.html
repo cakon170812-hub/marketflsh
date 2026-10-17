@@ -5063,7 +5063,7 @@ function dominoStartPolling(){
     if(!dominoCurrentTableId)return;
     dominoHeartbeat(false).catch(()=>{});
     mfDominoSyncClock().catch(()=>{});
-    if(!mfDominoPlayPending)loadDominoState(false).catch(()=>dominoSetSyncState('Reconectando…','warn'));
+    if(!mfDominoPlayPending)loadDominoState(false,(Date.now()-window.dfc012hProgressAt<1800)?true:(window.dfc012hProgressAt=Date.now(),false)).catch(()=>dominoSetSyncState('Reconectando…','warn'));
   },1000);
 }
 function dominoStopPolling(){
@@ -5614,7 +5614,7 @@ function dominoScheduleAutoPass(){
   dominoAutoPassTimer=setTimeout(async()=>{
     dominoAutoPassTimer=null;
     if(!dominoCurrentTableId)return;
-    try{const {error}=await sb.rpc('rf_domino_tick_v11',{p_table_id:dominoCurrentTableId});if(!error)await loadDominoState(false)}catch(e){}
+    try{const {error}=await sb.rpc('rf_domino_progress_v012h',{p_table_id:dominoCurrentTableId});if(!error)await loadDominoState(false,true)}catch(e){}
   },2000);
 }
 function dominoHandleMoveEffects(st){
@@ -6040,11 +6040,13 @@ async function loadDominoState(force,skipTick=false){
 
   if(!skipTick&&Date.now()>=dominoSuppressTickUntil){
     try{
-      const tick=await sb.rpc('rf_domino_progress_v012g',{p_table_id:dominoCurrentTableId});
-      if(tick.error){
-        console.warn('Dominó 0.12G necesita el SQL actualizado:',tick.error);
-        dominoSetSyncState('Mesa conectada · sincronización en reintento','warn');
-      }
+      const tick=await sb.rpc('rf_domino_progress_v012h',{p_table_id:dominoCurrentTableId});
+      if(tick.error||tick.data?.ok===false){
+        const detail=String(tick.error?.message||tick.data?.error||tick.data?.status||'');
+        console.warn('Dominó 0.12H: reparto pendiente:',detail);
+        window.dfc012hLastIssue=detail;
+        dominoSetSyncState('Reparto detenido: '+detail.slice(0,90),'warn');
+      }else{window.dfc012hLastIssue='';}
     }catch(e){
       console.warn('Dominó tick:',e);
       dominoSetSyncState('Mesa conectada · sincronización en reintento','warn');
@@ -6128,8 +6130,8 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
     if(error){playDominoInvalidSound();alert(errText(error));return}
     // 0.11U: para la última ficha, visualizar el cierre tras la confirmación RPC,
     // sin esperar al siguiente reparto. No acredita saldos ni modifica Supabase.
-    if(dfcFinalSnapshot&&typeof window.dfc012gAcceptedFinalPlay==='function'){
-      try{window.dfc012gAcceptedFinalPlay(dfcFinalSnapshot,tile,side)}catch(e){console.warn('Mostrar dominó confirmado:',e)}
+    if(dfcFinalSnapshot&&typeof window.dfc012hAcceptedFinalPlay==='function'){
+      try{window.dfc012hAcceptedFinalPlay(dfcFinalSnapshot,tile,side)}catch(e){console.warn('Mostrar dominó confirmado:',e)}
     }
     playDominoClackSound();dominoSkipOwnPlaySoundUntil=Date.now()+1200;dominoSuppressTickUntil=Date.now()+360;
     // Actualización inmediata con recuperación independiente; no esperar a tocar pantalla.
@@ -11185,7 +11187,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #dfc012c-rack{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);display:flex;gap:3px;align-items:center;z-index:22001;pointer-events:none;}
 #dfc012c-rack .domino-piece{position:relative!important;left:auto!important;top:auto!important;transform:none!important;pointer-events:none!important}
 </style>
-<script id="dfc012g-sequence">
+<script id="dfc012h-sequence">
 (()=>{'use strict';
 // 0.12G: controlador único de victoria/reparto. La liquidación sigue en Supabase.
 const $=id=>document.getElementById(id),stage=()=>$('dominoStage'),panel=()=>$('dominoTablePanel');
@@ -11206,30 +11208,78 @@ window.dfc011tAfterRender=remember;
 window.dfc011tHeldHtml=()=>winning&&Date.now()<winning.until?winning.html:'';
 function client(){return (typeof sb!=='undefined'&&sb)?sb:(window.supabaseClient||window.sb||window.supabaseDb||window.dfcSupabase||window.rfSupabase)}
 async function allocate(id){
- if(allocated.has(id))return true;
- if(allocating)return false;
+ if(allocating||winning||String(latest?.hand?.id)!==String(id))return false;
  allocating=true;
- try{const c=client();if(!c?.rpc)return false;
-  // Reconciliador 0.12G: reparte una sola vez y activa el tick normal del servidor.
-  const table=Number(dominoCurrentTableId);
-  const {data,error}=await c.rpc('rf_domino_progress_v012g',{p_table_id:table});
-  if(!error && (data?.assigned || data?.status==='already_dealt'|| data?.status==='playing')){allocated.add(id);return true}
-  if(error)console.warn('Reconciliación Dominó:',error.message);
-  // Compatibilidad si hay una migración parcial: nunca asignar antes de los 7 segundos.
-  const h=latest?.hand;
-  if(String(h?.id)!==String(id)||Date.now()<parseTime(h?.play_starts_at)-7000)return false;
-  const alt=await c.rpc('rf_domino_finish_shuffle_v012d',{p_hand_id:Number(id)});
-  if(alt.error||!alt.data?.ok){console.warn('Reparto no completado:',alt.error?.message||alt.data?.error||alt.data?.status);return false}
-  allocated.add(id);return true;
- }catch(e){console.warn('Reintentando reparto:',e);return false}finally{allocating=false}
+ try{
+  const c=client();if(!c?.rpc)return false;
+  const {data,error}=await c.rpc('rf_domino_progress_v012h',{p_table_id:Number(dominoCurrentTableId)});
+  if(error||data?.ok===false){
+    const detail=String(error?.message||data?.error||data?.status||'Reparto pendiente');
+    window.dfc012hLastIssue=detail;
+    console.warn('Reparto 0.12H:',detail);
+    return false;
+  }
+  if(data?.assigned){allocated.add(id);return true}
+  return false;
+ }catch(e){console.warn('Comprobación de fichas',e);return false}
+ finally{allocating=false}
 }
-function mixing(st,id,begin){clear();current=id;phase='mix';lock(true);const title=text('BARAJANDO FICHAS'),all=Array.from({length:28},(_,i)=>back(30+i%7*6,27+Math.floor(i/7)*11));let tick=0;
- function animate(){if(phase!=='mix'||current!==id||winning)return;for(let [i,t] of all.entries()){t.style.left=(21+Math.random()*58)+'%';t.style.top=(19+Math.random()*60)+'%';t.style.transform=`rotate(${(i*61+tick*78)%520-260}deg)`}tick++;title.textContent='BARAJANDO FICHAS · '+Math.max(0,Math.ceil((begin+7000-Date.now())/1000))+' S'}
- animate();loop=setInterval(animate,550);schedule(async()=>{if(current!==id||phase!=='mix'||winning)return;if(await allocate(id))dealing(st,id,begin+7000);else{stop();phase='';schedule(()=>onState(latest||st),1250)}},begin+7000-Date.now())}
-function dealing(st,id,at){if(current!==id||winning)return;stop();phase='deal';lock(true);surface()?.replaceChildren();const title=text('REPARTIENDO FICHAS'),n=count(st),total=7*n,step=7000/total,spots=[{x:50,y:85},{x:83,y:50},{x:50,y:15},{x:17,y:50}];
- for(let i=0;i<total;i++)schedule(()=>{if(current!==id||phase!=='deal'||winning)return;const p=back(50,50),pos=spots[i%n];requestAnimationFrame(()=>{p.style.left=pos.x+'%';p.style.top=pos.y+'%';p.classList.add('dealt')});schedule(()=>p.remove(),450);const k=Math.floor(i/n);
- if(i%n===0){const real=Array.from($('dominoHand')?.querySelectorAll('.domino-piece.hand-piece')||[])[k];if(real){const clone=real.cloneNode(true);clone.removeAttribute('id');rack()?.append(clone)}}title.textContent='REPARTIENDO FICHAS · '+(k+1)+'/7'},i*step);
- schedule(()=>{if(current!==id||phase!=='deal'||winning)return;clear(); if(latest?.hand?.status==='shuffling') {phase='waiting-server';lock(true);text('INICIANDO LA PARTIDA')}},Math.max(100,at+7000-Date.now()))}
+function waitingLabel(message){
+ if(phase==='waiting-'+message)return;
+ stop();surface()?.replaceChildren();rack()?.replaceChildren();
+ phase='waiting-'+message;lock(true);text(message);
+}
+function mixing(st,id,begin){
+ clear();current=id;phase='mix';lock(true);
+ const title=text('BARAJANDO FICHAS');
+ const tiles=Array.from({length:28},(_,i)=>back(30+i%7*6,27+Math.floor(i/7)*11));
+ let step=0;
+ function animate(){
+   if(phase!=='mix'||current!==id||winning)return;
+   for(const [i,t] of tiles.entries()){
+     t.style.left=(21+Math.random()*58)+'%';
+     t.style.top=(19+Math.random()*60)+'%';
+     t.style.transform='rotate('+((i*61+step*78)%520-260)+'deg)';
+   }
+   step++;
+   title.textContent='BARAJANDO FICHAS · '+Math.max(0,Math.ceil((begin+7000-Date.now())/1000))+' S';
+ }
+ animate();loop=setInterval(animate,550);
+ schedule(()=>{
+   if(current!==id||phase!=='mix'||winning)return;
+   waitingLabel('PREPARANDO EL REPARTO');
+   // El refresco periódico llama al servidor; este intento adicional acelera la recuperación.
+   allocate(id).then(()=>loadDominoState(false,true).catch(()=>{}));
+ },Math.max(0,begin+7000-Date.now()));
+}
+function dealing(st,id,end){
+ if(current!==id||winning||phase==='deal')return;
+ stop();phase='deal';lock(true);
+ surface()?.replaceChildren();rack()?.replaceChildren();
+ const title=text('REPARTIENDO FICHAS');
+ const n=count(st),total=7*n;
+ const duration=Math.max(1200,Math.min(7000,end-Date.now()));
+ const step=duration/total;
+ const spots=[{x:50,y:85},{x:83,y:50},{x:50,y:15},{x:17,y:50}];
+ const mine=Array.from($('dominoHand')?.querySelectorAll('.domino-piece.hand-piece')||[]);
+ for(let i=0;i<total;i++)schedule(()=>{
+   if(current!==id||phase!=='deal'||winning)return;
+   const piece=back(50,50),pos=spots[i%n];
+   requestAnimationFrame(()=>{piece.style.left=pos.x+'%';piece.style.top=pos.y+'%';piece.classList.add('dealt')});
+   schedule(()=>piece.remove(),450);
+   if(i%n===0){const orig=mine[Math.floor(i/n)];if(orig){const clone=orig.cloneNode(true);clone.removeAttribute('id');clone.disabled=true;rack()?.append(clone)}}
+   title.textContent='REPARTIENDO FICHAS · '+(Math.floor(i/n)+1)+'/7';
+ },i*step);
+ schedule(()=>{
+   if(current!==id||phase!=='deal'||winning)return;
+   stop();surface()?.replaceChildren();rack()?.replaceChildren();
+   phase='ready-wait';
+   lock(true);
+   text('INICIANDO LA PARTIDA');
+   if(typeof loadDominoState==='function')loadDominoState(false,false).catch(()=>{});
+ },duration+60);
+}
+
 function parseTime(v){const n=Date.parse(v||'');return Number.isFinite(n)?n:0}
 function renderChain(scene){const key=String(scene.hand_id||scene.id||'');let board=Array.isArray(scene.board)?scene.board:boards.get(key)||[];if(!board.length)board=boards.get(key)||[];
  if(!board.length){const now=$('dominoBoard');const elements=now?.querySelectorAll('.domino-piece.board-piece');if(elements?.length)return {html:now.innerHTML,index:elements.length-1};return null}
@@ -11271,7 +11321,7 @@ function localBoard(pre,tile,side){const h=pre?.hand;if(!h)return null;const ori
  const left=Number(h.open_left);if(b===left)t={a,b,user_id:pre.me};else if(a===left)t={a:b,b:a,user_id:pre.me};else return null;original.unshift(t);
  }else if(original.length){const right=Number(h.open_right);if(a===right)t={a,b,user_id:pre.me};else if(b===right)t={a:b,b:a,user_id:pre.me};else return null;original.push(t)}else original.push(t);
  return original}
-window.dfc012gAcceptedFinalPlay=function(pre,tile,side){const hand=String(pre?.hand?.id||'');if(!hand||pre?.hand?.my_tiles?.length!==1)return;
+window.dfc012hAcceptedFinalPlay=function(pre,tile,side){const hand=String(pre?.hand?.id||'');if(!hand||pre?.hand?.my_tiles?.length!==1)return;
  const b=localBoard(pre,tile,side);if(!b)return;boards.set(hand,b);
  celebrate({hand_id:hand,winner_user_id:pre.me,winner_reason:'ULTIMA_FICHA',board:b,move:{side:side||'right'}})};
 function fromState(st){const h=st?.hand,r=st?.last_result;if(r?.id&&!wins.has(String(r.id))){const age=Date.now()-parseTime(r.settled_at);if(age>=-3000&&age<24000&& !/TRANQUE/i.test(String(r.winner_reason||''))){
@@ -11293,48 +11343,47 @@ function onState(st){
  const h=st?.hand;
  if(!h?.id){if(phase||current){clear();current=''}return}
  const id=String(h.id),end=parseTime(h.play_starts_at),status=String(h.status||''),now=Date.now();
- if(!end){if(phase){clear()}return}
+ if(!end){if(phase)clear();return}
  if(current!==id){clear();current=id}
+ const realTiles=Array.isArray(h.my_tiles)&&h.my_tiles.length===7;
+ const allAssigned=(st?.seats||[]).filter(x=>x.user_id && x.tile_count===7).length>=2;
+ const assigned=realTiles||allAssigned;
  const begin=end-14000;
  if(status==='shuffling'){
    lock(true);
-   if(now<begin+7000){
-     if(phase!=='mix')mixing(st,id,begin);
+   if(!assigned){
+     if(now<begin+7000){if(phase!=='mix')mixing(st,id,begin)}
+     else{
+       waitingLabel(window.dfc012hLastIssue?'REPARTO EN REINTENTO':'PREPARANDO EL REPARTO');
+       if(!allocating&&now-repairAt>1800){repairAt=now;allocate(id).then(()=>{
+         if(current===id&&!winning&&typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{});
+       })}
+     }
      return;
    }
-   // Después del mezclado: el servidor asigna las fichas y ejecuta su tick.
-   if(phase==='mix'){stop();phase=''}
-   if(!allocated.has(id)&&!allocating && now-repairAt>1000){
-     repairAt=now;allocate(id).then(ok=>{
-       if(current!==id||winning)return;
-       if(ok){
-         const updatedEnd=parseTime(latest?.hand?.play_starts_at)||end;
-         // No perder la duración visual del reparto si la solicitud llegó tarde.
-         if(phase!=='deal')dealing(latest||st,id,Math.max(Date.now(),updatedEnd-7000));
-         if(typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{});
-       }else if(phase!=='deal'&&phase!=='waiting-server'){
-         stop();phase='retry';surface()?.replaceChildren();text('PREPARANDO FICHAS · RECONECTANDO');
-       }
-     });
-   }
-   if(allocated.has(id) && phase!=='deal' && phase!=='waiting-server' && now<end){
-     dealing(st,id,Math.max(begin+7000,now));
-   }else if(now>=end&&phase!=='deal'){
-     if(phase!=='waiting-server'){stop();phase='waiting-server';surface()?.replaceChildren();text('INICIANDO PARTIDA · SINCRONIZANDO')}
-   }
+   allocated.add(id);
+   if(phase!=='deal' && phase!=='ready-wait' && now<end){dealing(st,id,end)}
+   else if(now>=end && phase!=='ready-wait'){waitingLabel('INICIANDO LA PARTIDA')}
    return;
  }
  if(status==='playing'){
-   if(now<end){lock(true);return}
-   if(phase)clear();lock(false);current=id;return;
+   if(h.me_in_hand && !realTiles){
+     waitingLabel('RECUPERANDO FICHAS');
+     if(!allocating&&now-repairAt>1800){repairAt=now;allocate(id).then(()=>{
+       if(current===id&&typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{});
+     })}
+     return;
+   }
+   if(phase)clear();
+   lock(false);current=id;
+   return;
  }
- // Mano terminada: liberar bloqueos si no hay animación ganadora activa.
  if(phase){clear();current=id}
 }
 
 window.dfc11VisibleTiles=(st,tiles)=>tiles;
 window.dfc07VisualUpdate=onState;
-window.dfc012gTest={celebrate,onState,localBoard,renderChain,allocate};
+window.dfc012hTest={celebrate,onState,localBoard,renderChain,allocate};
 })();
 </script>
 
@@ -11351,7 +11400,7 @@ window.dfc012gTest={celebrate,onState,localBoard,renderChain,allocate};
 #dominoTablePanel #dominoBoard .dfc012f-last{animation:dfc012fFinalGlow .7s ease-in-out infinite alternate!important}
 #dominoTablePanel #dfc012c-scene .phase-title{z-index:31000!important}
 </style></body>
-<!-- HTML 0.12D: Secuencia única de celebración y reparto. -->
+<!-- HTML 0.12H: Secuencia única de celebración y reparto. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
 <style id="dfc011n-result-style">
