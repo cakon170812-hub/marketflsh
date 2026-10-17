@@ -6126,6 +6126,9 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
     if(error){playDominoInvalidSound();alert(errText(error));return}
     // 0.11U: para la última ficha, visualizar el cierre tras la confirmación RPC,
     // sin esperar al siguiente reparto. No acredita saldos ni modifica Supabase.
+    if(window.dfc012fAcceptedFinalPlay && dominoState?.hand?.my_tiles?.length===1){
+      try{window.dfc012fAcceptedFinalPlay(dominoState,tile,side)}catch(e){console.warn('Mostrar dominó confirmado:',e)}
+    }
     if(window.dfc011uAcceptedFinalPlay && dominoState?.hand?.my_tiles?.length===1){
       try{window.dfc011uAcceptedFinalPlay(dominoState,tile,side)}catch(e){console.warn('Celebración inmediata:',e)}
     }
@@ -11075,81 +11078,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <!-- DOMINÓ FLASH COIN 0.11R: retención sincronizada de cadena real y ficha ganadora. -->
 
 
-<script id="dfc011t-preserve-winning-chain">
-/* Retención visual independiente de la liquidación y del cambio de mano.
-   Guarda los datos reales ANTES de vaciar el DOM; completa la ficha final únicamente
-   si su jugada está confirmada y hay información suficiente para reconstruirla. */
-(function(){
- 'use strict';
- const HOLD_MS=7000;
- let active=null, remembered=null;
- function pieces(a){return Array.isArray(a)?a:[]}
- function vals(tile){
-  if(!tile)return null;
-  const a=Number(tile.a??tile.tile_a??tile[0]);
-  const b=Number(tile.b??tile.tile_b??tile[1]);
-  return Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&a<=6&&b>=0&&b<=6?[a,b]:null;
- }
- function same(a,b){return a&&b&&a.slice().sort().join(':')===b.slice().sort().join(':')}
- function validClose(st){
-  const r=st?.last_result,m=st?.last_move;
-  if(!r||!m||String(r.winner_reason||'').includes('TRANQUE'))return false;
-  if(!/PLAY/i.test(String(m.action||''))||String(m.user_id||'')!==String(r.winner_user_id||''))return false;
-  const t=Date.parse(r.settled_at||'');
-  return Number.isFinite(t)&&Date.now()-t>=-2500&&Date.now()-t<25000;
- }
- function makeChain(st){
-  const r=st.last_result,m=st.last_move;
-  const last=vals(m), side=String(m.side||'right').toLowerCase();
-  const server=pieces(st.hand?.board);
-  // Snapshot anterior tomado cuando existía la cadena, y de la misma mano.
-  const pre=remembered && Date.now()-remembered.ts<60000 &&
-    (!remembered.handId||String(remembered.handId)===String(r.id)) ? remembered.board : [];
-  let chain=server.length>=pre.length?server.slice():pre.slice();
-  if(!chain.length||!last)return null;
-  let at=side==='left'?0:chain.length-1;
-  // Si la última ficha está presente, no añadir otra ni modificar su orientación.
-  if(!same(vals(chain[at]),last)){
-    // Sólo completar una jugada final confirmada; nunca inventar fichas previas.
-    const tile={a:last[0],b:last[1]};
-    if(side==='left')chain.unshift(tile);
-    else chain.push(tile);
-    at=side==='left'?0:chain.length-1;
-  }
-  // El mismo renderer del tablero: fichas reales pegadas en su cadena.
-  let html=dominoRows(chain,m,false);
-  const host=document.createElement('div');host.innerHTML=html;
-  const tiles=host.querySelectorAll('.domino-piece.board-piece');
-  if(tiles[at])tiles[at].classList.add('dfc011l-last-lit','dfc011t-final-tile');
-  return host.innerHTML;
- }
- window.dfc011tBeforeRender=function(st){
-  const now=Date.now();
-  if(active&&now>=active.until)active=null;
-  if(active)return;
-  if(validClose(st)){
-   const html=makeChain(st);
-   if(html)active={key:String(st.last_result.id),until:now+HOLD_MS,html};
-  }
- };
- window.dfc011tHeldHtml=function(st){
-  if(!active||Date.now()>=active.until)return '';
-  // Mantener incluso si Supabase ya comunica el nuevo estado/mano.
-  return active.html;
- };
- window.dfc011tAfterRender=function(st){
-  if(active)return;
-  const arr=pieces(st?.hand?.board);
-  if(!arr.length)return;
-  const id=String(st?.hand?.id||'');
-  const last=remembered;
-  // No reemplazar una cadena larga por una vacía ni olvidar el último turno.
-  if(!last||last.handId!==id||arr.length>=last.board.length){
-   remembered={board:arr.map(t=>({a:Number(t.a??t[0]),b:Number(t.b??t[1])})),handId:id,ts:Date.now()};
-  }
- };
-})();
-</script>
+<!-- 0.12F: la conservación de la cadena ahora pertenece al controlador único de victoria. -->
 <style id="dfc011t-winning-highlight">
 #dominoBoard .dfc011t-final-tile{filter:drop-shadow(0 0 9px #ffe68c) drop-shadow(0 0 15px #ffc535)!important;z-index:8!important;position:relative;animation:dfc011tGlow 1s ease-in-out infinite alternate!important}
 @keyframes dfc011tGlow{from{filter:drop-shadow(0 0 5px #ffc443)}to{filter:drop-shadow(0 0 18px #ffdf6d) drop-shadow(0 0 23px #ffad20)}}
@@ -11257,54 +11186,114 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #dfc012c-rack{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);display:flex;gap:3px;align-items:center;z-index:22001;pointer-events:none;}
 #dfc012c-rack .domino-piece{position:relative!important;left:auto!important;top:auto!important;transform:none!important;pointer-events:none!important}
 </style>
-<script id="dfc012d-sequence">
+<script id="dfc012f-sequence">
 (()=>{'use strict';
- const $=id=>document.getElementById(id),parent=()=>document.getElementById('dominoStage'),panel=()=>document.getElementById('dominoTablePanel');
- const played=new Set(),wins=new Set();let current='',phase='',timeouts=[],loop=null,winning=false,finishedAt=0;
- const later=(fn,ms)=>{timeouts.push(setTimeout(fn,Math.max(0,ms)))};
- const stop=()=>{timeouts.forEach(clearTimeout);timeouts=[];if(loop)clearInterval(loop);loop=null};
- function surface(){let e=$('dfc012c-scene');if(!e&&parent()){e=document.createElement('div');e.id='dfc012c-scene';parent().append(e)}return e}
- function rack(){let e=$('dfc012c-rack');if(!e&&parent()){e=document.createElement('div');e.id='dfc012c-rack';parent().append(e)}return e}
- function lock(yes){panel()?.classList.toggle('dfc012c-locked',!!yes)}
- function clear(){stop();surface()?.replaceChildren();rack()?.replaceChildren();document.querySelectorAll('.dfc012c-final').forEach(e=>e.classList.remove('dfc012c-final'));phase='';lock(false)}
- function text(t,cl='phase-title'){let e=document.createElement('div');e.className=cl;e.textContent=t;surface()?.append(e);return e}
- function back(x,y){let e=document.createElement('div');e.className='mix-tile';e.style.left=x+'%';e.style.top=y+'%';surface()?.append(e);return e}
- const count=st=>Math.max(2,Math.min(4,(st?.seats||[]).filter(x=>x.user_id&&x.state!=='empty').length||2));
- async function allocate(id){if(played.has(id))return true;try{
-  // Supabase owns the actual seven tiles. The RPC is idempotent and requires the shuffle deadline.
-  const client=(typeof sb!=='undefined'&&sb)?sb:(window.supabaseClient||window.sb||window.supabaseDb||window.dfcSupabase||window.rfSupabase);
-  if(client?.rpc){let {data,error}=await client.rpc('rf_domino_finish_shuffle_v012d',{p_hand_id:Number(id)});if(error||!data?.ok){console.warn('Reparto posbarajado:',error?.message||data?.status||data?.error);return false}else{played.add(id);return true}}
-  else if(typeof window.dominoSupabaseRpc==='function'){await window.dominoSupabaseRpc('rf_domino_finish_shuffle_v012d',{p_hand_id:Number(id)});played.add(id);return true}return false;
- }catch(e){console.warn('Asignación posbarajado pendiente',e);return false} }
- function mix(st,id,begin){clear();current=id;phase='mix';lock(true);let t=text('BARAJANDO FICHAS');const tiles=Array.from({length:28},(_,i)=>back(30+i%7*6,27+Math.floor(i/7)*11));let tick=0;
- const animate=()=>{if(phase!=='mix'||current!==id)return;for(let [i,x] of tiles.entries()){x.style.left=(21+Math.random()*58)+'%';x.style.top=(19+Math.random()*60)+'%';x.style.transform=`rotate(${(i*61+tick*78)%520-260}deg)`}tick++;t.textContent='BARAJANDO FICHAS · '+Math.max(0,Math.ceil((begin+7000-Date.now())/1000))+' S'};
- animate();loop=setInterval(animate,550);later(async()=>{if(current!==id||phase!=='mix')return;if(await allocate(id))deal(st,id,begin+7000);else{phase='';later(()=>onState(st),1300)}},begin+7000-Date.now());}
- function deal(st,id,at){if(current!==id)return;stop();phase='deal';lock(true);surface()?.replaceChildren();let heading=text('REPARTIENDO FICHAS');const n=count(st),total=7*n,step=7000/total,spots=[{x:50,y:85},{x:83,y:50},{x:50,y:15},{x:17,y:50}];
- for(let i=0;i<total;i++)later(()=>{if(current!==id||phase!=='deal')return;let p=back(50,50),d=spots[i%n];requestAnimationFrame(()=>{p.style.left=d.x+'%';p.style.top=d.y+'%';p.classList.add('dealt')});later(()=>p.remove(),450);
- // The original hand is temporarily hidden. The owner's actual tile is revealed as it arrives.
- const k=Math.floor(i/n);if(i%n===0){const real=Array.from($('dominoHand')?.querySelectorAll('.domino-piece.hand-piece')||[])[k];if(real){let clone=real.cloneNode(true);clone.removeAttribute('id');rack()?.append(clone)}}heading.textContent='REPARTIENDO FICHAS · '+(k+1)+'/7';},i*step);
- later(()=>{if(current!==id||phase!=='deal')return;clear();finishedAt=Date.now()},at+7000-Date.now());}
- function winner(st){const r=st?.last_result,m=st?.last_move;if(!r?.id||!m||winning||wins.has(String(r.id)))return;
- if(/TRANQUE/i.test(String(r.winner_reason||'')))return;
- if(String(m.user_id)!==String(r.winner_user_id)||!/PLAY/i.test(String(m.action||'')))return;
- const start=Date.parse(r.settled_at||'');if(!Number.isFinite(start)||Date.now()-start>11000)return;
- const pieces=Array.from($('dominoBoard')?.querySelectorAll('.domino-piece.board-piece')||[]),last=m.side==='left'?pieces[0]:pieces[pieces.length-1];if(!last)return;
- wins.add(String(r.id));winning=true;clear();phase='win';lock(true);last.classList.add('dfc012c-final');text('¡FELICIDADES! ¡DOMINÓ! ¡GANASTE!','win-title');const root=parent(),bounds=root.getBoundingClientRect(),rect=last.getBoundingClientRect(),x=rect.left-bounds.left+rect.width/2,y=rect.top-bounds.top+rect.height/2;
- const target=Array.from($('dominoSeats')?.querySelectorAll('.domino-seat')||[]).find(e=>String(e.dataset.userId||'')===String(r.winner_user_id));const q=target?.getBoundingClientRect()||bounds;
- for(let i=0;i<34;i++){const coin=document.createElement('div');coin.className='coin';const angle=i*2*Math.PI/34;const radius=48+((i%3)*19);coin.style.left=x+Math.cos(angle)*radius+'px';coin.style.top=y+Math.sin(angle)*radius+'px';coin.style.setProperty('--dx',q.left+q.width/2-(bounds.left+x+Math.cos(angle)*radius)+'px');coin.style.setProperty('--dy',q.top+q.height/2-(bounds.top+y+Math.sin(angle)*radius)+'px');surface()?.append(coin);later(()=>coin.classList.add('fly'),3000+i*20)}
- // At least three seconds with the winning tile visible, then coins fly, then clear.
- later(()=>{if(phase!=='win')return;clear();$('dominoBoard')?.replaceChildren();winning=false;current='';if(typeof loadDominoState==='function')Promise.resolve(loadDominoState(false,true)).catch(()=>{})},5100);
- }
- function onState(st){winner(st);if(winning)return;const h=st?.hand;if(!h?.id)return;const id=String(h.id),end=Date.parse(h.play_starts_at||'');if(!Number.isFinite(end))return;
+// 0.12F: controlador único de victoria/reparto. La liquidación sigue en Supabase.
+const $=id=>document.getElementById(id),stage=()=>$('dominoStage'),panel=()=>$('dominoTablePanel');
+const allocated=new Set(),wins=new Set(),boards=new Map();let current='',phase='',timers=[],loop=null,winning=null,lastRequest=0,querying=false,latest=null;
+const schedule=(fn,ms)=>{const t=setTimeout(fn,Math.max(0,ms));timers.push(t);return t};
+function stop(){timers.forEach(clearTimeout);timers=[];if(loop){clearInterval(loop);loop=null}}
+function surface(){let e=$('dfc012c-scene');if(!e&&stage()){e=document.createElement('div');e.id='dfc012c-scene';stage().append(e)}return e}
+function rack(){let e=$('dfc012c-rack');if(!e&&stage()){e=document.createElement('div');e.id='dfc012c-rack';stage().append(e)}return e}
+function lock(b){panel()?.classList.toggle('dfc012c-locked',!!b)}
+function clear(){stop();surface()?.replaceChildren();rack()?.replaceChildren();document.querySelectorAll('.dfc012f-last').forEach(e=>e.classList.remove('dfc012f-last'));phase='';lock(false)}
+function text(t,cl='phase-title'){const el=document.createElement('div');el.className=cl;el.textContent=t;surface()?.append(el);return el}
+function back(x,y){const el=document.createElement('div');el.className='mix-tile';el.style.left=x+'%';el.style.top=y+'%';surface()?.append(el);return el}
+const count=st=>Math.max(2,Math.min(4,(st?.seats||[]).filter(x=>x.user_id&&x.state!=='empty').length||2));
+function remember(st){const h=st?.hand;if(!h?.id||!Array.isArray(h.board)||!h.board.length)return;const key=String(h.id),old=boards.get(key);if(!old||h.board.length>=old.length)boards.set(key,h.board.map(t=>({...t})));if(boards.size>4)boards.delete(boards.keys().next().value)}
+// Los renderizados de la mesa conservan la cadena real durante la celebración.
+window.dfc011tBeforeRender=remember;
+window.dfc011tAfterRender=remember;
+window.dfc011tHeldHtml=()=>winning&&Date.now()<winning.until?winning.html:'';
+function client(){return (typeof sb!=='undefined'&&sb)?sb:(window.supabaseClient||window.sb||window.supabaseDb||window.dfcSupabase||window.rfSupabase)}
+async function allocate(id){if(allocated.has(id))return true;try{
+ const c=client();if(!c?.rpc)return false;
+ const {data,error}=await c.rpc('rf_domino_finish_shuffle_v012d',{p_hand_id:Number(id)});
+ if(error||!data?.ok){console.warn('Reparto posbarajado',error?.message||data?.error||data?.status);return false}
+ allocated.add(id);return true;
+ }catch(e){console.warn('Reparto pendiente',e);return false}}
+function mixing(st,id,begin){clear();current=id;phase='mix';lock(true);const title=text('BARAJANDO FICHAS'),all=Array.from({length:28},(_,i)=>back(30+i%7*6,27+Math.floor(i/7)*11));let tick=0;
+ function animate(){if(phase!=='mix'||current!==id||winning)return;for(let [i,t] of all.entries()){t.style.left=(21+Math.random()*58)+'%';t.style.top=(19+Math.random()*60)+'%';t.style.transform=`rotate(${(i*61+tick*78)%520-260}deg)`}tick++;title.textContent='BARAJANDO FICHAS · '+Math.max(0,Math.ceil((begin+7000-Date.now())/1000))+' S'}
+ animate();loop=setInterval(animate,550);schedule(async()=>{if(current!==id||phase!=='mix'||winning)return;if(await allocate(id))dealing(st,id,begin+7000);else{stop();phase='';schedule(()=>onState(latest||st),1250)}},begin+7000-Date.now())}
+function dealing(st,id,at){if(current!==id||winning)return;stop();phase='deal';lock(true);surface()?.replaceChildren();const title=text('REPARTIENDO FICHAS'),n=count(st),total=7*n,step=7000/total,spots=[{x:50,y:85},{x:83,y:50},{x:50,y:15},{x:17,y:50}];
+ for(let i=0;i<total;i++)schedule(()=>{if(current!==id||phase!=='deal'||winning)return;const p=back(50,50),pos=spots[i%n];requestAnimationFrame(()=>{p.style.left=pos.x+'%';p.style.top=pos.y+'%';p.classList.add('dealt')});schedule(()=>p.remove(),450);const k=Math.floor(i/n);
+ if(i%n===0){const real=Array.from($('dominoHand')?.querySelectorAll('.domino-piece.hand-piece')||[])[k];if(real){const clone=real.cloneNode(true);clone.removeAttribute('id');rack()?.append(clone)}}title.textContent='REPARTIENDO FICHAS · '+(k+1)+'/7'},i*step);
+ schedule(()=>{if(current!==id||phase!=='deal'||winning)return;clear()},at+7000-Date.now())}
+function parseTime(v){const n=Date.parse(v||'');return Number.isFinite(n)?n:0}
+function renderChain(scene){const key=String(scene.hand_id||scene.id||'');let board=Array.isArray(scene.board)?scene.board:boards.get(key)||[];if(!board.length)board=boards.get(key)||[];
+ if(!board.length){const now=$('dominoBoard');const elements=now?.querySelectorAll('.domino-piece.board-piece');if(elements?.length)return {html:now.innerHTML,index:elements.length-1};return null}
+ if(typeof dominoRows!=='function')return null;
+ const move=scene.move||scene.last_move||{},side=String(move.side||'').toLowerCase(),uid=String(scene.winner_user_id||'');
+ let idx=side==='left'?0:side==='right'?board.length-1:-1;
+ const candidates=[0,board.length-1].filter(i=>String(board[i]?.user_id||'')===uid);
+ if(idx<0 || (uid&&String(board[idx]?.user_id||'')!==uid))idx=candidates.length?candidates[candidates.length-1]:board.length-1;
+ const shell=document.createElement('div');shell.innerHTML=dominoRows(board,null,false);
+ const pieces=Array.from(shell.querySelectorAll('.domino-piece.board-piece'));if(!pieces.length)return null;
+ pieces[Math.max(0,Math.min(idx,pieces.length-1))].classList.add('dfc012f-last');
+ return {html:shell.innerHTML,index:idx};}
+function scatter(scene){const host=surface(),parent=stage(),board=$('dominoBoard');if(!host||!parent||!board)return;
+ const sr=parent.getBoundingClientRect(),br=board.getBoundingClientRect();if(!sr.width||!sr.height)return;
+ const safe={x1:br.left-sr.left-20,x2:br.right-sr.left+20,y1:br.top-sr.top-20,y2:br.bottom-sr.top+20};
+ const uid=String(scene.winner_user_id||'');let target=Array.from($('dominoSeats')?.querySelectorAll('.domino-seat')||[]).find(e=>String(e.dataset.seatUser||'')===uid);
+ target=target?.querySelector('.seat-bal')||target||$('dominoPotBadge')||parent;
+ const tr=target.getBoundingClientRect(),tx=tr.left+tr.width/2-sr.left,ty=tr.top+tr.height/2-sr.top;
+ for(let i=0;i<38;i++){const angle=(i/38)*Math.PI*2;let x=sr.width*(.5+.32*Math.cos(angle)),y=sr.height*(.50+.33*Math.sin(angle));
+ if(x>safe.x1&&x<safe.x2&&y>safe.y1&&y<safe.y2){x=angle>Math.PI/2&&angle<3*Math.PI/2?Math.max(12,safe.x1-10):Math.min(sr.width-20,safe.x2+10)}
+ const coin=document.createElement('div');coin.className='coin dfc012f-coin';coin.style.left=x+'px';coin.style.top=y+'px';coin.style.setProperty('--dx',(tx-x)+'px');coin.style.setProperty('--dy',(ty-y)+'px');host.append(coin);
+ schedule(()=>coin.classList.add('fly'),3200+i*17)}
+}
+function celebrate(scene){const hand=String(scene.hand_id||scene.id||''),reason=String(scene.winner_reason||'');if(!hand||/TRANQUE/i.test(reason)||wins.has(hand)||winning)return false;
+ const rep=renderChain(scene);if(!rep)return false;
+ wins.add(hand);clear();winning={id:hand,until:Date.now()+5500,html:rep.html};phase='win';lock(true);
+ const board=$('dominoBoard');if(board)board.innerHTML=rep.html;
+ const final=board?.querySelector('.dfc012f-last')||board?.querySelector('.domino-piece.board-piece:last-child');if(final)final.classList.add('dfc012f-last');
+ const isMine=String(latest?.me||dominoState?.me||'')===String(scene.winner_user_id||'');
+ const isCapicua=/CAPIC[UÚ]A/i.test(reason);
+ text((isCapicua?'¡CAPICÚA!':'¡DOMINÓ!')+' ¡FELICIDADES!'+(isMine?' ¡GANASTE!':''),'win-title');
+ scatter(scene);
+ // Mantener la cadena intacta >= 3 segundos, hacer volar monedas y liberar a los 5,5 segundos.
+ schedule(()=>{if(!winning||winning.id!==hand)return;winning=null;clear();current='';const b=$('dominoBoard');if(b)b.replaceChildren();if(typeof loadDominoState==='function')Promise.resolve(loadDominoState(false,true)).catch(()=>{})},5500);
+ return true}
+function localBoard(pre,tile,side){const h=pre?.hand;if(!h)return null;const original=Array.isArray(h.board)?h.board.map(t=>({...t})):[];
+ const a=Number(tile?.a??tile?.[0]),b=Number(tile?.b??tile?.[1]);if(!Number.isInteger(a)||!Number.isInteger(b))return null;
+ let t={a,b,user_id:pre.me};if(original.length&&side==='left'){
+ const left=Number(h.open_left);if(b===left)t={a,b,user_id:pre.me};else if(a===left)t={a:b,b:a,user_id:pre.me};else return null;original.unshift(t);
+ }else if(original.length){const right=Number(h.open_right);if(a===right)t={a,b,user_id:pre.me};else if(b===right)t={a:b,b:a,user_id:pre.me};else return null;original.push(t)}else original.push(t);
+ return original}
+window.dfc012fAcceptedFinalPlay=function(pre,tile,side){const hand=String(pre?.hand?.id||'');if(!hand||pre?.hand?.my_tiles?.length!==1)return;
+ const b=localBoard(pre,tile,side);if(!b)return;boards.set(hand,b);
+ celebrate({hand_id:hand,winner_user_id:pre.me,winner_reason:'ULTIMA_FICHA',board:b,move:{side:side||'right'}})};
+function fromState(st){const h=st?.hand,r=st?.last_result;if(r?.id&&!wins.has(String(r.id))){const age=Date.now()-parseTime(r.settled_at);if(age>=-3000&&age<9500&& !/TRANQUE/i.test(String(r.winner_reason||''))){
+ const key=String(r.id),board=(h&&String(h.id)===key&&Array.isArray(h.board)&&h.board.length)?h.board:boards.get(key);
+ if(board?.length)celebrate({...r,hand_id:key,board,move:st?.last_move})}}
+ if(h?.status==='settled'&&!wins.has(String(h.id))&&!/TRANQUE/i.test(String(h.winner_reason||''))){const age=Date.now()-parseTime(h.settled_at);if(age>=-3000&&age<9500&&Array.isArray(h.board)&&h.board.length)celebrate({...h,hand_id:h.id})}}
+async function fetchWin(){const st=latest;if(!st||!dominoCurrentTableId||querying||Date.now()-lastRequest<1400||winning)return;
+ const c=client();if(!c?.rpc)return;lastRequest=Date.now();querying=true;const table=Number(dominoCurrentTableId);
+ try{const {data,error}=await c.rpc('rf_domino_last_win_scene_v012f',{p_table_id:table});if(error){if(!window.dfc012fSceneRpcWarned){console.warn('La escena compartida necesita SQL 0.12F:',error.message);window.dfc012fSceneRpcWarned=true}return}
+ if(table!==Number(dominoCurrentTableId)||!data?.ok)return;
+ const id=String(data.hand_id||'');const age=Date.now()-parseTime(data.settled_at);
+ if(id&&!wins.has(id)&&age>=-3000&&age<9500)celebrate(data);
+ }catch(e){console.warn('Escena ganadora',e)}finally{querying=false}}
+function onState(st){latest=st;remember(st);if(!winning)fromState(st);if(!winning)fetchWin();if(winning)return;
+ const h=st?.hand;if(!h?.id)return;const id=String(h.id),end=parseTime(h.play_starts_at);if(!end)return;
  const start=end-14000,now=Date.now(),status=String(h.status||'');if(id!==current){clear();current=id}
- if(status==='shuffling'&&now<end){lock(true);if(phase)return;if(now<start+7000)mix(st,id,start);else{phase='await-assign';allocate(id).then(ok=>{if(current!==id)return;if(ok)deal(st,id,start+7000);else{phase='';later(()=>onState(st),1300)}})} }
+ if(status==='shuffling'&&now<end){lock(true);if(phase)return;if(now<start+7000)mixing(st,id,start);else{phase='await-assign';allocate(id).then(ok=>{if(current!==id||winning)return;if(ok)dealing(st,id,start+7000);else{phase='';schedule(()=>onState(latest||st),1300)}})}}
  else if(status==='playing'){if(now<end){lock(true);return}if(phase)clear();lock(false)}
- }
- window.dfc11VisibleTiles=(st,tiles)=>tiles;
- window.dfc07VisualUpdate=onState;
+}
+window.dfc11VisibleTiles=(st,tiles)=>tiles;
+window.dfc07VisualUpdate=onState;
+window.dfc012fTest={celebrate,onState,localBoard,renderChain};
 })();
 </script>
 
+<style id="dfc012f-victory-visibility">
+/* 0.12F: La ficha no se sustituye, permanece en la posición exacta del tablero. */
+#dominoTablePanel #dominoBoard .dfc012f-last{position:relative!important;z-index:180!important;animation:dfc012fFinalGlow .70s ease-in-out infinite alternate!important;filter:brightness(1.55) drop-shadow(0 0 11px #ffe596) drop-shadow(0 0 18px #ffb918)!important}
+@keyframes dfc012fFinalGlow{from{filter:brightness(1.16) drop-shadow(0 0 5px #ffe596)}to{filter:brightness(1.65) drop-shadow(0 0 20px #ffd649)}}
+#dominoTablePanel #dfc012c-scene{display:block!important;visibility:visible!important;opacity:1!important;z-index:25000!important;pointer-events:none!important}
+#dominoTablePanel #dfc012c-scene .win-title{position:absolute!important;top:1%!important;left:50%!important;max-width:88%!important;white-space:normal!important;text-align:center!important;font-size:clamp(13px,2.8vw,24px)!important;line-height:1.15!important;padding:5px 12px!important;border-radius:16px!important;color:#ffe5a0!important;background:rgba(4,14,29,.85)!important;border:1px solid #e6ba58!important;box-shadow:0 0 12px #a77e25!important}
+#dominoTablePanel #dfc012c-scene .dfc012f-coin{width:clamp(13px,1.5vw,20px)!important;height:clamp(13px,1.5vw,20px)!important;z-index:3!important}
+</style>
 </body>
 <!-- HTML 0.12D: Secuencia única de celebración y reparto. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
