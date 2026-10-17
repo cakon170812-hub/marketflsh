@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.11V" lang="es">
+<html data-app-build="0.11W" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -11461,6 +11461,104 @@ window.dfc011kTranque=function(report){if(!report?.hand_id||!stage())return;let 
  },350);
 })();
 </script>
+
+<style id="dfc011w-final-style">
+/* Fichas descubiertas exactamente con la estructura visual de dominoPiece. */
+#dfc011v-layer .dfc011v-tiles .domino-piece.board-piece{
+  box-sizing:border-box!important;background:linear-gradient(150deg,#fff 0%,#f2f2ee 68%,#d9dcdf 100%)!important;
+  border:1.5px solid #30333a!important;border-radius:5px!important;
+  box-shadow:inset 1px 1px 2px #fff, inset -1px -2px 2px #bbb, 1px 3px 4px #0008!important;
+  opacity:1!important;visibility:visible!important;
+}
+#dfc011v-layer .dfc011v-tiles .domino-face{opacity:1!important;visibility:visible!important;}
+#dfc011v-layer .dfc011v-tiles .domino-pip.on{opacity:1!important;visibility:visible!important;}
+#dominoTablePanel.dfc011w-holding #dominoBoard{visibility:visible!important;opacity:1!important;}
+#dominoTablePanel.dfc011w-holding #dominoBoard .domino-piece{visibility:visible!important;opacity:1!important;}
+#dominoTablePanel.dfc011w-clear #dominoBoard{visibility:hidden!important;}
+#dominoTablePanel.dfc011w-clear #dominoHand{visibility:hidden!important;}
+</style>
+<script id="dfc011w-winning-sequence">
+(()=>{
+ 'use strict';
+ const SEVEN=7000, BLANK=700;
+ let active=null,lastBoard=null,shown=new Set(),tableKey='';
+ const panel=()=>document.getElementById('dominoTablePanel');
+ const boardEl=()=>document.getElementById('dominoBoard');
+ const dataBoard=st=>Array.isArray(st?.hand?.board)?st.hand.board:[];
+ const tileValues=t=>{
+   if(!t)return null;
+   let a=Number(t.a??t.tile_a??t[0]),b=Number(t.b??t.tile_b??t[1]);
+   return Number.isInteger(a)&&Number.isInteger(b)&&a>=0&&a<=6&&b>=0&&b<=6?[a,b]:null;
+ };
+ const same=(a,b)=>a&&b&&a.slice().sort().join(':')===b.slice().sort().join(':');
+ const moveTile=m=>tileValues(m?.tile||m?.piece||m)||
+   (m?.a!=null&&m?.b!=null?tileValues(m):null);
+ function saveBefore(st){
+   const hand=st?.hand,arr=dataBoard(st),key=String(typeof dominoCurrentTableId!=='undefined'?dominoCurrentTableId:'');
+   if(key!==tableKey){active=null;lastBoard=null;shown.clear();tableKey=key;}
+   if(!active&&arr.length){
+      lastBoard={handId:String(hand?.id||''),tiles:arr.map(t=>({a:Number(t.a??t[0]),b:Number(t.b??t[1])})),
+        html:boardEl()?.innerHTML||'',received:Date.now()};
+   }
+ }
+ function start(st){
+   const r=st?.last_result; if(!r?.id||String(r.winner_reason||'').includes('TRANQUE'))return;
+   const age=Date.now()-Date.parse(r.settled_at||'');
+   if(!Number.isFinite(age)||age<0||age>18000)return;
+   const key=String(tableKey)+':'+String(r.id);
+   if(shown.has(key)||active)return;
+   let chain=dataBoard(st).map(t=>({a:Number(t.a??t[0]),b:Number(t.b??t[1])}));
+   if(!chain.length&&lastBoard&&Date.now()-lastBoard.received<30000)chain=lastBoard.tiles.map(t=>({...t}));
+   const mv=st?.last_move||{};
+   const v=moveTile(mv);
+   const side=String(mv.side||'right').toLowerCase();
+   if(!chain.length)return;
+   if(v&&lastBoard&&lastBoard.handId===String(r.id)&&chain.length===lastBoard.tiles.length){
+     if(side==='left')chain.unshift({a:v[0],b:v[1]});else chain.push({a:v[0],b:v[1]});
+   }
+   const html=typeof dominoRows==='function'?dominoRows(chain,mv,false):'';
+   if(!html)return;
+   const temp=document.createElement('div');temp.innerHTML=html;
+   const pieces=temp.querySelectorAll('.domino-piece.board-piece');
+   const target=(side==='left'?pieces[0]:pieces[pieces.length-1]);
+   if(target){target.classList.add('dfc011t-final-tile','dfc011u-winner-tile');}
+   shown.add(key);
+   active={key,html:temp.innerHTML,until:Date.now()+SEVEN,blankUntil:Date.now()+SEVEN+BLANK};
+   panel()?.classList.add('dfc011w-holding');
+   const node=boardEl();if(node)node.innerHTML=active.html;
+   setTimeout(()=>{
+     if(active?.key!==key)return;
+     panel()?.classList.remove('dfc011w-holding');panel()?.classList.add('dfc011w-clear');
+     if(boardEl())boardEl().innerHTML='';
+   },SEVEN);
+   setTimeout(()=>{
+     if(active?.key!==key)return;
+     active=null;panel()?.classList.remove('dfc011w-clear','dfc011w-holding');
+     if(typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{});
+   },SEVEN+BLANK);
+ }
+ const priorBefore=window.dfc011tBeforeRender;
+ window.dfc011tBeforeRender=function(st){
+   saveBefore(st);start(st);if(typeof priorBefore==='function')priorBefore(st);
+ };
+ const priorHeld=window.dfc011tHeldHtml;
+ window.dfc011tHeldHtml=function(st){
+   if(active){if(Date.now()<active.until)return active.html;if(Date.now()<active.blankUntil)return '<span hidden></span>';}
+   return typeof priorHeld==='function'?priorHeld(st):'';
+ };
+ // Normalize tile shapes coming from the server before rendering the tranque.
+ const oldReveal=window.dfc011vShowTranque;
+ window.dfc011vShowTranque=function(report,overlay){
+   if(!report||!Array.isArray(report.players))return;
+   const normalized={...report,players:report.players.map(p=>({...p,
+     tiles:(Array.isArray(p.tiles)?p.tiles:[]).map(t=>{
+       const v=tileValues(t);return v?{a:v[0],b:v[1]}:null;
+     }).filter(Boolean)}))};
+   if(typeof oldReveal==='function')oldReveal(normalized,overlay);
+ };
+})();
+</script>
+<!-- 0.11W: retención de ficha ganadora / mesa vacía / tranque uniforme. Pagos y RPC intactos. -->
 </body>
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
