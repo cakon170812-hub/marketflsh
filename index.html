@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.11W" lang="es">
+<html data-app-build="0.11X" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -2390,6 +2390,15 @@ button[data-bot18-money="retirar"],
  100%{transform:translateY(0) scale(1);filter:brightness(1)}
 }
 </style>
+<style id="dfc011xSafariRegistration">
+/* 0.11X: formulario de registro desplazable con teclado de Safari/iOS */
+#authView.auth{min-height:100dvh!important;height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overflow-x:hidden!important;display:block!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain;padding:max(16px,env(safe-area-inset-top)) 16px max(48px,env(safe-area-inset-bottom))!important;touch-action:pan-y!important;}
+#authView .auth-card{margin:0 auto 28px!important;max-height:none!important;overflow:visible!important;transform:none!important;}
+#authView #registerForm{max-height:none!important;overflow:visible!important;touch-action:pan-y!important;}
+#authView #registerForm .primary{margin-bottom:24px!important;min-height:46px!important;}
+#authView input{font-size:16px!important;}
+@supports not (height:100dvh){#authView.auth{height:100vh!important;max-height:100vh!important;}}
+</style>
 </head>
 <body>
 <section class="auth" id="authView">
@@ -2557,7 +2566,7 @@ button[data-bot18-money="retirar"],
 <div class="overlay" id="gameDevelopmentPanel"><div class="panel"><button class="close" data-close="gameDevelopmentPanel">✕</button><div class="game-dev-message"><div class="big" id="gameDevelopmentIcon">🎮</div><h3 id="gameDevelopmentTitle">Juego</h3><p>Este juego está en desarrollo. Muy pronto estará disponible dentro de Domino Flash Coin.</p></div></div></div>
 <div class="overlay" id="balancePanel"><div class="panel"><button class="close" data-close="balancePanel">✕</button><h2>💰 Flash Coin</h2><button class="action blue dfc-open-send" id="dfcGiftOpenBalance004" type="button">⚡ Enviar Flash Coin</button><div class="card"><span class="tiny">Saldo disponible</span><strong class="fc-balance" id="balancePanelValue" style="font-size:28px">0.000 FC</strong><span class="tiny">Tu ID: <b id="balancePublicId"></b><button class="copy-btn" id="copyBalanceIdBtn" type="button">Copiar</button></span></div><h3>Solicitudes</h3><div id="requestsList"></div><h3>Historial</h3><div id="ledgerList"></div></div></div>
 <div class="overlay" id="onlineUsersPanel"><div class="panel"><button class="close" data-close="onlineUsersPanel">✕</button><h2>🟢 Usuarios en línea</h2><div class="online-round-note" id="onlineUsersRound">Usuarios conectados · Actividad del dominó</div><div id="onlineUsersList"></div></div></div>
-<div class="overlay" id="settingsPanel"><div class="panel"><button class="close" data-close="settingsPanel">✕</button><h2>⚙️ Configuración</h2><button class="action blue" id="editProfileBtn">Editar perfil</button><button class="action dark" id="inviteSettingsBtn">🔗 Invitar usuarios</button><div class="ref-card" id="referralSummary"><b>Referidos</b><div class="tiny">Invita usuarios con tu enlace · sin bonificaciones automáticas</div><div class="ref-stats"><div><b id="refInvited">0</b><span class="tiny">Invitados</span></div><div><b id="refPlayed">0</b><span class="tiny">Jugaron</span></div><div><b id="refEarned">0.000</b><span class="tiny">FC ganadas</span></div></div></div><button class="action dark" id="appInformationBtn" style="font-size:13px;padding:9px 12px" type="button">ⓘ Información de la aplicación</button><button class="action hidden" id="leaderBtn">👑 Administrador Líder</button><button class="action dark" id="dfcPrivacyBtn" type="button">Privacidad y soporte</button><button class="action dark hidden" id="dfcDeletionAdminBtn" type="button">Solicitudes de eliminación de cuentas</button><button class="action red" id="logoutBtn">Cerrar sesión</button></div></div>
+<div class="overlay" id="settingsPanel"><div class="panel"><button class="close" data-close="settingsPanel">✕</button><h2>⚙️ Configuración</h2><button class="action blue" id="editProfileBtn">Editar perfil</button><button class="action dark" id="inviteSettingsBtn">🔗 Invitar usuarios</button><div class="ref-card" id="referralSummary"><b>Referidos</b><div class="tiny">Invita con tu enlace: gana 0.200 FC cuando tu invitado complete su primera mano válida de dominó.</div><div class="ref-stats"><div><b id="refInvited">0</b><span class="tiny">Invitados</span></div><div><b id="refPlayed">0</b><span class="tiny">Jugaron</span></div><div><b id="refEarned">0.000</b><span class="tiny">FC ganadas</span></div></div></div><button class="action dark" id="appInformationBtn" style="font-size:13px;padding:9px 12px" type="button">ⓘ Información de la aplicación</button><button class="action hidden" id="leaderBtn">👑 Administrador Líder</button><button class="action dark" id="dfcPrivacyBtn" type="button">Privacidad y soporte</button><button class="action dark hidden" id="dfcDeletionAdminBtn" type="button">Solicitudes de eliminación de cuentas</button><button class="action red" id="logoutBtn">Cerrar sesión</button></div></div>
 <div class="overlay" id="editProfilePanel"><div class="panel"><button class="close" data-close="editProfilePanel">✕</button><h2>Editar perfil</h2><input class="field" id="editFirst" placeholder="Nombre"/><input class="field" id="editLast" placeholder="Apellido"/><button class="action green" id="saveProfileBtn">Guardar</button><div class="msg" id="profileMsg"></div></div></div>
 <div class="overlay" id="promotersPanel"><div class="panel"><button class="close" data-close="promotersPanel">✕</button><h2>👥 Promotores Info</h2><div class="tiny">Contacta directamente al promotor disponible.</div><div id="promotersList"></div></div></div>
 <div class="overlay" id="promoterPanel"><div class="panel"><button class="close" data-close="promoterPanel">✕</button><h2>💼 Panel de Promotor</h2><div class="stat-grid"><div class="stat"><b id="promRegistered">0</b><span class="tiny">Registrados</span></div><div class="stat"><b id="promOnline">0</b><span class="tiny">Jugando ahora</span></div></div><h3>Mi WhatsApp</h3><input autocomplete="tel" class="field" id="promWhatsApp" inputmode="tel" placeholder="Ej: 18095551234" type="tel"/><div class="whatsapp-preview" id="whatsappPreview"></div><button class="action green" id="saveWhatsAppBtn">Confirmar / Guardar WhatsApp</button><h3>Buscar usuario por ID</h3><div class="row"><input class="field" id="promSearchId" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"/><button class="action blue" id="promSearchBtn">Buscar</button></div><div id="promSearchResult"></div></div></div>
@@ -3571,7 +3580,7 @@ function inviteLink(){
 async function shareInvite(){
   if(!me)return;
   const url=inviteLink();
-  const text='Te invito a jugar Ruleta Flash Coin. Regístrate con mi enlace.';
+  const text='Te invito a jugar Dominó Flash Coin. Regístrate con mi enlace y disfruta tus Flash Coin gratuitas.';
   try{if(navigator.share){await navigator.share({title:'Ruleta Flash Coin',text,url});return;}}catch(e){if(e?.name==='AbortError')return;}
   await copyText(url,'Enlace de invitación copiado');
 }
