@@ -10399,8 +10399,12 @@ function giftFmt(n){return Number(n).toFixed(giftDecimals())}
 function giftRulesUI(){const m=giftMin(),input=$('dfcGiftAmount004'),note=$('dfcGiftLimit005');if(input){input.min=String(m);input.step=giftDecimals()===3?'0.001':'0.01';input.placeholder=giftFmt(m);}if(note){note.textContent=giftRole()==='leader'?'Administrador: envío mínimo según configuración actual.':('Envío mínimo para '+(giftRole()==='promoter'?'promotor':'usuario')+': '+giftFmt(m)+' FC. Máximo dos decimales.')}}
 function status(t){$('dfcGiftStatus004').textContent=t||''}
 function checkedClient(){if(typeof sb==='undefined'||!sb)throw Error('La conexión con Supabase no está disponible.');if(typeof me==='undefined'||!me?.id)throw Error('Debes iniciar sesión.');return sb}
-function open(){
- try{checkedClient();}catch(e){alert(e.message);return}
+async function open(){
+ try{
+   const client=checkedClient();
+   const {data,error}=await client.auth.getUser();
+   if(error||!data?.user?.id||String(data.user.id)!==String(me.id))throw Error('Tu sesión de Supabase caducó. Cierra sesión y vuelve a entrar.');
+ }catch(e){alert(e.message||'No fue posible verificar tu sesión.');return}
  target=null;prepared=null;requestId=null;receiptText='';busy=false;
  $('dfcGiftId004').value='';$('dfcGiftAmount004').value='';
  $('dfcGiftTarget004').hidden=true;$('dfcGiftTarget004').textContent='';
@@ -10429,7 +10433,7 @@ async function find(){
  if(String(me.public_id)===id)return status('No puedes enviarte monedas a ti mismo.');
  status('Buscando destinatario…');
  const {data,error}=await checkedClient().rpc('dfc_gift_lookup_v003',{p_public_id:id});
- if(error)return status('No se pudo buscar el ID. Comprueba que el SQL 0.04 esté instalado: '+error.message);
+ if(error)return status('No se pudo buscar el ID: '+error.message+' Comprueba las funciones de envío en el proyecto Supabase del HTML.');
  if(!data||data.public_id!==id)return status('No se encontró ese ID.');
  target={id:data.public_id,name:String(data.full_name||'Usuario'),role:String(data.role||'user')};
  $('dfcGiftTarget004').hidden=false;
@@ -10688,6 +10692,23 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if(state==='shuffling'&&key){if(phase!=='shuffling'||key!==handKey){clearMix();shuffle(st);phase='shuffling';handKey=key}}
   else if(state==='playing'&&key){if(phase==='shuffling'&&key===handKey){clearMix();showDeal()}else if(handKey!==key){clearMix();clearDeal()}phase='playing';handKey=key}
   else {if(phase!==''){clearMix();clearDeal()}phase='';if(!key)handKey=null}
+ };
+})();
+</script>
+<script id="dfc011y-phase-order">
+(function(){'use strict';
+ const original=window.dfc07VisualUpdate;
+ if(typeof original!=='function')return;
+ window.dfc07VisualUpdate=function(st){
+   if(window.dfc011yHoldPhase?.())return;
+   const stage=document.getElementById('dominoTablePanel');
+   const isShuffle=String(st?.hand?.status||'')==='shuffling';
+   if(isShuffle){
+     const board=document.getElementById('dominoBoard');
+     if(board)board.replaceChildren();
+     stage?.classList.remove('dfc011w-holding');
+   }
+   return original(st);
  };
 })();
 </script>
@@ -11368,7 +11389,8 @@ window.dfc011kTranque=function(report){if(!report?.hand_id||!stage())return;let 
   if(!v||!board.length||!h||h.my_tiles?.length!==1)return;
   // RPC has acknowledged the legal move. Keep the original chain for presentation.
   const chain=board.map(x=>({a:Number(x.a??x[0]),b:Number(x.b??x[1])}));
-  if(side==='left')chain.unshift({a:v[0],b:v[1]});else chain.push({a:v[0],b:v[1]});
+  const end=side==='left'?chain[0]:chain[chain.length-1];
+     if(!same(end,v)){if(side==='left')chain.unshift({a:v[0],b:v[1]});else chain.push({a:v[0],b:v[1]});}
   const at=side==='left'?0:chain.length-1;
   const move={side:side,a:v[0],b:v[1]};
   const html=dominoRows(chain,move,false);
@@ -11522,7 +11544,7 @@ window.dfc011kTranque=function(report){if(!report?.hand_id||!stage())return;let 
    const v=moveTile(mv);
    const side=String(mv.side||'right').toLowerCase();
    if(!chain.length)return;
-   if(v&&lastBoard&&lastBoard.handId===String(r.id)&&chain.length===lastBoard.tiles.length){
+   if(v&&lastBoard&&lastBoard.handId===String(st?.hand?.id||'')&&chain.length===lastBoard.tiles.length){
      if(side==='left')chain.unshift({a:v[0],b:v[1]});else chain.push({a:v[0],b:v[1]});
    }
    const html=typeof dominoRows==='function'?dominoRows(chain,mv,false):'';
@@ -11546,6 +11568,7 @@ window.dfc011kTranque=function(report){if(!report?.hand_id||!stage())return;let 
      if(typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{});
    },SEVEN+BLANK);
  }
+ window.dfc011yHoldPhase=function(){return Boolean(active&&Date.now()<active.until)};
  const priorBefore=window.dfc011tBeforeRender;
  window.dfc011tBeforeRender=function(st){
    saveBefore(st);start(st);if(typeof priorBefore==='function')priorBefore(st);
