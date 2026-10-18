@@ -5610,7 +5610,7 @@ function dominoBindHandInteractions(){
     piece.addEventListener('pointerdown',e=>{
       if(e.button!==undefined&&e.button!==0)return;
       const idx=Number(piece.dataset.dominoTile),tile=dominoState?.hand?.my_tiles?.[idx];if(!tile)return;
-      e.preventDefault();resumeAudioOnGesture();
+      e.preventDefault();resumeAudioOnGesture();window.dfc012mArrange?.('pick');
       const allowed=canPlay()&&piece.classList.contains('playable');
       if(!allowed)resetSelection();
       try{piece.setPointerCapture(e.pointerId)}catch(_){ }
@@ -5640,7 +5640,7 @@ function dominoBindHandInteractions(){
           const r=el.getBoundingClientRect(),distance=Math.hypot(r.left+r.width/2-e.clientX,r.top+r.height/2-e.clientY);
           return !best||distance<best.distance?{el,distance}:best;
         },null);
-        if(target)dfcMoveHandTile(d.idx,Number(target.el.dataset.dominoTile),hand);
+        if(target&&dfcMoveHandTile(d.idx,Number(target.el.dataset.dominoTile),hand))window.dfc012mArrange?.('drop');
         resetSelection();return;
       }
       if(moved&&allowed&&side&&dominoTileSides(dominoState?.hand?.my_tiles?.[d.idx],dominoState?.hand)[side]){
@@ -11285,8 +11285,12 @@ async function allocate(id){
 }
 function waitingLabel(message){
  if(phase==='waiting-'+message)return;
- stop();surface()?.replaceChildren();rack()?.replaceChildren();
- phase='waiting-'+message;lock(true);text(message);
+ stop();
+ const retain=/REPARTO/.test(message);
+ if(retain){
+   surface()?.querySelectorAll('.phase-title').forEach(e=>e.remove());
+ }else surface()?.replaceChildren();
+ rack()?.replaceChildren();phase='waiting-'+message;lock(true);text(message);
 }
 function mixing(st,id,begin){
  clear();current=id;phase='mix';lock(true);
@@ -11315,30 +11319,33 @@ function mixing(st,id,begin){
 function dealing(st,id,end){
  if(current!==id||winning||phase==='deal')return;
  stop();phase='deal';lock(true);
- surface()?.replaceChildren();rack()?.replaceChildren();
+ const center=surface();if(!center)return;
+ let tiles=Array.from(center.querySelectorAll('.mix-tile'));
+ if(tiles.length<28){for(let i=tiles.length;i<28;i++)tiles.push(back(25+Math.random()*50,20+Math.random()*55));}
+ center.querySelectorAll('.phase-title').forEach(e=>e.remove());rack()?.replaceChildren();
  const title=text('REPARTIENDO FICHAS');
- const n=count(st),total=7*n;
- const duration=Math.max(1200,Math.min(7000,end-Date.now()));
- const step=duration/total;
+ const n=count(st),total=7*n,duration=Math.max(1200,Math.min(7000,end-Date.now())),step=duration/total;
  const spots=[{x:50,y:85},{x:83,y:50},{x:50,y:15},{x:17,y:50}];
  const mine=Array.from($('dominoHand')?.querySelectorAll('.domino-piece.hand-piece')||[]);
  for(let i=0;i<total;i++)schedule(()=>{
    if(current!==id||phase!=='deal'||winning)return;
    window.dfc012jSound?.('deal');
-   const piece=back(50,50),pos=spots[i%n];
-   requestAnimationFrame(()=>{piece.style.left=pos.x+'%';piece.style.top=pos.y+'%';piece.classList.add('dealt')});
-   schedule(()=>piece.remove(),450);
-   if(i%n===0){const orig=mine[Math.floor(i/n)];if(orig){const clone=orig.cloneNode(true);clone.removeAttribute('id');clone.disabled=true;rack()?.append(clone)}}
+   // Retirar EXACTAMENTE una ficha de las que sobrevivieron al barajamiento.
+   const piece=tiles[i];if(!piece)return;
+   const pos=spots[i%n],start={x:piece.style.left,y:piece.style.top};
+   piece.classList.add('dfc012m-flying');piece.style.zIndex='24';
+   piece.style.transition='left '+Math.min(400,step*.9)+'ms cubic-bezier(.2,.7,.2,1),top '+Math.min(400,step*.9)+'ms cubic-bezier(.2,.7,.2,1),opacity .38s';
+   requestAnimationFrame(()=>{piece.style.left=pos.x+'%';piece.style.top=pos.y+'%';piece.style.transform='rotate(0deg) scale(.8)';});
+   schedule(()=>{piece.style.opacity='0';schedule(()=>piece.remove(),180)},Math.min(370,Math.max(150,step*.78)));
+   if(i%n===0){const orig=mine[Math.floor(i/n)];if(orig){const clone=orig.cloneNode(true);clone.removeAttribute('id');clone.disabled=true;clone.style.opacity='0';rack()?.append(clone);requestAnimationFrame(()=>{clone.style.transition='opacity .24s';clone.style.opacity='1'})}}
    title.textContent='REPARTIENDO FICHAS · '+(Math.floor(i/n)+1)+'/7';
  },i*step);
  schedule(()=>{
    if(current!==id||phase!=='deal'||winning)return;
-   stop();surface()?.replaceChildren();rack()?.replaceChildren();
-   phase='ready-wait';
-   lock(true);
+   stop();center.replaceChildren();rack()?.replaceChildren();phase='ready-wait';lock(true);
    text('INICIANDO LA PARTIDA');
    if(typeof loadDominoState==='function')loadDominoState(false,false).catch(()=>{});
- },duration+60);
+ },duration+150);
 }
 
 function parseTime(v){const n=Date.parse(v||'');return Number.isFinite(n)?n:0}
@@ -11440,8 +11447,11 @@ function onState(st){
    const onBoard=Array.isArray(h.board)&&h.board.length>0;
    const myCount=Array.isArray(h.my_tiles)?h.my_tiles.length:0;
    if(h.me_in_hand && myCount===0 && !onBoard){
-     waitingLabel('RECUPERANDO FICHAS');
-     if(!allocating&&now-repairAt>1800){repairAt=now;allocate(id).then(()=>{
+     // 0.12M: lectura momentánea vacía NUNCA bloquea la mesa ni libera un asiento.
+     // Supabase es la fuente de verdad: recuperar en segundo plano, con retardo.
+     if(phase)clear();lock(false);
+     if(typeof dominoSetSyncState==='function')dominoSetSyncState('Sincronizando fichas · asiento conservado','warn');
+     if(!allocating&&now-repairAt>5200){repairAt=now;allocate(id).then(()=>{
        if(current===id&&typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{});
      })}
      return;
@@ -11567,13 +11577,13 @@ function dfc012kCoinBurst(host,board,recipients,total=42){
      {offset:1,transform:`translate(${tx-x}px,${ty-y}px) scale(.12)`,opacity:0}
    ];
    if(typeof coin.animate==='function'){
-     const animation=coin.animate(keyframes,{duration:4900,delay:(i%7)*22,iterations:1,fill:'forwards',easing:'ease-in-out'});
+     const animation=coin.animate(keyframes,{duration:4900,delay:i*37,iterations:1,fill:'forwards',easing:'ease-in-out'});
      animation.finished.catch(()=>{}).finally(()=>coin.remove());
    }else{
      coin.style.opacity='1';coin.style.transform='translate(0,0)';
      coin.style.transition='transform 1s ease,opacity 1s ease';
-     setTimeout(()=>{if(coin.isConnected)coin.style.transform=`translate(${ox}px,${oy}px) scale(.7)`},1900+(i%7)*22);
-     setTimeout(()=>{if(!coin.isConnected)return;coin.style.transition='transform 1.2s ease-in,opacity 1.2s ease-in';coin.style.transform=`translate(${tx-x}px,${ty-y}px) scale(.12)`;coin.style.opacity='0'},3400+(i%7)*22);
+     setTimeout(()=>{if(coin.isConnected)coin.style.transform=`translate(${ox}px,${oy}px) scale(.7)`},1900+i*37);
+     setTimeout(()=>{if(!coin.isConnected)return;coin.style.transition='transform 1.2s ease-in,opacity 1.2s ease-in';coin.style.transform=`translate(${tx-x}px,${ty-y}px) scale(.12)`;coin.style.opacity='0'},3400+i*37);
      setTimeout(()=>coin.remove(),5100);
    }
  }
@@ -11756,6 +11766,76 @@ setInterval(musicTick,2500);
 window.dfc012lAudioPrefs=()=>({...prefs});
 })();
 </script>
+
+<style id="dfc012m-style">
+#dominoTablePanel .dfc012m-flying{pointer-events:none!important;will-change:left,top,opacity;}
+#dfc012m-tranque-near{position:absolute;inset:0;pointer-events:none;z-index:21150;overflow:hidden}
+.dfc012m-seat-count{position:absolute;max-width:28%;width:clamp(106px,20%,178px);box-sizing:border-box;
+  background:linear-gradient(145deg,rgba(7,24,45,.96),rgba(6,34,54,.94));border:1px solid #caa94f;
+  border-radius:10px;padding:4px 5px;text-align:center;color:#fff;box-shadow:0 2px 12px #000b}
+.dfc012m-seat-count.winner{border:2px solid #ffe56a;box-shadow:0 0 15px #f8d65aa0}
+.dfc012m-seat-count .name{font-size:clamp(9px,1.3vw,13px);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dfc012m-seat-count .points{color:#ffdb74;font-size:clamp(11px,1.6vw,15px);font-weight:900}
+.dfc012m-seat-count .tiles{display:flex;justify-content:center;flex-wrap:wrap;gap:2px;max-height:58px;overflow:hidden}
+.dfc012m-seat-count .tiles .domino-piece{transform:scale(.65)!important;transform-origin:center;max-width:30px;max-height:39px;margin:-4px!important;pointer-events:none!important}
+#dominoTablePanel #mf196TranqueOverlay.dfc012m-sideview .mf196-players{display:none!important}
+#dominoTablePanel #mf196TranqueOverlay.dfc012m-sideview .mf196-report{width:min(370px,72%)!important;max-height:26%!important;padding:5px!important}
+#dominoTablePanel #mf196TranqueOverlay.dfc012m-sideview .mf196-title{font-size:clamp(11px,1.3vw,16px)!important}
+#dominoTablePanel #mf196TranqueOverlay.dfc012m-sideview .mf196-hint{display:none!important}
+</style>
+<script id="dfc012m-visual-and-seats">
+(()=>{'use strict';
+const $=id=>document.getElementById(id),played=new Set();let reportTimer=null,tableForReport='';
+const master=()=>typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled();
+window.dfc012mArrange=function(event){if(!master()||window.dfc012lAudioPrefs?.().effects===false)return;try{window.dfc012kClick?.(event==='drop'?'deal':'shuffle')}catch(_){}};
+function seatFor(userId){return Array.from($('dominoSeats')?.querySelectorAll('.domino-seat')||[]).find(e=>String(e.dataset.seatUser||'')===String(userId))}
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function nearSeats(report){
+ const stage=$('dominoStage'),overlay=$('mf196TranqueOverlay');if(!stage)return;
+ $('dfc012m-tranque-near')?.remove();const host=document.createElement('div');host.id='dfc012m-tranque-near';stage.append(host);
+ const area=stage.getBoundingClientRect();let positioned=0;
+ for(const p of report.players||[]){
+   const seat=seatFor(p.user_id);if(!seat)continue;positioned++;
+   const r=seat.getBoundingClientRect(),px=r.left+r.width/2-area.left,py=r.top+r.height/2-area.top;
+   const min=Math.min(...(report.players||[]).filter(p=>p.eligible!==false).map(p=>Number(p.points)));
+   const div=document.createElement('div');div.className='dfc012m-seat-count'+(p.eligible!==false&&Number(p.points)===min?' winner':'');
+   const name=String(p.full_name||p.name||'Jugador');
+   const tiles=(Array.isArray(p.tiles)?p.tiles:[]).map((t,i)=>typeof dominoPiece==='function'?dominoPiece(t,i,false,true):'').join('');
+   div.innerHTML='<div class="name">'+esc(name)+'</div><div class="points">'+Number(p.points||0)+' puntos</div><div class="tiles">'+tiles+'</div>';
+   host.append(div);const w=div.offsetWidth||145,h=div.offsetHeight||65;
+   const desiredX=px<area.width*.35?px+25:px>area.width*.65?px-w-25:px-w*.5;
+   const desiredY=py<area.height*.4?py+25:py-h-25;
+   div.style.left=Math.max(5,Math.min(area.width-w-5,desiredX))+'px';div.style.top=Math.max(5,Math.min(area.height-h-5,desiredY))+'px';
+ }
+ overlay?.classList.toggle('dfc012m-sideview',positioned>=2);
+ if(!positioned)host.remove();
+}
+window.dfc012jTranque=function(report){
+ const hand=String(report?.hand_id||''),table=String(dominoCurrentTableId||'');if(!hand||!table)return;
+ const key=table+':'+hand;
+ if(played.has(key))return;played.add(key);if(played.size>25)played.delete(played.values().next().value);
+ nearSeats(report);
+ window.dfc012jSound?.('tranque');
+ const expires=Date.parse(report.expires_at||'');let wait=Number.isFinite(expires)?expires-(typeof mfDominoNow==='function'?mfDominoNow():Date.now())+200:5800;
+ wait=Math.max(1200,Math.min(8500,wait+850));
+ // No dinero hasta que las fichas/puntos hayan desaparecido del panel.
+ setTimeout(()=>{
+   if(String(dominoCurrentTableId||'')!==table)return;
+   $('dfc012m-tranque-near')?.remove();$('mf196TranqueOverlay')?.classList.remove('dfc012m-sideview');
+   const players=(Array.isArray(report.players)?report.players:[]).filter(p=>p.eligible!==false&&Number.isFinite(Number(p.points)));
+   if(!players.length)return;
+   const min=Math.min(...players.map(p=>Number(p.points)));
+   const targets=players.filter(p=>Number(p.points)===min).map(p=>seatFor(p.user_id)).filter(Boolean).map(seat=>seat.querySelector('.seat-bal')||seat);
+   const stage=$('dominoStage'),board=$('dominoBoard');if(!targets.length||!stage||!board)return;
+   const host=document.createElement('div');host.className='dfc012m-tranque-coins';host.id='dfc012j-tranque-coins';stage.append(host);
+   window.dfc012kCoinBurst?.(host,board,targets,42);
+   window.dfc012jSound?.('scatter');setTimeout(()=>window.dfc012jSound?.('gather'),2050);
+   setTimeout(()=>window.dfc012jSound?.('credit'),3350);setTimeout(()=>host.remove(),6900);
+ },wait);
+};
+})();
+</script>
+
 </body>
 <!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
