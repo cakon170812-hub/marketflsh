@@ -2463,6 +2463,18 @@ button[data-bot18-money="retirar"],
  box-shadow:0 0 18px #f0be5388;pointer-events:none;white-space:normal
 }
 </style>
+
+<style id="dfc012k-coin-motion">
+/* La misma imagen original de Flash Coin en las tres fases visuales. */
+#dominoTablePanel #dfc012c-scene .dfc012k-coin,
+#dominoTablePanel #dfc012j-tranque-coins .dfc012k-coin{
+ background-image:var(--fc-coin-image)!important;background-size:cover!important;
+ border:0!important;pointer-events:none!important;transform-origin:center center;
+ transition:none!important;box-shadow:0 0 8px #ffe78d55!important;
+ width:clamp(15px,2.1vw,26px)!important;height:clamp(15px,2.1vw,26px)!important;
+ will-change:transform,opacity;
+}
+</style>
 </head>
 <body>
 <section class="auth" id="authView">
@@ -5411,6 +5423,7 @@ function playDominoPickSound(){
 }
 function playDominoClackSound(){
   if(!dominoSoundIsEnabled())return;
+  if(window.dfc012kClick?.('place'))return;
   const fire=()=>{playOscTone(205,.070,.100,'triangle',78,0,'domino');playOscTone(1350,.032,.042,'square',510,0,'domino');playOscTone(680,.040,.024,'triangle',260,.014,'domino')};
   if(webAudioRunning())fire();else unlockAudio().then(ok=>{if(ok)fire()}).catch(()=>{});
 }
@@ -11338,16 +11351,10 @@ function renderChain(scene){const key=String(scene.hand_id||scene.id||'');let bo
  const pieces=Array.from(shell.querySelectorAll('.domino-piece.board-piece'));if(!pieces.length)return null;
  pieces[Math.max(0,Math.min(idx,pieces.length-1))].classList.add('dfc012f-last');
  return {html:shell.innerHTML,index:idx};}
-function scatter(scene){const host=surface(),parent=stage(),board=$('dominoBoard');if(!host||!parent||!board)return;
- const sr=parent.getBoundingClientRect(),br=board.getBoundingClientRect();if(!sr.width||!sr.height)return;
- const safe={x1:br.left-sr.left-20,x2:br.right-sr.left+20,y1:br.top-sr.top-20,y2:br.bottom-sr.top+20};
- const uid=String(scene.winner_user_id||'');let target=Array.from($('dominoSeats')?.querySelectorAll('.domino-seat')||[]).find(e=>String(e.dataset.seatUser||'')===uid);
- target=target?.querySelector('.seat-bal')||target||$('dominoPotBadge')||parent;
- const tr=target.getBoundingClientRect(),tx=tr.left+tr.width/2-sr.left,ty=tr.top+tr.height/2-sr.top;
- for(let i=0;i<38;i++){const angle=(i/38)*Math.PI*2;let x=sr.width*(.5+.32*Math.cos(angle)),y=sr.height*(.50+.33*Math.sin(angle));
- if(x>safe.x1&&x<safe.x2&&y>safe.y1&&y<safe.y2){x=angle>Math.PI/2&&angle<3*Math.PI/2?Math.max(12,safe.x1-10):Math.min(sr.width-20,safe.x2+10)}
- const coin=document.createElement('div');coin.className='coin dfc012f-coin dfc012j-real-coin';coin.style.left=x+'px';coin.style.top=y+'px';coin.style.setProperty('--dx',(tx-x)+'px');coin.style.setProperty('--dy',(ty-y)+'px');host.append(coin);
- schedule(()=>coin.classList.add('fly'),3200+i*17)}
+function scatter(scene){const host=surface(),board=$('dominoBoard');if(!host||!board)return;
+ const uid=String(scene.winner_user_id||'');const seat=Array.from($('dominoSeats')?.querySelectorAll('.domino-seat')||[]).find(e=>String(e.dataset.seatUser||'')===uid);
+ const target=seat?.querySelector('.seat-bal')||seat||$('dominoPotBadge')||stage();
+ window.dfc012kCoinBurst?.(host,board,[target],46);
 }
 function dfcWinnerName(scene){
  const uid=String(scene?.winner_user_id||'');
@@ -11368,7 +11375,8 @@ function celebrate(scene){const hand=String(scene.hand_id||scene.id||''),reason=
  const winnerLabel=text('GANADOR: '+dfcWinnerName(scene),'dfc012j-winner-name');winnerLabel.setAttribute('aria-live','polite');
  window.dfc012jSound?.('victory');
  scatter(scene);window.dfc012jSound?.('scatter');
- schedule(()=>window.dfc012jSound?.('credit'),3400);
+ schedule(()=>window.dfc012jSound?.('gather'),2050);
+ schedule(()=>window.dfc012jSound?.('credit'),3350);
  // Mantener la cadena intacta >= 3 segundos, hacer volar monedas y liberar a los 5,5 segundos.
  schedule(()=>{if(!winning||winning.id!==hand)return;winning=null;clear();current='';const b=$('dominoBoard');if(b)b.replaceChildren();if(typeof loadDominoState==='function')Promise.resolve(loadDominoState(false,true)).catch(()=>{})},6200);
  return true}
@@ -11465,13 +11473,46 @@ window.dfc012hTest={celebrate,onState,localBoard,renderChain,allocate};
 (()=>{'use strict';
 // 0.12J: presentation only. Never writes prizes, settlements or winners.
 const $=id=>document.getElementById(id);const seenTranque=new Set();
+// 0.12K: percusión madera/ficha. Ruido filtrado de impacto, sin notas musicales.
+let woodBuffer=null;
+function woodClick(kind='deal',delay=0){
+ if(typeof dominoSoundIsEnabled!=='function'||!dominoSoundIsEnabled())return false;
+ if(typeof getAudioContext!=='function')return false;
+ const ctx=getAudioContext();if(!ctx||ctx.state!=='running')return false;
+ try{
+   if(!woodBuffer||woodBuffer.sampleRate!==ctx.sampleRate){
+     const len=Math.max(1,Math.floor(ctx.sampleRate*.095));woodBuffer=ctx.createBuffer(1,len,ctx.sampleRate);
+     const data=woodBuffer.getChannelData(0);for(let i=0;i<len;i++)data[i]=(Math.random()*2-1);
+   }
+   const t=ctx.currentTime+Math.max(0,delay);
+   const src=ctx.createBufferSource();src.buffer=woodBuffer;
+   const filt=ctx.createBiquadFilter();filt.type='lowpass';filt.frequency.value=kind==='shuffle'?2200:1700;
+   const gain=ctx.createGain();const level=kind==='shuffle'?.085:.115;
+   gain.gain.setValueAtTime(.0001,t);gain.gain.linearRampToValueAtTime(level,t+.0015);
+   gain.gain.exponentialRampToValueAtTime(.0001,t+.059);
+   src.connect(filt);filt.connect(gain);gain.connect(audioOutput());
+   src.start(t);src.stop(t+.07);
+   // El golpe grave natural termina antes de ser percibido como nota.
+   const osc=ctx.createOscillator(),body=ctx.createGain();osc.type='triangle';
+   osc.frequency.setValueAtTime(kind==='shuffle'?176:142,t);
+   osc.frequency.exponentialRampToValueAtTime(75,t+.040);
+   body.gain.setValueAtTime(.0001,t);body.gain.linearRampToValueAtTime(.039,t+.002);
+   body.gain.exponentialRampToValueAtTime(.0001,t+.042);
+   osc.connect(body);body.connect(audioOutput());osc.start(t);osc.stop(t+.05);
+   return true;
+ }catch(e){console.warn('Audio de fichas:',e);return false}
+}
+window.dfc012kClick=woodClick;
+
 function sound(kind){
  if(typeof dominoSoundIsEnabled!=='function'||!dominoSoundIsEnabled()||typeof playOscTone!=='function')return;
  const tone=(f,d,v,type='triangle',f2=null,delay=0)=>playOscTone(f,d,v,type,f2,delay,'domino');
  if(kind==='shuffle'){
-   tone(260,.06,.022,'triangle',155);tone(970,.022,.014,'square',580,.025);
+   woodClick('shuffle');woodClick('shuffle',.095);woodClick('shuffle',.17);
  }else if(kind==='deal'){
-   tone(295,.045,.035,'triangle',145);tone(1020,.018,.012,'square',550,.009);
+   woodClick('deal');
+ }else if(kind==='gather'){
+   for(let k=0;k<4;k++)tone(820+k*35,.028,.008,'sine',380,k*.055);
  }else if(kind==='victory'){
    // El panel antiguo solo suena para el ganador; los otros jugadores también oyen esta celebración.
    tone(494,.16,.047,'sine',658);tone(658,.19,.046,'sine',880,.12);tone(880,.24,.053,'sine',1175,.24);
@@ -11484,6 +11525,57 @@ function sound(kind){
  }
 }
 window.dfc012jSound=sound;
+// 0.12K · Único camino visual: montón inicial → dispersión → montón final → saldo.
+function dfc012kCoinBurst(host,board,recipients,total=42){
+ const stage=document.getElementById('dominoStage');
+ if(!host||!stage||!board||!Array.isArray(recipients)||!recipients.length)return false;
+ const sr=stage.getBoundingClientRect(),br=board.getBoundingClientRect();
+ const w=sr.width,h=sr.height;if(w<30||h<30)return false;
+ const rect={l:br.left-sr.left-14,r:br.right-sr.left+14,t:br.top-sr.top-14,b:br.bottom-sr.top+14};
+ // Montón compacto en una zona libre de la cadena y de los jugadores.
+ const piles=[{x:w*.51,y:h*.23},{x:w*.51,y:h*.77},{x:w*.22,y:h*.49},{x:w*.78,y:h*.49}];
+ const viable=piles.filter(a=>!(a.x>rect.l-18&&a.x<rect.r+18&&a.y>rect.t-18&&a.y<rect.b+18));
+ const pile=viable[0]||{x:w*.50,y:h*.18};
+ const targets=recipients.map(e=>{const r=e?.getBoundingClientRect?.();return r?{x:r.left+r.width/2-sr.left,y:r.top+r.height/2-sr.top}:pile});
+ const amount=Math.max(12,Math.min(60,total));
+ for(let i=0;i<amount;i++){
+   const col=i%9,row=Math.floor(i/9),rows=Math.ceil(amount/9);
+   const seed=(i*0.61803398875)%1;
+   let x=w*(.055+.89*(col+.22+.55*seed)/9);
+   let y=h*(.065+.86*(row+.18+.6*((i*19)%13)/13)/rows);
+   // Liberar cadena visible: distribuir sobre la superficie circundante.
+   if(x>rect.l&&x<rect.r&&y>rect.t&&y<rect.b){
+     const top=Math.max(14,rect.t-24),bottom=Math.min(h-23,rect.b+24);
+     y=Math.abs(y-top)<Math.abs(y-bottom)?top:bottom;
+   }
+   x=Math.max(8,Math.min(w-32,x));y=Math.max(8,Math.min(h-32,y));
+   const coin=document.createElement('span');coin.className='coin dfc012f-coin dfc012j-real-coin dfc012k-coin';
+   coin.style.left=x+'px';coin.style.top=y+'px';coin.style.setProperty('z-index','4');host.append(coin);
+   const tx=targets[i%targets.length].x,ty=targets[i%targets.length].y;
+   const ox=pile.x-x,oy=pile.y-y,turn=(i%2?18:-18);
+   const keyframes=[
+     {offset:0,transform:`translate(${ox}px,${oy}px) scale(.28) rotate(-18deg)`,opacity:0},
+     {offset:.22,transform:`translate(0px,0px) scale(1) rotate(${turn}deg)`,opacity:1},
+     {offset:.39,transform:`translate(0px,0px) scale(1) rotate(${turn}deg)`,opacity:1},
+     {offset:.61,transform:`translate(${ox+(i%5-2)*6}px,${oy+(i%7-3)*5}px) scale(.67) rotate(0deg)`,opacity:1},
+     {offset:.69,transform:`translate(${ox+(i%5-2)*6}px,${oy+(i%7-3)*5}px) scale(.67)`,opacity:1},
+     {offset:1,transform:`translate(${tx-x}px,${ty-y}px) scale(.12)`,opacity:0}
+   ];
+   if(typeof coin.animate==='function'){
+     const animation=coin.animate(keyframes,{duration:4900,delay:(i%7)*22,iterations:1,fill:'forwards',easing:'ease-in-out'});
+     animation.finished.catch(()=>{}).finally(()=>coin.remove());
+   }else{
+     coin.style.opacity='1';coin.style.transform='translate(0,0)';
+     coin.style.transition='transform 1s ease,opacity 1s ease';
+     setTimeout(()=>{if(coin.isConnected)coin.style.transform=`translate(${ox}px,${oy}px) scale(.7)`},1900+(i%7)*22);
+     setTimeout(()=>{if(!coin.isConnected)return;coin.style.transition='transform 1.2s ease-in,opacity 1.2s ease-in';coin.style.transform=`translate(${tx-x}px,${ty-y}px) scale(.12)`;coin.style.opacity='0'},3400+(i%7)*22);
+     setTimeout(()=>coin.remove(),5100);
+   }
+ }
+ return true;
+}
+window.dfc012kCoinBurst=dfc012kCoinBurst;
+
 // Transición segura del saldo principal a saldo de mesa (RPC autorizada, atómica).
 let working=false, visibleFor='', dismissed='';
 function overlay(){let o=$('dfc012j-balance');if(o)return o;const stage=$('dominoStage');if(!stage)return null;
@@ -11527,27 +11619,22 @@ window.dfc012jBalanceCheck=function(st){
  $('dfc012j-error').textContent='';visibleFor=key;panel.classList.add('open');
 };
 // El servidor devuelve fichas restantes + puntos. No calcular premios ni atribuir pagos.
-window.dfc012jTranque=function(report){const table=String(dominoCurrentTableId||''),hand=String(report?.hand_id||'');if(!hand||seenTranque.has(table+':'+hand))return;
- seenTranque.add(table+':'+hand);if(seenTranque.size>15)seenTranque.delete(seenTranque.values().next().value);
- sound('tranque');const stage=$('dominoStage'),board=$('dominoBoard');if(!stage||!board)return;
- const host=document.createElement('div');host.id='dfc012j-tranque-coins';stage.append(host);
- const sr=stage.getBoundingClientRect(),br=board.getBoundingClientRect();if(!sr.width||!sr.height)return;
+window.dfc012jTranque=function(report){
+ const table=String(dominoCurrentTableId||''),hand=String(report?.hand_id||'');
+ if(!hand||seenTranque.has(table+':'+hand))return;
  const players=(Array.isArray(report.players)?report.players:[]).filter(x=>x?.eligible!==false);
  const pts=players.map(x=>Number(x.points)).filter(Number.isFinite);if(!pts.length)return;
- const min=Math.min(...pts),winners=players.filter(x=>Number(x.points)===min);if(!winners.length)return;
- const targetEls=winners.map(w=>Array.from($('dominoSeats')?.querySelectorAll('.domino-seat')||[]).find(e=>String(e.dataset.seatUser||'')===String(w.user_id||''))).filter(Boolean);
- // Scatter across the whole free table surface, excluding visible chain.
- const safe={x1:br.left-sr.left-18,x2:br.right-sr.left+18,y1:br.top-sr.top-18,y2:br.bottom-sr.top+18};
- for(let i=0;i<28;i++){
-   const angle=i*2.39996;let x=sr.width*(.5+.39*Math.cos(angle)),y=sr.height*(.5+.38*Math.sin(angle));
-   if(x>=safe.x1&&x<=safe.x2&&y>=safe.y1&&y<=safe.y2)x=Math.max(10,safe.x1-17);
-   const coin=document.createElement('span');coin.className='dfc012j-real-coin';coin.style.left=x+'px';coin.style.top=y+'px';host.append(coin);
-   const tgt=targetEls[i%Math.max(1,targetEls.length)],r=tgt?.getBoundingClientRect();const tx=r?r.left+r.width/2-sr.left:sr.width*.5,ty=r?r.top+r.height/2-sr.top:sr.height*.5;
-   coin.style.setProperty('--dx',(tx-x)+'px');coin.style.setProperty('--dy',(ty-y)+'px');
-   setTimeout(()=>coin.classList.add('fly'),2600+i*20);
- }
- sound('scatter');setTimeout(()=>sound('credit'),2900);setTimeout(()=>host.remove(),4900);
-};
+ const min=Math.min(...pts),winners=players.filter(x=>Number(x.points)===min);
+ const stage=$('dominoStage'),board=$('dominoBoard');if(!stage||!board||!winners.length)return;
+ const targets=winners.map(w=>Array.from($('dominoSeats')?.querySelectorAll('.domino-seat')||[]).find(e=>String(e.dataset.seatUser||'')===String(w.user_id||'')))
+ .filter(Boolean).map(e=>e.querySelector('.seat-bal')||e);
+ if(!targets.length)return; // No atribuir monedas a un asiento equivocado.
+ const host=document.createElement('div');host.id='dfc012j-tranque-coins';stage.append(host);
+ seenTranque.add(table+':'+hand);if(seenTranque.size>15)seenTranque.delete(seenTranque.values().next().value);
+ sound('tranque');window.dfc012kCoinBurst?.(host,board,targets,42);
+ sound('scatter');setTimeout(()=>sound('gather'),2050);setTimeout(()=>sound('credit'),3350);
+ setTimeout(()=>host.remove(),5500);
+}
 })();
 </script>
 </body>
