@@ -3298,7 +3298,7 @@ function showReceipt(title,r){
         ${receiptLine('Hora',dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',second:'2-digit'}))}
         ${receiptLine('Referencia',ref)}
       </section>
-      <div class="receipt-balance"><span>Nuevo saldo del usuario</span><b>${money(r.balance_after)} FC</b></div>
+      <div class="receipt-balance"><span>${r.sender_balance!==undefined?'Saldo del emisor después del envío':'Nuevo saldo del usuario'}</span><b>${money(r.balance_after)} FC</b></div>
       <footer class="receipt-foot">FLASH COIN · JUEGA · PARTICIPA · GANA<div class="receipt-ref">Documento interno · ${esc(ref)}</div></footer>
     </article>`;
   show('receiptPanel');
@@ -6059,7 +6059,7 @@ function renderDominoState(st){
       const subtitle=victory.querySelector('small');
       if(subtitle)subtitle.textContent=mySeat?'Premio acreditado a tu saldo de mesa':'Premio acreditado al saldo correspondiente';
       try{if(!window.dfc012jSound)playDominoWinSound()}catch(_){ }
-      if(ownCapicua){
+      if(ownCapicua&&window.dfc012nGetMode?.()!=='points'){
         const pollBonus=async(tries=0)=>{
           if(String(dominoState?.me)!==String(uid))return;
           const {data,error}=await sb.rpc('rf_domino_capicua_bonus_v14',{p_hand_id:lr.id});
@@ -10562,6 +10562,12 @@ async function send(){
      const p=document.createElement('p');p.className='tiny';p.textContent=line;box.appendChild(p);
    }
    box.hidden=false;$('dfcGiftCopyReceipt004').classList.remove('hidden');
+   if(typeof showReceipt==='function')showReceipt('Comprobante de envío de Flash Coin',{
+    receipt_id:data.reference,created_at:data.created_at,amount:data.amount,
+    recipient_name:data.recipient_name||prepared.name,
+    recipient_public_id:data.recipient_public_id||prepared.id,
+    sender_balance:data.sender_balance,balance_after:data.sender_balance,status:'Completada'
+   });
    $('dfcGiftConfirm004').classList.add('hidden');status('Envío acreditado. Puedes copiar el comprobante o tomar una captura de pantalla.');
    prepared=null;requestId=null;target=null;
    try{if(typeof loadMe==='function')await loadMe();if(typeof renderMe==='function')renderMe();if(typeof loadLedger==='function')await loadLedger();}catch(e){console.warn('No se pudo refrescar el saldo inmediatamente',e)}
@@ -11382,6 +11388,10 @@ function celebrate(scene){const hand=String(scene.hand_id||scene.id||''),reason=
  const isCapicua=/CAPIC[UÚ]A/i.test(reason);
  text((isCapicua?'¡CAPICÚA!':'¡DOMINÓ!')+' ¡FELICIDADES!'+(isMine?' ¡GANASTE!':''),'win-title');
  const winnerLabel=text('GANADOR: '+dfcWinnerName(scene),'dfc012j-winner-name');winnerLabel.setAttribute('aria-live','polite');
+ const finTiles=Array.isArray(scene.board)?scene.board:(boards.get(hand)||[]);const finalTile=finTiles[rep.index]||finTiles[finTiles.length-1];
+ if(finalTile){const a=finalTile.a??finalTile[0],b=finalTile.b??finalTile[1];if(a!==undefined&&b!==undefined){
+  const copy=document.createElement('div');copy.className='dfc012n-winning-tile';copy.textContent='🁫 '+a+' │ '+b;winnerLabel.append(copy);
+ }}
  window.dfc012jSound?.('victory');
  scatter(scene);window.dfc012jSound?.('scatter');
  schedule(()=>window.dfc012jSound?.('gather'),2050);
@@ -11833,6 +11843,248 @@ window.dfc012jTranque=function(report){
    setTimeout(()=>window.dfc012jSound?.('credit'),3350);setTimeout(()=>host.remove(),6900);
  },wait);
 };
+})();
+</script>
+
+
+<style id="dfc012n-ui">
+/* 0.12N - color codes on selection cards; table color changes, not just labels. */
+#dominoLobbyModes .dfc012n-points-card{border:2px solid #bb83ff!important;background:linear-gradient(142deg,#29204d,#130c2c)!important;box-shadow:0 0 22px #7e4dfa66,inset 0 0 16px #843fe522!important}
+#dominoLobbyModes .dfc012n-paid-card{border:2px solid #ffc958!important;background:linear-gradient(145deg,#453012,#211606)!important;box-shadow:0 0 20px #d4942670!important}
+#dominoLobbyModes .dfc012n-lobby-label{font-weight:950;font-size:12px;letter-spacing:.03em;color:#e6c6ff;padding:5px 0}
+#dominoLobbyModes .dfc012n-paid-card .dfc012n-lobby-label{color:#ffdf94}
+#dominoTablePanel .dfc012n-points-mode{border:2px solid #ae84fa!important;box-shadow:inset 0 0 30px #8842df20,0 0 20px #7d54cf60!important}
+#dominoTablePanel .dfc012n-paid-pass{border:2px solid #edb84a!important;box-shadow:inset 0 0 30px #dbab2920,0 0 19px #ffba3660!important}
+#dfc012n-scoreboard{display:none;position:absolute;z-index:28000;left:50%;top:8%;transform:translateX(-50%);max-width:84%;min-width:160px;border:1px solid #cb9dff;border-radius:14px;background:linear-gradient(145deg,#251445ec,#0e0826ed);box-shadow:0 0 16px #9146de88;padding:8px 13px;text-align:center;pointer-events:none;color:#fff}
+#dominoStage.dfc012n-points-mode #dfc012n-scoreboard{display:block}
+#dfc012n-scoreboard strong{font-size:clamp(12px,2vw,21px);color:#e4c8ff;display:block}
+#dfc012n-scoreboard small{font-size:clamp(8px,1.1vw,12px);color:#c6b5ea}
+#dfc012n-gem-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:24000;contain:layout paint}
+.dfc012n-gem{position:absolute;width:clamp(23px,3vw,35px);height:clamp(23px,3vw,35px);display:grid;place-items:center;font-size:clamp(20px,2.7vw,32px);filter:drop-shadow(0 0 7px #70bdff);will-change:transform,opacity}
+.dfc012n-point-toast{position:absolute;z-index:34000;left:50%;top:31%;transform:translateX(-50%);max-width:75%;pointer-events:none;background:linear-gradient(130deg,#29104cee,#0c1a45ee);color:#fff;border:1px solid #e3bbff;border-radius:16px;padding:10px 18px;font-size:clamp(15px,2.1vw,25px);font-weight:950;text-align:center;box-shadow:0 0 24px #8d55e7bc;text-shadow:0 0 8px #82bafa;animation:dfc012n-toast-in .3s ease-out}
+@keyframes dfc012n-toast-in{from{opacity:0;transform:translate(-50%,12px) scale(.9)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+#dominoTablePanel .dfc012n-winning-tile{margin:5px auto 0;width:max-content;max-width:100%;background:linear-gradient(#fffbdf,#d4caa5);color:#1f1a13;border:2px solid #f5d174;border-radius:7px;padding:3px 12px;font-weight:950;font-size:clamp(15px,2vw,23px);box-shadow:0 0 20px #eabf49}
+#dominoTablePanel .dfc012n-large-coin{width:clamp(28px,3.8vw,44px)!important;height:clamp(28px,3.8vw,44px)!important;background:var(--fc-coin-image) center/cover no-repeat!important;border-radius:50%!important;border:0!important;box-shadow:0 0 10px #e5b75199!important}
+.dfc012n-mode-section{margin:9px 0;padding:10px;border-radius:13px;background:#1b1430;border:1px solid #9667cf}
+.dfc012n-mode-section label{display:block;margin:6px 0;color:#e8d4ff;font-size:12px}
+.dfc012n-mode-section input,.dfc012n-mode-section select{width:100%;box-sizing:border-box;padding:8px;border-radius:8px;font-size:15px}
+.dfc012n-receipt-actions{display:flex;gap:8px;margin:10px auto 0;max-width:440px}
+.dfc012n-receipt-actions button{flex:1;border:1px solid #dba649;background:#211707;color:#ffdf96;border-radius:12px;padding:12px 8px;font-size:12px;font-weight:900}
+@media(max-width:680px){#dfc012n-gem-layer .dfc012n-gem{filter:none}#dfc012n-scoreboard{top:4%;padding:5px 8px}}
+@media(prefers-reduced-motion:reduce){.dfc012n-gem{filter:none!important}}
+</style>
+
+
+<script id="dfc012n-feature-controller">
+(()=>{
+'use strict';
+const el=id=>document.getElementById(id);
+const esc012n=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const pref=()=>window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+let modes={}, latestMode='normal',lastSeenMatch='',lastSeenEvent=0,pollWorking=false, receipt=null;
+const getCurrentTable=()=>Number(typeof dominoCurrentTableId==='undefined'?0:dominoCurrentTableId)||0;
+async function fetchModes(){
+ try{const {data,error}=await sb.rpc('rf_domino_012n_mode_data');if(error)throw error;
+  modes=Object.fromEntries((Array.isArray(data)?data:[]).map(x=>[Number(x.config_id),x]));
+  return modes;
+ }catch(e){console.warn('Modo de Dominó 0.12N no disponible:',e);return modes;}
+}
+function decorateLobby(){
+ const host=el('dominoLobbyModes');if(!host)return;
+ host.querySelectorAll('.domino-join-mode').forEach(btn=>{
+  const card=btn.closest('.domino-choice-card'),m=modes[Number(btn.dataset.config)];if(!card)return;
+  card.classList.toggle('dfc012n-points-card',m?.game_mode==='points');
+  card.classList.toggle('dfc012n-paid-card',!!m?.paid_pass&&m?.game_mode!=='points');
+  card.querySelector('.dfc012n-lobby-label')?.remove();
+  const label=document.createElement('div');label.className='dfc012n-lobby-label';
+  if(m?.game_mode==='points') label.textContent='💎 MESA POR PUNTOS · Meta '+m.points_target+' diamantes';
+  else if(m?.paid_pass) label.textContent='✦ PINTINTINES · PASE PAGA';
+  else label.textContent='🁫 DOMINÓ NORMAL';
+  btn.before(label);
+ });
+}
+// Existing lobby builder stays authoritative for join, prices and occupancy.
+const oldLobby=typeof renderDominoLobby==='function'?renderDominoLobby:null;
+if(oldLobby){renderDominoLobby=function(...args){const result=oldLobby.apply(this,args);decorateLobby();return result;}}
+const oldOpenLobby=typeof openDominoLobby==='function'?openDominoLobby:null;
+if(oldOpenLobby){openDominoLobby=async function(...args){await fetchModes();const result=await oldOpenLobby.apply(this,args);decorateLobby();return result;};window.openDominoLobby=openDominoLobby;}
+
+async function decorateAdmin(){
+ await fetchModes();const host=el('dominoAdminConfigs');if(!host)return;
+ for(const card of host.querySelectorAll('[data-domino-admin]')){
+  const id=Number(card.dataset.dominoAdmin),m=modes[id];if(card.querySelector('.dfc012n-mode-section'))continue;
+  const paid=!!m?.paid_pass,section=document.createElement('div');section.className='dfc012n-mode-section';
+  section.innerHTML=`<b>💎 Modalidad de la mesa</b><label>Tipo <select class="d012n-mode"><option value="normal">Dominó habitual</option><option value="points">💎 Dominó por puntos</option></select></label><label>Meta de puntos <input class="d012n-target" type="number" min="10" max="50000" step="1" value="${Number(m?.points_target||100)}"></label><label>Premio capicúa (+puntos) <input class="d012n-capicua" type="number" min="0" max="10000" value="${Number(m?.capicua_bonus??30)}"></label><label>Pase redondo (+puntos) <input class="d012n-round" type="number" min="0" max="10000" value="${Number(m?.pass_round_bonus??20)}"></label><button class="action blue d012n-save" type="button">Guardar modo por puntos</button><p class="tiny d012n-msg">${paid?'Pintintines conserva su modalidad de pase pagado.':'Cambios para próximas partidas, no para partidas en curso.'}</p>`;
+  card.append(section);section.querySelector('.d012n-mode').value=m?.game_mode||'normal';
+  if(paid){section.querySelector('.d012n-mode').disabled=true;section.querySelector('.d012n-save').disabled=true;}
+  section.querySelector('.d012n-save').addEventListener('click',async()=>{
+   const btn=section.querySelector('.d012n-save'),out=section.querySelector('.d012n-msg');btn.disabled=true;
+   try{const {data,error}=await sb.rpc('rf_domino_012n_set_mode',{
+     p_config_id:id,p_mode:section.querySelector('.d012n-mode').value,
+     p_target:Number(section.querySelector('.d012n-target').value),
+     p_capicua:Number(section.querySelector('.d012n-capicua').value),
+     p_round:Number(section.querySelector('.d012n-round').value)});
+    if(error||data?.ok!==true)throw(error||new Error('No se guardó la modalidad'));
+    out.textContent='✅ Modalidad guardada. Se aplicará a nuevas partidas.';await fetchModes();
+   }catch(err){out.textContent='Error: '+(err.message||err);}finally{btn.disabled=false;}
+  });
+ }
+}
+const oldAdmin=typeof loadDominoAdminConfigs==='function'?loadDominoAdminConfigs:null;
+if(oldAdmin) loadDominoAdminConfigs=async function(...args){const r=await oldAdmin.apply(this,args);await decorateAdmin();return r;};
+
+function syncTheme(mode){
+ latestMode=mode;window.dfc012nPointsMode=mode;
+ const st=el('dominoStage');if(!st)return;
+ st.classList.toggle('dfc012n-points-mode',mode==='points');
+ st.classList.toggle('dfc012n-paid-pass',mode==='paid_pass');
+ if(mode!=='points')el('dfc012n-scoreboard')?.remove();
+}
+function gemStage(){const stage=el('dominoStage');if(!stage)return null;
+ let layer=el('dfc012n-gem-layer');if(!layer){layer=document.createElement('div');layer.id='dfc012n-gem-layer';stage.append(layer);}return layer;}
+function scorePanel(st){let host=el('dfc012n-scoreboard');const stage=el('dominoStage');if(!stage)return;
+ if(!host){host=document.createElement('div');host.id='dfc012n-scoreboard';stage.append(host);}
+ host.innerHTML=`<strong>💎 ${Number(st.score_a||0)} · ${Number(st.score_b||0)} 💎</strong><small>META ${Number(st.target||100)} · Equipo A / Equipo B</small>`;
+}
+function showPointToast(kind,points){const stage=el('dominoStage');if(!stage)return;
+ const node=document.createElement('div');node.className='dfc012n-point-toast';
+ node.textContent=(kind.startsWith('PASE_REDONDO')?'¡PASE REDONDO!':kind==='CAPICUA'?'¡CAPICÚA!':'¡PUNTOS GANADOS!')+' 💎 +'+points;
+ stage.append(node);setTimeout(()=>node.remove(),3800);
+ if(window.dfc012lAudioPrefs?.().celebration!==false)window.dfc012jSound?.('victory');
+}
+function sprayGems(points,side){
+ const layer=gemStage(),stage=el('dominoStage');if(!layer||!stage)return;
+ const sr=stage.getBoundingClientRect(),w=sr.width,h=sr.height;
+ if(!w||!h)return;
+ const board=el('dominoBoard')?.getBoundingClientRect();
+ const count=pref()?8:(w<750?18:30),mode=Math.floor(Math.random()*3);
+ const scoreboard=el('dfc012n-scoreboard')?.getBoundingClientRect();
+ const tx=scoreboard?scoreboard.left-sr.left+scoreboard.width*(side===1?.28:.72):w*.5,
+ ty=scoreboard?scoreboard.top-sr.top+scoreboard.height*.5:h*.14;
+ for(let i=0;i<count;i++){
+  const gem=document.createElement('span');gem.className='dfc012n-gem';gem.textContent='💎';
+  const ox=w*.5,oy=h*.45;
+  const a=(i/count)*Math.PI*2;
+  let dx=mode===0?w*(.06+.85*(i+.5)/count):mode===1?w*(.48+.43*Math.cos(a)):w*(.12+.76*((i*11)%count)/count);
+  let dy=mode===0?h*(.12+.77*((i*7)%count)/count):mode===1?h*(.45+.37*Math.sin(a)):h*(.12+.75*(i+.5)/count);
+  dx=Math.max(18,Math.min(w-42,dx));dy=Math.max(22,Math.min(h-45,dy));
+  if(board&&dx+sr.left>board.left-12&&dx+sr.left<board.right+12&&dy+sr.top>board.top-12&&dy+sr.top<board.bottom+12){dy=dy>h*.5?h*.72:h*.22;}
+  gem.style.left='0';gem.style.top='0';layer.append(gem);
+  const start=`translate(${ox}px,${oy}px) scale(.2)`,spread=`translate(${dx}px,${dy}px) scale(1.1)`,gather=`translate(${w*.5}px,${h*.38}px) scale(.65)`,finish=`translate(${tx}px,${ty}px) scale(.16)`;
+  if(gem.animate){gem.animate([{offset:0,transform:start,opacity:0},{offset:.23,transform:spread,opacity:1},{offset:.46,transform:spread,opacity:1},{offset:.72,transform:gather,opacity:1},{offset:1,transform:finish,opacity:0}],{duration:3900,delay:i*23,fill:'forwards',easing:'ease-in-out'}).finished.catch(()=>{}).finally(()=>gem.remove());}
+  else{gem.remove();}
+ }
+}
+async function pollPoints(){
+ const tid=getCurrentTable();if(!tid||pollWorking||!el('dominoTablePanel')?.classList.contains('active'))return;
+ pollWorking=true;
+ try{const {data,error}=await sb.rpc('rf_domino_012n_match_state',{p_table_id:tid});
+  if(error)throw error;
+  const st=data||{},mode=st.mode||'normal';syncTheme(mode);
+  if(mode!=='points'){lastSeenMatch='';lastSeenEvent=0;return;}
+  scorePanel(st);
+  const key=tid+':'+(st.match_id||0),events=(Array.isArray(st.events)?st.events:[]).slice().sort((a,b)=>Number(a.id)-Number(b.id));
+  if(lastSeenMatch!==key){lastSeenMatch=key;lastSeenEvent=events.length?Math.max(...events.map(x=>Number(x.id)||0)):0;return;}
+  for(const evt of events){
+   if(Number(evt.id)<=lastSeenEvent)continue;
+   lastSeenEvent=Number(evt.id);
+   if(evt.kind==='FICHAS_RESTANTES'||evt.kind==='CAPICUA'||String(evt.kind).startsWith('PASE_REDONDO')){
+     showPointToast(String(evt.kind),Number(evt.points)||0);sprayGems(evt.points,Number(evt.team_side));
+   }
+  }
+ }catch(e){console.warn('Marcador de diamantes pendiente:',e)}finally{pollWorking=false;}
+}
+setInterval(()=>{pollPoints().catch(()=>{})},2400);
+// Persist no client-side points; server score is the only authority.
+
+// Existing 0.12K visual payout is retained; preset variation and larger coins.
+const oldCoinBurst=window.dfc012kCoinBurst;
+let payoutPattern=0;
+window.dfc012kCoinBurst=function(host,board,recipients,total=42){
+ if(latestMode==='points'){return true;} // Points use gem animation, never a false cash payout.
+ if(!host||!board||!recipients?.length)return false;
+ const stage=el('dominoStage');if(!stage)return oldCoinBurst?.(host,board,recipients,total);
+ const sr=stage.getBoundingClientRect(),w=sr.width,h=sr.height;
+ if(w<50||h<50)return oldCoinBurst?.(host,board,recipients,total);
+ const br=board.getBoundingClientRect(),ban={l:br.left-sr.left-16,r:br.right-sr.left+16,t:br.top-sr.top-16,b:br.bottom-sr.top+16};
+ const pile={x:w*.5,y:h*.22};
+ const targets=recipients.map(x=>{const r=x.getBoundingClientRect();return{x:r.left+r.width/2-sr.left,y:r.top+r.height/2-sr.top}});
+ const count=pref()?10:w<740?26:40;const mode=(payoutPattern++%3);
+ for(let i=0;i<count;i++){
+  const theta=2*Math.PI*i/count;
+  let x=mode===0?w*(.07+.86*((i*13)%count)/count):mode===1?w*(.5+.43*Math.cos(theta)):w*(.12+.75*(i+.5)/count);
+  let y=mode===0?h*(.09+.79*((i*7)%count)/count):mode===1?h*(.49+.42*Math.sin(theta)):h*(.08+.82*((i*9)%count)/count);
+  x=Math.min(w-48,Math.max(9,x));y=Math.min(h-46,Math.max(9,y));
+  if(x>ban.l&&x<ban.r&&y>ban.t&&y<ban.b)y=y<h*.5?Math.max(14,ban.t-35):Math.min(h-45,ban.b+12);
+  const coin=document.createElement('span');coin.className='coin dfc012j-real-coin dfc012n-large-coin';coin.style.position='absolute';coin.style.left='0';coin.style.top='0';host.append(coin);
+  const target=targets[i%targets.length];
+  const frames=[{offset:0,transform:`translate(${pile.x}px,${pile.y}px) scale(.4)`,opacity:0},
+   {offset:.27,transform:`translate(${x}px,${y}px) rotate(${i%2?30:-30}deg) scale(1)`,opacity:1},
+   {offset:.45,transform:`translate(${x}px,${y}px) scale(1)`,opacity:1},
+   {offset:.72,transform:`translate(${pile.x+(i%6-3)*4}px,${pile.y+(i%5-2)*4}px) scale(.67)`,opacity:1},
+   {offset:1,transform:`translate(${target.x}px,${target.y}px) scale(.08)`,opacity:0}];
+  if(coin.animate)coin.animate(frames,{duration:4700,delay:i*35,fill:'forwards',easing:'ease-in-out'}).finished.catch(()=>{}).finally(()=>coin.remove());
+  else coin.remove();
+ }
+ return true;
+};
+
+// A faithful premium card can be downloaded or shared as PNG after confirmation.
+const oldReceipt=typeof showReceipt==='function'?showReceipt:null;
+function formatReceiptText(v){return String(v??'').slice(0,55);}
+function renderReceiptPNG(){
+ const canvas=document.createElement('canvas');canvas.width=900;canvas.height=1260;
+ const c=canvas.getContext('2d');if(!c)throw Error('Canvas no disponible');
+ const grad=c.createLinearGradient(0,0,900,1260);grad.addColorStop(0,'#241805');grad.addColorStop(.45,'#0b0d13');grad.addColorStop(1,'#030609');c.fillStyle=grad;c.fillRect(0,0,900,1260);
+ c.strokeStyle='#c79d42';c.lineWidth=4;c.strokeRect(26,26,848,1208);
+ c.textAlign='center';c.fillStyle='#ffd475';c.font='bold 37px sans-serif';c.fillText('⚡ FLASH COIN',450,115);
+ c.font='19px sans-serif';c.fillStyle='#d0b981';c.fillText('COMPROBANTE INTERNO · CRÉDITOS VIRTUALES',450,153);
+ const gg=c.createRadialGradient(430,260,16,450,275,81);gg.addColorStop(0,'#fff1b1');gg.addColorStop(.5,'#e2ad30');gg.addColorStop(1,'#764a09');c.fillStyle=gg;c.beginPath();c.arc(450,270,72,0,Math.PI*2);c.fill();
+ c.fillStyle='#563200';c.font='bold 65px sans-serif';c.fillText('ϟ',450,289);
+ c.fillStyle='#f9f0d4';c.font='bold 33px sans-serif';c.fillText('TRANSFERENCIA EXITOSA',450,390);
+ c.fillStyle='#ffd878';c.font='bold 67px sans-serif';c.fillText((Number(receipt?.amount||0)).toFixed(3)+' FC',450,495);
+ const rows=[['OPERACIÓN',receipt?.operation],['DESTINATARIO',receipt?.recipient_name],['ID DESTINATARIO',receipt?.recipient_public_id],
+ ['EMISOR',receipt?.issuer],['ID EMISOR',receipt?.issuer_id],['FECHA',receipt?.date],['HORA',receipt?.time],['REFERENCIA',receipt?.reference],
+ ['ESTADO',receipt?.status]];
+ let yy=575;c.textAlign='left';for(const [label,value] of rows){
+  c.fillStyle='#a89f90';c.font='18px sans-serif';c.fillText(label,90,yy);
+  c.fillStyle='#f4e3b6';c.font='bold 18px sans-serif';c.textAlign='right';c.fillText(formatReceiptText(value),810,yy);c.textAlign='left';
+  c.strokeStyle='#655235';c.lineWidth=1;c.beginPath();c.moveTo(90,yy+15);c.lineTo(810,yy+15);c.stroke();yy+=64;
+ }
+ c.fillStyle='#e5c06b';c.textAlign='center';c.font='bold 31px sans-serif';c.fillText('SALDO FINAL: '+Number(receipt?.balance_after||0).toFixed(3)+' FC',450,1158);
+ return canvas;
+}
+async function receiptImage(share=false){
+ if(!receipt)return;
+ const canvas=renderReceiptPNG(),blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+ if(!blob)throw Error('No se pudo generar la imagen');
+ const name='Flash_Coin_Comprobante_'+String(receipt.reference||Date.now()).replace(/[^A-Za-z0-9_-]/g,'')+'.png';
+ const file=new File([blob],name,{type:'image/png'});
+ if(share&&navigator.canShare?.({files:[file]})&&navigator.share){
+  try{await navigator.share({files:[file],title:'Comprobante Flash Coin'});return;}catch(e){if(e.name==='AbortError')return;}
+ }
+ const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.target='_blank';
+ document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),15000);
+}
+if(oldReceipt){showReceipt=function(title,r){
+ const result=oldReceipt.apply(this,arguments);if(!r)return result;
+ const created=r.created_at?new Date(r.created_at):new Date();
+ const prom=/promotor/i.test(String(title||'')),issuer=((typeof me!=='undefined'&&me?.first_name)||'Emisor')+' '+((typeof me!=='undefined'&&me?.last_name)||'');
+ receipt={amount:Number(r.amount||0),recipient_name:r.recipient_name||'Usuario',recipient_public_id:r.recipient_public_id||'—',
+ issuer:prom?issuer:(/líder|administrador/i.test(String(title))?'Administrador Líder':issuer),
+ issuer_id:(typeof me!=='undefined'&&me?.public_id)||'—',
+ operation:prom?'Entrega de Flash Coin por promotor':'Envío de Flash Coin',
+ date:created.toLocaleDateString('es-DO'),time:created.toLocaleTimeString('es-DO'),
+ reference:'FC'+String(r.receipt_id||Date.now()),status:r.status||'Completada',balance_after:r.balance_after};
+ const p=el('receiptPanel')?.querySelector('.receipt-panel-wrap');if(!p)return result;
+ p.querySelector('.dfc012n-receipt-actions')?.remove();const bar=document.createElement('div');bar.className='dfc012n-receipt-actions';
+ bar.innerHTML='<button type="button" class="save">⬇ Guardar imagen</button><button type="button" class="share">↗ Compartir</button>';
+ p.append(bar);bar.querySelector('.save').addEventListener('click',()=>receiptImage(false).catch(e=>alert(e.message)));
+ bar.querySelector('.share').addEventListener('click',()=>receiptImage(true).catch(e=>alert(e.message)));
+ return result;
+ };}
+// Needed for existing capicúa-specific cash RPC: on points tables only points are awarded.
+window.dfc012nGetMode=()=>latestMode;
 })();
 </script>
 
