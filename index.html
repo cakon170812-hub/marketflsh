@@ -3129,8 +3129,10 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden){
     markAway();
     markRouletteViewAway('app en segundo plano');
-    markDominoViewAway().catch(()=>{});
+    // 0.12L: ocultar la pantalla NO es una salida voluntaria de la mesa.
+    // No invocar rf_domino_back_v11 por notificaciones, llamadas o bloqueo de pantalla.
   }else{
+    if(dominoCurrentTableId){dominoHeartbeatLast=0;dominoHeartbeat(true).catch(()=>{});loadDominoState(false,true).catch(()=>{});}
     handleReturnFromAway()
       .then(()=>resumeDominoIfStillInHand())
       .then(()=>maybeCancelRouletteAwayBeforeRoundEnds())
@@ -3140,7 +3142,7 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('pagehide',()=>{
   markAway();
   markRouletteViewAway('página fuera de vista');
-  markDominoViewAway().catch(()=>{});
+  // No marcar abandono por pagehide: el servidor gestiona ausencias reales mediante heartbeat.
 });
 window.addEventListener('pageshow',()=>{
   if(!document.hidden){
@@ -5112,8 +5114,8 @@ function dominoStartPolling(){
     if(!dominoCurrentTableId)return;
     dominoHeartbeat(false).catch(()=>{});
     mfDominoSyncClock().catch(()=>{});
-    if(!mfDominoPlayPending)loadDominoState(false,(Date.now()-window.dfc012hProgressAt<1800)?true:(window.dfc012hProgressAt=Date.now(),false)).catch(()=>dominoSetSyncState('Reconectando…','warn'));
-  },1000);
+    if(!mfDominoPlayPending)loadDominoState(false,(Date.now()-window.dfc012hProgressAt<2400)?true:(window.dfc012hProgressAt=Date.now(),false)).catch(()=>dominoSetSyncState('Reconectando…','warn'));
+  },1600);
 }
 function dominoStopPolling(){
   clearInterval(dominoPollTimer);
@@ -5845,7 +5847,7 @@ function dominoShowSeatMessage(row){
 }
 async function syncDominoTableMessages(force=false){
   if(!dominoCurrentTableId)return;
-  if(!force&&Date.now()-dominoTableMessageCheckAt<1100)return;
+  if(!force&&Date.now()-dominoTableMessageCheckAt<3200)return;
   dominoTableMessageCheckAt=Date.now();
   const {data,error}=await sb.rpc('rf_domino_chat_list_v150',{p_table_id:dominoCurrentTableId,p_limit:20});
   if(error)return;
@@ -6168,7 +6170,7 @@ async function loadDominoState(force,skipTick=false){
     mfDominoStateLoading=false;
     if(mfDominoStateRefreshQueued){
       mfDominoStateRefreshQueued=false;
-      if(dominoCurrentTableId)setTimeout(()=>loadDominoState(false,true).catch(()=>{}),0);
+      if(dominoCurrentTableId)setTimeout(()=>loadDominoState(false,true).catch(()=>{}),220);
     }
   }
 }
@@ -9051,7 +9053,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   }catch(e){if(/not found|does not exist|schema cache/i.test(errText(e)))botUnavailable=true;}
   finally{activeLoop=false;}
  }
- setInterval(backgroundTick,2200);setTimeout(backgroundTick,2300);
+ setInterval(backgroundTick,9000);setTimeout(backgroundTick,3200);
  window.mf18RefreshBots=()=>publicRefresh(true);
 })();
 
@@ -9193,7 +9195,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
  async function refreshReport(){
   if(!isTableVisible()||reportChecking)return;
   const tableId=Number(dominoCurrentTableId);
-  if(Date.now()-lastReportCheck<900)return;lastReportCheck=Date.now();reportChecking=true;
+  if(Date.now()-lastReportCheck<2100)return;lastReportCheck=Date.now();reportChecking=true;
   try{
    const {data,error}=await sb.rpc('rf_domino_tranque_reveal_v196',{p_table_id:tableId});
    if(error)throw error;
@@ -9212,7 +9214,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   refreshProfiles(false).catch(()=>{});
   refreshReport().catch(()=>{});
   displayReport();
- },350);
+ },950);
 })();
 </script>
 <!-- Domino Flash Coin 1.9.10 · espectador/ganadores. No altera pagos. -->
@@ -11393,7 +11395,7 @@ function fromState(st){const h=st?.hand,r=st?.last_result;if(r?.id&&!wins.has(St
  const key=String(r.id),board=(h&&String(h.id)===key&&Array.isArray(h.board)&&h.board.length)?h.board:boards.get(key);
  if(board?.length)celebrate({...r,hand_id:key,board,move:st?.last_move})}}
  if(h?.status==='settled'&&!wins.has(String(h.id))&&!/TRANQUE/i.test(String(h.winner_reason||''))){const age=Date.now()-parseTime(h.settled_at);if(age>=-3000&&age<24000&&Array.isArray(h.board)&&h.board.length)celebrate({...h,hand_id:h.id})}}
-async function fetchWin(){const st=latest;if(!st||!dominoCurrentTableId||querying||Date.now()-lastRequest<1400)return;
+async function fetchWin(){const st=latest;if(!st||!dominoCurrentTableId||querying||Date.now()-lastRequest<3100)return;
  const c=client();if(!c?.rpc)return;lastRequest=Date.now();querying=true;const table=Number(dominoCurrentTableId);
  try{const {data,error}=await c.rpc('rf_domino_last_win_scene_v012f',{p_table_id:table});if(error){if(!window.dfc012fSceneRpcWarned){console.warn('La escena compartida necesita SQL 0.12F:',error.message);window.dfc012fSceneRpcWarned=true}return}
  if(table!==Number(dominoCurrentTableId)||!data?.ok)return;
@@ -11537,7 +11539,10 @@ function dfc012kCoinBurst(host,board,recipients,total=42){
  const viable=piles.filter(a=>!(a.x>rect.l-18&&a.x<rect.r+18&&a.y>rect.t-18&&a.y<rect.b+18));
  const pile=viable[0]||{x:w*.50,y:h*.18};
  const targets=recipients.map(e=>{const r=e?.getBoundingClientRect?.();return r?{x:r.left+r.width/2-sr.left,y:r.top+r.height/2-sr.top}:pile});
- const amount=Math.max(12,Math.min(60,total));
+ const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+ const weak=window.matchMedia?.('(max-width: 750px)').matches || ((navigator.hardwareConcurrency||4)<=4);
+ const cap=reduced?12:weak?26:46;
+ const amount=Math.max(10,Math.min(cap,total));
  for(let i=0;i<amount;i++){
    const col=i%9,row=Math.floor(i/9),rows=Math.ceil(amount/9);
    const seed=(i*0.61803398875)%1;
@@ -11635,6 +11640,120 @@ window.dfc012jTranque=function(report){
  sound('scatter');setTimeout(()=>sound('gather'),2050);setTimeout(()=>sound('credit'),3350);
  setTimeout(()=>host.remove(),5500);
 }
+})();
+</script>
+
+<style id="dfc012l-style">
+#dfc012l-audio{margin:14px 0 4px;padding:13px;border:1px solid rgba(235,190,91,.35);border-radius:16px;background:linear-gradient(145deg,rgba(22,30,53,.94),rgba(10,23,44,.96));color:#f5f2e8}
+#dfc012l-audio h3{margin:0 0 8px;font-size:15px;color:#ffda83}
+#dfc012l-audio label{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:38px;font-size:13px;cursor:pointer}
+#dfc012l-audio label input{width:20px;height:20px;accent-color:#deb55e;flex:0 0 auto}
+#dfc012l-audio .dfc012l-tip{font-size:11px;opacity:.78;line-height:1.5;margin:7px 0 0}
+#dominoTablePanel .dfc012k-coin{will-change:transform,opacity;backface-visibility:hidden;contain:layout style paint;pointer-events:none}
+@media(prefers-reduced-motion:reduce){#dominoTablePanel .dfc012k-coin{filter:none!important}}
+</style>
+
+<script id="dfc012l-audio-and-health">
+(()=>{'use strict';
+// 0.12L: no altera saldos, estado de mano, pagos, turnos ni bot del servidor.
+const MASTER='dominoSoundIsEnabled';
+const KEYS={music:'dfc012l_music',effects:'dfc012l_effects',celebration:'dfc012l_celebration'};
+const prefs={music:false,effects:true,celebration:true};
+for(const [key,name] of Object.entries(KEYS)){
+  try{const v=localStorage.getItem(name);if(v!==null)prefs[key]=v==='1'}catch(_){ }
+}
+const isTable=()=>!!document.getElementById('dominoTablePanel')?.classList.contains('active');
+const master=()=>typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled();
+const ok=(kind)=>master()&&(kind==='celebration'?prefs.celebration:prefs.effects);
+const old=window.dfc012jSound;
+const clicks=window.dfc012kClick;
+let musicBus=null,musicCtx=null,musicNodes=[],nextMusicAt=0;
+const notes=[196,246.94,293.66,392,329.63,293.66,246.94,220];
+function stopMusic(){
+  for(const n of musicNodes){try{n.stop()}catch(_){ }}musicNodes=[];
+  if(musicBus){try{musicBus.gain.value=0;musicBus.disconnect()}catch(_){ }}
+  musicBus=null;musicCtx=null;nextMusicAt=0;
+}
+function musicTick(){
+ if(!master()||!prefs.music||!isTable()||document.hidden){if(musicBus)stopMusic();return}
+ if(typeof getAudioContext!=='function'||typeof audioOutput!=='function')return;
+ const ctx=getAudioContext();if(!ctx||ctx.state!=='running')return;
+ if(!musicBus||ctx!==musicCtx){stopMusic();musicCtx=ctx;musicBus=ctx.createGain();musicBus.gain.value=.44;musicBus.connect(audioOutput());}
+ if(ctx.currentTime+2<nextMusicAt)return;
+ // Bajo número de nodos para Safari/iPhone; colchón ambiental breve sin bucles agresivos.
+ musicNodes=musicNodes.filter(n=>!n.__dfc012lEnded);
+ const start=Math.max(ctx.currentTime+.045,nextMusicAt||ctx.currentTime+.045);
+ for(let i=0;i<8;i++){
+   const t=start+i*.64,f=notes[i];
+   try{
+     const o=ctx.createOscillator(),g=ctx.createGain();o.type=(i%4===0?'triangle':'sine');
+     o.frequency.setValueAtTime(f,t);
+     g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.014,t+.12);
+     g.gain.exponentialRampToValueAtTime(.0001,t+.56);
+     o.connect(g);g.connect(musicBus);o.onended=()=>{o.__dfc012lEnded=true;try{o.disconnect();g.disconnect()}catch(_){ }};
+     o.start(t);o.stop(t+.59);musicNodes.push(o);
+   }catch(e){console.warn('Audio ambiental de mesa',e);break}
+ }
+ nextMusicAt=start+5.12;
+}
+// Controls inside the existing gear menu: the original DOMINO button remains the master volume.
+function panel(){
+ const host=document.querySelector('#dominoMenuPanel .panel');if(!host)return;
+ let box=document.getElementById('dfc012l-audio');if(!box){box=document.createElement('div');box.id='dfc012l-audio';
+ box.innerHTML='<h3>🎶 Sonido de la mesa</h3><label><span>🎵 Música ambiental moderna</span><input type="checkbox" data-sound="music"></label><label><span>🁫 Fichas, barajamiento y reparto</span><input type="checkbox" data-sound="effects"></label><label><span>🪙 Fiesta, dominó y Flash Coin</span><input type="checkbox" data-sound="celebration"></label><p class="dfc012l-tip">El botón 🔊 de la mesa es el interruptor general. El audio requiere un toque en iPhone y Android. Estos cambios se guardan en este dispositivo.</p>';
+ const actions=host.querySelector('.domino-menu-actions');host.insertBefore(box,actions||null);
+ box.querySelectorAll('input[data-sound]').forEach(input=>input.addEventListener('change',()=>{
+   const type=input.dataset.sound;prefs[type]=input.checked;
+   try{localStorage.setItem(KEYS[type],prefs[type]?'1':'0')}catch(_){ }
+   if(type==='music'){
+      if(prefs.music&&typeof armAudioFromGesture==='function')armAudioFromGesture(false);
+      musicTick();
+   }
+ }));
+ }
+ box.querySelectorAll('input[data-sound]').forEach(input=>input.checked=!!prefs[input.dataset.sound]);
+}
+panel();
+// Respect existing real domino impact; never convert shuffle/deal back to synthetic 'ti-ti'.
+const last={};
+const tone=(f,d,v,type='sine',end=null,delay=0)=>{
+  if(typeof playOscTone==='function')playOscTone(f,d,v,type,end,delay,'domino');
+};
+function party(kind){
+ if(!ok('celebration'))return;
+ if(kind==='victory'){
+  // Bright casino fanfare: major chord + percussion, low volume.
+  [392,493.88,587.33,783.99].forEach((f,i)=>tone(f,.24,.024,i%2?'triangle':'sine',f*1.24,i*.09));
+  clicks?.('deal',.02);clicks?.('deal',.22);clicks?.('deal',.36);
+ }else if(kind==='scatter'){
+  for(let i=0;i<6;i++)tone(1450+i*130,.055,.012,'sine',730+i*38,i*.065);
+ }else if(kind==='gather'){
+  for(let i=0;i<4;i++)tone(330+i*80,.08,.015,'triangle',510+i*125,i*.075);
+ }else if(kind==='credit'){
+  [523.25,659.25,783.99,1046.5].forEach((f,i)=>tone(f,.18,.022,'sine',f*1.10,i*.085));
+ }else if(kind==='tranque'){
+  tone(220,.25,.027,'triangle',165,0);tone(293.66,.22,.022,'triangle',220,.16);tone(440,.25,.024,'sine',550,.33);
+ }
+}
+window.dfc012jSound=function(kind){
+ if(!master())return;
+ const c=kind==='victory'||kind==='scatter'||kind==='gather'||kind==='credit'||kind==='tranque'?'celebration':'effects';
+ if(!prefs[c])return;
+ const now=performance.now();
+ // Several scripts may call an event together; allow only one burst.
+ const cool=(kind==='shuffle'?130:kind==='deal'?22:kind==='victory'?850:130);
+ if(now-(last[kind]||-1e6)<cool)return;
+ last[kind]=now;
+ if(c==='effects'){
+    if(typeof old==='function')old(kind);
+ }else party(kind);
+};
+// Heavy animations never block game logic: music can stop and restart cleanly.
+document.addEventListener('visibilitychange',musicTick);
+document.getElementById('dominoSoundBtn')?.addEventListener('click',()=>setTimeout(musicTick,20));
+window.addEventListener('pagehide',stopMusic);
+setInterval(musicTick,2500);
+window.dfc012lAudioPrefs=()=>({...prefs});
 })();
 </script>
 </body>
