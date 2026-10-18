@@ -2426,6 +2426,43 @@ button[data-bot18-money="retirar"],
 #authView #registerForm input{font-size:16px!important;}
 @supports not (height:100dvh){#authView.auth:has(#registerForm:not(.hidden)){height:100vh!important;max-height:100vh!important;}}
 </style>
+<style id="dfc012j-style">
+
+/* 0.12J · monedas oficiales Flash Coin, libre visión de la cadena y revelación de tranque */
+#dominoTablePanel #dfc012c-scene .dfc012j-real-coin,
+#dominoTablePanel #dfc012j-tranque-coins .dfc012j-real-coin{
+ background:var(--fc-coin-image) center/cover no-repeat!important;
+ border:0!important;box-shadow:0 0 9px rgba(255,212,86,.45)!important;
+ width:clamp(18px,2vw,30px)!important;height:clamp(18px,2vw,30px)!important;
+ aspect-ratio:1;filter:drop-shadow(0 1px 2px #302005);will-change:transform,opacity;
+}
+#dominoTablePanel #dfc012c-scene .dfc012j-real-coin:after,
+#dominoTablePanel #dfc012j-tranque-coins .dfc012j-real-coin:after{content:none!important}
+#dominoTablePanel #mf196TranqueOverlay.show{display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:none!important}
+#dominoTablePanel #mf196TranqueOverlay .mf196-report{display:block!important;pointer-events:none}
+#dfc012j-tranque-coins{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:21000}
+#dfc012j-tranque-coins .dfc012j-real-coin{position:absolute;transition:transform 1.12s ease-in,opacity 1.12s ease-in}
+#dfc012j-tranque-coins .dfc012j-real-coin.fly{transform:translate(var(--dx),var(--dy)) scale(.12);opacity:0}
+#dfc012j-balance{display:none;position:absolute;inset:0;z-index:55000;align-items:center;justify-content:center;background:rgba(1,14,28,.83);padding:16px;overscroll-behavior:contain}
+#dfc012j-balance.open{display:flex}
+#dfc012j-balance .dfc012j-dialog{width:min(380px,96%);border:1px solid #eed27b;border-radius:18px;background:linear-gradient(155deg,#0e3046,#061829);color:#fff;box-shadow:0 14px 50px #000c;padding:17px;max-height:92%;overflow-y:auto;text-align:center}
+#dfc012j-balance h3{font-size:clamp(17px,2.5vw,25px);color:#ffdf7c;margin:4px auto 8px}
+#dfc012j-balance p{font-size:13px;margin:5px auto 10px;color:#cce6ec}
+#dfc012j-balance input{display:block;width:100%;border:1px solid #6e9caa;border-radius:9px;background:#fff;color:#123;box-sizing:border-box;padding:12px;font-size:16px;margin:10px auto}
+#dfc012j-balance button{display:block;width:100%;margin-top:9px;border-radius:9px;padding:11px;border:0;background:#eebd44;color:#16130c;font-weight:900;font-size:14px}
+#dfc012j-balance button.dfc012j-cancel{background:#344e62;color:white;border:1px solid #728b9d}
+#dfc012j-balance button:disabled{opacity:.5}
+#dfc012j-balance .dfc012j-error{min-height:20px;color:#ffd290;font-weight:700;font-size:12px}
+
+
+#dominoTablePanel #dfc012c-scene .dfc012j-winner-name{
+ position:absolute;top:16%;left:50%;transform:translateX(-50%);z-index:15;
+ max-width:88%;padding:7px 13px;border-radius:12px;
+ color:#fff8d8;background:rgba(4,25,39,.81);border:1px solid #f1cd6c;
+ font-size:clamp(14px,2.3vw,25px);font-weight:950;text-align:center;
+ box-shadow:0 0 18px #f0be5388;pointer-events:none;white-space:normal
+}
+</style>
 </head>
 <body>
 <section class="auth" id="authView">
@@ -5966,6 +6003,7 @@ function renderDominoState(st){
   $('dominoCenterStatus').classList.toggle('playing-quiet',h?.status==='playing'&&!status);
   dominoUpdateLiveControls(st,myTurn,hasLegal);
   if(typeof window.dfc07VisualUpdate==='function')window.dfc07VisualUpdate(st);
+  window.dfc012jBalanceCheck?.(st);
   if(window.dfc11AfterRender)window.dfc11AfterRender(st);
   if(window.dfc011dCelebrate)window.dfc011dCelebrate(st);
   syncDominoTableMessages().catch(()=>{});
@@ -6005,7 +6043,7 @@ function renderDominoState(st){
       if(typeof window.dfc07VisualUpdate==='function')window.dfc07VisualUpdate(st);
       const subtitle=victory.querySelector('small');
       if(subtitle)subtitle.textContent=mySeat?'Premio acreditado a tu saldo de mesa':'Premio acreditado al saldo correspondiente';
-      try{playDominoWinSound()}catch(_){ }
+      try{if(!window.dfc012jSound)playDominoWinSound()}catch(_){ }
       if(ownCapicua){
         const pollBonus=async(tries=0)=>{
           if(String(dominoState?.me)!==String(uid))return;
@@ -6045,11 +6083,11 @@ async function loadDominoState(force,skipTick=false){
         const detail=String(tick.error?.message||tick.data?.error||tick.data?.status||'');
         console.warn('Dominó 0.12I: reparto pendiente:',detail);
         window.dfc012hLastIssue=detail;
-        dominoSetSyncState('Reparto detenido: '+detail.slice(0,90),'warn');
-      }else{window.dfc012hLastIssue='';}
+        window.dfc012jTickFailed=true;dominoSetSyncState('Reparto detenido: '+detail.slice(0,90),'warn');
+      }else{window.dfc012hLastIssue='';window.dfc012jTickFailed=false;}
     }catch(e){
       console.warn('Dominó tick:',e);
-      dominoSetSyncState('Mesa conectada · sincronización en reintento','warn');
+      window.dfc012jTickFailed=true;dominoSetSyncState('Mesa conectada · sincronización en reintento','warn');
     }
   }
 
@@ -6093,12 +6131,17 @@ async function loadDominoState(force,skipTick=false){
   }
 
   if(stateResult.error){
-    dominoSetSyncState('Error al leer la mesa','bad');
+    const reason=String(stateResult.error.message||stateResult.error.code||'Error de red');
+    console.warn('DOMINÓ 0.12J · lectura de mesa:',reason);
+    dominoSetSyncState('Reconectando mesa…','warn');
+    window.dfc012jReadFailed=true;
     if(force)alert(errText(stateResult.error));
     return;
   }
-
-  if(!dominoRealtimeChannel)dominoSetSyncState('En línea · respaldo cada 1 s','ok');
+  if(window.dfc012jReadFailed){
+    window.dfc012jReadFailed=false;
+    dominoSetSyncState('● En línea · mesa recuperada','ok');
+  } else if(!window.dfc012jTickFailed){dominoSetSyncState(dominoRealtimeChannel?'● En línea · mesa sincronizada':'● En línea · respaldo cada 1 s','ok');}
   if(dominoDragState?.active&&!force)return;
 
   try{
@@ -9123,6 +9166,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
   }).join('');
   host.innerHTML=`<div class="mf196-report"><div class="mf196-title">🁫 ¡TRANQUE! · Conteo de fichas</div><div class="mf196-countdown" id="mf196TranqueCountdown"></div><div class="mf196-players">${html}</div><div class="mf196-hint">${winnerCount>1?'Empate: el premio se distribuye según las reglas de la mesa.':'Menor cantidad de puntos gana la mano.'} · Las fichas se descubren solo después de terminar la mano.</div></div>`;
   host.classList.add('show');
+  window.dfc012jTranque?.(report);
   try{window.dfc011vShowTranque?.(report,host)}catch(e){console.warn('Vista de tranque 0.11V:',e)}
   if(typeof window.dfc011kTranque==='function')window.dfc011kTranque(report);
  }
@@ -11236,6 +11280,7 @@ function mixing(st,id,begin){
  let step=0;
  function animate(){
    if(phase!=='mix'||current!==id||winning)return;
+   window.dfc012jSound?.('shuffle');
    for(const [i,t] of tiles.entries()){
      t.style.left=(21+Math.random()*58)+'%';
      t.style.top=(19+Math.random()*60)+'%';
@@ -11264,6 +11309,7 @@ function dealing(st,id,end){
  const mine=Array.from($('dominoHand')?.querySelectorAll('.domino-piece.hand-piece')||[]);
  for(let i=0;i<total;i++)schedule(()=>{
    if(current!==id||phase!=='deal'||winning)return;
+   window.dfc012jSound?.('deal');
    const piece=back(50,50),pos=spots[i%n];
    requestAnimationFrame(()=>{piece.style.left=pos.x+'%';piece.style.top=pos.y+'%';piece.classList.add('dealt')});
    schedule(()=>piece.remove(),450);
@@ -11300,8 +11346,16 @@ function scatter(scene){const host=surface(),parent=stage(),board=$('dominoBoard
  const tr=target.getBoundingClientRect(),tx=tr.left+tr.width/2-sr.left,ty=tr.top+tr.height/2-sr.top;
  for(let i=0;i<38;i++){const angle=(i/38)*Math.PI*2;let x=sr.width*(.5+.32*Math.cos(angle)),y=sr.height*(.50+.33*Math.sin(angle));
  if(x>safe.x1&&x<safe.x2&&y>safe.y1&&y<safe.y2){x=angle>Math.PI/2&&angle<3*Math.PI/2?Math.max(12,safe.x1-10):Math.min(sr.width-20,safe.x2+10)}
- const coin=document.createElement('div');coin.className='coin dfc012f-coin';coin.style.left=x+'px';coin.style.top=y+'px';coin.style.setProperty('--dx',(tx-x)+'px');coin.style.setProperty('--dy',(ty-y)+'px');host.append(coin);
+ const coin=document.createElement('div');coin.className='coin dfc012f-coin dfc012j-real-coin';coin.style.left=x+'px';coin.style.top=y+'px';coin.style.setProperty('--dx',(tx-x)+'px');coin.style.setProperty('--dy',(ty-y)+'px');host.append(coin);
  schedule(()=>coin.classList.add('fly'),3200+i*17)}
+}
+function dfcWinnerName(scene){
+ const uid=String(scene?.winner_user_id||'');
+ const seats=[...(latest?.seats||[]),...(dominoState?.seats||[])];
+ const s=seats.find(x=>String(x.user_id||'')===uid)||{};
+ const own=String(dominoState?.me||latest?.me||'')===uid?(typeof me==='object'?me:{}):{};
+ const server=String(scene?.winner_name||'').trim();const full=((server&&!/^jugador(?: ganador)?$/i.test(server))?server:null)||s.full_name||s.name||[own.first_name,own.last_name].filter(Boolean).join(' ')||server||s.public_id||own.public_id||'Jugador ganador';
+ return String(full).trim().slice(0,84)||'Jugador ganador';
 }
 function celebrate(scene){const hand=String(scene.hand_id||scene.id||''),reason=String(scene.winner_reason||'');if(!hand||/TRANQUE/i.test(reason)||wins.has(hand)||winning)return false;
  const rep=renderChain(scene)||{html:$('dominoBoard')?.innerHTML||'',index:-1};
@@ -11311,7 +11365,10 @@ function celebrate(scene){const hand=String(scene.hand_id||scene.id||''),reason=
  const isMine=String(latest?.me||dominoState?.me||'')===String(scene.winner_user_id||'');
  const isCapicua=/CAPIC[UÚ]A/i.test(reason);
  text((isCapicua?'¡CAPICÚA!':'¡DOMINÓ!')+' ¡FELICIDADES!'+(isMine?' ¡GANASTE!':''),'win-title');
- scatter(scene);
+ const winnerLabel=text('GANADOR: '+dfcWinnerName(scene),'dfc012j-winner-name');winnerLabel.setAttribute('aria-live','polite');
+ window.dfc012jSound?.('victory');
+ scatter(scene);window.dfc012jSound?.('scatter');
+ schedule(()=>window.dfc012jSound?.('credit'),3400);
  // Mantener la cadena intacta >= 3 segundos, hacer volar monedas y liberar a los 5,5 segundos.
  schedule(()=>{if(!winning||winning.id!==hand)return;winning=null;clear();current='';const b=$('dominoBoard');if(b)b.replaceChildren();if(typeof loadDominoState==='function')Promise.resolve(loadDominoState(false,true)).catch(()=>{})},6200);
  return true}
@@ -11323,22 +11380,23 @@ function localBoard(pre,tile,side){const h=pre?.hand;if(!h)return null;const ori
  return original}
 window.dfc012hAcceptedFinalPlay=function(pre,tile,side){const hand=String(pre?.hand?.id||'');if(!hand||pre?.hand?.my_tiles?.length!==1)return;
  const b=localBoard(pre,tile,side);if(!b)return;boards.set(hand,b);
- celebrate({hand_id:hand,winner_user_id:pre.me,winner_reason:'ULTIMA_FICHA',board:b,move:{side:side||'right'}})};
+ celebrate({hand_id:hand,winner_user_id:pre.me,winner_name:dfcWinnerName({winner_user_id:pre.me}),winner_reason:'ULTIMA_FICHA',board:b,move:{side:side||'right'}})};
 function fromState(st){const h=st?.hand,r=st?.last_result;if(r?.id&&!wins.has(String(r.id))){const age=Date.now()-parseTime(r.settled_at);if(age>=-3000&&age<24000&& !/TRANQUE/i.test(String(r.winner_reason||''))){
  const key=String(r.id),board=(h&&String(h.id)===key&&Array.isArray(h.board)&&h.board.length)?h.board:boards.get(key);
  if(board?.length)celebrate({...r,hand_id:key,board,move:st?.last_move})}}
  if(h?.status==='settled'&&!wins.has(String(h.id))&&!/TRANQUE/i.test(String(h.winner_reason||''))){const age=Date.now()-parseTime(h.settled_at);if(age>=-3000&&age<24000&&Array.isArray(h.board)&&h.board.length)celebrate({...h,hand_id:h.id})}}
-async function fetchWin(){const st=latest;if(!st||!dominoCurrentTableId||querying||Date.now()-lastRequest<1400||winning)return;
+async function fetchWin(){const st=latest;if(!st||!dominoCurrentTableId||querying||Date.now()-lastRequest<1400)return;
  const c=client();if(!c?.rpc)return;lastRequest=Date.now();querying=true;const table=Number(dominoCurrentTableId);
  try{const {data,error}=await c.rpc('rf_domino_last_win_scene_v012f',{p_table_id:table});if(error){if(!window.dfc012fSceneRpcWarned){console.warn('La escena compartida necesita SQL 0.12F:',error.message);window.dfc012fSceneRpcWarned=true}return}
  if(table!==Number(dominoCurrentTableId)||!data?.ok)return;
  const id=String(data.hand_id||'');const age=Date.now()-parseTime(data.settled_at);
+ if(id&&winning?.id===id&&data.winner_name){const label=surface()?.querySelector('.dfc012j-winner-name');if(label)label.textContent='GANADOR: '+dfcWinnerName(data)}
  if(id&&!wins.has(id)&&age>=-3000&&age<24000)celebrate(data);
  }catch(e){console.warn('Escena ganadora',e)}finally{querying=false}}
 function onState(st){
  latest=st;remember(st);
  if(!winning)fromState(st);
- if(!winning)fetchWin();
+ fetchWin();
  if(winning)return;
  const h=st?.hand;
  if(!h?.id){if(phase||current){clear();current=''}return}
@@ -11403,7 +11461,96 @@ window.dfc012hTest={celebrate,onState,localBoard,renderChain,allocate};
 #dominoTablePanel #dfc012c-scene .win-title{z-index:30000!important;min-height:24px!important;top:1%!important;pointer-events:none!important}
 #dominoTablePanel #dominoBoard .dfc012f-last{animation:dfc012fFinalGlow .7s ease-in-out infinite alternate!important}
 #dominoTablePanel #dfc012c-scene .phase-title{z-index:31000!important}
-</style></body>
+</style><script id="dfc012j-effects">
+(()=>{'use strict';
+// 0.12J: presentation only. Never writes prizes, settlements or winners.
+const $=id=>document.getElementById(id);const seenTranque=new Set();
+function sound(kind){
+ if(typeof dominoSoundIsEnabled!=='function'||!dominoSoundIsEnabled()||typeof playOscTone!=='function')return;
+ const tone=(f,d,v,type='triangle',f2=null,delay=0)=>playOscTone(f,d,v,type,f2,delay,'domino');
+ if(kind==='shuffle'){
+   tone(260,.06,.022,'triangle',155);tone(970,.022,.014,'square',580,.025);
+ }else if(kind==='deal'){
+   tone(295,.045,.035,'triangle',145);tone(1020,.018,.012,'square',550,.009);
+ }else if(kind==='victory'){
+   // El panel antiguo solo suena para el ganador; los otros jugadores también oyen esta celebración.
+   tone(494,.16,.047,'sine',658);tone(658,.19,.046,'sine',880,.12);tone(880,.24,.053,'sine',1175,.24);
+ }else if(kind==='scatter'){
+   for(let k=0;k<5;k++)tone(1250+k*145,.055,.016,'sine',720+k*50,k*.07);
+ }else if(kind==='credit'){
+   tone(660,.13,.04,'sine',880);tone(990,.18,.05,'sine',1320,.11);
+ }else if(kind==='tranque'){
+   tone(310,.20,.043,'triangle',210);tone(415,.27,.045,'sine',305,.15);
+ }
+}
+window.dfc012jSound=sound;
+// Transición segura del saldo principal a saldo de mesa (RPC autorizada, atómica).
+let working=false, visibleFor='', dismissed='';
+function overlay(){let o=$('dfc012j-balance');if(o)return o;const stage=$('dominoStage');if(!stage)return null;
+ o=document.createElement('div');o.id='dfc012j-balance';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-label','Saldo de mesa agotado');
+ o.innerHTML='<div class="dfc012j-dialog"><h3>Saldo de mesa insuficiente</h3><p id="dfc012j-bal-info">Agrega Flash Coin sin levantarte. Los demás jugadores continuarán normalmente.</p><label for="dfc012j-amount">Transferir desde mi saldo principal (FC)</label><input id="dfc012j-amount" type="number" inputmode="decimal" min="0.001" step="0.001" placeholder="Cantidad de Flash Coin"><button id="dfc012j-topup" type="button">Agregar Flash Coin</button><button id="dfc012j-leave" class="dfc012j-cancel" type="button">Cancelar y levantarme</button><p class="dfc012j-error" id="dfc012j-error" aria-live="polite"></p></div>';
+ stage.append(o);
+ $('dfc012j-topup').addEventListener('click',async()=>{if(working||!dominoCurrentTableId)return;
+   const amount=Number($('dfc012j-amount')?.value);if(!Number.isFinite(amount)||amount<.001||Math.round(amount*1000)!==amount*1000){$('dfc012j-error').textContent='Introduce un monto válido con hasta tres decimales.';return}
+   working=true;$('dfc012j-topup').disabled=true;$('dfc012j-leave').disabled=true;$('dfc012j-error').textContent='Verificando y transfiriendo…';
+   const table=Number(dominoCurrentTableId);
+   try{const {data,error}=await sb.rpc('rf_domino_topup_v012j',{p_table_id:table,p_amount:amount});
+     if(error||data?.ok!==true)throw Error(error?.message||data?.error||'No se pudo transferir el saldo');
+     o.classList.remove('open');visibleFor='';dismissed='';
+     if(typeof loadMe==='function'){await loadMe();if(typeof renderMe==='function')renderMe()}
+     if(Number(dominoCurrentTableId)===table&&typeof loadDominoState==='function')await loadDominoState(false,true);
+   }catch(e){$('dfc012j-error').textContent=String(e?.message||e).slice(0,180)}
+   finally{working=false;$('dfc012j-topup').disabled=false;$('dfc012j-leave').disabled=false}
+ });
+ $('dfc012j-leave').addEventListener('click',async()=>{if(working)return;
+   working=true;$('dfc012j-leave').disabled=true;$('dfc012j-topup').disabled=true;
+   try{if(typeof dominoAbandonTable==='function')await dominoAbandonTable();
+       if(!dominoCurrentTableId){o.classList.remove('open');visibleFor='';dismissed=''}
+       else $('dfc012j-error').textContent='La mesa no confirmó la salida.';
+   }catch(e){$('dfc012j-error').textContent=String(e?.message||e)}
+   finally{working=false;$('dfc012j-leave').disabled=false;$('dfc012j-topup').disabled=false}
+ });return o;
+}
+window.dfc012jBalanceCheck=function(st){
+ const p=$('dominoTablePanel');const o=$('dfc012j-balance');if(!p?.classList.contains('active')||!dominoCurrentTableId){o?.classList.remove('open');return}
+ const seats=Array.isArray(st?.seats)?st.seats:[];const my=seats.find(s=>String(s?.user_id||'')===String(st?.me||''));
+ if(!my||my.state!=='active'){o?.classList.remove('open');visibleFor='';return}
+ const cfg=st?.config||{};const need=Math.max(Number(cfg.hand_stake||0),Number(cfg.min_continue_balance||0));
+ if(!Number.isFinite(need)||need<=0)return;
+ const available=Number(my.table_balance||0);
+ const h=st?.hand;const inLiveHand=!!(h&&['playing','shuffling'].includes(String(h.status))&&h.me_in_hand);
+ if(inLiveHand||available+.0001>=need){o?.classList.remove('open');visibleFor='';dismissed='';return}
+ const key=String(dominoCurrentTableId)+'|'+String(st?.me||'');if(visibleFor===key&&o?.classList.contains('open'))return;
+ const panel=overlay();if(!panel||working)return;
+ const msg=$('dfc012j-bal-info');if(msg)msg.textContent='Saldo en mesa: '+available.toFixed(3)+' FC · Mínimo para seguir: '+need.toFixed(3)+' FC. El resto de jugadores continúa jugando.';
+ const input=$('dfc012j-amount');if(input)input.value=Math.max(.001,Math.ceil((need-available)*1000)/1000).toFixed(3);
+ $('dfc012j-error').textContent='';visibleFor=key;panel.classList.add('open');
+};
+// El servidor devuelve fichas restantes + puntos. No calcular premios ni atribuir pagos.
+window.dfc012jTranque=function(report){const table=String(dominoCurrentTableId||''),hand=String(report?.hand_id||'');if(!hand||seenTranque.has(table+':'+hand))return;
+ seenTranque.add(table+':'+hand);if(seenTranque.size>15)seenTranque.delete(seenTranque.values().next().value);
+ sound('tranque');const stage=$('dominoStage'),board=$('dominoBoard');if(!stage||!board)return;
+ const host=document.createElement('div');host.id='dfc012j-tranque-coins';stage.append(host);
+ const sr=stage.getBoundingClientRect(),br=board.getBoundingClientRect();if(!sr.width||!sr.height)return;
+ const players=(Array.isArray(report.players)?report.players:[]).filter(x=>x?.eligible!==false);
+ const pts=players.map(x=>Number(x.points)).filter(Number.isFinite);if(!pts.length)return;
+ const min=Math.min(...pts),winners=players.filter(x=>Number(x.points)===min);if(!winners.length)return;
+ const targetEls=winners.map(w=>Array.from($('dominoSeats')?.querySelectorAll('.domino-seat')||[]).find(e=>String(e.dataset.seatUser||'')===String(w.user_id||''))).filter(Boolean);
+ // Scatter across the whole free table surface, excluding visible chain.
+ const safe={x1:br.left-sr.left-18,x2:br.right-sr.left+18,y1:br.top-sr.top-18,y2:br.bottom-sr.top+18};
+ for(let i=0;i<28;i++){
+   const angle=i*2.39996;let x=sr.width*(.5+.39*Math.cos(angle)),y=sr.height*(.5+.38*Math.sin(angle));
+   if(x>=safe.x1&&x<=safe.x2&&y>=safe.y1&&y<=safe.y2)x=Math.max(10,safe.x1-17);
+   const coin=document.createElement('span');coin.className='dfc012j-real-coin';coin.style.left=x+'px';coin.style.top=y+'px';host.append(coin);
+   const tgt=targetEls[i%Math.max(1,targetEls.length)],r=tgt?.getBoundingClientRect();const tx=r?r.left+r.width/2-sr.left:sr.width*.5,ty=r?r.top+r.height/2-sr.top:sr.height*.5;
+   coin.style.setProperty('--dx',(tx-x)+'px');coin.style.setProperty('--dy',(ty-y)+'px');
+   setTimeout(()=>coin.classList.add('fly'),2600+i*20);
+ }
+ sound('scatter');setTimeout(()=>sound('credit'),2900);setTimeout(()=>host.remove(),4900);
+};
+})();
+</script>
+</body>
 <!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
 <!-- HTML 0.1 AJUSTE PANTALLA: escalado responsive, botones ampliados, bocina junto a Juegos y Fijar monto sobre Monto por toque. -->
