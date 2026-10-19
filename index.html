@@ -1,17 +1,17 @@
-<!-- Domino Flash Coin · HTML 0.12R · Basado en 0.12Q-VOZ1, SQL incremental 0.12R -->
+<!-- Domino Flash Coin · HTML 0.12S · Base 0.12R, confirma siguiente bote desde saldo de mesa -->
 <!-- Domino Flash Coin 1.9.10 · Asientos reservados antes de cada mano + rapidez real.
      La lógica de premios, saldos y partidas original se conserva. -->
 <!DOCTYPE html>
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12R" lang="es">
+<html data-app-build="0.12S" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
 <meta content="no-cache" http-equiv="Pragma"/>
 <meta content="0" http-equiv="Expires"/>
-<meta content="0.12R" name="application-version"/>
+<meta content="0.12S" name="application-version"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" name="viewport"/>
 <meta content="#081b39" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
@@ -19,8 +19,8 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="Domino Flash Coin" name="apple-mobile-web-app-title"/>
 <meta content="telephone=no" name="format-detection"/>
-<link href="manifest.webmanifest?v=0.12R" rel="manifest"/>
-<title>Dominos Flash Coin — Aplicación 0.12R</title>
+<link href="manifest.webmanifest?v=0.12S" rel="manifest"/>
+<title>Dominos Flash Coin — Aplicación 0.12S</title>
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <meta name="description" content="Dominos Flash Coin: mesas de dominó multijugador y Flash Coin virtuales.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12188,7 +12188,7 @@ function buildPhysicalLobby(){
       return;
     }
     if(typeof openDominoBuyin==='function')openDominoBuyin(Number(t.config_id));
-    const field=get('dominoBuyinInput');if(field){if(info.game_mode==='points'){field.value=required.toFixed(3);field.readOnly=true;field.setAttribute('title','Aporte de esta mesa por puntos: '+required.toFixed(3)+' FC');}else{field.readOnly=false;field.removeAttribute('title');}}
+    const field=get('dominoBuyinInput');if(field){if(info.game_mode==='points'){const avail=Math.max(0,Number(me?.balance||0));field.readOnly=false;field.min=String(required);field.max=String(avail);field.value=Math.min(avail,required).toFixed(3);field.removeAttribute('title');const range=get('dominoBuyinRange');if(range){range.min=String(required);range.max=String(Math.max(avail,required));range.value=String(Math.min(avail,required));}const display=get('dominoBuyinValue');if(display)display.textContent=field.value+' FC';window.dfc012sShowMax?.(true,required,avail);}else{field.readOnly=false;field.removeAttribute('title');window.dfc012sShowMax?.(false);}}
     const h=get('dominoBuyinTitle');if(h)h.textContent=(conf.name||'Mesa')+' · ID '+tid+' · '+label(info);
   });
  }
@@ -12264,13 +12264,15 @@ function dfc012qConsentDialog(q,amount){
   wrap.innerHTML=`<div class="dfc012q-confirm-card"><div class="dfc012q-gem">💎</div>
     <h2>Confirmar mesa por puntos</h2><p>Meta para ganar: <b>${Number(q.points_target)} diamantes</b></p>
     <div class="dfc012q-confirm-amount">${fmt(q.entry_stake)}<small>Aporte único de esta partida</small></div>
-    <p>Se descontarán <b>${fmt(q.entry_stake)}</b> de tu saldo personal al confirmar y
-    quedarán <b>reservadas en el bote de esta partida</b> desde ese momento.
+    <p>Transferirás <b>${fmt(amount)}</b> desde tu saldo personal al <b>saldo de mesa</b>.
+    De ese saldo se reservarán <b>${fmt(q.entry_stake)}</b> para el bote de la partida y
+    quedarán <b>${fmt(Math.max(0,amount-Number(q.entry_stake)))}</b> disponibles en tu mesa.
     No se cobrará otra vez por cada mano. Si abandonas antes de iniciar, se devuelve la reserva.</p>
+    <div class="dfc012q-confirm-stat"><span>Saldo que llevarás a la mesa</span><strong>${fmt(amount)}</strong></div>
     <div class="dfc012q-confirm-stat"><span>Jugadores de esta mesa</span><strong>${Number(q.points_seats_target||4)}</strong></div>
     <div class="dfc012q-confirm-stat"><span>Bote estimado de partida</span><strong>${fmt(Number(q.entry_stake)*Number(q.points_seats_target||4))}</strong></div>
     <div class="dfc012q-confirm-stat"><span>Comisión configurada</span><strong>${Number(q.commission_pct||0).toFixed(3)}%</strong></div>
-    <p class="dfc012q-small">Este importe se descuenta AHORA y se reserva en el bote. Se entregará una sola vez al ganador o pareja al alcanzar la meta; no se cobra de nuevo en cada mano.</p>
+    <p class="dfc012q-small">En la próxima partida volverás a confirmar el aporte desde tu saldo de mesa, sin transferir nuevamente todo el dinero. Se paga el bote al ganador al alcanzar la meta.</p>
     <div class="dfc012q-actions"><button type="button" class="cancel">CANCELAR</button>
     <button type="button" class="accept">ACEPTAR Y SENTARME</button></div></div>`;
   document.body.append(wrap);
@@ -12617,7 +12619,7 @@ window.dfc012rOpenChoice=async function(tid){
       <div class="score-row"><span>Partida</span><b>${active?'EN CURSO':'DISPONIBLE'}</b></div>
       ${score}<div class="score-row"><span>Reservados para próxima partida</span><b>${Number(st.queue_count||0)}</b></div>
     </div><div class="options">
-      <button class="primary" data-do="join" ${active?'disabled':''}>✅ ENTRAR Y RESERVAR APORTE</button>
+      <button class="primary" data-do="join" ${active?'disabled':''}>✅ ELEGIR CUÁNTO LLEVAR A MI MESA</button>
       <button data-do="queue" ${!active||queue?'disabled':''}>⏳ RESERVAR FC PARA LA PRÓXIMA</button>
       <button data-do="claim" ${!queue?'disabled':''}>↻ ACTIVAR MI RESERVA (cuando termine)</button>
       <button data-do="cancel" ${!queue?'disabled':''}>↩ CANCELAR MI RESERVA Y DEVOLVER FC</button>
@@ -12682,6 +12684,104 @@ window.dfc012rStampPoints=()=>{
 // del acento o idioma del lector del teléfono. La bocina debe estar encendida.
 })();
 </script>
+
+<style id="dfc012s-css">
+#dfc012s-max {display:none;gap:7px;margin:8px 0;align-items:center;justify-content:center;flex-wrap:wrap}
+#dfc012s-max button {background:#1e4174;color:#ffe6a4;border:1px solid #d9ae69;border-radius:10px;font-weight:800;padding:8px 14px}
+#dfc012s-max small {color:#e8d4fa;font-size:12px}
+#dfc012s-next {position:absolute;top:calc(env(safe-area-inset-top) + 56px);left:50%;transform:translateX(-50%);z-index:1004;
+ width:min(92%,365px);background:#071b30f4;border:2px solid #efc56e;border-radius:13px;color:white;
+ text-align:center;padding:10px 9px;box-shadow:0 8px 26px #000b;display:none;}
+#dfc012s-next strong{display:block;color:#ffe7a5;font-size:13px}
+#dfc012s-next p{font-size:11px;margin:5px 0;line-height:1.35}
+#dfc012s-next button {padding:9px;width:100%;border-radius:9px;background:linear-gradient(135deg,#f4cf73,#bb812c);border:0;color:#291904;font-weight:900;font-size:12px}
+#dfc012s-next button:disabled {filter:grayscale(.7);opacity:.8}
+</style>
+<script id="dfc012s-controller">
+(()=>{'use strict';
+const el=id=>document.getElementById(id), money=n=>Number(n||0).toFixed(3)+' FC';
+const maxWrap=document.createElement('div');maxWrap.id='dfc012s-max';
+maxWrap.innerHTML='<button type="button" id="dfc012s-all">🪙 USAR TODO MI SALDO</button><small id="dfc012s-hint"></small>';
+const v=el('dominoBuyinInput');if(v?.parentNode)v.parentNode.insertBefore(maxWrap,v.nextSibling);
+window.dfc012sShowMax=(enabled,stake,available)=>{
+ maxWrap.style.display=enabled?'flex':'none';
+ const hint=el('dfc012s-hint');if(hint)hint.textContent=enabled?'Aporte al bote: '+money(stake)+' · Tú eliges cuánto llevar': '';
+ maxWrap.dataset.available=String(Math.max(0,Number(available||0)));
+};
+el('dfc012s-all')?.addEventListener('click',()=>{
+ const field=el('dominoBuyinInput'),range=el('dominoBuyinRange');
+ const amount=Math.max(0,Number(me?.balance||maxWrap.dataset.available||0));
+ if(field){field.value=amount.toFixed(3);field.dispatchEvent(new Event('input',{bubbles:true}));}
+ if(range)range.value=String(amount);
+});
+const tablePanel=el('dominoTablePanel');const stage=tablePanel?.querySelector('.domino-game-panel')||tablePanel;
+const next=document.createElement('div');next.id='dfc012s-next';
+next.innerHTML='<strong>💎 ¿JUGAR LA PRÓXIMA PARTIDA?</strong><p id="dfc012s-next-info"></p><button id="dfc012s-next-accept" type="button">CONFIRMAR PRÓXIMA PARTIDA</button>';
+if(stage)stage.append(next);
+let currentMatch=0,currentTid=0,lastQueryAt=0,loading=false,busy=false,status=null;
+const info=el('dfc012s-next-info'),btn=el('dfc012s-next-accept');
+function display(){
+ const inGame=tablePanel?.classList.contains('active'),id=Number(dominoCurrentTableId||0);
+ if(!inGame||!status||id!==currentTid||!status.seated){next.style.display='none';return;}
+ next.style.display='block';
+ if(status.escrow_status==='reserved'){
+  info.textContent='Aporte reservado: '+money(status.stake)+' · Esperando que los demás jugadores confirmen.';
+  btn.textContent='✅ CONFIRMADO · ESPERANDO JUGADORES';btn.disabled=true;
+ }else if(status.escrow_status==='paid'){
+  info.textContent='Tu saldo de mesa: '+money(status.table_balance)+' · Aporte por partida: '+money(status.stake)+'.';
+  btn.textContent='✅ ACEPTAR Y DESCONTAR '+money(status.stake);
+  btn.disabled=busy||!status.can_confirm;
+  if(!status.can_confirm){
+   info.textContent= Number(status.table_balance)<Number(status.stake)?'Saldo de mesa insuficiente. Transfiere más Flash Coin a tu mesa para jugar.':'Espera a que termine la mano anterior.';
+  }
+ }else{next.style.display='none';}
+}
+async function refresh(force=false){
+ const tid=Number(dominoCurrentTableId||0);if(!tid||loading)return;
+ if(!force&&Date.now()-lastQueryAt<3500)return;
+ loading=true;lastQueryAt=Date.now();
+ try{const {data,error}=await sb.rpc('rf_domino_012s_next_status',{p_table_id:tid});if(error)throw error;
+  if(Number(dominoCurrentTableId||0)!==tid)return;
+  status=data;currentTid=tid;display();
+ }catch(e){console.warn('Próxima partida de puntos:',e);next.style.display='none';}
+ finally{loading=false;}
+}
+const old=window.dfc012rSyncPoints;
+window.dfc012rSyncPoints=function(st){
+ old?.(st);
+ const tid=Number(dominoCurrentTableId||0);
+ if(st?.mode!=='points'||st.status!=='finished'||!tid){next.style.display='none';status=null;currentMatch=0;return;}
+ const match=Number(st.match_id||0);
+ if(match!==currentMatch||tid!==currentTid){currentMatch=match;status=null;lastQueryAt=0;}
+ refresh(false);
+ display();
+};
+btn?.addEventListener('click',async()=>{
+ const tid=Number(dominoCurrentTableId||0);
+ if(busy||!tid||!status?.can_confirm)return;
+ const stake=Number(status.stake);
+ if(!window.confirm('¿Confirmas la próxima partida por '+money(stake)+'? Se descontarán SOLO de tu saldo de mesa y comienza un nuevo marcador desde 0 diamantes.'))return;
+ busy=true;btn.disabled=true;info.textContent='Reservando aporte en Supabase…';
+ try{
+  const {data,error}=await sb.rpc('rf_domino_012r_confirm',{p_table_id:tid});
+  if(error||!data?.ok)throw error||Error(data?.error||'No se pudo confirmar');
+  await refresh(true);if(status?.escrow_status==='reserved')display();
+  // Intenta repartir si todos están listos; es idempotente y puede requerir esperar la celebración.
+  const start=await sb.rpc('rf_domino_try_start_v189',{p_table_id:tid});
+  if(start.error)console.warn('Reparto siguiente:',start.error);
+  if(start.data?.status==='celebration_pending'){
+   setTimeout(async()=>{if(Number(dominoCurrentTableId||0)!==tid)return;
+    const retry=await sb.rpc('rf_domino_try_start_v189',{p_table_id:tid});
+    if(retry.error)console.warn('Reintento de reparto:',retry.error);
+   },18000);
+  }
+  if(typeof loadDominoState==='function')loadDominoState(true).catch(()=>{});
+ }catch(e){info.textContent='Error: '+(e.message||e);await refresh(true);}
+ finally{busy=false;display();}
+});
+})();
+</script>
+
 </body>
 <!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
