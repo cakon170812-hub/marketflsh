@@ -12211,7 +12211,7 @@ if(joinButton)joinButton.onclick=async function(...args){
  }
  this.disabled=true;
  try{
-  const {data,error}=await sb.rpc(mode?.game_mode==='points'?'rf_domino_012r_join_points':'rf_domino_spectator_join_v110',{p_table_id:tid,p_buyin:Number(amount.toFixed(3))});
+  const {data,error}=await sb.rpc(mode?.game_mode==='points'?'rf_domino_012t_join_points':'rf_domino_spectator_join_v110',{p_table_id:tid,p_buyin:Number(amount.toFixed(3))});
   if(error)throw error;if(!data?.ok||Number(data.table_id)!==tid)throw Error(data?.message||'No fue posible sentarte en el ID elegido');
   targetTable=0;dominoCurrentTableId=tid;
   window.dominoSpectatorMode=false;
@@ -12246,7 +12246,7 @@ if(joinButton){
    const amount=Number(get('dominoBuyinInput')?.value||0);
    if(!Number.isFinite(amount)||amount+0.0000001<Number(q.entry_stake)||amount>Number(me?.balance||0))
     throw Error('Para esta mesa necesitas transferir al menos '+Number(q.entry_stake).toFixed(3)+' FC.');
-   // Validación mostrada: se trasladan FC a mesa ahora y el bote se retira una vez al iniciar.
+   // Validación mostrada: se traslada el saldo a mesa y se reserva el aporte en el mismo ingreso.
    const accepted=await dfc012qConsentDialog(q,amount);
    if(!accepted)return;
    this.disabled=false;
@@ -12782,6 +12782,8 @@ btn?.addEventListener('click',async()=>{
 })();
 </script>
 
+<!-- 0.12T: El ingreso a mesas por puntos llama directamente al RPC atómico 012t.
+     El resto del juego, el audio de pase y la ruleta permanecen igual. -->
 </body>
 <!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
