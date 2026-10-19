@@ -1,17 +1,17 @@
-<!-- Domino Flash Coin · HTML 0.01 · Nueva versión oficial -->
+<!-- Domino Flash Coin · HTML 0.12Q · Basado en el HTML 0.12P original -->
 <!-- Domino Flash Coin 1.9.10 · Asientos reservados antes de cada mano + rapidez real.
      La lógica de premios, saldos y partidas original se conserva. -->
 <!DOCTYPE html>
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.11X" lang="es">
+<html data-app-build="0.12Q" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
 <meta content="no-cache" http-equiv="Pragma"/>
 <meta content="0" http-equiv="Expires"/>
-<meta content="0.09" name="application-version"/>
+<meta content="0.12Q" name="application-version"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" name="viewport"/>
 <meta content="#081b39" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
@@ -19,8 +19,8 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="Domino Flash Coin" name="apple-mobile-web-app-title"/>
 <meta content="telephone=no" name="format-detection"/>
-<link href="manifest.webmanifest?v=0.09" rel="manifest"/>
-<title>Dominos Flash Coin — Aplicación 0.09</title>
+<link href="manifest.webmanifest?v=0.12Q" rel="manifest"/>
+<title>Dominos Flash Coin — Aplicación 0.12Q</title>
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <meta name="description" content="Dominos Flash Coin: mesas de dominó multijugador y Flash Coin virtuales.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5117,11 +5117,11 @@ function dominoStartPolling(){
   dominoHeartbeatLast=0;
   dominoHeartbeat(true).catch(()=>{});
   dominoPollTimer=setInterval(()=>{
-    if(!dominoCurrentTableId)return;
+    if(!dominoCurrentTableId||document.hidden)return;
     dominoHeartbeat(false).catch(()=>{});
     mfDominoSyncClock().catch(()=>{});
     if(!mfDominoPlayPending)loadDominoState(false,(Date.now()-window.dfc012hProgressAt<2400)?true:(window.dfc012hProgressAt=Date.now(),false)).catch(()=>dominoSetSyncState('Reconectando…','warn'));
-  },1600);
+  },2600);
 }
 function dominoStopPolling(){
   clearInterval(dominoPollTimer);
@@ -5141,6 +5141,7 @@ async function dominoStartRealtime(){
   dominoSetSyncState('Conectando en tiempo real…','warn');
   dominoRealtimeChannel=sb.channel('domino-table-'+tid)
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'rf_domino_events',filter:`table_id=eq.${tid}`},async()=>{
+      window.dfc012qRequestPoints?.();
       if(dominoRealtimeBusy)return;
       dominoRealtimeBusy=true;
       try{
@@ -5681,7 +5682,7 @@ function dominoHandleMoveEffects(st){
   if(!mv?.id||String(mv.id)===String(dominoLastMoveId))return {animate:false};
   dominoLastMoveId=mv.id;
   const action=String(mv.action||'');
-  if(action.includes('PASS'))playDominoPassSound();
+  if(action.includes('PASS')){playDominoPassSound();window.dfc012qSpeakPass?.(mv,st)}
   else if(action.includes('PLAY')){
     const own=String(mv.user_id||'')===String(st?.me||'');
     if(!(own&&Date.now()<dominoSkipOwnPlaySoundUntil))playDominoClackSound();
@@ -11958,7 +11959,8 @@ function scorePanel(st){
  const names=side=>grouped[side].length?grouped[side].map(esc012n).join(' y '):'Jugadores por confirmar';
  const scoreA=Math.max(0,Number(st.score_a||0)),scoreB=Math.max(0,Number(st.score_b||0));
  const target=Math.max(1,Number(st.target||100)),pot=Math.max(0,Number(st.stake_pot||0));
- host.innerHTML=`<div class="dfc012p-board-head">💎 PUNTOS <span>Meta: ${target}</span></div><div class="dfc012p-team-grid"><div class="dfc012p-team" data-side="1"><span>${names(1)}</span><b>${scoreA} 💎</b></div><div class="dfc012p-team" data-side="0"><span>${names(0)}</span><b>${scoreB} 💎</b></div></div><div class="dfc012p-pot">🪙 BOTE DE LA MESA <strong>${pot.toFixed(3)} FC</strong></div>`;
+ const markup=`<div class="dfc012p-board-head">💎 PUNTOS <span>Meta: ${target}</span></div><div class="dfc012p-team-grid"><div class="dfc012p-team" data-side="1"><span>${names(1)}</span><b>${scoreA} 💎</b></div><div class="dfc012p-team" data-side="0"><span>${names(0)}</span><b>${scoreB} 💎</b></div></div><div class="dfc012p-pot">🪙 BOTE DE LA MESA <strong>${pot.toFixed(3)} FC</strong></div>`;
+ if(host.__dfc012qMarkup!==markup){host.innerHTML=markup;host.__dfc012qMarkup=markup;}
 }
 function showPointToast(kind,points){const stage=el('dominoStage');if(!stage)return;
  const node=document.createElement('div');node.className='dfc012n-point-toast';
@@ -12008,7 +12010,9 @@ async function pollPoints(){
   }
  }catch(e){console.warn('Marcador de diamantes pendiente:',e)}finally{pollWorking=false;}
 }
-setInterval(()=>{pollPoints().catch(()=>{})},2400);
+let dfc012qPointsDebounce=null;
+window.dfc012qRequestPoints=function(){if(dfc012qPointsDebounce)return;dfc012qPointsDebounce=setTimeout(()=>{dfc012qPointsDebounce=null;pollPoints().catch(()=>{})},140);};
+setInterval(()=>{if(document.hidden)return;pollPoints().catch(()=>{})},4000);
 // Persist no client-side points; server score is the only authority.
 
 // Existing 0.12K visual payout is retained; preset variation and larger coins.
@@ -12221,6 +12225,61 @@ if(joinButton)joinButton.onclick=async function(...args){
  }catch(e){if(typeof msg==='function')msg('dominoBuyinMsg','Error: '+(e.message||e));}
  finally{this.disabled=false;}
 };
+
+// 0.12Q: Confirmación visible de aportes para mesa por puntos ANTES del RPC que traslada FC.
+// Se consulta la configuración real del servidor. El saldo trasladado NO es otro cobro.
+if(joinButton){
+ const dfc012qActualJoin=joinButton.onclick;
+ joinButton.onclick=async function(...args){
+  const tid=Number(targetTable||0),info=byTable[tid];
+  if(!tid||info?.game_mode!=='points')return dfc012qActualJoin?.apply(this,args);
+  if(this.disabled)return;
+  this.disabled=true;
+  try{
+   const {data:q,error}=await sb.rpc('rf_domino_012q_quote',{p_table_id:tid});
+   if(error)throw error;
+   if(!q?.ok||q.game_mode!=='points'||!q.is_visible)throw Error('Mesa no disponible para jugar por puntos');
+   if(q.match_active)throw Error('La partida por puntos está comenzada. Puedes observar hasta la siguiente.');
+   const amount=Number(get('dominoBuyinInput')?.value||0);
+   if(!Number.isFinite(amount)||amount+0.0000001<Number(q.entry_stake)||amount>Number(me?.balance||0))
+    throw Error('Para esta mesa necesitas transferir al menos '+Number(q.entry_stake).toFixed(3)+' FC.');
+   // Validación mostrada: se trasladan FC a mesa ahora y el bote se retira una vez al iniciar.
+   const accepted=await dfc012qConsentDialog(q,amount);
+   if(!accepted)return;
+   this.disabled=false;
+   await dfc012qActualJoin?.apply(this,args);
+  }catch(e){if(typeof msg==='function')msg('dominoBuyinMsg','Error: '+(e.message||e));}
+  finally{this.disabled=false;}
+ };
+}
+function dfc012qConsentDialog(q,amount){
+ return new Promise(resolve=>{
+  const old=document.getElementById('dfc012q-consent');if(old)old.remove();
+  const wrap=document.createElement('div');wrap.id='dfc012q-consent';wrap.setAttribute('role','dialog');
+  wrap.setAttribute('aria-modal','true');wrap.setAttribute('aria-label','Confirmar entrada y bote de dominó');
+  const fmt=v=>Number(v||0).toFixed(3)+' FC';
+  wrap.innerHTML=`<div class="dfc012q-confirm-card"><div class="dfc012q-gem">💎</div>
+    <h2>Confirmar mesa por puntos</h2><p>Meta para ganar: <b>${Number(q.points_target)} diamantes</b></p>
+    <div class="dfc012q-confirm-amount">${fmt(q.entry_stake)}<small>Aporte único de esta partida</small></div>
+    <p>Traspasarás <b>${fmt(amount)}</b> desde tu saldo personal al saldo de mesa.
+    Cuando comience la partida se destinarán <b>${fmt(q.entry_stake)}</b> de ese saldo al bote.
+    El resto seguirá siendo tuyo en la mesa.</p>
+    <div class="dfc012q-confirm-stat"><span>Bote con 2 jugadores</span><strong>${fmt(q.pot_2)}</strong></div>
+    <div class="dfc012q-confirm-stat"><span>Bote con 4 jugadores</span><strong>${fmt(q.pot_4)}</strong></div>
+    <div class="dfc012q-confirm-stat"><span>Comisión configurada</span><strong>${Number(q.commission_pct||0).toFixed(3)}%</strong></div>
+    <p class="dfc012q-small">El bote neto se pagará una sola vez al jugador o pareja que alcance la meta. No se cobra otra apuesta en cada mano.</p>
+    <div class="dfc012q-actions"><button type="button" class="cancel">CANCELAR</button>
+    <button type="button" class="accept">ACEPTAR Y SENTARME</button></div></div>`;
+  document.body.append(wrap);
+  let done=false;
+  const finish=val=>{if(done)return;done=true;wrap.remove();resolve(val)};
+  wrap.querySelector('.cancel').onclick=()=>finish(false);
+  wrap.querySelector('.accept').onclick=()=>finish(true);
+  wrap.addEventListener('click',e=>{if(e.target===wrap)finish(false)});
+  wrap.querySelector('.accept').focus();
+ });
+}
+
 function tableAdminPanel(){
  const host=get('dominoAdminConfigs');if(!host)return;
  host.querySelector('.dfc012o-settings')?.remove();host.querySelector('.dfc012p-settings')?.remove();
@@ -12232,7 +12291,7 @@ function tableAdminPanel(){
   const paid=t.game_mode==='paid_pass'||t.paid_pass,card=document.createElement('article');
   card.className='dfc012p-admin-card '+(paid?'gold':t.game_mode==='points'?'diamond':'classic');
   const entry=Number(t.entry_stake)||Math.max(Number(t.config_min_entry||0),Number(t.config_hand_stake||0.030));
-  card.innerHTML=`<div class="dfc012p-card-top"><div><strong>MESA #${htmlEsc(t.table_id)}</strong><small>${htmlEsc(t.config_name||'Dominó')} · ${paid?'Pintintines':t.game_mode==='points'?'Por puntos':'Normal'}</small></div><label class="dfc012p-switch-label"><input class="p-visible" type="checkbox" ${t.is_visible!==false?'checked':''}><span class="dfc012p-switch-track" aria-hidden="true"></span><span class="p-state">${t.is_visible!==false?'VISIBLE':'OCULTA'}</span></label></div><div class="dfc012p-card-fields"><label>Modalidad<select class="p-mode" ${paid?'disabled':''}><option value="normal">Normal</option><option value="points">💎 Por puntos</option></select></label><label>Meta 💎<input class="p-target" type="number" min="10" max="50000" step="1" value="${Number(t.points_target||100)}"></label><label>Aporte por jugador (FC)<input class="p-entry" type="number" min="${Math.max(.001,Number(t.config_min_entry||.001))}" max="5000" step="0.001" value="${entry.toFixed(3)}"></label><label>Capicúa<input class="p-cap" type="number" min="0" max="10000" value="${Number(t.capicua_bonus??30)}"></label><label>Pase redondo<input class="p-pass" type="number" min="0" max="10000" value="${Number(t.pass_round_bonus??20)}"></label></div><button class="action blue p-save" type="button" ${paid?'disabled':''}>Guardar configuración de esta mesa</button><div class="dfc012p-card-status" aria-live="polite"></div>`;
+  card.innerHTML=`<div class="dfc012p-card-top"><div><strong>MESA #${htmlEsc(t.table_id)}</strong><small>${htmlEsc(t.config_name||'Dominó')} · ${paid?'Pintintines':t.game_mode==='points'?'Por puntos':'Normal'}</small></div><label class="dfc012p-switch-label"><input class="p-visible" type="checkbox" ${t.is_visible!==false?'checked':''}><span class="dfc012p-switch-track" aria-hidden="true"></span><span class="p-state">${t.is_visible!==false?'VISIBLE':'OCULTA'}</span></label></div><div class="dfc012p-card-fields"><label>Modalidad<select class="p-mode" ${paid?'disabled':''}><option value="normal">Normal</option><option value="points">💎 Por puntos</option></select></label><label>Meta 💎<input class="p-target" type="number" min="10" max="50000" step="1" value="${Number(t.points_target||100)}"></label><label>Aporte por jugador (FC)<input class="p-entry" type="number" min="${Math.max(.001,Number(t.config_min_entry||.001))}" max="5000" step="0.001" value="${entry.toFixed(3)}"></label><label>Comisión de esta mesa (%)<input class="p-pct" type="number" min="0" max="99.999" step="0.001" value="${Number(t.commission_pct||0).toFixed(3)}"></label><label>Capicúa<input class="p-cap" type="number" min="0" max="10000" value="${Number(t.capicua_bonus??30)}"></label><label>Pase redondo<input class="p-pass" type="number" min="0" max="10000" value="${Number(t.pass_round_bonus??20)}"></label></div><button class="action blue p-save" type="button" ${paid?'disabled':''}>Guardar configuración de esta mesa</button><div class="dfc012p-card-status" aria-live="polite"></div>`;
   panel.append(card);card.querySelector('.p-mode').value=t.game_mode==='points'?'points':'normal';
   const vis=card.querySelector('.p-visible'),status=card.querySelector('.dfc012p-card-status');
   const reflect=()=>{card.classList.toggle('is-hidden',!vis.checked);card.querySelector('.p-state').textContent=vis.checked?'VISIBLE':'OCULTA';};reflect();
@@ -12250,6 +12309,13 @@ function tableAdminPanel(){
       p_round:Number(card.querySelector('.p-pass').value),p_entry:Number(card.querySelector('.p-entry').value)};
       const {data,error}=await sb.rpc('rf_domino_012p_configure_table',payload);
       if(error||!data?.ok)throw error||Error('Error al guardar configuración');
+      const pct=Number(card.querySelector('.p-pct').value);
+      if(!Number.isFinite(pct)||pct<0||pct>=100||Math.abs(pct*1000-Math.round(pct*1000))>0.0001)throw Error('Comisión inválida');
+      const savedPct=Number(t.commission_pct||0);
+      if(Math.abs(pct-savedPct)>0.00001){
+       const pctResult=await sb.rpc('rf_domino_012q_set_commission',{p_table_id:Number(t.table_id),p_pct:pct});
+       if(pctResult.error||!pctResult.data?.ok)throw pctResult.error||Error('No se guardó la comisión');
+      }
       await fetchTableModes(true);status.textContent='✅ Configuración guardada';
       window.mf19Toast?.('Mesa #'+t.table_id+' actualizada','success');
     }catch(err){status.textContent='Error: '+(err.message||err);}finally{btn.disabled=false;}
@@ -12347,6 +12413,52 @@ const original=typeof enterApp==='function'?enterApp:null;
 if(original)enterApp=async function(...args){const result=await original.apply(this,args);await welcomeIfEarned();return result;};
 })();
 </script>
+
+<script id="dfc012q-pass-voice">
+(()=>{'use strict';
+ const seen=new Set();let lastTable=null;
+ function speak(move,st){
+  if(!move||!String(move.action||'').includes('PASS'))return;
+  if(typeof dominoSoundIsEnabled!=='function'||!dominoSoundIsEnabled())return;
+  if(document.hidden||!window.speechSynthesis||typeof SpeechSynthesisUtterance!=='function')return;
+  const tid=Number((typeof dominoCurrentTableId!=='undefined'&&dominoCurrentTableId)||0);
+  if(!tid)return;
+  if(tid!==lastTable){seen.clear();lastTable=tid;}
+  const key=tid+':'+String(st?.hand?.id||'')+':'+String(move.id||'');
+  if(!move.id||seen.has(key))return;
+  seen.add(key);
+  if(seen.size>120)seen.delete(seen.values().next().value);
+  try{
+   const utterance=new SpeechSynthesisUtterance('¡No voy!');
+   utterance.lang='es-DO';utterance.rate=1.07;utterance.pitch=.92;utterance.volume=.95;
+   const voices=window.speechSynthesis.getVoices?.()||[];
+   const preferred=voices.find(v=>v.lang.toLowerCase()==='es-do')||
+    voices.find(v=>v.lang.toLowerCase()==='es-419')||
+    voices.find(v=>v.lang.toLowerCase().startsWith('es'));
+   if(preferred)utterance.voice=preferred;
+   window.speechSynthesis.speak(utterance);
+  }catch(e){console.warn('Voz de pase no disponible:',e);}
+ }
+ window.dfc012qSpeakPass=speak;
+})();
+</script>
+
+<style id="dfc012q-ui">
+#dfc012q-consent{position:fixed;inset:0;z-index:999995;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;background:#030714e8;color:#fff}
+#dfc012q-consent .dfc012q-confirm-card{background:linear-gradient(145deg,#231345,#091b31);width:min(98vw,430px);max-height:90dvh;overflow-y:auto;border:2px solid #bfa1ff;border-radius:19px;padding:20px;text-align:center;box-shadow:0 0 45px #4a3195a0;font-family:inherit}
+#dfc012q-consent .dfc012q-gem{font-size:44px}
+#dfc012q-consent h2{font-size:21px;color:#fff0b2;margin:4px 0 11px}
+#dfc012q-consent p{line-height:1.5;font-size:13px;margin:10px 0}
+#dfc012q-consent .dfc012q-confirm-amount{font-size:30px;color:#ffe2a2;font-weight:950;background:#ffffff13;padding:12px;border-radius:12px}
+#dfc012q-consent .dfc012q-confirm-amount small{display:block;font-size:11px;color:#e4d6f9;font-weight:500}
+#dfc012q-consent .dfc012q-confirm-stat{display:flex;justify-content:space-between;gap:8px;font-size:12px;border-bottom:1px solid #ffffff25;padding:8px 2px}
+#dfc012q-consent .dfc012q-small{color:#d9d2eb;font-size:11px}
+#dfc012q-consent .dfc012q-actions{display:grid;grid-template-columns:1fr 1.4fr;gap:9px;margin-top:15px}
+#dfc012q-consent button{border:0;border-radius:10px;padding:12px 7px;cursor:pointer;font-weight:900;font-size:12px}
+#dfc012q-consent .cancel{background:#25314c;color:#fff}
+#dfc012q-consent .accept{background:linear-gradient(135deg,#ffe299,#bb84ff);color:#1b1232}
+</style>
+
 </body>
 <!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
