@@ -1,17 +1,17 @@
-<!-- Domino Flash Coin · HTML 0.12Q · Basado en el HTML 0.12P original -->
+<!-- Domino Flash Coin · HTML 0.12R · Basado en 0.12Q-VOZ1, SQL incremental 0.12R -->
 <!-- Domino Flash Coin 1.9.10 · Asientos reservados antes de cada mano + rapidez real.
      La lógica de premios, saldos y partidas original se conserva. -->
 <!DOCTYPE html>
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12Q" lang="es">
+<html data-app-build="0.12R" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
 <meta content="no-cache" http-equiv="Pragma"/>
 <meta content="0" http-equiv="Expires"/>
-<meta content="0.12Q" name="application-version"/>
+<meta content="0.12R" name="application-version"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" name="viewport"/>
 <meta content="#081b39" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
@@ -19,8 +19,8 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="Domino Flash Coin" name="apple-mobile-web-app-title"/>
 <meta content="telephone=no" name="format-detection"/>
-<link href="manifest.webmanifest?v=0.12Q" rel="manifest"/>
-<title>Dominos Flash Coin — Aplicación 0.12Q</title>
+<link href="manifest.webmanifest?v=0.12R" rel="manifest"/>
+<title>Dominos Flash Coin — Aplicación 0.12R</title>
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
 <meta name="description" content="Dominos Flash Coin: mesas de dominó multijugador y Flash Coin virtuales.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5947,7 +5947,7 @@ function dominoRenderSeatsStable(st){
     const hasMessages=dominoUserMessageCache.has(String(seat.user_id));
     msgBtn.dataset.messageUser=String(seat.user_id);msgBtn.dataset.messageName=name;msgBtn.classList.toggle('hidden',!hasMessages);
   }
-  bindDominoSeatProfiles();dominoBindMessageButtons();
+  bindDominoSeatProfiles();dominoBindMessageButtons();window.dfc012rStampPoints?.();
 }
 
 function renderDominoState(st){
@@ -6293,7 +6293,7 @@ if($('dominoReadyBtn'))$('dominoReadyBtn').onclick=async()=>{
   btn.textContent='CONFIRMANDO…';
   try{
     // 1) Confirmación persistente: NO reparte dentro de esta transacción.
-    const confirmed=await sb.rpc('rf_domino_confirm_v189',{
+    const confirmed=await sb.rpc((window.dfc012rIsPointTable?.(dominoCurrentTableId)?'rf_domino_012r_confirm':'rf_domino_confirm_v189'),{
       p_table_id:Number(dominoCurrentTableId)
     });
     if(confirmed.error)throw confirmed.error;
@@ -11998,7 +11998,7 @@ async function pollPoints(){
   if(error)throw error;
   const st=data||{},mode=st.mode||'normal';syncTheme(mode);
   if(mode!=='points'){lastSeenMatch='';lastSeenEvent=0;return;}
-  scorePanel(st);
+  scorePanel(st);window.dfc012rSyncPoints?.(st);
   const key=tid+':'+(st.match_id||0),events=(Array.isArray(st.events)?st.events:[]).slice().sort((a,b)=>Number(a.id)-Number(b.id));
   if(lastSeenMatch!==key){lastSeenMatch=key;lastSeenEvent=events.length?Math.max(...events.map(x=>Number(x.id)||0)):0;return;}
   for(const evt of events){
@@ -12158,6 +12158,7 @@ async function fetchTableModes(force=false){
  return byTable;
 }
 const kind=t=>t?.game_mode==='points'?'diamond':t?.game_mode==='paid_pass'||t?.paid_pass?'gold':'classic';
+window.dfc012rIsPointTable=tid=>byTable[Number(tid)]?.game_mode==='points';
 const label=t=>kind(t)==='diamond'?'💎 POR PUNTOS · '+Number(t.points_target||100):kind(t)==='gold'?'✦ PINTINTINES / PASE PAGA':'🁫 DOMINÓ NORMAL';
 const userHasBalance=c=>Number(me?.balance||0)+.0000001>=Number(c?.min_entry||0);
 function buildPhysicalLobby(){
@@ -12177,6 +12178,8 @@ function buildPhysicalLobby(){
   card.innerHTML=`<img class="dfc012o-art" src="${artworks[theme]}" alt="Imagen ${htmlEsc(label(info))}"><h3>${htmlEsc(conf.name)} · Mesa #${htmlEsc(t.table_no||t.id)}</h3><div class="mode-desc">${htmlEsc(label(info))}</div><div class="table-stats"><div class="table-stat">Entrada mínima<b>${typeof dominoMoney==='function'?dominoMoney(required):required.toFixed(3)} FC</b></div><div class="table-stat">Jugadores<b>${n} / 4</b></div></div><div class="online-line">ID ${htmlEsc(t.id)} · ${busy?'En juego':full?'Llena':'Disponible'}</div><button class="action green dfc012o-join" type="button">${spectator?'VER MESA':'SENTARME'}</button>`;
   host.append(card);
   card.querySelector('button').addEventListener('click',async()=>{
+    if(info.game_mode==='points'&&!window.dfc012rBypassChoice){window.dfc012rOpenChoice?.(Number(t.id));return;}
+    try{if(dominoSoundPreferenceEnabled()&&typeof armAudioFromGesture==='function')armAudioFromGesture(false);}catch(_){}
     const tid=Number(t.id);targetTable=tid;
     if(spectator){
       targetTable=0;
@@ -12208,7 +12211,7 @@ if(joinButton)joinButton.onclick=async function(...args){
  }
  this.disabled=true;
  try{
-  const {data,error}=await sb.rpc('rf_domino_spectator_join_v110',{p_table_id:tid,p_buyin:Number(amount.toFixed(3))});
+  const {data,error}=await sb.rpc(mode?.game_mode==='points'?'rf_domino_012r_join_points':'rf_domino_spectator_join_v110',{p_table_id:tid,p_buyin:Number(amount.toFixed(3))});
   if(error)throw error;if(!data?.ok||Number(data.table_id)!==tid)throw Error(data?.message||'No fue posible sentarte en el ID elegido');
   targetTable=0;dominoCurrentTableId=tid;
   window.dominoSpectatorMode=false;
@@ -12239,7 +12242,7 @@ if(joinButton){
    const {data:q,error}=await sb.rpc('rf_domino_012q_quote',{p_table_id:tid});
    if(error)throw error;
    if(!q?.ok||q.game_mode!=='points'||!q.is_visible)throw Error('Mesa no disponible para jugar por puntos');
-   if(q.match_active)throw Error('La partida por puntos está comenzada. Puedes observar hasta la siguiente.');
+   if(q.match_active)throw Error('Esta partida ya comenzó. Utiliza «ESPERAR PRÓXIMA» desde las mesas.');
    const amount=Number(get('dominoBuyinInput')?.value||0);
    if(!Number.isFinite(amount)||amount+0.0000001<Number(q.entry_stake)||amount>Number(me?.balance||0))
     throw Error('Para esta mesa necesitas transferir al menos '+Number(q.entry_stake).toFixed(3)+' FC.');
@@ -12261,13 +12264,13 @@ function dfc012qConsentDialog(q,amount){
   wrap.innerHTML=`<div class="dfc012q-confirm-card"><div class="dfc012q-gem">💎</div>
     <h2>Confirmar mesa por puntos</h2><p>Meta para ganar: <b>${Number(q.points_target)} diamantes</b></p>
     <div class="dfc012q-confirm-amount">${fmt(q.entry_stake)}<small>Aporte único de esta partida</small></div>
-    <p>Traspasarás <b>${fmt(amount)}</b> desde tu saldo personal al saldo de mesa.
-    Cuando comience la partida se destinarán <b>${fmt(q.entry_stake)}</b> de ese saldo al bote.
-    El resto seguirá siendo tuyo en la mesa.</p>
-    <div class="dfc012q-confirm-stat"><span>Bote con 2 jugadores</span><strong>${fmt(q.pot_2)}</strong></div>
-    <div class="dfc012q-confirm-stat"><span>Bote con 4 jugadores</span><strong>${fmt(q.pot_4)}</strong></div>
+    <p>Se descontarán <b>${fmt(q.entry_stake)}</b> de tu saldo personal al confirmar y
+    quedarán <b>reservadas en el bote de esta partida</b> desde ese momento.
+    No se cobrará otra vez por cada mano. Si abandonas antes de iniciar, se devuelve la reserva.</p>
+    <div class="dfc012q-confirm-stat"><span>Jugadores de esta mesa</span><strong>${Number(q.points_seats_target||4)}</strong></div>
+    <div class="dfc012q-confirm-stat"><span>Bote estimado de partida</span><strong>${fmt(Number(q.entry_stake)*Number(q.points_seats_target||4))}</strong></div>
     <div class="dfc012q-confirm-stat"><span>Comisión configurada</span><strong>${Number(q.commission_pct||0).toFixed(3)}%</strong></div>
-    <p class="dfc012q-small">El bote neto se pagará una sola vez al jugador o pareja que alcance la meta. No se cobra otra apuesta en cada mano.</p>
+    <p class="dfc012q-small">Este importe se descuenta AHORA y se reserva en el bote. Se entregará una sola vez al ganador o pareja al alcanzar la meta; no se cobra de nuevo en cada mano.</p>
     <div class="dfc012q-actions"><button type="button" class="cancel">CANCELAR</button>
     <button type="button" class="accept">ACEPTAR Y SENTARME</button></div></div>`;
   document.body.append(wrap);
@@ -12291,7 +12294,7 @@ function tableAdminPanel(){
   const paid=t.game_mode==='paid_pass'||t.paid_pass,card=document.createElement('article');
   card.className='dfc012p-admin-card '+(paid?'gold':t.game_mode==='points'?'diamond':'classic');
   const entry=Number(t.entry_stake)||Math.max(Number(t.config_min_entry||0),Number(t.config_hand_stake||0.030));
-  card.innerHTML=`<div class="dfc012p-card-top"><div><strong>MESA #${htmlEsc(t.table_id)}</strong><small>${htmlEsc(t.config_name||'Dominó')} · ${paid?'Pintintines':t.game_mode==='points'?'Por puntos':'Normal'}</small></div><label class="dfc012p-switch-label"><input class="p-visible" type="checkbox" ${t.is_visible!==false?'checked':''}><span class="dfc012p-switch-track" aria-hidden="true"></span><span class="p-state">${t.is_visible!==false?'VISIBLE':'OCULTA'}</span></label></div><div class="dfc012p-card-fields"><label>Modalidad<select class="p-mode" ${paid?'disabled':''}><option value="normal">Normal</option><option value="points">💎 Por puntos</option></select></label><label>Meta 💎<input class="p-target" type="number" min="10" max="50000" step="1" value="${Number(t.points_target||100)}"></label><label>Aporte por jugador (FC)<input class="p-entry" type="number" min="${Math.max(.001,Number(t.config_min_entry||.001))}" max="5000" step="0.001" value="${entry.toFixed(3)}"></label><label>Comisión de esta mesa (%)<input class="p-pct" type="number" min="0" max="99.999" step="0.001" value="${Number(t.commission_pct||0).toFixed(3)}"></label><label>Capicúa<input class="p-cap" type="number" min="0" max="10000" value="${Number(t.capicua_bonus??30)}"></label><label>Pase redondo<input class="p-pass" type="number" min="0" max="10000" value="${Number(t.pass_round_bonus??20)}"></label></div><button class="action blue p-save" type="button" ${paid?'disabled':''}>Guardar configuración de esta mesa</button><div class="dfc012p-card-status" aria-live="polite"></div>`;
+  card.innerHTML=`<div class="dfc012p-card-top"><div><strong>MESA #${htmlEsc(t.table_id)}</strong><small>${htmlEsc(t.config_name||'Dominó')} · ${paid?'Pintintines':t.game_mode==='points'?'Por puntos':'Normal'}</small></div><label class="dfc012p-switch-label"><input class="p-visible" type="checkbox" ${t.is_visible!==false?'checked':''}><span class="dfc012p-switch-track" aria-hidden="true"></span><span class="p-state">${t.is_visible!==false?'VISIBLE':'OCULTA'}</span></label></div><div class="dfc012p-card-fields"><label>Modalidad<select class="p-mode" ${paid?'disabled':''}><option value="normal">Normal</option><option value="points">💎 Por puntos</option></select></label><label>Meta 💎<input class="p-target" type="number" min="10" max="50000" step="1" value="${Number(t.points_target||100)}"></label><label>Aporte por jugador (FC)<input class="p-entry" type="number" min="${Math.max(.001,Number(t.config_min_entry||.001))}" max="5000" step="0.001" value="${entry.toFixed(3)}"></label><label>Jugadores por partida de puntos<select class="p-seats"><option value="2" ${Number(t.points_seats_target||4)===2?'selected':''}>2 jugadores · individuales</option><option value="3" ${Number(t.points_seats_target||4)===3?'selected':''}>3 jugadores · individuales</option><option value="4" ${Number(t.points_seats_target||4)===4?'selected':''}>4 jugadores · 2 parejas</option></select></label><label>Comisión de esta mesa (%)<input class="p-pct" type="number" min="0" max="99.999" step="0.001" value="${Number(t.commission_pct||0).toFixed(3)}"></label><label>Capicúa<input class="p-cap" type="number" min="0" max="10000" value="${Number(t.capicua_bonus??30)}"></label><label>Pase redondo<input class="p-pass" type="number" min="0" max="10000" value="${Number(t.pass_round_bonus??20)}"></label></div><button class="action blue p-save" type="button" ${paid?'disabled':''}>Guardar configuración de esta mesa</button><div class="dfc012p-card-status" aria-live="polite"></div>`;
   panel.append(card);card.querySelector('.p-mode').value=t.game_mode==='points'?'points':'normal';
   const vis=card.querySelector('.p-visible'),status=card.querySelector('.dfc012p-card-status');
   const reflect=()=>{card.classList.toggle('is-hidden',!vis.checked);card.querySelector('.p-state').textContent=vis.checked?'VISIBLE':'OCULTA';};reflect();
@@ -12315,6 +12318,11 @@ function tableAdminPanel(){
       if(Math.abs(pct-savedPct)>0.00001){
        const pctResult=await sb.rpc('rf_domino_012q_set_commission',{p_table_id:Number(t.table_id),p_pct:pct});
        if(pctResult.error||!pctResult.data?.ok)throw pctResult.error||Error('No se guardó la comisión');
+      }
+      const seatsCount=Number(card.querySelector('.p-seats').value);
+      if(payload.p_mode==='points' && seatsCount!==Number(t.points_seats_target||4)){
+       const seatsSave=await sb.rpc('rf_domino_012r_set_seats',{p_table_id:Number(t.table_id),p_count:seatsCount});
+       if(seatsSave.error||!seatsSave.data?.ok)throw seatsSave.error||Error('No se guardaron los cupos');
       }
       await fetchTableModes(true);status.textContent='✅ Configuración guardada';
       window.mf19Toast?.('Mesa #'+t.table_id+' actualizada','success');
@@ -12415,31 +12423,82 @@ if(original)enterApp=async function(...args){const result=await original.apply(t
 </script>
 
 <script id="dfc012q-pass-voice">
+/* DOMINO 0.12Q-VOZ1. Aplica a cualquier mesa y modalidad, no cambia servidor ni premios. */
 (()=>{'use strict';
- const seen=new Set();let lastTable=null;
+ const seen = new Set();let lastTable = null;
+ // Audio incorporado en el mismo HTML: también disponible sin voz TTS o sin internet.
+ const fallbackData='data:audio/mpeg;base64,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MmZ8rn2oT6Nv///Frb9as1qKmlD/84TEGyG72ZgLz0ADKgFjShY7WoKWv//9VX9STaa9RVpX/1b///4a1JFWlV//Zr/Zq2////YWFqKFrVYDoBYVRmbJDkGtkioqvquq0zZIqc3+wsLUULHWq7f//8X/BQtUNcqvyqr/r//7f/qSK2ppoUdCG/kMhP+FTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TERwAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUxBTUUzLjEwMFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVX/84TETAAAA0gAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=';
+ let embeddedBuffer=null,embeddedPromise=null,lastSpeech=null;
+ const soundOn=()=>typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled();
+ function warmFallback(){
+   if(embeddedBuffer)return Promise.resolve(embeddedBuffer);
+   if(embeddedPromise)return embeddedPromise;
+   const ctx=typeof getAudioContext==='function'?getAudioContext():null;
+   if(!ctx||typeof ctx.decodeAudioData!=='function')return Promise.resolve(null);
+   embeddedPromise=(async()=>{
+      const encoded=fallbackData.split(',')[1];
+      const bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0));
+      const buf=await ctx.decodeAudioData(bytes.buffer);
+      embeddedBuffer=buf;return buf;
+   })().catch(err=>{console.warn('Voz de pase: audio en reserva no disponible',err);return null;});
+   return embeddedPromise;
+ }
+ function playEmbedded(){
+   if(!soundOn()||document.hidden)return;
+   const ctx=typeof getAudioContext==='function'?getAudioContext():null;
+   if(ctx&&ctx.state==='running'){
+     warmFallback().then(buf=>{
+       if(!soundOn()||document.hidden)return;
+       if(!buf){try{new Audio(fallbackData).play().catch(()=>{});}catch(_){} return;}
+       try{
+         const src=ctx.createBufferSource();src.buffer=buf;
+         const output=typeof audioOutput==='function'?audioOutput():null;
+         src.connect(output||ctx.destination);src.start(0);
+       }catch(e){console.warn('Voz grabada: error al reproducir',e)}
+     });
+     return;
+   }
+   // Reserva adicional para navegadores que no permiten WebAudio.
+   try{const el=new Audio(fallbackData);el.volume=.95;
+      el.play().catch(()=>console.warn('Para escuchar la voz, pulsa primero la bocina de Dominó'));
+   }catch(e){console.warn('Audio de reserva no compatible',e)}
+ }
+ function sayPass(forceTest=false){
+   if(!soundOn()||document.hidden)return false;
+   playEmbedded();return true;
+ }
  function speak(move,st){
-  if(!move||!String(move.action||'').includes('PASS'))return;
-  if(typeof dominoSoundIsEnabled!=='function'||!dominoSoundIsEnabled())return;
-  if(document.hidden||!window.speechSynthesis||typeof SpeechSynthesisUtterance!=='function')return;
-  const tid=Number((typeof dominoCurrentTableId!=='undefined'&&dominoCurrentTableId)||0);
-  if(!tid)return;
-  if(tid!==lastTable){seen.clear();lastTable=tid;}
-  const key=tid+':'+String(st?.hand?.id||'')+':'+String(move.id||'');
-  if(!move.id||seen.has(key))return;
-  seen.add(key);
-  if(seen.size>120)seen.delete(seen.values().next().value);
-  try{
-   const utterance=new SpeechSynthesisUtterance('¡No voy!');
-   utterance.lang='es-DO';utterance.rate=1.07;utterance.pitch=.92;utterance.volume=.95;
-   const voices=window.speechSynthesis.getVoices?.()||[];
-   const preferred=voices.find(v=>v.lang.toLowerCase()==='es-do')||
-    voices.find(v=>v.lang.toLowerCase()==='es-419')||
-    voices.find(v=>v.lang.toLowerCase().startsWith('es'));
-   if(preferred)utterance.voice=preferred;
-   window.speechSynthesis.speak(utterance);
-  }catch(e){console.warn('Voz de pase no disponible:',e);}
+   if(!move||!String(move.action||'').toUpperCase().includes('PASS'))return;
+   if(!soundOn()||document.hidden)return;
+   const tid=Number((typeof dominoCurrentTableId!=='undefined'&&dominoCurrentTableId)||0);
+   if(!tid)return;
+   if(lastTable!==tid){seen.clear();lastTable=tid;}
+   if(move.id===undefined||move.id===null)return;
+   const key=tid+':'+String(st?.hand?.id||'')+':'+String(move.id);
+   if(seen.has(key))return;
+   seen.add(key);if(seen.size>120)seen.delete(seen.values().next().value);
+   sayPass();
  }
  window.dfc012qSpeakPass=speak;
+ window.dfc012qTestPassVoice=()=>sayPass(true);
+ // Preparar el audio de reserva sin retrasar el juego ni hacer consultas de red.
+ if(typeof requestIdleCallback==='function')requestIdleCallback(()=>{warmFallback();},{timeout:3000});
+ else setTimeout(()=>{warmFallback()},1500);
+ const menu=document.querySelector('#dominoMenuPanel .panel .domino-menu-actions');
+ if(menu&&!document.getElementById('dfc012qVoiceTestBtn')){
+   const btn=document.createElement('button');
+   btn.id='dfc012qVoiceTestBtn';btn.type='button';btn.className='action blue';
+   btn.textContent='🔊 PROBAR VOZ «¡NO VOY!»';
+   btn.title='Escucha la voz de los pases sin realizar ninguna jugada';
+   btn.addEventListener('click',()=>{
+      try{if(typeof armAudioFromGesture==='function')armAudioFromGesture(false);}catch(_){}
+      if(!soundOn()){
+        alert('Primero activa la bocina 🔊 de la mesa de Dominó y vuelve a probar.');return;
+      }
+      if(!sayPass(true))alert('Activa el sonido y mantén esta ventana abierta.');
+   });
+   menu.append(btn);
+ }
 })();
 </script>
 
@@ -12459,6 +12518,170 @@ if(original)enterApp=async function(...args){const result=await original.apply(t
 #dfc012q-consent .accept{background:linear-gradient(135deg,#ffe299,#bb84ff);color:#1b1232}
 </style>
 
+<style id="dfc012r-style">
+#dfc012r-menu{position:fixed;right:10px;top:calc(env(safe-area-inset-top) + 7px);z-index:410000;display:flex;gap:4px;max-width:90vw}
+#dfc012r-menu button{font:800 10px Arial,sans-serif;background:#142942;color:#ffe6a4;border:1px solid #dfb55e;border-radius:10px;padding:8px;box-shadow:0 3px 13px #000a}
+#dfc012r-menu button:disabled{opacity:.43;filter:grayscale(1);pointer-events:none}
+body:has(#dominoTablePanel.active) #dfc012r-menu{display:none}
+#dfc012r-choice{position:fixed;inset:0;z-index:999996;background:#030715ef;display:grid;place-items:center;padding:14px;box-sizing:border-box;color:#fff}
+#dfc012r-choice article{width:min(96vw,480px);max-height:90dvh;overflow:auto;background:linear-gradient(155deg,#1a1743,#051926);border:2px solid #9c7fe4;border-radius:17px;padding:16px;box-shadow:0 0 30px #5720bb66}
+#dfc012r-choice h2{font-size:21px;color:#f4dcff}#dfc012r-choice p{font-size:12px;line-height:1.5;margin:8px 0;color:#e3daed}
+#dfc012r-choice .summary{background:#ffffff13;border:1px solid #ffffff24;border-radius:10px;padding:9px;font-size:13px;display:grid;gap:7px;margin:12px 0}
+#dfc012r-choice .score-row{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #ffffff21;padding:5px 0}
+#dfc012r-choice .options{display:grid;gap:7px}#dfc012r-choice button{padding:11px;border-radius:9px;border:1px solid #997bd4;background:#34225b;color:white;font-weight:900;font-size:12px}
+#dfc012r-choice button.primary{color:#130e29;background:#f6d68c}#dfc012r-choice button:disabled{opacity:.45}
+#dfc012r-choice .msg{min-height:18px;color:#ffc69e}
+#dominoStage .dfc012r-diamond{display:block;background:#27264af2;color:#b5eaff;border:1px solid #8bb9ef;padding:2px 5px;margin:2px auto;border-radius:10px;width:max-content;font:bold clamp(10px,1.3vw,13px) Arial,sans-serif;max-width:100%}
+#dominoStage .dfc012r-scorecard{display:grid;gap:3px;font-weight:800}
+#dominoStage .dfc012r-scorecard .top{display:flex;justify-content:space-between;gap:8px;color:#e7d5ff;font-size:11px}
+#dominoStage .dfc012r-scorecard strong{color:#ffdc77;font-size:13px}
+#dominoStage .dfc012r-scorecard .team{color:#b8e4ff;font-size:10px}
+@media(max-width:700px){#dfc012r-menu{right:4px;top:calc(env(safe-area-inset-top) + 3px)}#dfc012r-menu button{padding:6px;font-size:9px}}
+</style>
+<script id="dfc012r-controller">
+(()=>{'use strict';
+const el=id=>document.getElementById(id),fmt=n=>Number(n||0).toFixed(3)+' FC',esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let mySeat=0,mySeatState='free',seatBusy=false,lastSeatCheck=0,lastPoints=null,choiceBusy=false;
+const request=async(name,args)=>{const r=await sb.rpc(name,args);if(r.error)throw r.error;if(r.data?.ok===false)throw Error(r.data.error||r.data.message||'Operación no confirmada');return r.data};
+function makeTop(){
+ if(el('dfc012r-menu'))return;
+ const box=document.createElement('div');box.id='dfc012r-menu';
+ box.innerHTML='<button id="dfc012r-return" disabled>↩ VOLVER A MI MESA</button><button id="dfc012r-exit" disabled>🚪 SALIR DEFINITIVAMENTE</button>';
+ document.body.append(box);
+ el('dfc012r-return').onclick=async()=>{
+  if(!mySeat)return;const tid=mySeat;el('dfc012r-return').disabled=true;
+  try{
+   await request('rf_domino_resume_v11',{p_table_id:tid});
+   dominoCurrentTableId=tid;dominoViewAway=false;window.dominoSpectatorMode=false;document.body.classList.remove('domino-spectating');
+   dominoResetTableEffects?.();hide?.('dominoLobbyPanel');hide?.('dominoMenuPanel');show?.('dominoTablePanel');
+   dominoForceLandscape?.().catch(()=>{});dominoStartPolling?.();await dominoHeartbeat?.(true);await dominoStartRealtime?.();await loadDominoState?.(true);
+  }catch(e){alert('No se pudo recuperar tu mesa: '+e.message)}finally{renderTop();}
+ };
+ el('dfc012r-exit').onclick=async()=>{
+  if(!mySeat||!confirm('¿Abandonar definitivamente la mesa #'+mySeat+'? Si hay una mano en curso, la salida puede quedar pendiente.'))return;
+  const tid=mySeat;el('dfc012r-exit').disabled=true;
+  try{const result=await request('rf_domino_012r_force_exit',{p_table_id:tid});
+   if(result?.status==='pending')alert('Salida pendiente: se completará al finalizar la mano activa.');
+   else alert('Salida de la mesa completada.');
+   await seatCheck(true);
+  }catch(e){alert('No se pudo completar la salida: '+e.message)}finally{renderTop();}
+ };
+}
+function renderTop(){const a=el('dfc012r-return'),b=el('dfc012r-exit');if(!a||!b)return;
+ const logged=!!el('appView')&&!el('appView').classList.contains('hidden');
+ const playing=!!el('dominoTablePanel')?.classList.contains('active');
+ a.disabled=!logged||!mySeat||playing||mySeatState==='leave_after_hand';b.disabled=!logged||!mySeat||playing;
+ a.title=mySeat?'Mesa #'+mySeat:'';b.title=mySeat?'Dejar mesa #'+mySeat:'';
+}
+async function seatCheck(force=false){
+ makeTop();if(seatBusy||(!force&&Date.now()-lastSeatCheck<13000))return;
+ if(el('appView')?.classList.contains('hidden')){mySeat=0;renderTop();return;}
+ seatBusy=true;lastSeatCheck=Date.now();try{const d=await request('rf_domino_012r_my_seat');
+  mySeat=Number(d?.table_id||0);mySeatState=d?.state||'free';
+  // Si reservó una partida anterior, activar el asiento automáticamente
+  // una vez que el servidor haya cerrado la partida y devuelto los saldos.
+  const queueTid=Number(d?.waiting_table_id||0);
+  if(queueTid&&!mySeat){
+    try{const claimed=await request('rf_domino_012r_queue_claim',{p_table_id:queueTid});
+      if(claimed?.status==='joined'){mySeat=queueTid;mySeatState='active';}}
+    catch(error){console.warn('La próxima partida aún no puede comenzar:',error.message)}
+  }
+ }catch(e){console.warn('Recuperar asiento pendiente',e)}finally{seatBusy=false;renderTop();}}
+// Se consulta ocasionalmente: nunca una solicitud por frame ni por movimiento.
+setInterval(()=>{if(!document.hidden)seatCheck()},13000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)seatCheck(true)});
+setTimeout(()=>{makeTop();seatCheck(true)},1200);
+window.dfc012rSeatCheck=()=>seatCheck(true);
+// Panel de elección antes de sentarse, visible incluso cuando la partida va 80 a 90.
+window.dfc012rBypassChoice=false;
+window.dfc012rOpenChoice=async function(tid){
+ if(choiceBusy)return;choiceBusy=true;
+ try{
+  const st=await request('rf_domino_012r_preview',{p_table_id:tid});
+  el('dfc012r-choice')?.remove();
+  const modal=document.createElement('div');modal.id='dfc012r-choice';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');
+  const match=st.match||{},players=Array.isArray(match.roster_names)?match.roster_names:[],personal=Array.isArray(match.player_scores)?match.player_scores:[];
+  const names=new Map(players.map(p=>[String(p.user_id),p.name||'Jugador']));
+  const count=Number(match.participant_count||st.seats_target||4);
+  const sums=[0,0];for(const p of personal)sums[Number(p.seat_no)%2]+=Number(p.points||0);
+  let score='';
+  if(st.match_active && count===4){score=`<div class="score-row"><span>Equipo 1 (asientos opuestos)</span><b>${sums[1]} 💎</b></div><div class="score-row"><span>Equipo 2 (asientos opuestos)</span><b>${sums[0]} 💎</b></div>`;}
+  else if(st.match_active){score=personal.map(p=>`<div class="score-row"><span>${esc(names.get(String(p.user_id))||'Jugador')}</span><b>${Number(p.points||0)} 💎</b></div>`).join('');}
+  else score='<div>La nueva partida todavía no tiene puntuación.</div>';
+  const active=!!st.match_active,queue=!!st.my_queue;
+  modal.innerHTML=`<article><h2>💎 Mesa por puntos #${Number(tid)}</h2>
+    <p>Antes de entrar puedes revisar la partida que está jugando y elegir dónde participar.</p>
+    <div class="summary"><div class="score-row"><span>Meta configurada</span><b>${Number(st.target)} 💎</b></div>
+      <div class="score-row"><span>Aporte por jugador</span><b>${fmt(st.entry_stake)}</b></div>
+      <div class="score-row"><span>Comisión</span><b>${Number(st.commission_pct||0).toFixed(3)}%</b></div>
+      <div class="score-row"><span>Partida</span><b>${active?'EN CURSO':'DISPONIBLE'}</b></div>
+      ${score}<div class="score-row"><span>Reservados para próxima partida</span><b>${Number(st.queue_count||0)}</b></div>
+    </div><div class="options">
+      <button class="primary" data-do="join" ${active?'disabled':''}>✅ ENTRAR Y RESERVAR APORTE</button>
+      <button data-do="queue" ${!active||queue?'disabled':''}>⏳ RESERVAR FC PARA LA PRÓXIMA</button>
+      <button data-do="claim" ${!queue?'disabled':''}>↻ ACTIVAR MI RESERVA (cuando termine)</button>
+      <button data-do="cancel" ${!queue?'disabled':''}>↩ CANCELAR MI RESERVA Y DEVOLVER FC</button>
+      <button data-do="create">＋ CREAR OTRA MESA POR PUNTOS</button>
+      <button data-do="close">CERRAR</button>
+    </div><p class="msg" id="dfc012r-msg"></p></article>`;
+  document.body.append(modal);const output=el('dfc012r-msg');
+  for(const btn of modal.querySelectorAll('[data-do]'))btn.onclick=async()=>{
+   const action=btn.dataset.do;
+   if(action==='close'){modal.remove();return}
+   if(action==='join'){
+    modal.remove();
+    // Disparar el mismo flujo de ingreso y confirmación ya existente.
+    const entry=Array.from(document.querySelectorAll('.dfc012o-table-card')).find(c=>Number(c.dataset.tableId)===Number(tid));
+    if(!entry){alert('Actualiza la lista de mesas e inténtalo otra vez.');return}
+    window.dfc012rBypassChoice=true;try{entry.querySelector('button')?.click()}finally{window.dfc012rBypassChoice=false}return;
+   }
+   btn.disabled=true;output.textContent='Validando con Supabase…';
+   try{
+    if(action==='queue'){
+      if(!confirm('¿Reservar '+fmt(st.entry_stake)+' de tu saldo personal para la SIGUIENTE partida? No se incorporarán al bote actual.'))return;
+      const r=await request('rf_domino_012r_queue_next',{p_table_id:tid});
+      output.textContent='✅ '+fmt(r.amount_reserved)+' reservadas para la próxima partida. Puedes cancelar la espera antes de sentarte.';
+    }else if(action==='claim'){
+      const r=await request('rf_domino_012r_queue_claim',{p_table_id:tid});
+      output.textContent=r.status==='joined'?'✅ Ya tienes asiento. Usa VOLVER A MI MESA.':'⏳ Aún sigue la partida o los asientos están ocupados.';
+      if(r.status==='joined')await seatCheck(true);
+    }else if(action==='cancel'){
+      const r=await request('rf_domino_012r_queue_cancel',{p_table_id:tid});output.textContent='✅ Reserva cancelada. Devueltas '+fmt(r.amount);
+    }else if(action==='create'){
+      const r=await request('rf_domino_012r_create_table',{p_copy_table_id:tid});
+      modal.remove();await openDominoLobby();alert('✅ Nueva mesa #'+r.table_no+' creada. Los demás jugadores podrán entrar a ella y comenzar una partida independiente.');return;
+    }
+    setTimeout(()=>{if(el('dfc012r-choice')===modal){modal.remove();window.dfc012rOpenChoice(tid)}},900);
+   }catch(e){output.textContent='Error: '+e.message;}
+   finally{btn.disabled=false}
+  };
+ }catch(e){alert('No se pudo consultar esta mesa: '+e.message)}finally{choiceBusy=false;}
+};
+// Actualización individual de diamantes, junto al perfil de cada persona.
+window.dfc012rSyncPoints=st=>{
+ lastPoints=st;
+ const box=el('dfc012n-scoreboard');if(box){
+  const roster=Array.isArray(st.player_scores)?st.player_scores:[],four=Number(st.participant_count||0)===4;
+  const sums=[0,0];for(const p of roster)sums[Number(p.seat_no)%2]+=Number(p.points||0);
+  const html=`<div class="dfc012r-scorecard"><div class="top"><span>💎 META ${Number(st.target||100)}</span><strong>🪙 ${fmt(st.stake_pot||0)}</strong></div>${four?`<div class="team">Equipo 1: ${sums[1]} 💎 · Equipo 2: ${sums[0]} 💎</div>`:'<div class="team">Individual · gana quien alcance la meta</div>'}</div>`;
+  if(box.dataset.dfc012rMarkup!==html){box.innerHTML=html;box.dataset.dfc012rMarkup=html;}
+ }
+ window.dfc012rStampPoints?.();
+};
+window.dfc012rStampPoints=()=>{
+ if(!lastPoints||!el('dominoTablePanel')?.classList.contains('active'))return;
+ const pts=new Map((lastPoints.player_scores||[]).map(p=>[String(p.user_id),Number(p.points||0)]));
+ for(const seat of document.querySelectorAll('#dominoStage .domino-seat')){
+  const id=seat.dataset.seatUser;let badge=seat.querySelector('.dfc012r-diamond');
+  if(!id||!pts.has(String(id))){badge?.remove();continue;}
+  if(!badge){badge=document.createElement('span');badge.className='dfc012r-diamond';(seat.querySelector('.domino-seat-heading')||seat).append(badge)}
+  const value='💎 '+pts.get(String(id));if(badge.textContent!==value)badge.textContent=value;
+ }
+};
+// Se usa el mismo audio MP3 interno en todos los equipos; la voz no depende
+// del acento o idioma del lector del teléfono. La bocina debe estar encendida.
+})();
+</script>
 </body>
 <!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
