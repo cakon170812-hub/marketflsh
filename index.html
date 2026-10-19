@@ -2995,6 +2995,10 @@ $('tabLogin').onclick=()=>setAuthMode('login');
 
 $('registerForm').addEventListener('submit',async e=>{
   e.preventDefault();
+  const _regBtn=e.currentTarget.querySelector('button[type="submit"]');
+  if(_regBtn?.disabled)return;
+  if(_regBtn){_regBtn.disabled=true;_regBtn.textContent='CREANDO CUENTA…';}
+  try{
   if(!$('regPrivacyRead').checked)return msg('authMsg','Lee la política de privacidad y confirma que tienes 18 años o más.');
   msg('authMsg','Creando cuenta y preparando confirmación...');
   const first=$('regFirst').value.trim(),last=$('regLast').value.trim(),email=normalizeEmail($('regEmail').value),pass=$('regPass').value,pass2=$('regPass2').value;
@@ -3020,6 +3024,8 @@ $('registerForm').addEventListener('submit',async e=>{
   }
   msg('authMsg','Te enviamos un correo de confirmación.');
   showEmailConfirmationPending(email);
+  }catch(_regError){msg('authMsg',typeof authErrorText==='function'?authErrorText(_regError):String(_regError?.message||_regError));}
+  finally{if(_regBtn){_regBtn.disabled=false;_regBtn.textContent='CREAR CUENTA';}}
 });
 
 $('emailConfirmResendBtn').onclick=async()=>{
@@ -11943,9 +11949,16 @@ function syncTheme(mode){
 }
 function gemStage(){const stage=el('dominoStage');if(!stage)return null;
  let layer=el('dfc012n-gem-layer');if(!layer){layer=document.createElement('div');layer.id='dfc012n-gem-layer';stage.append(layer);}return layer;}
-function scorePanel(st){let host=el('dfc012n-scoreboard');const stage=el('dominoStage');if(!stage)return;
- if(!host){host=document.createElement('div');host.id='dfc012n-scoreboard';stage.append(host);}
- host.innerHTML=`<strong>💎 ${Number(st.score_a||0)} · ${Number(st.score_b||0)} 💎</strong><small>META ${Number(st.target||100)} · Equipo A / Equipo B</small>`;
+function scorePanel(st){
+ let host=el('dfc012n-scoreboard');const stage=el('dominoStage');if(!stage)return;
+ if(!host){host=document.createElement('section');host.id='dfc012n-scoreboard';host.setAttribute('aria-label','Puntos y bote de la mesa');stage.append(host);}
+ const roster=Array.isArray(st.roster_names)?st.roster_names:[];
+ const grouped={0:[],1:[]};
+ for(const p of roster){const side=Number(p.seat_no)%2;const name=String(p.name||'Jugador').trim();if(grouped[side])grouped[side].push(name);}
+ const names=side=>grouped[side].length?grouped[side].map(esc012n).join(' y '):'Jugadores por confirmar';
+ const scoreA=Math.max(0,Number(st.score_a||0)),scoreB=Math.max(0,Number(st.score_b||0));
+ const target=Math.max(1,Number(st.target||100)),pot=Math.max(0,Number(st.stake_pot||0));
+ host.innerHTML=`<div class="dfc012p-board-head">💎 PUNTOS <span>Meta: ${target}</span></div><div class="dfc012p-team-grid"><div class="dfc012p-team" data-side="1"><span>${names(1)}</span><b>${scoreA} 💎</b></div><div class="dfc012p-team" data-side="0"><span>${names(0)}</span><b>${scoreB} 💎</b></div></div><div class="dfc012p-pot">🪙 BOTE DE LA MESA <strong>${pot.toFixed(3)} FC</strong></div>`;
 }
 function showPointToast(kind,points){const stage=el('dominoStage');if(!stage)return;
  const node=document.createElement('div');node.className='dfc012n-point-toast';
@@ -12146,17 +12159,18 @@ const userHasBalance=c=>Number(me?.balance||0)+.0000001>=Number(c?.min_entry||0)
 function buildPhysicalLobby(){
  const host=get('dominoLobbyModes');if(!host)return;
  // El modo, el costo y la ocupación se identifican por el ID físico de mesa.
- host.querySelectorAll('.dfc012o-table-card').forEach(x=>x.remove());
- const tables=physicalRows().filter(t=>Number(t.id)>0),myTable=dominoLobbyData?.my_table;
- if(!tables.length){host.querySelectorAll('[data-config-card]').forEach(x=>x.classList.remove('dfc012o-hidden-category'));return;}
+ host.querySelectorAll('.dfc012o-table-card').forEach(x=>x.remove());host.querySelector('#dfc012p-empty-tables')?.remove();
+ const tables=physicalRows().filter(t=>Number(t.id)>0 && byTable[Number(t.id)]?.is_visible!==false),myTable=dominoLobbyData?.my_table;
+ if(!tables.length){const anyPhysical=physicalRows().some(t=>Number(t.id)>0);host.querySelectorAll('[data-config-card]').forEach(x=>x.classList.toggle('dfc012o-hidden-category',anyPhysical));let note=host.querySelector('#dfc012p-empty-tables');if(anyPhysical){if(!note){note=document.createElement('p');note.id='dfc012p-empty-tables';note.textContent='No hay mesas disponibles por el momento.';host.append(note);}}else note?.remove();return;}
  host.querySelectorAll('.domino-choice-card:not(.dfc012o-table-card)').forEach(x=>{if(x.dataset.configCard)x.classList.add('dfc012o-hidden-category')});
  for(const t of tables){
   const conf=configRows().find(c=>Number(c.id)===Number(t.config_id));if(!conf)continue;
   const info=byTable[Number(t.id)]||{game_mode:conf.mode==='paid_pass'?'paid_pass':'normal',points_target:100},theme=kind(info);
+  const required=info.game_mode==='points'?Math.max(Number(conf.min_entry)||0,Number(info.entry_stake)||0):Number(conf.min_entry||0);
   const n=Number(t.players||0),full=n>=4,busy=['playing','shuffling'].includes(String(t.hand_status||''));
-  const spectator=!myTable&&(!userHasBalance(conf)||full);
+  const spectator=!myTable&&((Number(me?.balance||0)+.0000001<required)||full);
   const card=document.createElement('article');card.className='domino-choice-card dfc012o-table-card '+theme;card.dataset.tableId=String(t.id);
-  card.innerHTML=`<img class="dfc012o-art" src="${artworks[theme]}" alt="Imagen ${htmlEsc(label(info))}"><h3>${htmlEsc(conf.name)} · Mesa #${htmlEsc(t.table_no||t.id)}</h3><div class="mode-desc">${htmlEsc(label(info))}</div><div class="table-stats"><div class="table-stat">Entrada mínima<b>${typeof dominoMoney==='function'?dominoMoney(conf.min_entry):conf.min_entry} FC</b></div><div class="table-stat">Jugadores<b>${n} / 4</b></div></div><div class="online-line">ID ${htmlEsc(t.id)} · ${busy?'En juego':full?'Llena':'Disponible'}</div><button class="action green dfc012o-join" type="button">${spectator?'VER MESA':'SENTARME'}</button>`;
+  card.innerHTML=`<img class="dfc012o-art" src="${artworks[theme]}" alt="Imagen ${htmlEsc(label(info))}"><h3>${htmlEsc(conf.name)} · Mesa #${htmlEsc(t.table_no||t.id)}</h3><div class="mode-desc">${htmlEsc(label(info))}</div><div class="table-stats"><div class="table-stat">Entrada mínima<b>${typeof dominoMoney==='function'?dominoMoney(required):required.toFixed(3)} FC</b></div><div class="table-stat">Jugadores<b>${n} / 4</b></div></div><div class="online-line">ID ${htmlEsc(t.id)} · ${busy?'En juego':full?'Llena':'Disponible'}</div><button class="action green dfc012o-join" type="button">${spectator?'VER MESA':'SENTARME'}</button>`;
   host.append(card);
   card.querySelector('button').addEventListener('click',async()=>{
     const tid=Number(t.id);targetTable=tid;
@@ -12167,6 +12181,7 @@ function buildPhysicalLobby(){
       return;
     }
     if(typeof openDominoBuyin==='function')openDominoBuyin(Number(t.config_id));
+    const field=get('dominoBuyinInput');if(field){if(info.game_mode==='points'){field.value=required.toFixed(3);field.readOnly=true;field.setAttribute('title','Aporte de esta mesa por puntos: '+required.toFixed(3)+' FC');}else{field.readOnly=false;field.removeAttribute('title');}}
     const h=get('dominoBuyinTitle');if(h)h.textContent=(conf.name||'Mesa')+' · ID '+tid+' · '+label(info);
   });
  }
@@ -12183,7 +12198,8 @@ if(joinButton)joinButton.onclick=async function(...args){
  if(!String(get('dominoBuyinTitle')?.textContent||'').includes('ID '+targetTable)) {targetTable=0;return baseJoin?.apply(this,args);}
  const tid=targetTable,amount=Number(get('dominoBuyinInput')?.value||0);
  const chosen=physicalRows().find(t=>Number(t.id)===tid);const conf=configRows().find(c=>Number(c.id)===Number(chosen?.config_id));
- if(!conf||!Number.isFinite(amount)||amount<Number(conf.min_entry)||amount>Number(me?.balance||0)){
+ const mode=byTable[tid];const requiredBuyin=mode?.game_mode==='points'?Math.max(Number(conf?.min_entry||0),Number(mode?.entry_stake||0)):Number(conf?.min_entry||0);
+ if(!conf||mode?.is_visible===false||!Number.isFinite(amount)||amount<requiredBuyin||amount>Number(me?.balance||0)){
   if(typeof msg==='function')msg('dominoBuyinMsg','Monto insuficiente para sentarte en esta mesa.');return;
  }
  this.disabled=true;
@@ -12206,25 +12222,38 @@ if(joinButton)joinButton.onclick=async function(...args){
  finally{this.disabled=false;}
 };
 function tableAdminPanel(){
- const host=get('dominoAdminConfigs');if(!host)return;host.querySelector('.dfc012o-settings')?.remove();
- const panel=document.createElement('div');panel.className='dfc012o-settings';panel.innerHTML='<h3>🎨 Modalidad por ID de mesa</h3><p class="tiny">Configura cada mesa por separado. Las mesas activas no pueden cambiar de modalidad.</p>';
+ const host=get('dominoAdminConfigs');if(!host)return;
+ host.querySelector('.dfc012o-settings')?.remove();host.querySelector('.dfc012p-settings')?.remove();
+ const panel=document.createElement('div');panel.className='dfc012p-settings';
+ panel.innerHTML='<h3>🁫 Administración individual de mesas</h3><p class="tiny">Interruptor por mesa: apagada = invisible para nuevos jugadores. Los participantes actuales terminan su mano. Cambios de modo y aporte solo sin partida activa.</p>';
  const entries=Object.values(byTable).sort((a,b)=>Number(a.config_id)-Number(b.config_id)||Number(a.table_id)-Number(b.table_id));
- if(!entries.length){panel.insertAdjacentHTML('beforeend','<p class="tiny">Todavía no se han creado mesas físicas. Entra a una mesa para que el servidor cree su ID.</p>');host.prepend(panel);return;}
- for(const t of entries){const paid=t.game_mode==='paid_pass'||t.paid_pass;
- const row=document.createElement('div');row.className='dfc012o-option';
- row.innerHTML=`<b class="dfc012o-row-name">#${htmlEsc(t.table_id)} · ${htmlEsc(t.config_name||'Mesa')}</b><select class="o-mode" ${paid?'disabled':''}><option value="normal">Normal</option><option value="points">💎 Puntos</option></select><input class="o-target" type="number" min="10" max="50000" value="${Number(t.points_target||100)}" title="Meta"><input class="o-capicua" type="number" min="0" max="10000" value="${Number(t.capicua_bonus??30)}" title="Capicúa"><input class="o-pass" type="number" min="0" max="10000" value="${Number(t.pass_round_bonus??20)}" title="Pase redondo"><button type="button" class="action blue o-save" ${paid?'disabled':''}>Guardar</button>`;
- panel.append(row);row.querySelector('.o-mode').value=t.game_mode==='points'?'points':'normal';
- if(paid)row.querySelector('b').textContent+=' · ✦ Pintintines';
- row.querySelector('.o-save').onclick=async()=>{
-  const btn=row.querySelector('.o-save');btn.disabled=true;
-  try{const {data,error}=await sb.rpc('rf_domino_012o_set_table_mode',{
-   p_table_id:Number(t.table_id),p_mode:row.querySelector('.o-mode').value,
-   p_target:Number(row.querySelector('.o-target').value),p_capicua:Number(row.querySelector('.o-capicua').value),
-   p_round:Number(row.querySelector('.o-pass').value)});
-   if(error||!data?.ok)throw error||Error('No se pudo guardar la mesa');
-   await fetchTableModes(true);window.mf19Toast?.('Modalidad guardada en la mesa #'+t.table_id,'success');tableAdminPanel();
-  }catch(err){window.mf19Toast?.('No se pudo guardar: '+(err.message||err),'error');btn.disabled=false;}
- };
+ if(!entries.length){panel.insertAdjacentHTML('beforeend','<p class="tiny">No hay mesas físicas todavía. Deben crearse primero desde el lobby.</p>');host.prepend(panel);return;}
+ for(const t of entries){
+  const paid=t.game_mode==='paid_pass'||t.paid_pass,card=document.createElement('article');
+  card.className='dfc012p-admin-card '+(paid?'gold':t.game_mode==='points'?'diamond':'classic');
+  const entry=Number(t.entry_stake)||Math.max(Number(t.config_min_entry||0),Number(t.config_hand_stake||0.030));
+  card.innerHTML=`<div class="dfc012p-card-top"><div><strong>MESA #${htmlEsc(t.table_id)}</strong><small>${htmlEsc(t.config_name||'Dominó')} · ${paid?'Pintintines':t.game_mode==='points'?'Por puntos':'Normal'}</small></div><label class="dfc012p-switch-label"><input class="p-visible" type="checkbox" ${t.is_visible!==false?'checked':''}><span class="dfc012p-switch-track" aria-hidden="true"></span><span class="p-state">${t.is_visible!==false?'VISIBLE':'OCULTA'}</span></label></div><div class="dfc012p-card-fields"><label>Modalidad<select class="p-mode" ${paid?'disabled':''}><option value="normal">Normal</option><option value="points">💎 Por puntos</option></select></label><label>Meta 💎<input class="p-target" type="number" min="10" max="50000" step="1" value="${Number(t.points_target||100)}"></label><label>Aporte por jugador (FC)<input class="p-entry" type="number" min="${Math.max(.001,Number(t.config_min_entry||.001))}" max="5000" step="0.001" value="${entry.toFixed(3)}"></label><label>Capicúa<input class="p-cap" type="number" min="0" max="10000" value="${Number(t.capicua_bonus??30)}"></label><label>Pase redondo<input class="p-pass" type="number" min="0" max="10000" value="${Number(t.pass_round_bonus??20)}"></label></div><button class="action blue p-save" type="button" ${paid?'disabled':''}>Guardar configuración de esta mesa</button><div class="dfc012p-card-status" aria-live="polite"></div>`;
+  panel.append(card);card.querySelector('.p-mode').value=t.game_mode==='points'?'points':'normal';
+  const vis=card.querySelector('.p-visible'),status=card.querySelector('.dfc012p-card-status');
+  const reflect=()=>{card.classList.toggle('is-hidden',!vis.checked);card.querySelector('.p-state').textContent=vis.checked?'VISIBLE':'OCULTA';};reflect();
+  vis.addEventListener('change',async()=>{
+    vis.disabled=true;status.textContent='Guardando visibilidad…';
+    try{const {data,error}=await sb.rpc('rf_domino_012p_set_visible',{p_table_id:Number(t.table_id),p_visible:vis.checked});
+      if(error||!data?.ok)throw error||Error('No se pudo guardar');
+      await fetchTableModes(true);status.textContent=vis.checked?'✅ Mesa visible':'✅ Mesa oculta a nuevos jugadores';reflect();
+    }catch(err){vis.checked=!vis.checked;reflect();status.textContent='Error: '+(err.message||err);}finally{vis.disabled=false;}
+  });
+  card.querySelector('.p-save').onclick=async()=>{
+    const btn=card.querySelector('.p-save');btn.disabled=true;status.textContent='Guardando…';
+    try{const payload={p_table_id:Number(t.table_id),p_mode:card.querySelector('.p-mode').value,
+      p_target:Number(card.querySelector('.p-target').value),p_capicua:Number(card.querySelector('.p-cap').value),
+      p_round:Number(card.querySelector('.p-pass').value),p_entry:Number(card.querySelector('.p-entry').value)};
+      const {data,error}=await sb.rpc('rf_domino_012p_configure_table',payload);
+      if(error||!data?.ok)throw error||Error('Error al guardar configuración');
+      await fetchTableModes(true);status.textContent='✅ Configuración guardada';
+      window.mf19Toast?.('Mesa #'+t.table_id+' actualizada','success');
+    }catch(err){status.textContent='Error: '+(err.message||err);}finally{btn.disabled=false;}
+  };
  }host.prepend(panel);
 }
 const oldAdmin=typeof loadDominoAdminConfigs==='function'?loadDominoAdminConfigs:null;
@@ -12241,6 +12270,81 @@ function syncTableTheme(){const tid=tableId();if(!tid)return;
 }
 setInterval(()=>{if(get('dominoTablePanel')?.classList.contains('active'))syncTableTheme();},3400);
 fetchTableModes(true).then(()=>{if(get('dominoLobbyPanel')?.classList.contains('active'))buildPhysicalLobby();}).catch(()=>{});
+})();
+</script>
+<style id="dfc012p-style">
+/* DOMINO FLASH COIN 0.12P */
+#dominoAdminConfigs .dfc012o-settings{display:none!important}
+#dominoAdminConfigs .dfc012p-settings{grid-column:1/-1;width:100%;box-sizing:border-box;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,285px),1fr));gap:12px;background:#0c1529;color:#fff;padding:12px;border:1px solid #567da8;border-radius:15px}
+#dominoAdminConfigs .dfc012p-settings>h3,#dominoAdminConfigs .dfc012p-settings>p{grid-column:1/-1;margin:0}
+.dfc012p-admin-card{border:2px solid #1eaa7e;padding:11px;border-radius:15px;background:linear-gradient(148deg,#0c3a33,#111b2e);color:#fff;display:flex;flex-direction:column;gap:10px;min-width:0}
+.dfc012p-admin-card.diamond{border-color:#a78bfa;background:linear-gradient(150deg,#29164c,#10172c)}
+.dfc012p-admin-card.gold{border-color:#d5a13c;background:linear-gradient(150deg,#4c3210,#221b19)}
+.dfc012p-admin-card.is-hidden{opacity:.72;border-style:dashed}
+.dfc012p-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.dfc012p-card-top strong{display:block;font-size:14px}.dfc012p-card-top small{display:block;color:#ded9ed;font-size:10px;margin-top:3px}
+.dfc012p-switch-label{display:flex;align-items:center;flex-direction:column;gap:5px;cursor:pointer;min-width:73px;font-size:10px;font-weight:900}
+.dfc012p-switch-label input{position:absolute;opacity:0;pointer-events:none}
+.dfc012p-switch-track{width:54px;height:29px;border-radius:30px;background:#8d3e50;position:relative;box-shadow:inset 0 0 4px #000}
+.dfc012p-switch-track:before{content:'';position:absolute;top:3px;left:3px;width:23px;height:23px;border-radius:50%;background:#fff;transition:transform .2s}
+.dfc012p-switch-label input:checked+.dfc012p-switch-track{background:#16a477}.dfc012p-switch-label input:checked+.dfc012p-switch-track:before{transform:translateX(25px)}
+.dfc012p-switch-label input:focus-visible+.dfc012p-switch-track{outline:3px solid #ffd65a;outline-offset:2px}
+.dfc012p-card-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}.dfc012p-card-fields label{font-size:10px;font-weight:800;color:#e7e2f4}
+.dfc012p-card-fields input,.dfc012p-card-fields select{margin-top:3px;display:block;box-sizing:border-box;min-width:0;width:100%;padding:8px;border-radius:8px;border:1px solid #778aaa;background:#101e31;color:#fff;font-size:13px}
+.dfc012p-admin-card .p-save{margin-top:auto;min-height:36px!important}.dfc012p-card-status{font-size:11px;min-height:12px;color:#e5edff}
+/* Marcador compacto: en la esquina superior derecha, junto al bote; sin tapar perfiles del centro. */
+#dominoStage.dfc012n-points-mode #dfc012n-scoreboard{display:block!important;position:absolute!important;top:3%!important;right:1.2%!important;left:auto!important;bottom:auto!important;transform:none!important;max-width:34%!important;min-width:0!important;width:clamp(148px,28%,240px)!important;box-sizing:border-box;padding:7px!important;border-radius:12px!important;z-index:30!important;pointer-events:none!important;text-align:left!important}
+#dominoStage.dfc012n-points-mode .domino-inside-pot{display:none!important}
+#dfc012n-scoreboard .dfc012p-board-head{font-size:clamp(9px,1.15vw,13px);font-weight:950;color:#f4e3ff;display:flex;justify-content:space-between;gap:4px;align-items:center}
+#dfc012n-scoreboard .dfc012p-board-head span{font-size:clamp(8px,1vw,11px);color:#d8b6ff}
+#dfc012n-scoreboard .dfc012p-team-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:5px 0}
+#dfc012n-scoreboard .dfc012p-team{background:#382255;border:1px solid #7849af;border-radius:7px;min-width:0;padding:3px;display:flex;flex-direction:column;gap:3px}
+#dfc012n-scoreboard .dfc012p-team span{display:block;font-size:clamp(7px,.95vw,11px);overflow:hidden;text-overflow:ellipsis;line-height:1.2;max-height:2.4em;color:#f9edff}
+#dfc012n-scoreboard .dfc012p-team b{font-size:clamp(10px,1.4vw,15px);color:#a8d9ff}
+#dfc012n-scoreboard .dfc012p-pot{border-top:1px solid #ad77d1;padding-top:4px;display:flex;justify-content:space-between;gap:4px;align-items:center;font-size:clamp(7px,1vw,11px)}
+#dfc012n-scoreboard .dfc012p-pot strong{font-size:clamp(9px,1.2vw,13px);color:#ffda83;white-space:nowrap}
+@media(max-width:700px){#dominoStage.dfc012n-points-mode #dfc012n-scoreboard{width:34%!important;max-width:34%!important;padding:4px!important;top:2%!important}.dfc012p-board-head,.dfc012p-pot{flex-wrap:wrap}}
+/* Registro visible también con Safari y el teclado del teléfono */
+#authView.auth:has(#registerForm:not(.hidden)) {padding-bottom:calc(115px + env(safe-area-inset-bottom))!important}
+#authView:has(#registerForm:not(.hidden)) #registerForm{padding-bottom:calc(116px + env(safe-area-inset-bottom))!important}
+#authView:has(#registerForm:not(.hidden)) #registerForm button[type="submit"]{position:fixed!important;left:50%!important;bottom:calc(9px + var(--dfc012p-keyboard-bottom,0px) + env(safe-area-inset-bottom))!important;transform:translateX(-50%)!important;width:min(470px,calc(100vw - 30px))!important;min-height:52px!important;z-index:250000!important;box-shadow:0 5px 25px #000b!important;margin:0!important}
+#authView:has(#registerForm:not(.hidden)) #registerForm button[type="submit"]:disabled{opacity:.73;cursor:wait}
+/* Premio de bienvenida confirmado por el servidor. */
+#dfc012p-welcome{position:fixed;inset:0;z-index:999990;background:#050b1fdd;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box}
+#dfc012p-welcome .welcome-card{width:min(100%,430px);max-height:90dvh;overflow-y:auto;background:linear-gradient(155deg,#1b133d,#061c29);color:#fff;border:2px solid #e0b457;box-shadow:0 0 45px #b2813690;border-radius:20px;padding:20px;text-align:center}
+#dfc012p-welcome .welcome-coin{font-size:46px;filter:drop-shadow(0 0 10px #eebc50)}
+#dfc012p-welcome h2{font-size:22px;color:#ffdc81;margin:6px 0}
+#dfc012p-welcome .welcome-amount{font-weight:950;font-size:36px;color:#ffe783;margin:8px 0}
+#dfc012p-welcome p{line-height:1.5;font-size:14px}
+#dfc012p-welcome .welcome-benefits{text-align:left;background:#ffffff12;border-radius:12px;padding:12px;font-size:13px;line-height:1.7}
+#dfc012p-welcome button{width:100%;border:0;background:linear-gradient(130deg,#f9da85,#c9882a);border-radius:12px;padding:13px;margin-top:13px;font-size:15px;font-weight:900;color:#18110b}
+</style>
+<script id="dfc012p-bonus-and-register">
+(()=>{'use strict';
+const byId=id=>document.getElementById(id);
+function adjustForKeyboard(){const v=window.visualViewport;const distance=v?Math.max(0,Math.round(innerHeight-v.offsetTop-v.height)):0;
+ document.documentElement.style.setProperty('--dfc012p-keyboard-bottom',distance+'px');}
+window.visualViewport?.addEventListener('resize',adjustForKeyboard);
+window.visualViewport?.addEventListener('scroll',adjustForKeyboard);
+window.addEventListener('resize',adjustForKeyboard);adjustForKeyboard();
+let welcomeBusy=false;
+async function welcomeIfEarned(){if(welcomeBusy||!byId('appView')||byId('appView').classList.contains('hidden')||byId('dfc012p-welcome'))return;
+ welcomeBusy=true;try{
+ const {data,error}=await sb.rpc('rf_domino_012p_bonus_notice');
+ if(error||!data?.show)return;
+ const host=document.createElement('div');host.id='dfc012p-welcome';host.setAttribute('role','dialog');host.setAttribute('aria-modal','true');host.setAttribute('aria-label','Bono de bienvenida');
+ host.innerHTML='<div class="welcome-card"><div class="welcome-coin">🪙✨</div><h2>¡BIENVENIDO A DOMINÓ FLASH COIN!</h2><p>Has recibido tu bono por crear una cuenta:</p><div class="welcome-amount">+0.200 FC</div><p>¡Felicidades! Has recibido 20 centavos de Flash Coin por registro.</p><div class="welcome-benefits"><b>🎁 ¡Invita a tus amigos y recibe más!</b><div>💎 <b>0.20 FC</b> cuando cada invitado complete su primera jugada válida.</div><div>🪙 <b>1.00 FC</b> cuando ese invitado reciba su primera recarga válida con un promotor.</div><small>Bonos virtuales sujetos a la validación del sistema.</small></div><button type="button" id="dfc012p-welcome-done">CONTINUAR</button></div>';
+ document.body.append(host);
+ if(window.dfc012lAudioPrefs?.().celebration!==false)window.dfc012jSound?.('victory');
+ host.querySelector('button').onclick=async()=>{
+  const button=host.querySelector('button');button.disabled=true;
+  try{const r=await sb.rpc('rf_domino_012p_ack_bonus_notice');if(r.error)throw r.error;host.remove();}
+  catch(err){button.disabled=false;window.mf19Toast?.('No se pudo confirmar el mensaje: '+(err.message||err),'error');}
+ };
+ }catch(e){console.warn('Bienvenida 0.12P:',e.message||e)}finally{welcomeBusy=false;}
+}
+const original=typeof enterApp==='function'?enterApp:null;
+if(original)enterApp=async function(...args){const result=await original.apply(this,args);await welcomeIfEarned();return result;};
 })();
 </script>
 </body>
