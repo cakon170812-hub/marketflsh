@@ -1,4 +1,4 @@
-<!-- DOMINO FLASH COIN 0.12Z.4 - respuesta táctil y repintado liviano; compatible con SQL 0.12Z.3 -->
+<!-- DOMINO FLASH COIN HTML 0.12Z.7: salida opcional entre manos; conserva 0.12Z.4; requiere SQL 0.12Z.7 -->
 <!-- DOMINÓ FLASH COIN 0.12Z.3: interfaz 0.12Z intacta, correccion del SQL 0.12Z.3 -->
 <!-- DOMINÓ FLASH COIN · HTML COMPLETO 0.12V · base íntegra 0.12U y actualización 0.12V -->
 <!-- Domino Flash Coin 1.9.10 · Asientos reservados antes de cada mano + rapidez real.
@@ -7,7 +7,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12Z4" lang="es">
+<html data-app-build="0.12Z7" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -14209,3 +14209,103 @@ html,body{max-width:100%!important}
 <!-- 0.11S: retención de cadena al recibir cierre, sin alterar SQL ni premios. -->
 
 <!-- 0.11V: tranque real por asientos; terraza atmosférica; celebración remota no destructiva. -->
+
+<!-- DOMINÓ FLASH COIN 0.12Z.7: aviso de salida entre manos; nunca abandonar con una mano activa -->
+<style id="dfc012z7-style">
+#dfc012z7-end-dialog{position:fixed!important;inset:0!important;z-index:2147483000!important;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(1,9,24,.82);backdrop-filter:blur(6px);}
+#dfc012z7-end-dialog.dfc012z7-open{display:flex!important;}
+#dfc012z7-end-dialog .dfc012z7-card{width:min(95vw,430px);max-height:92dvh;overflow:auto;box-sizing:border-box;border:2px solid #e9bc5b;border-radius:19px;padding:20px;background:linear-gradient(150deg,#092644,#071323 75%);color:#fff;text-align:center;box-shadow:0 10px 55px #000c;}
+#dfc012z7-end-dialog h2{font-size:clamp(18px,3vw,26px);line-height:1.18;color:#ffde87;margin:0 0 10px;}
+#dfc012z7-end-dialog p{font-size:14px;line-height:1.45;margin:0 0 15px;}
+#dfc012z7-end-dialog .dfc012z7-actions{display:grid;gap:10px;}
+#dfc012z7-end-dialog button{border:0;border-radius:12px;min-height:47px;padding:10px 14px;font-weight:800;font-size:15px;cursor:pointer;}
+#dfc012z7-go{background:linear-gradient(135deg,#f5cb66,#c99028);color:#152332;}
+#dfc012z7-stay{background:#24486a;color:#f1fbff;border:1px solid #6a9bb6!important;}
+#dfc012z7-end-dialog button:disabled{opacity:.52;cursor:wait;}
+#dfc012z7-message{display:block;min-height:16px;margin:8px 0 0;font-size:13px;color:#ffe4a5;}
+@media(max-height:440px){#dfc012z7-end-dialog .dfc012z7-card{padding:10px 16px;}#dfc012z7-end-dialog p{margin-bottom:7px;}#dfc012z7-end-dialog button{min-height:36px;}}
+</style>
+<script id="dfc012z7-after-hand-exit">
+(function(){'use strict';
+ const $=id=>document.getElementById(id);
+ const played=new Set(),offered=new Set();
+ let exiting=false,dialogTable=null,dialogHand=null;
+ const activeStage=()=>!!$('dominoTablePanel')?.classList.contains('active');
+ const currentTable=()=>Number(typeof dominoCurrentTableId!=='undefined'?dominoCurrentTableId:0)||0;
+ function modal(){
+   let box=$('dfc012z7-end-dialog');if(box)return box;
+   box=document.createElement('div');box.id='dfc012z7-end-dialog';box.setAttribute('role','dialog');box.setAttribute('aria-modal','true');box.setAttribute('aria-labelledby','dfc012z7-title');
+   box.innerHTML=`<div class="dfc012z7-card">
+    <h2 id="dfc012z7-title">🁫 ¡Partida terminada!</h2>
+    <p>Ya terminó esta mano. ¿Quieres <b>levantarte de la mesa</b> y regresar a la lista de mesas? El sistema solo realizará la salida si el servidor confirma que no hay una nueva mano en curso.</p>
+    <div class="dfc012z7-actions"><button id="dfc012z7-go" type="button">🚪 SALIR Y LEVANTARME</button><button id="dfc012z7-stay" type="button">🁫 SEGUIR EN LA MESA</button></div>
+    <span id="dfc012z7-message" aria-live="polite"></span></div>`;
+   $('dominoTablePanel')?.append(box);
+   $('dfc012z7-stay').addEventListener('click',()=>closeDialog());
+   $('dfc012z7-go').addEventListener('click',()=>exitDuringPause());
+   return box;
+ }
+ function closeDialog(){const box=$('dfc012z7-end-dialog');if(box)box.classList.remove('dfc012z7-open');dialogTable=null;dialogHand=null;}
+ function showDialog(tid,hid){
+   if(exiting||!activeStage()||currentTable()!==tid)return;
+   dialogTable=tid;dialogHand=hid;
+   const box=modal();if(!box)return;
+   $('dfc012z7-message').textContent='Tu salida se verificará antes de liberar el asiento.';
+   $('dfc012z7-go').disabled=false;$('dfc012z7-stay').disabled=false;
+   box.classList.add('dfc012z7-open');
+ }
+ async function exitDuringPause(){
+   if(exiting||!dialogTable||currentTable()!==dialogTable)return;
+   const tid=dialogTable;const go=$('dfc012z7-go'),stay=$('dfc012z7-stay'),msg=$('dfc012z7-message');
+   exiting=true;go.disabled=true;stay.disabled=true;msg.textContent='Verificando que la mano terminó y liberando el asiento…';
+   try{
+     // Una sola operación atómica en Supabase: verificación del intervalo y salida.
+     const {data,error}=await sb.rpc('rf_domino_012z7_exit_in_pause',{p_table_id:tid});
+     if(error)throw error;
+     if(data?.ok!==true){
+       if(data?.status==='hand_active')msg.textContent='Ya empezó otra mano. No te hemos levantado ni modificado el saldo. Podrás intentarlo al finalizar esa mano.';
+       else if(data?.status==='points_mode')msg.textContent='Esta modalidad necesita su procedimiento especial de cierre. No se hizo ninguna salida.';
+       else msg.textContent=data?.message||'El servidor no confirmó una salida segura. No se hizo ninguna salida.';
+       return;
+     }
+     closeDialog();
+     // El asiento ya fue eliminado por la función original del servidor.
+     // Solo aquí regresamos a la lista de mesas; NO repetir el RPC de salida.
+     if(typeof hide==='function'){
+       hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoTablePanel');
+     }else $('dominoTablePanel')?.classList.remove('active');
+     if(typeof dominoStopPolling==='function')dominoStopPolling();
+     if(typeof dominoStopRealtime==='function')await dominoStopRealtime();
+     if(typeof dominoReleaseWakeLock==='function')await dominoReleaseWakeLock();
+     if(typeof dominoCurrentTableId!=='undefined')dominoCurrentTableId=null;
+     if(typeof dominoViewAway!=='undefined')dominoViewAway=false;
+     if(typeof dominoResetTableEffects==='function')dominoResetTableEffects();
+     if(typeof dominoReleaseLandscape==='function')dominoReleaseLandscape();
+     if(typeof loadMe==='function')await loadMe();
+     if(typeof renderMe==='function')renderMe();
+     if(typeof openDominoLobby==='function')await openDominoLobby();
+   }catch(e){msg.textContent='No se confirmó la salida: '+String(e?.message||e).slice(0,165);console.warn('Salida segura 0.12Z.7:',e);}
+   finally{exiting=false;if(go)go.disabled=false;if(stay)stay.disabled=false;}
+ }
+ // Usar siempre el estado real de Supabase; nunca asumir el final por un temporizador local.
+ const previous=window.renderDominoState;
+ if(typeof previous==='function')window.renderDominoState=function(st){
+   const result=previous.apply(this,arguments);
+   try{
+     const tid=currentTable();if(!tid||!activeStage()||!st||!st.me)return result;
+     const h=st.hand,uid=String(st.me),key=id=>uid+':'+tid+':'+String(id);
+     if(h?.me_in_hand&&h?.id&&['shuffling','playing'].includes(String(h.status)))played.add(key(h.id));
+     const last=st.last_result,settled=Date.parse(last?.settled_at||'');
+     const recent=Number.isFinite(settled)&&Math.abs(Date.now()-settled)<90000;
+     const seated=Array.isArray(st.seats)&&st.seats.some(s=>String(s.user_id)===uid&&s.state==='active');
+     const id=last?.id,k=id?key(id):'';
+     if(k&&recent&&seated&&!h&&played.has(k)&&!offered.has(k)){
+       offered.add(k); // Nunca mostrar varias veces por una misma mano.
+       showDialog(tid,id);
+     }
+     if(dialogTable&&dialogTable!==tid)closeDialog();
+   }catch(err){console.warn('Aviso final de mano:',err)}
+   return result;
+ };
+})();
+</script>
