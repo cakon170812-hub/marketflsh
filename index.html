@@ -2507,6 +2507,90 @@ button[data-bot18-money="retirar"],
 #dfc012x-browse .rooms-tip{font-size:12px;color:#adc8e2}
 #dfc012x-install-welcome{background:linear-gradient(100deg,#1166d4,#07356f);color:#fff;border:1px solid #90caff;border-radius:12px;padding:12px;margin:10px 0;font-weight:800;width:100%}
 </style>
+<style id="dfc012y-mobile-professional">
+/* 0.12Y: VOZ DE USUARIO SUSPENDIDA, NO audio interno de juego. */
+#dominoTablePanel #dominoStage #dfc012u-voice,
+#dominoStage #dfc012u-mic,#dominoStage #dfc012u-listen,
+#dominoStage #dfc012v-unlock,
+#dominoStage #dfc012u-voice-status{display:none!important;visibility:hidden!important;pointer-events:none!important;}
+/* Las capas decorativas no deben impedir pulsar fichas y controles. */
+#dominoStage .dfc11-scene,#dominoStage .dfc11-table-light,
+#dominoStage .dfc11-table-mark,#dominoStage .dfc11-app-logo,
+#dominoStage .domino-photo-veil,#dominoStage .dfc-photo-center-cover,
+#dominoStage .dfc-photo-top-controls-cover{pointer-events:none!important;}
+/* HUD en bandas reservadas: controles arriba, marcador inmediatamente debajo. */
+#dominoTablePanel #dominoStage .domino-live-top-controls{
+ top:max(3px,env(safe-area-inset-top))!important;right:max(6px,env(safe-area-inset-right))!important;
+ left:auto!important;bottom:auto!important;max-width:59%!important;
+ display:flex!important;flex-wrap:nowrap!important;align-items:center!important;
+ gap:clamp(3px,.48vw,8px)!important;z-index:300!important;isolation:isolate;
+}
+#dominoTablePanel #dominoStage .domino-live-top-controls .domino-live-icon{
+ flex:0 0 auto!important;min-width:clamp(28px,3.4vw,44px)!important;
+ width:clamp(28px,3.4vw,44px)!important;height:clamp(28px,3.4vw,44px)!important;
+ min-height:28px!important;padding:4px!important;touch-action:manipulation;
+}
+#dominoTablePanel #dominoStage .domino-compact-balance{min-width:0!important;max-width:120px!important;overflow:hidden;text-overflow:ellipsis}
+#dominoTablePanel #dominoStage #dfc012n-scoreboard{
+ top:clamp(42px,11.8%,83px)!important;right:clamp(3px,1.1%,12px)!important;
+ left:auto!important;bottom:auto!important;transform:none!important;
+ width:clamp(148px,25%,238px)!important;max-width:28%!important;
+ padding:clamp(4px,.66vw,8px)!important;z-index:60!important;
+ background:linear-gradient(155deg,rgba(16,33,65,.94),rgba(14,19,48,.92))!important;
+ border:1px solid rgba(126,209,255,.75)!important;box-shadow:0 4px 12px #0010208a!important;
+ pointer-events:none!important;box-sizing:border-box!important;
+}
+#dominoTablePanel #dominoStage #dfc012n-scoreboard .dfc012r-scorecard{gap:2px!important}
+#dominoTablePanel #dominoStage #dfc012n-scoreboard .dfc012r-scorecard .top{
+ flex-wrap:wrap;column-gap:5px!important;font-size:clamp(9px,1.06cqw,12px)!important;
+}
+#dominoTablePanel #dominoStage #dfc012n-scoreboard .dfc012r-scorecard strong{font-size:clamp(9px,1.24cqw,13px)!important}
+#dominoTablePanel #dominoStage #dfc012n-scoreboard .dfc012r-scorecard .team{
+ font-size:clamp(9px,.99cqw,12px)!important;line-height:1.24!important;
+}
+/* Diamantes propios, junto al nombre, con dimensiones controladas. */
+#dominoTablePanel #dominoStage #dominoSeats .domino-seat .domino-seat-heading{min-width:0!important;overflow:visible!important}
+#dominoTablePanel #dominoStage #dominoSeats .domino-seat .dfc012r-diamond{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:max-content!important;max-width:100%!important;box-sizing:border-box!important;
+ margin:2px 0 0!important;padding:2px 5px!important;
+ background:#062643eb!important;border:1px solid #6cceff!important;
+ border-radius:14px!important;font:bold clamp(9px,1.1cqw,12px) Arial,sans-serif!important;
+ line-height:1.1!important;color:#d3f4ff!important;white-space:nowrap!important;
+ box-shadow:0 1px 5px #0009;pointer-events:none!important;
+}
+/* Acciones de mesa juntas y separadas de la mano de fichas. */
+#dominoTablePanel #dominoStage .domino-live-actions{
+ right:max(5px,env(safe-area-inset-right))!important;bottom:max(5px,env(safe-area-inset-bottom))!important;
+ top:auto!important;left:auto!important;display:flex!important;align-items:center!important;
+ gap:clamp(3px,.5vw,8px)!important;z-index:120!important;max-width:31%!important;
+}
+#dominoTablePanel #dominoStage .domino-live-actions button{
+ min-height:30px!important;padding:5px 7px!important;touch-action:manipulation!important;
+}
+#dominoTablePanel #dominoStage #dominoHand{z-index:100!important}
+#dominoTablePanel #dominoStage #dominoBoard{z-index:35!important}
+/* El reloj está dentro del marcador: no ocupa la cara del jugador ni el tapete. */
+#dominoStage .dfc012y-abandon{display:flex;align-items:center;justify-content:space-between;gap:6px;
+ margin-top:4px;padding:5px 7px;border-radius:9px;border:1px solid #ffcd71a8;
+ background:linear-gradient(120deg,#513219ee,#241e3eec);color:#ffe4ac;font-size:clamp(9px,1.05cqw,12px);line-height:1.2}
+#dominoStage .dfc012y-abandon b{font:900 clamp(13px,1.6cqw,18px) Arial,sans-serif;color:#fff5db;white-space:nowrap;tab-size:2}
+#dominoStage .dfc012y-abandon[data-urgent="yes"]{border-color:#ff8282;background:#7a2222e8}
+@media (max-height:500px) and (orientation:landscape){
+ #dominoTablePanel #dominoStage #dfc012n-scoreboard{top:13.5%!important;right:3px!important;width:24%!important;max-width:26%!important;padding:3px 5px!important}
+ #dominoTablePanel #dominoStage .domino-live-top-controls .domino-live-icon{min-width:26px!important;min-height:26px!important;width:30px!important;height:30px!important}
+ #dominoTablePanel #dominoStage .domino-live-actions{bottom:1%!important}
+ #dominoTablePanel #dominoStage .domino-live-actions button{padding:3px 5px!important;min-height:27px!important;font-size:10px!important}
+ #dominoTablePanel #dominoStage #dominoSeats .domino-seat .dfc012r-diamond{padding:1px 4px!important;font-size:9px!important}
+ #dominoStage .dfc012y-abandon{padding:3px 4px;gap:3px;font-size:9px}
+ #dominoStage .dfc012y-abandon b{font-size:12px}
+}
+@media (max-width:700px) and (orientation:landscape){
+ #dominoTablePanel #dominoStage #dfc012n-scoreboard{width:24%!important;max-width:28%!important}
+ #dominoTablePanel #dominoStage .domino-compact-balance{max-width:87px!important;font-size:9px!important}
+}
+@media (prefers-reduced-motion:reduce){#dominoStage .dfc012y-abandon{transition:none!important}}
+</style>
 </head>
 <body>
 <section class="auth" id="authView">
@@ -12972,7 +13056,7 @@ const session='v'+Math.random().toString(36).slice(2);
 const state={room:0,channel:null,uid:'',joined:false,joining:false,mic:false,stream:null,
  listen:true,peers:new Map(),retryAfter:0,audioBlocked:false,epoch:0,lastVisible:0,iceServers:null,turnEnabled:false,iceConfigFetchedAt:0};
 try{state.listen=localStorage.getItem('dfc012v_listen_people')!=='off'}catch(_){}
-function inTable(){return !document.hidden&&!window.dominoSpectatorMode&&!!$('dominoTablePanel')?.classList.contains('active')&&Number(dominoCurrentTableId||0)>0}
+function inTable(){return false /* 0.12Y: WebRTC suspendido, conservar funciones para futura reparación */&& !document.hidden&&!window.dominoSpectatorMode&&!!$('dominoTablePanel')?.classList.contains('active')&&Number(dominoCurrentTableId||0)>0}
 function humanAudioStatus(){
  if(!state.listen)return 'Jugadores silenciados';
  if(state.audioBlocked)return 'Toca activar audio';
@@ -13269,6 +13353,82 @@ let lastHumanStatus='';setInterval(()=>{if(document.hidden||!$('dominoTablePanel
  else if(peers.some(x=>x.remoteTrack&&!x.remotePlaying)&&d.peopleListening)issue='Toca ▶ Activar audio si no escuchas';
  if(issue!==lastHumanStatus){lastHumanStatus=issue;st.textContent=issue;st.title=issue;st.style.setProperty('display',issue?'block':'none','important');st.style.cssText+=';position:absolute;top:calc(100% + 3px);left:0;max-width:160px;background:#552b0c;color:#fff2c0;font-size:9px;border-radius:7px;padding:3px 5px;pointer-events:none'}
 },3500);
+})();
+</script>
+<script id="dfc012y-cierre-30s-y-marcadores">
+(()=>{'use strict';
+ const E=id=>document.getElementById(id), table=()=>Number(typeof dominoCurrentTableId!=='undefined'?dominoCurrentTableId:0)||0;
+ let current=0,view=null,deadline=null,busy=false,lastPoll=0,lastTick=0,previousKey='';
+ const inStage=()=>!!E('dominoTablePanel')?.classList.contains('active')&&!!table();
+ const escapeText=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function syncClock(){
+  const stage=E('dominoStage'),board=E('dfc012n-scoreboard');
+  if(!stage||!board||!inStage()||current!==table()||!view?.active||
+   Number(view.remaining)!==1||!deadline){board?.querySelector('.dfc012y-abandon')?.remove();return;}
+  let chip=board.querySelector('.dfc012y-abandon');
+  if(!chip){chip=document.createElement('div');chip.className='dfc012y-abandon';chip.setAttribute('role','status');chip.setAttribute('aria-label','Cuenta regresiva por abandono');
+   chip.innerHTML='<span>⏳ Abandono · último jugador</span><b>00:30</b>';board.append(chip);}
+  const secs=Math.max(0,Math.ceil((deadline-Date.now())/1000));
+  chip.querySelector('b').textContent='00:'+String(secs).padStart(2,'0');
+  chip.dataset.urgent=secs<=10?'yes':'no';
+ }
+ async function poll(force=false){
+  const tid=table();if(!tid||!inStage()||document.hidden||busy)return;
+  if(!force&&Date.now()-lastPoll<3000)return;
+  busy=true;lastPoll=Date.now();
+  try{
+   const {data,error}=await sb.rpc('rf_domino_012y_status',{p_table_id:tid});
+   if(error)throw error;
+   if(tid!==table())return;
+   current=tid;view=data;deadline=data?.deadline?Date.parse(data.deadline):null;
+   syncClock();
+   if(data?.active&&Number(data.remaining)<=1&&Date.now()-lastTick>3300){
+    lastTick=Date.now();
+    const result=await sb.rpc('rf_domino_012y_tick',{p_table_id:tid});
+    if(result.error)console.warn('Liquidación 0.12Y:',result.error.message);
+    else if(result.data?.processed?.some(x=>x.outcome)){
+     try{if(typeof loadMe==='function')await loadMe();if(typeof renderMe==='function')renderMe();}catch(_){}
+     if(typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{});
+    }
+   }
+  }catch(e){console.warn('Reloj por abandono 0.12Y:',e?.message||e)}finally{busy=false;syncClock();}
+ }
+ // Mostrar cuenta regresiva del servidor, no del teléfono (el cliente sólo pinta).
+ setInterval(syncClock,400);
+ setInterval(()=>{poll().catch(()=>{})},3200);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden){lastPoll=0;poll(true).catch(()=>{})}});
+ // Si alguien sale por «Salir definitivamente», resolver 0 personas enseguida;
+ // la tarea programada de servidor también resuelve aunque todos cierren la app.
+ // La salida real ya invoca el RPC antiguo y nunca se cambia su contabilidad.
+ const originalChoice=window.dfc012rOpenChoice;
+ if(typeof originalChoice==='function'){
+  window.dfc012rOpenChoice=async function(tid){
+   await originalChoice.apply(this,arguments);
+   const modal=E('dfc012r-choice');if(!modal)return;
+   try{
+    const {data,error}=await sb.rpc('rf_domino_012y_status',{p_table_id:Number(tid)});
+    if(error||!data?.can_rejoin||!data?.active||!modal.isConnected)return;
+    const opts=modal.querySelector('.options');if(!opts||opts.querySelector('[data-do="rejoin-012y"]'))return;
+    const btn=document.createElement('button');btn.type='button';btn.className='primary';
+    btn.dataset.do='rejoin-012y';btn.textContent='↩ REGRESAR A MI MISMA PARTIDA · SIN PAGAR DE NUEVO';
+    opts.prepend(btn);
+    btn.addEventListener('click',async()=>{
+     btn.disabled=true;
+     const msg=modal.querySelector('#dfc012r-msg');if(msg)msg.textContent='Recuperando asiento original…';
+     try{
+      const r=await sb.rpc('rf_domino_012y_rejoin',{p_table_id:Number(tid)});
+      if(r.error||!r.data?.ok)throw r.error||Error(r.data?.error||'Sin confirmación');
+      modal.remove();
+      if(typeof openDominoLobby==='function')await openDominoLobby();
+      const resume=E('dominoResumeTableBtn');
+      if(resume&&!resume.disabled)resume.click();
+      else alert('✅ Asiento recuperado SIN nuevo pago. En el lobby pulsa «Volver a mi mesa».');
+     }catch(e){if(msg)msg.textContent='Error: '+escapeText(e?.message||e);btn.disabled=false;}
+    });
+   }catch(e){console.warn('Reingreso 0.12Y:',e?.message||e)}
+  };
+ }
+ window.dfc012yRefresh=()=>{lastPoll=0;return poll(true)};
 })();
 </script>
 </body>
