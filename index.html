@@ -1,4 +1,5 @@
-<!-- DOMINÓ FLASH COIN 0.12Z.2: HTML de 0.12Z, sincronizado con SQL integrado 0.12Z.2 -->
+<!-- DOMINO FLASH COIN 0.12Z.4 - respuesta táctil y repintado liviano; compatible con SQL 0.12Z.3 -->
+<!-- DOMINÓ FLASH COIN 0.12Z.3: interfaz 0.12Z intacta, correccion del SQL 0.12Z.3 -->
 <!-- DOMINÓ FLASH COIN · HTML COMPLETO 0.12V · base íntegra 0.12U y actualización 0.12V -->
 <!-- Domino Flash Coin 1.9.10 · Asientos reservados antes de cada mano + rapidez real.
      La lógica de premios, saldos y partidas original se conserva. -->
@@ -6,7 +7,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12Z2" lang="es">
+<html data-app-build="0.12Z4" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -5726,6 +5727,9 @@ function dominoBindHandInteractions(){
   const resetSelection=()=>{dominoHideDropZones();hand.querySelectorAll('.hand-piece').forEach(el=>el.classList.remove('selected'))};
   hand.querySelectorAll('.hand-piece[data-domino-tile]').forEach(piece=>{
     piece.addEventListener('click',e=>{
+      // 0.12Z.4: el tacto se procesa en pointerup. Si el navegador emite
+      // también un click sintético, no seleccionar/deseleccionar dos veces.
+      if(Date.now()-Number(piece.dataset.dfcTouchAt||0)<850)return;
       if(piece.dataset.dragged==='1'){piece.dataset.dragged='';return}
       if(!canPlay()||!piece.classList.contains('playable')){resetSelection();return}
       const idx=Number(piece.dataset.dominoTile);
@@ -5756,6 +5760,16 @@ function dominoBindHandInteractions(){
       const moved=d.moved,allowed=d.allowed&&canPlay();
       const side=allowed?(d.hoverSide||dominoSideAtPoint(e.clientX,e.clientY,d.idx)):null;
       dominoDragState=null;
+      // El toque corto selecciona la ficha inmediatamente, sin depender de
+      // click (que iOS puede suprimir tras preventDefault en pointerdown).
+      if(!moved){
+        piece.dataset.dfcTouchAt=String(Date.now());
+        if(allowed){
+          playDominoPickSound();
+          dominoSetDropZones(dominoSelectedTile===d.idx?null:d.idx);
+        }else resetSelection();
+        return;
+      }
       if(moved)piece.dataset.dragged='1';
       const box=hand.getBoundingClientRect();
       if(moved&&e.clientX>=box.left&&e.clientX<=box.right&&e.clientY>=box.top&&e.clientY<=box.bottom){
@@ -6082,7 +6096,12 @@ function renderDominoState(st){
   if(window.dfc011tHeldHtml?.(st)){
     $('dominoBoard').innerHTML=window.dfc011tHeldHtml(st);
   }else if(!window.dfc011sShouldHoldBoard?.(st)){
-    $('dominoBoard').innerHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
+    const domBoard=$('dominoBoard');
+    const boardHTML=dominoRows(h?.board||[],st?.last_move,effects.animate);
+    if(domBoard && (effects.animate||domBoard.dataset.dfcBoardHtml!==boardHTML)){
+      domBoard.innerHTML=boardHTML;
+      domBoard.dataset.dfcBoardHtml=boardHTML;
+    }
   }
   if(window.dfc011tAfterRender)window.dfc011tAfterRender(st);
   if(window.dfc011rCaptureBoard)window.dfc011rCaptureBoard(st);
@@ -6121,7 +6140,7 @@ function renderDominoState(st){
       }
     }
   }
-  $('dominoCenterStatus').innerHTML=status;
+  if($('dominoCenterStatus').innerHTML!==status)$('dominoCenterStatus').innerHTML=status;
   $('dominoCenterStatus').classList.toggle('playing-quiet',h?.status==='playing'&&!status);
   dominoUpdateLiveControls(st,myTurn,hasLegal);
   if(typeof window.dfc07VisualUpdate==='function')window.dfc07VisualUpdate(st);
