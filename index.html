@@ -5,7 +5,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12W" lang="es">
+<html data-app-build="0.12X" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -19,9 +19,9 @@
 <meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
 <meta content="Domino Flash Coin" name="apple-mobile-web-app-title"/>
 <meta content="telephone=no" name="format-detection"/>
-<link href="manifest.webmanifest?v=0.12S" rel="manifest"/>
+<link href="manifest.webmanifest?v=0.12X" rel="manifest"/>
 <title>Dominos Flash Coin — Aplicación 0.12S</title>
-<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.12X">
 <meta name="description" content="Dominos Flash Coin: mesas de dominó multijugador y Flash Coin virtuales.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -2474,6 +2474,38 @@ button[data-bot18-money="retirar"],
  width:clamp(15px,2.1vw,26px)!important;height:clamp(15px,2.1vw,26px)!important;
  will-change:transform,opacity;
 }
+</style>
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png?v=0.12X">
+<meta name="apple-mobile-web-app-title" content="Dominó Flash Coin">
+<style id="dfc012x-fixes">
+/* Micrófono y escucha humana al centro-izquierda de la franja superior libre. */
+#dominoTablePanel #dominoStage #dfc012u-voice{left:clamp(160px,27vw,335px)!important;right:auto!important;transform:none!important;top:max(3px,env(safe-area-inset-top))!important;max-width:130px!important;z-index:160!important}
+#dominoTablePanel #dominoStage #dfc012u-voice .status{display:none!important}
+#dominoTablePanel #dominoStage #dfc012u-voice:has([data-on="yes"]) .status:not(:empty){display:none!important}
+#dominoTablePanel #dominoStage #dfc012v-unlock:not([hidden]){position:absolute!important;left:0!important;transform:none!important;top:100%!important}
+@media(max-width:690px) and (orientation:landscape){#dominoTablePanel #dominoStage #dfc012u-voice{left:clamp(115px,24vw,185px)!important;top:2px!important}}
+/* Formulario registro desplazable, tecla visible y crear cuenta alcanzable. */
+#authView.auth:has(#registerForm:not(.hidden)){height:100dvh!important;max-height:100dvh!important;overflow-y:auto!important;overflow-x:hidden!important;touch-action:pan-y!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;align-items:flex-start!important;padding-bottom:calc(35px + env(safe-area-inset-bottom))!important}
+#authView:has(#registerForm:not(.hidden)) .auth-card{max-height:none!important;overflow:visible!important;margin:10px auto 38px!important}
+#authView:has(#registerForm:not(.hidden)) #registerForm{overflow:visible!important;max-height:none!important;padding-bottom:calc(30px + env(safe-area-inset-bottom))!important}
+#authView:has(#registerForm:not(.hidden)) #registerForm button[type="submit"]{position:relative!important;left:auto!important;bottom:auto!important;transform:none!important;width:100%!important;margin-top:18px!important;z-index:auto!important}
+/* WhatsApp y promotores: misma jerarquía de aplicaciones, señales distintas. */
+#appView #groupBtn{background:linear-gradient(140deg,#25d366,#087c49)!important;color:#fff!important;border:1px solid #72ffc0!important;box-shadow:inset 0 1px 0 #ffffff55,0 4px 17px #079f4d75!important;border-radius:16px!important}
+#appView #groupBtn .dfc012x-wa-logo{font-size:24px;display:block;filter:drop-shadow(0 2px 2px #073d2488)}
+#appView #groupBtn:disabled{filter:grayscale(.75);opacity:.58}
+#appView #promotersInfoBtn{background:linear-gradient(140deg,#169ae9,#1749a6)!important;color:white!important;border:1px solid #66d6ff!important;box-shadow:inset 0 1px 0 #ffffff40,0 5px 18px #155dea99!important;border-radius:16px!important}
+#appView #promotersInfoBtn .dfc09-tool-icon{background:#ffffff24!important;color:white!important;border-radius:50%;font-size:22px!important}
+#dfcGiftReceipt004,#dfcGiftCopyReceipt004{display:none!important} /* el comprobante premium es la única vista al completar */
+.dfc012x-vip{margin:10px auto;padding:12px 15px;max-width:670px;background:linear-gradient(115deg,#062643,#0b3860);border:1px solid #26bce7;border-radius:18px;box-shadow:0 0 14px #19aeed39;color:#e5faff}
+.dfc012x-vip h3{margin:0;font-size:14px;letter-spacing:.5px}.dfc012x-vip .bar{height:12px;border-radius:18px;background:#061728;overflow:hidden;margin:10px 0 4px}.dfc012x-vip .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1368c6,#7bf6ff);border-radius:inherit;transition:width .8s}.dfc012x-vip .vip-details{display:none;font-size:12px;margin-top:9px}.dfc012x-vip.open .vip-details{display:block}
+@keyframes dfc012xGems{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(120px,-80px) scale(.3);opacity:0}}
+.dfc012x-gem-fly{position:absolute;left:46%;top:65%;z-index:200;pointer-events:none;color:#78ecff;text-shadow:0 0 12px #37baff;font-size:22px;animation:dfc012xGems .9s ease-out forwards}.dfc012x-vip button{border:0;background:transparent;color:inherit;font:inherit;text-align:left;width:100%;cursor:pointer}
+#dfc012x-vip-seat{position:absolute;top:3px;right:5px;max-width:110px;z-index:20;padding:3px 5px;border-radius:8px;background:#062643cd;color:#d4f8ff;font-size:10px;pointer-events:none}
+#dfc012x-browse{padding:12px;border:1px solid #33b3e18a;background:#081f3c;border-radius:14px;color:#fff;margin:12px auto;max-width:550px}
+#dfc012x-browse button{border:1px solid #55a8e7;background:#144f88;color:white;border-radius:12px;padding:9px;font-weight:800;margin:3px;cursor:pointer}
+#dfc012x-browse .room{padding:10px;margin:8px 0;background:#092d4c;border-radius:12px}
+#dfc012x-browse .rooms-tip{font-size:12px;color:#adc8e2}
+#dfc012x-install-welcome{background:linear-gradient(100deg,#1166d4,#07356f);color:#fff;border:1px solid #90caff;border-radius:12px;padding:12px;margin:10px 0;font-weight:800;width:100%}
 </style>
 </head>
 <body>
@@ -6618,7 +6650,7 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
   },{capture:false,passive:true,once:true});
 
   if('serviceWorker' in navigator && location.protocol==='https:'){
-    navigator.serviceWorker.register('./sw.js?v=0.12W',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
+    navigator.serviceWorker.register('./sw.js?v=0.12X',{scope:'./'}).catch(e=>console.warn('PWA SW:',e));
   }
 
   // Impide arrastrar la página completa; los paneles internos conservan su propio scroll.
@@ -13117,6 +13149,128 @@ window.dfc012vVoiceRecovery=resume;
 })();
 </script>
 
+<script id="dfc012x-final">
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const rpc=async(name,args={})=>{const r=await sb.rpc(name,args);if(r.error)throw r.error;if(r.data?.ok===false)throw Error(r.data.error||'El servidor no confirmó');return r.data};
+// WhatsApp button renderer: renderSettings() used textContent and removed its icon.
+function drawCommunity(){const wa=$('groupBtn');if(wa&&wa.dataset.dfc012x!==String(!wa.disabled)){
+ wa.dataset.dfc012x=String(!wa.disabled);wa.innerHTML='<span class="dfc012x-wa-logo" aria-hidden="true">☎</span><span>Grupo<br>WhatsApp</span>';wa.title=wa.disabled?'Grupo no disponible':'Entrar al grupo WhatsApp';}
+ const prom=$('promotersInfoBtn');if(prom&&!prom.querySelector('.dfc012x-prom-icon'))prom.innerHTML='<span class="dfc09-tool-icon dfc012x-prom-icon" aria-hidden="true">♙</span><span>Contactar<br>promotores</span>';
+}
+const group=$('groupBtn');if(group){new MutationObserver(()=>{if(!group.querySelector('.dfc012x-wa-logo'))group.dataset.dfc012x='';drawCommunity()}).observe(group,{childList:true});drawCommunity()}
+// Un recibo visual; preservar la operación, referencia y el renderer premium original.
+if(typeof showReceipt==='function'){
+ const original=showReceipt;showReceipt=function(title,data){const r=original.apply(this,arguments);
+  if(String(title||'').includes('envío de Flash Coin')){
+    $('dfcGiftReceipt004')?.replaceChildren();
+    const panel=$('dfcGiftPanel004');if(panel){panel.classList.remove('active')}
+  }return r;
+ };
+}
+// Al registrarse por primera vez, ofrecer instalación sin forzarla ni pedir credenciales.
+function installWelcome(){const card=$('dfc012p-welcome')?.querySelector('.welcome-card');if(!card||$('dfc012x-install-welcome'))return;
+ const b=document.createElement('button');b.id='dfc012x-install-welcome';b.type='button';b.textContent='📲 INSTALAR DOMINÓ FLASH COIN EN MI DISPOSITIVO';
+ const done=$('dfc012p-welcome-done');card.insertBefore(b,done);
+ b.addEventListener('click',()=>{
+  if(window.matchMedia?.('(display-mode: standalone)').matches||navigator.standalone===true){alert('Ya abriste la aplicación desde su icono.');return}
+  const btn=$('dfcPwaInstallBtn');if(btn)btn.click();else alert('Abre Compartir o el menú del navegador y elige Añadir a pantalla de inicio.');
+ });
+}
+new MutationObserver(installWelcome).observe(document.body,{childList:true,subtree:false});
+installWelcome();
+// VIP: el estado proviene solo del servidor. NUNCA calcular/recompensar FC en JS.
+let vipState=null,vipLoading=false,vipLast=0,vipSessionStart=0;let lastVipLifetime=null;
+const fmt=n=>Number(n||0).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:3});
+function setupVip(){const root=$('appView');if(!root)return;
+ if(!$('dfc012x-vip-home')){const box=document.createElement('section');box.id='dfc012x-vip-home';box.className='dfc012x-vip';
+ box.innerHTML='<button type="button" class="dfc012x-vip-toggle"><h3>💎 TARRO DE DIAMANTES VIP · <span class="level">SIN VIP</span></h3><strong class="count">0.00 💎</strong><div class="bar"><i></i></div><small>▾ Tocar para consultar progreso</small></button><div class="vip-details"></div>';
+ const anchor=$('dfcDominoHome')||root.firstElementChild;anchor.parentNode.insertBefore(box,anchor);
+ box.querySelector('button').onclick=()=>box.classList.toggle('open');}
+ if(!$('dfc012x-vip-seat')){const stage=$('dominoStage');if(stage){const el=document.createElement('div');el.id='dfc012x-vip-seat';el.textContent='💎 VIP';stage.append(el)}}
+ if($('balanceBtn')&&!$('balanceBtn').dataset.dfc012x){$('balanceBtn').dataset.dfc012x='1';$('balanceBtn').addEventListener('click',()=>setTimeout(()=>{void offerDaily()},100))}
+}
+async function offerDaily(){if(!vipState?.daily_claimable)return;
+ if(!$('appView')||$('appView').classList.contains('hidden'))return;
+ const ok=confirm('💎 VIP 5: tienes 0.100 Flash Coin de bono diario disponible hoy. ¿Aceptar y acreditar ahora?');if(!ok)return;
+ try{const v=await rpc('rf_domino_012x_claim_daily');alert('¡Bono VIP de '+fmt(v.amount)+' FC acreditado!');
+  await refreshVIP(true);if(typeof loadMe==='function')await loadMe();if(typeof renderMe==='function')renderMe();}
+ catch(e){alert('No se pudo reclamar el bono: '+e.message)}
+}
+function drawVip(){setupVip();if(!vipState)return;
+ const s=vipState,box=$('dfc012x-vip-home');if(!box)return;
+ if(lastVipLifetime!==null&&Number(s.lifetime)>lastVipLifetime&&$('dominoTablePanel')?.classList.contains('active')){const stage=$('dominoStage');if(stage){for(let i=0;i<5;i++){const gem=document.createElement('span');gem.className='dfc012x-gem-fly';gem.textContent='💎';gem.style.left=(40+i*4)+'%';gem.style.animationDelay=(i*85)+'ms';stage.append(gem);setTimeout(()=>gem.remove(),1650)}}}lastVipLifetime=Number(s.lifetime);
+ const level=Number(s.level)||0,target=Number(s.target)||0,progress=Number(s.progress)||0;
+ box.querySelector('.level').textContent=level>0?'VIP '+level:'SIN VIP';
+ box.querySelector('.count').textContent=fmt(progress)+' 💎';
+ box.querySelector('.bar i').style.width=(target?Math.min(100,progress/target*100):100)+'%';
+ box.querySelector('.vip-details').textContent='Total histórico: '+fmt(s.lifetime)+' 💎 · '+(level>=5?'VIP máximo alcanzado. Bono diario: 0.100 FC. Toca tu saldo principal para aceptarlo.':'Próximo VIP '+(level+1)+': '+fmt(target)+' 💎 · Faltan '+fmt(s.remaining)+' 💎');
+ const seat=$('dfc012x-vip-seat');if(seat)seat.textContent='💎 VIP '+level+' · '+fmt(progress)+' 💎';
+}
+async function refreshVIP(force=false){if(vipLoading||!me?.id||!$('appView')||$('appView').classList.contains('hidden')||(!force&&Date.now()-vipLast<4500))return;
+ vipLoading=true;try{vipState=await rpc('rf_domino_012x_vip_status');vipLast=Date.now();drawVip()}
+ catch(e){console.warn('Progreso VIP:',e.message)}finally{vipLoading=false}}
+setInterval(()=>{if(!document.hidden&&me?.id)void refreshVIP()},5500);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refreshVIP(true)});
+// Mesas físicas por modalidad, ordenadas con Anterior / Siguiente. Solo crea al pulsar buscar asiento.
+let browseIndex=0,browseRows=[],browseBase=0,browseBusy=false;
+async function showRooms(tid){if(browseBusy)return;browseBusy=true;try{
+ const data=await rpc('rf_domino_012x_browse',{p_template_id:tid});browseRows=Array.isArray(data.tables)?data.tables:[];browseBase=tid;browseIndex=0;renderRooms();
+}catch(e){alert('No se pudieron listar mesas: '+e.message)}finally{browseBusy=false}}
+function renderRooms(){const host=$('dfc012x-browse');if(!host)return;
+ const t=browseRows[browseIndex];host.replaceChildren();
+ const heading=document.createElement('h3');heading.textContent='🔍 Buscar mesas con jugadores';host.append(heading);
+ if(!t){const p=document.createElement('p');p.textContent='No hay mesas visibles; puedes buscar una nueva.';host.append(p)}
+ else{
+ const card=document.createElement('div');card.className='room';
+ const names=(t.roster||[]).map(x=>String(x.name||'Jugador')).join(', ')||'Nadie sentado';
+ card.textContent='Mesa #'+t.table_id+' · '+t.players+'/'+t.capacity+' jugadores · '+t.status+' · '+names;
+ if(Number(t.players)===0&&t.empty_since){const age=Math.max(0,Math.floor((Date.now()-Date.parse(t.empty_since))/1000));const timer=document.createElement('small');timer.style.cssText='display:block;color:#ffcd73;margin-top:6px';timer.textContent=age<10?'Mesa vacía: espera inicial (10 s)':('Cuenta de eliminación: '+Math.max(0,40-age)+' segundos');card.append(timer)}host.append(card);
+ }
+ function b(label,cb,disabled=false){const x=document.createElement('button');x.textContent=label;x.disabled=disabled;x.onclick=cb;host.append(x)}
+ b('← Anterior',()=>{browseIndex=Math.max(0,browseIndex-1);renderRooms()},browseIndex===0);
+ b('Siguiente →',()=>{browseIndex=Math.min(browseRows.length-1,browseIndex+1);renderRooms()},browseIndex>=browseRows.length-1);
+ b('Sentarme / Ver partida',async()=>{
+  const row=browseRows[browseIndex];if(!row)return;
+  if(typeof openDominoLobby==='function')await openDominoLobby();
+  const card=document.querySelector('#dominoLobbyModes .dfc012o-table-card[data-table-id="'+row.table_id+'"]');
+  if(card?.querySelector('button'))card.querySelector('button').click();else alert('Abre la mesa #'+row.table_id+' desde el listado de la modalidad');
+ },!t);
+ b('Buscar mesa con jugadores o crear una',async()=>{
+  try{const r=await rpc('rf_domino_012x_route_any',{p_template_id:browseBase});
+   if(typeof openDominoLobby==='function')await openDominoLobby();
+   const card=document.querySelector('#dominoLobbyModes .dfc012o-table-card[data-table-id="'+r.table_id+'"]');
+   if(card?.querySelector('button'))card.querySelector('button').click();
+   else alert('Se seleccionó la mesa #'+r.table_id+'. Refresca el listado para sentarte.');
+  }catch(e){alert('No se pudo asignar mesa: '+e.message)}
+ });
+}
+function buildBrowse(){const lobby=$('dominoLobbyModes');if(!lobby||$('dfc012x-browse'))return;
+ const host=document.createElement('section');host.id='dfc012x-browse';host.innerHTML='<strong>🔍 Buscar mesas con jugadores</strong><p class="rooms-tip">Elige una modalidad para recorrer las mesas y ver quién está esperando.</p>';
+ const sel=document.createElement('select');sel.style.cssText='width:100%;padding:12px;border-radius:10px;background:#0a3359;color:white;margin:8px 0';
+ host.append(sel);const go=document.createElement('button');go.textContent='Ver mesas de esta modalidad';host.append(go);
+ const fill=()=>{const cards=[...lobby.querySelectorAll('.dfc012o-table-card')],seen=new Set();sel.replaceChildren();
+ for(const card of cards){const mode=card.classList.contains('diamond')?'points':card.classList.contains('gold')?'paid_pass':'normal';if(seen.has(mode))continue;seen.add(mode);
+ const o=document.createElement('option');o.value=card.dataset.tableId;o.textContent=mode==='points'?'💎 Por puntos':mode==='paid_pass'?'✦ Pintintines':'🁫 Dominó normal';sel.append(o)};
+ if(sel.selectedIndex<0){const o=document.createElement('option');o.textContent='No hay mesas base';sel.append(o)}};
+ go.onclick=()=>{const tid=Number(sel.value);if(tid>0)void showRooms(tid);else alert('Espera a que el administrador configure una mesa')};
+ lobby.prepend(host);const observer=new MutationObserver(()=>{if(document.visibilityState==='visible')fill()});observer.observe(lobby,{childList:true});fill();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setupVip();buildBrowse()});else{setupVip();buildBrowse()}
+setInterval(()=>{if($('dominoLobbyPanel')?.classList.contains('active')&&me?.id){
+ try{void rpc('rf_domino_012x_retire_empty').catch(()=>{})}catch(_){} }
+},12000);
+// Audio: presentación real de fallo; no asumir que SUBSCRIBED significa que audio está funcionando.
+const voiceStatus=$('dfc012u-voice-status');
+window.dfc012xAudioDiagnostic=()=>typeof window.dfc012wVoiceDiagnostics==='function'?window.dfc012wVoiceDiagnostics():{error:'La voz no se inicializó'};
+let lastHumanStatus='';setInterval(()=>{if(document.hidden||!$('dominoTablePanel')?.classList.contains('active'))return;
+ const d=window.dfc012xAudioDiagnostic(),st=$('dfc012u-voice-status');if(!st||!d?.connected)return;
+ const peers=Array.isArray(d.peers)?d.peers:[];let issue='';
+ if(peers.length&&peers.every(x=>x.connection!=='connected')&&!d.turnConfigured)issue='Voz sin enlace · red restringida / falta TURN';
+ else if(peers.some(x=>x.remoteTrack&&!x.remotePlaying)&&d.peopleListening)issue='Toca ▶ Activar audio si no escuchas';
+ if(issue!==lastHumanStatus){lastHumanStatus=issue;st.textContent=issue;st.title=issue;st.style.setProperty('display',issue?'block':'none','important');st.style.cssText+=';position:absolute;top:calc(100% + 3px);left:0;max-width:160px;background:#552b0c;color:#fff2c0;font-size:9px;border-radius:7px;padding:3px 5px;pointer-events:none'}
+},3500);
+})();
+</script>
 </body>
 <!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
