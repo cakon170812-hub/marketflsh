@@ -2704,7 +2704,7 @@ button[data-bot18-money="retirar"],
 <button aria-label="Ver otras mesas de dominó" id="dfcLuxMesasBtn" title="Ver otras mesas de dominó" type="button">🁫 <span>Mesas</span> <span aria-hidden="true">›</span></button>
 <div id="dominoSeats"></div>
 <div class="domino-center-status" id="dominoCenterStatus">Esperando jugadores...</div>
-<button class="domino-ready-btn hidden" id="dominoReadyBtn" type="button">CONFIRMAR</button>
+
 <div aria-label="Fichas jugadas" class="domino-board" id="dominoBoard"></div>
 <div aria-label="Tus fichas" class="domino-hand" id="dominoHand"></div>
 <div aria-label="Chat rápido de la mesa" class="domino-mini-chat" id="dominoMiniChat">
@@ -6101,39 +6101,22 @@ function renderDominoState(st){
     if(!myTurn||!tiles[dominoSelectedTile]||!dominoTileLegal(tiles[dominoSelectedTile],h))dominoHideDropZones();
     else dominoSetDropZones(dominoSelectedTile);
   }
+  // 0.12Z: ningún flujo exige otra confirmación después de sentarse.
   const mySeatState=seats.find(x=>String(x.user_id)===String(uid));
-  const meReady=mySeatState ? mySeatState.is_ready!==false : true;
-  const pendingSeats=seats.filter(x=>x.is_ready===false);
-  const readyBtn=$('dominoReadyBtn');
-  if(readyBtn)readyBtn.classList.toggle('hidden',meReady);
-
-  let status='',waiting=!h&&seats.length<2;
+  const waiting=!h&&seats.filter(s=>s.state==='active').length<2;
   $('dominoCenterStatus').classList.toggle('waiting-player',waiting);
-  if(!meReady){
-    status=h
-      ? 'Confirma tu asiento · entrarás en el próximo reparto'
-      : 'Toca CONFIRMAR para recibir tus fichas';
-  }else if(waiting){
-    status=`<div class="domino-spinner"></div><span class="domino-wait-title">Esperando jugadores...</span><span class="domino-wait-sub">Mesa activa · conectando jugadores en tiempo real</span>`;
-  }else if(!h&&pendingSeats.length){
-    status=`Esperando confirmación de ${pendingSeats.length===1?'1 jugador':pendingSeats.length+' jugadores'}...`;
-  }else if(!h){
-    status='';
-  }else if(h.status==='shuffling'){
-    const sec=Math.max(0,Math.ceil((new Date(h.play_starts_at)-mfDominoNow())/1000));
-    status='';
-  }else if(h.status==='playing'){
-    const inCurrentHand=!!h?.me_in_hand;
-    if(!inCurrentHand){
-      status=meReady?'Confirmado · entrarás en la próxima mano':'Confirma tu asiento · entrarás en la próxima mano';
+  let status='';
+  if(waiting){
+    status=`<div class="domino-spinner"></div><span class="domino-wait-title">Esperando jugadores...</span><span class="domino-wait-sub">Con dos jugadores comienza automáticamente</span>`;
+  }else if(h?.status==='playing'){
+    if(!h.me_in_hand){
+      status='Esperando que termine la mano actual · participarás en el próximo reparto';
     }else{
       const sec=Math.max(0,Math.ceil((new Date(h.turn_deadline)-mfDominoNow())/1000));
       dominoUrgentTick(h,sec);
       if(myTurn&&!hasLegal){
-        status=`<span class="domino-auto-pass">No tienes ficha válida · pase automático en 2 s…</span>`;
+        status='<span class="domino-auto-pass">No tienes ficha válida · pase automático en 2 s…</span>';
         dominoScheduleAutoPass();
-      }else{
-        status='';
       }
     }
   }
@@ -6401,51 +6384,7 @@ $('dominoEmojiTray')?.querySelectorAll('[data-domino-reaction]').forEach(btn=>{
   });
 });
 
-if($('dominoReadyBtn'))$('dominoReadyBtn').onclick=async()=>{
-  if(!dominoCurrentTableId)return;
-  const btn=$('dominoReadyBtn');
-  const old=btn.textContent;
-  btn.disabled=true;
-  btn.textContent='CONFIRMANDO…';
-  try{
-    // 1) Confirmación persistente: NO reparte dentro de esta transacción.
-    const confirmed=await sb.rpc((window.dfc012rIsPointTable?.(dominoCurrentTableId)?'rf_domino_012r_confirm':'rf_domino_confirm_v189'),{
-      p_table_id:Number(dominoCurrentTableId)
-    });
-    if(confirmed.error)throw confirmed.error;
-
-    btn.classList.add('hidden');
-    dominoSetSyncState('','ok');
-
-    // 2) Reparto independiente. Si falla, la confirmación ya quedó guardada.
-    try{
-      const started=await sb.rpc('rf_domino_try_start_v189',{
-        p_table_id:Number(dominoCurrentTableId)
-      });
-      if(started.error){
-        console.warn('Dominó reparto:',started.error);
-        dominoSetSyncState('Confirmado · reparto en reintento','warn');
-      }else if(started.data?.error){
-        console.warn('Dominó reparto:',started.data.error);
-        dominoSetSyncState('Confirmado · reparto en reintento','warn');
-      }else if(started.data?.started){
-        dominoSetSyncState('Repartiendo fichas…','ok');
-      }
-    }catch(startError){
-      console.warn('Dominó reparto omitido:',startError);
-      dominoSetSyncState('Confirmado · reparto en reintento','warn');
-    }
-
-    // Leer el estado sin disparar otro tick inmediatamente desde el botón.
-    await loadDominoState(true,true);
-  }catch(e){
-    alert(errText(e));
-  }finally{
-    btn.disabled=false;
-    btn.textContent=old;
-  }
-};
-
+// 0.12Z: Sentarse equivale a estar listo; no existe botón de segunda confirmación.
 if($('dominoSurrenderBtn'))$('dominoSurrenderBtn').onclick=()=>show('dominoExitConfirmPanel');
 
 async function dominoTemporaryLeaveToLobby(){
@@ -12781,13 +12720,8 @@ window.dfc012rStampPoints=()=>{
 #dfc012s-max {display:none;gap:7px;margin:8px 0;align-items:center;justify-content:center;flex-wrap:wrap}
 #dfc012s-max button {background:#1e4174;color:#ffe6a4;border:1px solid #d9ae69;border-radius:10px;font-weight:800;padding:8px 14px}
 #dfc012s-max small {color:#e8d4fa;font-size:12px}
-#dfc012s-next {position:absolute;top:calc(env(safe-area-inset-top) + 56px);left:50%;transform:translateX(-50%);z-index:1004;
- width:min(92%,365px);background:#071b30f4;border:2px solid #efc56e;border-radius:13px;color:white;
- text-align:center;padding:10px 9px;box-shadow:0 8px 26px #000b;display:none;}
-#dfc012s-next strong{display:block;color:#ffe7a5;font-size:13px}
-#dfc012s-next p{font-size:11px;margin:5px 0;line-height:1.35}
-#dfc012s-next button {padding:9px;width:100%;border-radius:9px;background:linear-gradient(135deg,#f4cf73,#bb812c);border:0;color:#291904;font-weight:900;font-size:12px}
-#dfc012s-next button:disabled {filter:grayscale(.7);opacity:.8}
+/* Se elimina definitivamente el panel de confirmar próxima partida. */
+#dfc012s-next,#dominoReadyBtn {display:none!important;pointer-events:none!important}
 </style>
 <script id="dfc012s-controller">
 (()=>{'use strict';
@@ -12806,71 +12740,7 @@ el('dfc012s-all')?.addEventListener('click',()=>{
  if(field){field.value=amount.toFixed(3);field.dispatchEvent(new Event('input',{bubbles:true}));}
  if(range)range.value=String(amount);
 });
-const tablePanel=el('dominoTablePanel');const stage=tablePanel?.querySelector('.domino-game-panel')||tablePanel;
-const next=document.createElement('div');next.id='dfc012s-next';
-next.innerHTML='<strong>💎 ¿JUGAR LA PRÓXIMA PARTIDA?</strong><p id="dfc012s-next-info"></p><button id="dfc012s-next-accept" type="button">CONFIRMAR PRÓXIMA PARTIDA</button>';
-if(stage)stage.append(next);
-let currentMatch=0,currentTid=0,lastQueryAt=0,loading=false,busy=false,status=null;
-const info=el('dfc012s-next-info'),btn=el('dfc012s-next-accept');
-function display(){
- const inGame=tablePanel?.classList.contains('active'),id=Number(dominoCurrentTableId||0);
- if(!inGame||!status||id!==currentTid||!status.seated){next.style.display='none';return;}
- next.style.display='block';
- if(status.escrow_status==='reserved'){
-  info.textContent='Aporte reservado: '+money(status.stake)+' · Esperando que los demás jugadores confirmen.';
-  btn.textContent='✅ CONFIRMADO · ESPERANDO JUGADORES';btn.disabled=true;
- }else if(status.escrow_status==='paid'){
-  info.textContent='Tu saldo de mesa: '+money(status.table_balance)+' · Aporte por partida: '+money(status.stake)+'.';
-  btn.textContent='✅ ACEPTAR Y DESCONTAR '+money(status.stake);
-  btn.disabled=busy||!status.can_confirm;
-  if(!status.can_confirm){
-   info.textContent= Number(status.table_balance)<Number(status.stake)?'Saldo de mesa insuficiente. Transfiere más Flash Coin a tu mesa para jugar.':'Espera a que termine la mano anterior.';
-  }
- }else{next.style.display='none';}
-}
-async function refresh(force=false){
- const tid=Number(dominoCurrentTableId||0);if(!tid||loading)return;
- if(!force&&Date.now()-lastQueryAt<3500)return;
- loading=true;lastQueryAt=Date.now();
- try{const {data,error}=await sb.rpc('rf_domino_012s_next_status',{p_table_id:tid});if(error)throw error;
-  if(Number(dominoCurrentTableId||0)!==tid)return;
-  status=data;currentTid=tid;display();
- }catch(e){console.warn('Próxima partida de puntos:',e);next.style.display='none';}
- finally{loading=false;}
-}
-const old=window.dfc012rSyncPoints;
-window.dfc012rSyncPoints=function(st){
- old?.(st);
- const tid=Number(dominoCurrentTableId||0);
- if(st?.mode!=='points'||st.status!=='finished'||!tid){next.style.display='none';status=null;currentMatch=0;return;}
- const match=Number(st.match_id||0);
- if(match!==currentMatch||tid!==currentTid){currentMatch=match;status=null;lastQueryAt=0;}
- refresh(false);
- display();
-};
-btn?.addEventListener('click',async()=>{
- const tid=Number(dominoCurrentTableId||0);
- if(busy||!tid||!status?.can_confirm)return;
- const stake=Number(status.stake);
- if(!window.confirm('¿Confirmas la próxima partida por '+money(stake)+'? Se descontarán SOLO de tu saldo de mesa y comienza un nuevo marcador desde 0 diamantes.'))return;
- busy=true;btn.disabled=true;info.textContent='Reservando aporte en Supabase…';
- try{
-  const {data,error}=await sb.rpc('rf_domino_012r_confirm',{p_table_id:tid});
-  if(error||!data?.ok)throw error||Error(data?.error||'No se pudo confirmar');
-  await refresh(true);if(status?.escrow_status==='reserved')display();
-  // Intenta repartir si todos están listos; es idempotente y puede requerir esperar la celebración.
-  const start=await sb.rpc('rf_domino_try_start_v189',{p_table_id:tid});
-  if(start.error)console.warn('Reparto siguiente:',start.error);
-  if(start.data?.status==='celebration_pending'){
-   setTimeout(async()=>{if(Number(dominoCurrentTableId||0)!==tid)return;
-    const retry=await sb.rpc('rf_domino_try_start_v189',{p_table_id:tid});
-    if(retry.error)console.warn('Reintento de reparto:',retry.error);
-   },18000);
-  }
-  if(typeof loadDominoState==='function')loadDominoState(true).catch(()=>{});
- }catch(e){info.textContent='Error: '+(e.message||e);await refresh(true);}
- finally{busy=false;display();}
-});
+// Sin panel, sin consultas periódicas de confirmación ni cobros iniciados por ese panel.
 })();
 </script>
 
@@ -12943,9 +12813,10 @@ async function openAmount(tid,knownStake){
  slider.addEventListener('input',()=>{value.value=Number(slider.value).toFixed(3);refresh()});value.addEventListener('input',()=>{slider.value=value.value;refresh()});
  f.append(value,slider,sum);refresh();const actions=document.createElement('div');actions.className='dfcu-actions';
  actions.append(button('USAR TODO MI SALDO',()=>{value.value=balance.toFixed(3);slider.value=value.value;refresh()}));
- actions.append(button('CONFIRMAR Y SENTARME',async()=>{
+ actions.append(button('SENTARME · INICIO AUTOMÁTICO',async()=>{
   const n=Number(value.value);if(!Number.isFinite(n)||n<min||n>balance||Math.abs(n*1000-Math.round(n*1000))>.00001){$('dfc012u-modal')?.querySelector('.dfcu-error')?.replaceChildren(document.createTextNode('Selecciona un monto válido entre '+money(min)+' y '+money(balance)));return;}
-  if(!confirm('¿Confirmas llevar '+money(n)+' a la mesa '+tid+' y reservar '+money(stake)+' para la partida?'))return;
+  // 0.12Z: el toque «SENTARME» ya autoriza la reserva; no pedir otra confirmación.
+
   if(joining)return;joining=true;actions.lastElementChild.disabled=true;
   try{
    // Desbloquear la reproducción por gesto tanto en Android como iPhone.
@@ -13289,7 +13160,7 @@ function drawVip(){setupVip();if(!vipState)return;
  box.querySelector('.count').textContent=fmt(progress)+' 💎';
  box.querySelector('.bar i').style.width=(target?Math.min(100,progress/target*100):100)+'%';
  box.querySelector('.vip-details').textContent='Total histórico: '+fmt(s.lifetime)+' 💎 · '+(level>=5?'VIP máximo alcanzado. Bono diario: 0.100 FC. Toca tu saldo principal para aceptarlo.':'Próximo VIP '+(level+1)+': '+fmt(target)+' 💎 · Faltan '+fmt(s.remaining)+' 💎');
- const seat=$('dfc012x-vip-seat');if(seat)seat.textContent='💎 VIP '+level+' · '+fmt(progress)+' 💎';
+ const seat=$('dfc012x-vip-seat');if(seat){seat.textContent='💎 '+fmt(progress);seat.title='Mis diamantes VIP';}
 }
 async function refreshVIP(force=false){if(vipLoading||!me?.id||!$('appView')||$('appView').classList.contains('hidden')||(!force&&Date.now()-vipLast<4500))return;
  vipLoading=true;try{vipState=await rpc('rf_domino_012x_vip_status');vipLast=Date.now();drawVip()}
@@ -13429,6 +13300,54 @@ let lastHumanStatus='';setInterval(()=>{if(document.hidden||!$('dominoTablePanel
   };
  }
  window.dfc012yRefresh=()=>{lastPoll=0;return poll(true)};
+})();
+</script>
+
+<style id="dfc012z-visual">
+/* Saldo personal VIP SOLO una vez, sobre la mesa en el área izquierda
+   aprobada; nunca junto a la puerta de salida. */
+#dominoTablePanel #dominoStage #dfc012x-vip-seat{
+ position:absolute!important;z-index:170!important;
+ top:max(2.5%,env(safe-area-inset-top))!important;
+ left:clamp(148px,21%,390px)!important;right:auto!important;
+ width:max-content!important;max-width:clamp(115px,18vw,220px)!important;
+ border-radius:40px!important;border:2px solid #47d2ff!important;
+ background:linear-gradient(135deg,#06172fef,#0c3560f2)!important;
+ box-shadow:0 0 12px #04b9ffc2,inset 0 1px 3px #a9edff66!important;
+ font:900 clamp(12px,1.65vw,21px)/1.15 system-ui,sans-serif!important;
+ color:#c5f1ff!important;padding:9px 15px!important;
+ text-align:center!important;white-space:nowrap!important;
+ pointer-events:none!important;
+}
+@media(max-width:900px){
+ #dominoTablePanel #dominoStage #dfc012x-vip-seat{left:clamp(125px,20%,210px)!important;top:1.5%!important;padding:5px 9px!important;font-size:clamp(10px,1.4vw,16px)!important;max-width:150px!important}
+}
+@media(max-width:670px){
+ #dominoTablePanel #dominoStage #dfc012x-vip-seat{left:19%!important;top:2%!important;max-width:90px!important;padding:3px 5px!important;font-size:9px!important}
+}
+/* No bloquear controles normales del dominó al esconder el panel anterior. */
+#dfc012s-next,#dominoReadyBtn{display:none!important;visibility:hidden!important;pointer-events:none!important}
+</style>
+<script id="dfc012z-auto-start">
+(()=>{'use strict';
+ let working=false,last=0,lastNote='';
+ function table(){try{return Number(dominoCurrentTableId||0)||0}catch(_){return 0}}
+ async function attempt(){
+   const tid=table(),stage=document.getElementById('dominoTablePanel');
+   if(!tid||!stage?.classList.contains('active')||document.hidden||
+     document.body.classList.contains('domino-spectating')||working||Date.now()-last<3200)return;
+   working=true;last=Date.now();
+   try{
+     const {data,error}=await sb.rpc('rf_domino_try_start_v189',{p_table_id:tid});
+     if(error)throw error;
+     if(data?.status==='start_error'||data?.ok===false)throw Error(data?.error||data?.status||'No se pudo iniciar la mano');
+     if(data?.started&&typeof loadDominoState==='function')loadDominoState(false,true).catch(()=>{});
+     lastNote='';
+   }catch(e){if(String(e?.message||e)!==lastNote){lastNote=String(e?.message||e);console.warn('0.12Z inicio automático:',lastNote)}}
+   finally{working=false}
+ }
+ setInterval(()=>attempt().catch(()=>{}),3500);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden){last=0;attempt().catch(()=>{})}});
 })();
 </script>
 </body>
