@@ -7,13 +7,13 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12Z9" lang="es">
+<html data-app-build="0.12Z10" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
 <meta content="no-cache" http-equiv="Pragma"/>
 <meta content="0" http-equiv="Expires"/>
-<meta content="0.12Z.9" name="application-version"/>
+<meta content="0.12Z.10" name="application-version"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" name="viewport"/>
 <meta content="#081b39" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
@@ -22,7 +22,7 @@
 <meta content="Domino Flash Coin" name="apple-mobile-web-app-title"/>
 <meta content="telephone=no" name="format-detection"/>
 <link href="manifest.webmanifest?v=0.12Z9" rel="manifest"/>
-<title>Dominó Flash Coin — 0.12Z.9</title>
+<title>Dominó Flash Coin — 0.12Z.10</title>
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.12Z9">
 <meta name="description" content="Dominos Flash Coin: mesas de dominó multijugador y Flash Coin virtuales.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2594,7 +2594,7 @@ button[data-bot18-money="retirar"],
 @media (prefers-reduced-motion:reduce){#dominoStage .dfc012y-abandon{transition:none!important}}
 </style>
 <style id="dfc-z9-style">
-/* 0.12Z.9: COMPROBANTES, TARRO DE CRISTAL, CARGA Y MÓDULOS LIGEROS */
+/* 0.12Z.10: COMPROBANTES, TARRO DE CRISTAL, CARGA Y MÓDULOS LIGEROS */
 #dfc012x-vip-home,.dfc-z9-replaced{display:none!important}
 #dfc-z9-loader{position:fixed;inset:0;z-index:2147483500;background:#061c33;display:flex;align-items:center;justify-content:center;color:#fff;font-family:system-ui,sans-serif;transition:opacity .25s ease,visibility .25s ease;pointer-events:all}
 #dfc-z9-loader.hide{opacity:0;visibility:hidden;pointer-events:none}
@@ -2702,7 +2702,7 @@ button[data-bot18-money="retirar"],
     <aside class="public-notice-side hidden" id="publicNoticeSide"></aside>
     <div class="wallet-row dfc09-wallet" aria-label="Cartera virtual">
       <div class="dfc09-wallet-copy"><span class="dfc09-eyebrow">TU SALDO FLASH COIN</span>
-        <button class="balance-chip" id="balanceBtn" type="button" aria-label="Abrir saldo de Flash Coin"><span class="dfc09-coin" aria-hidden="true">⚡</span><strong class="fc-balance" id="balanceTop">0.000 FC</strong><span class="dfc09-wallet-chevron">›</span></button>
+        <button class="balance-chip" id="balanceBtn" type="button" aria-label="Abrir saldo de Flash Coin"><span class="dfc09-coin" aria-hidden="true"></span><strong class="fc-balance" id="balanceTop">0.000 FC</strong><span class="dfc09-wallet-chevron">›</span></button>
         <span class="dfc09-wallet-notice">Créditos virtuales exclusivos del juego</span>
       </div>
       <div class="dfc09-wallet-domino" aria-hidden="true"><span class="dfc09-wtile">●<i></i>●</span><span class="dfc09-wtile">●<i></i>●</span><span class="dfc09-wtile">●<i></i>●</span></div>
@@ -2851,7 +2851,7 @@ button[data-bot18-money="retirar"],
 </div></div>
 <div class="overlay" id="adminWalletPanel"><div class="panel"><button class="close" data-close="adminWalletPanel">✕</button><h2>💼 Cartera Administrativa</h2><div class="card"><span class="tiny">Saldo disponible de administración</span><div class="wallet-main-balance"><span class="fc-coin"></span><strong id="adminWalletBalance">0.000 FC</strong></div><div class="wallet-id-line">ID de cartera: <b id="adminWalletPublicId">———</b><button class="copy-btn" id="copyAdminWalletIdBtn" type="button">Copiar</button></div><div class="tiny">Este saldo es independiente del saldo personal del Administrador Líder.</div></div><h3>Usuario / Promotor</h3><div class="row"><input class="field" id="adminWalletUserId" inputmode="numeric" maxlength="6" placeholder="ID de 6 dígitos"/><button class="search-mini" id="adminWalletFindBtn" type="button">🔎</button></div><div id="adminWalletUserResult"></div><input class="field" id="adminWalletAmount" min="0.001" placeholder="Monto FC" step="0.001" type="number"/><button class="action green" id="adminWalletSendBtn">Enviar desde cartera</button><button class="action" id="adminWalletRequestBtn">Solicitar a usuario/promotor</button><button class="action red" id="adminWalletWithdrawBtn">Retirar saldo a esta cartera</button><div class="msg" id="adminWalletMsg"></div><h3>Historial de la cartera</h3><div class="wallet-history" id="adminWalletHistory"></div></div></div>
 
-<div class="overlay" id="receiptPanel"><div class="panel receipt-panel-wrap"><button class="close" data-close="receiptPanel">✕</button><h2 id="receiptTitle">Comprobante</h2><div id="receiptContent"></div></div></div>
+<div class="overlay" id="receiptPanel"><div class="panel receipt-panel-wrap"><button class="close" data-close="receiptPanel" type="button" aria-label="Cerrar comprobante">✕</button><h2 id="receiptTitle">Comprobante</h2><div id="receiptContent"></div></div></div>
 <div class="overlay" id="passwordResetPanel"><div class="panel"><button class="close" data-close="passwordResetPanel">✕</button><h2>🔐 Recuperar contraseña</h2><div id="resetRequestBox"><div class="tiny">Escribe el mismo correo de tu cuenta. Recibirás un enlace para crear una contraseña nueva sin perder tus datos.</div><input autocomplete="email" class="field" id="resetEmail" placeholder="Correo de tu cuenta" type="email"/><button class="action blue" id="resetRequestBtn" type="button">ENVIAR ENLACE DE RECUPERACIÓN</button></div><div class="hidden" id="resetNewPasswordBox"><div class="tiny">Escribe tu nueva contraseña. Seguirás entrando a la misma cuenta y conservarás tu saldo, ID e historial.</div><input autocomplete="new-password" class="field" id="resetNewPass" minlength="6" placeholder="Nueva contraseña" type="password"/><input autocomplete="new-password" class="field" id="resetNewPass2" minlength="6" placeholder="Confirmar nueva contraseña" type="password"/><button class="action green" id="resetSaveBtn" type="button">GUARDAR NUEVA CONTRASEÑA</button></div><div class="msg" id="resetMsg"></div></div></div>
 <div class="overlay" id="incomingTransferPanel"><div class="panel"><button class="close" data-close="incomingTransferPanel">✕</button><h2>⚡ Flash Coin recibidas</h2><div id="incomingTransferContent"></div></div></div>
 <div class="overlay" id="incomingRequestPanel"><div class="panel"><button class="close" data-close="incomingRequestPanel">✕</button><h2>⚡ Solicitud de Flash Coin</h2><div id="incomingRequestContent"></div><div class="request-actions" id="incomingRequestActions"><button class="action green" id="incomingRequestAcceptBtn">Aceptar solicitud</button><button class="action red" id="incomingRequestRejectBtn">Rechazar solicitud</button></div><div class="msg" id="incomingRequestMsg"></div></div></div>
@@ -4617,41 +4617,47 @@ function showRequestReceipt(title,r){
 }
 showReceipt=function(title,r){
   if(!r)return;
+  // El comprobante sólo refleja una operación confirmada por el servidor.
+  const escR=v=>String(v??'—').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const val=(...args)=>args.find(x=>x!==null&&x!==undefined&&String(x).trim()!=='')??null;
+  const str=v=>v==null?'No informado':String(v);
+  const person=me?[me.first_name,me.last_name].filter(Boolean).join(' ').trim():'';
   const dt=r.created_at?new Date(r.created_at):new Date();
-  const titleText=String(title||'');
-  let operation='Movimiento de Flash Coin';
-  if(/promotor/i.test(titleText))operation='Envío de Promotor';
-  else if(/administrativa|cartera/i.test(titleText))operation='Envío de Cartera Administrativa';
-  else if(/líder|lider/i.test(titleText))operation='Envío del Administrador Líder';
-  else if(/recarga/i.test(titleText))operation='Entrega de Flash Coin';
-  const ref='FC'+String(r.receipt_id||Date.now()).padStart(10,'0');
-  const state=r.status||'Completada';
-  $('receiptTitle').textContent=title||'Comprobante';
-  $('receiptContent').innerHTML=`
-    <article class="premium-receipt" aria-label="Comprobante interno Flash Coin">
-      <header class="receipt-head">
-        <div class="receipt-brand">FLASH COIN</div>
-        <div class="receipt-subbrand">COMPROBANTE INTERNO · CRÉDITOS VIRTUALES</div>
-        <div class="receipt-coin"><span class="fc-coin"></span></div>
-        <div class="receipt-success">Transferencia exitosa</div>
-        <div class="receipt-kicker">La operación fue procesada correctamente</div>
-      </header>
-      <section class="receipt-amount">
-        <div class="label">Monto</div>
-        <strong>+ ${money(r.amount)} FC</strong>
-        <div class="receipt-status">${esc(state)}</div>
-      </section>
-      <section class="receipt-details">
-        ${receiptLine('Operación',operation)}
-        ${receiptLine('Destinatario',r.recipient_name||'Destino Flash Coin')}
-        ${receiptLine('ID destinatario',r.recipient_public_id||'—')}
-        ${receiptLine('Fecha',dt.toLocaleDateString('es-DO',{day:'2-digit',month:'short',year:'numeric'}))}
-        ${receiptLine('Hora',dt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',second:'2-digit'}))}
-        ${receiptLine('Referencia',ref)}
-      </section>
-      <div class="receipt-balance"><span>Saldo resultante del destino</span><b>${money(r.balance_after)} FC</b></div>
-      <footer class="receipt-foot">FLASH COIN · JUEGA · PARTICIPA · GANA<div class="receipt-ref">Documento interno · ${esc(ref)}</div></footer>
-    </article>`;
+  const issuedAt=Number.isNaN(dt.getTime())?new Date():dt;
+  const label=String(title||'Transferencia de Flash Coin');
+  const sourceRole=/promotor/i.test(label)?'Promotor':/líder|lider/i.test(label)?'Administrador Líder':/cartera|administrativa/i.test(label)?'Cartera Administrativa':'Usuario / Operador';
+  const from=val(r.sender_name,r.issuer_name,r.promoter_name,r.source_name,person);
+  const fromId=val(r.sender_public_id,r.issuer_public_id,r.promoter_public_id,r.source_public_id,me?.public_id);
+  const to=val(r.recipient_name,r.target_name,r.receiver_name,r.user_name);
+  const toId=val(r.recipient_public_id,r.target_public_id,r.receiver_public_id);
+  const rawRef=val(r.reference,r.receipt_number,r.receipt_id);
+  const ref=rawRef==null?'No informada':String(rawRef).startsWith('FC')?String(rawRef):'FC'+String(rawRef);
+  const balance=val(r.sender_balance,r.balance_after,r.recipient_balance);
+  const amt=Number(r.amount);const amount=Number.isFinite(amt)?amt.toLocaleString('es-DO',{minimumFractionDigits:3,maximumFractionDigits:3}):str(r.amount);
+  const row=(key,value)=>'<div class="receipt-line"><span>'+escR(key)+'</span><b>'+escR(str(value))+'</b></div>';
+  document.getElementById('receiptTitle').textContent='Comprobante de envío';
+  document.getElementById('receiptContent').innerHTML=`
+   <article class="premium-receipt" aria-label="Comprobante oficial de Flash Coin">
+    <header class="receipt-head"><div class="receipt-brand">DOMINÓ FLASH COIN</div>
+     <div class="receipt-subbrand">Comprobante de envío · Moneda virtual FC</div>
+     <div class="receipt-coin"><span class="fc-coin" role="img" aria-label="Moneda oficial Flash Coin"></span></div>
+     <div class="receipt-success">Comprobante de envío</div>
+     <div class="receipt-status">✓ Completado</div></header>
+    <section class="receipt-amount"><div class="label">Monto enviado</div><strong>${escR(amount)} FC</strong></section>
+    <section class="receipt-details">
+      ${row('Tipo de operación',label)}
+      ${row('Origen',sourceRole)}
+      ${row('De · Emisor',from)}
+      ${row('ID emisor',fromId)}
+      ${row('Para · Destinatario',to)}
+      ${row('ID destinatario',toId)}
+      ${row('Fecha',issuedAt.toLocaleDateString('es-DO'))}
+      ${row('Hora',issuedAt.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',second:'2-digit'}))}
+      ${row('N.º de referencia',ref)}
+    </section>
+    <div class="receipt-balance"><span>Saldo informado por el servidor</span><b>${escR(balance==null?'No informado':Number(balance).toLocaleString('es-DO',{minimumFractionDigits:3,maximumFractionDigits:3})+' FC')}</b></div>
+    <footer class="receipt-foot">DOMINÓ FLASH COIN · Referencia: ${escR(ref)}</footer>
+   </article>`;
   show('receiptPanel');
 };
 
@@ -6564,118 +6570,7 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
 <!-- HTML 1.0.2: jugadas guardadas reforzadas en SQL, apuestas sin reembolso, bonos automáticos desactivados, lista completa de usuarios líder, panel Juegos con imagen oficial elegida (Póker/Billar/Juegos Slot/Blackjack) y audio con activación física. -->
 <!-- V1.4: sonido reforzado en Safari/iPhone, contraseña del panel líder opcional mediante interruptor y duración visual del giro configurable desde administración. -->
 <!-- HTML 1.2.3: Botón Juegos blindado: ID del lobby correcto + listener de seguridad independiente + apertura inmediata antes de consultar Supabase. -->
-<script id="mfBuildSync">
-/* Versión 1.6.1: detector de versiones sin recargas automáticas.
-   Nunca reiniciar una partida ni romper una jugada por una actualización. */
-(function(){
-  // Una sola versión oficial, leída del documento abierto (evita 0.1 vs 1.6).
-  const CURRENT_BUILD=document.documentElement.getAttribute('data-app-build')||'1.6.1';
-  let checking=false;
-  const PENDING_KEY='dfc_pending_build_001';
-  const noticeId='mfUpdateToast';
-  function parseVersion(v){
-    const m=String(v||'').trim().match(/^(\d+)\.(\d+)(?:\.(\d+))?$/);
-    return m?[Number(m[1]),Number(m[2]),Number(m[3]||0)]:null;
-  }
-  function compareVersions(a,b){
-    const A=parseVersion(a),B=parseVersion(b);
-    if(!A||!B)return 0;
-    for(let i=0;i<3;i++){
-      if(A[i]!==B[i])return A[i]>B[i]?1:-1;
-    }
-    return 0;
-  }
-  function inDominoGame(){
-    return typeof dominoCurrentTableId!=='undefined'&&!!dominoCurrentTableId;
-  }
-  function clearBadPending(){
-    try{
-      const pending=localStorage.getItem(PENDING_KEY);
-      if(pending&&compareVersions(pending,CURRENT_BUILD)<=0)localStorage.removeItem(PENDING_KEY);
-    }catch(_){}
-  }
-  function showUpdateNotice(latest){
-    if(!parseVersion(latest)||compareVersions(latest,CURRENT_BUILD)<=0)return;
-    let box=document.getElementById(noticeId);
-    if(!box){
-      box=document.createElement('div');
-      box.id=noticeId;
-      box.className='mf-update-toast';
-      const note=document.createElement('span');
-      note.className='mf-update-message';
-      const button=document.createElement('button');
-      button.type='button';
-      button.className='mf-update-confirm';
-      button.textContent='Actualizar';
-      box.append(note,button);
-      document.body.appendChild(box);
-    }
-    box.querySelector('.mf-update-message').textContent=
-      'Nueva versión disponible ('+latest+'). Tu partida NO se interrumpirá. ';
-    const btn=box.querySelector('.mf-update-confirm');
-    btn.onclick=()=>{
-      if(inDominoGame()){
-        box.querySelector('.mf-update-message').textContent=
-          'Termina o sal de tu mesa antes de actualizar. Tu partida está protegida. ';
-        return;
-      }
-      try{localStorage.removeItem(PENDING_KEY)}catch(_){}
-      const next=new URL(location.href);
-      next.searchParams.delete('__mf_check');
-      next.searchParams.set('v',latest);
-      next.searchParams.set('_refresh',Date.now().toString());
-      // SOLO un toque real en el botón autoriza cambiar de versión.
-      location.replace(next.toString());
-    };
-  }
-  async function checkBuild(){
-    if(checking)return;
-    checking=true;
-    try{
-      const url=new URL(location.href);
-      url.searchParams.delete('v');
-      url.searchParams.delete('_refresh');
-      url.searchParams.set('__mf_check',Date.now().toString());
-      const result=await fetch(url.toString(),{
-        cache:'no-store',
-        headers:{'Cache-Control':'no-cache, no-store, must-revalidate','Pragma':'no-cache'}
-      });
-      if(!result.ok)return;
-      const text=await result.text();
-      const match=text.match(/data-app-build=["']([^"']+)["']/i);
-      const latest=match?.[1];
-      if(!parseVersion(latest))return;
-      if(compareVersions(latest,CURRENT_BUILD)<=0){
-        clearBadPending();
-        return;
-      }
-      try{localStorage.setItem(PENDING_KEY,latest)}catch(_){}
-      showUpdateNotice(latest);
-    }catch(e){
-      // Sin internet no se reinicia ni se interrumpe el juego.
-    }finally{
-      checking=false;
-    }
-  }
-  function applyPendingBuild(){
-    try{
-      const pending=localStorage.getItem(PENDING_KEY);
-      if(compareVersions(pending,CURRENT_BUILD)>0)showUpdateNotice(pending);
-      else clearBadPending();
-    }catch(_){}
-  }
-  clearBadPending();
-  window.mfCheckBuild=checkBuild;
-  /* El foco no descarga 3 MB ni interrumpe las partidas. */
-  /* El restablecimiento de red no fuerza descarga de HTML. */
-  document.addEventListener('visibilitychange',()=>{
-    /* Desactivado al volver a la aplicación. */
-  });
-  setTimeout(applyPendingBuild,300);
-  /* La comprobación de versión se hará contra un manifiesto ligero en versión futura. */
-  /* 0.12Z.9: desactivada descarga periódica de HTML completo. */
-})();
-</script>
+
 <!-- 1.4.0: mesa premium aprobada; sin flechas; extremos reales iluminados; sonido Ruleta/Dominó independiente. -->
 <!-- HTML 1.4.0: mesa fija premium; fichas negras con puntos dorados clásicos; dobles cruzados; arrastre izquierda/derecha; caída CLAC; pase automático; perfiles redondos. -->
 <!-- HTML 1.6.0: usa la ruta REAL images2/Mesa de Dominó Flash Coin.png; aviso de solicitud se muestra una sola vez. SQL permanece 1.4.0. -->
@@ -6694,7 +6589,7 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
       const img=new Image();
       img.onload=()=>resolve(url);
       img.onerror=()=>reject(new Error('No cargó '+url));
-      img.src=url;/* 0.12Z.9 permite caché de imagen de mesa */
+      img.src=url;/* 0.12Z.10 permite caché de imagen de mesa */
     });
   }
 
@@ -12194,31 +12089,36 @@ window.dfc012kCoinBurst=function(host,board,recipients,total=42){
 // A faithful premium card can be downloaded or shared as PNG after confirmation.
 const oldReceipt=typeof showReceipt==='function'?showReceipt:null;
 function formatReceiptText(v){return String(v??'').slice(0,55);}
-function renderReceiptPNG(){
- const canvas=document.createElement('canvas');canvas.width=900;canvas.height=1260;
+async function renderReceiptPNG(){
+ const canvas=document.createElement('canvas');canvas.width=900;canvas.height=1320;
  const c=canvas.getContext('2d');if(!c)throw Error('Canvas no disponible');
- const grad=c.createLinearGradient(0,0,900,1260);grad.addColorStop(0,'#241805');grad.addColorStop(.45,'#0b0d13');grad.addColorStop(1,'#030609');c.fillStyle=grad;c.fillRect(0,0,900,1260);
- c.strokeStyle='#c79d42';c.lineWidth=4;c.strokeRect(26,26,848,1208);
- c.textAlign='center';c.fillStyle='#ffd475';c.font='bold 37px sans-serif';c.fillText('⚡ FLASH COIN',450,115);
- c.font='19px sans-serif';c.fillStyle='#d0b981';c.fillText('COMPROBANTE INTERNO · CRÉDITOS VIRTUALES',450,153);
- const gg=c.createRadialGradient(430,260,16,450,275,81);gg.addColorStop(0,'#fff1b1');gg.addColorStop(.5,'#e2ad30');gg.addColorStop(1,'#764a09');c.fillStyle=gg;c.beginPath();c.arc(450,270,72,0,Math.PI*2);c.fill();
- c.fillStyle='#563200';c.font='bold 65px sans-serif';c.fillText('ϟ',450,289);
- c.fillStyle='#f9f0d4';c.font='bold 33px sans-serif';c.fillText('TRANSFERENCIA EXITOSA',450,390);
- c.fillStyle='#ffd878';c.font='bold 67px sans-serif';c.fillText((Number(receipt?.amount||0)).toFixed(3)+' FC',450,495);
- const rows=[['OPERACIÓN',receipt?.operation],['DESTINATARIO',receipt?.recipient_name],['ID DESTINATARIO',receipt?.recipient_public_id],
- ['EMISOR',receipt?.issuer],['ID EMISOR',receipt?.issuer_id],['FECHA',receipt?.date],['HORA',receipt?.time],['REFERENCIA',receipt?.reference],
- ['ESTADO',receipt?.status]];
- let yy=575;c.textAlign='left';for(const [label,value] of rows){
-  c.fillStyle='#a89f90';c.font='18px sans-serif';c.fillText(label,90,yy);
-  c.fillStyle='#f4e3b6';c.font='bold 18px sans-serif';c.textAlign='right';c.fillText(formatReceiptText(value),810,yy);c.textAlign='left';
-  c.strokeStyle='#655235';c.lineWidth=1;c.beginPath();c.moveTo(90,yy+15);c.lineTo(810,yy+15);c.stroke();yy+=64;
- }
- c.fillStyle='#e5c06b';c.textAlign='center';c.font='bold 31px sans-serif';c.fillText('SALDO FINAL: '+Number(receipt?.balance_after||0).toFixed(3)+' FC',450,1158);
+ const bg=c.createLinearGradient(0,0,900,1320);bg.addColorStop(0,'#d9f0ff');bg.addColorStop(.3,'#ffffff');bg.addColorStop(1,'#f0f9ff');
+ c.fillStyle=bg;c.fillRect(0,0,900,1320);
+ c.lineWidth=7;c.strokeStyle='#1686d7';c.strokeRect(21,21,858,1278);
+ c.textAlign='center';c.fillStyle='#064ca8';c.font='bold 44px sans-serif';c.fillText('DOMINÓ FLASH COIN',450,116);
+ c.fillStyle='#638bb1';c.font='23px sans-serif';c.fillText('Comprobante de envío · Crédito virtual FC',450,157);
+ // Imagen real extraída del comprobante aprobado, idéntica a la mostrada en la app.
+ try{const coin=new Image();coin.src='assets/fc-moneda-oficial.webp';await coin.decode();c.drawImage(coin,338,165,224,224)}
+ catch(e){c.fillStyle='#d5a433';c.beginPath();c.arc(450,270,105,0,Math.PI*2);c.fill();c.fillStyle='#045ccd';c.font='bold 72px sans-serif';c.fillText('FC',450,287)}
+ c.fillStyle='#0b3d81';c.font='bold 37px sans-serif';c.fillText('COMPROBANTE DE ENVÍO',450,447);
+ c.fillStyle='#02754a';c.font='bold 26px sans-serif';c.fillText('✓  Completado',450,494);
+ c.fillStyle='#dcefff';c.fillRect(65,526,770,151);
+ c.fillStyle='#537eaa';c.font='24px sans-serif';c.fillText('Monto enviado',450,573);
+ c.fillStyle='#0044b5';c.font='bold 58px sans-serif';c.fillText(Number(receipt?.amount||0).toLocaleString('es-DO',{minimumFractionDigits:3,maximumFractionDigits:3})+' FC',450,640,740);
+ const rows=[['TIPO',receipt?.operation],['DE · EMISOR',receipt?.issuer],['ID EMISOR',receipt?.issuer_id],
+ ['PARA · DESTINATARIO',receipt?.recipient_name],['ID DESTINATARIO',receipt?.recipient_public_id],
+ ['FECHA',receipt?.date],['HORA',receipt?.time],['REFERENCIA',receipt?.reference],['ESTADO',receipt?.status]];
+ let y=724;for(const [k,v] of rows){c.textAlign='left';c.fillStyle='#52799f';c.font='22px sans-serif';c.fillText(k,83,y);
+  c.textAlign='right';c.fillStyle='#083a7f';c.font='bold 22px sans-serif';c.fillText(formatReceiptText(v),822,y,460);
+  c.strokeStyle='#d4e8f8';c.lineWidth=1;c.beginPath();c.moveTo(83,y+14);c.lineTo(822,y+14);c.stroke();y+=51;}
+ c.fillStyle='#e6f5ff';c.fillRect(64,1180,774,76);
+ c.textAlign='center';c.fillStyle='#0250a8';c.font='bold 28px sans-serif';
+ const bal=Number(receipt?.balance_after);c.fillText('Saldo informado: '+(Number.isFinite(bal)?bal.toLocaleString('es-DO',{minimumFractionDigits:3,maximumFractionDigits:3}):'No informado')+' FC',450,1228,748);
  return canvas;
 }
 async function receiptImage(share=false){
  if(!receipt)return;
- const canvas=renderReceiptPNG(),blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+ const canvas=await renderReceiptPNG(),blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
  if(!blob)throw Error('No se pudo generar la imagen');
  const name='Flash_Coin_Comprobante_'+String(receipt.reference||Date.now()).replace(/[^A-Za-z0-9_-]/g,'')+'.png';
  const file=new File([blob],name,{type:'image/png'});
@@ -12231,13 +12131,17 @@ async function receiptImage(share=false){
 if(oldReceipt){showReceipt=function(title,r){
  const result=oldReceipt.apply(this,arguments);if(!r)return result;
  const created=r.created_at?new Date(r.created_at):new Date();
- const prom=/promotor/i.test(String(title||'')),issuer=((typeof me!=='undefined'&&me?.first_name)||'Emisor')+' '+((typeof me!=='undefined'&&me?.last_name)||'');
- receipt={amount:Number(r.amount||0),recipient_name:r.recipient_name||'Usuario',recipient_public_id:r.recipient_public_id||'—',
- issuer:prom?issuer:(/líder|administrador/i.test(String(title))?'Administrador Líder':issuer),
- issuer_id:(typeof me!=='undefined'&&me?.public_id)||'—',
- operation:prom?'Entrega de Flash Coin por promotor':'Envío de Flash Coin',
+ const prom=/promotor/i.test(String(title||''));
+ const person=typeof me!=='undefined'?[(me||{}).first_name,(me||{}).last_name].filter(Boolean).join(' ').trim():'';
+ const issuer=r.sender_name||r.issuer_name||r.promoter_name||person||'No informado';
+ const rawRef=r.reference||r.receipt_number||r.receipt_id;
+ receipt={amount:Number(r.amount||0),recipient_name:r.recipient_name||r.target_name||'No informado',
+ recipient_public_id:r.recipient_public_id||r.target_public_id||'No informado',issuer,
+ issuer_id:r.sender_public_id||r.issuer_public_id||(typeof me!=='undefined'&&me?.public_id)||'No informado',
+ operation:String(title||'Transferencia de Flash Coin'),
  date:created.toLocaleDateString('es-DO'),time:created.toLocaleTimeString('es-DO'),
- reference:'FC'+String(r.receipt_id||Date.now()),status:r.status||'Completada',balance_after:r.balance_after};
+ reference:rawRef==null?'No informada':String(rawRef).startsWith('FC')?String(rawRef):'FC'+String(rawRef),status:r.status||'Completada',
+ balance_after:r.sender_balance??r.balance_after};
  const p=el('receiptPanel')?.querySelector('.receipt-panel-wrap');if(!p)return result;
  p.querySelector('.dfc012n-receipt-actions')?.remove();const bar=document.createElement('div');bar.className='dfc012n-receipt-actions';
  bar.innerHTML='<button type="button" class="save">⬇ Guardar imagen</button><button type="button" class="share">↗ Compartir</button>';
@@ -13122,7 +13026,7 @@ setInterval(()=>{if($('dominoLobbyPanel')?.classList.contains('active')&&me?.id)
 // Audio: presentación real de fallo; no asumir que SUBSCRIBED significa que audio está funcionando.
 const voiceStatus=$('dfc012u-voice-status');
 window.dfc012xAudioDiagnostic=()=>typeof window.dfc012wVoiceDiagnostics==='function'?window.dfc012wVoiceDiagnostics():{error:'La voz no se inicializó'};
-let lastHumanStatus='';setInterval(()=>{return;/* Voz humana desactivada 0.12Z.9 */
+let lastHumanStatus='';setInterval(()=>{return;/* Voz humana desactivada 0.12Z.10 */
  const d=window.dfc012xAudioDiagnostic(),st=$('dfc012u-voice-status');if(!st||!d?.connected)return;
  const peers=Array.isArray(d.peers)?d.peers:[];let issue='';
  if(peers.length&&peers.every(x=>x.connection!=='connected')&&!d.turnConfigured)issue='Voz sin enlace · red restringida / falta TURN';
@@ -13257,7 +13161,7 @@ let lastHumanStatus='';setInterval(()=>{return;/* Voz humana desactivada 0.12Z.9
 </script>
 
 <script id="dfc-z9-features">
-/* DOMINÓ FLASH COIN 0.12Z.9 · DIAMANTES Y ACCESOS
+/* DOMINÓ FLASH COIN 0.12Z.10 · DIAMANTES Y ACCESOS
    La interfaz muestra respuestas de Supabase; NUNCA modifica saldos por sí sola. */
 (()=>{'use strict';
  const E=id=>document.getElementById(id);
@@ -13320,7 +13224,7 @@ let lastHumanStatus='';setInterval(()=>{return;/* Voz humana desactivada 0.12Z.9
  }
  function feedback(t,isError=false){const box=E('dfc-z9-feedback');if(box){box.textContent=t||'';box.dataset.error=isError?'1':'0'}}
  async function bootSession(){if(notifiedSession===signedId)return;notifiedSession=signedId;
-  try{await rpc('dfc_z9_register_login');await refresh(true)}catch(e){console.warn('Diamantes 0.12Z.9:',e?.message);notifiedSession=null}
+  try{await rpc('dfc_z9_register_login');await refresh(true)}catch(e){console.warn('Diamantes 0.12Z.10:',e?.message);notifiedSession=null}
  }
  async function refresh(force=false){if(loading||document.hidden)return;
   if(!force&&Date.now()-lastStatusAt<14000)return;
@@ -13376,6 +13280,7 @@ let lastHumanStatus='';setInterval(()=>{return;/* Voz humana desactivada 0.12Z.9
         if(!confirm('Destinatario: '+recipient.name+' (ID '+id+'). ¿Enviar '+fmt(n)+' diamantes?')){feedback('Envío cancelado');return}
         feedback('Confirmando en Supabase…');
         const r=await rpc(admin?'dfc_z9_admin_send_bot_diamonds':'dfc_z9_send_diamonds',{p_public_id:id,p_amount:n});
+        if(r&&typeof r==='object'){r.recipient_name=recipient.name||r.recipient_name;r.recipient_public_id=id;}
         await refresh(true);showReceipt(r,admin?'Fondo de bots':'Envío de diamantes');feedback('Transferencia confirmada');
       }catch(err){feedback(err?.message||'Error de envío',true)}finally{inFlight=false;form.querySelector('button').disabled=false}
     };box.append(form);
@@ -13389,11 +13294,20 @@ let lastHumanStatus='';setInterval(()=>{return;/* Voz humana desactivada 0.12Z.9
  }
  function showReceipt(r,origin){const modal=E('dfc-z9-modal');const root=E('dfc-z9-content');if(!modal||!root)return;
   view='receipt';root.replaceChildren();const art=document.createElement('article');art.className='dfc-z9-receipt';
-  const today=new Date();art.innerHTML=`<div class="dfc-z9-receipt-icon">${diamondSVG}</div><small>COMPROBANTE DE DIAMANTES</small>
-     <h3>Transferencia confirmada</h3><strong>${fmt(r.amount)} 💎</strong>
-     <dl><dt>Origen</dt><dd>${safe(origin)}</dd><dt>ID destinatario</dt><dd>${safe(r.recipient_id)}</dd>
-     <dt>Fecha</dt><dd>${safe(today.toLocaleString('es-DO'))}</dd><dt>Referencia</dt><dd>${safe(r.reference)}</dd>
-     <dt>Saldo restante</dt><dd>${fmt(r.sender_balance??r.vault_balance??0)} 💎</dd></dl>`;
+  const today=r.created_at?new Date(r.created_at):new Date();
+  const dt=Number.isNaN(today.getTime())?new Date():today;
+  const details=(key,val)=>`<dt>${safe(key)}</dt><dd>${safe(val??'No informado')}</dd>`;
+  const meName=typeof me==='undefined'?'':[(me||{}).first_name,(me||{}).last_name].filter(Boolean).join(' ').trim();
+  const sender=r.sender_name||r.issuer_name||r.promoter_name||meName||'No informado';
+  const senderId=r.sender_public_id||r.issuer_public_id||(typeof me!=='undefined'&&me?.public_id)||'No informado';
+  const targetName=r.recipient_name||r.target_name||'No informado';
+  const targetId=r.recipient_public_id||r.target_public_id||r.recipient_id||'No informado';
+  art.innerHTML=`<div class="dfc-z9-receipt-icon">${diamondSVG}</div><small>DOMINÓ FLASH COIN · DIAMANTES</small>
+     <h3>✓ Transferencia completada</h3><strong>${fmt(r.amount)} 💎</strong>
+     <dl>${details('Origen',origin)}${details('De · Emisor',sender)}${details('ID emisor',senderId)}
+     ${details('Para · Destinatario',targetName)}${details('ID destinatario',targetId)}
+     ${details('Fecha y hora',dt.toLocaleString('es-DO'))}${details('Referencia',r.reference)}
+     ${details('Saldo restante',fmt(r.sender_balance??r.vault_balance??0)+' 💎')}</dl>`;
   root.append(art,button('Volver al historial',()=>{view='history';drawPanel()}));
  }
  async function claim(all){if(inFlight)return;inFlight=true;feedback('Acreditando tarjetas…');
@@ -13424,6 +13338,180 @@ if(typeof originalBoardRender==='function')window.renderDominoState=function(st)
 window.dfcZ9Refresh=()=>refresh(true);
 })();
 
+</script>
+<style id="dfc-z10-official-blue-theme">
+/* ===== DOMINÓ FLASH COIN 0.12Z.10 · ESTILO AZUL Y MONEDA OFICIAL ===== */
+:root{--fc-coin-image:url('assets/fc-moneda-oficial.webp')}
+.fc-coin,.fc-balance:before,.balance-coin,.domino-seat .seat-bal:before{
+ background-image:var(--fc-coin-image)!important;background-repeat:no-repeat!important;
+ background-position:center!important;background-size:contain!important}
+/* Retirar emojis de monedas sustituidas por la moneda oficial compartida. */
+.dfc09-coin{display:inline-block!important;font-size:0!important;width:27px!important;height:27px!important;
+ background:var(--fc-coin-image) center/contain no-repeat!important;filter:drop-shadow(0 1px 3px #5f3a13)}
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal:before{
+ content:""!important;display:inline-block!important;vertical-align:-2px!important;width:16px!important;height:16px!important;
+ background:var(--fc-coin-image) center/contain no-repeat!important;margin-right:5px!important;box-shadow:none!important}
+#dominoTablePanel .domino-inside-pot b:before,
+#dominoTablePanel #dominoPotBadge:before{
+ content:"";width:18px;height:18px;display:inline-block;vertical-align:-4px;margin-right:4px;
+ background:var(--fc-coin-image) center/contain no-repeat}
+#dominoTablePanel .fc-balance:before{box-shadow:none!important;filter:drop-shadow(0 1px 2px #111)}
+/* FOTO EXACTA ELEGIDA Nº 2 COMO ESCENARIO. Jugadas, controles y perfiles: DOM reales. */
+#dominoTablePanel #dominoStage{
+ background-image:url('assets/mesa-azul-oficial.webp')!important;
+ background-position:center!important;background-repeat:no-repeat!important;background-size:100% 100%!important;
+ background-color:#003880!important;border:none!important;outline:none!important;border-radius:0!important;
+ box-shadow:none!important}
+/* Ocultar las fichas demostrativas fijas fotografiadas: nunca son estado del servidor. */
+#dominoTablePanel #dominoStage .dfc-photo-center-cover{
+ display:block!important;visibility:visible!important;position:absolute!important;
+ left:23.5%!important;top:32%!important;width:53%!important;height:34%!important;
+ background:radial-gradient(ellipse at 50% 50%,#0452a2 2%,rgba(3,73,152,.99) 57%,rgba(4,76,153,.94) 76%,rgba(5,83,155,0) 100%)!important;
+ border:0!important;border-radius:12%!important;z-index:10!important;pointer-events:none!important}
+#dominoTablePanel #dominoStage #dominoBoard{z-index:35!important;pointer-events:none!important}
+#dominoTablePanel #dominoStage #dominoHand{
+ z-index:100!important;background:linear-gradient(145deg,#021944ed,#0051aaf0)!important;
+ border:2px solid #35ccff!important;border-radius:18px!important;box-shadow:0 3px 14px #001a63b5,inset 0 0 10px #65dfff33!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-name{
+ background:linear-gradient(140deg,#041633,#093969)!important;border:1px solid #16bfff!important;
+ border-radius:12px!important;color:white!important;box-shadow:0 2px 8px #0007!important}
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal{
+ background:linear-gradient(140deg,#001c4f,#0754a8)!important;border:1px solid #04bfff!important;
+ border-radius:11px!important;color:#fff5b5!important;box-shadow:0 2px 9px #0006!important}
+#dominoTablePanel #dominoSeats .domino-seat .domino-avatar{
+ border:2px solid #1bd0ff!important;box-shadow:0 0 0 2px #08358e,0 0 10px #13bdfdaa!important}
+#dominoTablePanel #dominoSeats .domino-seat.turn .domino-avatar{border-color:#31ff97!important;
+ box-shadow:0 0 0 2px #0cba68,0 0 13px #20ecaa!important}
+/* Botones con la MISMA familia visual del modelo azul aprobado. Ninguna ID/función se cambia. */
+#dominoTablePanel #dominoStage button.domino-live-icon,
+#dominoTablePanel #dominoStage button.domino-live-action,
+#dominoTablePanel #dominoStage button#dfcLuxMesasBtn,
+#dominoTablePanel #dominoStage button.domino-mini-send,
+#dominoTablePanel #dominoStage button#dominoSurrenderBtn,
+#dominoTablePanel #dominoStage button#dominoAllMessagesBtn{
+ background:linear-gradient(150deg,#0c3e8e 0%,#071c50 75%,#06132f 100%)!important;
+ border:1.5px solid #39aaff!important;color:#e6f7ff!important;
+ border-radius:12px!important;box-shadow:inset 0 1px 0 #8fdfff88,0 2px 8px #0008!important;
+ text-shadow:0 1px 2px #00152d!important;cursor:pointer!important}
+#dominoTablePanel #dominoStage button:focus-visible{outline:3px solid #78e5ff!important;outline-offset:2px!important}
+#dominoTablePanel #dominoStage button:active{transform:scale(.97)}
+#dominoTablePanel #dominoStage button:disabled{opacity:.50!important;cursor:not-allowed!important}
+#dominoTablePanel #dominoStage .domino-live-icon{color:#eafaff!important}
+#dominoTablePanel #dominoStage #dominoGlobalBalance,
+#dominoTablePanel #dominoStage .domino-inside-pot{color:#ffe8a3!important}
+/* Comprobante oficial Flash Coin — diseño blanco, celeste, azul y moneda FC auténtica */
+#receiptPanel{background:#031c43d9!important;align-items:center!important;justify-content:center!important}
+#receiptPanel .receipt-panel-wrap{position:relative!important;width:min(94vw,475px)!important;
+ max-width:475px!important;max-height:94dvh!important;overflow-y:auto!important;
+ background:transparent!important;padding:0!important;border:0!important;box-shadow:none!important}
+#receiptPanel .receipt-panel-wrap>.close{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ position:sticky!important;float:right!important;top:8px!important;right:10px!important;margin:8px 9px -58px 0!important;
+ width:45px!important;height:45px!important;min-width:45px!important;min-height:45px!important;
+ font-size:26px!important;font-weight:950!important;color:#0a3785!important;
+ background:linear-gradient(#fff,#dcf2ff)!important;border:2px solid #3cbbf6!important;
+ border-radius:50%!important;box-shadow:0 3px 9px #0b50904f!important;z-index:200!important;
+ visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+#receiptPanel .premium-receipt,#receiptPanel .request-receipt{
+ background:linear-gradient(165deg,#d2eeff 0%,#fff 36%,#fff 78%,#eef9ff 100%)!important;
+ border:3px solid #1a79d0!important;border-radius:25px!important;padding:23px 17px 20px!important;
+ color:#0e2b65!important;box-shadow:0 18px 40px #00112c66,inset 0 0 0 4px #ffffff!important}
+#receiptPanel .premium-receipt:before,#receiptPanel .premium-receipt:after{display:none!important}
+#receiptPanel .receipt-head{text-align:center!important;padding:10px 34px 16px!important;
+ border-bottom:0!important}
+#receiptPanel .receipt-brand{font-size:18px!important;color:#074ca6!important;letter-spacing:1px!important}
+#receiptPanel .receipt-subbrand,#receiptPanel .receipt-kicker{color:#557aa0!important}
+#receiptPanel .receipt-coin{margin:5px auto!important}
+#receiptPanel .receipt-coin .fc-coin{display:block!important;margin:auto!important;width:118px!important;height:118px!important;
+ border-radius:50%!important;filter:drop-shadow(0 6px 9px #bb7b1999)!important;box-shadow:none!important}
+#receiptPanel .receipt-success{color:#09276f!important;font-size:21px!important}
+#receiptPanel .receipt-amount{padding:12px 8px!important;margin:4px 0 9px!important;
+ background:linear-gradient(145deg,#e6f8ff,#d0edff)!important;border-radius:20px!important}
+#receiptPanel .receipt-amount .label{color:#5179a0!important;font-size:12px!important}
+#receiptPanel .receipt-amount strong{font-size:clamp(27px,8vw,40px)!important;color:#0049b8!important;
+ text-shadow:none!important;word-break:break-word!important}
+#receiptPanel .receipt-status{margin-top:8px!important;border:1px solid #a1ecc6!important;
+ background:#dffbee!important;color:#00734d!important}
+#receiptPanel .receipt-details{padding:5px!important;border:0!important;background:transparent!important}
+#receiptPanel .receipt-line{padding:8px 3px!important;border-bottom:1px solid #d9e8f7!important}
+#receiptPanel .receipt-line span{color:#49739b!important;font-size:12px!important}
+#receiptPanel .receipt-line b{color:#123d78!important;font-size:12px!important;max-width:65%!important}
+#receiptPanel .receipt-balance{background:#e6f5ff!important;border:1px solid #c0dfff!important;color:#0b3f85!important}
+#receiptPanel .receipt-balance span{color:#507ca4!important}
+#receiptPanel .receipt-balance b{color:#034ab2!important}
+#receiptPanel .receipt-foot{color:#678aad!important;background:transparent!important}
+#receiptPanel .dfc012n-receipt-actions button{border:2px solid #5cc6ff!important;border-radius:12px!important;
+ background:linear-gradient(#027df1,#033aab)!important;color:#fff!important;min-height:43px!important}
+#appView button.action:not(.red):not(.green),#gamesPanel button:not(.close),
+#dominoLobbyPanel button.action,.dfc-z9-action,#appView .copy-btn{
+ border:1.5px solid #4fd3ff!important;border-radius:13px!important;
+ background:linear-gradient(160deg,#057fe0,#06438f)!important;color:#fff!important;
+ box-shadow:0 2px 9px #063b6799,inset 0 1px 0 #cceeff77!important}
+#appView button.action.green,#dominoLobbyPanel button.action.green{
+ background:linear-gradient(#1af585,#039754)!important;color:#fff!important;border:2px solid #7effb9!important;border-radius:13px!important}
+#appView button.action.red{background:linear-gradient(#ff5a61,#ba122a)!important;color:#fff!important;border-radius:13px!important}
+/* Comprobante de diamantes: misma maqueta blanca/azul con gema. */
+#dfc-z9-modal .dfc-z9-receipt{position:relative;background:linear-gradient(#e3f4ff,#fff 33%,#f2faff)!important;
+ border:2px solid #268ed6!important;border-radius:22px!important;color:#0a366f!important;padding:18px!important}
+#dfc-z9-modal .dfc-z9-receipt-icon{width:88px!important;height:88px!important;margin:4px auto!important;
+ background:#e2f5ff!important;border-radius:50%!important;display:grid!important;place-items:center!important}
+#dfc-z9-modal .dfc-z9-receipt-icon svg{width:63px!important;height:63px!important;color:#1497df!important}
+#dfc-z9-modal .dfc-z9-receipt strong{color:#075bc1!important;font-size:30px!important}
+#dfc-z9-modal .dfc-z9-receipt dd{color:#0b437e!important}
+@media(max-width:740px){#receiptPanel .receipt-coin .fc-coin{width:82px!important;height:82px!important}
+#receiptPanel .premium-receipt{padding:15px 11px!important}
+#dominoTablePanel #dominoStage .dfc-photo-center-cover{left:20%!important;width:60%!important}}
+@media(prefers-reduced-motion:reduce){#dominoTablePanel #dominoStage button:active{transform:none}}
+
+/* En todas las monedas ilustrativas de créditos usar el mismo recurso FC aprobado. */
+.dfc011k-coin,#dominoStage .dfc012a-coin,#dfc012c-scene .coin,
+#dominoStage .dfc012f-coin,.fc-mini-coin{
+ background:var(--fc-coin-image) center/contain no-repeat!important;
+ border:0!important;color:transparent!important;box-shadow:none!important}
+#dfc012c-scene .coin:after{content:none!important}
+
+</style>
+<script id="dfc-z10-update-check">
+(()=>{'use strict';
+ const CURRENT='0.12Z10',KEY='dfcZ10NextCheck';let latest=null;
+ const REMOTE_RELEASE='https://cakon170812-hub.github.io/marketflsh/release.json';
+ const N=v=>String(v||'').replace(/^0\./,'').replace(/[^0-9]+/g,'.').split('.').filter(Boolean).map(Number);
+ const newer=(a,b)=>{let x=N(a),y=N(b);for(let i=0;i<Math.max(x.length,y.length);i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
+ const inGame=()=>document.getElementById('dominoTablePanel')?.classList.contains('active');
+ const native=()=>typeof window.Capacitor!=='undefined'&&window.Capacitor?.isNativePlatform?.();
+ const ui=()=>{let el=document.getElementById('dfc-z10-update');if(el)return el;
+   el=document.createElement('button');el.id='dfc-z10-update';el.type='button';el.hidden=true;
+   el.textContent='Actualizar versión';el.setAttribute('aria-label','Nueva actualización disponible');
+   el.style.cssText='position:fixed;bottom:10px;left:10px;z-index:999999;min-height:44px;border:2px solid #81d8ff;border-radius:13px;color:#fff;background:linear-gradient(#075ab9,#06245b);padding:9px 14px;font:700 14px system-ui;box-shadow:0 4px 13px #0008';
+   el.addEventListener('click',()=>void install());document.body.append(el);return el;
+ };
+ async function check(){if(document.hidden)return;const now=Date.now(),last=Number(sessionStorage.getItem(KEY)||0);
+   if(now-last<6*60*60*1000)return;sessionStorage.setItem(KEY,String(now));
+   try{const manifest=native()?REMOTE_RELEASE:'release.json';
+     const r=await fetch(manifest+'?t='+Math.floor(now/21600000),{cache:'no-cache'});if(!r.ok)return;
+     const j=await r.json();const v=native()?j.android:j.web;
+     if(!newer(v,CURRENT))return;latest=j;
+     const b=ui();b.hidden=inGame();b.textContent='Nueva versión disponible';
+   }catch(e){console.warn('No se pudo consultar la versión:',e?.message)}
+ }
+ async function install(){if(!latest||inGame())return;
+   if(native()){
+     // Android no permite una sustitución silenciosa de APK desde JavaScript.
+     const dest=String(latest.android_url||'').trim();
+     if(!/^https:\/\//i.test(dest)){alert('Actualización Android disponible. Se necesita el enlace oficial de Google Play o del APK firmado; no es posible instalar silenciosamente desde esta pantalla.');return}
+     window.open(dest,'_blank','noopener');return;
+   }
+   // Navegador: recarga voluntaria fuera de partida. El SW, si existe, se actualiza de forma estándar.
+   try{const reg=await navigator.serviceWorker?.getRegistration?.();if(reg)await reg.update()}catch(_){}
+   location.reload();
+ }
+ window.addEventListener('online',()=>void check());
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check()});
+ document.addEventListener('DOMContentLoaded',()=>{
+   void check();const game=document.getElementById('dominoTablePanel');
+   if(game)new MutationObserver(()=>{const b=document.getElementById('dfc-z10-update');if(b&&latest)b.hidden=inGame()}).observe(game,{attributes:true,attributeFilter:['class']});
+ });
+})();
 </script>
 </body>
 <!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
