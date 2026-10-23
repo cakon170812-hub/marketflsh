@@ -22,7 +22,7 @@
 <meta content="Domino Flash Coin" name="apple-mobile-web-app-title"/>
 <meta content="telephone=no" name="format-detection"/>
 <link href="manifest.webmanifest?v=0.12Z9" rel="manifest"/>
-<title>Dominó Flash Coin — 0.12Z.10</title>
+<title>Dominó Flash Coin — 0.12Z.11 (pruebas)</title>
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.12Z9">
 <meta name="description" content="Dominos Flash Coin: mesas de dominó multijugador y Flash Coin virtuales.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5681,6 +5681,27 @@ function dominoRows(board,lastMove,animateMove){
   }
   return rows.join('');
 }
+
+let dfcZ11RemoteMoveShown='';
+function dfcZ11AnimateRemoteMove(st){
+ const mv=st?.last_move;
+ if(!mv || !/PLAY/.test(String(mv.action||'')) || String(mv.user_id||'')===String(st?.me||''))return;
+ const key=String(st?.hand?.id||'')+':'+String(mv.id||'');
+ if(!mv.id || dfcZ11RemoteMoveShown===key)return;
+ dfcZ11RemoteMoveShown=key;
+ const origin=[...document.querySelectorAll('#dominoSeats .domino-seat[data-seat-user]')]
+  .find(el=>el.dataset.seatUser===String(mv.user_id))?.querySelector('.domino-avatar');
+ const end=document.querySelector('#dominoBoard .domino-piece.just-dropped');
+ if(!origin||!end)return;
+ const a=origin.getBoundingClientRect(),b=end.getBoundingClientRect();if(!a.width||!b.width)return;
+ const chip=end.cloneNode(true);chip.classList.remove('just-dropped');
+ chip.style.cssText=`position:fixed!important;z-index:999988!important;pointer-events:none!important;left:${a.left+a.width/2-b.width/2}px!important;top:${a.top+a.height/2-b.height/2}px!important;width:${b.width}px!important;height:${b.height}px!important;transform:scale(.5)!important;opacity:.92!important;transition:transform .33s cubic-bezier(.18,.83,.16,1),opacity .2s!important`;
+ document.body.append(chip);end.style.opacity='0';
+ const dx=(b.left+b.width/2)-(a.left+a.width/2),dy=(b.top+b.height/2)-(a.top+a.height/2);
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{chip.style.transform=`translate(${dx}px,${dy}px) scale(1)`;}));
+ setTimeout(()=>{chip.remove();end.style.opacity='';},390);
+}
+
 function dominoCameraFocusMove(){
   const stage=$('dominoStage');
   const fresh=stage?.querySelector('.domino-piece.just-dropped');
@@ -5828,9 +5849,10 @@ function dominoBindHandInteractions(){
     });
     const finish=async e=>{
       const d=dominoDragState;if(!d?.active||d.pointerId!==e.pointerId||d.el!==piece)return;
-      d.active=false;piece.classList.remove('dragging');piece.style.transform='';
+      d.active=false;piece.classList.remove('dragging');
       const moved=d.moved,allowed=d.allowed&&canPlay();
       const side=allowed?(d.hoverSide||dominoSideAtPoint(e.clientX,e.clientY,d.idx)):null;
+      if(!moved||!allowed||!side)piece.style.transform='';
       dominoDragState=null;
       // El toque corto selecciona la ficha inmediatamente, sin depender de
       // click (que iOS puede suprimir tras preventDefault en pointerdown).
@@ -5851,14 +5873,14 @@ function dominoBindHandInteractions(){
           return !best||distance<best.distance?{el,distance}:best;
         },null);
         if(target&&dfcMoveHandTile(d.idx,Number(target.el.dataset.dominoTile),hand))window.dfc012mArrange?.('drop');
-        resetSelection();return;
+        piece.style.transform='';resetSelection();return;
       }
       if(moved&&allowed&&side&&dominoTileSides(dominoState?.hand?.my_tiles?.[d.idx],dominoState?.hand)[side]){
-        resetSelection();await dominoPlayTile(d.idx,side,piece);return;
+        resetSelection();await dominoPlayTile(d.idx,side,piece);piece.style.transform='';return;
       }
       // Fuera de turno: se descarta sin sonidos de error ni fichas seleccionadas.
       if(!allowed)resetSelection();
-      else if(moved){resetSelection();piece.classList.add('invalid-return');setTimeout(()=>piece.classList.remove('invalid-return'),320)}
+      else if(moved){piece.style.transform='';resetSelection();piece.classList.add('invalid-return');setTimeout(()=>piece.classList.remove('invalid-return'),320)}
     };
     piece.addEventListener('pointerup',finish);
     piece.addEventListener('pointercancel',e=>{const d=dominoDragState;if(d?.el===piece){d.active=false;dominoDragState=null;piece.classList.remove('dragging');piece.style.transform='';resetSelection()}});
@@ -6178,7 +6200,7 @@ function renderDominoState(st){
   if(window.dfc011tAfterRender)window.dfc011tAfterRender(st);
   if(window.dfc011rCaptureBoard)window.dfc011rCaptureBoard(st);
   dominoBindBoardEndInteractions();
-  if(effects.animate)dominoCameraFocusMove();
+  if(effects.animate){dominoCameraFocusMove();dfcZ11AnimateRemoteMove(st);}
   const myTurn=!!(h&&h.status==='playing'&&String(h.turn_user_id)===String(uid)),tiles=h?.my_tiles||[],hasLegal=myTurn&&tiles.some(t=>dominoTileLegal(t,h));
   const animateDeal=!!(h&&h.status==='shuffling'&&dominoDealAnimationHandId!==h.id);
   if(animateDeal)dominoDealAnimationHandId=h.id;
@@ -6372,6 +6394,29 @@ async function loadDominoState(force,skipTick=false){
     }
   }
 }
+// 0.12Z.11: copia visual sin tocar la mano del servidor ni crear una jugada ficticia.
+function dfcZ11FlyTile(source,side){
+  if(!source || !document.body)return null;
+  const from=source.getBoundingClientRect();
+  if(!from.width || !from.height)return null;
+  const end=document.querySelector('#dominoBoard .domino-end-'+side)||document.querySelector('#dominoBoard .board-piece:last-child')||document.getElementById('dominoBoard');
+  if(!end)return null;
+  const to=end.getBoundingClientRect();
+  if(!to.width||!to.height)return null;
+  const clone=source.cloneNode(true);
+  clone.removeAttribute('id');clone.removeAttribute('data-domino-tile');clone.classList.remove('dragging','selected');
+  clone.style.cssText=`position:fixed!important;z-index:999990!important;pointer-events:none!important;left:${from.left}px!important;top:${from.top}px!important;width:${from.width}px!important;height:${from.height}px!important;opacity:1!important;transform:none!important;transition:transform .25s cubic-bezier(.2,.82,.2,1),opacity .18s!important;`;
+  document.body.append(clone);
+  source.style.opacity='.05';
+  const destX=(to.left+to.width/2)-(from.left+from.width/2),destY=(to.top+to.height/2)-(from.top+from.height/2);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{clone.style.transform=`translate(${destX}px,${destY}px) scale(.84)`;}));
+  let done=false;
+  return {
+   confirm(){if(done)return;done=true;setTimeout(()=>clone.remove(),280);source.style.opacity='';},
+   reject(){if(done)return;done=true;clone.style.transform='translate(0,0) scale(1)';setTimeout(()=>{clone.remove();source.style.opacity='';},260);},
+   cancel(){if(done)return;done=true;clone.remove();source.style.opacity='';}
+  };
+}
 let mfDominoPlayPending=false;
 async function dominoPlayTile(index,side='right',sourceEl=null){
   if(!dominoCurrentTableId||mfDominoPlayPending)return;
@@ -6381,9 +6426,20 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
   // Congelar la última jugada antes de que Supabase actualice la mano.
   const dfcFinalSnapshot=(dominoState?.hand?.my_tiles?.length===1)?{me:dominoState.me,hand:{...dominoState.hand,board:(dominoState.hand.board||[]).map(x=>({...x})),my_tiles:[tile]}}:null;
   mfDominoPlayPending=true;
+  const flight=dfcZ11FlyTile(sourceEl,side);
   try{
     const {error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:side});
-    if(error){playDominoInvalidSound();alert(errText(error));return}
+    if(error){
+      flight?.reject();
+      const reason=String(error.message||'');
+      if(/ficha|índice|indice|disponible|turno|jugada/i.test(reason)){
+        dominoSetSyncState('Revisando tu mano con el servidor…','warn');
+        await loadDominoState(false,true).catch(()=>{});
+        dominoShowToast('La mesa cambió. Comprueba tus fichas y vuelve a intentar.');
+      }else{playDominoInvalidSound();alert(errText(error));}
+      return;
+    }
+    flight?.confirm();
     // 0.11U: para la última ficha, visualizar el cierre tras la confirmación RPC,
     // sin esperar al siguiente reparto. No acredita saldos ni modifica Supabase.
     if(dfcFinalSnapshot&&typeof window.dfc012hAcceptedFinalPlay==='function'){
@@ -6397,7 +6453,7 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
     },delay);
     await loadDominoState(false,true); // Resultado confirmado y celebración en esta mano, antes del nuevo reparto
     setTimeout(()=>{if(dominoCurrentTableId)loadDominoState(false).catch(()=>{})},390);
-  }catch(e){console.warn('Jugada Dominó:',e);dominoSetSyncState('Revisando confirmación de jugada…','warn');await loadDominoState(false,true).catch(()=>{});}
+  }catch(e){flight?.cancel();console.warn('Jugada Dominó:',e);dominoSetSyncState('Revisando confirmación de jugada…','warn');await loadDominoState(false,true).catch(()=>{});}
   finally{mfDominoPlayPending=false;}
 
 }
@@ -12221,24 +12277,64 @@ function buildPhysicalLobby(){
   const info=byTable[Number(t.id)]||{game_mode:conf.mode==='paid_pass'?'paid_pass':'normal',points_target:100},theme=kind(info);
   const required=info.game_mode==='points'?Math.max(Number(conf.min_entry)||0,Number(info.entry_stake)||0):Number(conf.min_entry||0);
   const n=Number(t.players||0),full=n>=4,busy=['playing','shuffling'].includes(String(t.hand_status||''));
-  const spectator=!myTable&&((Number(me?.balance||0)+.0000001<required)||full);
+  // Ambos accesos son siempre visibles: mirar no exige saldo ni ocupa asiento.
   const card=document.createElement('article');card.className='domino-choice-card dfc012o-table-card '+theme;card.dataset.tableId=String(t.id);
-  card.innerHTML=`<img class="dfc012o-art" src="${artworks[theme]}" alt="Imagen ${htmlEsc(label(info))}"><h3>${htmlEsc(conf.name)} · Mesa #${htmlEsc(t.table_no||t.id)}</h3><div class="mode-desc">${htmlEsc(label(info))}</div><div class="table-stats"><div class="table-stat">Entrada mínima<b>${typeof dominoMoney==='function'?dominoMoney(required):required.toFixed(3)} FC</b></div><div class="table-stat">Jugadores<b>${n} / 4</b></div></div><div class="online-line">ID ${htmlEsc(t.id)} · ${busy?'En juego':full?'Llena':'Disponible'}</div><button class="action green dfc012o-join" type="button">${spectator?'VER MESA':'SENTARME'}</button>`;
+  card.innerHTML=`<img class="dfc012o-art" src="${artworks[theme]}" alt="Imagen ${htmlEsc(label(info))}"><h3>${htmlEsc(conf.name)} · Mesa #${htmlEsc(t.table_no||t.id)}</h3><div class="mode-desc">${htmlEsc(label(info))}</div><div class="table-stats"><div class="table-stat">Entrada mínima<b>${typeof dominoMoney==='function'?dominoMoney(required):required.toFixed(3)} FC</b></div><div class="table-stat">Jugadores<b>${n} / 4</b></div></div><div class="online-line">ID ${htmlEsc(t.id)} · ${busy?'En juego':full?'Llena':'Disponible'}</div><div class="dfc-z11-lobby-actions"><button class="action dfc-z11-watch" type="button">👁 VER MESA</button><button class="action green dfc012o-join" type="button">🪑 SENTARSE EN MESA</button></div>`;
   host.append(card);
-  card.querySelector('button').addEventListener('click',async()=>{
-    if(info.game_mode==='points'&&!window.dfc012rBypassChoice){window.dfc012rOpenChoice?.(Number(t.id));return;}
-    try{if(dominoSoundPreferenceEnabled()&&typeof armAudioFromGesture==='function')armAudioFromGesture(false);}catch(_){}
-    const tid=Number(t.id);targetTable=tid;
-    if(spectator){
-      targetTable=0;
-      if(typeof window.enterDominoSpectatorTable==='function')await window.enterDominoSpectatorTable(tid);
-      else window.mf19Toast?.('No se pudo abrir la mesa seleccionada como espectador','error');
-      return;
-    }
-    if(typeof openDominoBuyin==='function')openDominoBuyin(Number(t.config_id));
-    const field=get('dominoBuyinInput');if(field){if(info.game_mode==='points'){const avail=Math.max(0,Number(me?.balance||0));field.readOnly=false;field.min=String(required);field.max=String(avail);field.value=Math.min(avail,required).toFixed(3);field.removeAttribute('title');const range=get('dominoBuyinRange');if(range){range.min=String(required);range.max=String(Math.max(avail,required));range.value=String(Math.min(avail,required));}const display=get('dominoBuyinValue');if(display)display.textContent=field.value+' FC';window.dfc012sShowMax?.(true,required,avail);}else{field.readOnly=false;field.removeAttribute('title');window.dfc012sShowMax?.(false);}}
-    const h=get('dominoBuyinTitle');if(h)h.textContent=(conf.name||'Mesa')+' · ID '+tid+' · '+label(info);
+  card.querySelector('.dfc-z11-watch').addEventListener('click',async()=>{
+    targetTable=0;
+    const tid=Number(t.id);
+    if(typeof window.enterDominoSpectatorTable==='function')await window.enterDominoSpectatorTable(tid);
+    else window.mf19Toast?.('No se pudo abrir la mesa como espectador','error');
   });
+   card.querySelector('.dfc012o-join').addEventListener('click',async()=>{
+     const btn=card.querySelector('.dfc012o-join');
+     const tid=Number(t.id);
+     if(btn.disabled)return;
+     if(myTable){
+       window.mf19Toast?.('Ya tienes un asiento. Utiliza VOLVER A MI MESA para recuperarlo.','error');return;
+     }
+     if(Number(me?.balance||0)+.0000001<required){
+       window.mf19Toast?.('Saldo FC insuficiente. Puedes entrar a VER MESA sin ocupar asiento.','error');return;
+     }
+     btn.disabled=true;const originalText=btn.textContent;btn.textContent='BUSCANDO ASIENTO…';
+     try{
+       const {data:route,error:routeError}=await sb.rpc('dfc_z11_route_any',{p_template_id:tid,p_exclude_table_id:null});
+       if(routeError)throw routeError;
+       if(!route?.ok||!Number(route.table_id))throw Error(route?.error||'No se recibió una mesa disponible');
+       if(route.already_seated)throw Error('Ya tienes un asiento. Pulsa VOLVER A MI MESA.');
+       const selectedId=Number(route.table_id);
+       // Nueva mesa dentro de la MISMA modalidad; el servidor decide con bloqueo.
+       const lobby=await sb.rpc('rf_domino_get_lobby_v11');
+       if(lobby.error)throw lobby.error;
+       dominoLobbyData=lobby.data||dominoLobbyData;
+       await fetchTableModes(true);
+       const chosen=physicalRows().find(x=>Number(x.id)===selectedId);
+       if(!chosen)throw Error('La nueva mesa todavía no está visible. Pulsa otra vez Sentarse.');
+       targetTable=selectedId;
+       try{if(dominoSoundPreferenceEnabled()&&typeof armAudioFromGesture==='function')armAudioFromGesture(false);}catch(_){}
+       if(typeof openDominoBuyin==='function')openDominoBuyin(Number(chosen.config_id));
+       const selectedInfo=byTable[selectedId]||info;
+       if(selectedInfo.game_mode==='points'){
+         targetTable=0;
+         if(typeof window.dfcZ11OpenPointsAmount!=='function')throw Error('No se cargó el módulo de confirmación de puntos');
+         await window.dfcZ11OpenPointsAmount(selectedId,null);
+         return;
+       }
+       const selectedConf=configRows().find(x=>Number(x.id)===Number(chosen.config_id))||conf;
+       const min=selectedInfo.game_mode==='points'?Math.max(Number(selectedConf.min_entry||0),Number(selectedInfo.entry_stake||0)):Number(selectedConf.min_entry||0);
+       const field=get('dominoBuyinInput');
+       if(field){const available=Math.max(0,Number(me?.balance||0));field.readOnly=false;field.min=String(min);field.max=String(available);field.value=Math.min(available,min).toFixed(3);field.removeAttribute('title');
+         const range=get('dominoBuyinRange');if(range){range.min=String(min);range.max=String(Math.max(available,min));range.value=field.value;}
+         const display=get('dominoBuyinValue');if(display)display.textContent=field.value+' FC';
+         window.dfc012sShowMax?.(selectedInfo.game_mode==='points',min,available);
+       }
+       const title=get('dominoBuyinTitle');if(title)title.textContent=(selectedConf.name||'Mesa')+' · ID '+selectedId+' · '+label(selectedInfo);
+       if(route.created)window.mf19Toast?.('Nueva mesa creada. Tu asiento se confirmará al pulsar SENTARME.');
+       else if(selectedId!==tid)window.mf19Toast?.('Te hemos dirigido a una mesa con espacio de esta modalidad.');
+     }catch(err){targetTable=0;window.mf19Toast?.('No se pudo buscar asiento: '+(err?.message||err),'error');}
+     finally{btn.disabled=false;btn.textContent=originalText;}
+   });
  }
 }
 const oldRender=typeof renderDominoLobby==='function'?renderDominoLobby:null;
@@ -12299,7 +12395,13 @@ if(joinButton){
    if(!accepted)return;
    this.disabled=false;
    await dfc012qActualJoin?.apply(this,args);
-  }catch(e){if(typeof msg==='function')msg('dominoBuyinMsg','Error: '+(e.message||e));}
+  }catch(e){
+    const reason=String(e?.message||e);
+    if(/llena|completa|curso|ocupad|asiento/i.test(reason)){
+      targetTable=0;
+      if(typeof msg==='function')msg('dominoBuyinMsg','Esa mesa se llenó mientras elegías el saldo. No se descontó una entrada nueva. Cierra esta ventana y pulsa SENTARSE para buscar automáticamente otro puesto.');
+    }else if(typeof msg==='function')msg('dominoBuyinMsg','Error: '+reason);
+  }
   finally{this.disabled=false;}
  };
 }
@@ -12840,7 +12942,7 @@ async function openAmount(tid,knownStake){
 // Interceptar solo los botones de mesas por puntos, incluso cuando el lobby se redibuja.
 // Evita caer en los event listeners antiguos que abrían otro procedimiento de entrada.
 document.addEventListener('click',event=>{
- const b=event.target?.closest?.('#dominoLobbyModes .dfc012o-table-card button');if(!b)return;
+ const b=event.target?.closest?.('#dominoLobbyModes .dfc012o-table-card button.dfc012o-join');if(!b || b.closest('.dfc-z11-lobby-actions'))return;
  const card=b.closest('.dfc012o-table-card'),tid=Number(card?.dataset.tableId||0);
  if(!tid||!(window.dfc012rIsPointTable?.(tid)===true||card?.classList.contains('diamond')||/puntos|diamantes/i.test(card?.textContent||'')))return;
  event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
@@ -12850,6 +12952,7 @@ document.addEventListener('click',event=>{
 window.dfc012rOpenChoice=openChoice;
 // Opcional para volver a la sala automáticamente después de una partida completa.
 window.dfc012uOpenPoints=openChoice;
+window.dfcZ11OpenPointsAmount=openAmount;
 // Acceso rápido: la próxima persona se dirige automáticamente a una mesa con alguien esperando.
 function ensureQuick(){
  const lobby=$('dominoLobbyModes');if(!lobby)return;
@@ -13485,7 +13588,7 @@ window.dfcZ9Refresh=()=>refresh(true);
    el.style.cssText='position:fixed;bottom:10px;left:10px;z-index:999999;min-height:44px;border:2px solid #81d8ff;border-radius:13px;color:#fff;background:linear-gradient(#075ab9,#06245b);padding:9px 14px;font:700 14px system-ui;box-shadow:0 4px 13px #0008';
    el.addEventListener('click',()=>void install());document.body.append(el);return el;
  };
- async function check(){if(document.hidden)return;const now=Date.now(),last=Number(sessionStorage.getItem(KEY)||0);
+ async function check(){if(typeof window.Capacitor!=='undefined'&&window.Capacitor?.isNativePlatform?.())return;if(document.hidden)return;const now=Date.now(),last=Number(sessionStorage.getItem(KEY)||0);
    if(now-last<6*60*60*1000)return;sessionStorage.setItem(KEY,String(now));
    try{const manifest=native()?REMOTE_RELEASE:'release.json';
      const r=await fetch(manifest+'?t='+Math.floor(now/21600000),{cache:'no-cache'});if(!r.ok)return;
@@ -13541,6 +13644,78 @@ window.dfcZ9Refresh=()=>refresh(true);
 })();
 </script>
 
+<style id="dfcOTAAdminStyles">
+#dfcOTAAdminSection {margin:13px 0;padding:13px;border-radius:15px;background:linear-gradient(140deg,#0c2c4b,#071625);border:1px solid #3f9bdb;color:#e8f7ff}
+#dfcOTAAdminSection h3{margin:0 0 7px;color:#c5f4ff;font-size:16px}
+#dfcOTAAdminSection .dfc-ota-msg{padding:9px 4px;color:#b8def5;font-size:12px;white-space:pre-wrap}
+#dfcOTAAdminSection input{width:100%;margin:8px 0;color:#fff}
+#dfcOTAAdminSection .dfc-ota-inline{display:flex;gap:9px;flex-wrap:wrap}
+#dfcOTAAdminSection .dfc-ota-inline button{flex:1;min-width:145px}
+</style>
+<script id="dfcOTAAdminPublishV1">
+(()=>{'use strict';
+ const VERSION='0.12Z.11';let preview=null,processing=false;
+ const id='dfcOTAAdminSection';
+ const root=()=>document.querySelector('#leaderPanel .panel');
+ function render(){
+   if(document.getElementById(id)||!root())return;
+   const e=document.createElement('section');e.id=id;
+   e.innerHTML=`<h3>📲 Publicar actualización para Android</h3>
+    <p class="tiny">La web de pruebas NO modifica la aplicación. Selecciona una versión aprobada; GitHub creará un paquete independiente.</p>
+    <label class="tiny" for="dfcOTAAdminVersion">Versión que publicarás (ejemplo: 0.12Z.12)</label>
+    <input class="field" id="dfcOTAAdminVersion" value="" placeholder="0.12Z.12" autocomplete="off" spellcheck="false"/>
+    <p class="tiny">Primero revisa el código exacto de la última publicación web. Las claves de GitHub nunca van en el HTML.</p>
+    <div class="dfc-ota-inline"><button class="action blue" type="button" id="dfcOTAAdminPreview">Revisar versión web</button>
+    <button class="action green" type="button" id="dfcOTAAdminPublish" disabled>Publicar actualización para Android</button></div>
+    <div class="dfc-ota-msg" id="dfcOTAAdminStatus" role="status" aria-live="polite">Pendiente de aprobación. No se ha enviado ninguna actualización.</div>`;
+   const anchor=root().querySelector('.section'); if(anchor)anchor.before(e);else root().append(e);
+   e.querySelector('#dfcOTAAdminPreview').addEventListener('click',()=>void previewHead());
+   e.querySelector('#dfcOTAAdminPublish').addEventListener('click',()=>void publish());
+   e.querySelector('#dfcOTAAdminVersion').addEventListener('input',()=>{if(!preview){e.querySelector('#dfcOTAAdminPublish').disabled=true;} });
+ }
+ function status(s){const t=document.getElementById('dfcOTAAdminStatus');if(t)t.textContent=s}
+ async function invoke(action,params={}){
+   const client=(typeof sb!=='undefined')?sb:window.sb;
+   if(!client?.functions?.invoke)throw new Error('Supabase no está listo');
+   const {data,error}=await client.functions.invoke('dfc-promote-android-web',{body:{action,...params}});
+   if(error)throw new Error(error.context?.status===401?'Acceso denegado o sesión vencida':(error.message||'Error del servidor'));
+   if(!data?.ok)throw new Error(data?.error||'No se pudo verificar el servidor');
+   return data;
+ }
+ async function previewHead(){
+   if(processing)return;
+   if(typeof me==='undefined'||me?.role!=='leader')return status('Solo el Administrador Líder puede publicar.');
+   processing=true;const b=document.getElementById('dfcOTAAdminPreview');b.disabled=true;
+   try{status('Consultando la revisión web de GitHub...');const data=await invoke('preview');
+     preview={sha:data.sha,short:data.short,subject:data.subject};
+     status(`Revisión para aprobar: ${data.short}\nÚltimo cambio: ${data.subject}\nComprueba que sea exactamente el HTML que probaste. Luego escribe una versión NUEVA y publica.`);
+     document.getElementById('dfcOTAAdminPublish').disabled=false;
+   }catch(e){preview=null;status('No se pudo verificar: '+e.message)}finally{processing=false;b.disabled=false}
+ }
+ async function publish(){
+   if(processing||!preview)return;
+   if(typeof me==='undefined'||me?.role!=='leader')return;
+   const version=(document.getElementById('dfcOTAAdminVersion')?.value||'').trim();
+   if(!/^0\.12Z\.\d{1,4}$/.test(version))return status('Escribe una versión como 0.12Z.12 (debe ser distinta de las anteriores).');
+   if(!confirm(`¿Publicar en Android la revisión web ${preview.short} como versión ${version}?\nLas partidas activas no se reiniciarán. Se creará una copia separada.`))return;
+   processing=true;const b=document.getElementById('dfcOTAAdminPublish');b.disabled=true;
+   try{const r=await invoke('publish',{version,sha:preview.sha});
+      status(`Solicitud de publicación recibida para ${version}.\nRevisión: ${preview.short}.\nGitHub está preparando el paquete. Todavía no está publicada hasta que el proceso termine correctamente. Mira GitHub → Acciones.`);
+      preview=null;
+   }catch(e){status('No se envió la publicación: '+e.message)}finally{processing=false}
+ }
+ function boot(){render();}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+
+<style id="dfc-z11-separate-watch-sit">
+/* Acciones independientes, siempre visibles en cada mesa física. */
+#dominoLobbyModes .dfc012o-table-card .dfc-z11-lobby-actions{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important;width:100%!important;margin-top:4px!important}
+#dominoLobbyModes .dfc012o-table-card .dfc-z11-lobby-actions button{min-width:0!important;width:100%!important;min-height:34px!important;padding:5px 3px!important;font-size:clamp(7px,.95vw,11px)!important;line-height:1.2!important;white-space:normal!important;cursor:pointer!important}
+#dominoLobbyModes .dfc012o-table-card .dfc-z11-watch{background:linear-gradient(180deg,#67beff,#1767bb)!important;color:#041b34!important;border:1px solid #a8dfff!important}
+#dominoLobbyModes .dfc012o-table-card .dfc012o-join{background:linear-gradient(180deg,#b5fa8e,#209945)!important;color:#08210f!important;border:1px solid #c6ffa8!important}
+</style>
 </body>
 <!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
 <!-- HTML 0.1: BASE OFICIAL VISUAL aprobada: mesa premium 4 jugadores, cadena pegada con giros, chat integrado, ruleta compacta y PWA fija. -->
