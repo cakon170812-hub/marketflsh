@@ -1,3 +1,4 @@
+<!-- 0.12Z.12 PRUEBAS: optimización controlada del polling de Dominó. No altera servidor, apuestas, saldos ni reglas. -->
 <!-- DOMINO FLASH COIN HTML 0.12Z.7: salida opcional entre manos; conserva 0.12Z.4; requiere SQL 0.12Z.7 -->
 <!-- DOMINÓ FLASH COIN 0.12Z.3: interfaz 0.12Z intacta, correccion del SQL 0.12Z.3 -->
 <!-- DOMINÓ FLASH COIN · HTML COMPLETO 0.12V · base íntegra 0.12U y actualización 0.12V -->
@@ -7,7 +8,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12Z11" lang="es">
+<html data-app-build="0.12Z12" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -22,7 +23,7 @@
 <meta content="Domino Flash Coin" name="apple-mobile-web-app-title"/>
 <meta content="telephone=no" name="format-detection"/>
 <link href="manifest.webmanifest?v=0.12Z9" rel="manifest"/>
-<title>Dominó Flash Coin — 0.12Z.11 (pruebas)</title>
+<title>Dominó Flash Coin — 0.12Z.12 (pruebas)</title>
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.12Z9">
 <meta name="description" content="Dominos Flash Coin: mesas de dominó multijugador y Flash Coin virtuales.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5331,16 +5332,30 @@ async function mfDominoSyncClock(){
   }catch(e){/* fallback al reloj local sin alterar el resultado del servidor */}
 }
 
+// 0.12Z.12: evita reconsultar reloj en cada lectura de mesa y protege concurrencia.
+let dfcZ12ClockBusy=false, dfcZ12LastClock=0;
+async function dfcZ12SyncClock(force=false){
+  const now=Date.now();
+  if(dfcZ12ClockBusy||(!force&&now-dfcZ12LastClock<20000))return;
+  dfcZ12ClockBusy=true;dfcZ12LastClock=now;
+  try{await mfDominoSyncClock()}catch(e){console.warn('Reloj Dominó:',e)}
+  finally{dfcZ12ClockBusy=false}
+}
 function dominoStartPolling(){
-  mfDominoSyncClock().catch(()=>{});
+  dfcZ12SyncClock(true).catch(()=>{});
   clearInterval(dominoPollTimer);
   dominoHeartbeatLast=0;
   dominoHeartbeat(true).catch(()=>{});
   dominoPollTimer=setInterval(()=>{
     if(!dominoCurrentTableId||document.hidden)return;
     dominoHeartbeat(false).catch(()=>{});
-    mfDominoSyncClock().catch(()=>{});
-    if(!mfDominoPlayPending)loadDominoState(false,(Date.now()-window.dfc012hProgressAt<2400)?true:(window.dfc012hProgressAt=Date.now(),false)).catch(()=>dominoSetSyncState('Reconectando…','warn'));
+    dfcZ12SyncClock().catch(()=>{});
+    if(!mfDominoPlayPending && !mfDominoStateLoading){
+      const now=Date.now();
+      const skipTick=(now-(window.dfc012hProgressAt||0)<2400);
+      if(!skipTick)window.dfc012hProgressAt=now;
+      loadDominoState(false,skipTick).catch(()=>dominoSetSyncState('Reconectando…','warn'));
+    }
   },2600);
 }
 function dominoStopPolling(){
@@ -6491,8 +6506,13 @@ async function dominoPass(){if(!dominoCurrentTableId)return;const {error}=await 
 function dominoWinPulse(){const v=$('dominoVictory');if(!v)return;v.classList.remove('show')}
 
 async function dominoReturnToLobbyFromBuyin(){
+  // Cerrar el importe desde modo espectador no debe expulsarte a otra mesa.
+  const wasSpectating=!!window.dominoSpectatorMode&&document.body.classList.contains('domino-spectating');
   hide('dominoBuyinPanel');
+  const buyin=document.getElementById('dominoBuyinPanel');
+  if(buyin)delete buyin.dataset.spectatorTableId;
   dominoJoinConfig=null;
+  if(wasSpectating)return;
   show('dominoLobbyPanel');
   if(dominoLobbyData){
     renderDominoLobby();
@@ -7846,21 +7866,70 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
       retry.onclick=()=>loadDominoState(true,true).catch(()=>{});bar.appendChild(retry);
       const sit=document.createElement('button');sit.id='mf110SpectatorSit';sit.type='button';
       sit.className='mf110-spectator-sit';sit.textContent='Consultar saldo…';sit.disabled=true;
+      // 0.12Z.11 ESPECTADOR: visible fuera de la mesa recortada, y solo una consulta por toque.
+      sit.dataset.busy='0';
       sit.onclick=async()=>{
-        try{await loadMe();renderMe()}catch(e){window.mf19Toast?.('No se pudo consultar tu saldo: '+errText(e),'error');return}
-        const t=(dominoLobbyData?.tables||[]).find(x=>Number(x.id)===Number(dominoCurrentTableId));
-        const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(t?.config_id))||dominoState?.config;
-        if(!c)return window.mf19Toast?.('No se pudo identificar la modalidad de esta mesa','error');
-        if(noMainBalance()||mainBalance()+0.000001<Number(c.min_entry||0))return window.mf19Toast?.('Saldo insuficiente: solicita hasta '+dominoMoney(c.min_entry)+' FC para sentarte.','error');
-        // Abrimos el mismo selector de fichas, PERO la confirmación posterior
-        // usa el ID exacto del espectador y no el emparejamiento automático.
-        originalOpenBuyin(Number(c.id));
+        if(sit.dataset.busy==='1')return;
+        const observedId=Number(dominoCurrentTableId);
+        const notify=(message)=>{
+          if(typeof window.mf19Toast==='function')window.mf19Toast(message,'error');
+          else window.alert(message);
+        };
+        const limited=(promise,ms,message)=>Promise.race([
+          promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(message)),ms))
+        ]);
+        sit.dataset.busy='1';sit.disabled=true;sit.textContent='⏳ COMPROBANDO ASIENTO…';
+        try{
+          if(!spectatorMode||!window.dominoSpectatorMode||!observedId)
+            throw new Error('Primero entra como espectador en una mesa.');
+          if(typeof originalOpenBuyin!=='function')
+            throw new Error('El selector de entrada no está disponible.');
+          await limited(loadMe(),12000,'No se pudo consultar tu saldo. Comprueba tu conexión.');
+          renderMe();
+          if(!spectatorMode||Number(dominoCurrentTableId)!==observedId)
+            throw new Error('Cambiaste de mesa. Pulsa Sentarme de nuevo.');
+          const {data:fresh,error}=await limited(
+            sb.rpc('rf_domino_get_lobby_v11'),12000,
+            'El servidor tardó demasiado en confirmar la mesa. Reintenta.'
+          );
+          if(error)throw error;
+          if(!fresh||!Array.isArray(fresh.tables))
+            throw new Error('No se recibió una lista válida de mesas. Reintenta conexión.');
+          dominoLobbyData=fresh;
+          if(fresh.my_table)
+            throw new Error('Ya tienes un asiento activo. Vuelve a tu mesa desde el listado.');
+          const observed=(fresh.tables||[]).find(t=>Number(t.id)===observedId);
+          if(!observed)throw new Error('Esta mesa dejó de estar disponible. Vuelve al listado.');
+          const config=(fresh.configs||[]).find(c=>Number(c.id)===Number(observed.config_id));
+          if(!config)throw new Error('No se pudo identificar la modalidad de esta mesa.');
+          const minimum=Number(config.min_entry||0);
+          if(!Number.isFinite(minimum)||minimum<=0)
+            throw new Error('La entrada mínima de esta mesa no está disponible.');
+          if(noMainBalance()||mainBalance()+0.000001<minimum)
+            throw new Error('Saldo insuficiente. Necesitas '+dominoMoney(minimum)+' FC para sentarte.');
+          if(!spectatorMode||Number(dominoCurrentTableId)!==observedId)
+            throw new Error('La mesa cambió. Pulsa Sentarme de nuevo.');
+          // Mantener el flujo ya existente: abrir importe; la confirmación llama al RPC
+          // atómico rf_domino_spectator_join_v110 con p_table_id observado.
+          originalOpenBuyin(Number(config.id));
+          const buyin=document.getElementById('dominoBuyinPanel');
+          if(!buyin?.classList.contains('active'))
+            throw new Error('No se pudo abrir la confirmación de entrada.');
+          buyin.dataset.spectatorTableId=String(observedId);
+          msg('dominoBuyinMsg','Mesa #'+observedId+' · Confirma tu importe para solicitar asiento.');
+        }catch(e){notify('No se pudo sentar: '+errText(e));}
+        finally{sit.dataset.busy='0';sit.disabled=false;updateSpectatorBar();}
       };
-      bar.appendChild(sit);
       stage.appendChild(bar);
+      // El stage usa overflow:hidden y contain:paint. Fuera de él el botón no se recorta.
+      document.getElementById('dominoTablePanel')?.appendChild(sit);
       document.getElementById('dominoSpectatorPrev').onclick=()=>switchSpectatorTable(-1);
       document.getElementById('dominoSpectatorNext').onclick=()=>switchSpectatorTable(1);
     }
+    // Defensa ante un render: preservar el botón como hijo de la pantalla completa.
+    const sit=document.getElementById('mf110SpectatorSit');
+    const host=document.getElementById('dominoTablePanel');
+    if(sit&&host&&sit.parentElement!==host)host.appendChild(sit);
     return bar;
   }
 
@@ -7872,11 +7941,17 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     if(label)label.innerHTML=`<b>👁️ ESPECTADOR · ${Number(t?.players||0)}/4</b><span>${esc(tableLabel(t))}</span>`;
     const sit=document.getElementById('mf110SpectatorSit');
     const config=(dominoLobbyData?.configs||[]).find(c=>Number(c.id)===Number(t?.config_id))||dominoState?.config;
-    if(sit){const min=Number(config?.min_entry||0);
-      const enough=!!config&&!noMainBalance()&&mainBalance()+0.000001>=min;
-      sit.disabled=!enough;
-      sit.textContent=!config?'Consultando…':enough?'🁫 SENTARME · CONFIRMAR':'👁️ MIRAR ES GRATIS';
-      sit.title=enough?'Escoge tus fichas y confirma entrada a esta mesa':'Mirar es gratis. Para jugar necesitas saldo suficiente.';
+    if(sit){
+      const busy=sit.dataset.busy==='1';
+      // No dejar un botón mudo/desactivado por saldo desactualizado: al tocarlo
+      // volvemos a consultar el saldo y avisamos de cualquier impedimento.
+      sit.disabled=busy;
+      sit.textContent=busy?'⏳ COMPROBANDO ASIENTO…':'🁫 SENTARME · CONFIRMAR';
+      const min=Number(config?.min_entry||0);
+      sit.title=busy?'Consultando mesa y saldo…':
+        min>0?'Entrada mínima '+dominoMoney(min)+' FC. Se confirmará antes de ocupar asiento.':
+        'Toca para consultar el saldo y el asiento de esta mesa.';
+      sit.setAttribute('aria-label',sit.textContent);
     }
     const can=spectatorTables.length>1;if(prev)prev.disabled=!can;if(next)next.disabled=!can;
   }
@@ -13745,6 +13820,45 @@ window.dfcZ9Refresh=()=>refresh(true);
 #dominoLobbyModes .dfc012o-table-card .dfc-z11-lobby-actions button{min-width:0!important;width:100%!important;min-height:34px!important;padding:5px 3px!important;font-size:clamp(7px,.95vw,11px)!important;line-height:1.2!important;white-space:normal!important;cursor:pointer!important}
 #dominoLobbyModes .dfc012o-table-card .dfc-z11-watch{background:linear-gradient(180deg,#67beff,#1767bb)!important;color:#041b34!important;border:1px solid #a8dfff!important}
 #dominoLobbyModes .dfc012o-table-card .dfc012o-join{background:linear-gradient(180deg,#b5fa8e,#209945)!important;color:#08210f!important;border:1px solid #c6ffa8!important}
+</style>
+
+<!-- DOMINÓ 0.12Z.11 · Corrección espectador: botón inferior derecho y modal siempre visible. -->
+<style id="dfc-z11-spectator-sit-bottom-right">
+#dominoTablePanel > #mf110SpectatorSit{display:none!important}
+body.domino-spectating #dominoTablePanel.active > #mf110SpectatorSit{
+  box-sizing:border-box!important;
+  display:flex!important;position:fixed!important;
+  right:max(15px,env(safe-area-inset-right))!important;
+  bottom:max(15px,env(safe-area-inset-bottom))!important;
+  left:auto!important;top:auto!important;transform:none!important;
+  z-index:15000!important;pointer-events:auto!important;touch-action:manipulation!important;
+  align-items:center!important;justify-content:center!important;
+  width:auto!important;min-width:174px!important;max-width:min(48vw,260px)!important;
+  min-height:48px!important;padding:10px 15px!important;
+  margin:0!important;border:2px solid #ffe19a!important;border-radius:15px!important;
+  background:linear-gradient(145deg,#fff0a9 0%,#f2c451 45%,#bc791f 100%)!important;
+  color:#211002!important;font:900 clamp(12px,1.5vw,16px)/1.12 system-ui,sans-serif!important;
+  white-space:normal!important;text-align:center!important;text-shadow:none!important;
+  box-shadow:0 7px 19px #000a,0 0 0 2px #322006b0!important;
+  -webkit-appearance:none!important;appearance:none!important;
+  -webkit-user-select:none!important;user-select:none!important;cursor:pointer!important;
+}
+body.domino-spectating #dominoTablePanel.active > #mf110SpectatorSit:disabled{
+  opacity:.86!important;cursor:wait!important;filter:saturate(.55)!important;
+}
+/* El modal estaba detrás de la mesa: su overlay precede al de juego en el HTML. */
+body.domino-spectating #dominoBuyinPanel.active{
+  z-index:150100!important;display:block!important;pointer-events:auto!important;
+}
+@media(max-width:700px), (max-height:430px){
+  body.domino-spectating #dominoTablePanel.active > #mf110SpectatorSit{
+    right:max(11px,env(safe-area-inset-right))!important;
+    bottom:max(11px,env(safe-area-inset-bottom))!important;
+    min-height:43px!important;min-width:150px!important;
+    max-width:min(47vw,220px)!important;padding:8px 10px!important;
+    font-size:12px!important;border-radius:12px!important;
+  }
+}
 </style>
 </body>
 <!-- HTML 0.12I: Corrección de partida en curso: no exigir siete fichas después de jugar. -->
