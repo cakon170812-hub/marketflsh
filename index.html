@@ -1,4 +1,3 @@
-<!-- 0.12Z.12 PRUEBAS: optimización controlada del polling de Dominó. No altera servidor, apuestas, saldos ni reglas. -->
 <!-- DOMINO FLASH COIN HTML 0.12Z.7: salida opcional entre manos; conserva 0.12Z.4; requiere SQL 0.12Z.7 -->
 <!-- DOMINÓ FLASH COIN 0.12Z.3: interfaz 0.12Z intacta, correccion del SQL 0.12Z.3 -->
 <!-- DOMINÓ FLASH COIN · HTML COMPLETO 0.12V · base íntegra 0.12U y actualización 0.12V -->
@@ -8,7 +7,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12Z12" lang="es">
+<html data-app-build="0.12Z11" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -23,7 +22,7 @@
 <meta content="Domino Flash Coin" name="apple-mobile-web-app-title"/>
 <meta content="telephone=no" name="format-detection"/>
 <link href="manifest.webmanifest?v=0.12Z9" rel="manifest"/>
-<title>Dominó Flash Coin — 0.12Z.12 (pruebas)</title>
+<title>Dominó Flash Coin — 0.12Z.11 (pruebas)</title>
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.12Z9">
 <meta name="description" content="Dominos Flash Coin: mesas de dominó multijugador y Flash Coin virtuales.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5332,30 +5331,16 @@ async function mfDominoSyncClock(){
   }catch(e){/* fallback al reloj local sin alterar el resultado del servidor */}
 }
 
-// 0.12Z.12: evita reconsultar reloj en cada lectura de mesa y protege concurrencia.
-let dfcZ12ClockBusy=false, dfcZ12LastClock=0;
-async function dfcZ12SyncClock(force=false){
-  const now=Date.now();
-  if(dfcZ12ClockBusy||(!force&&now-dfcZ12LastClock<20000))return;
-  dfcZ12ClockBusy=true;dfcZ12LastClock=now;
-  try{await mfDominoSyncClock()}catch(e){console.warn('Reloj Dominó:',e)}
-  finally{dfcZ12ClockBusy=false}
-}
 function dominoStartPolling(){
-  dfcZ12SyncClock(true).catch(()=>{});
+  mfDominoSyncClock().catch(()=>{});
   clearInterval(dominoPollTimer);
   dominoHeartbeatLast=0;
   dominoHeartbeat(true).catch(()=>{});
   dominoPollTimer=setInterval(()=>{
     if(!dominoCurrentTableId||document.hidden)return;
     dominoHeartbeat(false).catch(()=>{});
-    dfcZ12SyncClock().catch(()=>{});
-    if(!mfDominoPlayPending && !mfDominoStateLoading){
-      const now=Date.now();
-      const skipTick=(now-(window.dfc012hProgressAt||0)<2400);
-      if(!skipTick)window.dfc012hProgressAt=now;
-      loadDominoState(false,skipTick).catch(()=>dominoSetSyncState('Reconectando…','warn'));
-    }
+    mfDominoSyncClock().catch(()=>{});
+    if(!mfDominoPlayPending)loadDominoState(false,(Date.now()-window.dfc012hProgressAt<2400)?true:(window.dfc012hProgressAt=Date.now(),false)).catch(()=>dominoSetSyncState('Reconectando…','warn'));
   },2600);
 }
 function dominoStopPolling(){
