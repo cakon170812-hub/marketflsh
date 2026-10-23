@@ -1,3 +1,6 @@
+<!-- DOMINÓ FLASH COIN 0.12Z.12 · revisión acotada de sincronización y diagnóstico del publicador Android; no implica despliegue de Edge Function. -->
+<!-- 0.12Z.12 ANDROID CONFIRMAR: aviso para versiones aprobadas; no instala APK automáticamente. -->
+<!-- 0.12Z.12 PRUEBAS: optimización controlada del polling de Dominó. No altera servidor, apuestas, saldos ni reglas. -->
 <!-- DOMINO FLASH COIN HTML 0.12Z.7: salida opcional entre manos; conserva 0.12Z.4; requiere SQL 0.12Z.7 -->
 <!-- DOMINÓ FLASH COIN 0.12Z.3: interfaz 0.12Z intacta, correccion del SQL 0.12Z.3 -->
 <!-- DOMINÓ FLASH COIN · HTML COMPLETO 0.12V · base íntegra 0.12U y actualización 0.12V -->
@@ -7,7 +10,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12Z11" lang="es">
+<html data-app-build="0.12Z12" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -22,7 +25,7 @@
 <meta content="Domino Flash Coin" name="apple-mobile-web-app-title"/>
 <meta content="telephone=no" name="format-detection"/>
 <link href="manifest.webmanifest?v=0.12Z9" rel="manifest"/>
-<title>Dominó Flash Coin — 0.12Z.11 (pruebas)</title>
+<title>Dominó Flash Coin — 0.12Z.12 (pruebas)</title>
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png?v=0.12Z9">
 <meta name="description" content="Dominos Flash Coin: mesas de dominó multijugador y Flash Coin virtuales.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -5331,16 +5334,30 @@ async function mfDominoSyncClock(){
   }catch(e){/* fallback al reloj local sin alterar el resultado del servidor */}
 }
 
+// 0.12Z.12: evita reconsultar reloj en cada lectura de mesa y protege concurrencia.
+let dfcZ12ClockBusy=false, dfcZ12LastClock=0;
+async function dfcZ12SyncClock(force=false){
+  const now=Date.now();
+  if(dfcZ12ClockBusy||(!force&&now-dfcZ12LastClock<20000))return;
+  dfcZ12ClockBusy=true;dfcZ12LastClock=now;
+  try{await mfDominoSyncClock()}catch(e){console.warn('Reloj Dominó:',e)}
+  finally{dfcZ12ClockBusy=false}
+}
 function dominoStartPolling(){
-  mfDominoSyncClock().catch(()=>{});
+  dfcZ12SyncClock(true).catch(()=>{});
   clearInterval(dominoPollTimer);
   dominoHeartbeatLast=0;
   dominoHeartbeat(true).catch(()=>{});
   dominoPollTimer=setInterval(()=>{
     if(!dominoCurrentTableId||document.hidden)return;
     dominoHeartbeat(false).catch(()=>{});
-    mfDominoSyncClock().catch(()=>{});
-    if(!mfDominoPlayPending)loadDominoState(false,(Date.now()-window.dfc012hProgressAt<2400)?true:(window.dfc012hProgressAt=Date.now(),false)).catch(()=>dominoSetSyncState('Reconectando…','warn'));
+    dfcZ12SyncClock().catch(()=>{});
+    if(!mfDominoPlayPending && !mfDominoStateLoading){
+      const now=Date.now();
+      const skipTick=(now-(window.dfc012hProgressAt||0)<2400);
+      if(!skipTick)window.dfc012hProgressAt=now;
+      loadDominoState(false,skipTick).catch(()=>dominoSetSyncState('Reconectando…','warn'));
+    }
   },2600);
 }
 function dominoStopPolling(){
@@ -6335,9 +6352,18 @@ function renderDominoState(st){
   }
 }
 let mfDominoStateLoading=false,mfDominoStateRefreshQueued=false;
+let dfcZ12LastQueuedRefresh=0;
 async function loadDominoState(force,skipTick=false){
   if(!dominoCurrentTableId)return;
-  if(mfDominoStateLoading){mfDominoStateRefreshQueued=true;return;}
+  // Evita que decenas de eventos de red creen una cola de renders mientras Supabase tarda.
+  // Las jugadas confirmadas y la recuperación forzada conservan su actualización pendiente.
+  if(mfDominoStateLoading){
+    if(force || Date.now()-dfcZ12LastQueuedRefresh>1100){
+      mfDominoStateRefreshQueued=true;
+      dfcZ12LastQueuedRefresh=Date.now();
+    }
+    return;
+  }
   mfDominoStateLoading=true;
   try {
 
@@ -6420,7 +6446,7 @@ async function loadDominoState(force,skipTick=false){
     mfDominoStateLoading=false;
     if(mfDominoStateRefreshQueued){
       mfDominoStateRefreshQueued=false;
-      if(dominoCurrentTableId)setTimeout(()=>loadDominoState(false,true).catch(()=>{}),220);
+      if(dominoCurrentTableId)setTimeout(()=>loadDominoState(false,true).catch(()=>{}),850);
     }
   }
 }
@@ -13664,46 +13690,63 @@ window.dfcZ9Refresh=()=>refresh(true);
 #dfc012c-scene .coin:after{content:none!important}
 
 </style>
-<script id="dfc-z10-update-check">
+<script id="dfc-z12-android-confirm-update">
 (()=>{'use strict';
- const CURRENT='0.12Z11',KEY='dfcZ11NextCheck';let latest=null;
- const REMOTE_RELEASE='https://cakon170812-hub.github.io/marketflsh/release.json';
- const N=v=>String(v||'').replace(/^0\./,'').replace(/[^0-9]+/g,'.').split('.').filter(Boolean).map(Number);
- const newer=(a,b)=>{let x=N(a),y=N(b);for(let i=0;i<Math.max(x.length,y.length);i++){if((x[i]||0)!==(y[i]||0))return (x[i]||0)>(y[i]||0)}return false};
- const inGame=()=>document.getElementById('dominoTablePanel')?.classList.contains('active');
- const native=()=>typeof window.Capacitor!=='undefined'&&window.Capacitor?.isNativePlatform?.();
- const ui=()=>{let el=document.getElementById('dfc-z10-update');if(el)return el;
-   el=document.createElement('button');el.id='dfc-z10-update';el.type='button';el.hidden=true;
-   el.textContent='Actualizar versión';el.setAttribute('aria-label','Nueva actualización disponible');
-   el.style.cssText='position:fixed;bottom:10px;left:10px;z-index:999999;min-height:44px;border:2px solid #81d8ff;border-radius:13px;color:#fff;background:linear-gradient(#075ab9,#06245b);padding:9px 14px;font:700 14px system-ui;box-shadow:0 4px 13px #0008';
-   el.addEventListener('click',()=>void install());document.body.append(el);return el;
- };
- async function check(){if(typeof window.Capacitor!=='undefined'&&window.Capacitor?.isNativePlatform?.())return;if(document.hidden)return;const now=Date.now(),last=Number(sessionStorage.getItem(KEY)||0);
-   if(now-last<6*60*60*1000)return;sessionStorage.setItem(KEY,String(now));
-   try{const manifest=native()?REMOTE_RELEASE:'release.json';
-     const r=await fetch(manifest+'?t='+Math.floor(now/21600000),{cache:'no-cache'});if(!r.ok)return;
-     const j=await r.json();const v=native()?j.android:j.web;
-     if(!newer(v,CURRENT))return;latest=j;
-     const b=ui();b.hidden=inGame();b.textContent='Nueva versión disponible';
-   }catch(e){console.warn('No se pudo consultar la versión:',e?.message)}
+ const CURRENT='0.12Z.12';
+ const WEB_MANIFEST='./release.json';
+ const ANDROID_MANIFEST='https://cakon170812-hub.github.io/marketflsh/android-approved/manifest.json';
+ const WEB_FALLBACK='https://cakon170812-hub.github.io/marketflsh/release.json';
+ const KEY='dfcZ12UpdateChecked';
+ const native=()=>{try{return !!window.Capacitor?.isNativePlatform?.()}catch(_){return false}};
+ const inGame=()=>!!document.querySelector('#dominoTablePanel.active');
+ let offer=null,checking=false;
+ function parts(v){const m=String(v||'').match(/^0\.(\d+)[A-Za-z]?\.(\d+)$/i);return m?[Number(m[1]),Number(m[2])]:null}
+ function newer(a,b){const x=parts(a),y=parts(b);return !!(x&&y&&(x[0]>y[0]||(x[0]===y[0]&&x[1]>y[1])))}
+ function secureLink(v){try{const u=new URL(String(v||''));return u.protocol==='https:'?u.href:null}catch(_){return null}}
+ function button(){let b=document.getElementById('dfc-z12-android-update');if(b)return b;
+   b=document.createElement('button');b.id='dfc-z12-android-update';b.type='button';b.hidden=true;
+   b.textContent='📲 Actualización disponible';
+   b.style.cssText='position:fixed;bottom:max(15px,env(safe-area-inset-bottom));left:12px;z-index:2147483000;min-height:48px;border:2px solid #73d5ff;border-radius:14px;background:linear-gradient(135deg,#006fe0,#082c78);color:white;font:bold 14px system-ui;padding:10px 15px;box-shadow:0 4px 15px #0009';
+   b.addEventListener('click',confirmUpdate);document.body.appendChild(b);return b;
  }
- async function install(){if(!latest||inGame())return;
-   if(native()){
-     // Android no permite una sustitución silenciosa de APK desde JavaScript.
-     const dest=String(latest.android_url||'').trim();
-     if(!/^https:\/\//i.test(dest)){alert('Actualización Android disponible. Se necesita el enlace oficial de Google Play o del APK firmado; no es posible instalar silenciosamente desde esta pantalla.');return}
-     window.open(dest,'_blank','noopener');return;
+ function refresh(){const b=button();b.hidden=!offer||inGame()||document.hidden;b.textContent=offer?.native?'📲 Confirmar actualización Android':'🌐 Actualizar versión web'}
+ async function json(url){const r=await fetch(url+(url.includes('?')?'&':'?')+'_='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);return r.json()}
+ async function check(force=false){if(checking||document.hidden)return;
+   const last=Number(sessionStorage.getItem(KEY)||0);if(!force&&Date.now()-last<5*60*1000)return;
+   checking=true;
+   try{
+     let candidate=null;
+     if(native()){
+       // Solo manifiesto APROBADO Android, jamás la versión web de pruebas.
+       try{const j=await json(ANDROID_MANIFEST);
+         const v=j.version||j.android_version||j.android;
+         const link=secureLink(j.android_url||j.download_url||j.apk_url||j.play_store_url||j.url);
+         if(newer(v,CURRENT)&&link)candidate={native:true,version:v,url:link};
+       }catch(e){console.info('Manifiesto Android aún no accesible:',e.message)}
+       // Nunca usar la web de pruebas como actualización nativa.
+     }else{
+       try{const j=await json(WEB_MANIFEST);if(newer(j.web,CURRENT))candidate={native:false,version:j.web}}catch(e){console.info('Sin versión web nueva:',e.message)}
+     }
+     offer=candidate;sessionStorage.setItem(KEY,String(Date.now()));refresh();
+   }finally{checking=false}
+ }
+ async function confirmUpdate(){if(!offer||inGame())return;
+   if(offer.native){
+     if(!confirm('Nueva versión Android '+offer.version+' disponible. ¿Deseas abrir el enlace oficial para actualizar? Tu aplicación no se actualizará sin tu confirmación.'))return;
+     // Un HTML no puede reemplazar por sí solo un APK ni instalar bundles nativos.
+     window.open(offer.url,'_blank','noopener,noreferrer');return;
    }
-   // Navegador: recarga voluntaria fuera de partida. El SW, si existe, se actualiza de forma estándar.
-   try{const reg=await navigator.serviceWorker?.getRegistration?.();if(reg)await reg.update()}catch(_){}
+   if(!confirm('¿Actualizar a la versión web '+offer.version+'?'))return;
+   try{await navigator.serviceWorker?.getRegistration?.().then(r=>r?.update())}catch(_){}
    location.reload();
  }
- window.addEventListener('online',()=>void check());
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check()});
- document.addEventListener('DOMContentLoaded',()=>{
-   void check();const game=document.getElementById('dominoTablePanel');
-   if(game)new MutationObserver(()=>{const b=document.getElementById('dfc-z10-update');if(b&&latest)b.hidden=inGame()}).observe(game,{attributes:true,attributeFilter:['class']});
- });
+ function boot(){button();void check(true);
+   window.addEventListener('online',()=>void check(true));
+   document.addEventListener('visibilitychange',()=>{refresh();if(!document.hidden)void check(true)});
+   const game=document.getElementById('dominoTablePanel');if(game)new MutationObserver(refresh).observe(game,{attributes:true,attributeFilter:['class']});
+   setInterval(()=>{if(!document.hidden)void check()},5*60*1000);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
 
@@ -13744,7 +13787,7 @@ window.dfcZ9Refresh=()=>refresh(true);
 </style>
 <script id="dfcOTAAdminPublishV1">
 (()=>{'use strict';
- const VERSION='0.12Z.11';let preview=null,processing=false;
+ const VERSION='0.12Z.12';let preview=null,processing=false;
  const id='dfcOTAAdminSection';
  const root=()=>document.querySelector('#leaderPanel .panel');
  function render(){
@@ -13761,14 +13804,14 @@ window.dfcZ9Refresh=()=>refresh(true);
    const anchor=root().querySelector('.section'); if(anchor)anchor.before(e);else root().append(e);
    e.querySelector('#dfcOTAAdminPreview').addEventListener('click',()=>void previewHead());
    e.querySelector('#dfcOTAAdminPublish').addEventListener('click',()=>void publish());
-   e.querySelector('#dfcOTAAdminVersion').addEventListener('input',()=>{if(!preview){e.querySelector('#dfcOTAAdminPublish').disabled=true;} });
+   e.querySelector('#dfcOTAAdminVersion').addEventListener('input',()=>{e.querySelector('#dfcOTAAdminPublish').disabled=!preview;});
  }
  function status(s){const t=document.getElementById('dfcOTAAdminStatus');if(t)t.textContent=s}
  async function invoke(action,params={}){
    const client=(typeof sb!=='undefined')?sb:window.sb;
    if(!client?.functions?.invoke)throw new Error('Supabase no está listo');
    const {data,error}=await client.functions.invoke('dfc-promote-android-web',{body:{action,...params}});
-   if(error)throw new Error(error.context?.status===401?'Acceso denegado o sesión vencida':(error.message||'Error del servidor'));
+   if(error){const http=error.context?.status;throw new Error(http===404?'La función dfc-promote-android-web todavía no está desplegada en Supabase. No se ha publicado nada.':http===401?'Acceso denegado o sesión vencida':(error.message||'Error al contactar Edge Functions; comprueba que la función esté desplegada.'));}
    if(!data?.ok)throw new Error(data?.error||'No se pudo verificar el servidor');
    return data;
  }
