@@ -1,1 +1,76 @@
-
+# DOMINO FLASH COIN 0.12Z.12 — .github/workflows/dfc-android-approved.yml
+name: DFC Android — paquete aprobado
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version aprobada (0.12Z.13)
+        required: true
+        type: string
+      sha:
+        description: SHA exacto revisado por el lider
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: dfc-android-approved
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: true
+          fetch-depth: 0
+      - name: Preparar paquete aprobado
+        env:
+          VERSION: ${{ inputs.version }}
+          SHA: ${{ inputs.sha }}
+        run: |
+          python3 - <<'PYCODE'
+          import os,re,subprocess,json,hashlib,zipfile,pathlib,datetime
+          v=os.environ['VERSION']; sha=os.environ['SHA']
+          if not re.fullmatch(r'0\.12Z\.\d{1,4}',v):raise SystemExit('Version no valida')
+          if not re.fullmatch(r'[0-9a-f]{40}',sha):raise SystemExit('SHA no valido')
+          head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          if sha!=head:raise SystemExit('main cambio desde preview; revisar antes de publicar')
+          out=pathlib.Path('android-approved'); out.mkdir(exist_ok=True)
+          manifest=out/'manifest.json'
+          if manifest.exists():
+            old=json.loads(manifest.read_text())
+            def seq(x):
+              m=re.fullmatch(r'0\.12Z\.(\d{1,4})',str(x))
+              return int(m.group(1)) if m else -1
+            if seq(v)<=seq(old.get('version')):raise SystemExit('La version debe ser superior a la publicada')
+          # ZIP contiene la raiz de archivos web; no incluye credenciales ni archivos ocultos.
+          names=['index.html','script.js','style.css','manifest.webmanifest','sw.js','privacidad.html']
+          files=[pathlib.Path(x) for x in names if pathlib.Path(x).is_file()]
+          for folder in ('images2','icons','assets'):
+            p=pathlib.Path(folder)
+            if p.is_dir(): files += [x for x in p.rglob('*') if x.is_file()]
+          if not any(x.as_posix()=='index.html' for x in files):raise SystemExit('No existe index.html')
+          bdir=out/'bundles'; bdir.mkdir(exist_ok=True)
+          bundle=bdir/(v+'.zip')
+          if bundle.exists():raise SystemExit('Paquete de esta version ya existe')
+          with zipfile.ZipFile(bundle,'w',compression=zipfile.ZIP_DEFLATED) as z:
+            for f in sorted(files): z.write(f,f.as_posix())
+          digest=hashlib.sha256(bundle.read_bytes()).hexdigest()
+          url='https://cakon170812-hub.github.io/marketflsh/android-approved/bundles/'+v+'.zip'
+          payload={'version':v,'sha':sha,'url':url,'sha256':digest,'created_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'type':'capacitor-web-bundle'}
+          manifest.write_text(json.dumps(payload,indent=2)+'\n')
+          print('Generado:',bundle,'SHA256:',digest)
+          PYCODE
+      - name: Subir solo manifiesto y paquete (sin modificar HTML)
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          git config user.name 'dfc-android-bot'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add android-approved/manifest.json "android-approved/bundles/${VERSION}.zip"
+          git diff --cached --quiet && exit 1
+          git commit -m "Android aprobado ${VERSION}"
+          git push origin HEAD:main
