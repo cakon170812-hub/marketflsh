@@ -1,3 +1,7 @@
+<!-- DOMINÓ FLASH COIN · 0.12Z.15 · HTML INTEGRADO COMPLETO DE LA BASE EXISTENTE. PENDIENTE DE PRUEBAS REALES EN SUPABASE/ANDROID. -->
+<!-- SEGURIDAD: URL y publishable key del Supabase de PRUEBAS deben completarse. No apunta a producción. -->
+<!-- DOMINÓ FLASH COIN 0.12Z.15 · REVISIÓN DE COMPATIBILIDAD SQL 25/10/2026; PARA CLON DE PRUEBAS. -->
+<!-- DOMINÓ FLASH COIN 0.12Z.15 · HTML INTEGRADO PARA PRUEBAS: no desplegar sin verificación del SQL en un clon de Supabase. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.14 CORRECCIÓN DE RECURSOS Y CARGA, sin modificar funciones de economía del servidor. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.14 · corrección de arranque y recursos integrados. Conserva la revisión 0.12Z.12. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.12 · revisión acotada de sincronización y diagnóstico del publicador Android; no implica despliegue de Edge Function. -->
@@ -3373,6 +3377,7 @@ async function resumeDominoIfStillInHand(){
     // Si la mano terminó mientras estaba fuera, el asiento ya fue liberado.
     dominoStopPolling();
     await dominoStopRealtime().catch(()=>{});
+    window.DFC_Z15?.onExit();
     dominoCurrentTableId=null;
     dominoResetTableEffects();
     hide('dominoTablePanel');
@@ -5612,6 +5617,7 @@ $('dominoConfirmJoinBtn').onclick=async()=>{
       console.warn('Dominó compactación post-entrada omitida:',e);
     }
 
+    window.DFC_Z15?.onTable(dominoCurrentTableId);
     dominoResetTableEffects();
     hide('dominoBuyinPanel');
     hide('dominoLobbyPanel');
@@ -5626,6 +5632,7 @@ $('dominoConfirmJoinBtn').onclick=async()=>{
     await dominoStartRealtime();
     await loadDominoState(true);
   }catch(e){
+    window.DFC_Z15?.onExit();
     dominoCurrentTableId=null;
     msg('dominoBuyinMsg',errText(e));
     show('dominoBuyinPanel');
@@ -6654,6 +6661,7 @@ async function dominoTemporaryLeaveToLobby(){
     if(error)throw error;
     hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoTablePanel');
     dominoStopPolling();await dominoStopRealtime();await dominoReleaseWakeLock();
+    window.DFC_Z15?.onExit();
     dominoCurrentTableId=null;dominoViewAway=false;dominoResetTableEffects();dominoReleaseLandscape();
     await loadMe();renderMe();await openDominoLobby();
   }catch(e){alert(errText(e))}finally{buttons.forEach(b=>b.disabled=false)}
@@ -6668,6 +6676,7 @@ async function dominoAbandonTable(){
     if(error)throw error;
     hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoTablePanel');
     dominoStopPolling();await dominoStopRealtime();await dominoReleaseWakeLock();
+    window.DFC_Z15?.onExit();
     dominoCurrentTableId=null;dominoViewAway=false;dominoResetTableEffects();dominoReleaseLandscape();
     await loadMe();renderMe();await openDominoLobby();
   }catch(e){alert(errText(e))}finally{buttons.forEach(b=>b.disabled=false)}
@@ -10818,7 +10827,7 @@ async function send(){
    const amount=giftFmt(data.amount);
    const date=new Date(data.created_at||Date.now()).toLocaleString('es-DO');
    const sender=String(me?.public_id||'—');
-   receiptText=['DOMINOS FLASH COIN · COMPROBANTE', 'Operación: Envío de monedas virtuales', 'Referencia: FC'+data.reference,'De: ID '+sender,'Para: '+(data.recipient_name||prepared.name)+' · ID '+data.recipient_public_id,'Cantidad: '+amount+' FC','Comisión por envío: '+Number(data.diamond_fee??1).toFixed(3)+' 💎','Fecha: '+date,'Saldo disponible: '+safePrintBalance(data.sender_balance),'Estado: Completado'].join('\n');
+   receiptText=['DOMINOS FLASH COIN · COMPROBANTE', 'Operación: Envío de monedas virtuales', 'Referencia: FC'+data.reference,'De: ID '+sender,'Para: '+(data.recipient_name||prepared.name)+' · ID '+data.recipient_public_id,'Cantidad: '+amount+' FC','Comisión por envío: '+(Number.isFinite(Number(data.diamond_fee))&&data.diamond_fee!==undefined&&data.diamond_fee!==null?Number(data.diamond_fee).toFixed(3)+' 💎':'Pendiente de confirmar'),'Fecha: '+date,'Saldo disponible: '+safePrintBalance(data.sender_balance??data.balance_after),'Estado: Completado'].join('\n');
    const box=$('dfcGiftReceipt004');box.replaceChildren();
    const head=document.createElement('h3');head.textContent='✓ Transferencia completada';box.appendChild(head);
    for(const line of receiptText.split('\n').slice(1)){
@@ -14170,8 +14179,8 @@ body.dfc-z15-auto-active #dominoHand{pointer-events:none!important;opacity:.76!i
   sendButton.addEventListener('click',async()=>{
     if(sending)return;
     const id=$('dfc-z15-target').value.trim();const amount=Number($('dfc-z15-amount').value);
-    if(!id||!Number.isFinite(amount)||amount<.001||amount>2500||Math.round(amount*1000)!==amount*1000){
-      message.textContent='Introduce el ID y una cantidad entre 0.001 y 2500.000 (3 decimales).';return;
+    if(!/^[0-9]{6}$/.test(id)||!Number.isFinite(amount)||amount<.001||amount>2500||Math.abs(Math.round(amount*1000)-amount*1000)>1e-7){
+      message.textContent='Introduce un ID de seis dígitos y una cantidad entre 0.001 y 2500.000 (3 decimales).';return;
     }
     if(pendingAdminSend&&(pendingAdminSend.id!==id||pendingAdminSend.amount!==amount))pendingAdminSend=null;
     if(!confirm('¿Enviar '+amount.toFixed(3)+' diamantes al ID '+id+'?'))return;
