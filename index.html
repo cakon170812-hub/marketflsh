@@ -1,4 +1,4 @@
-<!-- DOMINÓ FLASH COIN 0.12Z.14 CORRECCIÓN DE RECURSOS Y CARGA, sin modificar funciones de economía del servidor. -->
+<!-- DOMINÓ FLASH COIN 0.12Z.15 REVISIÓN VISUAL (SIN ACTIVAR NUEVAS COMISIONES), sin modificar funciones de economía del servidor. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.14 · corrección de arranque y recursos integrados. Conserva la revisión 0.12Z.12. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.12 · revisión acotada de sincronización y diagnóstico del publicador Android; no implica despliegue de Edge Function. -->
 <!-- 0.12Z.12 ANDROID CONFIRMAR: aviso para versiones aprobadas; no instala APK automáticamente. -->
@@ -12,13 +12,13 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12Z14" lang="es">
+<html data-app-build="0.12Z15-review" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
 <meta content="no-cache" http-equiv="Pragma"/>
 <meta content="0" http-equiv="Expires"/>
-<meta content="0.12Z.14" name="application-version"/>
+<meta content="0.12Z.15-revision" name="application-version"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" name="viewport"/>
 <meta content="#081b39" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
@@ -2693,6 +2693,16 @@ html body #dominoTablePanel #dominoBoard .domino-board-path .domino-piece.board-
 }
 </style>
 
+<style id="dfc-z15-coin-consistency">
+/* 0.12Z.15: se conserva SOLO la moneda oficial del proyecto. */
+#appView #balanceBtn .dfc09-coin {
+  background:var(--fc-coin-image) center / contain no-repeat !important;
+  border:0 !important; border-radius:0 !important;
+  box-shadow:none !important; font-size:0 !important;
+}
+#appView #balanceBtn .dfc09-coin::before,
+#appView #balanceBtn .dfc09-coin::after {content:none !important;display:none !important;}
+</style>
 </head>
 <body>
 <div id="dfc-z9-loader" role="status" aria-live="polite"><div><span class="logo">💎</span><strong>DOMINÓ FLASH COIN</strong><p>Preparando tu juego…</p><div class="line"></div></div></div>
