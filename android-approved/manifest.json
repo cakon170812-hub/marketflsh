@@ -1,8 +1,8 @@
 {
-  "version": "0.12Z.15",
-  "sha": "8cdedbb783fd5bfae0251251de026542898b9fbd",
-  "url": "https://cakon170812-hub.github.io/marketflsh/android-approved/bundles/0.12Z.15.zip",
-  "sha256": "129a8c11d18eb521af2e55a821d153b80d3d150d52e27ef5770f16f797eab228",
-  "created_at": "2026-10-25T21:56:17.552778+00:00",
+  "version": "0.12Z.16",
+  "sha": "0eef83ac562732e8d776c21dd300caf165fb5362",
+  "url": "https://cakon170812-hub.github.io/marketflsh/android-approved/bundles/0.12Z.16.zip",
+  "sha256": "f2d3cec282cdf9af89b5cced11b1a32c802b094a589524ed8066ef89c13b7ba8",
+  "created_at": "2026-10-25T23:15:21.920442+00:00",
   "type": "capacitor-web-bundle"
 }
