@@ -1,9 +1,9 @@
-/* DOMINÓ FLASH COIN v0.12Z.18 — candidato PWA, no actualiza el APK nativo.
+/* DOMINÓ FLASH COIN v0.12Z.19 — candidato PWA, no actualiza el APK nativo.
  * Guarda SOLO archivos visuales estáticos del MISMO origen.
  * HTML de navegación, Supabase RPC, auth y datos de jugadores: RED SIEMPRE.
  */
 'use strict';
-const VERSION='0.12Z.18';
+const VERSION='0.12Z.19';
 const STATIC_CACHE='dfc-static-'+VERSION;
 const APP_PREFIX=new URL(self.registration.scope).pathname;
 const STATIC_TYPES=new Set(['image','audio','font','style','script']);
