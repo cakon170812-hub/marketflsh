@@ -1,16 +1,14 @@
-# DOMINO FLASH COIN - Workflow restaurado desde el sistema funcional Z.14/Z.15/Z.16.
-# Conserva protecciones de publicacion y agrega el puente nativo cuando existe.
-# Ruta de destino: .github/workflows/dfc-android-approved.yml
-name: DFC Android - paquete aprobado
+# DOMINÓ FLASH COIN 0.12Z.21 - CANDIDATO; requiere revisar el HTML de GitHub y probar el APK
+name: DFC Android — paquete aprobado
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version nueva aprobada (ejemplo 0.12Z.25)
+        description: Versión aprobada (p. ej. 0.12Z.21)
         required: true
         type: string
       sha:
-        description: SHA exacto de main revisado por el administrador
+        description: SHA exacto revisado por el administrador
         required: true
         type: string
 permissions:
@@ -28,75 +26,64 @@ jobs:
           ref: main
           persist-credentials: true
           fetch-depth: 0
-      - name: Validar y preparar paquete Android
+      - name: Preparar paquete Android aprobado con puente nativo
         env:
           VERSION: ${{ inputs.version }}
           SHA: ${{ inputs.sha }}
         run: |
           python3 - <<'PYCODE'
-          import datetime, hashlib, json, os, pathlib, re, subprocess, zipfile
-          version = os.environ['VERSION'].strip()
-          sha = os.environ['SHA'].strip().lower()
-          pattern = r'0\.12Z\.(\d{1,4})'
-          match = re.fullmatch(pattern, version)
-          if not match:
-              raise SystemExit('Version invalida: debe ser 0.12Z.numero')
-          if not re.fullmatch(r'[a-f0-9]{40}', sha):
-              raise SystemExit('SHA invalido: se requieren 40 caracteres hexadecimales')
-          head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip().lower()
-          if head != sha:
-              raise SystemExit('main cambio desde la vista previa: vuelva a Revisar version web')
-          out = pathlib.Path('android-approved')
-          out.mkdir(exist_ok=True)
-          manifest = out / 'manifest.json'
-          if manifest.is_file():
-              previous = json.loads(manifest.read_text(encoding='utf-8'))
-              old_match = re.fullmatch(pattern, str(previous.get('version', '')))
-              if old_match and int(match.group(1)) <= int(old_match.group(1)):
-                  raise SystemExit('Version ya publicada o anterior: use una version superior')
-          required = pathlib.Path('index.html')
-          if not required.is_file():
-              raise SystemExit('Falta index.html')
-          html = required.read_text(encoding='utf-8')
-          # No publicar por error un HTML que todavia declare otra version.
-          declared = re.search(r'<meta\b[^>]*\bname=["\']application-version["\'][^>]*\bcontent=["\']([^"\']+)', html, re.I)
-          if not declared:
-              declared = re.search(r'<meta\b[^>]*\bcontent=["\']([^"\']+)["\'][^>]*\bname=["\']application-version["\']', html, re.I)
-          if declared and declared.group(1) != version:
-              raise SystemExit('Version HTML diferente de la version solicitada')
-          names = ['index.html','native-bridge.js','script.js','style.css','manifest.webmanifest','sw.js','privacidad.html']
-          files = [pathlib.Path(n) for n in names if pathlib.Path(n).is_file()]
+          import os,re,subprocess,json,hashlib,zipfile,pathlib,datetime
+          v=os.environ['VERSION']; sha=os.environ['SHA']
+          if not re.fullmatch(r'0\.12Z\.\d{1,4}',v): raise SystemExit('Versión no válida')
+          if not re.fullmatch(r'[a-f0-9]{40}',sha): raise SystemExit('SHA no válido')
+          head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          if sha!=head: raise SystemExit('main cambió desde la vista previa: revisar antes de publicar')
+          out=pathlib.Path('android-approved');out.mkdir(exist_ok=True)
+          manifest=out/'manifest.json'
+          def num(x):
+            m=re.fullmatch(r'0\.12Z\.(\d{1,4})',str(x))
+            return int(m.group(1)) if m else -1
+          if manifest.exists():
+            old=json.loads(manifest.read_text(encoding='utf-8'))
+            if num(v)<=num(old.get('version')):raise SystemExit('La versión debe ser superior a la publicada')
+          main=pathlib.Path('index.html')
+          bridge=pathlib.Path('native-bridge.js')
+          if not main.is_file():raise SystemExit('Falta index.html')
+          if not bridge.is_file():raise SystemExit('Falta native-bridge.js')
+          html=main.read_text(encoding='utf-8')
+          native=bridge.read_text(encoding='utf-8')
+          if not re.search(r'<meta\s+content=["\']'+re.escape(v)+r'["\']\s+name=["\']application-version["\']',html):
+            raise SystemExit('La versión HTML no coincide con la versión solicitada')
+          if 'native-bridge.js' not in html:
+            raise SystemExit('index.html no carga native-bridge.js; abortar paquete')
+          if 'CapacitorUpdater' not in native or 'dfcOTAUserButton' not in native:
+            raise SystemExit('El puente no incluye el actualizador Android; abortar paquete')
+          names=['index.html','native-bridge.js','script.js','style.css','manifest.webmanifest','sw.js','privacidad.html']
+          files=[pathlib.Path(x) for x in names if pathlib.Path(x).is_file()]
           for folder in ('images2','icons','assets'):
-              directory = pathlib.Path(folder)
-              if directory.is_dir():
-                  files.extend(f for f in directory.rglob('*') if f.is_file())
-          bundle_dir = out / 'bundles'
-          bundle_dir.mkdir(exist_ok=True)
-          bundle = bundle_dir / (version + '.zip')
-          if bundle.exists():
-              raise SystemExit('El paquete de esta version ya existe')
-          with zipfile.ZipFile(bundle, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
-              for path in sorted(set(files)):
-                  archive.write(path, path.as_posix())
-          with zipfile.ZipFile(bundle) as archive:
-              if 'index.html' not in archive.namelist():
-                  raise SystemExit('Paquete sin index.html')
-          digest = hashlib.sha256(bundle.read_bytes()).hexdigest()
-          url = ('https://cakon170812-hub.github.io/marketflsh/android-approved/bundles/'
-                 + version + '.zip')
-          payload = {'version': version, 'sha': sha, 'url': url, 'sha256': digest,
-                     'created_at': datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                     'type': 'capacitor-web-bundle'}
-          manifest.write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
-          print('Paquete:', bundle, 'SHA256:', digest)
+            d=pathlib.Path(folder)
+            if d.is_dir():files += [f for f in d.rglob('*') if f.is_file()]
+          bdir=out/'bundles';bdir.mkdir(exist_ok=True)
+          bundle=bdir/(v+'.zip')
+          if bundle.exists():raise SystemExit('Ya existe un paquete para esta versión')
+          with zipfile.ZipFile(bundle,'w',zipfile.ZIP_DEFLATED) as z:
+            for f in sorted(files):z.write(f,f.as_posix())
+          with zipfile.ZipFile(bundle) as z:
+            if 'index.html' not in z.namelist() or 'native-bridge.js' not in z.namelist():
+              raise SystemExit('ZIP incompleto: faltan archivos obligatorios')
+          checksum=hashlib.sha256(bundle.read_bytes()).hexdigest()
+          url='https://cakon170812-hub.github.io/marketflsh/android-approved/bundles/'+v+'.zip'
+          payload={'version':v,'sha':sha,'url':url,'sha256':checksum,'created_at':datetime.datetime.now(datetime.timezone.utc).isoformat(),'type':'capacitor-web-bundle'}
+          manifest.write_text(json.dumps(payload,indent=2)+'\n',encoding='utf-8')
+          print('Generado:',bundle,'SHA256:',checksum)
           PYCODE
-      - name: Publicar exclusivamente manifiesto y ZIP
+      - name: Publicar solo manifiesto y ZIP (no sobreescribe HTML)
         env:
           VERSION: ${{ inputs.version }}
         run: |
           git config user.name 'dfc-android-bot'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add android-approved/manifest.json "android-approved/bundles/${VERSION}.zip"
-          git diff --cached --quiet && { echo 'No hay cambios nuevos'; exit 1; }
+          git diff --cached --quiet && exit 1
           git commit -m "Android aprobado ${VERSION}"
           git push origin HEAD:main
