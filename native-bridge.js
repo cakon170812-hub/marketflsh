@@ -1231,7 +1231,7 @@ if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android") {
   window.dominoReleaseLandscape = function() {
     document.body.classList.remove("domino-playing");
     void wake(false);
-    Promise.resolve(ScreenOrientation.unlock()).catch((e) => console.warn(e));
+    Promise.resolve(ScreenOrientation.lock({ orientation: "portrait" })).catch((e) => console.warn(e));
     Promise.resolve(StatusBar.show()).catch(() => {
     });
     if (typeof previousRelease === "function") {
@@ -1312,14 +1312,22 @@ if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android") {
     b.textContent = "Nueva actualizaci\xF3n disponible";
     b.style.cssText = "position:fixed;z-index:999991;left:10px;bottom:12px;padding:12px 16px;background:#075ba6;border:2px solid #9bdfff;border-radius:13px;color:white;font:bold 13px system-ui;box-shadow:0 4px 15px #0007";
     b.addEventListener("click", () => void install());
-    document.body.append(b);
+    const vip = document.getElementById("dfc012x-vip-home");
+    if (vip && vip.parentNode) vip.parentNode.insertBefore(b, vip.nextSibling);
+    else document.body.append(b);
     return b;
   }, visible = function() {
     const b = button();
-    b.hidden = !latest || atTable() || busy || document.hidden || !document.getElementById("appView") || document.getElementById("appView").classList.contains("hidden");
+    const vip = document.getElementById("dfc012x-vip-home");
+    if (vip && vip.parentNode && b.previousElementSibling !== vip) vip.parentNode.insertBefore(b, vip.nextSibling);
+    b.hidden = !latest || atTable() || busy || document.hidden;
+    if (!b.hidden) {
+      b.textContent = "🤖 ACTUALIZAR APLICACIÓN";
+      b.style.cssText = "display:block;position:relative;inset:auto;z-index:10;width:calc(100% - 24px);max-width:510px;margin:10px auto;padding:13px 16px;border:2px solid #86f6c8;border-radius:14px;background:#087f50;color:white;font:bold 15px system-ui";
+    }
   };
   void CapacitorUpdater.notifyAppReady().catch((e) => console.warn("Confirmaci\xF3n de actualizaci\xF3n:", e));
-  const CURRENT_BUILTIN = "0.12Z.20";
+  const CURRENT_BUILTIN = "0.12Z.11";
   const MANIFEST = "https://cakon170812-hub.github.io/marketflsh/android-approved/manifest.json";
   let latest = null, busy = false, lastCheck = 0;
   const atTable = () => document.getElementById("dominoTablePanel")?.classList.contains("active") || document.body.classList.contains("domino-playing");
@@ -1347,7 +1355,7 @@ if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android") {
       latest = newer(manifest.version, current) ? { version: manifest.version, url: url.href, sha256: manifest.sha256 || "" } : null;
       visible();
     } catch (e) {
-      console.warn("Actualizaci\xF3n pendiente de revisi\xF3n:", e);
+      console.warn("DFC OTA: fallo consultando versión publicada", e);
     }
   }
   async function safeToSwitch() {
@@ -1404,8 +1412,6 @@ if (Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android") {
     void check();
     const table = document.getElementById("dominoTablePanel");
     if (table) new MutationObserver(visible).observe(table, { attributes: true, attributeFilter: ["class"] });
-    const home = document.getElementById("appView");
-    if (home) new MutationObserver(visible).observe(home, { attributes: true, attributeFilter: ["class", "style"] });
   }, { once: true });
   void check();
 }
