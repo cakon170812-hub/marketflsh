@@ -5413,7 +5413,12 @@ function dominoStartPolling(){
     dfcZ12SyncClock().catch(()=>{});
     if(!mfDominoPlayPending && !mfDominoStateLoading){
       const now=Date.now();
-      const skipTick=(now-(window.dfc012hProgressAt||0)<5200);
+      // Si hay eventos en tiempo real, evitar consultas de respaldo repetidas.
+      const realtimeFresh=Boolean(dominoRealtimeChannel && now-dfcZ21LastEventAt<6000);
+      if(realtimeFresh && now-dfcZ21LastBackgroundRefresh<12000 &&
+         !window.dfc012jReadFailed && !window.dfc012jTickFailed)return;
+      dfcZ21LastBackgroundRefresh=now;
+      const skipTick=(now-(window.dfc012hProgressAt||0)<6500);
       if(!skipTick)window.dfc012hProgressAt=now;
       loadDominoState(false,skipTick).catch(()=>dominoSetSyncState('Reconectando…','warn'));
     }
@@ -5424,7 +5429,10 @@ function dominoStopPolling(){
   dominoPollTimer=null;
   dominoHeartbeatLast=0;
 }
+let dfcZ21RealtimeDebounce=null,dfcZ21LastEventAt=0,dfcZ21LastBackgroundRefresh=0;
 async function dominoStopRealtime(){
+  if(dfcZ21RealtimeDebounce){clearTimeout(dfcZ21RealtimeDebounce);dfcZ21RealtimeDebounce=null;}
+  dfcZ21LastEventAt=0;
   if(dominoRealtimeChannel){try{await sb.removeChannel(dominoRealtimeChannel)}catch(e){}dominoRealtimeChannel=null}
 }
 async function dominoStartRealtime(){
@@ -5436,17 +5444,21 @@ async function dominoStartRealtime(){
   const tid=Number(dominoCurrentTableId);
   dominoSetSyncState('Conectando en tiempo real…','warn');
   dominoRealtimeChannel=sb.channel('domino-table-'+tid)
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'rf_domino_events',filter:`table_id=eq.${tid}`},async()=>{
-      window.dfc012qRequestPoints?.();
-      if(dominoRealtimeBusy)return;
-      dominoRealtimeBusy=true;
-      try{
-        await loadDominoState(false);
-      }catch(e){
-        dominoSetSyncState('Reconectando…','warn');
-      }finally{
-        dominoRealtimeBusy=false;
-      }
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'rf_domino_events',filter:`table_id=eq.${tid}`},()=>{
+      if(document.hidden||Number(dominoCurrentTableId)!==tid)return;
+      dfcZ21LastEventAt=Date.now();
+      // Los avisos de una jugada llegan agrupados: una lectura por ráfaga.
+      if(dfcZ21RealtimeDebounce)return;
+      dfcZ21RealtimeDebounce=setTimeout(async()=>{
+        dfcZ21RealtimeDebounce=null;
+        if(dominoRealtimeBusy||Number(dominoCurrentTableId)!==tid)return;
+        dominoRealtimeBusy=true;
+        try{
+          window.dfc012qRequestPoints?.();
+          await loadDominoState(false,true); // no ejecutar motor de turno por cada evento
+        }catch(e){dominoSetSyncState('Reconectando…','warn');}
+        finally{dominoRealtimeBusy=false;}
+      },450);
     })
     .subscribe(status=>{
       if(status==='SUBSCRIBED')dominoSetSyncState('● En línea · tiempo real','ok');
@@ -6574,6 +6586,7 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
   // Congelar la última jugada antes de que Supabase actualice la mano.
   const dfcFinalSnapshot=(dominoState?.hand?.my_tiles?.length===1)?{me:dominoState.me,hand:{...dominoState.hand,board:(dominoState.hand.board||[]).map(x=>({...x})),my_tiles:[tile]}}:null;
   mfDominoPlayPending=true;
+  const dfcZ21SlowPlay=setTimeout(()=>dominoSetSyncState('Servidor procesando tu ficha; espera sin tocar otra vez…','warn'),3500);
   const flight=dfcZ11FlyTile(sourceEl,side);
   try{
     const {error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:side});
@@ -6602,7 +6615,8 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
     await loadDominoState(false,true); // Resultado confirmado y celebración en esta mano, antes del nuevo reparto
     // No redundant immediate progress RPC; scheduled polling will resume.
   }catch(e){flight?.cancel();console.warn('Jugada Dominó:',e);dominoSetSyncState('Revisando confirmación de jugada…','warn');await loadDominoState(false,true).catch(()=>{});}
-  finally{mfDominoPlayPending=false;}
+  finally{clearTimeout(dfcZ21SlowPlay);
+    mfDominoPlayPending=false;}
 
 }
 async function dominoPass(){if(!dominoCurrentTableId)return;const {error}=await sb.rpc('rf_domino_pass_v11',{p_table_id:dominoCurrentTableId});if(error)return alert(errText(error));await loadDominoState(false)}
@@ -13788,7 +13802,7 @@ window.dfcZ9Refresh=()=>refresh(true);
 </style>
 <script id="dfc-z13-update-accurate-version">
 (()=>{'use strict';
- const FALLBACK=document.querySelector('meta[name="application-version"]')?.content||'0.12Z.20'; // Versión de este HTML; no equivale a la del paquete nativo
+ const FALLBACK=document.querySelector('meta[name="application-version"]')?.content||'0.12Z.21'; // Versión de este HTML; no equivale a la del paquete nativo
  const MANIFEST='https://cakon170812-hub.github.io/marketflsh/android-approved/manifest.json';
  const WEB_MANIFEST=null; // El navegador usa directamente el HTML publicado; no solicita un release.json inexistente.
  const KEY='dfcZ14UpdateChecked';
@@ -13893,7 +13907,7 @@ window.dfcZ9Refresh=()=>refresh(true);
    if(document.getElementById(id)||!root())return;
    const e=document.createElement('section');e.id=id;
    e.innerHTML=`<h3>📲 Publicar actualización para Android</h3>
-    <p class="tiny">La web de pruebas NO modifica la aplicación. Selecciona una versión aprobada; GitHub creará un paquete independiente. La publicación NO actualiza por sí sola los teléfonos sin puente nativo.</p>
+    <p class="tiny">La web de pruebas NO modifica la aplicación. Selecciona una versión aprobada; GitHub creará un paquete independiente.</p>
     <label class="tiny" for="dfcOTAAdminVersion">Versión que publicarás (ejemplo: 0.12Z.21)</label>
     <input class="field" id="dfcOTAAdminVersion" value="0.12Z.21" placeholder="0.12Z.21" autocomplete="off" spellcheck="false"/>
     <p class="tiny">Primero revisa el código exacto de la última publicación web. Las claves de GitHub nunca van en el HTML.</p>
@@ -13916,30 +13930,24 @@ window.dfcZ9Refresh=()=>refresh(true);
  }
 
 const PUBLISHED_MANIFEST='https://cakon170812-hub.github.io/marketflsh/android-approved/manifest.json';
-const number=v=>{const m=/^0\.12Z\.(\d{1,4})$/.exec(String(v||''));return m?Number(m[1]):-1};
+const numericVersion=v=>{const m=/^0\.12Z\.(\d{1,4})$/.exec(String(v||''));return m?Number(m[1]):-1};
 async function publishedVersion(){
-  const resp=await fetch(PUBLISHED_MANIFEST+'?check='+Date.now(),{cache:'no-store'});
-  if(!resp.ok)throw new Error('No se pudo consultar la versión publicada (HTTP '+resp.status+')');
-  const obj=await resp.json();
-  if(number(obj.version)<0)throw new Error('El manifiesto Android no contiene una versión válida');
-  return obj.version;
+  const r=await fetch(PUBLISHED_MANIFEST+'?v='+Date.now(),{cache:'no-store'});
+  if(!r.ok)throw new Error('Manifiesto Android HTTP '+r.status);
+  const m=await r.json();
+  if(numericVersion(m.version)<0)throw new Error('El manifiesto tiene versión inválida');
+  return m.version;
 }
-async function verifyPublished(expected, short){
-  for(let attempt=0;attempt<24;attempt++){
+async function verifyPublished(expected){
+  for(let n=0;n<24;n++){
     await new Promise(resolve=>setTimeout(resolve,15000));
     try{
-      const current=await publishedVersion();
-      if(current===expected){
-        status('PUBLICACIÓN CONFIRMADA EN GITHUB: '+current+' (revisión '+short+'). Verifica en un Android de pruebas si aparece ACTUALIZAR. Los teléfonos sin puente nativo pueden necesitar APK reparado.');
-        return;
-      }
-      if(number(current)>number(expected)){
-        status('Se publicó una versión superior ('+current+'). Comprueba GitHub Actions antes de instalar.');
-        return;
-      }
-    }catch(e){console.warn('Verificación de manifest Android:', e);}
+      const actual=await publishedVersion();
+      if(actual===expected){status('GitHub confirmó la publicación de '+actual+'. Revisa el botón ACTUALIZAR en un Android de pruebas.');return;}
+      if(numericVersion(actual)>numericVersion(expected)){status('Hay una versión posterior ('+actual+'). Comprueba GitHub Actions.');return;}
+    }catch(e){console.warn('Esperando manifiesto Android:',e);}
   }
-  status('GitHub recibió la solicitud, pero la publicación NO está confirmada. Consulta Actions; si falló, corrige el motivo. No repitas la misma versión.');
+  status('No se confirmó la publicación en el manifiesto. Abre GitHub → Actions para ver el motivo. NO publiques otra vez el mismo número.');
 }
  async function previewHead(){
    if(processing)return;
@@ -13958,16 +13966,15 @@ async function verifyPublished(expected, short){
    if(!/^0\.12Z\.\d{1,4}$/.test(version))return status('Escribe una versión como 0.12Z.21 (debe ser superior a las anteriores).');
    const htmlVersion=document.querySelector('meta[name="application-version"]')?.content;
    if(version!==htmlVersion)return status(`La versión para publicar (${version}) no coincide con la de este HTML (${htmlVersion}). Usa el mismo número y una versión que no esté publicada.`);
-   let already;
-   try{already=await publishedVersion();}
-   catch(err){return status('Publicación bloqueada: '+err.message+'. Comprueba el manifiesto y GitHub Actions.');}
-   if(number(version)<=number(already))return status('No se puede volver a publicar '+version+': la última versión publicada es '+already+'. Prepara una versión superior.');
+   let oldVersion;
+   try{oldVersion=await publishedVersion();}catch(e){return status('Publicación detenida: '+e.message)}
+   if(numericVersion(version)<=numericVersion(oldVersion))return status('La versión '+version+' no es superior a '+oldVersion+'. No se ha enviado nada.');
    if(!confirm(`¿Publicar en Android la revisión web ${preview.short} como versión ${version}?\nLas partidas activas no se reiniciarán. Se creará una copia separada.`))return;
    processing=true;const b=document.getElementById('dfcOTAAdminPublish');b.disabled=true;
    try{const r=await invoke('publish',{version,sha:preview.sha});
       status(`Solicitud de publicación recibida para ${version}.\nRevisión: ${preview.short}.\nGitHub está preparando el paquete. Todavía no está publicada hasta que el proceso termine correctamente. Mira GitHub → Acciones.`);
       preview=null;
-      void verifyPublished(version,r.short||'pendiente');
+      void verifyPublished(version);
    }catch(e){status('No se envió la publicación: '+e.message)}finally{processing=false}
  }
  function boot(){render();}
@@ -16171,24 +16178,5 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 </script>
 
 <script type="module" src="./native-bridge.js?v=0.12Z.21"></script>
-<script id="dfc-z21-ota-bridge-diagnostic">
-(()=>{'use strict';
-function nativeAndroid(){return !!(window.Capacitor?.isNativePlatform?.() && window.Capacitor?.getPlatform?.()==='android')}
-function inspect(){
-  if(!nativeAndroid())return;
-  setTimeout(()=>{
-    if(document.getElementById('dfcOTAUserButton'))return;
-    const b=document.createElement('div');b.id='dfcZ21UpdaterWarning';
-    b.textContent='Actualizador Android no detectado. Esta instalación puede necesitar el APK reparado para recibir nuevas versiones.';
-    b.setAttribute('role','status');
-    b.style.cssText='position:fixed;z-index:999994;bottom:8px;left:8px;right:8px;background:#35221b;color:white;border:1px solid #e8b083;border-radius:9px;padding:8px;font:12px system-ui;';
-    const home=document.getElementById('appView');
-    if(home&&!home.classList.contains('hidden'))document.body.appendChild(b);
-  },12000)
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',inspect,{once:true});else inspect();
-})();
-</script>
-
 </body>
 </html>
