@@ -13840,7 +13840,7 @@ window.dfcZ9Refresh=()=>refresh(true);
   try{await navigator.serviceWorker?.getRegistration?.().then(r=>r?.update())}catch(_){ }
   location.reload();
  }
- function boot(){create();void check(true);window.addEventListener('online',()=>void check(true));
+ function boot(){if(native() && document.querySelector('script[src*="native-bridge.js"]'))return;create();void check(true);window.addEventListener('online',()=>void check(true));
   document.addEventListener('visibilitychange',()=>{show();if(!document.hidden)void check(true)});
   const panel=document.getElementById('dominoTablePanel');if(panel)new MutationObserver(show).observe(panel,{attributes:true,attributeFilter:['class']});
   setInterval(()=>{if(!document.hidden)void check(false)},300000);
@@ -16138,5 +16138,6 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 })();
 </script>
 
+<script type="module" src="./native-bridge.js"></script>
 </body>
 </html>
