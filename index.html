@@ -2761,11 +2761,13 @@ html { background-color:#020917; }
 </style>
 </head>
 <body>
-<div id="dfc-z9-loader" role="status" aria-live="polite" aria-label="Preparando DOMINÓ FLASH COIN"><div><span class="logo">💎</span><strong>DOMINÓ FLASH COIN</strong><p id="dfc-z27-loader-note">Preparando la aplicación…</p><output id="dfc-z27-percent">1%</output><p id="dfc-z27-loader-error" hidden></p></div></div>
+<div id="dfc-z9-loader" role="status" aria-live="polite" aria-label="Preparando DOMINÓ FLASH COIN"><div><span class="logo">💎</span><strong>DOMINÓ FLASH COIN</strong><p id="dfc-z27-loader-note">Preparando la aplicación…</p><div id="dfc-z27-loading-track" role="progressbar" aria-label="Progreso visual de carga" aria-valuemin="0" aria-valuemax="100" aria-valuenow="1"><div id="dfc-z27-loading-fill"></div></div><output id="dfc-z27-percent">1%</output><p id="dfc-z27-loader-error" hidden></p></div></div>
 <script id="dfc-z27-loader-real-readiness">
 (function(){'use strict';
  var loader=document.getElementById('dfc-z9-loader');
  var pct=document.getElementById('dfc-z27-percent'),note=document.getElementById('dfc-z27-loader-note');
+ var track=document.getElementById('dfc-z27-loading-track'),fill=document.getElementById('dfc-z27-loading-fill');
+ function drawBar(value){fill.style.transform='scaleX('+(value/100)+')';track.setAttribute('aria-valuenow',String(Math.floor(value*10)/10));}
  var error=document.getElementById('dfc-z27-loader-error');
  var steps={html:false,wallpaper:false,fonts:false,paint:false,app:false},ready=false,domStarted=false;
  // El número es una animación de espera; las comprobaciones reales autorizan el 100%.
@@ -2777,7 +2779,7 @@ html { background-color:#020917; }
    var t=Math.min(1,(now-finishStart)/180);
    visualValue=finishFrom+(100-finishFrom)*(1-Math.pow(1-t,2));
    if(t===1){
-    pct.textContent='100%';closed=true;
+    pct.textContent='100%';drawBar(100);closed=true;
     requestAnimationFrame(function(){requestAnimationFrame(function(){
      loader.classList.add('hide');loader.setAttribute('aria-hidden','true');
      setTimeout(function(){loader.remove()},300);
@@ -2790,9 +2792,9 @@ html { background-color:#020917; }
   }
   // Décimas para que el movimiento sea visible también durante una carga lenta.
   pct.textContent=(Math.floor(Math.min(99.9,visualValue)*10)/10).toLocaleString('es-DO',{maximumFractionDigits:1})+'%';
-  requestAnimationFrame(animate);
+  drawBar(Math.min(99.9,visualValue));requestAnimationFrame(animate);
  }
- pct.textContent='1%';requestAnimationFrame(animate);
+ pct.textContent='1%';drawBar(1);requestAnimationFrame(animate);
  function update(){
   var n=(steps.html?20:0)+(steps.wallpaper?20:0)+(steps.fonts?10:0)+(steps.paint?10:0)+(steps.app?40:0);
   if(n===100&&!ready){
@@ -16338,6 +16340,50 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 #dominoLobbyPanel.overlay #dominoLobbyModes .dfc-z11-lobby-actions {flex-shrink:0!important;margin-top:4px!important}
 #dominoLobbyPanel.overlay #dominoLobbyModes .dfc-z11-lobby-actions button {min-height:36px!important;font-size:10px!important}
 @media(max-width:340px){#dominoLobbyPanel.overlay #dominoLobbyModes.domino-two-tables{grid-template-columns:minmax(0,240px)!important}}
+</style>
+
+<style id="dfc-z27-responsive-lobby-and-table-background">
+#dfc-z27-loading-track{width:min(100%,300px);height:10px;margin:18px auto 9px;border-radius:20px;overflow:hidden;background:#ffffff26;border:1px solid #f8d57488}
+#dfc-z27-loading-fill{width:100%;height:100%;transform:scaleX(.01);transform-origin:left center;background:linear-gradient(90deg,#cf9228,#ffe39a);border-radius:inherit;will-change:transform}
+/* Escenario decorativo detrás de las fichas y de los controles existentes. */
+#dominoTablePanel.overlay,
+#dominoTablePanel.overlay>.panel.domino-game-panel,
+#dominoTablePanel.overlay #dominoStage,
+#dominoTablePanel.overlay #dominoStage .dfc11-scene {
+ background-image:linear-gradient(180deg,rgba(0,8,24,.42),rgba(0,8,24,.62)),var(--dfc-z26-official-wallpaper)!important;
+ background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;
+}
+#dominoTablePanel.overlay #dominoStage .dfc11-scene{pointer-events:none!important}
+/* Contenedor con desplazamiento vertical y sin recorte de botones. */
+#dominoLobbyPanel.overlay {width:100%!important;height:100dvh!important;max-height:100dvh!important;padding:0!important;box-sizing:border-box!important;overflow:hidden!important}
+#dominoLobbyPanel.overlay>.panel.domino-panel.domino-lobby-shell {
+ width:100%!important;max-width:100%!important;height:100dvh!important;max-height:100dvh!important;
+ margin:0!important;box-sizing:border-box!important;border-radius:0!important;
+ padding:max(14px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))!important;
+ overflow-x:hidden!important;overflow-y:auto!important;touch-action:pan-y!important;
+}
+#dominoLobbyPanel.overlay .domino-lobby-content{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:0!important;height:auto!important;overflow:visible!important}
+#dominoLobbyPanel.overlay #dominoLobbyModes.domino-two-tables {
+ width:100%!important;min-width:0!important;box-sizing:border-box!important;
+ grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),280px))!important;
+ grid-auto-rows:auto!important;grid-template-rows:none!important;align-items:start!important;align-content:start!important;
+ flex:0 0 auto!important;gap:12px!important;justify-content:center!important;
+}
+#dominoLobbyPanel.overlay #dominoLobbyModes .domino-choice-card {
+ min-width:0!important;width:100%!important;max-width:100%!important;
+ height:auto!important;min-height:320px!important;max-height:none!important;overflow:visible!important;
+ display:flex!important;flex-direction:column!important;flex-shrink:0!important;
+}
+#dominoLobbyPanel.overlay #dominoLobbyModes .dfc-z11-lobby-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important;gap:6px!important;margin-top:8px!important}
+#dominoLobbyPanel.overlay #dominoLobbyModes .dfc-z11-lobby-actions button{width:100%!important;min-width:0!important;min-height:44px!important;height:auto!important;padding:8px 4px!important;white-space:normal!important;overflow-wrap:anywhere!important;font-size:11px!important;line-height:1.25!important}
+#dominoLobbyPanel.overlay #dominoLobbyModes>.card {position:static!important;transform:none!important;grid-column:1/-1!important;width:auto!important;max-width:100%!important;box-sizing:border-box!important}
+@media(orientation:portrait) and (max-width:600px){
+ #dominoLobbyPanel.overlay #dominoLobbyModes.domino-two-tables{grid-template-columns:minmax(0,340px)!important}
+}
+@media(orientation:landscape){
+ #dominoLobbyPanel.overlay .domino-lobby-head{margin-top:0!important}
+ #dominoLobbyPanel.overlay #dominoLobbyModes.domino-two-tables{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),280px))!important}
+}
 </style>
 </body>
 </html>
