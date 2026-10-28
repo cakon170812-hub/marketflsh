@@ -2761,23 +2761,43 @@ html { background-color:#020917; }
 </style>
 </head>
 <body>
-<div id="dfc-z9-loader" role="status" aria-live="polite" aria-label="Preparando DOMINÓ FLASH COIN"><div><span class="logo">💎</span><strong>DOMINÓ FLASH COIN</strong><p id="dfc-z27-loader-note">Preparando la aplicación…</p><output id="dfc-z27-percent">0%</output><p id="dfc-z27-loader-error" hidden></p></div></div>
+<div id="dfc-z9-loader" role="status" aria-live="polite" aria-label="Preparando DOMINÓ FLASH COIN"><div><span class="logo">💎</span><strong>DOMINÓ FLASH COIN</strong><p id="dfc-z27-loader-note">Preparando la aplicación…</p><output id="dfc-z27-percent">1%</output><p id="dfc-z27-loader-error" hidden></p></div></div>
 <script id="dfc-z27-loader-real-readiness">
 (function(){'use strict';
  var loader=document.getElementById('dfc-z9-loader');
  var pct=document.getElementById('dfc-z27-percent'),note=document.getElementById('dfc-z27-loader-note');
  var error=document.getElementById('dfc-z27-loader-error');
  var steps={html:false,wallpaper:false,fonts:false,paint:false,app:false},ready=false,domStarted=false;
+ // El número es una animación de espera; las comprobaciones reales autorizan el 100%.
+ var visualStart=performance.now(),visualValue=1,finishStart=null,finishFrom=1,closed=false;
+ function animate(now){
+  if(closed)return;
+  if(ready){
+   if(finishStart===null){finishStart=now;finishFrom=visualValue;}
+   var t=Math.min(1,(now-finishStart)/180);
+   visualValue=finishFrom+(100-finishFrom)*(1-Math.pow(1-t,2));
+   if(t===1){
+    pct.textContent='100%';closed=true;
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+     loader.classList.add('hide');loader.setAttribute('aria-hidden','true');
+     setTimeout(function(){loader.remove()},300);
+    })});
+    return;
+   }
+  }else{
+   var elapsed=Math.max(0,now-visualStart);
+   visualValue=Math.max(visualValue,1+98*elapsed/(elapsed+6000));
+  }
+  // Décimas para que el movimiento sea visible también durante una carga lenta.
+  pct.textContent=(Math.floor(Math.min(99.9,visualValue)*10)/10).toLocaleString('es-DO',{maximumFractionDigits:1})+'%';
+  requestAnimationFrame(animate);
+ }
+ pct.textContent='1%';requestAnimationFrame(animate);
  function update(){
   var n=(steps.html?20:0)+(steps.wallpaper?20:0)+(steps.fonts?10:0)+(steps.paint?10:0)+(steps.app?40:0);
-  pct.textContent=n+'%';
   if(n===100&&!ready){
    ready=true;error.hidden=true;note.textContent='Aplicación preparada';
-   // Mostrar el 100% antes de revelar la pantalla inicial ya preparada.
-   requestAnimationFrame(function(){requestAnimationFrame(function(){
-    loader.classList.add('hide');loader.setAttribute('aria-hidden','true');
-    setTimeout(function(){loader.remove()},300);
-   })});
+   // La animación termina en cuanto las comprobaciones confirman el inicio.
   }
  }
  function mark(key){steps[key]=true;update()}
