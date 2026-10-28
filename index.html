@@ -1,4 +1,4 @@
-<!-- DOMINÓ FLASH COIN · 0.12Z.27 · BASE FUNCIONAL Z.21 · pendiente validación en dispositivos y servidor. -->
+<!-- DOMINÓ FLASH COIN · 0.12Z.27 · INTEGRACIÓN DE PRUEBAS HTML/SQL: visibilidad de diamantes de mesa; pendiente validar en Supabase. -->
 <!-- SEGURIDAD: URL y publishable key del Supabase de PRUEBAS deben completarse. No apunta a producción. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.15 · REVISIÓN DE COMPATIBILIDAD SQL 25/10/2026; PARA CLON DE PRUEBAS. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.15 · HTML INTEGRADO PARA PRUEBAS: no desplegar sin verificación del SQL en un clon de Supabase. -->
@@ -15408,6 +15408,30 @@ setInterval(()=>{if(!inTable()||!dominoState?.last_result||!dominoState?.me||bus
      ({data,error}=await c.rpc('dfc_z16_table_diamond_status'));
    }
    if(error)throw error;
+   if(tid!==tableId())return;
+   // 0.12Z.27: los saldos de otros jugadores solo proceden de la RPC
+   // autorizada por Supabase. Evitar inferir diamantes de Flash Coin.
+   // Consultar la vista privada de mesa SOLO cuando hay una mesa activa.
+   if(c?.rpc){
+     try{
+       const detail=await c.rpc('dfc_z16_table_diamond_status');
+       if(!detail.error && Number(detail.data?.table_id)===tid){
+         const players=Array.isArray(detail.data?.players)?detail.data.players:[];
+         const current=Array.isArray(data?.seats)?data.seats:[];
+         const byUser=new Map(current.map(x=>[String(x.user_id),x]));
+         for(const p of players){
+           if(!p?.user_id)continue;
+           const oldSeat=byUser.get(String(p.user_id))||{};
+           byUser.set(String(p.user_id),{...oldSeat,
+             user_id:p.user_id,
+             balance:Number(p.table_diamonds)||0,
+             seat_id:p.seat_id,
+             seat_no:p.seat_no});
+         }
+         data={...data,seats:[...byUser.values()]};
+       }
+     }catch(e){console.debug('Vista diamantes mesa no disponible:',e?.message||e)}
+   }
    if(tid!==tableId())return;
    wallet=data;
    if(typeof window.DFC_Z163?.onSync==='function')window.DFC_Z163.onSync(data,tid);
