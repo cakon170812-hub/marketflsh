@@ -2745,6 +2745,12 @@ html { background-color:#020917; }
 #dfc-z27-loader-error{color:#ffe4a3;font-size:12px;max-width:290px;margin:9px auto}
 #dfc-z27-loader-retry,#dfc-z27-loader-continue{padding:9px 15px;margin:7px;border:1px solid #dcb967;border-radius:10px;background:#15243b;color:white;font-weight:800}
 #appView.bg{background-size:cover!important;background-position:center center!important}
+/* Z.27: mismo fondo oficial en pantalla principal, sin depender de la clase .bg. */
+#appView:not(.hidden), #gamesPanel:not(.hidden), #dominoLobbyPanel:not(.hidden) {
+  background-image:linear-gradient(180deg,rgba(0,9,28,.62),rgba(0,6,21,.78)),var(--dfc-z26-official-wallpaper)!important;
+  background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;
+}
+
 </style>
 </head>
 <body>
@@ -2759,7 +2765,7 @@ html { background-color:#020917; }
  function update(){
   var n=(steps.dom?35:0)+(steps.wallpaper?25:0)+(steps.fonts?20:0)+(steps.paint?20:0);
   pct.textContent=n+'%';bar.setAttribute('aria-valuenow',n);fill.style.width=n+'%';
-  if(n===100&&!finished){finished=true;note.textContent='Interfaz preparada';requestAnimationFrame(function(){requestAnimationFrame(function(){loader.classList.add('hide');loader.setAttribute('aria-hidden','true');loader.style.pointerEvents='none';setTimeout(function(){loader.remove()},440)})})}
+  if(n===100&&!finished){finished=true;note.textContent='Elementos visuales preparados';requestAnimationFrame(function(){requestAnimationFrame(function(){loader.classList.add('hide');loader.setAttribute('aria-hidden','true');loader.style.pointerEvents='none';setTimeout(function(){loader.remove()},440)})})}
  }
  function mark(key){steps[key]=true;update()}
  function showError(message){error.hidden=false;error.textContent=message;retry.hidden=false;note.textContent='Verifica tu conexión o continúa con el modo disponible.'}
@@ -13711,7 +13717,7 @@ let lastHumanStatus='';setInterval(()=>{return;/* Voz humana desactivada 0.12Z.1
    window.addEventListener('online',()=>void refresh(true));
    document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh(true)});
    E('dominoTablePanel')&&new MutationObserver(()=>drawJar()).observe(E('dominoTablePanel'),{attributes:true,attributeFilter:['class']});
-   setTimeout(()=>{if(E('dfc-z9-loader'))E('dfc-z9-loader').classList.add('hide')},850);
+   /* Z.27: el porcentaje controla el cierre de la pantalla de carga; sin cierre prematuro. */
  });
  const oldRender=window.renderMe;if(typeof oldRender==='function')window.renderMe=function(){
   const result=oldRender.apply(this,arguments);
