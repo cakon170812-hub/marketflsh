@@ -2768,18 +2768,27 @@ html { background-color:#020917; }
   if(n===100&&!finished){finished=true;note.textContent='Elementos visuales preparados';requestAnimationFrame(function(){requestAnimationFrame(function(){loader.classList.add('hide');loader.setAttribute('aria-hidden','true');loader.style.pointerEvents='none';setTimeout(function(){loader.remove()},440)})})}
  }
  function mark(key){steps[key]=true;update()}
- function showError(message){error.hidden=false;error.textContent=message;retry.hidden=false;note.textContent='Verifica tu conexión o continúa con el modo disponible.'}
+ function showError(message){error.hidden=false;error.textContent=message;retry.hidden=false;note.textContent='No se pudo completar la preparación visual.'}
  retry.addEventListener('click',function(){location.reload()});
- function domReady(){mark('dom');requestAnimationFrame(function(){requestAnimationFrame(function(){mark('paint')})})}
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',domReady,{once:true});else domReady();
+ var domStarted=false;
+ function domReady(){
+  if(domStarted)return;domStarted=true;mark('dom');
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+   mark('paint');
+   var fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
+   fonts.then(function(){mark('fonts')},function(){showError('No se pudo confirmar la preparación de las fuentes.')});
+  })});
+ }
+ // Confirmar el final del HTML sin esperar módulos nativos ni DOMContentLoaded.
+ document.addEventListener('dfc-z27-html-ready',domReady,{once:true});
+ if(document.readyState!=='loading')domReady();
  // La imagen ha de existir en la ruta publicada y estar incluida en el paquete Android.
  var wallpaper=new Image();var wallTimer=setTimeout(function(){if(!steps.wallpaper)showError('No se pudo confirmar la carga del fondo. Puedes reintentar.')},9000);
  wallpaper.onload=function(){clearTimeout(wallTimer);mark('wallpaper')};
  wallpaper.onerror=function(){clearTimeout(wallTimer);showError('No se encontró el fondo oficial. Comprueba la ruta de la imagen.')};
  wallpaper.src='./images2/Interfaz%20de%20domino%CC%81%20de%20lujo%20en%20oro%20y%20negro.png%2001.png.png';
  // Fonts.ready confirma fuentes ya solicitadas; no afirma que se completó inicio de sesión o sincronización.
- var fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
- fonts.then(function(){mark('fonts')},function(){mark('fonts')});
+ // Las fuentes se comprueban después de preparar y pintar el contenido.
  // Si faltan recursos, no declaramos falsamente el 100%; permitimos salida manual en un fallo prolongado.
  setTimeout(function(){if(!finished){showError('La preparación está tardando más de lo normal.');
  if(!document.getElementById('dfc-z27-loader-continue')){
@@ -16245,6 +16254,7 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 })();
 </script>
 
+<script id="dfc-z27-html-ready-signal">document.dispatchEvent(new Event("dfc-z27-html-ready"));</script>
 <script type="module" src="./native-bridge.js?v=0.12Z.27"></script>
 </body>
 </html>
