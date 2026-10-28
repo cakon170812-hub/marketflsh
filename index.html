@@ -1,4 +1,4 @@
-<!-- DOMINÓ FLASH COIN · 0.12Z.27 · INTEGRACIÓN DE PRUEBAS HTML/SQL: visibilidad de diamantes de mesa; pendiente validar en Supabase. -->
+<!-- DOMINÓ FLASH COIN 0.12Z.27 · HTML ORIGINAL + DIAMANTES + MESA VISUAL APROBADA. PENDIENTE PRUEBAS SERVIDOR -->
 <!-- SEGURIDAD: URL y publishable key del Supabase de PRUEBAS deben completarse. No apunta a producción. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.15 · REVISIÓN DE COMPATIBILIDAD SQL 25/10/2026; PARA CLON DE PRUEBAS. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.15 · HTML INTEGRADO PARA PRUEBAS: no desplegar sin verificación del SQL en un clon de Supabase. -->
@@ -16408,6 +16408,39 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
  #dominoLobbyPanel.overlay .domino-lobby-head{margin-top:0!important}
  #dominoLobbyPanel.overlay #dominoLobbyModes.domino-two-tables{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),280px))!important}
 }
+</style>
+
+<!-- 0.12Z.27: ajuste visual sobre HTML original, sin cambiar reglas de juego -->
+<style id="dfc-z27-original-mesa-aprobada">
+/* La ilustración original incorporada en --dfc-z11-table debe ocupar
+   la mesa de juego; no sustituirla por la imagen de portada. */
+#dominoTablePanel #dominoStage {
+  position:relative!important;
+  isolation:isolate!important;
+  background-color:#030d22!important;
+  background-image:var(--dfc-z11-table)!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  background-size:cover!important;
+}
+#dominoTablePanel #dominoStage .dfc11-scene {
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  pointer-events:none!important;
+  background-image:var(--dfc-z11-table)!important;
+  background-position:center center!important;
+  background-repeat:no-repeat!important;
+  background-size:cover!important;
+  filter:none!important;
+  transform:none!important;
+}
+/* Mantener fichas, asientos y botones nítidos por delante del fondo. */
+#dominoTablePanel #dominoStage .domino-board,
+#dominoTablePanel #dominoStage #dominoSeats,
+#dominoTablePanel #dominoStage #dominoHand {position:relative;}
 </style>
 </body>
 </html>
