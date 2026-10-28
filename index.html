@@ -2805,6 +2805,25 @@ html { background-color:#020917; }
  #dominoTablePanel #dominoStage #dominoBigEmoji {left:41%!important;font-size:clamp(62px,13vw,105px)!important;}
 }
 </style>
+
+<!-- Z28: cuadrícula de mesas y ajustes de acceso; no altera tablero ni economía -->
+<style id="dfc-z28-lobby-compact-grid">
+/* Dos columnas estables, tarjetas compactas y panel desplazable. */
+#dominoLobbyPanel .domino-lobby-shell {max-height:100dvh!important; overflow:hidden!important; display:flex!important; flex-direction:column!important;}
+#dominoLobbyPanel .domino-lobby-content {min-height:0!important; height:auto!important; flex:1 1 auto!important; overflow-y:auto!important; overscroll-behavior-y:contain; -webkit-overflow-scrolling:touch;}
+#dominoLobbyModes, #dominoLobbyModes.domino-two-tables {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important; grid-template-rows:none!important;grid-auto-rows:min-content!important;align-content:start!important;align-items:stretch!important;gap:7px!important;min-height:0!important;height:auto!important;overflow:visible!important;flex:0 0 auto!important;padding:3px 2px 18px!important;}
+#dominoLobbyModes .domino-choice-card, #dominoLobbyModes .dfc012o-table-card {box-sizing:border-box!important;min-width:0!important;width:100%!important;min-height:0!important;height:auto!important;max-height:none!important;padding:8px!important;margin:0!important;border-radius:12px!important;gap:4px!important;justify-content:flex-start!important;}
+#dominoLobbyModes .domino-choice-card h3, #dominoLobbyModes .dfc012o-table-card h3 {font-size:clamp(10px,2.9vw,13px)!important;line-height:1.2!important;margin:0!important;}
+#dominoLobbyModes .dfc012o-table-card .dfc012o-art {height:clamp(42px,12vw,66px)!important;min-height:0!important;object-fit:cover!important;}
+#dominoLobbyModes .domino-choice-card .mode-desc {font-size:clamp(8px,2vw,10px)!important;line-height:1.2!important;min-height:0!important;margin:0!important;}
+#dominoLobbyModes .domino-choice-card .table-stats {margin:0!important;gap:3px!important;}
+@media(max-width:380px){#dominoLobbyModes,#dominoLobbyModes.domino-two-tables{gap:5px!important}#dominoLobbyModes .domino-choice-card,#dominoLobbyModes .dfc012o-table-card{padding:6px!important}}
+/* El registro debe poder recorrerse incluso sin enfocar campos. */
+#authView.auth:has(#registerForm:not(.hidden)) {overflow-y:auto!important;overscroll-behavior-y:contain!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;}
+#authView.auth:has(#registerForm:not(.hidden)) .auth-card {height:auto!important;max-height:none!important;}
+/* La interfaz web no impone rotación; Android nativo debe permitir ambas orientaciones. */
+#dominoRotateGuard,body.domino-playing #dominoRotateGuard{display:none!important;pointer-events:none!important;}
+</style>
 </head>
 <body>
 <div aria-label="Preparando DOMINÓ FLASH COIN" aria-live="polite" id="dfc-z9-loader" role="status"><div><span class="logo">💎</span><strong>DOMINÓ FLASH COIN</strong><p id="dfc-z27-loader-note">Preparando la aplicación…</p><div aria-label="Progreso visual de carga" aria-valuemax="100" aria-valuemin="0" aria-valuenow="1" id="dfc-z27-loading-track" role="progressbar" style="display:block;width:min(76vw,320px);height:10px;min-height:10px;margin:18px auto 9px;overflow:hidden;border-radius:99px;background:#ffffff26;border:1px solid #dfbd6d"><div id="dfc-z27-loading-fill" style="display:block;width:100%;height:100%;transform:scaleX(.01);transform-origin:left center;background:linear-gradient(90deg,#ba872b,#ffe8a4)"></div></div><output id="dfc-z27-percent">1%</output><p hidden="" id="dfc-z27-loader-error"></p></div></div>
@@ -6264,7 +6283,7 @@ async function loadDominoChat(force=false){
     return;
   }
   await dfcReloadBlocked();
-  const rows=dfcVisibleMessages(data||[]);
+  const rows=dfcZ28ActiveMessages(dfcVisibleMessages(data||[]));
   renderDominoMiniChat(rows);
   rows.forEach(r=>{if(String(r.kind||'text')==='text'&&String(r.message||'').trim())dominoUserMessageCache.set(String(r.user_id),r)});
   dominoUpdateUserMessageButtons();
@@ -6301,7 +6320,7 @@ async function openDominoUserMessages(userId,userName='Jugador'){
   const {data,error}=await sb.rpc('rf_domino_chat_list_v150',{p_table_id:dominoCurrentTableId,p_limit:40});
   if(error){$('dominoUserMessagesList').innerHTML=`<div class="tiny">${esc(errText(error))}</div>`;return}
   await dfcReloadBlocked();
-  const rows=dfcVisibleMessages(data||[]).filter(r=>String(r.user_id)===String(userId)&&String(r.kind||'text')==='text');
+  const rows=dfcZ28ActiveMessages(dfcVisibleMessages(data||[])).filter(r=>String(r.user_id)===String(userId)&&String(r.kind||'text')==='text');
   $('dominoUserMessagesList').innerHTML=rows.length?rows.map(r=>`<div class="domino-chat-line"><div><span class="who">${esc(r.full_name||r.public_id||userName)}</span><span class="when">${esc(dominoFormatClock(r.created_at))}</span></div><div class="body">${esc(r.message)}</div></div>`).join(''):'<div class="tiny">Este jugador todavía no ha enviado mensajes de texto.</div>';
   $('dominoUserMessagesList').scrollTop=$('dominoUserMessagesList').scrollHeight;
 }
@@ -6346,6 +6365,7 @@ function dominoShowSeatMessage(row){
   bubble.className='domino-seat-bubble s'+seat+(isReaction?' reaction':'');
   bubble.textContent=String(row?.message||'');
   bubble.classList.add('show');
+  if(!isReaction)dfcZ28ShowTableText(row);
   if(isReaction)dominoShowBigEmoji(row?.message||'');
   clearTimeout(bubble._hideTimer);
   bubble._hideTimer=setTimeout(()=>bubble.classList.remove('show'),isReaction?5000:10000);
@@ -6356,7 +6376,7 @@ async function syncDominoTableMessages(force=false){
   dominoTableMessageCheckAt=Date.now();
   const {data,error}=await sb.rpc('rf_domino_chat_list_v150',{p_table_id:dominoCurrentTableId,p_limit:20});
   if(error)return;
-  await dfcReloadBlocked();const rows=dfcVisibleMessages(data||[]);renderDominoMiniChat(rows);if(!rows.length)return;
+  await dfcReloadBlocked();const rows=dfcZ28ActiveMessages(dfcVisibleMessages(data||[]));renderDominoMiniChat(rows);if(!rows.length)return;
   rows.forEach(r=>{if(String(r.kind||'text')==='text'&&String(r.message||'').trim())dominoUserMessageCache.set(String(r.user_id),r)});
   dominoUpdateUserMessageButtons();
   const row=rows[rows.length-1];
@@ -6364,7 +6384,7 @@ async function syncDominoTableMessages(force=false){
   if(!force&&key===dominoTableMessageLastId)return;
   dominoTableMessageLastId=key;
   const age=Date.now()-new Date(row.created_at||0).getTime();
-  if(force||age<10500)dominoShowSeatMessage(row);
+  if(age>=0&&(age<10500||force&&age<20000))dominoShowSeatMessage(row);
 }
 function dominoUpdateLiveControls(){
   // 1.7.0: no existen botones manuales de Pasar, Repartir ni Ronda.
@@ -14266,7 +14286,7 @@ body.dfc-z15-auto-active #dominoHand{pointer-events:none!important;opacity:.76!i
 #dfc-z15-history .dfc-z15-movement{font-size:12px;line-height:1.45;margin:5px 0}
 </style>
 <!-- DOMINÓ FLASH COIN 0.12Z.15 · Controles enlazados a Supabase -->
-<button aria-live="polite" id="dfc-z15-control" type="button">TOMAR EL CONTROL</button>
+<button aria-live="polite" id="dfc-z15-control" type="button">VOLVER A SENTARME · TOMAR EL CONTROL</button>
 <section aria-label="Cartera administrativa de diamantes" aria-modal="true" id="dfc-z15-admin" role="dialog">
 <h3>Cartera administrativa de diamantes</h3>
 <p class="balance" id="dfc-z15-admin-balance">—</p>
@@ -14309,6 +14329,7 @@ body.dfc-z15-auto-active #dominoHand{pointer-events:none!important;opacity:.76!i
     control.style.display=active&&auto&&!document.hidden?'block':'none';
     document.body.classList.toggle('dfc-z15-auto-active',active&&auto);
     control.disabled=working;
+    control.title=auto?'Recuperar el control de este asiento sin pagar de nuevo':' ';
   }
   function clear(){tableId=null;handId=null;hasSeat=false;auto=false;wasBackground=false;save();update()}
   async function enableAuto(reason){
@@ -14343,8 +14364,16 @@ body.dfc-z15-auto-active #dominoHand{pointer-events:none!important;opacity:.76!i
       const next=Number(typeof dominoCurrentTableId!=='undefined'?dominoCurrentTableId:0)||null;
       if(next!==tableId){tableId=next;auto=!!readSaved();}
       const uid=String(st?.me||'');
-      hasSeat=!!(uid&&st?.seats?.some(s=>String(s.user_id)===uid&&s.state==='active'));
+      const mySeat=uid&&Array.isArray(st?.seats)?st.seats.find(s=>String(s.user_id)===uid):null;
+      // Un asiento en salida programada puede seguir siendo controlado por el automático
+      // hasta finalizar la mano. La ausencia de asiento sí cancela el botón.
+      hasSeat=!!(mySeat&&['active','leave_after_hand'].includes(String(mySeat.state)));
       handId=st?.hand?.id||null;
+      // Respetar una señal explícita del servidor cuando esté presente; no confundir
+      // un dato faltante con false ni inventar el modo automático desde la interfaz.
+      const serverAuto=[mySeat?.auto_mode,mySeat?.is_auto,mySeat?.auto_enabled]
+        .find(v=>typeof v==='boolean');
+      if(hasSeat&&typeof serverAuto==='boolean'&&serverAuto!==auto){auto=serverAuto;save();}
       // Si el servidor levantó al jugador al terminar la mano, ocultar controles y limpiar estado.
       if(!hasSeat){auto=false;save();}
       update();
@@ -16644,6 +16673,52 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
  schedule();
 })();
 </script>
+
+<!-- 0.12Z.28: controles independientes y texto efímero de mesa; conserva numeración oficial. -->
+<style id="dfc-z28-chat-visual-safe">
+#dominoTablePanel #dominoChatBtn,#dominoTablePanel #dominoEmojiBtn{
+ position:absolute!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ min-height:clamp(36px,6.5vh,52px)!important;min-width:clamp(84px,12vw,122px)!important;
+ padding:6px 11px!important;border-radius:999px!important;border:2px solid #d9b35c!important;
+ background:linear-gradient(180deg,#1d2430,#07090e)!important;color:#fff4d9!important;
+ font-size:clamp(12px,1.6vw,17px)!important;z-index:90!important;pointer-events:auto!important;
+ box-shadow:0 5px 18px #000b!important;
+}
+#dominoTablePanel #dominoChatBtn{left:1.5%!important;right:auto!important;bottom:3%!important;top:auto!important}
+#dominoTablePanel #dominoEmojiBtn{left:auto!important;right:1.5%!important;bottom:3%!important;top:auto!important}
+#dominoTablePanel #dfcZ28ChatFloat{
+ position:absolute;left:50%;top:17%;transform:translateX(-50%);width:max-content;max-width:min(36%,300px);
+ padding:7px 12px;border:1px solid rgba(255,224,156,.85);border-radius:14px;
+ background:rgba(9,16,24,.93);color:#fff8e8;font:700 clamp(10px,1.2vw,15px)/1.35 system-ui,sans-serif;
+ text-align:center;overflow-wrap:anywhere;box-shadow:0 7px 22px #0009;z-index:47;
+ opacity:0;visibility:hidden;pointer-events:none;transition:opacity .18s ease;
+}
+#dominoTablePanel #dfcZ28ChatFloat.show{opacity:1;visibility:visible}
+#dominoTablePanel #dfcZ28ChatFloat .dfc-z28-author{display:block;color:#ffe5a5;font-size:.8em;margin-bottom:2px}
+@media (max-width:720px){
+ #dominoTablePanel #dfcZ28ChatFloat{top:15%;max-width:43%;padding:5px 7px}
+ #dominoTablePanel #dominoChatBtn,#dominoTablePanel #dominoEmojiBtn{min-width:70px!important;min-height:35px!important;padding:4px 8px!important;font-size:11px!important}
+}
+@media (orientation:portrait) and (max-width:540px){#dominoTablePanel #dfcZ28ChatFloat{top:21%;max-width:58%}}
+</style>
+<script id="dfc-z28-chat-visual-logic">
+function dfcZ28ActiveMessages(rows){
+ const cutoff=Date.now()-20*60*1000;
+ return (Array.isArray(rows)?rows:[]).filter(r=>{const ms=Date.parse(r?.created_at||'');return Number.isFinite(ms)&&ms>=cutoff});
+}
+let dfcZ28TableChatTimer=null;
+function dfcZ28ShowTableText(row){
+ if(!row||String(row.kind||'text')!=='text')return;
+ const stage=document.querySelector('#dominoTablePanel #dominoStage');if(!stage)return;
+ let card=document.getElementById('dfcZ28ChatFloat');
+ if(!card){card=document.createElement('div');card.id='dfcZ28ChatFloat';card.setAttribute('role','status');card.setAttribute('aria-live','polite');stage.appendChild(card)}
+ const author=document.createElement('span');author.className='dfc-z28-author';author.textContent=String(row.full_name||row.public_id||'Jugador').slice(0,40);
+ const body=document.createElement('span');body.textContent=String(row.message||'').slice(0,200);
+ card.replaceChildren(author,body);card.classList.add('show');
+ clearTimeout(dfcZ28TableChatTimer);dfcZ28TableChatTimer=setTimeout(()=>{card.classList.remove('show');card.replaceChildren()},10000);
+}
+</script>
+
 </body>
 
 </html>
