@@ -5733,7 +5733,7 @@ function renderDominoLobby(){
     const players=tt.reduce((a,t)=>a+Number(t.players||0),0);
     const free=tt.find(t=>Number(t.players||0)<4);
     const desc=c.mode==='paid_pass'?'Cada pase pagado va directo al saldo de mesa del jugador que lo provoca.':'Dominó clásico: si no tienes ficha válida, pasas sin pagar.';
-    return `<div class="domino-choice-card"><h3>${idx===0?'🁫':'🁬'} ${esc(c.name)} <small style="font-size:9px;opacity:.7">· Modalidad #${Number(c.id)} · ${tt.length} sala(s)</small></h3><div class="mode-desc">${desc}</div><div class="table-stats"><div class="table-stat">Entrada mínima<b>${dominoMoney(c.min_entry)} FC</b></div><div class="table-stat">Bote por jugador<b>${dominoMoney(c.hand_stake)} FC</b></div><div class="table-stat">Comisión<b>${Number(c.commission_pct||0).toFixed(2)}%</b></div><div class="table-stat">${c.mode==='paid_pass'?'Cada pase':'Mínimo seguir'}<b>${c.mode==='paid_pass'?dominoMoney(c.pass_fee)+' FC':dominoMoney(c.min_continue_balance)+' FC'}</b></div></div><div class="online-line"><span class="domino-live-dot"></span>${players} jugador${players===1?'':'es'} conectado${players===1?'':'s'} · ${free?'mesa disponible':'se abrirá otra mesa automáticamente'}</div><button class="action green domino-join-mode" data-config="${c.id}">JUGAR EN ESTA MESA</button></div>`;
+    return `<div class="domino-choice-card"><h3>${idx===0?'🁫':'🁬'} ${esc(c.name)}</h3><div class="mode-desc">${desc}</div><div class="table-stats"><div class="table-stat">Entrada mínima<b>${dominoMoney(c.min_entry)} FC</b></div><div class="table-stat">Bote por jugador<b>${dominoMoney(c.hand_stake)} FC</b></div><div class="table-stat">Comisión<b>${Number(c.commission_pct||0).toFixed(2)}%</b></div><div class="table-stat">${c.mode==='paid_pass'?'Cada pase':'Mínimo seguir'}<b>${c.mode==='paid_pass'?dominoMoney(c.pass_fee)+' FC':dominoMoney(c.min_continue_balance)+' FC'}</b></div></div><div class="online-line"><span class="domino-live-dot"></span>${players} jugador${players===1?'':'es'} conectado${players===1?'':'s'} · ${free?'mesa disponible':'se abrirá otra mesa automáticamente'}</div><button class="action green domino-join-mode" data-config="${c.id}">JUGAR EN ESTA MESA</button></div>`;
   }).join('');
   if(myTable)host.insertAdjacentHTML('afterbegin',myState==='abandoned'?`<div class="card"><strong>Salida confirmada</strong><div class="tiny">Tu asiento terminará esta mano automáticamente y después quedará libre. Si gana, el premio irá a la Cartera Administrativa.</div></div>`:`<div class="card"><strong>Tu asiento sigue activo</strong><div class="tiny">Puedes volver a tu mesa y continuar la mano si todavía no ha terminado.</div><button id="dominoResumeTableBtn" class="action blue">VOLVER A MI MESA</button></div>`);
   host.querySelectorAll('.domino-join-mode').forEach(b=>b.onclick=()=>openDominoBuyin(Number(b.dataset.config)));
@@ -6597,24 +6597,10 @@ async function loadDominoState(force,skipTick=false){
   mfDominoStateLoading=true;
   try {
 
-  if(!skipTick&&Date.now()>=dominoSuppressTickUntil&&Date.now()>=dfcZ13TimeoutUntil){
-    try{
-      const tick=await sb.rpc('rf_domino_progress_v012i',{p_table_id:dominoCurrentTableId});
-      if(tick.error||tick.data?.ok===false){
-        const detail=String(tick.error?.message||tick.data?.error||tick.data?.status||'');
-        console.warn('Dominó 0.12I: reparto pendiente:',detail);
-        window.dfc012hLastIssue=detail;
-        if(/statement timeout|canceling statement|57014/i.test(detail)){
-          dfcZ13TimeoutCount=Math.min(4,dfcZ13TimeoutCount+1);
-          dfcZ13TimeoutUntil=Date.now()+Math.min(60000,5000*Math.pow(2,dfcZ13TimeoutCount));
-        }
-        window.dfc012jTickFailed=true;dominoSetSyncState('Reparto en recuperación: '+detail.slice(0,90),'warn');
-      }else{window.dfc012hLastIssue='';window.dfc012jTickFailed=false;dfcZ13TimeoutUntil=0;dfcZ13TimeoutCount=0;}
-    }catch(e){
-      console.warn('Dominó tick:',e);
-      window.dfc012jTickFailed=true;dominoSetSyncState('Mesa conectada · sincronización en reintento','warn');
-    }
-  }
+  // 0.12Z.27: avance de manos y turnos es exclusivo del servidor.
+  // No disparar rf_domino_progress_v012i desde cada lectura o evento Realtime.
+  // pg_cron y los workers existentes mantienen el progreso de las partidas.
+  window.dfc012jTickFailed=false;
 
   let stateResult=await sb.rpc('rf_domino_get_state_v160',{
     p_table_id:dominoCurrentTableId
@@ -6660,7 +6646,7 @@ async function loadDominoState(force,skipTick=false){
     console.warn('DOMINÓ 0.12J · lectura de mesa:',reason);
     dominoSetSyncState('Reconectando mesa…','warn');
     window.dfc012jReadFailed=true;
-    if(force)alert(errText(stateResult.error));
+    if(force)console.warn("Mesa: lectura forzada fallida",errText(stateResult.error));
     return;
   }
   if(window.dfc012jReadFailed){
@@ -6722,7 +6708,10 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
   const flight=dfcZ11FlyTile(sourceEl,side);
   try{
     const dfcZ30RpcAt=performance.now();
-    const {error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:side});
+    const dfcBeforeHandId=dominoState?.hand?.id;
+    const dfcBeforeBoardLength=Array.isArray(dominoState?.hand?.board)?dominoState.hand.board.length:0;
+    const dfcBeforeTileCount=Array.isArray(dominoState?.hand?.my_tiles)?dominoState.hand.my_tiles.length:null;
+    const {data:playResponse,error}=await sb.rpc('rf_domino_play_v11',{p_table_id:dominoCurrentTableId,p_tile_index:index,p_side:side});
     window.DFC_Z30?.recordMove(performance.now()-dfcZ30RpcAt,!error);
     if(error){
       flight?.reject();
@@ -6732,6 +6721,31 @@ async function dominoPlayTile(index,side='right',sourceEl=null){
         await loadDominoState(false,true).catch(()=>{});
         dominoShowToast('La mesa cambió. Comprueba tus fichas y vuelve a intentar.');
       }else{playDominoInvalidSound();alert(errText(error));}
+      return;
+    }
+    // Una RPC sin error no garantiza que el procedimiento interno haya movido la ficha.
+    // Confirmar con el estado autoritativo, sin repetir la solicitud de juego.
+    let dfcVerified=false;
+    try {
+      const check=await Promise.race([
+        sb.rpc('rf_domino_get_state_v160',{p_table_id:dominoCurrentTableId}),
+        new Promise((_,reject)=>setTimeout(()=>reject(new Error('Lectura de confirmación agotada')),7000))
+      ]);
+      if(!check.error&&check.data){
+        const next=check.data?.hand;
+        const nextBoardCount=Array.isArray(next?.board)?next.board.length:null;
+        const nextTileCount=Array.isArray(next?.my_tiles)?next.my_tiles.length:null;
+        dfcVerified=(next&&String(next.id)===String(dfcBeforeHandId)&&
+          (nextBoardCount!==null&&nextBoardCount>dfcBeforeBoardLength ||
+           nextTileCount!==null&&dfcBeforeTileCount!==null&&nextTileCount<dfcBeforeTileCount)) ||
+           (next&&String(next.id)!==String(dfcBeforeHandId)) ||
+           (check.data?.hand===null&&dfcFinalSnapshot!==null);
+      }
+    }catch(verifyError){console.warn('Comprobación de jugada pendiente:',verifyError)}
+    if(!dfcVerified){
+      flight?.cancel();
+      dominoSetSyncState('Confirmación pendiente: sincronizando sin repetir la jugada','warn');
+      await loadDominoState(true,true).catch(()=>{});
       return;
     }
     flight?.confirm();
@@ -8339,7 +8353,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
       const desc=c.mode==='paid_pass'?'Pase paga · crédito directo al saldo de mesa':'Pase no paga · modalidad clásica';
       const action=spectatorOnly?'VER MESA':'JUGAR EN ESTA MESA';
       return `<div class="domino-choice-card" data-config-card="${c.id}">
-        <div class="domino-premium-card-head"><h3>${esc(c.name)} <small style="font-size:9px;opacity:.75;white-space:nowrap">· Modalidad #${Number(c.id)} · ${tt.length} sala(s)</small></h3><span class="domino-premium-status ${statusClass}"><i></i>${status}</span></div>
+        <div class="domino-premium-card-head"><h3>${esc(c.name)}</h3><span class="domino-premium-status ${statusClass}"><i></i>${status}</span></div>
         <div class="domino-premium-card-body">
           <div class="mode-desc">${desc}</div>
           <div class="table-stats"><div class="table-stat">Entrada mínima<b>${dominoMoney(c.min_entry)} FC</b></div><div class="table-stat">Jugadores<b>${players} conectados</b></div><div class="table-stat">Bote/jugador<b>${dominoMoney(c.hand_stake)} FC</b></div><div class="table-stat">${c.mode==='paid_pass'?'Cada pase':'Mínimo seguir'}<b>${c.mode==='paid_pass'?dominoMoney(c.pass_fee)+' FC':dominoMoney(c.min_continue_balance)+' FC'}</b></div></div>
@@ -13971,12 +13985,44 @@ window.dfcZ9Refresh=()=>refresh(true);
 </style>
 <script id="dfc-z11-recovery-control">
 (()=>{'use strict';
- const el=document.createElement('button');el.type='button';el.id='dfc-z11-recover';el.textContent='Reintentar conexión de mesa';
- document.body.appendChild(el);let busy=false;
- const visible=()=>{const panel=document.getElementById('dominoTablePanel');const inTable=!!(panel&&(panel.classList.contains('active')||(!panel.classList.contains('hidden')&&getComputedStyle(panel).display!=='none'))); const bad=!!(window.dfc012jReadFailed||window.dfc012jTickFailed); el.style.display=inTable&&bad?'block':'none';};
- el.addEventListener('click',async()=>{if(busy)return;busy=true;el.disabled=true;el.textContent='Sincronizando…';try{if(typeof loadDominoState==='function') await loadDominoState(false,true)}catch(e){console.warn('Recuperación manual de mesa:',e)}finally{busy=false;el.disabled=false;el.textContent='Reintentar conexión de mesa';visible()}});
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(visible,450)});
- setInterval(()=>{if(!document.hidden)visible()},2500);
+  const el=document.createElement('button');
+  el.type='button';el.id='dfc-z11-recover';el.textContent='Reintentar conexión de mesa';
+  document.body.appendChild(el);
+  let busy=false;
+  const visible=()=>{
+    const panel=document.getElementById('dominoTablePanel');
+    const inTable=!!(panel&&(panel.classList.contains('active')||
+      (!panel.classList.contains('hidden')&&getComputedStyle(panel).display!=='none')));
+    el.style.display=inTable&&(window.dfc012jReadFailed||window.dfc012jTickFailed)?'block':'none';
+  };
+  const limited=(promise,ms,label)=>Promise.race([
+    Promise.resolve(promise),
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' no respondió en '+ms+' ms')),ms))
+  ]);
+  el.addEventListener('click',async()=>{
+    if(busy)return;
+    busy=true;el.disabled=true;el.textContent='Reconectando mesa…';
+    try{
+      if(typeof dominoCurrentTableId==='undefined'||!dominoCurrentTableId)throw new Error('No se encontró una mesa abierta');
+      if(typeof dominoStopRealtime==='function')await limited(dominoStopRealtime(),3500,'Cerrar canal anterior');
+      if(typeof dominoStartRealtime==='function')await limited(dominoStartRealtime(),6000,'Suscribir canal');
+      // Recuperar la vista usando el renderizador original. Si ya hay una lectura activa,
+      // su cola de actualización se ejecutará después; NO liberar el lock artificialmente.
+      if(typeof loadDominoState==='function')await limited(loadDominoState(true,true),9000,'Actualizar mesa');
+      if(typeof dominoHeartbeat==='function')Promise.resolve(dominoHeartbeat(true)).catch(()=>{});
+      el.textContent='Recuperación solicitada';
+      setTimeout(visible,500);
+    }catch(e){
+      console.warn('[DFC] Reconexión:',e);
+      el.textContent='No se pudo conectar · Reintentar';
+      el.style.display='block';
+    }finally{
+      busy=false;el.disabled=false;
+      setTimeout(()=>{if(!busy){el.textContent='Reintentar conexión de mesa';visible();}},2400);
+    }
+  });
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)visible();});
+  setInterval(()=>{if(!document.hidden)visible();},2500);
 })();
 </script>
 <style id="dfcOTAAdminStyles">
@@ -16525,6 +16571,73 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
   // Nunca bloquear la interfaz indefinidamente en caso de fallo de red.
   window.addEventListener('pageshow',hide);
   window.dfcHideDominoLoading=hide;
+})();
+</script>
+
+<!-- DFC 0.12Z.27 · Ajuste interno de perfil y recuperación. No modifica modalidad ni versión pública. -->
+<style id="dfc-profile-balance-alignment-fix">
+/* Sólo mi asiento: conservar estructura y superficie de la mesa original. */
+#dominoTablePanel #dominoSeats .domino-seat.mine .domino-seat-name {
+  position:relative!important; top:-5px!important; margin-bottom:1px!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.mine .seat-bal {
+  position:relative!important; top:-5px!important; margin:0!important;
+  width:auto!important;max-width:100%!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat.mine .dfc-profile-diamonds {
+  display:inline-flex; align-items:center; justify-content:center;
+  font-size:clamp(7px,1.05vw,11px);font-weight:800;color:#c9f2ff;
+  border:1px solid rgba(77,206,255,.5);border-radius:9px;
+  background:rgba(3,29,58,.92); padding:2px 5px;white-space:nowrap;
+  max-width:100%;min-width:0;line-height:1.25;
+}
+/* La segunda insignia se coloca en columna lateral sin cubrir la del saldo FC. */
+#dominoTablePanel #dominoSeats .domino-seat.mine .dfc-profile-currency-row {
+  display:flex;flex-wrap:nowrap;align-items:center;gap:5px;
+  position:relative;top:-4px;max-width:100%;min-width:0;
+}
+#dominoTablePanel #dominoSeats .domino-seat.mine .dfc-profile-currency-row .seat-bal{
+  flex:1 1 53%;min-width:0!important;overflow:hidden;text-overflow:ellipsis;
+}
+#dominoTablePanel #dominoSeats .domino-seat.mine .dfc-profile-currency-row .dfc-profile-diamonds{
+  flex:0 1 47%;overflow:hidden;text-overflow:ellipsis;
+}
+@media (max-width:650px){
+ #dominoTablePanel #dominoSeats .domino-seat.mine .dfc-profile-currency-row{gap:3px;}
+ #dominoTablePanel #dominoSeats .domino-seat.mine .dfc-profile-diamonds{font-size:7px;padding:2px 3px;}
+}
+</style>
+<script id="dfc-profile-diamonds-mirror">
+(()=>{'use strict';
+  const seats=document.getElementById('dominoSeats');
+  const original=document.getElementById('dfcZ16TableDiamondAmount');
+  if(!seats||!original)return;
+  let scheduled=false;
+  function sync(){
+    scheduled=false;
+    const mine=seats.querySelector('.domino-seat.mine');
+    if(!mine)return;
+    const fc=mine.querySelector('.seat-bal');
+    if(!fc)return;
+    let row=mine.querySelector('.dfc-profile-currency-row');
+    if(!row){
+      row=document.createElement('div');row.className='dfc-profile-currency-row';
+      fc.parentElement.insertBefore(row,fc);
+      row.appendChild(fc);
+    }
+    let gem=row.querySelector('.dfc-profile-diamonds');
+    if(!gem){
+      gem=document.createElement('span');gem.className='dfc-profile-diamonds';
+      gem.setAttribute('aria-label','Diamantes de mesa');row.appendChild(gem);
+    }
+    const value='💎 '+original.textContent.trim();
+    if(gem.textContent!==value)gem.textContent=value;
+  }
+  function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(sync);}
+  const obs=new MutationObserver(schedule);
+  obs.observe(seats,{subtree:true,childList:true});
+  new MutationObserver(schedule).observe(original,{childList:true,characterData:true,subtree:true});
+  schedule();
 })();
 </script>
 </body>
