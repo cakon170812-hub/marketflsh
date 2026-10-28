@@ -2708,7 +2708,7 @@ html body #dominoTablePanel #dominoBoard .domino-board-path .domino-piece.board-
 </style><style id="dfc-z26-official-background">
 /* DFC Z.26: mismo fondo oficial en carga, inicio y listado de mesas.
    Se conserva intencionalmente el tablero de juego y sus controles tactiles. */
-:root { --dfc-z26-official-wallpaper: url("./images2/Interfaz%20de%20domin%C3%B3%20de%20lujo%20en%20oro%20y%20negro.png%2001.png.png"); }
+:root { --dfc-z26-official-wallpaper: url("./images2/Interfaz%20de%20domino%CC%81%20de%20lujo%20en%20oro%20y%20negro.png%2001.png.png"); }
 #dfc-z9-loader {
  background-color:#020917!important;
  background-image:linear-gradient(180deg,rgba(0,7,20,.38),rgba(0,5,17,.76)),var(--dfc-z26-official-wallpaper)!important;
@@ -2737,7 +2737,7 @@ html { background-color:#020917; }
 </style>
 <style id="dfc-z27-continuous-splash">
 /* Fondo oficial idéntico desde la carga hasta el inicio; conserva el tablero original. */
-#dfc-z9-loader{background-image:linear-gradient(180deg,rgba(0,7,20,.36),rgba(0,5,17,.65)),url("./images2/Interfaz%20de%20domin%C3%B3%20de%20lujo%20en%20oro%20y%20negro.png%2001.png.png")!important;background-position:center center!important;background-size:cover!important;background-repeat:no-repeat!important;}
+#dfc-z9-loader{background-image:linear-gradient(180deg,rgba(0,7,20,.36),rgba(0,5,17,.65)),url("./images2/Interfaz%20de%20domino%CC%81%20de%20lujo%20en%20oro%20y%20negro.png%2001.png.png")!important;background-position:center center!important;background-size:cover!important;background-repeat:no-repeat!important;}
 #dfc-z9-loader .line{display:none!important}
 #dfc-z27-progress{display:none!important;height:11px;width:min(76vw,320px);margin:18px auto 5px;border-radius:30px;overflow:hidden;background:rgba(255,255,255,.25);border:1px solid rgba(245,205,110,.7)}
 #dfc-z27-progress-fill{width:0;height:100%;background:linear-gradient(90deg,#94641d,#ffdf75);transition:width .22s ease}
@@ -2776,7 +2776,7 @@ html { background-color:#020917; }
  var wallpaper=new Image();var wallTimer=setTimeout(function(){if(!steps.wallpaper)showError('No se pudo confirmar la carga del fondo. Puedes reintentar.')},9000);
  wallpaper.onload=function(){clearTimeout(wallTimer);mark('wallpaper')};
  wallpaper.onerror=function(){clearTimeout(wallTimer);showError('No se encontró el fondo oficial. Comprueba la ruta de la imagen.')};
- wallpaper.src='./images2/Interfaz%20de%20domin%C3%B3%20de%20lujo%20en%20oro%20y%20negro.png%2001.png.png';
+ wallpaper.src='./images2/Interfaz%20de%20domino%CC%81%20de%20lujo%20en%20oro%20y%20negro.png%2001.png.png';
  // Fonts.ready confirma fuentes ya solicitadas; no afirma que se completó inicio de sesión o sincronización.
  var fonts=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
  fonts.then(function(){mark('fonts')},function(){mark('fonts')});
