@@ -1,10 +1,10 @@
-# DOMINÓ FLASH COIN 0.12Z.21 - CANDIDATO; requiere revisar el HTML de GitHub y probar el APK
+# DOMINÓ FLASH COIN 0.12Z.27 - CANDIDATO; requiere revisar el HTML de GitHub y probar el APK
 name: DFC Android — paquete aprobado
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: Versión aprobada (p. ej. 0.12Z.21)
+        description: Versión aprobada (p. ej. 0.12Z.27)
         required: true
         type: string
       sha:
