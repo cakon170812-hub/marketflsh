@@ -5620,52 +5620,22 @@ async function dominoStartRealtime(){
 function dominoConfigModeLabel(m){return m==='paid_pass'?'Pases pagados':'Clásico'}
 
 async function dominoForceLandscape(){
+  // Mantener la sesión de dominó activa sin obligar a girar el dispositivo.
   document.body.classList.add('domino-playing');
-  // Capacitor ScreenOrientation plugin works without the user's Android auto-rotate toggle.
-  try{
-    const cap=window.Capacitor;
-    if(cap?.isNativePlatform?.()&&cap?.Plugins?.ScreenOrientation?.lock){
-      await cap.Plugins.ScreenOrientation.lock({orientation:'landscape'});
-      document.body.classList.add('dfc161-native-landscape');
-      return;
-    }
-    if(typeof window.AndroidOrientation?.lockLandscape==='function'){
-      window.AndroidOrientation.lockLandscape();
-      document.body.classList.add('dfc161-native-landscape');
-      return;
-    }
-  }catch(e){console.warn('Orientación nativa no disponible',e)}
-  try{
-    if(document.documentElement.requestFullscreen && !document.fullscreenElement){
-      await document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{});
-    }
-  }catch(e){}
-  try{
-    if(screen.orientation?.lock){
-      await screen.orientation.lock('landscape');
-    }
-  }catch(e){
-    // Algunos navegadores no permiten ignorar el bloqueo de rotación del sistema.
-  }
+  document.body.classList.remove('dfc161-native-landscape');
   dominoUpdateRotateGuard();
 }
 function dominoReleaseLandscape(){
-  const nativeLocked=document.body.classList.contains('dfc161-native-landscape');
   document.body.classList.remove('domino-playing','dfc161-native-landscape');
-  try{
-    const orient=window.Capacitor?.Plugins?.ScreenOrientation;
-    if(nativeLocked&&orient?.lock)void orient.lock({orientation:'portrait'}).catch(()=>{});
-    else void orient?.unlock?.();
-  }catch(e){}
-  try{window.AndroidOrientation?.unlock?.()}catch(e){}
-  try{screen.orientation?.unlock?.()}catch(e){}
-  const g=$('dominoRotateGuard');if(g)g.classList.remove('show');
+  // Desbloquear orientaciones nativas que pudieron quedar fijadas en sesiones anteriores.
+  try{void window.Capacitor?.Plugins?.ScreenOrientation?.unlock?.()?.catch?.(()=>{});}catch(_){}
+  try{window.AndroidOrientation?.unlock?.()}catch(_){}
+  try{screen.orientation?.unlock?.()}catch(_){}
+  dominoUpdateRotateGuard();
 }
 function dominoUpdateRotateGuard(){
-  const g=$('dominoRotateGuard');if(!g)return;
-  const playing=document.body.classList.contains('domino-playing');
-  const portrait=window.matchMedia?.('(orientation: portrait)').matches ?? (innerHeight>innerWidth);
-  g.classList.toggle('show',playing&&portrait&&!document.body.classList.contains('dfc161-native-landscape'));
+  const guard=document.getElementById('dominoRotateGuard');
+  if(guard){guard.classList.remove('show');guard.style.setProperty('display','none','important');}
 }
 window.addEventListener('orientationchange',()=>setTimeout(dominoUpdateRotateGuard,150));
 window.addEventListener('resize',dominoUpdateRotateGuard);
@@ -16504,6 +16474,59 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
   new MutationObserver(report).observe(target,{subtree:true,childList:true,characterData:true});
  });
 })();
-</script></body>
+</script>
+<!-- Ajuste interno de interfaz, sin cambio de versión Android; base visual intacta de 0.12Z.16. -->
+<style id="dfc-orientation-both-027">
+  #dominoRotateGuard, #dominoRotateGuard.show { display:none!important;visibility:hidden!important;pointer-events:none!important; }
+  body.domino-playing #dominoTablePanel { max-width:100vw!important;box-sizing:border-box!important; }
+  @media (orientation:portrait) {
+    body.domino-playing #dominoTablePanel { width:100%!important;max-height:100dvh!important; }
+    body.domino-playing #dominoStage { max-width:100%!important; margin-inline:auto!important; }
+    body.domino-playing #dominoTablePanel button { touch-action:manipulation; }
+  }
+  @media (orientation:landscape) {
+    body.domino-playing #dominoTablePanel { max-height:100dvh!important; }
+  }
+  #dfcDominoEntryLoading {
+    position:fixed;inset:0;z-index:2147483640;display:none;align-items:center;
+    justify-content:center;background:rgba(4,13,29,.96);color:#f6de9a;
+    padding:24px;text-align:center;pointer-events:auto;
+  }
+  #dfcDominoEntryLoading.dfc-on {display:flex;}
+  #dfcDominoEntryLoading .dfc-loading-card {max-width:360px;width:100%;padding:28px 24px;
+    border:1px solid rgba(230,191,98,.5);border-radius:23px;background:linear-gradient(145deg,#091c38,#102c45);
+    box-shadow:0 14px 45px #0008;font:600 16px system-ui,sans-serif;}
+  #dfcDominoEntryLoading .dfc-loading-spin {width:40px;height:40px;margin:0 auto 15px;
+    border:4px solid #6c8294;border-top-color:#e9c56e;border-radius:50%;animation:dfcEntrySpin .85s linear infinite;}
+  @keyframes dfcEntrySpin {to{transform:rotate(360deg)}}
+</style>
+<div id="dfcDominoEntryLoading" role="status" aria-live="polite" aria-label="Cargando dominó">
+ <div class="dfc-loading-card"><div class="dfc-loading-spin"></div>
+ <strong>DOMINÓ FLASH COIN</strong><p id="dfcDominoEntryText">Preparando la mesa...</p></div>
+</div>
+<script id="dfc-domino-entry-loading-027">
+(function(){
+  'use strict';
+  const overlay=()=>document.getElementById('dfcDominoEntryLoading');
+  function show(text){const el=overlay();if(!el)return;const t=document.getElementById('dfcDominoEntryText');if(t)t.textContent=text||'Preparando la mesa...';el.classList.add('dfc-on');}
+  function hide(){overlay()?.classList.remove('dfc-on');}
+  // El fondo no modifica el estado de sala ni los cobros; solo señala el trabajo ya iniciado.
+  const panel=document.getElementById('dominoTablePanel');
+  const lobby=document.getElementById('dominoLobbyPanel');
+  if(panel){new MutationObserver(()=>{if(panel.classList.contains('active')&&!panel.classList.contains('hidden'))hide();}).observe(panel,{attributes:true,attributeFilter:['class']});}
+  if(lobby){new MutationObserver(()=>{if(lobby.classList.contains('active')&&!lobby.classList.contains('hidden'))hide();}).observe(lobby,{attributes:true,attributeFilter:['class']});}
+  document.addEventListener('click',function(ev){
+    const trigger=ev.target?.closest?.('button,[role="button"]');if(!trigger)return;
+    const id=trigger.id||'';
+    // No anticipar confirmación económica: solo transición al lobby / sala.
+    if(id==='dominoGameBtn'||id==='dominoGamesBtn'||id==='dominoPlayBtn')show('Cargando mesas...');
+    if(trigger.matches('[data-domino-watch],[data-domino-spectate]'))show('Entrando a la mesa...');
+  },{capture:true,passive:true});
+  // Nunca bloquear la interfaz indefinidamente en caso de fallo de red.
+  window.addEventListener('pageshow',hide);
+  window.dfcHideDominoLoading=hide;
+})();
+</script>
+</body>
 
 </html>
