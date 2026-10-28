@@ -31,7 +31,7 @@ body{background-image:var(--dfc-z26-official-wallpaper)!important;background-siz
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
 <meta content="no-cache" http-equiv="Pragma"/>
 <meta content="0" http-equiv="Expires"/>
-<meta content="0.12Z.33" name="application-version"/>
+<meta content="0.12Z.27" name="application-version"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" name="viewport"/>
 <meta content="#081b39" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
@@ -2767,6 +2767,48 @@ html { background-color:#020917; }
 #dfc-z9-loader #dfc-z27-loading-track{display:block!important;position:relative!important;width:min(76vw,320px)!important;height:10px!important;min-height:10px!important;margin:18px auto 9px!important;visibility:visible!important;opacity:1!important;overflow:hidden!important;border-radius:99px!important;background:#ffffff26!important;border:1px solid #dfbd6d!important;box-sizing:border-box!important;}
 #dfc-z9-loader #dfc-z27-loading-fill{display:block!important;width:100%!important;height:100%!important;transform:scaleX(.01);transform-origin:left center!important;transition:none!important;border-radius:inherit!important;background:linear-gradient(90deg,#ba872b,#ffe8a4)!important;will-change:transform;}
 #dfc-z9-loader #dfc-z27-percent{display:block!important;font-variant-numeric:tabular-nums!important;}
+</style>
+
+<style id="dfc-domino-visual-adjustments-20261028">
+/* Ajuste interno 0.12Z.27: no cambia versión de Android, SQL ni reglas. */
+#dominoTablePanel #dominoStage { isolation:isolate; }
+/* Base existente de mesa se conserva; detalles no bloquean arrastre. */
+#dominoTablePanel #dominoStage::after { pointer-events:none!important; }
+#dominoTablePanel #dominoHand { gap:clamp(3px,.6vw,8px)!important; }
+#dominoTablePanel #dominoHand .domino-piece.hand-piece {
+  scale:1.06;transform-origin:center bottom;touch-action:none;
+  will-change:transform;transition:filter .1s ease;
+}
+/* Escalado ligero sobre el tamaño previo de la fila; se respeta su motor de ajuste. */
+#dominoTablePanel #dominoBoard .domino-board-path { scale:.82!important;transform-origin:center center!important; }
+/* Emoji delante del tapete, debajo del camino de fichas. */
+#dominoTablePanel #dominoStage #dominoBigEmoji {
+  left:43%!important;top:50%!important;z-index:12!important;
+  font-size:clamp(68px,11vw,150px)!important;
+  opacity:0;pointer-events:none!important;
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.3));
+}
+#dominoTablePanel #dominoStage #dominoBigEmoji.show { opacity:.78!important; }
+#dominoTablePanel #dominoStage #dominoBoard {z-index:35!important;}
+#dominoTablePanel #dominoMiniEmojiBtn {
+  width:clamp(34px,4.3vw,46px)!important;
+  height:clamp(34px,4.3vw,46px)!important;
+  min-width:34px!important;min-height:34px!important;
+  border-radius:50%!important;
+  background:linear-gradient(150deg,#173d64,#0c1b30)!important;
+  border:1px solid rgba(255,218,129,.75)!important;
+  font-size:clamp(19px,2.5vw,25px)!important;
+  box-shadow:0 3px 12px #0008,inset 0 1px 2px #fff4!important;
+  display:grid!important;place-items:center!important;
+  transform:translateX(-4px);touch-action:manipulation;
+}
+#dominoTablePanel .domino-mini-chat-compose {
+  grid-template-columns:clamp(34px,4.3vw,46px) minmax(0,1fr) 32px!important;
+}
+@media(max-width:700px){
+ #dominoTablePanel #dominoHand .domino-piece.hand-piece {scale:1.04;}
+ #dominoTablePanel #dominoStage #dominoBigEmoji {left:41%!important;font-size:clamp(62px,13vw,105px)!important;}
+}
 </style>
 </head>
 <body>
@@ -6695,7 +6737,7 @@ function dfcZ11FlyTile(source,side){
   if(!to.width||!to.height)return null;
   const clone=source.cloneNode(true);
   clone.removeAttribute('id');clone.removeAttribute('data-domino-tile');clone.classList.remove('dragging','selected');
-  clone.style.cssText=`position:fixed!important;z-index:999990!important;pointer-events:none!important;left:${from.left}px!important;top:${from.top}px!important;width:${from.width}px!important;height:${from.height}px!important;opacity:1!important;transform:none!important;transition:transform .25s cubic-bezier(.2,.82,.2,1),opacity .18s!important;`;
+  clone.style.cssText=`position:fixed!important;z-index:999990!important;pointer-events:none!important;left:${from.left}px!important;top:${from.top}px!important;width:${from.width}px!important;height:${from.height}px!important;opacity:1!important;transform:none!important;transition:transform .12s cubic-bezier(.18,.9,.25,1),opacity .12s!important;`;
   document.body.append(clone);
   source.style.setProperty('opacity','.05','important');
   const destX=(to.left+to.width/2)-(from.left+from.width/2),destY=(to.top+to.height/2)-(from.top+from.height/2);
@@ -6704,7 +6746,7 @@ function dfcZ11FlyTile(source,side){
   // Visual watchdog only: it never confirms or retries the server move.
   const visualWatchdog=setTimeout(()=>{if(done)return;done=true;clone.remove();source.style.removeProperty('opacity');},1750);
   return {
-   confirm(){if(done)return;done=true;clearTimeout(visualWatchdog);setTimeout(()=>clone.remove(),280);source.style.removeProperty('opacity');},
+   confirm(){if(done)return;done=true;clearTimeout(visualWatchdog);setTimeout(()=>clone.remove(),135);source.style.removeProperty('opacity');},
    reject(){if(done)return;done=true;clearTimeout(visualWatchdog);clone.style.setProperty('transform','translate(0,0) scale(1)','important');setTimeout(()=>{clone.remove();source.style.removeProperty('opacity');},260);},
    cancel(){if(done)return;done=true;clearTimeout(visualWatchdog);clone.remove();source.style.removeProperty('opacity');}
   };
@@ -6828,8 +6870,7 @@ $('dominoEmojiTray')?.querySelectorAll('[data-domino-reaction]').forEach(btn=>{
   btn.addEventListener('click',async()=>{
     const emoji=btn.dataset.dominoReaction;
     $('dominoEmojiTray').classList.add('hidden');
-    const ok=await sendDominoChat(emoji,'reaction');
-    if(ok){dominoShowBigEmoji(emoji);await syncDominoTableMessages(true)}
+    dominoShowBigEmoji(emoji);     const ok=await sendDominoChat(emoji,'reaction');     if(ok){await syncDominoTableMessages(true)}else{dominoShowToast('No se pudo enviar el emoji. Intenta de nuevo.')}
   });
 });
 
@@ -16338,7 +16379,7 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 </script>
 
 <script id="dfc-z27-html-ready-signal">document.dispatchEvent(new Event("dfc-z27-html-ready"));</script>
-<script type="module" src="./native-bridge.js?v=0.12Z.33"></script>
+<script type="module" src="./native-bridge.js?v=0.12Z.27"></script>
 
 <style id="dfc-z27-shared-home-lobby-wallpaper">
 #appView.bg.dfc09-view,
@@ -16813,7 +16854,27 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
   window.addEventListener('pageshow',keepAwake);
 })();
 </script>
-</body>
+<script id="dfc-domino-round-latency-diagnostic">
+/* Solo diagnóstico local; no altera turnos, rondas ni llamadas a Supabase. */
+(()=>{
+ let lastPhase='',phaseAt=0;
+ const report=()=>{
+  const panel=document.getElementById('dominoTablePanel');
+  if(!panel||panel.classList.contains('hidden'))return;
+  const status=panel.querySelector('#dominoCenterStatus')?.textContent?.trim()||'';
+  const phase=status.slice(0,100);
+  if(phase===lastPhase)return;
+  const now=performance.now();
+  if(lastPhase&&phaseAt)console.debug('[DFC 0.12Z.27] Cambio de estado visual en mesa',Math.round(now-phaseAt)+'ms',lastPhase,'→',phase);
+  lastPhase=phase;phaseAt=now;
+ };
+ document.addEventListener('DOMContentLoaded',()=>{
+  const target=document.getElementById('dominoCenterStatus');
+  if(!target)return;
+  new MutationObserver(report).observe(target,{subtree:true,childList:true,characterData:true});
+ });
+})();
+</script></body>
 
 <style id="dfc-final-single-table-visual">
 /* Mesa única: wallpaper general intacto en el escenario, superficie encima, fichas encima de ambos. */
