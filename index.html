@@ -16,7 +16,7 @@
 
 <!-- Domino Flash Coin 1.6.1 · REPARACION DE RECARGAS AUTOMATICAS -->
 <!-- Base: HTML 1.0.1_SONIDO. Conserva lo existente y agrega únicamente las funciones aprobadas. -->
-<html data-app-build="0.12Z21" lang="es">
+<html data-app-build="0.12Z.26" lang="es">
 <head>
 <meta charset="utf-8"/>
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
@@ -2705,7 +2705,37 @@ html body #dominoTablePanel #dominoBoard .domino-board-path .domino-piece.board-
 #dfc-z15-admin input{width:100%;padding:10px;margin:5px 0 12px;color:#fff;background:#142940;border:1px solid #58718a;border-radius:8px}
 #dfc-z15-admin button{padding:10px;margin:3px;border-radius:8px;background:#d7ac56;color:#1b170d;font-weight:800}
 #dfc-z15-admin .balance{font-size:23px;color:#ffe49f}
-</style></head>
+</style><style id="dfc-z26-official-background">
+/* DFC Z.26: mismo fondo oficial en carga, inicio y listado de mesas.
+   Se conserva intencionalmente el tablero de juego y sus controles tactiles. */
+:root { --dfc-z26-official-wallpaper: url("./images2/Interfaz%20de%20domin%C3%B3%20de%20lujo%20en%20oro%20y%20negro.png%2001.png.png"); }
+#dfc-z9-loader {
+ background-color:#020917!important;
+ background-image:linear-gradient(180deg,rgba(0,7,20,.38),rgba(0,5,17,.76)),var(--dfc-z26-official-wallpaper)!important;
+ background-position:center 32%!important;background-size:cover!important;background-repeat:no-repeat!important;
+}
+/* Carga: no mostrar controles hasta que desaparezca el splash; el splash mantiene un fondo estable. */
+#dfc-z9-loader>div {background:rgba(0,11,34,.46);border:1px solid rgba(100,200,255,.35);border-radius:20px;backdrop-filter:blur(5px);}
+/* Inicio y selección: mismos fondos, con filtro que mantiene botones legibles. */
+#appView.bg {
+ background-image:linear-gradient(180deg,rgba(0,9,28,.67),rgba(0,6,21,.82)),var(--dfc-z26-official-wallpaper)!important;
+ background-color:#020917!important;background-size:cover!important;background-position:center 24%!important;
+ background-attachment:scroll!important;
+}
+#gamesPanel .domino-lobby-shell,
+#dominoLobbyPanel .domino-lobby-shell {
+ background-image:linear-gradient(180deg,rgba(0,12,32,.68),rgba(0,5,19,.86)),var(--dfc-z26-official-wallpaper)!important;
+ background-color:#020917!important;background-size:cover!important;background-position:center 22%!important;
+}
+/* El contenido y controles permanecen por encima del fondo decorativo. */
+#gamesPanel .domino-lobby-content,#dominoLobbyPanel .domino-lobby-content {position:relative;z-index:2;}
+@media (min-width:800px){#appView.bg{background-position:center center!important;}}
+/* Panorama superior también en áreas de desplazamiento de la portada. */
+html { background-color:#020917; }
+/* Una imagen decorativa no interceptará gestos sobre las fichas ni los botones. */
+#appView.bg, #gamesPanel .domino-lobby-shell, #dominoLobbyPanel .domino-lobby-shell { background-repeat:no-repeat!important; }
+</style>
+</head>
 <body>
 <div id="dfc-z9-loader" role="status" aria-live="polite"><div><span class="logo">💎</span><strong>DOMINÓ FLASH COIN</strong><p>Preparando tu juego…</p><div class="line"></div></div></div>
 <script id="dfc-z14-loader-safe-recovery">
