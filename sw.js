@@ -16767,5 +16767,51 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
  };
 })();
 </script>
+
+<!-- Ajuste visual interno: conserva identificador público 0.12Z.33. Superficie como en 0.12Z.22. -->
+<style id="dfc-table-restoration-no-version-change">
+/* Fondo general existente permanece detrás de una mesa CSS real; ninguna ficha decorativa. */
+#dominoTablePanel #dominoStage.dfc-z28-table {
+  isolation:isolate!important;overflow:hidden!important;position:relative!important;
+}
+#dominoTablePanel #dominoStage.dfc-z28-table > #dfcApprovedTableSurface {
+  display:block!important;visibility:visible!important;opacity:1!important;
+  position:absolute!important;left:3%!important;top:12%!important;width:94%!important;height:70%!important;
+  box-sizing:border-box!important;z-index:25!important;pointer-events:none!important;overflow:hidden!important;
+  border-radius:clamp(18px,4vw,48px)!important;
+  border:clamp(5px,1.2vw,14px) solid #624025!important;
+  outline:2px solid #b88848!important;
+  box-shadow:0 10px 38px rgba(0,0,0,.82),inset 0 0 0 3px #b68c4a,inset 0 0 34px #020b21!important;
+  background-color:#05224a!important;
+  background-image:linear-gradient(145deg,rgba(5,32,73,.92),rgba(12,71,142,.90) 55%,rgba(19,7,57,.94))!important;
+  background-size:100% 100%!important;transform:none!important;filter:none!important;
+}
+/* La antigua imagen PNG no sustituye la superficie jugable de 0.12Z.22. */
+#dominoTablePanel #dominoStage.dfc-z28-table > #dfcApprovedTableSurface > #dfcApprovedTableArt {display:none!important}
+#dominoTablePanel #dominoStage.dfc-z28-table > #dominoBoard {z-index:35!important;background:transparent!important}
+#dominoTablePanel #dominoStage.dfc-z28-table > #dominoSeats {z-index:40!important}
+#dominoTablePanel #dominoStage.dfc-z28-table > #dominoHand {z-index:100!important}
+/* No modificar reglas de juego ni la imagen general de la app. */
+</style>
+<script id="dfc-screen-awake-global">
+(function(){'use strict';
+  let active=null, pending=false;
+  async function keepAwake(){
+    if(document.visibilityState!=='visible'||!('wakeLock' in navigator)||pending||active&&!active.released)return;
+    pending=true;
+    try {active=await navigator.wakeLock.request('screen');active.addEventListener('release',()=>{active=null},{once:true});}
+    catch(e){/* iOS/Safari y ahorro de batería pueden no permitir este permiso. */}
+    finally{pending=false;}
+  }
+  // Pedir desde la pantalla de carga y reintentar al primer toque si el navegador exige gesto.
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',keepAwake,{once:true});
+  else keepAwake();
+  document.addEventListener('pointerdown',keepAwake,{passive:true});
+  document.addEventListener('touchstart',keepAwake,{passive:true});
+  document.addEventListener('keydown',keepAwake);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)keepAwake()});
+  window.addEventListener('pageshow',keepAwake);
+})();
+</script>
 </body>
 </html>
