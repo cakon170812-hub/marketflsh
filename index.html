@@ -3545,6 +3545,14 @@ async function markDominoViewAway(){
   if(!dominoCurrentTableId||dominoViewAway)return;
   dominoViewAway=true;
   try{
+    // Z28: si el jugador sale de una mesa sin otros asientos, el servidor
+    // debe liberarlo sin activar el modo automático. La comprobación es atómica.
+    const lone = await sb.rpc('dfc_z28_exit_if_alone',{p_table_id:dominoCurrentTableId});
+    if (!lone.error && lone.data?.exited === true) {
+      // El asiento ya no existe: no pedir al servidor que juegue en automático.
+      return;
+    }
+    // Si todavía hay otros jugadores, o una mano pendiente, preservar flujo anterior.
     await sb.rpc('rf_domino_back_v11',{p_table_id:dominoCurrentTableId});
   }catch(e){
     console.warn('Dominó: no se pudo marcar ausencia temporal',e);
@@ -5579,6 +5587,7 @@ function dominoStartPolling(){
   dominoHeartbeat(true).catch(()=>{});
   dominoPollTimer=setInterval(()=>{
     if(!dominoCurrentTableId||document.hidden)return;
+    syncDominoTableMessages().catch(()=>{});
     dominoHeartbeat(false).catch(()=>{});
     dfcZ12SyncClock().catch(()=>{});
     if(!mfDominoPlayPending && !mfDominoStateLoading){
@@ -5894,6 +5903,7 @@ function dominoInitials(name,id){
   return String(id||'FC').slice(-2).toUpperCase();
 }
 function dominoResetTableEffects(){
+  dfcZ28SeenReactionTable=0;dfcZ28ReactionPrimed=false;dfcZ28SeenReactionKeys.clear();
   dominoSelectedTile=null;dominoDragState=null;dominoLastMoveId=null;dominoMoveEffectsPrimed=false;dominoClearEndHighlights();dominoUserMessageCache.clear();
   clearTimeout(dominoAutoPassTimer);dominoAutoPassTimer=null;clearTimeout(dominoCameraZoomTimer);dominoCameraZoomTimer=null;$('dominoStage')?.classList.remove('domino-camera-zoom');dominoSuppressTickUntil=0;dominoSkipOwnPlaySoundUntil=0;dominoUrgentTickKey='';
 }
@@ -6332,6 +6342,9 @@ function dominoBindMessageButtons(){
 }
 
 let dominoTableMessageLastId='',dominoTableMessageTimer=null,dominoTableMessageCheckAt=0;
+// Z28: marcadores independientes por mesa; no reproducir reacciones antiguas al entrar.
+let dfcZ28SeenReactionTable=0,dfcZ28ReactionPrimed=false;
+const dfcZ28SeenReactionKeys=new Set();
 function dominoClearSeatBubbles(){
   [1,2,3,4].forEach(n=>{
     const b=$('dominoSeatBubble'+n);
@@ -6371,20 +6384,48 @@ function dominoShowSeatMessage(row){
   bubble._hideTimer=setTimeout(()=>bubble.classList.remove('show'),isReaction?5000:10000);
 }
 async function syncDominoTableMessages(force=false){
-  if(!dominoCurrentTableId)return;
-  if(!force&&Date.now()-dominoTableMessageCheckAt<3200)return;
+  const tid=Number(dominoCurrentTableId||0);
+  if(!tid||!$('dominoTablePanel')||$('dominoTablePanel').classList.contains('hidden'))return;
+  // Las notificaciones son exclusivas de cada mesa y cada sesión de visualización.
+  if(dfcZ28SeenReactionTable!==tid){
+    dfcZ28SeenReactionTable=tid;
+    dfcZ28ReactionPrimed=false;
+    dfcZ28SeenReactionKeys.clear();
+    dominoTableMessageLastId='';
+    dominoTableMessageCheckAt=0;
+  }
+  if(!force&&Date.now()-dominoTableMessageCheckAt<1600)return;
   dominoTableMessageCheckAt=Date.now();
-  const {data,error}=await sb.rpc('rf_domino_chat_list_v150',{p_table_id:dominoCurrentTableId,p_limit:20});
-  if(error)return;
-  await dfcReloadBlocked();const rows=dfcZ28ActiveMessages(dfcVisibleMessages(data||[]));renderDominoMiniChat(rows);if(!rows.length)return;
+  const {data,error}=await sb.rpc('rf_domino_chat_list_v150',{p_table_id:tid,p_limit:40});
+  if(error||Number(dominoCurrentTableId)!==tid)return;
+  await dfcReloadBlocked();
+  const rows=dfcZ28ActiveMessages(dfcVisibleMessages(data||[]));
+  renderDominoMiniChat(rows);
   rows.forEach(r=>{if(String(r.kind||'text')==='text'&&String(r.message||'').trim())dominoUserMessageCache.set(String(r.user_id),r)});
   dominoUpdateUserMessageButtons();
-  const row=rows[rows.length-1];
-  const key=[row.id||'',row.user_id||'',row.created_at||'',row.message||'',row.kind||''].join('|');
-  if(!force&&key===dominoTableMessageLastId)return;
-  dominoTableMessageLastId=key;
-  const age=Date.now()-new Date(row.created_at||0).getTime();
-  if(age>=0&&(age<10500||force&&age<20000))dominoShowSeatMessage(row);
+  const ordered=[...rows].sort((a,b)=>Date.parse(a.created_at||0)-Date.parse(b.created_at||0));
+  const makeKey=r=>[r.id||'',r.user_id||'',r.created_at||'',r.message||'',r.kind||''].join('|');
+  // Primer sondeo: marcar el historial como visto, para no proyectar emojis anteriores.
+  if(!dfcZ28ReactionPrimed){
+    ordered.forEach(r=>dfcZ28SeenReactionKeys.add(makeKey(r)));
+    dfcZ28ReactionPrimed=true;
+    return;
+  }
+  const now=Date.now();
+  for(const row of ordered){
+    const key=makeKey(row);
+    if(dfcZ28SeenReactionKeys.has(key))continue;
+    dfcZ28SeenReactionKeys.add(key);
+    const age=now-Date.parse(row.created_at||0);
+    if(!Number.isFinite(age)||age<0||age>10500)continue;
+    // Cada participante que consulta esta mesa reproduce la reacción una sola vez.
+    if(String(row.kind||'')==='reaction')dominoShowSeatMessage(row);
+    else if(String(row.kind||'text')==='text')dominoShowSeatMessage(row);
+  }
+  if(dfcZ28SeenReactionKeys.size>400){
+    const keep=[...dfcZ28SeenReactionKeys].slice(-200);
+    dfcZ28SeenReactionKeys.clear();keep.forEach(x=>dfcZ28SeenReactionKeys.add(x));
+  }
 }
 function dominoUpdateLiveControls(){
   // 1.7.0: no existen botones manuales de Pasar, Repartir ni Ronda.
@@ -13161,7 +13202,10 @@ window.dfc012rSyncPoints=st=>{
  const box=el('dfc012n-scoreboard');if(box){
   const roster=Array.isArray(st.player_scores)?st.player_scores:[],four=Number(st.participant_count||0)===4;
   const sums=[0,0];for(const p of roster)sums[Number(p.seat_no)%2]+=Number(p.points||0);
-  const html=`<div class="dfc012r-scorecard"><div class="top"><span>💎 META ${Number(st.target||100)}</span><strong>🪙 ${fmt(st.stake_pot||0)}</strong></div>${four?`<div class="team">Equipo 1: ${sums[1]} 💎 · Equipo 2: ${sums[0]} 💎</div>`:'<div class="team">Individual · gana quien alcance la meta</div>'}</div>`;
+  const players=roster.slice(0,4).sort((a,b)=>Number(a.seat_no||0)-Number(b.seat_no||0));
+  const safeName=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const scoreTiles=players.map((p,i)=>`<div class="dfc-z28-score-tile" title="${safeName(p.name||p.display_name||('Jugador '+(i+1)))}"><span>${safeName(p.name||p.display_name||('Jugador '+(i+1)))}</span><strong>💎 ${Number(p.points||0)}</strong></div>`).join('');
+  const html=`<div class="dfc012r-scorecard dfc-z28-scorecard"><div class="top"><span>💎 META ${Number(st.target||100)}</span><strong>🪙 ${fmt(st.stake_pot||0)}</strong></div><div class="dfc-z28-score-grid">${scoreTiles}</div>${four?`<div class="team">Equipo 1: ${sums[1]} 💎 · Equipo 2: ${sums[0]} 💎</div>`:'<div class="team">Individual · gana quien alcance la meta</div>'}</div>`;
   if(box.dataset.dfc012rMarkup!==html){box.innerHTML=html;box.dataset.dfc012rMarkup=html;}
  }
  window.dfc012rStampPoints?.();
@@ -16767,6 +16811,16 @@ function dfcZ28ShowTableText(row){
  #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > *{font-size:9px!important;padding:2px 3px!important}
  #dominoTablePanel #dominoChatBtn,#dominoTablePanel #dominoEmojiBtn {min-width:72px!important;min-height:40px!important}
 }
+</style>
+
+<style id="dfc-z28-score-4-visible">
+/* Cuatro tablillas independientes, dos columnas, con lectura compacta. */
+#dominoTablePanel #dominoStage #dfc012n-scoreboard .dfc-z28-score-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:3px!important;width:100%!important;min-width:0!important;margin:3px 0!important}
+#dominoTablePanel #dominoStage #dfc012n-scoreboard .dfc-z28-score-tile{min-width:0!important;max-width:100%!important;box-sizing:border-box!important;padding:3px!important;display:flex!important;flex-direction:column!important;gap:2px!important;overflow:hidden!important;border:1px solid #659cce;border-radius:6px;background:#102647f2}
+#dominoTablePanel #dominoStage #dfc012n-scoreboard .dfc-z28-score-tile span{font-size:clamp(8px,1.1vw,11px)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;line-height:1.2!important}
+#dominoTablePanel #dominoStage #dfc012n-scoreboard .dfc-z28-score-tile strong{font-size:clamp(10px,1.25vw,14px)!important;white-space:nowrap!important;font-variant-numeric:tabular-nums}
+#dominoTablePanel #dominoStage #dfc012n-scoreboard{width:clamp(172px,27%,260px)!important;max-width:36%!important;max-height:56%!important;overflow-y:auto!important}
+@media(max-width:700px){#dominoTablePanel #dominoStage #dfc012n-scoreboard{width:clamp(154px,33%,210px)!important;max-width:38%!important;padding:4px!important}}
 </style>
 </body>
 
