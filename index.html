@@ -7857,19 +7857,27 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
     setTimeout(()=>target.classList.remove('domino-credit-pulse'),900);
   }
 
-  function animateSeatNumber(userId,fromValue,toValue,duration=720){
+  /* Z28: el contador visual sigue la llegada escalonada de las monedas.
+     Solo anima importes ya confirmados por el estado del servidor. */
+  const creditBalanceAnimations=new WeakMap();
+  function animateSeatNumber(userId,fromValue,toValue,duration=1360){
     const el=seatBalanceEl(userId);
     const from=Number(fromValue),to=Number(toValue);
     if(!el||!Number.isFinite(from)||!Number.isFinite(to)||to<=from)return;
-    const t0=performance.now();
-    const frame=now=>{
-      const p=Math.min(1,(now-t0)/duration);
-      const e=1-Math.pow(1-p,3);
-      el.textContent=mfCash(from+(to-from)*e);
-      if(p<1)requestAnimationFrame(frame);
-      else el.textContent=mfCash(to);
+    const previous=creditBalanceAnimations.get(el);
+    if(previous)cancelAnimationFrame(previous);
+    const started=performance.now();
+    const tick=now=>{
+      if(!el.isConnected){creditBalanceAnimations.delete(el);return;}
+      const p=Math.max(0,Math.min(1,(now-started)/duration));
+      // El saldo comienza a subir mientras llegan las primeras monedas
+      // y termina cuando llega la última, no antes.
+      const progress=p*p*(3-2*p);
+      el.textContent=mfCash(from+(to-from)*progress);
+      if(p<1)creditBalanceAnimations.set(el,requestAnimationFrame(tick));
+      else {el.textContent=mfCash(to);creditBalanceAnimations.delete(el);}
     };
-    requestAnimationFrame(frame);
+    creditBalanceAnimations.set(el,requestAnimationFrame(tick));
   }
 
   function playProfileCreditSound(){
@@ -7887,7 +7895,7 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
     flyCoinsToProfile(uid,source,20);
     const d=window.__mfDominoVictoryBalanceDelta;
     if(d&&String(d.userId)===String(uid)){
-      setTimeout(()=>animateSeatNumber(uid,d.from,d.to,900),100);
+      setTimeout(()=>animateSeatNumber(uid,d.from,d.to,1450),135);
       setTimeout(()=>{window.__mfDominoVictoryBalanceDelta=null},1300);
     }
   };
@@ -7946,7 +7954,7 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
           setTimeout(()=>{
             flyCoinsToProfile(recipient,source,13);
             playProfileCreditSound();
-            if(Number.isFinite(old)&&Number.isFinite(neu)&&neu>old)animateSeatNumber(recipient,old,neu,720);
+            if(Number.isFinite(old)&&Number.isFinite(neu)&&neu>old)animateSeatNumber(recipient,old,neu,1160);
           },90);
         }
       }
@@ -15965,7 +15973,7 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
  function animateAmount(el,from,to){
   if(!el||!Number.isFinite(to))return;
   if(!Number.isFinite(from)||Math.abs(to-from)<.0005){el.textContent=fmt(to);return}
-  const started=performance.now(),duration=750;
+  const started=performance.now(),duration=1080;
   function tick(t){if(!el.isConnected)return;
    const f=Math.min(1,(t-started)/duration);el.textContent=fmt(from+(to-from)*f);
    if(f<1)requestAnimationFrame(tick);else el.textContent=fmt(to);
@@ -16643,31 +16651,31 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 <script id="dfc-z28-profile-balance-pair">
 (()=>{'use strict';
  const seats=document.getElementById('dominoSeats');
+ const original=document.getElementById('dfcZ16DiamondChip');
  const ownAmount=document.getElementById('dfcZ16TableDiamondAmount');
  if(!seats)return;
- let queued=false;
+ let pending=false;
  function sync(){
-  queued=false;
+  pending=false;
   for(const seat of seats.querySelectorAll('.domino-seat')){
-   const fc=seat.querySelector('.seat-bal'); if(!fc)continue;
+   const fc=seat.querySelector('.seat-bal');if(!fc)continue;
    let row=seat.querySelector('.dfc-profile-currency-row');
-   if(!row){row=document.createElement('div');row.className='dfc-profile-currency-row';fc.parentNode?.insertBefore(row,fc);}
+   if(!row){row=document.createElement('div');row.className='dfc-profile-currency-row';seat.insertBefore(row,seat.querySelector('.domino-seat-heading')||fc);}
    if(fc.parentElement!==row)row.insertBefore(fc,row.firstChild);
-   const isMine=seat.classList.contains('mine');
-   if(isMine){
-    let gem=row.querySelector('.dfc-profile-diamonds');
-    if(!gem){gem=document.createElement('span');gem.className='dfc-profile-diamonds';gem.setAttribute('aria-label','Diamantes de mesa');row.appendChild(gem);}
-    const val=ownAmount?.textContent?.trim()||'—';const txt='💎 '+val;
-    if(gem.textContent!==txt)gem.textContent=txt;
+   const mine=seat.classList.contains('mine')||seat.classList.contains('dfc-z161-self');
+   if(mine){
+    // Keep the original interactive diamond chip (and authoritative counter), not a duplicate.
+    row.querySelectorAll('.dfc-profile-diamonds').forEach(el=>el.remove());
+    if(original&&original.parentElement!==row)row.appendChild(original);
    }else{
-    // Solo trasladar el saldo real que el RPC autorizado ya muestra: nunca inventarlo.
     const gem=seat.querySelector('.dfc-z163-guest-gems');
     if(gem&&gem.parentElement!==row)row.appendChild(gem);
    }
+   const heading=seat.querySelector('.domino-seat-heading');
+   if(heading&&row.nextElementSibling!==heading)seat.insertBefore(row,heading);
   }
  }
- function schedule(){if(queued)return;queued=true;requestAnimationFrame(sync);}
- // Acknowledge both avatar rerenders and server-confirmed updates, without watching text on the entire seat tree.
+ function schedule(){if(pending)return;pending=true;requestAnimationFrame(sync)}
  new MutationObserver(schedule).observe(seats,{childList:true,subtree:true});
  if(ownAmount)new MutationObserver(schedule).observe(ownAmount,{childList:true,characterData:true,subtree:true});
  schedule();
@@ -16719,6 +16727,47 @@ function dfcZ28ShowTableText(row){
 }
 </script>
 
+
+<!-- Z28: corrección de distribución de saldos y visibilidad de controles; sin cambio de versión. -->
+<style id="dfc-z28-seat-balance-chat-corners-fix">
+#dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row {
+ grid-column:2!important;grid-row:1!important;align-self:center!important;
+ display:flex!important;flex-wrap:nowrap!important;justify-content:flex-start!important;
+ gap:3px!important;width:max-content!important;max-width:100%!important;
+ margin:0!important;z-index:160!important;overflow:visible!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading {
+ grid-column:2!important;grid-row:2!important;align-self:center!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .domino-seat-info {grid-column:2!important;grid-row:3!important}
+#dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > #dfcZ16DiamondChip,
+#dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > .dfc-z163-guest-gems {
+ position:static!important;display:inline-flex!important;visibility:visible!important;
+ transform:none!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+ margin:0!important;padding:2px 5px!important;min-height:20px!important;
+ width:auto!important;min-width:0!important;max-width:none!important;flex:0 1 auto!important;
+ opacity:1!important;pointer-events:auto!important;border-radius:999px!important;
+ font-size:clamp(9px,1vw,12px)!important;white-space:nowrap!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > .seat-bal {
+ position:static!important;display:inline-flex!important;white-space:nowrap!important;
+ width:auto!important;min-width:0!important;padding:2px 5px!important;
+ border-radius:999px!important;grid-column:auto!important;grid-row:auto!important;
+}
+#dominoTablePanel #dominoChatBtn, #dominoTablePanel #dominoEmojiBtn {
+ display:inline-flex!important;visibility:visible!important;opacity:1!important;
+ position:fixed!important;top:auto!important;bottom:max(12px,env(safe-area-inset-bottom))!important;
+ z-index:2000!important;width:auto!important;min-width:76px!important;max-width:27vw!important;
+ min-height:43px!important;font-weight:800!important;
+}
+#dominoTablePanel #dominoChatBtn {left:max(10px,env(safe-area-inset-left))!important;right:auto!important}
+#dominoTablePanel #dominoEmojiBtn {right:max(10px,env(safe-area-inset-right))!important;left:auto!important}
+@media(max-width:580px){
+ #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row {gap:2px!important}
+ #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > *{font-size:9px!important;padding:2px 3px!important}
+ #dominoTablePanel #dominoChatBtn,#dominoTablePanel #dominoEmojiBtn {min-width:72px!important;min-height:40px!important}
+}
+</style>
 </body>
 
 </html>
