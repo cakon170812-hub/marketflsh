@@ -6201,7 +6201,7 @@ function dominoScheduleAutoPass(){
     dominoAutoPassTimer=null;
     if(!dominoCurrentTableId)return;
     try{const {error}=await sb.rpc('rf_domino_progress_v012i',{p_table_id:dominoCurrentTableId});if(!error)await loadDominoState(false,true)}catch(e){}
-  },2000);
+  },1500);
 }
 function dominoHandleMoveEffects(st){
   const mv=st?.last_move;
@@ -6566,7 +6566,7 @@ function renderDominoState(st){
       const sec=Math.max(0,Math.ceil((new Date(h.turn_deadline)-mfDominoNow())/1000));
       dominoUrgentTick(h,sec);
       if(myTurn&&!hasLegal){
-        status='<span class="domino-auto-pass">No tienes ficha válida · pase automático en 2 s…</span>';
+        status='<span class="domino-auto-pass">No tienes ficha válida · pase automático en 1.5 s…</span>';
         dominoScheduleAutoPass();
       }
     }
@@ -16822,6 +16822,69 @@ function dfcZ28ShowTableText(row){
 #dominoTablePanel #dominoStage #dfc012n-scoreboard{width:clamp(172px,27%,260px)!important;max-width:36%!important;max-height:56%!important;overflow-y:auto!important}
 @media(max-width:700px){#dominoTablePanel #dominoStage #dfc012n-scoreboard{width:clamp(154px,33%,210px)!important;max-width:38%!important;padding:4px!important}}
 </style>
+<!-- Z28 · Animación de saldos confirmados visibles para todos los asientos. No realiza operaciones económicas. -->
+<style id="dfc-z28-shared-ledger-motion-css">
+#dominoTablePanel #dominoSeats .domino-seat .seat-bal,
+#dominoTablePanel #dominoSeats .domino-seat .dfc-z163-guest-gems,
+#dominoTablePanel #dominoSeats .domino-seat #dfcZ16TableDiamondAmount {font-variant-numeric:tabular-nums;}
+.dfc-z28-balance-moving {filter:drop-shadow(0 0 3px rgba(255,221,117,.5));}
+</style>
+<script id="dfc-z28-shared-ledger-motion">
+(()=>{'use strict';
+ const root=document.getElementById('dominoSeats'); if(!root)return;
+ const last=new Map(); const running=new WeakMap();let scheduled=false;
+ const amount=text=>{const match=String(text||'').replace(/,/g,'').match(/-?\d+(?:\.\d+)?/);return match?Number(match[0]):NaN};
+ const display=(element,value,kind)=>`${kind==='gem'&&element.id!=='dfcZ16TableDiamondAmount'?'💎 ':''}${value.toFixed(3)}${kind==='coin'?' FC':''}`;
+ function animate(element,from,to,kind){
+   const old=running.get(element);if(old)cancelAnimationFrame(old.raf);
+   const local={raf:0};running.set(element,local);
+   const duration=900,start=performance.now();element.classList.add('dfc-z28-balance-moving');
+   const tick=now=>{
+     if(running.get(element)!==local||!element.isConnected)return;
+     const ratio=Math.min(1,(now-start)/duration);const eased=1-Math.pow(1-ratio,3);
+     element.textContent=display(element,from+(to-from)*eased,kind);
+     if(ratio<1)local.raf=requestAnimationFrame(tick);
+     else{element.textContent=display(element,to,kind);element.classList.remove('dfc-z28-balance-moving');running.delete(element);}
+   };local.raf=requestAnimationFrame(tick);
+ }
+ function particles(element,kind,positive){
+   if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+   const rect=element.getBoundingClientRect();if(!rect.width||!rect.height)return;
+   const source=document.querySelector('#dominoTablePanel .domino-inside-pot')||document.querySelector('#dominoBoard');
+   const sr=source?.getBoundingClientRect()||rect;
+   const start=positive?sr:rect,end=positive?rect:sr;
+   for(let j=0;j<5;j++){
+     const coin=document.createElement('span');coin.textContent=kind==='gem'?'💎':'🪙';
+     Object.assign(coin.style,{position:'fixed',left:(start.left+start.width/2-9)+'px',top:(start.top+start.height/2-9)+'px',zIndex:'9999',fontSize:'17px',pointerEvents:'none'});
+     document.body.appendChild(coin);
+     const dx=end.left+end.width/2-(start.left+start.width/2),dy=end.top+end.height/2-(start.top+start.height/2);
+     const animation=coin.animate([{transform:'translate(0,0) scale(.7)',opacity:.8},{transform:`translate(${dx+j*3-6}px,${dy+j*3-6}px) scale(1)`,opacity:0}],{duration:850,delay:j*45,easing:'ease-in',fill:'forwards'});
+     animation.finished.catch(()=>{}).finally(()=>coin.remove());
+   }
+ }
+ function scan(){scheduled=false;
+   if(document.getElementById('dominoTablePanel')?.classList.contains('hidden'))return;
+   const present=new Set();
+   for(const seat of root.querySelectorAll('.domino-seat[data-seat-user]')){
+     const uid=seat.getAttribute('data-seat-user');if(!uid)continue;
+     for(const [kind,selector] of [['coin','.seat-bal'],['gem','.dfc-z163-guest-gems, #dfcZ16DiamondChip']]){
+       const el=seat.querySelector(selector);if(!el)continue;
+       const key=uid+':'+kind;present.add(key);
+       const current=amount(el.textContent);if(!Number.isFinite(current))continue;
+       const previous=last.get(key);
+       // Do not interpret our own frame updates as new server balances.
+       if(running.has(el))continue;
+       if(previous!==undefined&&Math.abs(current-previous)>.0005){last.set(key,current);animate(el,previous,current,kind);particles(el,kind,current>previous)}
+       else last.set(key,current);
+     }
+   }
+   for(const key of last.keys())if(!present.has(key))last.delete(key);
+ }
+ const observer=new MutationObserver(()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(scan)});
+ observer.observe(root,{childList:true,subtree:true,characterData:true});
+ scan();
+})();
+</script>
 </body>
 
 </html>
