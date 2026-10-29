@@ -3006,7 +3006,7 @@ html { background-color:#020917; }
 </div>
 </div></div>
 <div class="overlay" id="dominoLobbyPanel"><div class="panel domino-panel domino-lobby-shell"><button class="close" id="dominoLobbyCloseBtn" type="button">✕</button><div class="domino-lobby-content"><div class="domino-lobby-head"><h2>🁫 DOMINÓ FLASH COIN</h2><p><span class="domino-live-dot"></span>Mesas en línea · entra, elige tu saldo de mesa y juega</p><div class="domino-build-badge" id="dominoBuildBadge">HTML 1.6.0 · verificando servidor…</div></div><div class="msg" id="dominoLobbyMsg"></div><div class="domino-two-tables" id="dominoLobbyModes"></div></div></div></div>
-<div class="overlay" id="dominoBuyinPanel"><div class="panel domino-buyin-card"><button class="close" id="dominoBuyinCloseBtn" type="button">✕</button><h2 id="dominoBuyinTitle">Sentarse</h2><div class="tiny">Elige cuántas Flash Coin vas a llevar a la mesa. Se descuentan del saldo principal y vuelven al salir solamente las que realmente te queden.</div><div class="domino-buyin-value" id="dominoBuyinValue">0.000 FC</div><input class="domino-buyin-range" id="dominoBuyinRange" max="1" min="0.3" step="0.01" type="range"/><input class="field" id="dominoBuyinInput" min="0.001" placeholder="Monto FC" step="0.001" type="number"/><button class="action green" id="dominoConfirmJoinBtn">SENTARME EN LA MESA</button><div class="msg" id="dominoBuyinMsg"></div></div></div>
+<div class="overlay" id="dominoBuyinPanel"><div class="panel domino-buyin-card"><button class="close" id="dominoBuyinCloseBtn" type="button">✕</button><h2 id="dominoBuyinTitle">Sentarse</h2><div class="tiny">Elige cuántas Flash Coin vas a llevar a la mesa. Se descuentan del saldo principal y vuelven al salir solamente las que realmente te queden.</div><div class="domino-buyin-value" id="dominoBuyinValue">0.000 FC</div><input class="domino-buyin-range" id="dominoBuyinRange" max="1" min="0.3" step="0.01" type="range"/><input class="field" id="dominoBuyinInput" min="0.001" placeholder="Monto FC" step="0.001" type="number"/><button class="action green" id="dominoConfirmJoinBtn">Confirmar y sentarme</button><button class="action dfc28-view-table" id="dfc28ViewTableBtn" type="button">👁 Ver mesa</button><div class="msg" id="dominoBuyinMsg"></div></div></div>
 <div class="overlay" id="dominoTablePanel"><div class="panel domino-game-panel">
 <div class="hidden" id="dominoTableTitle">Dominó</div>
 <div class="hidden" id="dominoTableSub">Mesa</div>
@@ -5754,20 +5754,28 @@ async function openDominoLobby(){
 }
 window.openDominoLobby=openDominoLobby;
 function renderDominoLobby(){
-  const host=$('dominoLobbyModes');if(!host)return;
-  const configs=(dominoLobbyData?.configs||[]),tables=dominoLobbyData?.tables||[],myTable=dominoLobbyData?.my_table,myState=dominoLobbyData?.my_state;
-  host.innerHTML=configs.map((c,idx)=>{
-    const tt=tables.filter(t=>Number(t.config_id)===Number(c.id));
-    const players=tt.reduce((a,t)=>a+Number(t.players||0),0);
-    const free=tt.find(t=>Number(t.players||0)<4);
-    const desc=c.mode==='paid_pass'?'Cada pase pagado va directo al saldo de mesa del jugador que lo provoca.':'Dominó clásico: si no tienes ficha válida, pasas sin pagar.';
-    return `<div class="domino-choice-card"><h3>${idx===0?'🁫':'🁬'} ${esc(c.name)}</h3><div class="mode-desc">${desc}</div><div class="table-stats"><div class="table-stat">Entrada mínima<b>${dominoMoney(c.min_entry)} FC</b></div><div class="table-stat">Bote por jugador<b>${dominoMoney(c.hand_stake)} FC</b></div><div class="table-stat">Comisión<b>${Number(c.commission_pct||0).toFixed(2)}%</b></div><div class="table-stat">${c.mode==='paid_pass'?'Cada pase':'Mínimo seguir'}<b>${c.mode==='paid_pass'?dominoMoney(c.pass_fee)+' FC':dominoMoney(c.min_continue_balance)+' FC'}</b></div></div><div class="online-line"><span class="domino-live-dot"></span>${players} jugador${players===1?'':'es'} conectado${players===1?'':'s'} · ${free?'mesa disponible':'se abrirá otra mesa automáticamente'}</div><button class="action green domino-join-mode" data-config="${c.id}">JUGAR EN ESTA MESA</button></div>`;
-  }).join('');
-  if(myTable)host.insertAdjacentHTML('afterbegin',myState==='abandoned'?`<div class="card"><strong>Salida confirmada</strong><div class="tiny">Tu asiento terminará esta mano automáticamente y después quedará libre. Si gana, el premio irá a la Cartera Administrativa.</div></div>`:`<div class="card"><strong>Tu asiento sigue activo</strong><div class="tiny">Puedes volver a tu mesa y continuar la mano si todavía no ha terminado.</div><button id="dominoResumeTableBtn" class="action blue">VOLVER A MI MESA</button></div>`);
-  host.querySelectorAll('.domino-join-mode').forEach(b=>b.onclick=()=>openDominoBuyin(Number(b.dataset.config)));
-  if($('dominoResumeTableBtn'))$('dominoResumeTableBtn').onclick=async()=>{dominoCurrentTableId=Number(myTable);dominoViewAway=false;dominoResetTableEffects();await sb.rpc('rf_domino_resume_v11',{p_table_id:dominoCurrentTableId});hide('dominoLobbyPanel');show('dominoTablePanel');
-  dominoAcquireWakeLock().catch(()=>{});dominoForceLandscape().catch(()=>{});dominoStartPolling();await dominoHeartbeat(true);await dominoStartRealtime();await loadDominoState(true)};
+ const host=$('dominoLobbyModes');if(!host)return;
+ const configs=dominoLobbyData?.configs||[], tables=dominoLobbyData?.tables||[];
+ const myTable=dominoLobbyData?.my_table,myState=dominoLobbyData?.my_state;
+ const cards=[];
+ for(const c of configs){
+   const tt=tables.filter(t=>Number(t.config_id)===Number(c.id) && t.visible!==false);
+   for(const t of tt){
+     const qty=Math.max(0,Number(t.players||0));
+     const no=t.table_no??t.number??t.id;
+     cards.push(`<article class="dfc28-room" data-table-id="${Number(t.id)}"><div class="dfc28-room-head"><strong>Mesa ${esc(String(no))}</strong><small>${esc(c.name||'Dominó')}</small></div><div class="dfc28-room-scene" aria-hidden="true">🁫 <span>DOMINÓ<br>FLASH COIN</span> 🁬</div><div class="dfc28-room-meta"><span>👥 ${qty}/4 jugadores</span><span class="${qty>=4?'busy':'available'}">${qty>=4?'Jugando':qty?'Esperando':'Disponible'}</span></div><div class="dfc28-room-price">Entrada mínima <strong>${dominoMoney(c.min_entry)} FC</strong></div><button type="button" class="dfc28-room-play" data-config="${Number(c.id)}" data-table-id="${Number(t.id)}">Jugar</button></article>`);
+   }
+   if(!tt.length){cards.push(`<article class="dfc28-room"><div class="dfc28-room-head"><strong>${esc(c.name||'Mesa nueva')}</strong><small>Sin mesas abiertas</small></div><div class="dfc28-room-scene" aria-hidden="true">🁫 <span>DOMINÓ<br>FLASH COIN</span> 🁬</div><div class="dfc28-room-meta">👥 0/4 jugadores</div><button type="button" class="dfc28-room-play" data-config="${Number(c.id)}">Jugar</button></article>`)}
+ }
+ host.innerHTML=cards.length?cards.join(''):'<div class="dfc28-empty">No hay mesas disponibles en este momento.</div>';
+ if(myTable){host.insertAdjacentHTML('afterbegin',myState==='abandoned'?'<div class="dfc28-resume">Salida de mesa pendiente de finalización.</div>':'<div class="dfc28-resume">Tu asiento sigue activo. <button id="dominoResumeTableBtn" type="button" class="action blue">VOLVER A MI MESA</button></div>')}
+ host.querySelectorAll('.dfc28-room-play').forEach(b=>b.onclick=()=>{
+    openDominoBuyin(Number(b.dataset.config));
+    const modal=$('dominoBuyinPanel'); if(modal) modal.dataset.dfc28TableId=b.dataset.tableId||'';
+ });
+ if($('dominoResumeTableBtn'))$('dominoResumeTableBtn').onclick=async()=>{dominoCurrentTableId=Number(myTable);dominoViewAway=false;dominoResetTableEffects();await sb.rpc('rf_domino_resume_v11',{p_table_id:dominoCurrentTableId});hide('dominoLobbyPanel');show('dominoTablePanel');dominoAcquireWakeLock().catch(()=>{});dominoForceLandscape().catch(()=>{});dominoStartPolling();await dominoHeartbeat(true);await dominoStartRealtime();await loadDominoState(true)};
 }
+
 function openDominoBuyin(configId){
   const c=(dominoLobbyData?.configs||[]).find(x=>Number(x.id)===Number(configId));if(!c)return;
   dominoJoinConfig=c;$('dominoBuyinTitle').textContent=c.name+' · Sentarse';
@@ -8620,6 +8628,10 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
   };
 
   ensureSpectatorBar();
+  window.dfc28OpenSpectatorFromLobby=async function(configId,tableId){
+    if(tableId && Number(tableId)>0) return enterSpectator(Number(tableId));
+    return enterSpectatorForConfig(Number(configId));
+  };
 })();
 </script>
 <script id="mfV01KeyboardStableJS">
@@ -16885,6 +16897,33 @@ function dfcZ28ShowTableText(row){
  scan();
 })();
 </script>
+<style id="dfc28-premium-room-layout">
+#dominoLobbyPanel #dominoLobbyModes{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;align-items:start!important}
+#dominoLobbyPanel .dfc28-room{min-width:0;box-sizing:border-box;overflow:hidden;border:1px solid #9e844d9c;border-radius:17px;padding:10px;background:linear-gradient(155deg,#13263b,#07101f 70%);color:#edf4ff;box-shadow:0 5px 18px #0007}
+.dfc28-room-head{display:flex;flex-direction:column;gap:2px}.dfc28-room-head strong{font-size:clamp(13px,3.7vw,17px);color:#f5d58f}.dfc28-room-head small{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#b9c8db}
+.dfc28-room-scene{height:clamp(55px,17vw,104px);border-radius:12px;margin:8px 0;background:radial-gradient(ellipse at center,#0a4a4b,#09283a 70%,#081526);display:flex;justify-content:space-evenly;align-items:center;font-size:20px;color:#d9b96e;text-align:center;border:2px solid #6c4e29}.dfc28-room-scene span{font-size:10px;line-height:1.3;font-weight:900;letter-spacing:1px}
+.dfc28-room-meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px;font-size:11px}.dfc28-room-meta .available{color:#8be2ac}.dfc28-room-meta .busy{color:#ff9c9c}.dfc28-room-price{font-size:10px;color:#bdc9d7;margin:7px 0}.dfc28-room-price strong{display:block;color:#f5d58f;font-size:12px}
+#dominoLobbyPanel .dfc28-room-play{width:100%;min-height:39px;border:1px solid #d2a950;border-radius:13px;background:linear-gradient(#0877c8,#033d7f);color:white;font-size:15px;font-weight:850;cursor:pointer}
+#dominoLobbyPanel .dfc28-resume,#dominoLobbyPanel .dfc28-empty{grid-column:1/-1;padding:12px;background:#10233f;border-radius:12px}
+#dominoBuyinPanel .domino-buyin-card{max-width:460px!important;border-radius:22px!important;border:1px solid #caa65e!important;background:linear-gradient(#14243a,#07111e)!important;color:#f6f0e2!important;box-shadow:0 17px 60px #000c!important}
+#dominoBuyinPanel #dominoConfirmJoinBtn{background:linear-gradient(#ffe99b,#d69b3f)!important;color:#1b1b20!important;font-size:16px!important;min-height:49px!important;border-radius:15px!important}
+#dominoBuyinPanel #dfc28ViewTableBtn{display:block!important;width:100%!important;margin-top:9px!important;background:#1b293b!important;border:1px solid #66778b!important;color:#f5f7fa!important;border-radius:14px!important;min-height:43px!important}
+@media(max-width:340px){#dominoLobbyPanel #dominoLobbyModes{gap:6px!important}#dominoLobbyPanel .dfc28-room{padding:7px!important}}
+</style>
+<script id="dfc28-premium-room-actions">(function(){
+ document.addEventListener('click',async function(e){
+  const b=e.target.closest('#dfc28ViewTableBtn');if(!b)return;
+  e.preventDefault(); if(b.disabled)return;
+  try{
+   const cfg=typeof dominoJoinConfig!=='undefined'&&dominoJoinConfig?Number(dominoJoinConfig.id):null;
+   const panel=document.getElementById('dominoBuyinPanel');const tableId=Number(panel?.dataset.dfc28TableId||0);
+   if(!cfg)throw Error('Primero elige una mesa');
+   if(typeof window.dfc28OpenSpectatorFromLobby!=='function')throw Error('Modo espectador no disponible');
+   b.disabled=true;await window.dfc28OpenSpectatorFromLobby(cfg,tableId);
+  }catch(err){window.mf19Toast?.(err.message||String(err),'error');}
+  finally{b.disabled=false;}
+ });
+})();</script>
 </body>
 
 </html>
