@@ -1,5 +1,5 @@
 <!-- Restauración visual de mesa original 0.12Z.16. Sin modificación de funciones SQL ni actualización Android. -->
-<!-- DOMINÓ FLASH COIN · HTML 0.12Z.33 · SUSTITUIR INDEX.HTML COMPLETO; MESA COMO IMAGEN DOM, SIN VARIABLE CSS PARA SU BITMAP. -->
+<!-- DOMINÓ FLASH COIN · HTML Z29 INTEGRACIÓN DE SALIDAS · SUSTITUIR INDEX.HTML COMPLETO; MESA COMO IMAGEN DOM, SIN VARIABLE CSS PARA SU BITMAP. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.30 · ARRASTRE VISUAL + SUPERFICIE + DIAMANTES DENTRO DEL PERFIL. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.29 · CORRECCIÓN DE MESA OCULTA; REGLAS Y SALDOS SIN CAMBIOS. -->
 <!-- DOMINÓ FLASH COIN 0.12Z.28 · MESA APROBADA + CARGA VISIBLE · REVISIÓN LOCAL, PENDIENTE PRUEBA EN DISPOSITIVOS. -->
@@ -5826,6 +5826,10 @@ $('dominoConfirmJoinBtn').onclick=async()=>{
     }
 
     window.DFC_Z15?.onTable(dominoCurrentTableId);
+    // Z29: asiento recién aceptado; la RPC no modifica saldos ni inicia jugadas.
+    try { const presence=await sb.rpc('dfc_z29_table_screen',{p_table_id:dominoCurrentTableId,p_inside:true});
+      if(presence.error||presence.data?.ok===false)console.warn('Z29 presencia al entrar:',presence.error||presence.data);
+    }catch(e){console.warn('Z29 presencia pendiente:',e)}
     dominoResetTableEffects();
     hide('dominoBuyinPanel');
     hide('dominoLobbyPanel');
@@ -6928,7 +6932,8 @@ async function dominoTemporaryLeaveToLobby(){
   const buttons=[$('dominoBackBtn'),$('dominoExitBtn'),$('dominoSurrenderBtn'),$('dominoExitTemporaryBtn'),$('dominoExitAbandonBtn')].filter(Boolean);
   buttons.forEach(b=>b.disabled=true);
   try{
-    const {error}=await sb.rpc('rf_domino_back_v11',{p_table_id:tid});
+    const {data,error}=await sb.rpc('dfc_z29_request_leave',{p_table_id:tid});
+    if(!error && data?.ok===false)throw new Error('Supabase rechazó el retorno al lobby: '+String(data.status||data.reason||''));
     if(error)throw error;
     hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoTablePanel');
     dominoStopPolling();await dominoStopRealtime();await dominoReleaseWakeLock();
@@ -6943,7 +6948,8 @@ async function dominoAbandonTable(){
   const buttons=[$('dominoBackBtn'),$('dominoExitBtn'),$('dominoSurrenderBtn'),$('dominoExitTemporaryBtn'),$('dominoExitAbandonBtn')].filter(Boolean);
   buttons.forEach(b=>b.disabled=true);
   try{
-    const {error}=await sb.rpc('rf_domino_exit_now_v11',{p_table_id:tid});
+    const {data,error}=await sb.rpc('dfc_z29_request_leave',{p_table_id:tid});
+    if(!error && data?.ok===false)throw new Error('Supabase rechazó la salida: '+String(data.status||data.reason||''));
     if(error)throw error;
     hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoTablePanel');
     dominoStopPolling();await dominoStopRealtime();await dominoReleaseWakeLock();
@@ -14401,7 +14407,7 @@ body.dfc-z15-auto-active #dominoHand{pointer-events:none!important;opacity:.76!i
     // No se envía saldo ni se juega desde el navegador: solo se marca el asiento.
     working=true;
     try{
-      await call('dfc_z11_set_auto_mode',{p_table_id:tableId,p_enabled:true});
+      await call('dfc_z29_table_screen',{p_table_id:tableId,p_inside:false});
       auto=true;save();update();return true;
     }catch(e){console.warn('Dominó: no se pudo activar el modo automático ('+reason+')',e);return false}
     finally{working=false;update()}
@@ -14410,7 +14416,9 @@ body.dfc-z15-auto-active #dominoHand{pointer-events:none!important;opacity:.76!i
     if(working||!auto||!tableId||!hasSeat)return;
     working=true;control.disabled=true;
     try{
-      await call('dfc_z11_set_auto_mode',{p_table_id:tableId,p_enabled:false});
+      // Cancelar retirada Z29 solo mientras la mano que la originó siga activa.
+      const recovery=await call('dfc_z29_take_control',{p_table_id:tableId});
+      if(recovery?.ok!==true)throw Error('No es posible recuperar esta mano; vuelve a sentarte.');
       auto=false;save();update();
       if(typeof loadDominoState==='function')await loadDominoState(true,true);
     }catch(e){alert('No fue posible recuperar el control: '+(e.message||e))}
@@ -16924,7 +16932,44 @@ function dfcZ28ShowTableText(row){
   finally{b.disabled=false;}
  });
 })();</script>
-<script src="dfc-z29-ui.js" defer></script>
+<script id="dfc-z29-ui-integrated">
+/* DOMINÓ FLASH COIN 0.12Z.29 — mejoras locales seguras.
+ * No escribe saldos ni ejecuta jugadas en Supabase.
+ */
+(()=>{
+'use strict';
+const style=document.createElement('style');
+style.textContent=`
+/* Cuadrícula de tarjetas de mesas, sin alterar su funcionalidad */
+.domino-tables{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+@media(min-width:800px){.domino-tables{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+.domino-table-mini{min-width:0!important;max-width:100%;overflow-wrap:anywhere}
+/* Fondo completo sin recortar por sobrezoom */
+#dominoTablePanel .dfc11-scene img,#dominoTablePanel .domino-table-background img{max-width:100%;max-height:100%;object-fit:contain!important}
+#dominoTablePanel{background-position:center!important;background-repeat:no-repeat!important}
+/* Animación de reparto reducida sin modificar servidor */
+.domino-hand .domino-piece.dealing{animation-duration:.20s!important}
+.domino-hand .deal-0{animation-delay:.02s!important}.domino-hand .deal-1{animation-delay:.06s!important}
+.domino-hand .deal-2{animation-delay:.10s!important}.domino-hand .deal-3{animation-delay:.14s!important}
+.domino-hand .deal-4{animation-delay:.18s!important}.domino-hand .deal-5{animation-delay:.22s!important}
+.domino-hand .deal-6{animation-delay:.26s!important}
+#dfc-z29-music-toggle{position:fixed;right:9px;bottom:calc(9px + env(safe-area-inset-bottom));z-index:8000;border:1px solid #ba9f5b;border-radius:13px;background:#101a29;color:#ffe5a0;padding:8px 10px;font:700 12px system-ui}
+`;document.head.appendChild(style);
+// Música ambiental original mediante WebAudio. Solo empieza tras una interacción consciente.
+let ctx=null,enabled=false,interval=null,note=0;
+const melody=[392,440,494,440,392,330,392,440,494,440,392,0];
+function audio(){ctx??=new (window.AudioContext||window.webkitAudioContext)();return ctx}
+function tone(freq,duration=.19,volume=.018){if(!freq)return;const c=audio(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=freq;g.gain.setValueAtTime(0,c.currentTime);g.gain.linearRampToValueAtTime(volume,c.currentTime+.018);g.gain.exponentialRampToValueAtTime(.0001,c.currentTime+duration);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+duration+.01)}
+function playing(){return document.getElementById('dominoTablePanel')?.classList.contains('active')||document.body.classList.contains('domino-playing')}
+function stop(){if(interval!==null)clearInterval(interval);interval=null}
+function musicStep(){if(playing()||document.hidden){stop();return}try{tone(melody[note++%melody.length])}catch(e){console.warn('Música:',e)}}
+function start(){if(!enabled||playing()||interval!==null)return;try{void audio().resume();musicStep();interval=setInterval(musicStep,325)}catch(e){console.warn('Audio no disponible:',e)}}
+function update(){const b=document.getElementById('dfc-z29-music-toggle');if(b)b.textContent=enabled?'♫ Música: ON':'♫ Música: OFF';if(enabled)start();else stop()}
+function init(){const b=document.createElement('button');b.id='dfc-z29-music-toggle';b.type='button';b.textContent='♫ Música: OFF';b.addEventListener('click',()=>{enabled=!enabled;update()});document.body.appendChild(b);const t=document.getElementById('dominoTablePanel');if(t)new MutationObserver(()=>{stop();if(!playing())start()}).observe(t,{attributes:true,attributeFilter:['class']});document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();else start()})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+
+</script>
 </body>
 
 </html>
