@@ -2824,6 +2824,124 @@ html { background-color:#020917; }
 /* La interfaz web no impone rotación; Android nativo debe permitir ambas orientaciones. */
 #dominoRotateGuard,body.domino-playing #dominoRotateGuard{display:none!important;pointer-events:none!important;}
 </style>
+
+<!-- Z28: Mejoras visuales de Administrador Líder, acceso y registro.
+     No sustituye formularios, IDs, eventos, funciones ni valores de Supabase. -->
+<style id="dfc-z28-premium-auth-leader">
+/* Diseño real basado en la maqueta púrpura/dorada. Fondo original integrado. */
+#leaderPanel, #leaderGatePanel {
+  background:linear-gradient(160deg,rgba(12,2,31,.66),rgba(19,2,42,.86))!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior:contain;
+}
+#leaderPanel>.panel,#leaderGatePanel>.panel {
+  position:relative;
+  width:min(98%,850px)!important;
+  margin:12px auto 32px!important;
+  padding:clamp(14px,3vw,28px)!important;
+  color:#fff5e2!important;
+  border:1.5px solid #d49b37!important;
+  border-radius:25px!important;
+  background:linear-gradient(150deg,rgba(49,10,79,.94),rgba(19,4,42,.96) 62%,rgba(47,8,62,.96))!important;
+  box-shadow:0 0 0 1px rgba(255,220,119,.12),0 22px 65px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,224,149,.28)!important;
+}
+#leaderPanel>.panel>h2,#leaderGatePanel>.panel>h2 {
+  text-align:center!important;color:#ffe3a0!important;
+  font-size:clamp(22px,4.5vw,32px)!important;
+  letter-spacing:.02em;text-shadow:0 2px 15px rgba(238,163,54,.46);
+  margin:5px 36px 23px!important;
+}
+#leaderPanel .section,#leaderPanel .card,#leaderGatePanel .section {
+  background:linear-gradient(125deg,rgba(103,24,112,.43),rgba(29,9,53,.82))!important;
+  border:1px solid rgba(237,172,80,.65)!important;
+  border-radius:17px!important;
+  padding:clamp(11px,2vw,17px)!important;
+  margin-block:12px!important;
+  box-shadow:inset 0 1px rgba(255,234,185,.11),0 5px 18px rgba(0,0,0,.19)!important;
+}
+#leaderPanel .stat-grid {
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px!important;
+}
+#leaderPanel .stat {
+  background:linear-gradient(135deg,#531768,#260938)!important;
+  border:1px solid #b77a44!important;
+  border-radius:17px!important;
+  box-shadow:0 4px 18px rgba(0,0,0,.25)!important;
+  padding:14px 8px!important;
+}
+#leaderPanel .stat b {color:#ffe7a7!important;font-size:clamp(20px,5vw,27px)!important}
+#leaderPanel button.action:not(.red),#leaderGatePanel button.action:not(.red) {
+  color:#fff3db!important;
+  background:linear-gradient(140deg,#702469,#2a0a4e)!important;
+  border:1px solid #daa148!important;
+  border-radius:13px!important;
+  box-shadow:inset 0 1px rgba(255,227,153,.2),0 4px 10px rgba(0,0,0,.22)!important;
+}
+#leaderPanel button.action:active,#leaderGatePanel button.action:active {filter:brightness(1.15)}
+#leaderPanel .close,#leaderGatePanel .close {
+  background:linear-gradient(150deg,#f8cb70,#b97417)!important;
+  color:#27102d!important;
+}
+#leaderPanel .field,#leaderGatePanel .field {
+  background:rgba(33,12,57,.88)!important;
+  border:1px solid rgba(226,162,91,.7)!important;
+  color:#fff!important;border-radius:12px!important;
+}
+/* Pantallas existentes: conservar campos y funciones, mejorar solo presentación. */
+#authView.auth {
+  display:block!important;position:fixed!important;inset:0!important;
+  height:100dvh!important;min-height:0!important;max-height:100dvh!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+  overscroll-behavior-y:contain!important;
+  box-sizing:border-box!important;
+  padding:max(18px,env(safe-area-inset-top)) 12px max(90px,env(safe-area-inset-bottom))!important;
+  background-image:linear-gradient(160deg,rgba(26,0,47,.48),rgba(15,0,37,.88)),var(--dfc-z26-official-wallpaper)!important;
+  background-position:center center!important;
+  background-size:cover!important;
+  background-attachment:scroll!important;
+}
+#authView .auth-card {
+  display:block!important;
+  width:min(100%,520px)!important;
+  height:auto!important;max-height:none!important;
+  overflow:visible!important;
+  margin:clamp(8px,3vh,34px) auto 45px!important;
+  padding:clamp(18px,4vw,27px)!important;
+  border:1.5px solid #e5a947!important;border-radius:25px!important;
+  background:linear-gradient(160deg,rgba(57,12,91,.95),rgba(20,3,48,.96) 75%)!important;
+  box-shadow:0 22px 55px rgba(0,0,0,.53),inset 0 1px rgba(255,234,190,.22)!important;
+}
+#authView .brand {font-size:clamp(24px,5vw,34px)!important;color:#ffdb89!important;text-shadow:0 2px 20px #bd5b28!important}
+#authView .sub {color:#f5e2f9!important;line-height:1.5!important}
+#authView .tabs {gap:8px!important;display:flex!important;position:relative!important}
+#authView .tab {border:1px solid #ad559e!important;background:linear-gradient(135deg,#6c2679,#30105c)!important;color:#fff!important;border-radius:22px!important}
+#authView .tab.active {background:linear-gradient(160deg,#ffe08c,#c68124)!important;border-color:#ffe4a0!important;color:#241028!important;box-shadow:0 4px 18px rgba(247,161,63,.3)!important}
+#authView .field {
+  color:#fff!important;background:rgba(62,26,88,.68)!important;
+  border:1px solid rgba(224,160,209,.67)!important;border-radius:17px!important;
+}
+#authView .field::placeholder{color:#ead5ef!important;opacity:1}
+#authView .primary {
+  border:1px solid #ffe39f!important;border-radius:25px!important;
+  background:linear-gradient(180deg,#ffe390,#d2922e)!important;
+  color:#26112c!important;font-weight:900!important;
+  box-shadow:0 6px 20px rgba(255,169,48,.24)!important;
+}
+#authView form {max-height:none!important;overflow:visible!important}
+#authView .auth-link {color:#ffe1a8!important}
+@media(max-width:520px) {
+  #leaderPanel>.panel,#leaderGatePanel>.panel {width:100%!important;margin:5px auto 22px!important;padding:14px!important}
+  #leaderPanel .stat-grid {gap:8px!important}
+  #leaderPanel .section {padding:11px!important}
+}
+@media(prefers-reduced-motion:reduce) {
+  #authView *,#leaderPanel *,#leaderGatePanel * {scroll-behavior:auto!important}
+}
+</style>
+
 </head>
 <body>
 <div aria-label="Preparando DOMINÓ FLASH COIN" aria-live="polite" id="dfc-z9-loader" role="status"><div><span class="logo">💎</span><strong>DOMINÓ FLASH COIN</strong><p id="dfc-z27-loader-note">Preparando la aplicación…</p><div aria-label="Progreso visual de carga" aria-valuemax="100" aria-valuemin="0" aria-valuenow="1" id="dfc-z27-loading-track" role="progressbar" style="display:block;width:min(76vw,320px);height:10px;min-height:10px;margin:18px auto 9px;overflow:hidden;border-radius:99px;background:#ffffff26;border:1px solid #dfbd6d"><div id="dfc-z27-loading-fill" style="display:block;width:100%;height:100%;transform:scaleX(.01);transform-origin:left center;background:linear-gradient(90deg,#ba872b,#ffe8a4)"></div></div><output id="dfc-z27-percent">1%</output><p hidden="" id="dfc-z27-loader-error"></p></div></div>
