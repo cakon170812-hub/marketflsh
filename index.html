@@ -17244,6 +17244,68 @@ window.dfc11AfterRender=function(st){if(typeof original==='function')original(st
 })();
 </script>
 
+
+<!-- Z29 INTEGRACION CORREGIDA: elementos REALES del HTML, sin tocar economía ni RPC. -->
+<style id="dfc-z29-integracion-correcta">
+/* Fondo ORIGINAL, sin panel superpuesto ni tintes sobre toda la imagen. */
+#authView.auth,#leaderPanel.overlay,#leaderGatePanel.overlay{background-image:var(--fc-wallpaper)!important;background-color:#081b29!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important}
+#authView.auth{position:fixed!important;inset:0!important;display:block!important;height:100vh!important;height:100dvh!important;max-height:none!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior-y:contain!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;padding:24px 12px 110px!important;box-sizing:border-box!important}
+#authView .auth-card{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;position:relative!important;transform:none!important;background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:clamp(10px,4vw,25px)!important;margin:10px auto 100px!important}
+#authView form,#authView form:not(.hidden){max-height:none!important;overflow:visible!important;touch-action:pan-y!important}
+#authView input,#authView select{background:rgba(2,23,42,.80)!important;color:#fff!important;border:1px solid rgba(123,199,255,.75)!important}
+#authView #tabLogin,#authView #loginForm button.primary{background:linear-gradient(160deg,#2da9f4,#1253ac)!important;color:white!important;border:1px solid #97d9ff!important}
+#authView #tabRegister,#authView #registerForm button.primary{background:linear-gradient(160deg,#49d7a3,#08746b)!important;color:#fff!important;border:1px solid #a6fce5!important}
+#authView .tab.active{box-shadow:0 0 0 2px rgba(255,255,255,.35),0 0 22px rgba(86,207,245,.42)!important}
+#leaderPanel.overlay,#leaderGatePanel.overlay{overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior-y:contain!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;align-items:flex-start!important;max-height:100dvh!important;box-sizing:border-box!important;padding:12px 10px 100px!important}
+#leaderPanel>.panel,#leaderGatePanel>.panel{width:min(100%,920px)!important;max-height:none!important;height:auto!important;overflow:visible!important;margin:10px auto 85px!important;background:transparent!important;box-shadow:none!important;border:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:none!important}
+#leaderPanel .section,#leaderPanel .card,#leaderGatePanel .section{background:rgba(4,25,40,.32)!important;backdrop-filter:none!important;border:1px solid rgba(144,207,239,.35)!important;color:#fff!important;border-radius:15px!important}
+#leaderPanel button.action,#leaderGatePanel button.action{border:1px solid rgba(176,233,255,.8)!important;background:linear-gradient(150deg,#087eae,#14487e)!important;color:#fff!important;border-radius:12px!important;box-shadow:0 3px 14px #001a3190!important;transition:filter .16s ease,transform .16s ease!important}
+#leaderPanel button.action:active,#leaderGatePanel button.action:active{filter:brightness(1.3)!important;transform:scale(.975)!important}
+#leaderPanel button.action[aria-pressed="true"],#leaderPanel button.action[aria-checked="true"]{background:linear-gradient(135deg,#0c9578,#167c62)!important;box-shadow:0 0 14px #2bf6af85!important}
+#leaderPanel button.action[aria-pressed="false"],#leaderPanel button.action[aria-checked="false"]{background:linear-gradient(135deg,#465669,#293c53)!important}
+#leaderPanel .stat{background:rgba(2,32,56,.55)!important;border:1px solid #59bbdc88!important}
+/* Selector verdadero: 2 por fila en pantallas pequeñas y grandes. */
+#dominoLobbyPanel #dominoLobbyModes.domino-two-tables{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:clamp(7px,1.7vw,15px)!important;align-items:stretch!important;width:100%!important}
+#dominoLobbyPanel #dominoLobbyModes>*{min-width:0!important;max-width:100%!important;box-sizing:border-box!important}
+#dominoLobbyPanel .domino-choice-card,#dominoLobbyPanel .domino-table-mini{min-width:0!important;width:100%!important;overflow:hidden!important;border-radius:18px!important;border:1px solid #8bc8e39c!important;background:linear-gradient(165deg,rgba(7,57,79,.50),rgba(3,24,41,.85)),var(--domino-table-image,linear-gradient(125deg,#0c6037,#013f36)) center/cover no-repeat!important;box-shadow:0 8px 20px #0007,inset 0 1px 1px #d2effb44!important}
+#dominoLobbyPanel .domino-lobby-shell{padding:clamp(9px,2vw,22px)!important}
+#dominoLobbyPanel #dominoLobbyCloseBtn{position:absolute!important;right:10px!important;left:auto!important;top:10px!important;background:linear-gradient(135deg,#178cae,#045277)!important;color:white!important;border:1px solid #9ce6fb!important;border-radius:50%!important;z-index:100!important}
+@media(max-width:420px){#dominoLobbyPanel .domino-choice-card,#dominoLobbyPanel .domino-table-mini{padding:9px!important;font-size:12px!important}#dominoLobbyPanel #dominoLobbyModes{gap:7px!important}}
+/* Capa ganadora visible, nunca dentro de una capa antigua oculta. */
+#dfcZ29Celebration{position:fixed!important;inset:0!important;z-index:2147483000!important;display:none;align-items:center;justify-content:center;pointer-events:none;background:rgba(0,9,21,.52)!important}
+#dfcZ29Celebration.show{display:flex!important;visibility:visible!important}
+#dfcZ29Celebration .dfcZ29Card{text-align:center;color:#fff;padding:15px;text-shadow:0 3px 12px #000;animation:dfcZ29Pop .48s cubic-bezier(.16,1.3,.32,1) both}
+#dfcZ29Celebration .dfcZ29Title{display:block;font-size:clamp(27px,7vw,56px);font-weight:900;color:#ffeaa1;letter-spacing:.02em}
+#dfcZ29Celebration .dfcZ29Tile{display:flex;width:clamp(145px,37vw,240px);height:clamp(80px,20vw,130px);margin:18px auto;background:#fff9e6;border:5px solid #f8df92;border-radius:16px;box-shadow:0 0 35px #edd66b,0 0 80px #53b9ff;overflow:hidden}
+#dfcZ29Celebration .dfcZ29Half{flex:1;display:grid;place-items:center;color:#101820;font-size:clamp(46px,11vw,86px)}
+#dfcZ29Celebration .dfcZ29Half+.dfcZ29Half{border-left:3px solid #2c353f}
+@keyframes dfcZ29Pop{from{opacity:0;transform:scale(.35)}to{opacity:1;transform:scale(1)}}
+</style>
+<script id="dfc-z29-integracion-eventos">
+(function(){'use strict';
+// Este parche usa exclusivamente datos del estado que ya recibe el cliente.
+const seen=new Set(), lastByHand=new Map();let timer=0;
+function nums(m){if(!m)return null;let t=m.tile??m.played_tile??m.tile_value??m.piece??m.domino;if(typeof t==='string'){try{t=JSON.parse(t)}catch(e){let z=t.match(/([0-6])\D+([0-6])/);if(z)t=[+z[1],+z[2]]}}if(!t && m.a!=null && m.b!=null)t=[m.a,m.b];let a=Number(t?.a??t?.left??t?.[0]),b=Number(t?.b??t?.right??t?.[1]);return [a,b].every(v=>Number.isInteger(v)&&v>=0&&v<=6)?[a,b]:null}
+function inspect(st){
+ const m=st?.last_move;
+ if(m&&/PLAY/i.test(String(m.action||''))){const t=nums(m);const id=String(m.hand_id??st?.hand?.id??'');if(t&&id)lastByHand.set(id,{tile:t,user:String(m.user_id)})}
+ const r=st?.last_result;if(!r?.id||!r.winner_user_id)return;
+ const id=String(r.id);if(seen.has(id))return;
+ const reason=String(r.winner_reason||'');if(/TRANQUE|ABANDON|TIMEOUT/i.test(reason))return;
+ const age=Date.now()-Date.parse(r.settled_at||'');if(!Number.isFinite(age)||age<0||age>22000)return;
+ let t=null;
+ if(m&&/PLAY/i.test(String(m.action||''))&&String(m.hand_id??id)===id&&String(m.user_id)===String(r.winner_user_id))t=nums(m);
+ if(!t){const last=lastByHand.get(id);if(last&&last.user===String(r.winner_user_id))t=last.tile}
+ if(!t)return; // Sin evidencia de ficha real, no inventarla.
+ let e=document.getElementById('dfcZ29Celebration');if(!e){e=document.createElement('div');e.id='dfcZ29Celebration';e.innerHTML='<div class="dfcZ29Card"><strong class="dfcZ29Title"></strong><div class="dfcZ29Tile"><span class="dfcZ29Half"></span><span class="dfcZ29Half"></span></div><strong>¡FELICIDADES! · ÚLTIMA FICHA</strong></div>';document.body.appendChild(e)}
+ const p=['','⚀','⚁','⚂','⚃','⚄','⚅'];e.querySelector('.dfcZ29Title').textContent=/CAPIC[UÚ]A/i.test(reason)?'¡CAPICÚA!':'¡DOMINÓ!';const a=e.querySelectorAll('.dfcZ29Half');a[0].textContent=p[t[0]]||'·';a[1].textContent=p[t[1]]||'·';seen.add(id);e.classList.remove('show');void e.offsetHeight;e.classList.add('show');clearTimeout(timer);timer=setTimeout(()=>e.classList.remove('show'),4700);
+ if(seen.size>100)seen.delete(seen.values().next().value);
+}
+const previous=window.dfc11AfterRender;
+window.dfc11AfterRender=function(st){if(typeof previous==='function')previous(st);try{inspect(st)}catch(e){console.warn('Integración celebración Z29',e)}};
+})();
+</script>
+
 </body>
 
 </html>
