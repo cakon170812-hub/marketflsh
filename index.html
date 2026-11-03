@@ -14995,7 +14995,7 @@ html,body {background:#020917!important;min-height:100%;overflow-x:hidden!import
 .dfc09-top-tiles,.dfc09-bottom-tiles{position:absolute;left:50%;display:flex;gap:4px;transform:translateX(-50%)}.dfc09-top-tiles{top:0}.dfc09-bottom-tiles{bottom:1%}.dfc09-top-tiles i,.dfc09-bottom-tiles i{display:block;width:clamp(12px,2.7vw,21px);height:clamp(24px,4.2vw,35px);background:linear-gradient(145deg,#f9fdff,#b1cae8);border:1px solid #578fce;border-radius:4px;box-shadow:0 2px 5px #000a}.dfc09-top-tiles i{background:linear-gradient(#d2dbf1,#728dbb)}
 #appView .dfc09-home-card{position:relative;z-index:2;max-width:none!important;width:100%!important;margin:0!important;padding:22px 22px 23px!important;background:linear-gradient(0deg,#050f22 10%,#061631e8 83%,transparent)!important;border:0!important;border-radius:0!important;backdrop-filter:none!important;box-shadow:none!important;text-align:center!important}
 #appView .dfc09-home-card .dfc-home-kicker{font-size:11px!important;font-weight:900!important;letter-spacing:.18em!important;color:#3ae5d1!important}
-#appView .dfc09-home-card h1{font-size:clamp(27px,5vw,42px)!important;font-weight:950!important;letter-spacing:-.03em!important;line-height:1.04!important;margin:7px 0 9px!important;color:white!important;background:none!important;-webkit-text-fill-color:initial!important;text-shadow:0 3px 20px #000e!important}
+#appView .dfc09-home-card h1{font-size:clamp(27px,5vw,42px)!important;font-weight:950!important;letter-spacing:-.03em!important;line-height:1.04!important;margin:7px 0 9px!important;color:white!important;background:none!important;-webkit-text-fill-color:#f7fcff!important;text-shadow:0 3px 20px #000e!important}
 #appView .dfc09-home-card h1 em{font-style:normal;color:#37dbef!important}
 #appView .dfc09-home-card p{color:#cbd8ec!important;font-size:clamp(12px,2.7vw,15px)!important;margin:0 0 12px!important}
 #appView #dfcHomeAction{display:block!important;max-width:470px!important;margin:0 auto!important}#appView #gamesBtn{width:100%!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;min-height:58px!important;border-radius:16px!important;border:1px solid #31e5ff!important;background:linear-gradient(130deg,#0969ef,#078dcf,#05b9c6)!important;color:#fff!important;box-shadow:inset 0 2px 7px #bbf8ff44,0 9px 25px #007bff5a!important;font-size:clamp(14px,3.2vw,19px)!important}#appView #gamesBtn b{margin-left:auto;font-size:25px}
@@ -17124,6 +17124,107 @@ if(!document.getElementById('dfcZ29WebCheck')){observer=new MutationObserver(()=
  #leaderPanel>.panel{padding-left:5px!important;padding-right:5px!important;}
  #leaderPanel .section{padding:6px!important;}
  #dominoLobbyModes .domino-choice-card,#dominoLobbyModes .dfc012o-table-card{padding:6px!important;font-size:clamp(10px,2.6vw,12px)!important;}
+}
+</style>
+
+
+<!-- Z29: Refinamiento controles reales, fondo original y selector en parejas. Sin tocar lógica. -->
+<style id="dfc-z29-acceso-administrador-lobby-refinado">
+/* Registro e inicio: los campos y botones tienen color, pero no se crea una tarjeta de fondo. */
+#authView.auth:not(.hidden) > .auth-card {
+ background:transparent!important;background-image:none!important;box-shadow:none!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border:0!important;
+}
+#authView .tabs .tab {
+ background:linear-gradient(140deg,#173b63,#0d2746)!important;
+ color:#e8f5ff!important;border:1px solid #7bb9ed!important;
+ box-shadow:0 4px 15px rgba(0,8,24,.55)!important;
+ opacity:1!important;
+}
+#authView #tabRegister.active {background:linear-gradient(140deg,#158960,#0b5b52)!important;border-color:#b6f5cf!important;color:#fff!important;}
+#authView #tabLogin.active {background:linear-gradient(140deg,#278bec,#1051a2)!important;border-color:#b5e8ff!important;color:#fff!important;}
+#authView .field,#authView input.field,#authView select.field,#authView textarea.field {
+ background:linear-gradient(120deg,rgba(5,44,72,.96),rgba(7,28,52,.94))!important;
+ color:#f7fcff!important;
+ border:1.5px solid rgba(139,212,248,.96)!important;
+ box-shadow:0 4px 14px rgba(0,9,25,.58),inset 0 1px 0 rgba(255,255,255,.12)!important;
+ -webkit-text-fill-color:#f7fcff!important;
+}
+#authView .field::placeholder,#authView input.field::placeholder {color:#d6e9f3!important;opacity:1!important;}
+#authView .field:focus,#authView input.field:focus {outline:2px solid #7bcfff!important;outline-offset:1px!important;}
+#authView #loginForm button.primary,#authView #registerForm button.primary {
+ opacity:1!important;font-weight:800!important;letter-spacing:.2px!important;
+ box-shadow:0 5px 17px rgba(0,10,25,.55),inset 0 1px 0 rgba(255,255,255,.24)!important;
+ border:1px solid rgba(255,255,255,.52)!important;
+}
+#authView #loginForm button.primary{background:linear-gradient(125deg,#2ca1fb,#0750a8)!important;color:#fff!important;}
+#authView #registerForm button.primary{background:linear-gradient(125deg,#37cf92,#0c735a)!important;color:#fff!important;}
+/* Panel Líder: la imagen oficial es el plano de fondo, sin otra tarjeta encima. */
+#leaderPanel.overlay.active{background-image:var(--dfc-z26-official-wallpaper)!important;background-size:cover!important;background-position:center!important;}
+#leaderPanel > .panel,
+#leaderPanel > .panel > .section,
+#leaderPanel > .panel > .stat-grid,
+#leaderPanel > .panel > .wallet-admin-grid,
+#leaderPanel .stat,
+#leaderPanel .wallet-admin-grid,
+#leaderPanel #dominoAdminConfigs,
+#leaderPanel #dominoAdminConfigs > * {
+ background:transparent!important;background-image:none!important;
+ box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+#leaderPanel > .panel{border:0!important;border-radius:0!important;max-height:none!important;overflow:visible!important;}
+#leaderPanel > .panel > .section{border:0!important;border-radius:0!important;padding:6px 4px!important;margin:7px 0!important;}
+#leaderPanel .section::before,#leaderPanel .section::after{box-shadow:none!important;background:transparent!important;}
+#leaderPanel .wallet-admin-card{
+ background:linear-gradient(130deg,rgba(13,74,119,.85),rgba(7,36,67,.86))!important;
+ border:1px solid rgba(147,212,251,.9)!important;border-radius:12px!important;
+ box-shadow:0 3px 12px rgba(0,7,20,.35)!important;
+ padding:9px!important;min-height:54px!important;
+}
+#leaderPanel button.action,#leaderPanel button.search-mini,#leaderPanel .mf-admin-grid button {
+ min-height:38px!important;font-size:clamp(11px,2.7vw,13px)!important;
+ padding:7px 9px!important;border-radius:11px!important;
+ box-shadow:0 3px 10px rgba(0,8,22,.43)!important;
+}
+#leaderPanel .action.blue{background:linear-gradient(135deg,#218fe4,#0b4b9e)!important;color:#fff!important;}
+#leaderPanel .action.green{background:linear-gradient(135deg,#22a976,#075c50)!important;color:#fff!important;}
+#leaderPanel .action:not(.blue):not(.green):not(.dark){background:linear-gradient(135deg,#c18a31,#77501a)!important;color:#fff9e8!important;}
+#leaderPanel .field,#leaderPanel input.field,#leaderPanel textarea.field,#leaderPanel select.field{
+ background:rgba(7,35,60,.93)!important;color:#fff!important;
+ border:1px solid rgba(151,204,233,.88)!important;border-radius:10px!important;
+ box-shadow:0 2px 9px rgba(0,8,22,.28)!important;
+}
+#leaderPanel > .panel > .close{position:fixed!important;top:max(9px,env(safe-area-inset-top))!important;right:max(9px,env(safe-area-inset-right))!important;left:auto!important;z-index:2147483000!important;visibility:visible!important;opacity:1!important;display:grid!important;}
+/* Jugar > Dominó: no confundir el número de modalidades reales con el número de mesas creadas por el servidor. */
+#dominoLobbyPanel.overlay.active{overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;}
+#dominoLobbyPanel .domino-lobby-shell,#dominoLobbyPanel .domino-lobby-content{
+ max-height:none!important;height:auto!important;min-height:0!important;overflow:visible!important;
+}
+#dominoLobbyPanel #dominoLobbyModes.domino-two-tables {
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:none!important;grid-auto-rows:auto!important;grid-auto-flow:row!important;
+ width:100%!important;min-width:0!important;max-width:100%!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ flex:0 0 auto!important;gap:clamp(5px,1.8vw,12px)!important;
+ overflow:visible!important;align-items:stretch!important;justify-items:stretch!important;
+}
+#dominoLobbyPanel #dominoLobbyModes > .domino-choice-card,
+#dominoLobbyPanel #dominoLobbyModes > .dfc012o-table-card {
+ min-width:0!important;width:100%!important;max-width:100%!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ margin:0!important;padding:clamp(5px,1.6vw,12px)!important;
+ overflow-wrap:anywhere!important;box-sizing:border-box!important;
+}
+#dominoLobbyPanel #dominoLobbyModes > .card{grid-column:1/-1!important;}
+#dominoLobbyPanel #dominoLobbyModes .domino-premium-card-head {flex-wrap:wrap!important;gap:3px!important;}
+#dominoLobbyPanel #dominoLobbyModes .domino-premium-card-head h3 {font-size:clamp(11px,2.6vw,15px)!important;line-height:1.2!important;}
+#dominoLobbyPanel #dominoLobbyModes .table-stats {grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:4px!important;}
+#dominoLobbyPanel #dominoLobbyModes .table-stat {min-width:0!important;padding:4px 3px!important;font-size:clamp(9px,2.3vw,12px)!important;}
+#dominoLobbyPanel #dominoLobbyModes .domino-join-mode {min-width:0!important;width:100%!important;white-space:normal!important;font-size:clamp(10px,2.6vw,13px)!important;padding:8px 3px!important;}
+@media(max-width:390px){
+ #dominoLobbyPanel #dominoLobbyModes.domino-two-tables{gap:5px!important;}
+ #dominoLobbyPanel #dominoLobbyModes .table-stats{grid-template-columns:1fr!important;}
+ #leaderPanel > .panel {padding-left:5px!important;padding-right:5px!important;}
 }
 </style>
 
