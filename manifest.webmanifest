@@ -1,8 +1,9 @@
+
 {
   "id": "./",
   "name": "Dominos Flash Coin",
   "short_name": "Dominos FC",
-  "description": "Juego de dominó en línea con Flash Coin virtuales",
+  "description": "Juego de dominó en línea con Flash Coin",
   "lang": "es",
   "start_url": "./?source=pwa",
   "scope": "./",
