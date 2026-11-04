@@ -1,134 +1,91 @@
-// CONFIG SUPABASE - PEGA TUS CLAVES AQUI CUANDO LAS TENGAS
-const SUPABASE_URL = 'https://TU-PROYECTO.supabase.co';
-const SUPABASE_KEY = 'TU_CLAVE_PUBLICA_ANON_KEY_AQUI';
 
-// INICIALIZAR SUPABASE 1 SOLA VEZ
-let supabaseClient = null;
-try {
-  if (SUPABASE_URL.includes('TU-PROYECTO')) throw new Error('Modo Demo');
-  supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  console.log('Supabase Conectado');
-} catch (e) {
-  console.log('Modo DEMO con localStorage');
-}
+/*
+ * DOMINÓ FLASH COIN — script.js
+ * Compatibilidad y diagnóstico web Z29.
+ * El motor del juego está en index.html. Este archivo no lo sustituye.
+ * No contiene credenciales ni realiza operaciones de escritura.
+ * Puede cargarse como script clásico, después del código principal.
+ */
+(function () {
+  'use strict';
 
-// DATOS DEMO
-const CATEGORIAS = ['Todos','Tecnologia','Celulares','Computadoras','Vehiculos','Hogar','Ropa','Servicios','Electronica','Otros'];
-const PRODUCTOS_DEMO = [
-  {id:1, nombre:'iPhone 15 Pro', precio:85000, categoria:'Celulares', ubicacion:'Santo Domingo', imagen:'https://via.placeholder.com/300/FF6B00', destacado:true, vistas:120, likes:15, whatsapp:'18091234567'},
-  {id:2, nombre:'Samsung S24 Ultra', precio:95000, categoria:'Celulares', ubicacion:'Santiago', imagen:'https://via.placeholder.com/300/00A3FF', destacado:true, vistas:200, likes:32, whatsapp:'18097654321'},
-  {id:3, nombre:'Laptop Gamer', precio:65000, categoria:'Computadoras', ubicacion:'La Vega', imagen:'https://via.placeholder.com/300', destacado:false, vistas:80, likes:8, whatsapp:'18091112233'},
-  {id:4, nombre:'PS5', precio:45000, categoria:'Electronica', ubicacion:'Santo Domingo', imagen:'https://via.placeholder.com/300', destacado:false, vistas:150, likes:25, whatsapp:'18094445566'}
-];
+  if (window.dfcWebIntegration?.build === '0.12Z.29') return;
 
-// ESTADO
-let productos = [];
-let categoriaActiva = 'Todos';
+  var BUILD = '0.12Z.29';
+  var MANIFEST = './android-approved/manifest.json';
+  var EXPECTED_ORIGIN = 'https://cakon170812-hub.github.io';
+  var VERSION = /^0\.12Z\.(\d{1,4})$/;
 
-// INICIALIZAR
-document.addEventListener('DOMContentLoaded', () => {
-  cargarCategorias();
-  cargarProductos();
-  setupEventos();
-});
+  function hasClient(value) {
+    return !!value && typeof value.auth?.getSession === 'function' &&
+      typeof value.rpc === 'function';
+  }
 
-function cargarCategorias() {
-  const cont = document.getElementById('contenedor-categorias');
-  const select = document.getElementById('prod-categoria');
-  cont.innerHTML = CATEGORIAS.map(cat => 
-    `<div class="categoria-chip ${cat==='Todos'?'active':''}" data-cat="${cat}">${cat}</div>`
-  ).join('');
-  select.innerHTML = CATEGORIAS.filter(c=>c!=='Todos').map(c=>`<option value="${c}">${c}</option>`).join('');
-}
-
-function cargarProductos() {
-  productos = JSON.parse(localStorage.getItem('mf_products')) || PRODUCTOS_DEMO;
-  renderizarProductos();
-}
-
-function renderizarProductos(filtro='') {
-  let filtrados = productos.filter(p => 
-    (categoriaActiva === 'Todos' || p.categoria === categoriaActiva) &&
-    p.nombre.toLowerCase().includes(filtro.toLowerCase())
-  );
-  
-  const destacados = filtrados.filter(p => p.destacado);
-  const normales = filtrados.filter(p => !p.destacado);
-
-  document.getElementById('contenedor-destacados').innerHTML = destacados.map(cardHTML).join('');
-  document.getElementById('contenedor-productos').innerHTML = normales.map(cardHTML).join('');
-}
-
-function cardHTML(p) {
-  return `
-    <div class="card-producto ${p.destacado?'flash':''}" onclick="abrirDetalle(${p.id})">
-      <img src="${p.imagen}">
-      <h3>${p.nombre}</h3>
-      <div class="precio">RD$ ${p.precio.toLocaleString('es-DO')}</div>
-      <div style="font-size:11px; color:var(--text-gray)">📍 ${p.ubicacion} | 👁️ ${p.vistas}</div>
-    </div>
-  `;
-}
-
-function abrirDetalle(id) {
-  const p = productos.find(x => x.id === id);
-  document.getElementById('detalle-producto').innerHTML = `
-    <img src="${p.imagen}" style="width:100%; border-radius:12px;">
-    <h2>${p.nombre}</h2>
-    <h3 style="color:var(--naranja)">RD$ ${p.precio.toLocaleString('es-DO')}</h3>
-    <p>${p.ubicacion}</p>
-    <button class="btn btn-naranja" onclick="contactarWhatsApp('${p.whatsapp}')">💬 WhatsApp</button>
-    <button class="btn btn-azul" onclick="compartirProducto(${p.id})">📤 Compartir</button>
-  `;
-  document.getElementById('modal-detalle').style.display = 'block';
-}
-
-function contactarWhatsApp(num) {
-  window.open(`https://wa.me/1${num}?text=Hola, vi tu producto en MARKET FLASH`);
-}
-
-// EVENTOS
-function setupEventos() {
-  document.getElementById('contenedor-categorias').addEventListener('click', e => {
-    if(e.target.classList.contains('categoria-chip')) {
-      document.querySelectorAll('.categoria-chip').forEach(c=>c.classList.remove('active'));
-      e.target.classList.add('active');
-      categoriaActiva = e.target.dataset.cat;
-      renderizarProductos();
+  function getClient() {
+    // index.html publica window.sb y window.dfcSupabase.
+    // No crear un segundo cliente ni usar credenciales de ejemplo.
+    var candidates = [window.sb, window.dfcSupabase];
+    for (var i = 0; i < candidates.length; i++) {
+      if (hasClient(candidates[i])) return candidates[i];
     }
+    return null;
+  }
+
+  function getVersion() {
+    return document.querySelector('meta[name="application-version"]')
+      ?.getAttribute('content') ||
+      document.documentElement.getAttribute('data-app-build') || null;
+  }
+
+  function result(ok, code, extra) {
+    return Object.assign({ ok: ok, code: code, build: BUILD }, extra || {});
+  }
+
+  async function inspect(options) {
+    var opts = options || {};
+    var localVersion = getVersion();
+    var client = getClient();
+    var report = result(true, 'READY', {
+      localVersion: localVersion,
+      supabaseClientAvailable: !!client,
+      nativeAndroid: document.documentElement.classList.contains('dfc-android-native'),
+      tableScreenOpen: !!document.getElementById('dominoTablePanel')
+        ?.classList.contains('active')
+    });
+
+    if (opts.checkGitHub === true) {
+      try {
+        var response = await fetch(MANIFEST + '?t=' + Date.now(), {
+          method: 'GET',
+          cache: 'no-store',
+          credentials: 'omit'
+        });
+        if (!response.ok) throw new Error('MANIFEST_HTTP_' + response.status);
+        var manifest = await response.json();
+        var version = String(manifest.version || '');
+        var url = new URL(String(manifest.url || ''), location.href);
+        if (!VERSION.test(version) ||
+            url.origin !== EXPECTED_ORIGIN ||
+            url.pathname !== '/marketflsh/android-approved/bundles/' + version + '.zip' ||
+            !/^[a-f0-9]{64}$/i.test(String(manifest.sha256 || ''))) {
+          throw new Error('MANIFEST_INVALID');
+        }
+        report.publishedVersion = version;
+        report.sameVersion = localVersion === version;
+      } catch (error) {
+        report.ok = false;
+        report.code = 'GITHUB_MANIFEST_CHECK_FAILED';
+        report.reason = String(error?.message || 'Unknown');
+      }
+    }
+    return report;
+  }
+
+  // Solo diagnósticos no sensibles. Nunca muestra el token de sesión.
+  window.dfcWebIntegration = Object.freeze({
+    build: BUILD,
+    getVersion: getVersion,
+    getClientAvailable: function () { return !!getClient(); },
+    inspect: inspect
   });
-
-  document.getElementById('input-busqueda').addEventListener('input', e => renderizarProductos(e.target.value));
-  
-  document.getElementById('btn-publicar-nav').onclick = () => document.getElementById('modal-publicar').style.display = 'block';
-  document.getElementById('btn-filtros').onclick = () => document.getElementById('modal-filtros').style.display = 'block';
-  document.querySelectorAll('.close-modal').forEach(btn => btn.onclick = () => btn.closest('.modal').style.display = 'none');
-
-  // PUBLICAR
-  document.getElementById('form-publicar').onsubmit = e => {
-    e.preventDefault();
-    const nuevo = {
-      id: Date.now(),
-      nombre: document.getElementById('prod-nombre').value,
-      precio: Number(document.getElementById('prod-precio').value),
-      categoria: document.getElementById('prod-categoria').value,
-      descripcion: document.getElementById('prod-descripcion').value,
-      ubicacion: document.getElementById('prod-ubicacion').value,
-      imagen: 'https://via.placeholder.com/300',
-      destacado: false,
-      vistas: 0,
-      likes: 0,
-      whatsapp: '18090000000'
-    };
-    productos.unshift(nuevo);
-    localStorage.setItem('mf_products', JSON.stringify(productos));
-    renderizarProductos();
-    document.getElementById('modal-publicar').style.display = 'none';
-    alert('Producto publicado en DEMO ⚡');
-  };
-}
-
-function compartirProducto(id) {
-  if(navigator.share) navigator.share({title:'MARKET FLASH', url: window.location.href});
-  else { navigator.clipboard.writeText(window.location.href); alert('Enlace copiado'); }
-}
+})();
