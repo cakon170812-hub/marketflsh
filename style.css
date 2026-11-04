@@ -1,103 +1,225 @@
 
 /*
- DOMINÓ FLASH COIN — style.css — revisión 0.12Z.29
- Estilos auxiliares de actualización web / Android.
- El estilo principal, el tablero, la mesa, las fichas, los saldos
- y los perfiles permanecen en index.html.
- No recuperar los estilos antiguos de MARKET FLASH.
- Este archivo no debe aplicar estilos globales al juego.
+=========================================================
+ DOMINÓ FLASH COIN
+ ARCHIVO: style.css
+ VERSIÓN: 0.12Z.30
+ FUNCIÓN: ESTILOS AUXILIARES DE ACTUALIZACIÓN ANDROID
+=========================================================
+
+ Este archivo mantiene el estilo del botón ACTUALIZAR.
+
+ NO modifica:
+ - La mesa de dominó.
+ - Las fichas.
+ - Los perfiles.
+ - Los diamantes.
+ - Los saldos.
+ - Las modalidades.
+ - La lógica de juego.
+
+ Los estilos principales permanecen en index.html.
+=========================================================
 */
 
-/* Control de actualización OTA creado por native-bridge.js */
+/* BOTÓN DE ACTUALIZACIÓN ANDROID */
+
 #dfcOTAUserButton {
   box-sizing: border-box;
+
+  position: fixed;
+
+  left: 50%;
+
+  bottom: calc(
+    74px + env(safe-area-inset-bottom, 0px)
+  );
+
+  transform: translateX(-50%);
+
+  z-index: 2147483000;
+
   max-width: calc(100vw - 24px);
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  -webkit-user-select: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+
+  min-height: 46px;
+
+  padding: 12px 18px;
+
+  border: 2px solid #9bdfff;
+
+  border-radius: 16px;
+
+  background: linear-gradient(
+    135deg,
+    #0874db,
+    #00428b
+  );
+
+  color: #ffffff;
+
+  font-family: system-ui, sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
   line-height: 1.25;
+
+  text-align: center;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  box-shadow: 0 4px 18px #0009;
+
   cursor: pointer;
+
+  touch-action: manipulation;
+
+  user-select: none;
+
+  -webkit-user-select: none;
+
+  -webkit-tap-highlight-color: transparent;
 }
+
+/* OCULTAR BOTÓN CUANDO NO EXISTA ACTUALIZACIÓN */
 
 #dfcOTAUserButton[hidden],
 #dfcOTAUserButton[hidden][style] {
   display: none !important;
 }
 
+/* BOTÓN DURANTE LA DESCARGA */
+
 #dfcOTAUserButton:disabled {
   cursor: progress;
   opacity: 0.78;
 }
+
+/* ACCESIBILIDAD */
 
 #dfcOTAUserButton:focus-visible {
   outline: 3px solid #fff6a6;
   outline-offset: 3px;
 }
 
+/* EFECTO AL TOCAR */
+
 #dfcOTAUserButton:not(:disabled):active {
   filter: brightness(1.08);
 }
 
-/* Nunca mostrar el botón sobre el tablero activo o el lobby. */
-body:has(#dominoTablePanel.active) #dfcOTAUserButton,
-body:has(#dominoLobbyPanel.active) #dfcOTAUserButton,
-body:has(#dominoLobbyPanel.show) #dfcOTAUserButton {
+/* NO MOSTRAR ACTUALIZACIONES DURANTE UNA PARTIDA */
+
+body:has(#dominoTablePanel.active)
+#dfcOTAUserButton {
   display: none !important;
 }
 
-/* Pantallas estrechas y zonas seguras de Android. */
+/* NO MOSTRAR ACTUALIZACIONES DENTRO DEL LOBBY */
+
+body:has(#dominoLobbyPanel.active)
+#dfcOTAUserButton,
+body:has(#dominoLobbyPanel.show)
+#dfcOTAUserButton {
+  display: none !important;
+}
+
+/* ADAPTACIÓN A TELÉFONOS PEQUEÑOS */
+
 @media (max-width: 380px) {
+
   #dfcOTAUserButton {
     max-width: calc(100vw - 16px);
+
     padding: 10px 12px !important;
+
     font-size: 13px !important;
   }
+
 }
 
-/* Reducir efectos para usuarios que así lo soliciten. */
+/* REDUCIR ANIMACIONES SEGÚN PREFERENCIA DEL USUARIO */
+
 @media (prefers-reduced-motion: reduce) {
+
   #dfcOTAUserButton {
     animation: none !important;
+
     transition: none !important;
   }
+
 }
 
-/*
- Los avisos opcionales de estado usan clases propias.
- No se altera .modal, .btn, .header, .card, body o :root:
- esas reglas antiguas eran de MARKET FLASH.
-*/
+/* MENSAJES AUXILIARES DEL SISTEMA DE ACTUALIZACIÓN */
+
 .dfc-update-status {
   box-sizing: border-box;
+
   display: block;
+
   max-width: 100%;
+
   padding: 10px 12px;
+
   margin: 8px 0;
-  border: 1px solid rgba(167, 216, 255, .45);
+
+  border: 1px solid rgba(
+    167,
+    216,
+    255,
+    0.45
+  );
+
   border-radius: 12px;
+
   color: #f6fbff;
-  background: rgba(3, 37, 68, .88);
+
+  background: rgba(
+    3,
+    37,
+    68,
+    0.88
+  );
+
   font: 600 13px/1.4 system-ui, sans-serif;
+
   overflow-wrap: anywhere;
 }
+
+/* ACTUALIZACIÓN EN PROCESO */
 
 .dfc-update-status[data-state="loading"],
 .dfc-update-status[data-state="pending"] {
   border-color: #e2b65a;
 }
 
+/* ERROR DE ACTUALIZACIÓN */
+
 .dfc-update-status[data-state="error"] {
   border-color: #ff938e;
 }
+
+/* ACTUALIZACIÓN DISPONIBLE */
 
 .dfc-update-status[data-state="available"] {
   border-color: #9de6be;
 }
 
+/* MENSAJES OCULTOS */
+
 .dfc-update-status[hidden] {
   display: none !important;
 }
+
+/*
+=========================================================
+ FINAL DE style.css
+ DOMINÓ FLASH COIN
+ VERSIÓN 0.12Z.30
+=========================================================
+*/
