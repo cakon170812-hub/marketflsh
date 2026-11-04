@@ -1,169 +1,643 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#102440">
   <meta name="robots" content="index,follow">
-  <title>Política de privacidad - Dominó Flash Coin</title>
-  <meta name="description" content="Política de privacidad de Dominó Flash Coin: datos, proveedores, actualizaciones Android y eliminación de cuenta.">
+
+  <title>
+    Política de privacidad - Dominó Flash Coin
+  </title>
+
+  <meta
+    name="description"
+    content="Política de privacidad de Dominó Flash Coin: cuentas, partidas, operaciones de Flash Coin, proveedores, actualizaciones y eliminación de cuenta."
+  >
+
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; background: #f3f6fb; color: #203047; font-family: Arial, sans-serif; line-height: 1.7; }
-    header { background: #102440; color: white; padding: 32px 20px; text-align: center; }
-    header h1 { margin: 0 0 8px; font-size: 30px; }
-    header p { margin: 0; }
-    main { max-width: 900px; margin: 24px auto; padding: 26px; background: white; border-radius: 16px; }
-    h2 { color: #174ca5; font-size: 22px; margin-top: 30px; }
-    a { color: #174ca5; overflow-wrap: anywhere; }
-    a:focus-visible { outline: 3px solid #ca9b32; outline-offset: 4px; }
-    li { margin-bottom: 10px; }
-    .contacto { padding: 18px; background: #edf3fc; border-radius: 12px; overflow-wrap: anywhere; }
-    section { scroll-margin-top: 20px; }
-    footer { text-align: center; padding: 20px; color: #53647a; }
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #f3f6fb;
+      color: #203047;
+      font-family: Arial, sans-serif;
+      line-height: 1.7;
+    }
+
+    header {
+      background: #102440;
+      color: white;
+      padding: 32px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+
+    header p {
+      margin: 0;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 24px auto;
+      padding: 26px;
+      background: white;
+      border-radius: 16px;
+    }
+
+    h2 {
+      color: #174ca5;
+      font-size: 22px;
+      margin-top: 30px;
+    }
+
+    a {
+      color: #174ca5;
+      overflow-wrap: anywhere;
+    }
+
+    a:focus-visible {
+      outline: 3px solid #ca9b32;
+      outline-offset: 4px;
+    }
+
+    li {
+      margin-bottom: 10px;
+    }
+
+    .contacto {
+      padding: 18px;
+      background: #edf3fc;
+      border-radius: 12px;
+      overflow-wrap: anywhere;
+    }
+
+    section {
+      scroll-margin-top: 20px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #53647a;
+    }
+
     @media (max-width: 600px) {
-      main { margin: 12px; padding: 20px; }
-      header h1 { font-size: 26px; }
+      main {
+        margin: 12px;
+        padding: 20px;
+      }
+
+      header h1 {
+        font-size: 26px;
+      }
     }
   </style>
 </head>
+
 <body>
+
 <header>
   <h1>Política de privacidad</h1>
   <p>Dominó Flash Coin</p>
-  <p>Revisión técnica para la integración Android/web 0.12Z.29 — 3 de noviembre de 2026</p>
+  <p>
+    Revisión 0.12Z.30 — 4 de noviembre de 2026
+  </p>
 </header>
 
 <main>
+
   <section>
     <h2>1. Responsable y alcance</h2>
-    <p>Esta política explica cómo se tratan los datos personales de los usuarios de <strong>Dominó Flash Coin</strong>, una plataforma de entretenimiento que incluye dominó, ruleta con créditos virtuales y funciones sociales, disponible mediante su sitio web y aplicación móvil.</p>
-    <p>El responsable del servicio es <strong>Julio Alcántara</strong>, en República Dominicana. Para consultas de privacidad y solicitudes relacionadas con tus datos, escribe a <a href="mailto:julioangel170812@gmail.com">julioangel170812@gmail.com</a>.</p>
-    <p>Esta política se aplica a las funciones disponibles en la versión que utilices. Las funciones opcionales solo tratan los datos necesarios cuando están habilitadas y las utilizas.</p>
+
+    <p>
+      Esta política describe el tratamiento de datos
+      personales en Dominó Flash Coin, una plataforma
+      que ofrece juegos de dominó, funciones sociales
+      y otras modalidades que se encuentren habilitadas
+      en el servicio.
+    </p>
+
+    <p>
+      El responsable es Julio Alcántara,
+      en República Dominicana.
+      Para consultas sobre privacidad:
+      <a href="mailto:julioangel170812@gmail.com">
+        julioangel170812@gmail.com
+      </a>.
+    </p>
+
+    <p>
+      Las funciones descritas se aplican cuando
+      estén disponibles en la versión utilizada.
+    </p>
   </section>
 
   <section id="datos">
     <h2>2. Datos personales y finalidades</h2>
+
     <ul>
-      <li><strong>Cuenta y perfil:</strong> nombre, correo electrónico, teléfono cuando se solicite, identificador público de usuario y datos de perfil que aportes. Se utilizan para gestionar tu cuenta, identificarte en el servicio, recuperar el acceso y ofrecer soporte.</li>
-      <li><strong>Autenticación:</strong> contraseña y credenciales de sesión necesarias para iniciar sesión, gestionadas mediante Supabase Auth. Nunca debes enviar tu contraseña por correo, WhatsApp o chat de soporte.</li>
-      <li><strong>Actividad de juego:</strong> mesas y rondas en las que participas, jugadas, resultados y estadísticas. Se utilizan para ejecutar y sincronizar partidas, aplicar las reglas y resolver incidencias.</li>
-      <li><strong>Flash Coin:</strong> saldo de créditos virtuales, asignaciones gratuitas, movimientos internos y referencias de operaciones. Se utilizan para actualizar tu saldo, mantener el historial y prevenir operaciones duplicadas.</li>
-      <li><strong>Invitaciones:</strong> identificadores de invitante e invitado y eventos relacionados con recompensas virtuales, cuando la función esté habilitada. Se utilizan para registrar referidos y prevenir recompensas duplicadas.</li>
-      <li><strong>Comunicaciones y soporte:</strong> mensajes, reportes y evidencias que envíes voluntariamente. Se utilizan para comunicarte con otros participantes, atender solicitudes y moderar el servicio. Imágenes, archivos o audios se tratan cuando los aportas mediante una función habilitada.</li>
-      <li><strong>Datos técnicos:</strong> dirección IP, información del navegador o dispositivo y registros de conexión o errores que reciben los proveedores tecnológicos. Se utilizan para entregar el servicio, diagnosticar fallos y prevenir accesos abusivos.</li>
-      <li><strong>Presencia:</strong> estado de conexión y participación, cuando existan indicadores de usuarios en línea. Se utiliza para mostrar disponibilidad y sincronizar partidas.</li>
+      <li>
+        <strong>Cuenta y perfil:</strong>
+        nombre, correo electrónico, teléfono cuando
+        corresponda, identificador de usuario e
+        información del perfil. Se utilizan para
+        gestionar la cuenta y prestar soporte.
+      </li>
+
+      <li>
+        <strong>Autenticación:</strong>
+        información necesaria para iniciar sesión,
+        gestionada mediante Supabase Auth.
+        No debes compartir tu contraseña.
+      </li>
+
+      <li>
+        <strong>Actividad de juego:</strong>
+        mesas, participantes, rondas, jugadas,
+        resultados y estadísticas para desarrollar
+        partidas y resolver incidencias.
+      </li>
+
+      <li>
+        <strong>Flash Coin y diamantes:</strong>
+        saldos, asignaciones, movimientos internos,
+        recompensas y referencias de operaciones
+        para registrar cambios y prevenir duplicados.
+      </li>
+
+      <li>
+        <strong>Recargas y retiradas:</strong>
+        cuando estas operaciones estén habilitadas,
+        se pueden tratar los importes, referencias,
+        estados de solicitudes y datos necesarios
+        para gestionar y verificar cada operación.
+      </li>
+
+      <li>
+        <strong>Datos de pago:</strong>
+        cuando el usuario solicite una retirada,
+        puede facilitar los datos bancarios necesarios
+        al canal autorizado que tramite la solicitud.
+        Se utilizarán para gestionar esa operación
+        y atender las incidencias relacionadas.
+      </li>
+
+      <li>
+        <strong>Invitaciones:</strong>
+        identificadores de usuarios y eventos de
+        recomendación cuando el programa de
+        recompensas esté habilitado.
+      </li>
+
+      <li>
+        <strong>Comunicaciones:</strong>
+        mensajes, solicitudes, denuncias y documentos
+        o evidencias aportados voluntariamente para
+        gestionar soporte y moderación.
+      </li>
+
+      <li>
+        <strong>Datos técnicos:</strong>
+        dirección IP, información del navegador,
+        dispositivo y registros de conexión o errores
+        necesarios para seguridad y diagnóstico.
+      </li>
     </ul>
-    <p>Los campos necesarios para una función se indican al solicitarlos. Si no proporcionas los datos indispensables para crear una cuenta o iniciar sesión, no podrás utilizar esas funciones.</p>
-    <p>No envíes documentos oficiales, contraseñas ni información bancaria en los chats o reportes del servicio.</p>
+
+    <p>
+      No envíes contraseñas, datos bancarios ni
+      documentos personales en chats públicos.
+      Utiliza únicamente los canales autorizados
+      cuando una operación requiera esos datos.
+    </p>
+  </section>
+
+  <section id="flashcoin">
+    <h2>3. Flash Coin, recargas y retiradas</h2>
+
+    <p>
+      Flash Coin es la unidad de saldo utilizada
+      dentro de Dominó Flash Coin para las funciones
+      y modalidades habilitadas.
+    </p>
+
+    <p>
+      En la versión actual pueden existir asignaciones
+      promocionales, recargas y solicitudes de
+      retirada que involucren dinero real.
+    </p>
+
+    <p>
+      Cuando se utilicen esos servicios, podrán
+      intervenir promotores o canales autorizados
+      para recibir solicitudes, comprobar operaciones
+      y tramitar los pagos correspondientes.
+    </p>
+
+    <p>
+      Los registros de estas operaciones podrán incluir
+      identificadores de usuario, importe solicitado,
+      saldo, fecha, referencia, estado y los datos
+      necesarios para gestionar el pago.
+    </p>
+
+    <p>
+      Las condiciones, importes, límites, disponibilidad
+      y requisitos de cada operación deberán comunicarse
+      al usuario antes de realizarla.
+    </p>
+
+    <p>
+      Esta política de privacidad no sustituye
+      los términos económicos, las reglas del juego
+      ni las obligaciones legales aplicables
+      a las operaciones con dinero real.
+    </p>
   </section>
 
   <section>
-    <h2>3. Créditos virtuales Flash Coin</h2>
-    <p>Flash Coin son créditos virtuales destinados al entretenimiento dentro de Dominó Flash Coin. Su distribución por promotores autorizados es gratuita.</p>
-    <p><strong>No tienen valor monetario y no pueden comprarse, venderse ni canjearse por dinero real, bienes o premios de valor económico.</strong> Los movimientos registrados corresponden a actividad interna de juego.</p>
-    <!-- REVISIÓN OBLIGATORIA ANTES DE PUBLICAR:
-         Confirmar si existen recargas pagadas, retiradas o canjes por dinero real.
-         Si existen, modificar esta sección y revisar requisitos legales y de tienda.
-         No publicar una política que contradiga la operativa real. -->
-  </section>
+    <h2>
+      4. Información visible para otros usuarios
+    </h2>
 
-  <section>
-    <h2>4. Información visible para otros usuarios</h2>
-    <p>Las funciones de juego y sociales pueden mostrar tu nombre de perfil, identificador público, imagen de perfil aportada, presencia en línea, participación y resultados o créditos obtenidos en una ronda.</p>
-    <p>Los mensajes enviados a un chat son visibles para sus destinatarios o participantes. Los datos de contacto publicados voluntariamente por promotores pueden mostrarse en sus fichas.</p>
-    <p>La contraseña y el correo de acceso no forman parte de la información destinada a los listados públicos de jugadores. El personal autorizado puede consultar los datos necesarios para administrar el servicio, atender reportes y resolver incidencias.</p>
+    <p>
+      Las funciones sociales y de juego pueden
+      mostrar nombre de perfil, identificador público,
+      avatar, presencia, participación, resultados
+      y saldos de mesa cuando esa visualización
+      forme parte del juego.
+    </p>
+
+    <p>
+      Las contraseñas, credenciales de sesión
+      y datos bancarios no están destinados
+      a mostrarse públicamente.
+    </p>
+
+    <p>
+      Los mensajes de chat pueden ser visibles
+      para los participantes correspondientes.
+      El personal autorizado podrá revisar los
+      datos necesarios para moderación, soporte
+      y resolución de incidencias.
+    </p>
   </section>
 
   <section id="proveedores">
-    <h2>5. Proveedores y comunicación de datos</h2>
-    <p>Para prestar el servicio se utilizan los siguientes proveedores:</p>
+    <h2>
+      5. Proveedores y comunicación de datos
+    </h2>
+
+    <p>
+      Para operar el servicio se utilizan
+      los siguientes proveedores tecnológicos:
+    </p>
+
     <ul>
-      <li><strong>Supabase:</strong> autenticación, base de datos y sincronización; almacenamiento de archivos cuando se utilice esa función. Trata los datos de cuenta y actividad enviados por la aplicación. <a href="https://supabase.com/privacy" rel="noopener noreferrer">Política de privacidad de Supabase</a>.</li>
-      <li><strong>GitHub Pages:</strong> alojamiento del sitio web, esta política y archivos públicos de actualización. Puede recibir datos técnicos de las visitas y descargas, incluida la dirección IP. <a href="https://docs.github.com/es/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener noreferrer">Declaración de privacidad de GitHub</a>.</li>
-      <li><strong>WhatsApp:</strong> si decides abrir un enlace de contacto, la comunicación se realiza en ese servicio. El destinatario recibe los mensajes y los datos que compartas. <a href="https://www.whatsapp.com/legal/privacy-policy" rel="noopener noreferrer">Política de privacidad de WhatsApp</a>.</li>
+      <li>
+        <strong>Supabase:</strong>
+        autenticación, base de datos,
+        sincronización y almacenamiento
+        cuando corresponda.
+        <a href="https://supabase.com/privacy">
+          Política de privacidad de Supabase
+        </a>.
+      </li>
+
+      <li>
+        <strong>GitHub Pages:</strong>
+        alojamiento del sitio web,
+        documentos públicos y archivos
+        de actualización.
+        <a href="https://docs.github.com/es/site-policy/privacy-policies/github-general-privacy-statement">
+          Política de privacidad de GitHub
+        </a>.
+      </li>
+
+      <li>
+        <strong>WhatsApp:</strong>
+        cuando se utilicen enlaces de contacto,
+        los datos compartidos en esa conversación
+        estarán sujetos también a las condiciones
+        de dicho servicio.
+        <a href="https://www.whatsapp.com/legal/privacy-policy">
+          Política de privacidad de WhatsApp
+        </a>.
+      </li>
     </ul>
-    <p>No vendemos tus datos personales. Se comunican datos a proveedores para prestar las funciones descritas, a destinatarios elegidos por ti o cuando sea necesario responder a una obligación legal válida.</p>
-    <p>Los proveedores pueden procesar información fuera de tu país, según la región del proyecto y su infraestructura. Su tratamiento está sujeto a las condiciones aplicables de cada proveedor y a las obligaciones del responsable del servicio.</p>
-    <p>Si se incorporan otros proveedores o tratamientos, esta política se actualizará para informar sobre ellos.</p>
+
+    <p>
+      Cuando una recarga o retirada sea gestionada
+      mediante un promotor o intermediario autorizado,
+      podrán compartirse los datos estrictamente
+      necesarios para tramitar la solicitud.
+    </p>
+
+    <p>
+      Los proveedores o intermediarios de pago
+      que se utilicen deberán informar sobre
+      sus propias condiciones de tratamiento
+      cuando corresponda.
+    </p>
+
+    <p>
+      No se venden datos personales con fines
+      publicitarios.
+    </p>
+
+    <p>
+      Los proveedores pueden tratar información
+      en otros países según su infraestructura
+      y las condiciones aplicables.
+    </p>
   </section>
 
   <section>
-    <h2>6. Almacenamiento local y sesiones</h2>
-    <p>La aplicación utiliza almacenamiento local del navegador o mecanismos equivalentes para conservar la sesión y recordar preferencias. La versión instalable puede guardar archivos de la interfaz en almacenamiento local para permitir su funcionamiento y actualizaciones.</p>
-    <p>Puedes cerrar sesión y borrar los datos locales desde los ajustes del navegador o dispositivo. Borrar esos datos o desinstalar la aplicación no elimina automáticamente tu cuenta ni los datos almacenados en los servidores.</p>
+    <h2>
+      6. Almacenamiento local y sesiones
+    </h2>
+
+    <p>
+      La aplicación puede utilizar almacenamiento
+      local para conservar sesiones, preferencias
+      y archivos necesarios para su funcionamiento.
+    </p>
+
+    <p>
+      El cierre de sesión o la desinstalación
+      no eliminan automáticamente los datos
+      almacenados en los servidores.
+    </p>
   </section>
 
   <section>
     <h2>7. Permisos del dispositivo</h2>
-    <p>El servicio necesita acceso a internet. Cuando utilices funciones opcionales que requieran seleccionar archivos, grabar audio o recibir notificaciones, se solicitará el permiso correspondiente cuando sea necesario y se explicará su finalidad.</p>
-    <p>Puedes denegar o revocar los permisos desde los ajustes de tu dispositivo. La función que dependa del permiso podría dejar de estar disponible.</p>
-    <p>Esta política no concede por sí sola permiso para acceder a cámara, micrófono, contactos, ubicación o archivos. El acceso debe corresponder a una función habilitada y a la autorización aplicable.</p>
+
+    <p>
+      La aplicación requiere conexión a internet
+      para acceder a los servicios en línea.
+    </p>
+
+    <p>
+      Las funciones opcionales que necesiten
+      archivos, cámara, micrófono o notificaciones
+      podrán solicitar permisos cuando estén
+      habilitadas y sea necesario.
+    </p>
+
+    <p>
+      Los permisos pueden administrarse
+      desde los ajustes del dispositivo.
+    </p>
   </section>
 
   <section>
     <h2>8. Seguridad</h2>
-    <p>La comunicación con el sitio y los servicios de autenticación y base de datos se realiza mediante conexiones HTTPS, que protegen la información durante su transmisión.</p>
-    <p>Los datos se alojan en la infraestructura de los proveedores indicados. La seguridad también depende de la configuración de acceso del servicio y de la protección de las credenciales de usuario y administración.</p>
-    <p>Ningún sistema garantiza una seguridad absoluta. Protege tu contraseña, evita compartir tu sesión y comunica cualquier acceso sospechoso al correo de soporte.</p>
+
+    <p>
+      Las conexiones con el sitio y los servicios
+      de autenticación y base de datos utilizan
+      HTTPS para proteger la información durante
+      su transmisión.
+    </p>
+
+    <p>
+      El acceso a los datos debe limitarse
+      a usuarios y personal autorizado
+      según las funciones correspondientes.
+    </p>
+
+    <p>
+      Ningún sistema ofrece seguridad absoluta.
+      No compartas contraseñas ni credenciales
+      y comunica cualquier acceso sospechoso.
+    </p>
   </section>
 
   <section id="conservacion">
     <h2>9. Conservación de datos</h2>
-    <p>Los datos de cuenta y actividad se conservan mientras la cuenta esté activa y sean necesarios para prestar el servicio. Los mensajes y evidencias de soporte se conservan mientras sean necesarios para atender la solicitud o resolver la incidencia relacionada.</p>
-    <p>Cuando se verifica una solicitud de eliminación, se tramita el borrado de la cuenta y sus datos asociados. El responsable comunica el plazo de ejecución y cualquier conservación excepcional que corresponda.</p>
-    <p>Solo podrán conservarse datos mínimos cuando exista una necesidad concreta de seguridad, prevención de fraude o cumplimiento de una obligación legal. Se conservarán durante el tiempo necesario para esa finalidad y se eliminarán cuando deje de existir, salvo obligación legal distinta.</p>
-    <p>Los datos presentes en copias de seguridad pueden permanecer hasta completar el ciclo de eliminación del proveedor. Si tu solicitud afecta a esas copias, se te informará del periodo aplicable. La información conservada excepcionalmente no se utilizará para reactivar tu cuenta.</p>
+
+    <p>
+      Los datos se conservan durante el periodo
+      necesario para proporcionar el servicio,
+      atender solicitudes, mantener la seguridad
+      y cumplir las obligaciones aplicables.
+    </p>
+
+    <p>
+      Los registros relacionados con recargas,
+      retiradas u operaciones económicas pueden
+      requerir periodos de conservación adicionales
+      por motivos legales, contables o de prevención
+      de operaciones fraudulentas.
+    </p>
+
+    <p>
+      Las solicitudes de eliminación se revisarán
+      atendiendo a los derechos del usuario
+      y a las obligaciones de conservación
+      que sean aplicables.
+    </p>
+
+    <p>
+      Los datos de copias de seguridad pueden
+      mantenerse hasta que concluya el ciclo
+      de eliminación correspondiente.
+    </p>
   </section>
 
   <section id="eliminar-cuenta">
-    <h2>10. Solicitar la eliminación de tu cuenta</h2>
-    <p>Puedes solicitar la eliminación de tu cuenta y sus datos asociados sin reinstalar la aplicación ni iniciar sesión, mediante este correo:</p>
+    <h2>
+      10. Solicitar la eliminación de tu cuenta
+    </h2>
+
+    <p>
+      Puedes solicitar la eliminación
+      de tu cuenta y de los datos asociados
+      escribiendo al siguiente correo:
+    </p>
+
     <div class="contacto">
-      <a href="mailto:julioangel170812@gmail.com?subject=Eliminar%20mi%20cuenta%20de%20Domino%20Flash%20Coin"><strong>Solicitar eliminación: julioangel170812@gmail.com</strong></a>
+      <a href="mailto:julioangel170812@gmail.com?subject=Eliminar%20mi%20cuenta%20de%20Domino%20Flash%20Coin">
+        <strong>
+          Solicitar eliminación de cuenta
+        </strong>
+      </a>
     </div>
+
     <ol>
-      <li>Envía el mensaje desde el correo asociado a tu cuenta, con el asunto <strong>Eliminar mi cuenta de Dominó Flash Coin</strong>.</li>
-      <li>Incluye tu identificador público si lo conoces. No envíes tu contraseña.</li>
-      <li>Se verificará la titularidad con la información mínima necesaria. Si no tienes acceso a tu correo registrado, solicita ayuda para una verificación alternativa.</li>
-      <li>Tras la verificación, se tramitará la eliminación de la cuenta, perfil y datos asociados, incluidos los registros de actividad y comunicaciones vinculados a ti, salvo las excepciones explicadas en la sección de conservación.</li>
-      <li>Recibirás una confirmación y, cuando corresponda, información sobre los datos que deban conservarse, el motivo y el periodo aplicable.</li>
+      <li>
+        Envía la solicitud desde el correo
+        asociado a tu cuenta, si tienes acceso.
+      </li>
+
+      <li>
+        Indica tu identificador de usuario
+        cuando lo conozcas.
+      </li>
+
+      <li>
+        No envíes tu contraseña.
+      </li>
+
+      <li>
+        Se verificará la titularidad mediante
+        los datos mínimos necesarios.
+      </li>
+
+      <li>
+        Una vez verificada la solicitud,
+        se gestionará la eliminación de
+        los datos que corresponda borrar.
+      </li>
+
+      <li>
+        Si existen registros que deban
+        conservarse por obligaciones legales,
+        se informará al usuario cuando corresponda.
+      </li>
     </ol>
-    <p>La eliminación es permanente e implica perder el acceso a la cuenta y a sus créditos virtuales. Cerrar sesión, suspender o bloquear una cuenta no equivale a eliminarla.</p>
+
+    <p>
+      Antes de solicitar la eliminación,
+      el usuario deberá revisar cualquier
+      operación económica pendiente.
+      La eliminación de la cuenta no extingue
+      automáticamente obligaciones legales
+      o económicas que correspondan.
+    </p>
+
+    <p>
+      Cerrar sesión, bloquear una cuenta
+      o desinstalar la aplicación
+      no equivale a eliminarla.
+    </p>
   </section>
 
   <section>
-    <h2>11. Tus derechos</h2>
-    <p>Puedes solicitar acceso a tus datos, su corrección o eliminación y ejercer los demás derechos reconocidos por la normativa aplicable. Para hacerlo, escribe al correo de contacto e indica tu solicitud.</p>
-    <p>Se podrá verificar tu identidad de forma proporcionada para evitar entregar o eliminar datos de otra persona. Las solicitudes se atenderán dentro de los plazos aplicables.</p>
-    <p>Cuando un tratamiento dependa de tu consentimiento, puedes retirarlo. Esto no afecta al tratamiento realizado válidamente antes de la retirada.</p>
+    <h2>11. Derechos del usuario</h2>
+
+    <p>
+      Puedes solicitar acceso, corrección
+      o eliminación de tus datos y ejercer
+      otros derechos reconocidos por la
+      normativa aplicable.
+    </p>
+
+    <p>
+      Para evitar el acceso indebido a información
+      de otras personas, se podrá verificar
+      la identidad del solicitante.
+    </p>
+
+    <p>
+      Las solicitudes se tramitarán conforme
+      a los plazos y requisitos correspondientes.
+    </p>
   </section>
 
   <section>
     <h2>12. Menores de edad</h2>
-    <p>Dominó Flash Coin está destinada a personas mayores de 18 años y no está dirigida a niños.</p>
-    <p>Si un padre, madre o tutor considera que un menor ha proporcionado datos personales, puede escribir al correo de soporte para solicitar su revisión y eliminación.</p>
+
+    <p>
+      Dominó Flash Coin está destinada
+      a personas mayores de 18 años.
+      No está dirigida a niños.
+    </p>
+
+    <p>
+      Si un padre, madre o tutor considera
+      que un menor ha proporcionado información
+      personal, podrá solicitar su revisión
+      mediante el correo de contacto.
+    </p>
   </section>
 
   <section>
-    <h2>13. Actualizaciones web y Android</h2>
-    <p>La versión web puede obtener archivos nuevos cuando vuelvas a cargar el sitio. En Android, la aplicación puede consultar un manifiesto público de GitHub Pages para detectar una actualización disponible.</p>
-    <p>Al pulsar el botón de actualización, la aplicación puede descargar un paquete de archivos de interfaz y comprobar su integridad mediante una suma SHA-256 antes de activarlo. Este mecanismo utiliza la conexión a internet y puede generar registros técnicos de acceso en el proveedor de alojamiento.</p>
-    <p>La aplicación procura impedir que una actualización interrumpa una partida activa. La disponibilidad de una versión no implica que se instale automáticamente. Algunas actualizaciones pueden requerir instalar una nueva APK o una actualización desde la tienda correspondiente.</p>
-    <p>Esta política se revisará cuando cambien las funciones o el tratamiento de datos. Los cambios relevantes se comunicarán mediante avisos accesibles y, cuando corresponda, se solicitará el consentimiento pertinente.</p>
+    <h2>
+      13. Actualizaciones web y Android
+    </h2>
+
+    <p>
+      La versión web puede recibir archivos
+      nuevos al volver a cargar el sitio.
+    </p>
+
+    <p>
+      En instalaciones Android que utilicen
+      el sistema de actualización correspondiente,
+      la aplicación puede consultar un manifiesto
+      público para detectar versiones disponibles.
+    </p>
+
+    <p>
+      Cuando el usuario pulse el botón de actualizar,
+      la aplicación puede descargar archivos de
+      interfaz y comprobar su integridad mediante
+      una suma SHA-256 antes de activarlos.
+    </p>
+
+    <p>
+      Se procura impedir que una actualización
+      interrumpa una partida activa.
+    </p>
+
+    <p>
+      Las aplicaciones distribuidas mediante
+      tiendas oficiales pueden utilizar
+      los mecanismos de actualización exigidos
+      por la tienda correspondiente.
+    </p>
+
+    <p>
+      Esta política se revisará cuando cambien
+      las funciones o el tratamiento de datos.
+    </p>
   </section>
 
   <section id="contacto">
     <h2>14. Contacto</h2>
+
     <div class="contacto">
-      <p><strong>Aplicación:</strong> Dominó Flash Coin</p>
-      <p><strong>Responsable:</strong> Julio Alcántara</p>
-      <p><strong>País:</strong> República Dominicana</p>
-      <p><strong>Privacidad y soporte:</strong> <a href="mailto:julioangel170812@gmail.com">julioangel170812@gmail.com</a></p>
+      <p>
+        <strong>Aplicación:</strong>
+        Dominó Flash Coin
+      </p>
+
+      <p>
+        <strong>Responsable:</strong>
+        Julio Alcántara
+      </p>
+
+      <p>
+        <strong>País:</strong>
+        República Dominicana
+      </p>
+
+      <p>
+        <strong>Privacidad y soporte:</strong>
+        <a href="mailto:julioangel170812@gmail.com">
+          julioangel170812@gmail.com
+        </a>
+      </p>
     </div>
   </section>
+
 </main>
 
-<footer>Dominó Flash Coin · Política de privacidad</footer>
+<footer>
+  Dominó Flash Coin · Política de privacidad · 0.12Z.30
+</footer>
+
 </body>
 </html>
