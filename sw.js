@@ -1,54 +1,186 @@
 
 /*
- * DOMINÓ FLASH COIN — sw.js — revisión de mantenimiento 0.12Z.29
- * Service Worker para GitHub Pages.
- * - No almacena HTML, JavaScript, CSS ni respuestas de Supabase.
- * - No intercepta peticiones: el navegador consulta la red normalmente.
- * - No descarga ni instala actualizaciones Android; eso es responsabilidad
- *   de native-bridge.js y Capacitor Updater.
- * - Limpia únicamente cachés antiguas identificadas con este proyecto.
- * - No fuerza recargas ni interrumpe partidas en curso.
- */
+=========================================================
+ DOMINÓ FLASH COIN
+ ARCHIVO: sw.js
+ VERSIÓN: 0.12Z.30
+ SISTEMA: SERVICE WORKER
+
+ OBJETIVOS:
+ - Evitar servir archivos antiguos desde Cache Storage.
+ - No bloquear actualizaciones de GitHub.
+ - No interferir con Supabase.
+ - No interrumpir partidas activas.
+ - Mantener separado el actualizador nativo Android.
+
+ IMPORTANTE:
+ Este archivo NO instala actualizaciones APK ni OTA.
+ Esa función corresponde a native-bridge.js.
+=========================================================
+*/
+
 'use strict';
 
-const DFC_SW_REVISION = '0.12Z.29-maintenance-1';
+const DFC_SW_REVISION = '0.12Z.30-maintenance-1';
+
 const DFC_OLD_CACHE_PREFIXES = [
   'dfc-',
   'domino-flash-coin-',
   'domino_flash_coin-'
 ];
 
-self.addEventListener('install', () => {
-  // No precache: GitHub Pages debe obtener el HTML desde la red.
-  // Activar el nuevo worker sin esperar al cierre de pestañas antiguas.
-  self.skipWaiting();
+/*
+=========================================================
+ 1. INSTALACIÓN
+=========================================================
+*/
+
+self.addEventListener('install', (event) => {
+
+  console.info(
+    '[DOMINÓ FLASH COIN SW] Instalando:',
+    DFC_SW_REVISION
+  );
+
+  // No precargar archivos: se obtendrán desde la red.
+  // No modifica ningún archivo ya instalado en la APK.
+  event.waitUntil(
+    self.skipWaiting()
+  );
+
 });
+
+/*
+=========================================================
+ 2. ACTIVACIÓN
+=========================================================
+*/
 
 self.addEventListener('activate', (event) => {
+
   event.waitUntil((async () => {
-    if ('caches' in self) {
-      try {
-        const names = await caches.keys();
-        const obsolete = names.filter((name) =>
-          DFC_OLD_CACHE_PREFIXES.some((prefix) => name.startsWith(prefix))
+
+    try {
+
+      const cacheNames = await caches.keys();
+
+      const oldCaches = cacheNames.filter((name) => {
+
+        return DFC_OLD_CACHE_PREFIXES.some(
+          (prefix) => name.startsWith(prefix)
         );
-        await Promise.all(obsolete.map(async (name) => {
+
+      });
+
+      await Promise.all(
+        oldCaches.map(async (name) => {
+
           try {
+
             await caches.delete(name);
+
+            console.info(
+              '[DOMINÓ FLASH COIN SW] Caché anterior eliminada:',
+              name
+            );
+
           } catch (error) {
-            console.warn('[DFC SW] No se pudo limpiar caché:', name, error);
+
+            console.warn(
+              '[DOMINÓ FLASH COIN SW] Error limpiando caché:',
+              String(error?.message || error)
+            );
+
           }
-        }));
-      } catch (error) {
-        console.warn('[DFC SW] No se pudo revisar Cache Storage:', error);
-      }
+
+        })
+      );
+
+    } catch (error) {
+
+      console.warn(
+        '[DOMINÓ FLASH COIN SW] No se pudo revisar Cache Storage:',
+        String(error?.message || error)
+      );
+
     }
+
     await self.clients.claim();
-    console.info('[DFC SW] Activo:', DFC_SW_REVISION);
+
+    console.info(
+      '[DOMINÓ FLASH COIN SW] Activo:',
+      DFC_SW_REVISION
+    );
+
   })());
+
 });
 
-// Deliberadamente NO hay manejador 'fetch'.
-// Así se evita servir copias antiguas de index.html, script.js,
-// style.css, manifest.json y los paquetes Android.
-// Tampoco hay manejadores 'push', 'sync' o 'message' que alteren el juego.
+/*
+=========================================================
+ 3. PETICIONES DE RED
+=========================================================
+
+ No registrar un evento "fetch".
+
+ De esta forma, este Service Worker no intercepta:
+ - index.html
+ - native-bridge.js
+ - script.js
+ - style.css
+ - manifest.json
+ - Paquetes ZIP Android
+ - Peticiones a Supabase
+
+ El navegador utiliza su comportamiento normal de red.
+
+=========================================================
+*/
+
+/*
+=========================================================
+ 4. SEGURIDAD DE LAS PARTIDAS
+=========================================================
+
+ Este Service Worker no:
+ - Modifica mesas.
+ - Modifica turnos.
+ - Ejecuta movimientos.
+ - Descuenta diamantes.
+ - Cambia saldos Flash Coin.
+ - Cierra sesiones.
+ - Reinicia partidas.
+ - Fuerza una recarga de páginas abiertas.
+
+=========================================================
+*/
+
+/*
+=========================================================
+ 5. CONTROL DE VERSIONES
+=========================================================
+
+ Versión de mantenimiento: 0.12Z.30
+
+ La versión Android instalada se comprueba desde
+ native-bridge.js mediante CapacitorUpdater.current().
+
+ El manifiesto publicado determina si existe una
+ nueva actualización autorizada.
+
+ Este Service Worker no altera ese mecanismo.
+
+=========================================================
+*/
+
+console.info(
+  '[DOMINÓ FLASH COIN] Service Worker preparado:',
+  DFC_SW_REVISION
+);
+
+/*
+=========================================================
+ FIN DEL ARCHIVO sw.js
+ DOMINÓ FLASH COIN 0.12Z.30
+=========================================================
+*/
