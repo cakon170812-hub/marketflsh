@@ -2,76 +2,127 @@
 python3 - <<'PY'
 from pathlib import Path
 from urllib.request import Request, urlopen
+import hashlib
 
-URL = (
-    "https://raw.githubusercontent.com/"
-    "cakon170812-hub/marketflsh/main/index.html"
+REPO = "cakon170812-hub/marketflsh"
+REVISION = "2b7aa583c29fe2c551634ae2fe66ed346c46fc08"
+EXPECTED_BLOB = "0e990e3b080094e046bb00b581558f9613492f00"
+
+url = (
+    f"https://raw.githubusercontent.com/"
+    f"{REPO}/{REVISION}/index.html"
 )
 
-req = Request(URL, headers={"User-Agent": "DFC-Z30-Builder"})
-with urlopen(req, timeout=45) as response:
-    html = response.read().decode("utf-8")
+print("Recuperando HTML original desde GitHub...")
 
-assert len(html) > 1000000, "HTML original incompleto"
-assert "const sb=window.supabase.createClient" in html, \
-    "No se encontró la conexión original de Supabase"
+request = Request(
+    url,
+    headers={"User-Agent": "DFC-Z30-Recovery"}
+)
 
-original = "const sb=window.supabase.createClient"
+with urlopen(request, timeout=90) as response:
+    original_bytes = response.read()
 
-if "window.sb=sb;" not in html:
-    pos = html.index(original)
-    end = html.index(";", pos) + 1
-    html = (
-        html[:end]
-        + "\nwindow.sb=sb;\nwindow.dfcSupabase=sb;\n"
-        + html[end:]
+actual_blob = hashlib.sha1(
+    b"blob " +
+    str(len(original_bytes)).encode() +
+    b"\0" +
+    original_bytes
+).hexdigest()
+
+if actual_blob != EXPECTED_BLOB:
+    raise RuntimeError(
+        "La copia descargada no coincide con el original."
     )
 
-replacements = {
+html = original_bytes.decode("utf-8")
+
+if len(html) < 3000000:
+    raise RuntimeError("El HTML está incompleto.")
+
+if "<html" not in html or "</html>" not in html:
+    raise RuntimeError("No es un documento HTML válido.")
+
+supabase = "const sb=window.supabase.createClient"
+
+if html.count(supabase) != 1:
+    raise RuntimeError(
+        "No se encontró una única conexión de Supabase."
+    )
+
+start = html.index(supabase)
+end = html.index(";", start) + 1
+
+html = (
+    html[:end]
+    + "\nwindow.sb=sb;\n"
+    + "window.dfcSupabase=sb;\n"
+    + html[end:]
+)
+
+changes = {
     'data-app-build="0.12Z.29"':
         'data-app-build="0.12Z.30"',
+
     'content="0.12Z.29" name="application-version"':
         'content="0.12Z.30" name="application-version"',
-    "./sw.js?v=0.12Z.29":
-        "./sw.js?v=0.12Z.30",
-    "native-bridge.js?v=0.12Z.29":
-        "native-bridge.js?v=0.12Z.30"
+
+    './sw.js?v=0.12Z.29':
+        './sw.js?v=0.12Z.30',
+
+    './native-bridge.js?v=0.12Z.29':
+        './native-bridge.js?v=0.12Z.30'
 }
 
-for before, after in replacements.items():
-    assert html.count(before) == 1, \
-        "No se encontró una referencia única: " + before
-    html = html.replace(before, after, 1)
+for old, new in changes.items():
+    if html.count(old) != 1:
+        raise RuntimeError(
+            "Referencia ausente o duplicada: " + old
+        )
+    html = html.replace(old, new, 1)
 
-anchor = (
+bridge = (
     '<script src="./native-bridge.js?v=0.12Z.30" '
-    'type="module"></script>'
+    'type="module">'
 )
 
-assert html.count(anchor) == 1, \
-    "No se encontró el puente Android"
+if html.count(bridge) != 1:
+    raise RuntimeError("No se encontró el puente Android.")
 
-resources = (
-    '<link rel="stylesheet" href="./style.css?v=0.12Z.30">\n'
-    '<script src="./script.js?v=0.12Z.30" defer></script>\n'
+html = html.replace(
+    bridge,
+    '<script src="./script.js?v=0.12Z.30" '
+    'defer></script>\n' + bridge,
+    1
 )
 
-html = html.replace(anchor, resources + anchor, 1)
+if "</head>" not in html:
+    raise RuntimeError("Falta el cierre de HEAD.")
 
-assert "window.sb=sb;" in html
-assert "window.dfcSupabase=sb;" in html
-assert 'application-version"' in html
-assert "native-bridge.js?v=0.12Z.30" in html
+html = html.replace(
+    "</head>",
+    '<link rel="stylesheet" '
+    'href="./style.css?v=0.12Z.30">\n'
+    '</head>',
+    1
+)
 
 folder = Path.home() / "Downloads" / "DFC_Z30"
 folder.mkdir(parents=True, exist_ok=True)
 
+backup = folder / "index_original_recuperado.html"
+backup.write_bytes(original_bytes)
+
 destination = folder / "index.html"
 destination.write_text(html, encoding="utf-8")
 
-print("HTML Z30 generado correctamente")
+print()
+print("RECUPERACIÓN COMPLETADA")
 print("Archivo:", destination)
-print("Tamaño:", len(html.encode("utf-8")), "bytes")
-print("Líneas:", len(html.splitlines()))
-print("No se ha publicado ninguna actualización.")
+print("Respaldo:", backup)
+print("Tamaño:", destination.stat().st_size, "bytes")
+print("Versión preparada: 0.12Z.30")
+print("Supabase compartido: SÍ")
+print("Puente Android Z30: SÍ")
+print("Actualización publicada: NO")
 PY
