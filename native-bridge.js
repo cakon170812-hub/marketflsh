@@ -1,312 +1,240 @@
 
- // DOMINÓ FLASH COIN — native-bridge.js — corrección permanente para paquete OTA Z30
- // Archivo fuente para compilar mediante GitHub Actions/esbuild.
- // No cambia saldos, partidas ni reglas. BASE_VERSION identifica únicamente el paquete nativo original.
+ // DOMINÓ FLASH COIN · PUENTE ANDROID OTA · CORRECCIÓN Z30
+ // Solo recursos web del APK Capacitor; NO actualiza el binario Android.
+ // Descargar durante una partida está permitido; activar exige estado seguro.
  import { Capacitor } from '@capacitor/core';
  import { App } from '@capacitor/app';
  import { ScreenOrientation } from '@capacitor/screen-orientation';
  import { StatusBar } from '@capacitor/status-bar';
  import { CapacitorUpdater } from '@capgo/capacitor-updater';
 
- const isAndroid = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
-
- if (isAndroid) {
+ const ANDROID = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+ if (ANDROID) {
    document.documentElement.classList.add('dfc-android-native');
-
-   const BASE_VERSION = '0.12Z.28';
-   const MANIFEST_URL = 'https://cakon170812-hub.github.io/marketflsh/android-approved/manifest.json';
+   const BASE_VERSION = '0.12Z.28'; // Versión del APK nativo original, no la versión OTA.
+   const MANIFEST = 'https://cakon170812-hub.github.io/marketflsh/android-approved/manifest.json';
    const EXPECTED_ORIGIN = 'https://cakon170812-hub.github.io';
-   const EXPECTED_PATH = '/marketflsh/android-approved/bundles/';
+   const BUNDLES_PATH = '/marketflsh/android-approved/bundles/';
    const VERSION_RE = /^0\.12Z\.(\d{1,4})$/;
-   const SHA256_RE = /^[a-f0-9]{64}$/i;
-
+   const SHA_RE = /^[a-f0-9]{64}$/i;
+   const PENDING_KEY = 'dfc_ota_bundle_pendiente_v1';
    let candidate = null;
-   let busy = false;
-   let checkedAt = 0;
-   let lastDiagnostic = '';
+   let downloading = false;
+   let activating = false;
+   let lastCheck = 0;
+   let pending = null;
+   let errorCode = '';
 
-   const versionNumber = (value) => {
-     const m = VERSION_RE.exec(String(value || ''));
-     return m ? Number(m[1]) : -1;
-   };
-
-   const tableOpen = () => !!document.getElementById('dominoTablePanel')?.classList.contains('active');
-
-   const homeVisible = () => {
-     const home = document.getElementById('appView');
-     const lobby = document.getElementById('dominoLobbyPanel');
-     return !!home && !home.classList.contains('hidden') && !tableOpen() &&
-       !lobby?.classList.contains('active') && !lobby?.classList.contains('show');
-   };
-
-   // El index.html existente declara "const sb = createClient(...)" en un script
-   // clásico, no "window.sb". Esa variable léxica puede estar disponible en el
-   // ámbito global del módulo sin ser propiedad de window.
-   function getSupabaseClient() {
-     // Priorizar el cliente compartido por index.html, sin crear sesiones nuevas.
-     for (const key of ['sb', 'dfcSupabase', 'supabaseClient', 'supabaseDb', 'rfSupabase']) {
-       try {
-         const client = window[key];
-         if (typeof client?.auth?.getSession === 'function' && typeof client?.rpc === 'function') {
-           return client;
-         }
-       } catch (_) { /* Intentar la siguiente referencia. */ }
+   function versionNumber(value) {
+     const match = VERSION_RE.exec(String(value || ''));
+     return match ? Number(match[1]) : -1;
+   }
+   function tableOpen() {
+     return !!document.getElementById('dominoTablePanel')?.classList.contains('active');
+   }
+   function client() {
+     for (const name of ['sb', 'dfcSupabase', 'supabaseClient', 'supabaseDb', 'rfSupabase']) {
+       const value = window[name];
+       if (typeof value?.auth?.getSession === 'function' && typeof value?.rpc === 'function') return value;
      }
-
-     // Compatibilidad con HTML anterior: "const sb" global léxico no crea window.sb.
+     // Puede existir un 'const sb' léxico sin la propiedad window.sb.
      try {
-       if (typeof sb !== 'undefined' && typeof sb?.auth?.getSession === 'function' &&
-           typeof sb?.rpc === 'function') {
+       if (typeof sb !== 'undefined' && typeof sb?.auth?.getSession === 'function' && typeof sb?.rpc === 'function') {
          window.sb = sb;
          window.dfcSupabase = sb;
          return sb;
        }
-     } catch (_) { /* El HTML puede seguir inicializándose. */ }
+     } catch (_) {}
      return null;
    }
-
-   function reportCheck(code, detail = '') {
-     lastDiagnostic = code;
-     // Evitar volcar JWT, balances, datos de perfil o respuestas completas.
-     console.warn('[DFC Android OTA]', code, detail);
+   function status(code) {
+     errorCode = code;
+     console.warn('[DFC OTA]', code);
      return false;
    }
-
-   // Un resultado sin respuesta, un error o una sesión incierta NO autoriza reiniciar.
-   // Únicamente una comprobación explícita del servidor sin asiento activo es segura.
-   async function safeToRestart() {
-     if (tableOpen()) return reportCheck('TABLE_SCREEN_OPEN');
-     if (!homeVisible()) return reportCheck('NOT_ON_HOME');
-
-     const client = getSupabaseClient();
-     if (!client) return reportCheck('SUPABASE_CLIENT_UNAVAILABLE');
-
+   async function withTimeout(promise, ms, code) {
+     let timer;
      try {
-       const sessionResult = await Promise.race([
-         client.auth.getSession(),
-         new Promise((_, reject) => setTimeout(() => reject(new Error('SESSION_TIMEOUT')), 10000)),
+       return await Promise.race([
+         Promise.resolve(promise),
+         new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(code)), ms); })
        ]);
-
-       if (sessionResult?.error) return reportCheck('SESSION_ERROR', sessionResult.error.code || '');
-       if (!sessionResult?.data?.session?.access_token) {
-         return reportCheck('SESSION_NOT_AVAILABLE');
-       }
-
-       const lobbyResult = await Promise.race([
-         client.rpc('rf_domino_get_lobby_v11'),
-         new Promise((_, reject) => setTimeout(() => reject(new Error('LOBBY_TIMEOUT')), 15000)),
-       ]);
-
-       if (lobbyResult?.error) {
-         return reportCheck('LOBBY_RPC_ERROR', lobbyResult.error.code || '');
-       }
-
-       const data = lobbyResult?.data;
+     } finally { clearTimeout(timer); }
+   }
+   // Nunca confiar solo en la pantalla: una mesa puede seguir activa en Supabase.
+   async function safeToActivate() {
+     if (tableOpen()) return status('MESA_ABIERTA');
+     const sbClient = client();
+     if (!sbClient) return status('CLIENTE_SUPABASE_NO_DISPONIBLE');
+     try {
+       const auth = await withTimeout(sbClient.auth.getSession(), 10000, 'TIEMPO_SESION');
+       if (auth?.error) return status('ERROR_SESION');
+       if (!auth?.data?.session?.access_token) return status('SESION_NO_CONFIRMADA');
+       const response = await withTimeout(sbClient.rpc('rf_domino_get_lobby_v11'), 15000, 'TIEMPO_MESA');
+       if (response?.error) return status('ERROR_CONSULTA_MESA');
+       const data = response?.data;
        if (!data || typeof data !== 'object' || Array.isArray(data) ||
            !Object.prototype.hasOwnProperty.call(data, 'my_table') ||
-           !Object.prototype.hasOwnProperty.call(data, 'my_state')) {
-         return reportCheck('LOBBY_RESPONSE_INVALID');
+           !Object.prototype.hasOwnProperty.call(data, 'my_state')) return status('RESPUESTA_MESA_INVALIDA');
+       const state = String(data.my_state ?? '').toLowerCase();
+       if (data.my_table != null || ['playing','waiting','ready','seated','active'].includes(state)) {
+         return status('ASIENTO_O_PARTIDA_ACTIVA');
        }
-
-       // La fuente autoritativa es my_table: con mesa asignada nunca reiniciar.
-       // También bloquear estados activos anómalos, aunque my_table llegue vacío.
-       const state = data.my_state == null ? '' : String(data.my_state).toLowerCase();
-       if (data.my_table != null || ['playing', 'waiting', 'ready', 'seated', 'active'].includes(state)) {
-         return reportCheck('ACTIVE_OR_PENDING_SEAT');
-       }
-
-       lastDiagnostic = 'SERVER_CONFIRMED_NO_SEAT';
+       errorCode = '';
        return true;
-     } catch (error) {
-       const kind = String(error?.message || 'UNKNOWN').includes('TIMEOUT') ? 'TIMEOUT' : 'NETWORK_OR_RUNTIME_ERROR';
-       return reportCheck(kind);
-     }
+     } catch (e) { return status(String(e?.message || '').startsWith('TIEMPO_') ? 'TIEMPO_AGOTADO' : 'CONEXION_INCIERTA'); }
    }
-
-   function updateButton() {
+   async function installedVersion() {
+     try {
+       const current = await CapacitorUpdater.current();
+       if (current?.bundle?.id && current.bundle.id !== 'builtin' && versionNumber(current.bundle.version) >= 0) {
+         return current.bundle.version;
+       }
+     } catch (e) { console.warn('[DFC OTA] VERSION_ERROR', String(e?.message || '')); }
+     return BASE_VERSION;
+   }
+   function button() {
      let btn = document.getElementById('dfcOTAUserButton');
      if (!btn) {
        btn = document.createElement('button');
-       btn.type = 'button';
        btn.id = 'dfcOTAUserButton';
+       btn.type = 'button';
        btn.style.cssText = [
-         'position:fixed',
-         'bottom:calc(74px + env(safe-area-inset-bottom,0px))',
-         'left:50%',
-         'transform:translateX(-50%)',
-         'z-index:2147483000',
-         'max-width:calc(100vw - 24px)',
-         'min-height:46px',
-         'padding:12px 18px',
-         'border:2px solid #9bdfff',
-         'border-radius:16px',
+         'position:fixed','bottom:calc(74px + env(safe-area-inset-bottom,0px))',
+         'left:50%','transform:translateX(-50%)','z-index:2147483000',
+         'max-width:calc(100vw - 24px)','min-height:46px','padding:12px 18px',
          'background:linear-gradient(135deg,#0874db,#00428b)',
-         'color:white',
-         'font:700 14px system-ui',
-         'white-space:nowrap',
-         'box-shadow:0 4px 18px #0009',
+         'color:#fff','border:2px solid #9bdfff','border-radius:16px',
+         'font:700 14px system-ui','box-shadow:0 4px 18px #0009'
        ].join(';');
-       btn.addEventListener('click', () => void window.dfcInstallApprovedUpdate());
+       btn.addEventListener('click', () => void updateClicked());
        document.body.appendChild(btn);
      }
-     btn.textContent = busy ? 'Preparando actualización…' : `📲 Actualizar · ${candidate?.version || ''}`;
-     btn.disabled = busy;
-     btn.hidden = !candidate || !homeVisible();
-     btn.style.display = btn.hidden ? 'none' : '';
+     btn.disabled = downloading || activating;
+     btn.textContent = activating ? 'Activando actualización…' : downloading ? 'Descargando actualización…' :
+       pending ? `📲 Activar · ${pending.version}` : `📲 Actualizar · ${candidate?.version || ''}`;
+     // Se muestra incluso en mesa; nunca implica reinicio inmediato de una partida.
+     const show = !!(candidate || pending) && !document.hidden;
+     btn.hidden = !show;
+     btn.style.display = show ? 'block' : 'none';
      return btn;
    }
-
-   async function currentVersion() {
+   function readPending() {
      try {
-       const info = await CapacitorUpdater.current();
-       const bundle = info?.bundle;
-       const version = bundle?.version;
-       if (bundle?.id && bundle.id !== 'builtin' && versionNumber(version) >= 0) {
-         return version;
-       }
-     } catch (error) {
-       console.warn('[DFC Android OTA] CURRENT_VERSION_ERROR', String(error?.message || 'unknown'));
-     }
-     return BASE_VERSION;
+       const value = JSON.parse(sessionStorage.getItem(PENDING_KEY) || 'null');
+       return value && VERSION_RE.test(value.version) && typeof value.id === 'string' && value.id !== 'builtin' ? value : null;
+     } catch (_) { return null; }
    }
-
+   function savePending(value) {
+     pending = value;
+     try {
+       if (value) sessionStorage.setItem(PENDING_KEY, JSON.stringify(value));
+       else sessionStorage.removeItem(PENDING_KEY);
+     } catch (_) {}
+     button();
+   }
    async function check(force = false) {
-     if (busy || document.hidden || (!force && Date.now() - checkedAt < 90000)) return;
-     checkedAt = Date.now();
+     if (downloading || activating || document.hidden || (!force && Date.now() - lastCheck < 90000)) return;
+     lastCheck = Date.now();
      try {
-       const response = await fetch(`${MANIFEST_URL}?t=${Date.now()}`, { cache: 'no-store' });
-       if (!response.ok) throw new Error(`MANIFEST_HTTP_${response.status}`);
-       const m = await response.json();
-       const url = new URL(String(m?.url || ''));
-       if (versionNumber(m?.version) < 0 || !SHA256_RE.test(String(m?.sha256 || '')) ||
-           url.origin !== EXPECTED_ORIGIN || !url.pathname.startsWith(EXPECTED_PATH) ||
-           url.pathname !== `${EXPECTED_PATH}${m.version}.zip` || url.protocol !== 'https:') {
-         throw new Error('MANIFEST_INVALID');
-       }
-
-       const installed = await currentVersion();
-       candidate = versionNumber(m.version) > versionNumber(installed)
-         ? { version: m.version, url: url.toString(), sha256: m.sha256 }
-         : null;
-     } catch (error) {
-       console.warn('[DFC Android OTA] CHECK_FAILED', String(error?.message || 'unknown'));
-       // Ante un fallo temporal, no eliminar una oferta ya verificada.
-     }
-     updateButton();
+       const res = await fetch(MANIFEST + '?v=' + Date.now(), {cache:'no-store'});
+       if (!res.ok) throw new Error('MANIFEST_HTTP_' + res.status);
+       const data = await res.json();
+       const url = new URL(String(data?.url || ''));
+       if (versionNumber(data?.version) < 0 || !SHA_RE.test(String(data?.sha256 || '')) ||
+           url.protocol !== 'https:' || url.origin !== EXPECTED_ORIGIN ||
+           url.pathname !== BUNDLES_PATH + data.version + '.zip') throw new Error('MANIFEST_NO_VALIDO');
+       const current = await installedVersion();
+       candidate = versionNumber(data.version) > versionNumber(current) ?
+         {version:data.version,url:url.href,sha256:data.sha256} : null;
+       if (pending && versionNumber(pending.version) <= versionNumber(current)) savePending(null);
+       button();
+     } catch (e) { console.warn('[DFC OTA] CONSULTA_FALLIDA', String(e?.message || '')); }
    }
-
-   window.dfcGetInstalledAndroidVersion = currentVersion;
-
-   window.dfcInstallApprovedUpdate = async function () {
-     if (busy || !homeVisible()) return;
-     if (!candidate) { await check(true); return; }
-
-     if (!(await safeToRestart())) {
-       alert('No se puede actualizar todavía. Comprueba la sesión y que estés fuera de una mesa. Diagnóstico: ' + lastDiagnostic);
+   async function activatePending(showMessages = true) {
+     if (!pending || downloading || activating) return;
+     if (!(await safeToActivate())) {
+       if (showMessages) alert('La actualización está descargada. Se activará cuando salgas de la mesa y el servidor confirme que no hay asiento activo. Estado: ' + errorCode);
        return;
      }
-
-     if (!confirm(`¿Instalar la actualización autorizada ${candidate.version}?`)) return;
-
-     busy = true;
-     updateButton();
+     if (showMessages && !confirm('¿Activar ' + pending.version + ' ahora? La aplicación se reiniciará.')) return;
+     activating = true; button();
+     const saved = pending;
      try {
-       const target = candidate;
-       const pkg = await CapacitorUpdater.download({
-         version: target.version,
-         url: target.url,
-         checksum: target.sha256,
-       });
-       if (!pkg?.id) throw new Error('DOWNLOADED_PACKAGE_INVALID');
-
-       // Verificación obligatoria también DESPUÉS de descargar, antes de reiniciar.
-       if (!(await safeToRestart())) {
-         alert('La descarga terminó, pero la actualización quedó pendiente. La sesión o el estado de la mesa no se pudieron verificar. Diagnóstico: ' + lastDiagnostic);
-         return;
+       // Segunda comprobación inmediatamente antes del reinicio.
+       if (!(await safeToActivate())) { if (showMessages) alert('Activación aplazada: ' + errorCode); return; }
+       await CapacitorUpdater.set({id:saved.id});
+     } catch(e) {
+       console.warn('[DFC OTA] ACTIVACION_FALLIDA', String(e?.message || ''));
+       if (showMessages) alert('No se pudo activar la actualización. La versión actual se conserva.');
+     } finally { activating = false; button(); }
+   }
+   async function updateClicked() {
+     if (downloading || activating) return;
+     if (pending) return void activatePending(true);
+     if (!candidate) { await check(true); return; }
+     const target = candidate;
+     if (!confirm('¿Descargar ' + target.version + '? Puedes seguir jugando; no se reiniciará la partida durante la descarga.')) return;
+     downloading = true; button();
+     try {
+       const bundle = await CapacitorUpdater.download({version:target.version,url:target.url,checksum:target.sha256});
+       if (!bundle?.id || bundle.id === 'builtin') throw new Error('PAQUETE_INVALIDO');
+       savePending({version:target.version,id:bundle.id});
+       // No activar automáticamente durante una partida ni alterar sus turnos.
+       if (await safeToActivate()) {
+         alert('Actualización descargada. Toca «Activar» para instalarla.');
+       } else {
+         alert('Actualización descargada. Puedes continuar jugando; cuando el servidor confirme que no tienes una mesa activa, toca «Activar».');
        }
-
-       await CapacitorUpdater.set({ id: pkg.id });
-     } catch (error) {
-       console.warn('[DFC Android OTA] INSTALL_FAILED', String(error?.message || 'unknown'));
-       alert('No se pudo instalar la actualización. Se conserva la versión anterior.');
-     } finally {
-       busy = false;
-       updateButton();
-     }
-   };
-
-   // Mantener orientación adaptable a vertical y horizontal.
+     } catch(e) {
+       console.warn('[DFC OTA] DESCARGA_FALLIDA', String(e?.message || ''));
+       alert('No fue posible descargar la actualización. Se conserva la versión actual.');
+     } finally { downloading = false; button(); }
+   }
+   // El paquete descargado se conserva por su id; no llamar a set mientras hay jugadas.
+   savePending(readPending());
+   window.dfcGetInstalledAndroidVersion = installedVersion;
+   window.dfcInstallApprovedUpdate = updateClicked;
+   window.dfcOtaCheck = () => check(true);
+   void CapacitorUpdater.notifyAppReady().catch(e => console.warn('[DFC OTA] READY', e));
+   void StatusBar.setOverlaysWebView({overlay:false}).catch(() => {});
    window.dominoForceLandscape = async () => {
      document.body.classList.add('domino-playing');
-     try { await ScreenOrientation.unlock(); await StatusBar.hide(); }
-     catch (error) { console.warn('Orientación de mesa:', String(error?.message || 'unknown')); }
+     try { await ScreenOrientation.unlock(); await StatusBar.hide(); } catch(e) { console.warn('Orientación:',e); }
      document.getElementById('dominoRotateGuard')?.classList.remove('show');
    };
-
    window.dominoReleaseLandscape = async () => {
      document.body.classList.remove('domino-playing');
-     try { await ScreenOrientation.unlock(); await StatusBar.show(); }
-     catch (error) { console.warn('Orientación de inicio:', String(error?.message || 'unknown')); }
+     try { await ScreenOrientation.unlock(); await StatusBar.show(); } catch(e) { console.warn('Orientación:',e); }
      document.getElementById('dominoRotateGuard')?.classList.remove('show');
    };
-
-   window.dominoUpdateRotateGuard = () => {
-     document.getElementById('dominoRotateGuard')?.classList.remove('show');
-   };
-
-   void CapacitorUpdater.notifyAppReady().catch(error =>
-     console.warn('[DFC Android OTA] READY_FAILED', String(error?.message || 'unknown'))
-   );
-   void StatusBar.setOverlaysWebView({ overlay: false }).catch(() => {});
-
-   App.addListener('appStateChange', async ({ isActive }) => {
+   window.dominoUpdateRotateGuard = () => document.getElementById('dominoRotateGuard')?.classList.remove('show');
+   App.addListener('appStateChange', async ({isActive}) => {
      if (!isActive) return;
      void check(true);
      if (tableOpen()) {
        try {
-         if (typeof window.loadDominoState === 'function') await window.loadDominoState(true, true);
+         if (typeof window.loadDominoState === 'function') await window.loadDominoState(true,true);
          if (typeof window.dominoStartRealtime === 'function') await window.dominoStartRealtime();
-       } catch (error) {
-         console.warn('Recuperación de mesa:', String(error?.message || 'unknown'));
-       }
+       } catch(e) { console.warn('Restauración mesa:',e); }
      }
    });
-
    App.addListener('backButton', () => {
      if (tableOpen()) {
-       if (window.dominoSpectatorMode && typeof window.dominoExitSpectator === 'function') {
-         window.dominoExitSpectator();
-       } else {
-         document.getElementById('dominoSurrenderBtn')?.click();
-       }
-     } else if (history.length > 1) {
-       history.back();
-     } else {
-       void App.minimizeApp();
-     }
+       if (window.dominoSpectatorMode && typeof window.dominoExitSpectator === 'function') window.dominoExitSpectator();
+       else document.getElementById('dominoSurrenderBtn')?.click();
+     } else if (history.length > 1) history.back();
+     else void App.minimizeApp();
    });
-
    function boot() {
-     updateButton();
-     void check(true);
-     for (const id of ['dominoTablePanel', 'appView', 'dominoLobbyPanel']) {
-       const element = document.getElementById(id);
-       if (element) {
-         new MutationObserver(updateButton).observe(element, {
-           attributes: true,
-           attributeFilter: ['class', 'style'],
-         });
-       }
+     button(); void check(true);
+     for(const id of ['dominoTablePanel','appView','dominoLobbyPanel']) {
+       const el = document.getElementById(id);
+       if (el) new MutationObserver(button).observe(el,{attributes:true,attributeFilter:['class','style']});
      }
    }
-
-   if (document.readyState === 'loading') {
-     document.addEventListener('DOMContentLoaded', boot, { once: true });
-   } else {
-     boot();
-   }
-   window.addEventListener('online', () => void check(true));
-   document.addEventListener('visibilitychange', () => {
-     if (!document.hidden) void check(true);
-   });
+   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
+   else boot();
+   window.addEventListener('online',()=>void check(true));
+   document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check(true);});
  }
