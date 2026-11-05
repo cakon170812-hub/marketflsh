@@ -1,8 +1,239 @@
-{
-  "version": "0.12Z.30",
-  "sha": "67803e6c0476957b7c5119da4df0ab3365d9d4e2",
-  "url": "https://cakon170812-hub.github.io/marketflsh/android-approved/bundles/0.12Z.30.zip",
-  "sha256": "8b070070bb8090185cc3310d71c9ddbab03b0e521451e9e042a9ad295c1cb5f7",
-  "type": "capacitor-web-bundle",
-  "created_at": "2026-11-05T00:17:20.483664+00:00"
+// DOMINÓ FLASH COIN · PUENTE ANDROID OTA · CORRECCIÓN Z30
+// Solo recursos web del APK Capacitor; NO actualiza el binario Android.
+// Descargar durante una partida está permitido; activar exige estado seguro.
+import { Capacitor } from '@capacitor/core';
+import { App } from '@capacitor/app';
+import { ScreenOrientation } from '@capacitor/screen-orientation';
+import { StatusBar } from '@capacitor/status-bar';
+import { CapacitorUpdater } from '@capgo/capacitor-updater';
+
+const ANDROID = Capacitor.isNativePlatform() && Capacitor.getPlatform() === 'android';
+if (ANDROID) {
+  document.documentElement.classList.add('dfc-android-native');
+  const BASE_VERSION = '0.12Z.28'; // Versión del APK nativo original, no la versión OTA.
+  const MANIFEST = 'https://cakon170812-hub.github.io/marketflsh/android-approved/manifest.json';
+  const EXPECTED_ORIGIN = 'https://cakon170812-hub.github.io';
+  const BUNDLES_PATH = '/marketflsh/android-approved/bundles/';
+  const VERSION_RE = /^0\.12Z\.(\d{1,4})$/;
+  const SHA_RE = /^[a-f0-9]{64}$/i;
+  const PENDING_KEY = 'dfc_ota_bundle_pendiente_v1';
+  let candidate = null;
+  let downloading = false;
+  let activating = false;
+  let lastCheck = 0;
+  let pending = null;
+  let errorCode = '';
+
+  function versionNumber(value) {
+    const match = VERSION_RE.exec(String(value || ''));
+    return match ? Number(match[1]) : -1;
+  }
+  function tableOpen() {
+    return !!document.getElementById('dominoTablePanel')?.classList.contains('active');
+  }
+  function client() {
+    for (const name of ['sb', 'dfcSupabase', 'supabaseClient', 'supabaseDb', 'rfSupabase']) {
+      const value = window[name];
+      if (typeof value?.auth?.getSession === 'function' && typeof value?.rpc === 'function') return value;
+    }
+    // Puede existir un 'const sb' léxico sin la propiedad window.sb.
+    try {
+      if (typeof sb !== 'undefined' && typeof sb?.auth?.getSession === 'function' && typeof sb?.rpc === 'function') {
+        window.sb = sb;
+        window.dfcSupabase = sb;
+        return sb;
+      }
+    } catch (_) {}
+    return null;
+  }
+  function status(code) {
+    errorCode = code;
+    console.warn('[DFC OTA]', code);
+    return false;
+  }
+  async function withTimeout(promise, ms, code) {
+    let timer;
+    try {
+      return await Promise.race([
+        Promise.resolve(promise),
+        new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(code)), ms); })
+      ]);
+    } finally { clearTimeout(timer); }
+  }
+  // Nunca confiar solo en la pantalla: una mesa puede seguir activa en Supabase.
+  async function safeToActivate() {
+    if (tableOpen()) return status('MESA_ABIERTA');
+    const sbClient = client();
+    if (!sbClient) return status('CLIENTE_SUPABASE_NO_DISPONIBLE');
+    try {
+      const auth = await withTimeout(sbClient.auth.getSession(), 10000, 'TIEMPO_SESION');
+      if (auth?.error) return status('ERROR_SESION');
+      if (!auth?.data?.session?.access_token) return status('SESION_NO_CONFIRMADA');
+      const response = await withTimeout(sbClient.rpc('rf_domino_get_lobby_v11'), 15000, 'TIEMPO_MESA');
+      if (response?.error) return status('ERROR_CONSULTA_MESA');
+      const data = response?.data;
+      if (!data || typeof data !== 'object' || Array.isArray(data) ||
+          !Object.prototype.hasOwnProperty.call(data, 'my_table') ||
+          !Object.prototype.hasOwnProperty.call(data, 'my_state')) return status('RESPUESTA_MESA_INVALIDA');
+      const state = String(data.my_state ?? '').toLowerCase();
+      if (data.my_table != null || ['playing','waiting','ready','seated','active'].includes(state)) {
+        return status('ASIENTO_O_PARTIDA_ACTIVA');
+      }
+      errorCode = '';
+      return true;
+    } catch (e) { return status(String(e?.message || '').startsWith('TIEMPO_') ? 'TIEMPO_AGOTADO' : 'CONEXION_INCIERTA'); }
+  }
+  async function installedVersion() {
+    try {
+      const current = await CapacitorUpdater.current();
+      if (current?.bundle?.id && current.bundle.id !== 'builtin' && versionNumber(current.bundle.version) >= 0) {
+        return current.bundle.version;
+      }
+    } catch (e) { console.warn('[DFC OTA] VERSION_ERROR', String(e?.message || '')); }
+    return BASE_VERSION;
+  }
+  function button() {
+    let btn = document.getElementById('dfcOTAUserButton');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.id = 'dfcOTAUserButton';
+      btn.type = 'button';
+      btn.style.cssText = [
+        'position:fixed','bottom:calc(74px + env(safe-area-inset-bottom,0px))',
+        'left:50%','transform:translateX(-50%)','z-index:2147483000',
+        'max-width:calc(100vw - 24px)','min-height:46px','padding:12px 18px',
+        'background:linear-gradient(135deg,#0874db,#00428b)',
+        'color:#fff','border:2px solid #9bdfff','border-radius:16px',
+        'font:700 14px system-ui','box-shadow:0 4px 18px #0009'
+      ].join(';');
+      btn.addEventListener('click', () => void updateClicked());
+      document.body.appendChild(btn);
+    }
+    btn.disabled = downloading || activating;
+    btn.textContent = activating ? 'Activando actualización…' : downloading ? 'Descargando actualización…' :
+      pending ? `📲 Activar · ${pending.version}` : `📲 Actualizar · ${candidate?.version || ''}`;
+    // Se muestra incluso en mesa; nunca implica reinicio inmediato de una partida.
+    const show = !!(candidate || pending) && !document.hidden;
+    btn.hidden = !show;
+    btn.style.display = show ? 'block' : 'none';
+    return btn;
+  }
+  function readPending() {
+    try {
+      const value = JSON.parse(sessionStorage.getItem(PENDING_KEY) || 'null');
+      return value && VERSION_RE.test(value.version) && typeof value.id === 'string' && value.id !== 'builtin' ? value : null;
+    } catch (_) { return null; }
+  }
+  function savePending(value) {
+    pending = value;
+    try {
+      if (value) sessionStorage.setItem(PENDING_KEY, JSON.stringify(value));
+      else sessionStorage.removeItem(PENDING_KEY);
+    } catch (_) {}
+    button();
+  }
+  async function check(force = false) {
+    if (downloading || activating || document.hidden || (!force && Date.now() - lastCheck < 90000)) return;
+    lastCheck = Date.now();
+    try {
+      const res = await fetch(MANIFEST + '?v=' + Date.now(), {cache:'no-store'});
+      if (!res.ok) throw new Error('MANIFEST_HTTP_' + res.status);
+      const data = await res.json();
+      const url = new URL(String(data?.url || ''));
+      if (versionNumber(data?.version) < 0 || !SHA_RE.test(String(data?.sha256 || '')) ||
+          url.protocol !== 'https:' || url.origin !== EXPECTED_ORIGIN ||
+          url.pathname !== BUNDLES_PATH + data.version + '.zip') throw new Error('MANIFEST_NO_VALIDO');
+      const current = await installedVersion();
+      candidate = versionNumber(data.version) > versionNumber(current) ?
+        {version:data.version,url:url.href,sha256:data.sha256} : null;
+      if (pending && versionNumber(pending.version) <= versionNumber(current)) savePending(null);
+      button();
+    } catch (e) { console.warn('[DFC OTA] CONSULTA_FALLIDA', String(e?.message || '')); }
+  }
+  async function activatePending(showMessages = true) {
+    if (!pending || downloading || activating) return;
+    if (!(await safeToActivate())) {
+      if (showMessages) alert('La actualización está descargada. Se activará cuando salgas de la mesa y el servidor confirme que no hay asiento activo. Estado: ' + errorCode);
+      return;
+    }
+    if (showMessages && !confirm('¿Activar ' + pending.version + ' ahora? La aplicación se reiniciará.')) return;
+    activating = true; button();
+    const saved = pending;
+    try {
+      // Segunda comprobación inmediatamente antes del reinicio.
+      if (!(await safeToActivate())) { if (showMessages) alert('Activación aplazada: ' + errorCode); return; }
+      await CapacitorUpdater.set({id:saved.id});
+    } catch(e) {
+      console.warn('[DFC OTA] ACTIVACION_FALLIDA', String(e?.message || ''));
+      if (showMessages) alert('No se pudo activar la actualización. La versión actual se conserva.');
+    } finally { activating = false; button(); }
+  }
+  async function updateClicked() {
+    if (downloading || activating) return;
+    if (pending) return void activatePending(true);
+    if (!candidate) { await check(true); return; }
+    const target = candidate;
+    if (!confirm('¿Descargar ' + target.version + '? Puedes seguir jugando; no se reiniciará la partida durante la descarga.')) return;
+    downloading = true; button();
+    try {
+      const bundle = await CapacitorUpdater.download({version:target.version,url:target.url,checksum:target.sha256});
+      if (!bundle?.id || bundle.id === 'builtin') throw new Error('PAQUETE_INVALIDO');
+      savePending({version:target.version,id:bundle.id});
+      // No activar automáticamente durante una partida ni alterar sus turnos.
+      if (await safeToActivate()) {
+        alert('Actualización descargada. Toca «Activar» para instalarla.');
+      } else {
+        alert('Actualización descargada. Puedes continuar jugando; cuando el servidor confirme que no tienes una mesa activa, toca «Activar».');
+      }
+    } catch(e) {
+      console.warn('[DFC OTA] DESCARGA_FALLIDA', String(e?.message || ''));
+      alert('No fue posible descargar la actualización. Se conserva la versión actual.');
+    } finally { downloading = false; button(); }
+  }
+  // El paquete descargado se conserva por su id; no llamar a set mientras hay jugadas.
+  savePending(readPending());
+  window.dfcGetInstalledAndroidVersion = installedVersion;
+  window.dfcInstallApprovedUpdate = updateClicked;
+  window.dfcOtaCheck = () => check(true);
+  void CapacitorUpdater.notifyAppReady().catch(e => console.warn('[DFC OTA] READY', e));
+  void StatusBar.setOverlaysWebView({overlay:false}).catch(() => {});
+  window.dominoForceLandscape = async () => {
+    document.body.classList.add('domino-playing');
+    try { await ScreenOrientation.unlock(); await StatusBar.hide(); } catch(e) { console.warn('Orientación:',e); }
+    document.getElementById('dominoRotateGuard')?.classList.remove('show');
+  };
+  window.dominoReleaseLandscape = async () => {
+    document.body.classList.remove('domino-playing');
+    try { await ScreenOrientation.unlock(); await StatusBar.show(); } catch(e) { console.warn('Orientación:',e); }
+    document.getElementById('dominoRotateGuard')?.classList.remove('show');
+  };
+  window.dominoUpdateRotateGuard = () => document.getElementById('dominoRotateGuard')?.classList.remove('show');
+  App.addListener('appStateChange', async ({isActive}) => {
+    if (!isActive) return;
+    void check(true);
+    if (tableOpen()) {
+      try {
+        if (typeof window.loadDominoState === 'function') await window.loadDominoState(true,true);
+        if (typeof window.dominoStartRealtime === 'function') await window.dominoStartRealtime();
+      } catch(e) { console.warn('Restauración mesa:',e); }
+    }
+  });
+  App.addListener('backButton', () => {
+    if (tableOpen()) {
+      if (window.dominoSpectatorMode && typeof window.dominoExitSpectator === 'function') window.dominoExitSpectator();
+      else document.getElementById('dominoSurrenderBtn')?.click();
+    } else if (history.length > 1) history.back();
+    else void App.minimizeApp();
+  });
+  function boot() {
+    button(); void check(true);
+    for(const id of ['dominoTablePanel','appView','dominoLobbyPanel']) {
+      const el = document.getElementById(id);
+      if (el) new MutationObserver(button).observe(el,{attributes:true,attributeFilter:['class','style']});
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
+  window.addEventListener('online',()=>void check(true));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check(true);});
 }
