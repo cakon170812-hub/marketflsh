@@ -1,7 +1,21 @@
 
-# DOMINÓ FLASH COIN — flujo Android OTA validado.
-# La Z29 ya publicada es inmutable: publicar únicamente versiones NUEVAS.
-# No modifica Supabase ni compila una APK. Genera un paquete web de Capgo.
+# =========================================================
+# DOMINÓ FLASH COIN
+# ARCHIVO: .github/workflows/dfc-android-approved.yml
+# VERSIÓN DE PREPARACIÓN: 0.12Z.30
+# FUNCIÓN: COMPILAR Y PUBLICAR ACTUALIZACIONES ANDROID OTA
+# =========================================================
+#
+# CORRECCIÓN:
+# Elimina la opción inválida de esbuild:
+# --node-path=node_modules
+#
+# Utiliza NODE_PATH para resolver las dependencias.
+#
+# No modifica partidas, mesas, saldos ni Supabase.
+# No compila una APK.
+# Conserva intactos los ZIP de versiones anteriores.
+# =========================================================
 
 name: DFC Android - verificar y publicar paquete OTA
 
@@ -9,11 +23,12 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Nueva versión (ejemplo: 0.12Z.30); NO reutilizar Z29'
+        description: 'Nueva versión Android, ejemplo 0.12Z.30'
         required: true
         type: string
+
       sha:
-        description: 'SHA completo de 40 caracteres confirmado en Revisar versión web'
+        description: 'SHA completo de 40 caracteres de la revisión aprobada'
         required: true
         type: string
 
@@ -30,6 +45,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
+
       - name: Verificar datos de publicación
         shell: bash
         env:
@@ -37,14 +53,30 @@ jobs:
           DFC_SHA: ${{ inputs.sha }}
         run: |
           python3 - <<'PY'
-          import os, re
+          import os
+          import re
 
-          v = os.environ['DFC_VERSION']
+          version = os.environ['DFC_VERSION']
           sha = os.environ['DFC_SHA']
 
-          assert re.fullmatch(r'0\.12Z\.\d{1,4}', v), 'Formato de versión incorrecto'
-          assert int(v.split('.')[-1]) >= 30, 'La Z29 y anteriores están protegidas: usar una versión NUEVA'
-          assert re.fullmatch(r'[a-f0-9]{40}', sha), 'SHA de GitHub no válido'
+          assert re.fullmatch(
+              r'0\.12Z\.\d{1,4}',
+              version
+          ), 'Formato de versión incorrecto'
+
+          number = int(version.split('.')[-1])
+
+          assert number >= 30, (
+              'La Z29 y anteriores están protegidas'
+          )
+
+          assert re.fullmatch(
+              r'[a-fA-F0-9]{40}',
+              sha
+          ), 'SHA de GitHub no válido'
+
+          print('Versión solicitada:', version)
+          print('Revisión solicitada:', sha)
           PY
 
       - name: Descargar exactamente la revisión aprobada
@@ -61,22 +93,43 @@ jobs:
           DFC_SHA: ${{ inputs.sha }}
         run: |
           python3 - <<'PY'
-          import os, pathlib, subprocess, re, json
+          import os
+          import pathlib
+          import subprocess
+          import re
+          import json
           from html.parser import HTMLParser
 
-          v = os.environ['DFC_VERSION']
+          version = os.environ['DFC_VERSION']
           sha = os.environ['DFC_SHA']
 
-          head = subprocess.check_output(
-              ['git', 'ls-remote', 'origin', 'refs/heads/main'],
+          remote_head = subprocess.check_output(
+              [
+                  'git',
+                  'ls-remote',
+                  'origin',
+                  'refs/heads/main'
+              ],
               text=True
           ).split()[0]
 
-          assert head == sha, 'La rama main cambió: vuelve a Revisar versión web'
-          assert subprocess.check_output(
-              ['git', 'rev-parse', 'HEAD'],
+          assert remote_head == sha, (
+              'La rama main cambió. '
+              'Vuelve a revisar la versión web'
+          )
+
+          local_head = subprocess.check_output(
+              [
+                  'git',
+                  'rev-parse',
+                  'HEAD'
+              ],
               text=True
-          ).strip() == sha, 'El commit descargado no coincide'
+          ).strip()
+
+          assert local_head == sha, (
+              'El commit descargado no coincide'
+          )
 
           required = [
               'index.html',
@@ -89,43 +142,92 @@ jobs:
           ]
 
           for name in required:
-              p = pathlib.Path(name)
-              assert p.is_file() and p.stat().st_size > 0, f'Falta archivo obligatorio: {name}'
+              path = pathlib.Path(name)
 
-          html = pathlib.Path('index.html').read_text(encoding='utf-8')
+              assert path.is_file(), (
+                  f'Falta el archivo: {name}'
+              )
+
+              assert path.stat().st_size > 0, (
+                  f'Archivo vacío: {name}'
+              )
+
+          html = pathlib.Path(
+              'index.html'
+          ).read_text(encoding='utf-8')
+
+          assert len(html) > 1000000, (
+              'El HTML del juego está incompleto'
+          )
+
+          assert '<html' in html.lower(), (
+              'El archivo no parece HTML'
+          )
+
+          assert '</html>' in html.lower(), (
+              'El HTML no tiene cierre'
+          )
 
           class MetaParser(HTMLParser):
-              versions = []
+              def __init__(self):
+                  super().__init__()
+                  self.versions = []
 
               def handle_starttag(self, tag, attrs):
                   if tag == 'meta':
-                      a = dict(attrs)
-                      if a.get('name') == 'application-version':
-                          self.versions.append(a.get('content'))
+                      data = dict(attrs)
+
+                      if data.get('name') == (
+                          'application-version'
+                      ):
+                          self.versions.append(
+                              data.get('content')
+                          )
 
           parser = MetaParser()
           parser.feed(html)
 
-          assert v in parser.versions, f'index.html no declara application-version={v}'
-          assert 'native-bridge.js' in html, 'index.html no referencia native-bridge.js'
+          assert version in parser.versions, (
+              'index.html no declara la versión '
+              + version
+          )
 
-          bridge = pathlib.Path('native-bridge.js').read_text(encoding='utf-8')
+          assert (
+              'native-bridge.js' in html
+          ), 'Falta la referencia al puente Android'
+
+          assert (
+              'window.sb=sb;' in html
+              and 'window.dfcSupabase=sb;' in html
+          ), 'Falta la conexión automática de Supabase'
+
+          bridge = pathlib.Path(
+              'native-bridge.js'
+          ).read_text(encoding='utf-8')
 
           assert (
               'CapacitorUpdater' in bridge
               and 'dfcOTAUserButton' in bridge
-          ), 'Puente OTA incompleto'
+          ), 'Puente Android OTA incompleto'
 
-          assert 'rf_domino_get_lobby_v11' in bridge, 'Falta comprobación de seguridad de mesas'
+          assert (
+              'rf_domino_get_lobby_v11' in bridge
+          ), 'Falta la verificación de mesas'
 
-          script = pathlib.Path('script.js').read_text(encoding='utf-8')
+          script = pathlib.Path(
+              'script.js'
+          ).read_text(encoding='utf-8')
 
-          assert 'TU-PROYECTO.supabase.co' not in script, (
-              'script.js sigue con URL Supabase de ejemplo'
+          assert (
+              'TU-PROYECTO.supabase.co' not in script
+          ), 'script.js contiene configuración de ejemplo'
+
+          manifest_path = pathlib.Path(
+              'android-approved/manifest.json'
           )
 
           old = json.loads(
-              pathlib.Path('android-approved/manifest.json').read_text(
+              manifest_path.read_text(
                   encoding='utf-8'
               )
           )
@@ -135,16 +237,34 @@ jobs:
               str(old.get('version', ''))
           )
 
-          assert match and int(v.split('.')[-1]) > int(match.group(1)), (
-              'La versión no supera al manifiesto publicado'
+          assert match, (
+              'El manifiesto anterior tiene '
+              'una versión inválida'
           )
 
-          assert not pathlib.Path(
-              'android-approved/bundles',
-              v + '.zip'
-          ).exists(), 'El ZIP ya existe: no sobrescribir'
+          previous_number = int(match.group(1))
+          next_number = int(
+              version.split('.')[-1]
+          )
 
-          print('Orígenes y versión aprobados:', v, sha)
+          assert next_number > previous_number, (
+              'La nueva versión debe superar '
+              'la versión publicada'
+          )
+
+          zip_path = pathlib.Path(
+              'android-approved/bundles',
+              version + '.zip'
+          )
+
+          assert not zip_path.exists(), (
+              'El ZIP ya existe. '
+              'No se permite sobrescribirlo'
+          )
+
+          print('Archivos verificados')
+          print('Versión aprobada:', version)
+          print('SHA aprobado:', sha)
           PY
 
       - name: Preparar compilador JavaScript
@@ -152,44 +272,84 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Compilar native-bridge.js para el WebView
+      - name: Compilar native-bridge.js para Android
         shell: bash
         run: |
+          set -euo pipefail
+
           mkdir -p .dfc-ota-build/deps
+
           cd .dfc-ota-build/deps
 
-          npm install --no-save --no-package-lock --ignore-scripts --no-audit --no-fund \
-            esbuild@0.25.12 @capacitor/core@7 @capacitor/app@7 \
-            @capacitor/screen-orientation@7 @capacitor/status-bar@7 \
+          npm install \
+            --no-save \
+            --no-package-lock \
+            --ignore-scripts \
+            --no-audit \
+            --no-fund \
+            esbuild@0.25.12 \
+            @capacitor/core@7 \
+            @capacitor/app@7 \
+            @capacitor/screen-orientation@7 \
+            @capacitor/status-bar@7 \
             @capgo/capacitor-updater@7
 
-          ./node_modules/.bin/esbuild ../../native-bridge.js \
-            --bundle --platform=browser --format=esm --target=chrome100 \
-            --node-path=node_modules \
+          # CORRECCIÓN DEL ERROR DEL WORKFLOW #33:
+          #
+          # esbuild NO reconoce --node-path=node_modules.
+          # NODE_PATH permite localizar dependencias
+          # instaladas en esta carpeta.
+
+          NODE_PATH="$PWD/node_modules" \
+            ./node_modules/.bin/esbuild \
+            ../../native-bridge.js \
+            --bundle \
+            --platform=browser \
+            --format=esm \
+            --target=chrome100 \
             --outfile=../native-bridge.js
 
           test -s ../native-bridge.js
 
-      - name: Crear ZIP, verificar y publicar manifiesto
+          echo "Puente Android compilado correctamente"
+
+      - name: Crear ZIP y verificar paquete
         shell: bash
         env:
           DFC_VERSION: ${{ inputs.version }}
           DFC_SHA: ${{ inputs.sha }}
         run: |
           python3 - <<'PY'
-          import os, pathlib, zipfile, hashlib, json, datetime
+          import os
+          import pathlib
+          import zipfile
+          import hashlib
+          import json
+          import datetime
 
-          v = os.environ['DFC_VERSION']
+          version = os.environ['DFC_VERSION']
           sha = os.environ['DFC_SHA']
 
-          out = pathlib.Path('android-approved')
-          folder = out / 'bundles'
-          folder.mkdir(parents=True, exist_ok=True)
+          output = pathlib.Path(
+              'android-approved'
+          )
 
-          dest = folder / (v + '.zip')
+          bundle_folder = output / 'bundles'
 
-          if dest.exists():
-              raise RuntimeError('Paquete ya existente: no sobrescribir')
+          bundle_folder.mkdir(
+              parents=True,
+              exist_ok=True
+          )
+
+          destination = (
+              bundle_folder / (version + '.zip')
+          )
+
+          if destination.exists():
+              raise RuntimeError(
+                  'No se permite sobrescribir '
+                  'una versión anterior'
+              )
 
           required = [
               'index.html',
@@ -200,53 +360,98 @@ jobs:
               'manifest.webmanifest'
           ]
 
-          contents = {
-              name: pathlib.Path(name).read_bytes()
-              for name in required
-          }
+          contents = {}
 
-          contents['native-bridge.js'] = pathlib.Path(
+          for name in required:
+              contents[name] = pathlib.Path(
+                  name
+              ).read_bytes()
+
+          compiled_bridge = pathlib.Path(
               '.dfc-ota-build/native-bridge.js'
-          ).read_bytes()
+          )
 
-          for foldername in ('images2', 'icons', 'assets'):
-              root = pathlib.Path(foldername)
+          assert compiled_bridge.is_file(), (
+              'No se encontró el puente compilado'
+          )
+
+          contents['native-bridge.js'] = (
+              compiled_bridge.read_bytes()
+          )
+
+          for folder_name in [
+              'images2',
+              'icons',
+              'assets'
+          ]:
+              root = pathlib.Path(folder_name)
+
               if root.is_dir():
-                  for f in root.rglob('*'):
-                      if f.is_file():
-                          contents[f.as_posix()] = f.read_bytes()
+                  for file in root.rglob('*'):
+                      if file.is_file():
+                          contents[
+                              file.as_posix()
+                          ] = file.read_bytes()
 
           with zipfile.ZipFile(
-              dest, 'w', zipfile.ZIP_DEFLATED, compresslevel=9
-          ) as z:
-              for name, data in sorted(contents.items()):
-                  z.writestr(name, data)
+              destination,
+              'w',
+              zipfile.ZIP_DEFLATED,
+              compresslevel=9
+          ) as archive:
 
-          with zipfile.ZipFile(dest) as z:
-              assert z.testzip() is None, 'ZIP dañado'
-              assert all(
-                  name in z.namelist()
-                  for name in required + ['native-bridge.js']
-              ), 'Archivos ausentes del ZIP'
+              for name, data in sorted(
+                  contents.items()
+              ):
+                  archive.writestr(
+                      name,
+                      data
+                  )
 
-          checksum = hashlib.sha256(dest.read_bytes()).hexdigest()
+          with zipfile.ZipFile(
+              destination,
+              'r'
+          ) as archive:
+
+              assert archive.testzip() is None, (
+                  'ZIP dañado'
+              )
+
+              names = archive.namelist()
+
+              for name in (
+                  required + ['native-bridge.js']
+              ):
+                  assert name in names, (
+                      'Falta dentro del ZIP: ' + name
+                  )
+
+          checksum = hashlib.sha256(
+              destination.read_bytes()
+          ).hexdigest()
 
           manifest = {
-              'version': v,
+              'version': version,
               'sha': sha,
               'url': (
                   'https://cakon170812-hub.github.io/'
                   'marketflsh/android-approved/bundles/'
-                  + v + '.zip'
+                  + version + '.zip'
               ),
               'sha256': checksum,
               'type': 'capacitor-web-bundle',
-              'created_at': datetime.datetime.now(
-                  datetime.timezone.utc
-              ).isoformat()
+              'created_at': (
+                  datetime.datetime.now(
+                      datetime.timezone.utc
+                  ).isoformat()
+              )
           }
 
-          (out / 'manifest.json').write_text(
+          manifest_path = (
+              output / 'manifest.json'
+          )
+
+          manifest_path.write_text(
               json.dumps(
                   manifest,
                   indent=2,
@@ -255,39 +460,50 @@ jobs:
               encoding='utf-8'
           )
 
-          print(
-              'Paquete validado:',
-              dest,
-              'bytes:',
-              dest.stat().st_size,
-              'SHA256:',
-              checksum
-          )
+          print('Paquete generado:', destination)
+          print('Tamaño:', destination.stat().st_size)
+          print('SHA256:', checksum)
+          print('Versión:', version)
           PY
 
-      - name: Confirmar que main no cambió y subir archivos nuevos
+      - name: Confirmar revisión y publicar nueva versión
         shell: bash
         env:
           DFC_VERSION: ${{ inputs.version }}
           DFC_SHA: ${{ inputs.sha }}
         run: |
-          CURRENT="$(git ls-remote origin refs/heads/main | cut -f1)"
+          set -euo pipefail
 
-          test "$CURRENT" = "$DFC_SHA" || {
-            echo 'Main cambió durante la compilación; publicación cancelada'
+          CURRENT="$(
+            git ls-remote origin refs/heads/main |
+            cut -f1
+          )"
+
+          if [ "$CURRENT" != "$DFC_SHA" ]; then
+            echo "La rama main cambió"
+            echo "Publicación cancelada por seguridad"
             exit 1
-          }
+          fi
 
           git config user.name 'dfc-android-bot'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-          git add android-approved/manifest.json \
+          git config user.email \
+            '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git add \
+            android-approved/manifest.json \
             "android-approved/bundles/${DFC_VERSION}.zip"
 
-          git diff --cached --quiet && {
-            echo 'No hay cambios para publicar'
+          if git diff --cached --quiet; then
+            echo "No hay cambios para publicar"
             exit 1
-          }
+          fi
 
-          git commit -m "Android OTA aprobado ${DFC_VERSION}"
+          git commit -m \
+            "Android OTA aprobado ${DFC_VERSION}"
+
           git push origin HEAD:main
+
+          echo "Publicación enviada a GitHub"
+          echo "Versión: ${DFC_VERSION}"
+          echo "Esperar despliegue de GitHub Pages"
