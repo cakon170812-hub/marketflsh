@@ -21,6 +21,7 @@
    const SHA256_RE = /^[a-f0-9]{64}$/i;
 
    let candidate = null;
+   let pendingBundle = null;
    let busy = false;
    let checkedAt = 0;
    let lastDiagnostic = '';
@@ -149,9 +150,9 @@
        btn.addEventListener('click', () => void window.dfcInstallApprovedUpdate());
        document.body.appendChild(btn);
      }
-     btn.textContent = busy ? 'Preparando actualización…' : `📲 Actualizar · ${candidate?.version || ''}`;
+     btn.textContent = busy ? 'Preparando actualización…' : pendingBundle ? `📲 Instalar cuando sea seguro · ${pendingBundle.version}` : `📲 Actualizar · ${candidate?.version || ''}`;
      btn.disabled = busy;
-     btn.hidden = !candidate || !homeVisible();
+     btn.hidden = !candidate && !pendingBundle;
      btn.style.display = btn.hidden ? 'none' : '';
      return btn;
    }
@@ -198,37 +199,42 @@
    window.dfcGetInstalledAndroidVersion = currentVersion;
 
    window.dfcInstallApprovedUpdate = async function () {
-     if (busy || !homeVisible()) return;
-     if (!candidate) { await check(true); return; }
-
-     if (!(await safeToRestart())) {
-       alert('No se puede actualizar todavía. Comprueba la sesión y que estés fuera de una mesa. Diagnóstico: ' + lastDiagnostic);
-       return;
-     }
-
-     if (!confirm(`¿Instalar la actualización autorizada ${candidate.version}?`)) return;
+     if (busy) return;
+     if (!candidate && !pendingBundle) { await check(true); return; }
 
      busy = true;
      updateButton();
      try {
-       const target = candidate;
-       const pkg = await CapacitorUpdater.download({
-         version: target.version,
-         url: target.url,
-         checksum: target.sha256,
-       });
-       if (!pkg?.id) throw new Error('DOWNLOADED_PACKAGE_INVALID');
+       if (!pendingBundle) {
+         const target = candidate;
+         // La descarga no necesita autorización para abandonar el asiento.
+         // NUNCA reiniciar hasta que el servidor confirme que es seguro.
+         const pkg = await CapacitorUpdater.download({
+           version: target.version,
+           url: target.url,
+           checksum: target.sha256,
+         });
+         if (!pkg?.id) throw new Error('DOWNLOADED_PACKAGE_INVALID');
+         pendingBundle = { id: pkg.id, version: target.version };
+       }
 
-       // Verificación obligatoria también DESPUÉS de descargar, antes de reiniciar.
        if (!(await safeToRestart())) {
-         alert('La descarga terminó, pero la actualización quedó pendiente. La sesión o el estado de la mesa no se pudieron verificar. Diagnóstico: ' + lastDiagnostic);
+         alert('Actualización descargada y pendiente. Puedes seguir jugando. La instalación requiere confirmar que no haya jugadas ni operaciones económicas en curso; vuelve a tocar Actualizar cuando sea seguro. Diagnóstico: ' + lastDiagnostic);
          return;
        }
 
-       await CapacitorUpdater.set({ id: pkg.id });
+       if (!confirm(`¿Instalar la actualización autorizada ${pendingBundle.version} ahora?`)) return;
+       // Revalidar inmediatamente antes del reinicio; nunca forzar si el estado es incierto.
+       if (!(await safeToRestart())) {
+         alert('Instalación pendiente: la seguridad de la partida no se pudo confirmar. Diagnóstico: ' + lastDiagnostic);
+         return;
+       }
+       const pkgId = pendingBundle.id;
+       await CapacitorUpdater.set({ id: pkgId });
+       pendingBundle = null;
      } catch (error) {
        console.warn('[DFC Android OTA] INSTALL_FAILED', String(error?.message || 'unknown'));
-       alert('No se pudo instalar la actualización. Se conserva la versión anterior.');
+       alert('No se completó la actualización. Se conserva la versión anterior.');
      } finally {
        busy = false;
        updateButton();
