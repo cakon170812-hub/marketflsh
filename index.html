@@ -19732,11 +19732,12 @@ function init(){
  const backdrop=document.createElement('div');backdrop.id='dfcLabBackdrop006';document.body.append(backdrop);
  function closeExpanded(){if(expanded){expanded.classList.remove('dfc-lab-expanded006');expanded.querySelector('.dfc-lab-close006')?.removeAttribute('style');const c=expanded.querySelector('.dfc-lab-close006');if(c)c.hidden=true;expanded=null}backdrop.classList.remove('visible')}
  backdrop.onclick=closeExpanded;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeExpanded()});
- function focusCard(){const list=cards();if(!list.length)return;const center=host.getBoundingClientRect().left+host.clientWidth/2;let best=0,dist=Infinity;list.forEach((c,i)=>{const r=c.getBoundingClientRect(),d=Math.abs((r.left+r.right)/2-center);if(d<dist){dist=d;best=i}});active=best;list.forEach((c,i)=>c.classList.toggle('dfc-lab-focused007',i===best))}
- function go(index,smooth){const list=cards();if(!list.length)return;active=Math.max(0,Math.min(list.length-1,index));list.forEach((c,i)=>c.classList.toggle('dfc-lab-focused007',i===active));const el=list[active],r=el.getBoundingClientRect(),root=host.getBoundingClientRect();host.scrollTo({left:Math.max(0,host.scrollLeft+(r.left-root.left)-(host.clientWidth-el.offsetWidth)/2),behavior:smooth?'smooth':'auto'})}
+ function focusCard(){const list=cards();host.classList.toggle('dfc-z31-one-room',list.length===1);if(!list.length)return;if(list.length===1){active=0;list[0].classList.add('dfc-lab-focused007');return;}const center=host.getBoundingClientRect().left+host.clientWidth/2;let best=0,dist=Infinity;list.forEach((c,i)=>{const r=c.getBoundingClientRect(),d=Math.abs((r.left+r.right)/2-center);if(d<dist){dist=d;best=i}});active=best;list.forEach((c,i)=>c.classList.toggle('dfc-lab-focused007',i===best))}
+ function go(index,smooth){const list=cards();host.classList.toggle('dfc-z31-one-room',list.length===1);if(!list.length)return;active=Math.max(0,Math.min(list.length-1,index));list.forEach((c,i)=>c.classList.toggle('dfc-lab-focused007',i===active));const el=list[active],r=el.getBoundingClientRect(),root=host.getBoundingClientRect();host.scrollTo({left:Math.max(0,host.scrollLeft+(r.left-root.left)-(host.clientWidth-el.offsetWidth)/2),behavior:smooth?'smooth':'auto'})}
  host.addEventListener('scroll',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(focusCard)},{passive:true});
  function prepare(){
   const list=cards();
+  host.classList.toggle('dfc-z31-one-room',list.length===1);
   list.forEach(card=>{
    if(card.dataset.z31LabDecorated)return;card.dataset.z31LabDecorated='1';card.tabIndex=0;
    const native=card.querySelector('.dfc28-room-play');if(!native)return;
@@ -19776,6 +19777,80 @@ function init(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+
+<style id="dfc-z31-single-room-landscape-only">
+/* Z31: centrar incluso una única mesa disponible. No modifica datos ni cupos. */
+body.dfc-lab-visual #appView #dominoLobbyModes.dfc-z31-one-room {
+  justify-content:center!important;
+  scroll-snap-type:none!important;
+}
+body.dfc-lab-visual #appView #dominoLobbyModes.dfc-z31-one-room > .dfc28-room:not(.dfc-lab-expanded006) {
+  margin-inline:auto!important;
+  transform:scale(1)!important;
+  opacity:1!important;
+  z-index:5!important;
+}
+/* Un teléfono en retrato ve solo esta indicación. La sesión y las llamadas siguen vivas. */
+#dfcZ31LandscapeGate {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:2147483646;
+  background:linear-gradient(160deg,#051126 0%,#092c59 54%,#050f23 100%);
+  color:#f4fbff;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  padding:20px;
+  text-align:center;
+  overflow:auto;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+#dfcZ31LandscapeGate .dfc-z31-rotate-content {
+  max-width:350px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:11px;
+  margin:auto;
+}
+#dfcZ31LandscapeGate .dfc-z31-rotate-icon {
+  font-size:68px;
+  line-height:1.2;
+  filter:drop-shadow(0 0 12px #4bb9ff8c);
+}
+#dfcZ31LandscapeGate h2 {
+  font-size:clamp(19px,5.5vw,26px);
+  font-weight:800;
+  margin:0;
+}
+#dfcZ31LandscapeGate p {
+  font-size:15px;
+  line-height:1.5;
+  margin:0;
+  color:#d8ebff;
+}
+/* Limitar a teléfonos táctiles verticales, no imponer rotación a monitores de escritorio. */
+@media (orientation:portrait) and (pointer:coarse) and (max-width:950px) {
+  html:not(.dfc-android-native) #dfcZ31LandscapeGate {display:flex!important;}
+}
+</style>
+<script id="dfc-z31-landscape-gate">
+(function(){'use strict';
+  function mount(){
+    if(document.getElementById('dfcZ31LandscapeGate'))return;
+    const gate=document.createElement('div');
+    gate.id='dfcZ31LandscapeGate';
+    gate.setAttribute('role','status');
+    gate.setAttribute('aria-label','Gira el teléfono para utilizar Dominó Flash Coin');
+    gate.innerHTML='<div class="dfc-z31-rotate-content"><div class="dfc-z31-rotate-icon" aria-hidden="true">📱 ↻</div><h2>Gira tu teléfono</h2><p>DOMINÓ FLASH COIN está diseñado para jugar en horizontal. Coloca el teléfono de lado para continuar.</p></div>';
+    document.body.appendChild(gate);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
+  else mount();
+})();
+</script>
+
 </body>
 
 </html>
