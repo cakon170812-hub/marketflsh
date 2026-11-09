@@ -19610,25 +19610,25 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
 @media(prefers-reduced-motion:reduce){html body #dfcLabGiftCard018{animation:none!important}#dfcLabMoneyBurst020 .dfc-money020{animation:none!important;display:none!important}}
 </style>
 <style id="dfc-z31-lab021-integration-fixes">
-/* La única aplicación es la oficial Z30. Se cambia toda la presentación por LAB 0.21. */
+/* Z31: LAB 0.21 organiza el escenario: columna de accesos a la izquierda y mesas a la derecha.
+   No imponer flex-column sobre #dfcLabStage004: rompería la orientación horizontal. */
 body.dfc-lab-visual #appView .dfc09-shell{display:flex!important;flex-direction:column!important}
-body.dfc-lab-visual #appView #dfcLabStage004{display:flex!important;flex:1 1 auto!important;min-height:0!important;flex-direction:column!important}
-body.dfc-lab-visual #appView #dfcLabStage004 .dfc09-rooms{flex:1 1 auto!important;min-height:0!important;max-height:none!important;overflow:visible!important}
-body.dfc-lab-visual #appView #dfcLabStage004 .dfc09-tools{flex:0 0 auto!important}
-body.dfc-lab-visual #appView #dominoLobbyModes{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x mandatory!important;scrollbar-width:none!important;overscroll-behavior-inline:contain!important;touch-action:pan-x!important;max-width:100%!important;width:100%!important}
+body.dfc-lab-visual #appView #dfcLabStage004{display:grid!important;grid-template-columns:clamp(98px,15vw,170px) minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;align-items:stretch!important;flex:1 1 auto!important;min-height:0!important;max-height:none!important;gap:clamp(3px,.8vw,11px)!important;overflow:visible!important}
+body.dfc-lab-visual #appView #dfcLabStage004 .dfc09-tools{grid-column:1!important;grid-row:1!important;flex:initial!important;min-width:0!important;min-height:0!important;height:100%!important;display:flex!important;flex-direction:column!important;justify-content:center!important;gap:clamp(4px,2vh,13px)!important}
+body.dfc-lab-visual #appView #dfcLabStage004 .dfc09-rooms{grid-column:2!important;grid-row:1!important;flex:initial!important;min-width:0!important;min-height:0!important;height:100%!important;max-height:none!important;overflow:visible!important;display:flex!important;flex-direction:column!important;padding:0 3px 4px!important;background:transparent!important;border:0!important}
+body.dfc-lab-visual #appView #dominoLobbyModes{display:flex!important;flex:1 1 auto!important;flex-flow:row nowrap!important;align-items:center!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;max-width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x mandatory!important;scrollbar-width:none!important;overscroll-behavior-inline:contain!important;touch-action:pan-x!important;box-sizing:border-box!important}
 body.dfc-lab-visual #appView #dominoLobbyModes::-webkit-scrollbar{display:none!important}
-body.dfc-lab-visual #appView #dominoLobbyModes>.dfc28-room{position:relative!important;flex-shrink:0!important;scroll-snap-align:center!important;overflow:visible!important;transform-origin:center center!important;transition:transform .24s ease,opacity .24s ease!important;isolation:isolate!important}
-body.dfc-lab-visual #appView #dominoLobbyModes>.dfc28-room:not(.dfc-lab-expanded006){transform:scale(.70)!important;opacity:.62!important}
-body.dfc-lab-visual #appView #dominoLobbyModes>.dfc28-room.dfc-lab-focused007:not(.dfc-lab-expanded006){transform:scale(1.11)!important;opacity:1!important;z-index:2!important}
+body.dfc-lab-visual #appView #dominoLobbyModes>.dfc28-room:not(.dfc-lab-expanded006){position:relative!important;flex:0 0 clamp(235px,38vw,390px)!important;width:clamp(235px,38vw,390px)!important;min-width:235px!important;max-width:390px!important;min-height:min(190px,66dvh)!important;height:min(100%,clamp(195px,66dvh,420px))!important;max-height:100%!important;transform:scale(.68)!important;opacity:.79!important;transform-origin:center!important;scroll-snap-align:center!important;isolation:isolate!important}
+body.dfc-lab-visual #appView #dominoLobbyModes>.dfc28-room.dfc-lab-focused007:not(.dfc-lab-expanded006){transform:scale(1)!important;opacity:1!important;z-index:5!important}
 body.dfc-lab-visual #appView #dominoLobbyModes>.dfc-lab-expanded006{position:fixed!important;z-index:2101!important;top:50%!important;left:50%!important;transform:translate(-50%,-50%) scale(1)!important;width:min(560px,92vw)!important;max-height:86dvh!important;overflow-y:auto!important;opacity:1!important;filter:none!important}
-body.dfc-lab-visual #appView #dominoLobbyModes .dfc13-actions{position:relative!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important;margin-top:auto!important;padding-top:9px!important;z-index:3!important}
-body.dfc-lab-visual #appView #dominoLobbyModes .dfc13-actions>button{display:inline-flex!important;visibility:visible!important;opacity:1!important;align-items:center!important;justify-content:center!important;min-height:32px!important;max-width:100%!important;white-space:nowrap!important;font-size:11px!important;pointer-events:auto!important}
+body.dfc-lab-visual #appView #dominoLobbyModes .dfc13-actions{position:relative!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:7px!important;margin-top:auto!important;padding-top:7px!important;z-index:3!important}
+body.dfc-lab-visual #appView #dominoLobbyModes .dfc13-actions>button{display:inline-flex!important;visibility:visible!important;opacity:1!important;align-items:center!important;justify-content:center!important;min-height:29px!important;max-width:100%!important;white-space:nowrap!important;font-size:11px!important;pointer-events:auto!important}
 body.dfc-lab-visual #appView #dominoLobbyModes .dfc28-room>.dfc28-room-play{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;overflow:hidden!important;clip-path:inset(50%)!important}
 body.dfc-lab-visual #appView #dominoLobbyModes .dfc13-view{background:linear-gradient(145deg,#115b8e,#073855)!important;color:white!important;border:1px solid #60e5ff!important;border-radius:10px!important}
 body.dfc-lab-visual #appView #dominoLobbyModes .dfc13-seat{background:linear-gradient(145deg,#148659,#063b2b)!important;color:white!important;border:1px solid #60efbc!important;border-radius:10px!important}
-body.dfc-lab-visual #appView #dfcLabStatus{font-size:11px!important;min-height:0!important;max-height:28px!important;overflow:hidden!important}
+body.dfc-lab-visual #appView #dfcLabStatus{font-size:11px!important;min-height:0!important;max-height:25px!important;overflow:hidden!important}
 body.dfc-lab-visual #appView .dfc09-room-preview{display:none!important}
-body.dfc-lab-visual #appView #dominoLobbyModes .dfc28-room-scene{background-image:var(--dfc-z26-official-wallpaper)!important;background-size:cover!important;background-position:center!important;min-height:90px!important}
+body.dfc-lab-visual #appView #dominoLobbyModes .dfc28-room-scene{background-image:var(--dfc-z26-official-wallpaper)!important;background-size:cover!important;background-position:center!important;min-height:0!important}
 body.dfc-lab-visual #dfcLabFloatingTables004{bottom:max(35px,env(safe-area-inset-bottom))!important;right:9px!important;z-index:120!important}
 #dfcLabGiftCard018{position:fixed!important;display:block!important;z-index:1500!important;aspect-ratio:5/3!important;width:66px!important;height:auto!important;max-width:78px!important;padding:0!important;border:1px solid #58caff!important;border-radius:6px!important;background:var(--dfc-card-art019) center/100% 100% no-repeat!important;box-shadow:0 3px 12px #0009!important;animation:dfcLabGiftBounce018 3s ease-in-out infinite!important;cursor:pointer!important}
 #dfcLabGiftCard018[hidden]{display:none!important}
@@ -19637,8 +19637,24 @@ body.dfc-lab-visual #dfcLabFloatingTables004{bottom:max(35px,env(safe-area-inset
 #dfcLabGiftModalZ31 .z31-gift-content{max-width:440px;width:100%;border:1px solid #50baff;border-radius:18px;padding:20px;background:linear-gradient(125deg,#0c254a,#08172c);color:#fff;text-align:center}
 #dfcLabGiftModalZ31 .z31-gift-card-big{width:100%;aspect-ratio:5/3;background:var(--dfc-card-art019) center/contain no-repeat}
 #dfcLabGiftModalZ31 button{padding:9px 16px;border-radius:9px;border:1px solid #57d3ff;color:white;background:#0d4773}
-@media(max-width:700px){#dfcLabGiftCard018{width:58px!important}body.dfc-lab-visual #appView #dominoLobbyModes>.dfc28-room:not(.dfc-lab-expanded006){min-width:185px!important;flex-basis:185px!important}}
-@media(orientation:portrait){body.dfc-lab-visual #appView{height:auto!important;min-height:100dvh!important;max-height:none!important;overflow-y:auto!important}body.dfc-lab-visual #appView .dfc09-shell{height:auto!important;min-height:100dvh!important;max-height:none!important;overflow-y:visible!important}body.dfc-lab-visual #appView #dfcLabStage004 .dfc09-rooms{overflow:visible!important}body.dfc-lab-visual #appView #dominoLobbyModes{max-height:70vh!important}}
+@media (orientation:landscape) and (max-height:500px){
+ body.dfc-lab-visual #appView{height:100dvh!important;min-height:100dvh!important;max-height:100dvh!important;overflow:hidden!important}
+ body.dfc-lab-visual #appView .dfc09-shell{height:100%!important;max-height:100%!important;overflow:hidden!important;padding:3px clamp(5px,1vw,13px) 6px!important;gap:3px!important}
+ body.dfc-lab-visual #appView #dfcLabStage004{height:auto!important;min-height:0!important;max-height:none!important;grid-template-columns:clamp(98px,15vw,170px) minmax(0,1fr)!important}
+ body.dfc-lab-visual #appView #dfcLabStage004 .dfc09-tools{height:100%!important}
+ body.dfc-lab-visual #appView #dominoLobbyModes>.dfc28-room:not(.dfc-lab-expanded006){height:100%!important;min-height:160px!important;padding:8px 11px!important}
+}
+@media (orientation:portrait){
+ body.dfc-lab-visual #appView{height:auto!important;min-height:100dvh!important;max-height:none!important;overflow-x:hidden!important;overflow-y:auto!important}
+ body.dfc-lab-visual #appView .dfc09-shell{height:auto!important;min-height:100dvh!important;max-height:none!important;overflow:visible!important}
+ body.dfc-lab-visual #appView #dfcLabStage004{display:flex!important;flex-direction:column!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;gap:7px!important}
+ body.dfc-lab-visual #appView #dfcLabStage004 .dfc09-tools{width:100%!important;height:auto!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;align-items:stretch!important}
+ body.dfc-lab-visual #appView #dfcLabStage004 .dfc09-rooms{width:100%!important;height:auto!important;min-height:min(50dvh,380px)!important;overflow:visible!important}
+ body.dfc-lab-visual #appView #dominoLobbyModes{height:min(42dvh,365px)!important;max-height:none!important;min-height:220px!important;overflow-y:hidden!important}
+ body.dfc-lab-visual #appView #dominoLobbyModes>.dfc28-room:not(.dfc-lab-expanded006){height:90%!important;min-height:180px!important}
+}
+@media(max-width:740px) and (orientation:landscape){body.dfc-lab-visual #appView #dfcLabStage004{grid-template-columns:clamp(82px,15vw,116px) minmax(0,1fr)!important}body.dfc-lab-visual #appView #dominoLobbyModes>.dfc28-room:not(.dfc-lab-expanded006){flex-basis:256px!important;width:256px!important;min-width:256px!important;max-width:256px!important}}
+@media(max-width:700px){#dfcLabGiftCard018{width:58px!important}}
 @media(prefers-reduced-motion:reduce){#dfcLabGiftCard018{animation:none!important}}
 </style>
 <script id="dfc-z31-lab021-visual-bridge">
