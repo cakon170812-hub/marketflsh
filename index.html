@@ -2866,7 +2866,7 @@ html.dfc-z29-boot-pending #authView:not(.hidden) {visibility:hidden!important;po
 @media(max-width:520px){#dominoLobbyModes .domino-choice-card{padding:8px!important;font-size:clamp(10px,2.75vw,13px)!important}#leaderPanel>.panel,#leaderGatePanel>.panel{width:100%!important}#leaderPanel .wallet-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 </style>
 <script id="dfc-z29-boot-safeguard">
-(function(){'use strict';let released=false;const release=()=>{if(released)return;released=true;document.documentElement.classList.remove('dfc-z29-boot-pending')};document.addEventListener('dfc-z27-app-ready',release,{once:true});document.addEventListener('dfc-z27-app-error',release,{once:true});if(window.dfcZ27AppReady||window.dfcZ27AppFailed)release();setTimeout(release,14000);})();
+(function(){'use strict';let released=false;const release=()=>{if(released)return;released=true;document.documentElement.classList.remove('dfc-z29-boot-pending')};document.addEventListener('dfc-z27-app-ready',release,{once:true});document.addEventListener('dfc-z27-app-error',release,{once:true});if(window.dfcZ27AppReady||window.dfcZ27AppFailed)release();setTimeout(()=>{if(window.dfcZ27AppReady||window.dfcZ27AppFailed)release()},14000);})();
 </script>
 <style id="dfc-laboratorio-visual-019">
 /* LAB 0.19: Una sola tarjeta visible, azul eléctrico, usando la imagen aprobada por el usuario. */
@@ -3747,12 +3747,10 @@ async function enterApp(){
   $('authView').classList.add('hidden');
   $('appView').classList.remove('hidden');
 
-  try{
-    const awayResult=await sb.rpc('rf_domino_mark_away_v184');
-    if(awayResult?.error)console.warn('Dominó mark-away:',awayResult.error);
-  }catch(e){
-    console.warn('Dominó mark-away omitido:',e);
-  }
+  // Petición auxiliar no bloqueante; la sesión puede abrir sin esperar este RPC.
+  Promise.resolve().then(()=>sb.rpc('rf_domino_mark_away_v184'))
+    .then(r=>{if(r?.error)console.warn('Dominó mark-away:',r.error)})
+    .catch(e=>console.warn('Dominó mark-away omitido:',e));
 
   await refreshEverything();
   startPresence(session.user.id);
