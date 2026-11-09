@@ -19768,10 +19768,56 @@ function init(){
  const dismiss=document.createElement('button');dismiss.type='button';dismiss.textContent='Cerrar';dismiss.onclick=()=>{modal.hidden=true;gift.focus()};
  content.append(title,image,info,dismiss);modal.append(content);document.body.append(modal);
  gift.onclick=()=>{modal.hidden=false;dismiss.focus()};modal.addEventListener('click',e=>{if(e.target===modal)modal.hidden=true});
- function placeGift(){if(app.classList.contains('hidden')||!invite.getClientRects().length){gift.hidden=true;return}const r=invite.getBoundingClientRect(),w=Math.min(innerWidth<650?58:78,Math.max(48,r.width*.72)),h=w*.6,x=Math.max(3,Math.min(innerWidth-w-3,r.left+(r.width-w)/2)),y=Math.max(3,Math.min(innerHeight-h-3,r.top-h-3));gift.style.left=x+'px';gift.style.top=y+'px';gift.style.width=w+'px';gift.hidden=false}
- new MutationObserver(placeGift).observe(app,{attributes:true,attributeFilter:['class','style']});
- if('ResizeObserver' in window)new ResizeObserver(placeGift).observe(invite);
- addEventListener('orientationchange',placeGift);addEventListener('scroll',placeGift,true);placeGift();
+ function homeOnly(){
+  if(app.classList.contains('hidden')||!invite.isConnected||!invite.getClientRects().length)return false;
+  // Los paneles oficiales Z30 son superposiciones: appView sigue visible bajo ellos.
+  if(document.querySelector('.overlay.active, .overlay.show, .overlay.open'))return false;
+  if(document.body.classList.contains('dfc-lab-menu-open'))return false;
+  if(!modal.hidden)return false;
+  const r=invite.getBoundingClientRect();
+  return r.width>0&&r.height>0&&r.bottom>0&&r.top<innerHeight;
+ }
+ function placeGift(){
+  const visible=homeOnly();
+  gift.hidden=!visible;
+  if(!visible){
+   if(app.classList.contains('hidden')||document.querySelector('.overlay.active, .overlay.show, .overlay.open'))modal.hidden=true;
+   return;
+  }
+  const r=invite.getBoundingClientRect();
+  // Un poco menor que LAB 0.21, siempre sobre Invitar.
+  const w=Math.min(innerWidth<700?48:54,Math.max(40,r.width*.60));
+  const h=w*.6;
+  const x=Math.max(3,Math.min(innerWidth-w-3,r.left+(r.width-w)/2));
+  const y=Math.max(3,Math.min(innerHeight-h-3,r.top-h-4));
+  gift.style.left=x+'px';gift.style.top=y+'px';
+  gift.style.setProperty('width',w+'px','important');
+  gift.hidden=false;
+ }
+ let giftFrame=0;
+ function scheduleGift(){
+   if(giftFrame)return;
+   giftFrame=requestAnimationFrame(()=>{giftFrame=0;placeGift()});
+ }
+ const giftObserver=new MutationObserver(scheduleGift);
+ giftObserver.observe(app,{attributes:true,attributeFilter:['class','style']});
+ giftObserver.observe(document.body,{attributes:true,attributeFilter:['class']});
+ document.querySelectorAll('.overlay').forEach(panel=>giftObserver.observe(panel,{attributes:true,attributeFilter:['class','style','hidden']}));
+ // También detectar nuevos paneles agregados dinámicamente, sin observar toda la mesa.
+ new MutationObserver(records=>{
+   let changed=false;
+   for(const r of records)for(const node of r.addedNodes){
+     if(node.nodeType!==1)continue;
+     if(node.matches?.('.overlay')){giftObserver.observe(node,{attributes:true,attributeFilter:['class','style','hidden']});changed=true;}
+   }
+   if(changed)scheduleGift();
+ }).observe(document.body,{childList:true});
+ if('ResizeObserver' in window)new ResizeObserver(scheduleGift).observe(invite);
+ addEventListener('orientationchange',scheduleGift);
+ addEventListener('resize',scheduleGift);
+ addEventListener('scroll',scheduleGift,true);
+ document.addEventListener('click',()=>requestAnimationFrame(scheduleGift),true);
+ placeGift();
  window.DFC_Z31_LAB={version:'0.12Z.31',visual:'LAB 0.21',functionalBase:'Z30',audit:()=>({ready:document.body.dataset.dfcZ31LabReady,rooms:cards().length,cardVisible:!gift.hidden,appVisible:!app.classList.contains('hidden')})};
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
@@ -19850,6 +19896,54 @@ body.dfc-lab-visual #appView #dominoLobbyModes.dfc-z31-one-room > .dfc28-room:no
   else mount();
 })();
 </script>
+
+
+<style id="dfc-z31-lab021-focus-and-card-final">
+/* LAB 0.21: resaltar claramente la mesa actualmente seleccionada. */
+body.dfc-lab-visual #appView #dominoLobbyModes > .dfc28-room:not(.dfc-lab-expanded006),
+body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card:not(.dfc-lab-expanded006){
+  transform:scale(.84)!important;
+  opacity:.70!important;
+  transform-origin:center center!important;
+  transition:transform .30s ease, opacity .30s ease, filter .30s ease!important;
+  scroll-snap-align:center!important;
+}
+body.dfc-lab-visual #appView #dominoLobbyModes > .dfc28-room.dfc-lab-focused007:not(.dfc-lab-expanded006),
+body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card.dfc-lab-focused007:not(.dfc-lab-expanded006){
+  transform:scale(1.12)!important;
+  opacity:1!important;
+  z-index:6!important;
+  filter:drop-shadow(0 3px 11px #2be4ee99)!important;
+}
+body.dfc-lab-visual #appView #dominoLobbyModes.dfc-z31-one-room > .dfc28-room.dfc-lab-focused007:not(.dfc-lab-expanded006){
+  transform:scale(1)!important;
+  opacity:1!important;
+}
+/* Tarjeta más pequeña: nunca se muestra sobre otro panel ni al tener hidden. */
+html body #dfcLabGiftCard018{
+  width:54px!important;
+  max-width:54px!important;
+  height:auto!important;
+  aspect-ratio:5/3!important;
+  border-radius:5px!important;
+  box-shadow:0 2px 8px #0008!important;
+}
+html body #dfcLabGiftCard018[hidden],
+html body:not(.dfc-lab-visual) #dfcLabGiftCard018,
+body:has(.overlay.active) #dfcLabGiftCard018,
+body:has(.overlay.show) #dfcLabGiftCard018,
+body:has(.overlay.open) #dfcLabGiftCard018,
+body.dfc-lab-menu-open #dfcLabGiftCard018{
+  display:none!important;visibility:hidden!important;pointer-events:none!important;
+}
+@media(max-width:700px){
+ html body #dfcLabGiftCard018{width:48px!important;max-width:48px!important;}
+}
+@media(prefers-reduced-motion:reduce){
+ body.dfc-lab-visual #appView #dominoLobbyModes > .dfc28-room,
+ body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card{transition:none!important;}
+}
+</style>
 
 </body>
 
