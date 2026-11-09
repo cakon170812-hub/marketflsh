@@ -2929,6 +2929,14 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020{
   font-size:10px!important;
 }
 </style>
+<script id="dfc-z31-web-integrity-diagnostic">
+/* Z31 web: no modificar partidas ni balances, solo comprobación de publicación. */
+(function(){'use strict';
+  var version='0.12Z.31';
+  window.DFC_Z31_WEB_DIAGNOSTIC=Object.freeze({version:version,visual:'LAB 0.21',platform:'web',source:'Z31-WEB-REPARADO'});
+  console.info('[DFC] Web '+version+' / LAB VISUAL 0.21 / recarga automática desactivada');
+})();
+</script>
 </head>
 <body>
 <div aria-label="Preparando DOMINÓ FLASH COIN" aria-live="polite" id="dfc-z9-loader" role="status"><div><span class="logo">💎</span><strong>DOMINÓ FLASH COIN</strong><p id="dfc-z27-loader-note">Preparando la aplicación…</p><div aria-label="Progreso visual de carga" aria-valuemax="100" aria-valuemin="0" aria-valuenow="1" id="dfc-z27-loading-track" role="progressbar" style="display:block;width:min(76vw,320px);height:10px;min-height:10px;margin:18px auto 9px;overflow:hidden;border-radius:99px;background:#ffffff26;border:1px solid #dfbd6d"><div id="dfc-z27-loading-fill" style="display:block;width:100%;height:100%;transform:scaleX(.01);transform-origin:left center;background:linear-gradient(90deg,#ba872b,#ffe8a4)"></div></div><output id="dfc-z27-percent">1%</output><p hidden="" id="dfc-z27-loader-error"></p></div></div>
@@ -2995,7 +3003,7 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020{
  };
  wallpaper.onerror=function(){failed('No se pudo preparar la imagen integrada.');};
  wallpaper.src=window.dfcZ27Wallpaper;
- window.addEventListener('online',function(){if(window.dfcZ27AppFailed&&!ready)location.reload()});
+ window.addEventListener('online',function(){/* No recargar automáticamente después de un fallo de arranque: evitar ciclos de carga. El usuario puede reintentar manualmente. */});
  setTimeout(function(){if(!ready&&!window.dfcZ27AppFailed)note.textContent='Preparando la aplicación. Espera un momento…';},12000);
  update();
 })();
@@ -5854,12 +5862,10 @@ async function openDominoLobby(){
       const retry=$('dominoRetryLobbyBtn');
       if(retry)retry.onclick=openDominoLobby;
       const forceRefresh=$('dominoForceRefreshBtn');
-      if(forceRefresh)forceRefresh.onclick=()=>{
-        const u=new URL(location.href);
-        u.searchParams.set('v','0.12Z.28');
-        u.searchParams.set('_refresh',Date.now().toString());
-        location.replace(u.toString());
-      };
+      if(forceRefresh){
+        forceRefresh.textContent='↻ VOLVER A CONSULTAR MESAS';
+        forceRefresh.onclick=()=>{ void openDominoLobby(); };
+      }
     }
     msg('dominoLobbyMsg',errText(e));
   }
@@ -14152,9 +14158,13 @@ window.dfcZ9Refresh=()=>refresh(true);
    try{await window.dfcInstallApprovedUpdate();}catch(e){alert('No se pudo aplicar la actualización: '+String(e.message||e))}
    await check(true);return;
   }
-  if(!confirm('¿Actualizar la web a '+offer.version+'?'))return;
+  if(!confirm('¿Consultar actualización web '+offer.version+'?'))return;
   try{await navigator.serviceWorker?.getRegistration?.().then(r=>r?.update())}catch(_){ }
-  location.reload();
+  // La recarga de la página web es una acción explícita del usuario, no un bucle.
+  const target=new URL(location.href);
+  target.searchParams.set('v','0.12Z.31');
+  target.searchParams.set('_nocache',String(Date.now()));
+  location.assign(target.toString());
  }
  function boot(){if(native() && document.querySelector('script[src*="native-bridge.js"]'))return;create();void check(true);window.addEventListener('online',()=>void check(true));
   document.addEventListener('visibilitychange',()=>{show();if(!document.hidden)void check(true)});
