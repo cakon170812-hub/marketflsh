@@ -19732,8 +19732,32 @@ function init(){
  const backdrop=document.createElement('div');backdrop.id='dfcLabBackdrop006';document.body.append(backdrop);
  function closeExpanded(){if(expanded){expanded.classList.remove('dfc-lab-expanded006');expanded.querySelector('.dfc-lab-close006')?.removeAttribute('style');const c=expanded.querySelector('.dfc-lab-close006');if(c)c.hidden=true;expanded=null}backdrop.classList.remove('visible')}
  backdrop.onclick=closeExpanded;document.addEventListener('keydown',e=>{if(e.key==='Escape')closeExpanded()});
- function focusCard(){const list=cards();host.classList.toggle('dfc-z31-one-room',list.length===1);if(!list.length)return;if(list.length===1){active=0;list[0].classList.add('dfc-lab-focused007');return;}const center=host.getBoundingClientRect().left+host.clientWidth/2;let best=0,dist=Infinity;list.forEach((c,i)=>{const r=c.getBoundingClientRect(),d=Math.abs((r.left+r.right)/2-center);if(d<dist){dist=d;best=i}});active=best;list.forEach((c,i)=>c.classList.toggle('dfc-lab-focused007',i===best))}
- function go(index,smooth){const list=cards();host.classList.toggle('dfc-z31-one-room',list.length===1);if(!list.length)return;active=Math.max(0,Math.min(list.length-1,index));list.forEach((c,i)=>c.classList.toggle('dfc-lab-focused007',i===active));const el=list[active],r=el.getBoundingClientRect(),root=host.getBoundingClientRect();host.scrollTo({left:Math.max(0,host.scrollLeft+(r.left-root.left)-(host.clientWidth-el.offsetWidth)/2),behavior:smooth?'smooth':'auto'})}
+ function focusCard(){
+  const list=cards();
+  host.classList.toggle('dfc-z31-one-room',list.length===1);
+  if(!list.length){active=0;return;}
+  if(list.length===1){active=0;list[0].classList.add('dfc-lab-focused007');return;}
+  // Usar coordenadas de diseño, no getBoundingClientRect, que cambia con scale().
+  const center=host.scrollLeft+host.clientWidth/2;
+  let best=0,dist=Infinity;
+  list.forEach((card,i)=>{
+   const itemCenter=card.offsetLeft-host.offsetLeft+card.offsetWidth/2;
+   const delta=Math.abs(itemCenter-center);
+   if(delta<dist){dist=delta;best=i;}
+  });
+  active=best;
+  list.forEach((card,i)=>card.classList.toggle('dfc-lab-focused007',i===best));
+ }
+ function go(index,smooth){
+  const list=cards();host.classList.toggle('dfc-z31-one-room',list.length===1);
+  if(!list.length)return;
+  active=Math.max(0,Math.min(list.length-1,index));
+  list.forEach((card,i)=>card.classList.toggle('dfc-lab-focused007',i===active));
+  if(list.length===1)return;
+  const card=list[active];
+  const target=card.offsetLeft-host.offsetLeft+card.offsetWidth/2-host.clientWidth/2;
+  host.scrollTo({left:Math.max(0,target),behavior:smooth?'smooth':'auto'});
+ }
  host.addEventListener('scroll',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(focusCard)},{passive:true});
  function prepare(){
   const list=cards();
@@ -19878,7 +19902,7 @@ body.dfc-lab-visual #appView #dominoLobbyModes.dfc-z31-one-room > .dfc28-room:no
 }
 /* Limitar a teléfonos táctiles verticales, no imponer rotación a monitores de escritorio. */
 @media (orientation:portrait) and (pointer:coarse) and (max-width:950px) {
-  html:not(.dfc-android-native) #dfcZ31LandscapeGate {display:flex!important;}
+  html.dfc-z31-initial-load-complete:not(.dfc-android-native) #dfcZ31LandscapeGate {display:flex!important;}
 }
 </style>
 <script id="dfc-z31-landscape-gate">
@@ -19891,6 +19915,18 @@ body.dfc-lab-visual #appView #dominoLobbyModes.dfc-z31-one-room > .dfc28-room:no
     gate.setAttribute('aria-label','Gira el teléfono para utilizar Dominó Flash Coin');
     gate.innerHTML='<div class="dfc-z31-rotate-content"><div class="dfc-z31-rotate-icon" aria-hidden="true">📱 ↻</div><h2>Gira tu teléfono</h2><p>DOMINÓ FLASH COIN está diseñado para jugar en horizontal. Coloca el teléfono de lado para continuar.</p></div>';
     document.body.appendChild(gate);
+    // La indicación de giro nunca debe tapar la carga Z30/Z31.
+    // La carga retira su elemento solo después de completar al 100%.
+    const loader=document.getElementById('dfc-z9-loader');
+    if(!loader){document.documentElement.classList.add('dfc-z31-initial-load-complete');return;}
+    const update=()=>{
+      if(loader.isConnected)return;
+      document.documentElement.classList.add('dfc-z31-initial-load-complete');
+      observer.disconnect();
+    };
+    const observer=new MutationObserver(update);
+    observer.observe(document.body,{childList:true});
+    update();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
   else mount();
@@ -19942,6 +19978,38 @@ body.dfc-lab-menu-open #dfcLabGiftCard018{
 @media(prefers-reduced-motion:reduce){
  body.dfc-lab-visual #appView #dominoLobbyModes > .dfc28-room,
  body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card{transition:none!important;}
+}
+</style>
+
+
+<style id="dfc-z31-final-carousel-correction-20261109">
+/* Carrusel: contraste real entre mesa seleccionada y las laterales.
+   La clase de selección sigue siendo controlada por la navegación Z31,
+   sin modificar IDs, acciones del juego ni el origen Supabase. */
+body.dfc-lab-visual #appView #dominoLobbyModes{
+  position:relative!important;
+  isolation:isolate!important;
+}
+body.dfc-lab-visual #appView #dominoLobbyModes > .dfc28-room:not(.dfc-lab-focused007):not(.dfc-lab-expanded006){
+  transform:scale(.77)!important;
+  opacity:.65!important;
+  z-index:1!important;
+  transition:transform .32s ease,opacity .32s ease,filter .32s ease!important;
+}
+body.dfc-lab-visual #appView #dominoLobbyModes > .dfc28-room.dfc-lab-focused007:not(.dfc-lab-expanded006){
+  transform:scale(1.15)!important;
+  transform-origin:center center!important;
+  opacity:1!important;
+  z-index:6!important;
+  filter:drop-shadow(0 4px 11px rgba(45,207,252,.53))!important;
+  transition:transform .32s ease,opacity .32s ease,filter .32s ease!important;
+}
+body.dfc-lab-visual #appView #dominoLobbyModes.dfc-z31-one-room > .dfc28-room.dfc-lab-focused007:not(.dfc-lab-expanded006){
+  transform:scale(1.08)!important;
+  opacity:1!important;
+}
+@media(prefers-reduced-motion:reduce){
+  body.dfc-lab-visual #appView #dominoLobbyModes>.dfc28-room:not(.dfc-lab-expanded006){transition:none!important;}
 }
 </style>
 
