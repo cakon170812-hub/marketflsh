@@ -20728,6 +20728,93 @@ document.addEventListener('click',()=>requestAnimationFrame(syncSecondary),true)
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+<script id="dfc-z31-boot-recovery-fix">
+/* DOMINÓ FLASH COIN 0.12Z.31 — protección de arranque web.
+   Insertar inmediatamente ANTES de </body> en index.html.
+   No toca balances, turnos, mesa ni funciones RPC. */
+(function () {
+  'use strict';
+  if (window.__dfcZ31BootRecoveryInstalled) return;
+  window.__dfcZ31BootRecoveryInstalled = true;
+
+  var completed = false;
+  var timer = null;
+  var bootError = false;
+
+  function isShown(el) {
+    if (!el || el.classList.contains('hidden') || el.hidden) return false;
+    var css = window.getComputedStyle(el);
+    return css.display !== 'none' && css.visibility !== 'hidden';
+  }
+
+  function removeBootMask() {
+    document.documentElement.classList.remove('dfc-z29-boot-pending');
+    var mask = document.getElementById('dfc-z9-loader');
+    if (mask) {
+      mask.classList.add('hide');
+      mask.setAttribute('aria-hidden', 'true');
+      mask.style.setProperty('display', 'none', 'important');
+      mask.style.setProperty('pointer-events', 'none', 'important');
+    }
+  }
+
+  function renderRecovery(reason) {
+    if (completed) return;
+    var app = document.getElementById('appView');
+    var auth = document.getElementById('authView');
+    var other = ['dominoTablePanel', 'dominoLobbyPanel', 'emailConfirmView']
+      .some(function (id) { return isShown(document.getElementById(id)); });
+    if (window.dfcZ27AppReady || isShown(app) || other) {
+      completed = true;
+      return;
+    }
+    removeBootMask();
+    if (auth) {
+      auth.classList.remove('hidden');
+      auth.removeAttribute('hidden');
+    }
+    if (document.getElementById('dfc-z31-start-recovery')) return;
+    var panel = document.createElement('section');
+    panel.id = 'dfc-z31-start-recovery';
+    panel.setAttribute('role', 'alert');
+    panel.style.cssText = 'position:fixed;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:2147483646;max-width:540px;margin:auto;padding:14px 16px;border-radius:14px;border:1px solid #e9bf69;background:#13283d;color:white;box-shadow:0 8px 28px #000b;font:14px/1.45 system-ui,sans-serif;text-align:center';
+    var txt = document.createElement('div');
+    txt.textContent = reason === 'error'
+      ? 'No se completó el inicio. Comprueba tu conexión y vuelve a intentarlo.'
+      : 'La aplicación tardó más de lo esperado en iniciar. Puedes reintentar manualmente.';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = 'Reintentar apertura';
+    btn.style.cssText = 'display:block;margin:10px auto 0;padding:10px 18px;border:0;border-radius:10px;background:#e9bf69;color:#172333;font-weight:750;cursor:pointer';
+    btn.addEventListener('click', function () { window.location.reload(); });
+    panel.appendChild(txt);
+    panel.appendChild(btn);
+    document.body.appendChild(panel);
+    completed = true;
+    console.warn('[DFC Z31] Recuperación visual de arranque:', reason);
+  }
+
+  document.addEventListener('dfc-z27-app-ready', function () {
+    completed = true;
+    if (timer) clearTimeout(timer);
+  }, { once: true });
+  document.addEventListener('dfc-z27-app-error', function () {
+    bootError = true;
+    window.setTimeout(function () { renderRecovery('error'); }, 250);
+  }, { once: true });
+  function beginWatchdog() {
+    if (window.dfcZ27AppReady) return;
+    if (window.dfcZ27AppFailed || bootError) {
+      renderRecovery('error');
+      return;
+    }
+    timer = window.setTimeout(function () { renderRecovery('timeout'); }, 20000);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', beginWatchdog, { once: true });
+  else beginWatchdog();
+})();
+
+</script>
 </body>
 
 </html>
