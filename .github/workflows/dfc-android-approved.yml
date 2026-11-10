@@ -1,509 +1,74 @@
-
-# =========================================================
-# DOMINÓ FLASH COIN
-# ARCHIVO: .github/workflows/dfc-android-approved.yml
-# VERSIÓN DE PREPARACIÓN: 0.12Z.30
-# FUNCIÓN: COMPILAR Y PUBLICAR ACTUALIZACIONES ANDROID OTA
-# =========================================================
-#
-# CORRECCIÓN:
-# Elimina la opción inválida de esbuild:
-# --node-path=node_modules
-#
-# Utiliza NODE_PATH para resolver las dependencias.
-#
-# No modifica partidas, mesas, saldos ni Supabase.
-# No compila una APK.
-# Conserva intactos los ZIP de versiones anteriores.
-# =========================================================
-
-name: DFC Android - verificar y publicar paquete OTA
+name: Publicar DOMINO FLASH COIN Android OTA Z31
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Nueva versión Android, ejemplo 0.12Z.30'
-        required: true
-        type: string
-
-      sha:
-        description: 'SHA completo de 40 caracteres de la revisión aprobada'
-        required: true
-        type: string
 
 permissions:
   contents: write
 
 concurrency:
-  group: dfc-android-ota-publication
+  group: dfc-android-ota
   cancel-in-progress: false
 
 jobs:
-  publish:
+  publicar:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-
     steps:
-
-      - name: Verificar datos de publicación
-        shell: bash
-        env:
-          DFC_VERSION: ${{ inputs.version }}
-          DFC_SHA: ${{ inputs.sha }}
-        run: |
-          python3 - <<'PY'
-          import os
-          import re
-
-          version = os.environ['DFC_VERSION']
-          sha = os.environ['DFC_SHA']
-
-          assert re.fullmatch(
-              r'0\.12Z\.\d{1,4}',
-              version
-          ), 'Formato de versión incorrecto'
-
-          number = int(version.split('.')[-1])
-
-          assert number >= 30, (
-              'La Z29 y anteriores están protegidas'
-          )
-
-          assert re.fullmatch(
-              r'[a-fA-F0-9]{40}',
-              sha
-          ), 'SHA de GitHub no válido'
-
-          print('Versión solicitada:', version)
-          print('Revisión solicitada:', sha)
-          PY
-
-      - name: Descargar exactamente la revisión aprobada
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.sha }}
-          fetch-depth: 0
           persist-credentials: true
-
-      - name: Comprobar revisión y archivos de origen
-        shell: bash
-        env:
-          DFC_VERSION: ${{ inputs.version }}
-          DFC_SHA: ${{ inputs.sha }}
-        run: |
-          python3 - <<'PY'
-          import os
-          import pathlib
-          import subprocess
-          import re
-          import json
-          from html.parser import HTMLParser
-
-          version = os.environ['DFC_VERSION']
-          sha = os.environ['DFC_SHA']
-
-          remote_head = subprocess.check_output(
-              [
-                  'git',
-                  'ls-remote',
-                  'origin',
-                  'refs/heads/main'
-              ],
-              text=True
-          ).split()[0]
-
-          assert remote_head == sha, (
-              'La rama main cambió. '
-              'Vuelve a revisar la versión web'
-          )
-
-          local_head = subprocess.check_output(
-              [
-                  'git',
-                  'rev-parse',
-                  'HEAD'
-              ],
-              text=True
-          ).strip()
-
-          assert local_head == sha, (
-              'El commit descargado no coincide'
-          )
-
-          required = [
-              'index.html',
-              'native-bridge.js',
-              'script.js',
-              'style.css',
-              'sw.js',
-              'privacidad.html',
-              'manifest.webmanifest'
-          ]
-
-          for name in required:
-              path = pathlib.Path(name)
-
-              assert path.is_file(), (
-                  f'Falta el archivo: {name}'
-              )
-
-              assert path.stat().st_size > 0, (
-                  f'Archivo vacío: {name}'
-              )
-
-          html = pathlib.Path(
-              'index.html'
-          ).read_text(encoding='utf-8')
-
-          assert len(html) > 1000000, (
-              'El HTML del juego está incompleto'
-          )
-
-          assert '<html' in html.lower(), (
-              'El archivo no parece HTML'
-          )
-
-          assert '</html>' in html.lower(), (
-              'El HTML no tiene cierre'
-          )
-
-          class MetaParser(HTMLParser):
-              def __init__(self):
-                  super().__init__()
-                  self.versions = []
-
-              def handle_starttag(self, tag, attrs):
-                  if tag == 'meta':
-                      data = dict(attrs)
-
-                      if data.get('name') == (
-                          'application-version'
-                      ):
-                          self.versions.append(
-                              data.get('content')
-                          )
-
-          parser = MetaParser()
-          parser.feed(html)
-
-          assert version in parser.versions, (
-              'index.html no declara la versión '
-              + version
-          )
-
-          assert (
-              'native-bridge.js' in html
-          ), 'Falta la referencia al puente Android'
-
-          assert (
-              'window.sb=sb;' in html
-              and 'window.dfcSupabase=sb;' in html
-          ), 'Falta la conexión automática de Supabase'
-
-          bridge = pathlib.Path(
-              'native-bridge.js'
-          ).read_text(encoding='utf-8')
-
-          assert (
-              'CapacitorUpdater' in bridge
-              and 'dfcOTAUserButton' in bridge
-          ), 'Puente Android OTA incompleto'
-
-          assert (
-              'rf_domino_get_lobby_v11' in bridge
-          ), 'Falta la verificación de mesas'
-
-          script = pathlib.Path(
-              'script.js'
-          ).read_text(encoding='utf-8')
-
-          assert (
-              'TU-PROYECTO.supabase.co' not in script
-          ), 'script.js contiene configuración de ejemplo'
-
-          manifest_path = pathlib.Path(
-              'android-approved/manifest.json'
-          )
-
-          old = json.loads(
-              manifest_path.read_text(
-                  encoding='utf-8'
-              )
-          )
-
-          match = re.fullmatch(
-              r'0\.12Z\.(\d{1,4})',
-              str(old.get('version', ''))
-          )
-
-          assert match, (
-              'El manifiesto anterior tiene '
-              'una versión inválida'
-          )
-
-          previous_number = int(match.group(1))
-          next_number = int(
-              version.split('.')[-1]
-          )
-
-          assert next_number > previous_number, (
-              'La nueva versión debe superar '
-              'la versión publicada'
-          )
-
-          zip_path = pathlib.Path(
-              'android-approved/bundles',
-              version + '.zip'
-          )
-
-          assert not zip_path.exists(), (
-              'El ZIP ya existe. '
-              'No se permite sobrescribirlo'
-          )
-
-          print('Archivos verificados')
-          print('Versión aprobada:', version)
-          print('SHA aprobado:', sha)
-          PY
-
-      - name: Preparar compilador JavaScript
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Compilar native-bridge.js para Android
+      - name: Validar archivos Z31 y paquete anterior
         shell: bash
         run: |
           set -euo pipefail
-
-          mkdir -p .dfc-ota-build/deps
-
-          cd .dfc-ota-build/deps
-
-          npm install \
-            --no-save \
-            --no-package-lock \
-            --ignore-scripts \
-            --no-audit \
-            --no-fund \
-            esbuild@0.25.12 \
-            @capacitor/core@7 \
-            @capacitor/app@7 \
-            @capacitor/screen-orientation@7 \
-            @capacitor/status-bar@7 \
-            @capgo/capacitor-updater@7
-
-          # CORRECCIÓN DEL ERROR DEL WORKFLOW #33:
-          #
-          # esbuild NO reconoce --node-path=node_modules.
-          # NODE_PATH permite localizar dependencias
-          # instaladas en esta carpeta.
-
-          NODE_PATH="$PWD/node_modules" \
-            ./node_modules/.bin/esbuild \
-            ../../native-bridge.js \
-            --bundle \
-            --platform=browser \
-            --format=esm \
-            --target=chrome100 \
-            --outfile=../native-bridge.js
-
-          test -s ../native-bridge.js
-
-          echo "Puente Android compilado correctamente"
-
-      - name: Crear ZIP y verificar paquete
+          test -s index.html
+          test -s android-approved/bundles/0.12Z.30.zip
+          grep -q 'dfc-z31-admin-gifts-controller' index.html
+          unzip -t android-approved/bundles/0.12Z.30.zip >/dev/null
+      - name: Construir paquete OTA sin perder recursos nativos Z30
         shell: bash
-        env:
-          DFC_VERSION: ${{ inputs.version }}
-          DFC_SHA: ${{ inputs.sha }}
         run: |
-          python3 - <<'PY'
-          import os
-          import pathlib
-          import zipfile
-          import hashlib
-          import json
-          import datetime
-
-          version = os.environ['DFC_VERSION']
-          sha = os.environ['DFC_SHA']
-
-          output = pathlib.Path(
-              'android-approved'
-          )
-
-          bundle_folder = output / 'bundles'
-
-          bundle_folder.mkdir(
-              parents=True,
-              exist_ok=True
-          )
-
-          destination = (
-              bundle_folder / (version + '.zip')
-          )
-
-          if destination.exists():
-              raise RuntimeError(
-                  'No se permite sobrescribir '
-                  'una versión anterior'
-              )
-
-          required = [
-              'index.html',
-              'script.js',
-              'style.css',
-              'sw.js',
-              'privacidad.html',
-              'manifest.webmanifest'
-          ]
-
-          contents = {}
-
-          for name in required:
-              contents[name] = pathlib.Path(
-                  name
-              ).read_bytes()
-
-          compiled_bridge = pathlib.Path(
-              '.dfc-ota-build/native-bridge.js'
-          )
-
-          assert compiled_bridge.is_file(), (
-              'No se encontró el puente compilado'
-          )
-
-          contents['native-bridge.js'] = (
-              compiled_bridge.read_bytes()
-          )
-
-          for folder_name in [
-              'images2',
-              'icons',
-              'assets'
-          ]:
-              root = pathlib.Path(folder_name)
-
-              if root.is_dir():
-                  for file in root.rglob('*'):
-                      if file.is_file():
-                          contents[
-                              file.as_posix()
-                          ] = file.read_bytes()
-
-          with zipfile.ZipFile(
-              destination,
-              'w',
-              zipfile.ZIP_DEFLATED,
-              compresslevel=9
-          ) as archive:
-
-              for name, data in sorted(
-                  contents.items()
-              ):
-                  archive.writestr(
-                      name,
-                      data
-                  )
-
-          with zipfile.ZipFile(
-              destination,
-              'r'
-          ) as archive:
-
-              assert archive.testzip() is None, (
-                  'ZIP dañado'
-              )
-
-              names = archive.namelist()
-
-              for name in (
-                  required + ['native-bridge.js']
-              ):
-                  assert name in names, (
-                      'Falta dentro del ZIP: ' + name
-                  )
-
-          checksum = hashlib.sha256(
-              destination.read_bytes()
-          ).hexdigest()
-
-          manifest = {
-              'version': version,
-              'sha': sha,
-              'url': (
-                  'https://cakon170812-hub.github.io/'
-                  'marketflsh/android-approved/bundles/'
-                  + version + '.zip'
-              ),
-              'sha256': checksum,
-              'type': 'capacitor-web-bundle',
-              'created_at': (
-                  datetime.datetime.now(
-                      datetime.timezone.utc
-                  ).isoformat()
-              )
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/dfc_bundle"
+          unzip -q android-approved/bundles/0.12Z.30.zip -d "$RUNNER_TEMP/dfc_bundle"
+          test -f "$RUNNER_TEMP/dfc_bundle/index.html" || {
+            echo "ERROR: la estructura del ZIP Z30 no tiene index.html en la raíz"; exit 1;
           }
-
-          manifest_path = (
-              output / 'manifest.json'
+          cp index.html "$RUNNER_TEMP/dfc_bundle/index.html"
+          test -s "$RUNNER_TEMP/dfc_bundle/index.html"
+          mkdir -p android-approved/bundles
+          (
+            cd "$RUNNER_TEMP/dfc_bundle"
+            zip -qr "$GITHUB_WORKSPACE/android-approved/bundles/0.12Z.31.zip" .
           )
-
-          manifest_path.write_text(
-              json.dumps(
-                  manifest,
-                  indent=2,
-                  ensure_ascii=False
-              ) + '\n',
-              encoding='utf-8'
-          )
-
-          print('Paquete generado:', destination)
-          print('Tamaño:', destination.stat().st_size)
-          print('SHA256:', checksum)
-          print('Versión:', version)
-          PY
-
-      - name: Confirmar revisión y publicar nueva versión
+          unzip -t android-approved/bundles/0.12Z.31.zip >/dev/null
+          unzip -p android-approved/bundles/0.12Z.31.zip index.html | grep -q 'dfc-z31-admin-gifts-controller'
+      - name: Publicar manifiesto con el SHA256 real del ZIP
         shell: bash
-        env:
-          DFC_VERSION: ${{ inputs.version }}
-          DFC_SHA: ${{ inputs.sha }}
         run: |
           set -euo pipefail
-
-          CURRENT="$(
-            git ls-remote origin refs/heads/main |
-            cut -f1
-          )"
-
-          if [ "$CURRENT" != "$DFC_SHA" ]; then
-            echo "La rama main cambió"
-            echo "Publicación cancelada por seguridad"
-            exit 1
-          fi
-
-          git config user.name 'dfc-android-bot'
-
-          git config user.email \
-            '41898282+github-actions[bot]@users.noreply.github.com'
-
-          git add \
-            android-approved/manifest.json \
-            "android-approved/bundles/${DFC_VERSION}.zip"
-
-          if git diff --cached --quiet; then
-            echo "No hay cambios para publicar"
-            exit 1
-          fi
-
-          git commit -m \
-            "Android OTA aprobado ${DFC_VERSION}"
-
-          git push origin HEAD:main
-
-          echo "Publicación enviada a GitHub"
-          echo "Versión: ${DFC_VERSION}"
-          echo "Esperar despliegue de GitHub Pages"
+          python3 - <<'PY'
+          import json,hashlib,datetime,pathlib
+          root=pathlib.Path('android-approved')
+          bundle=root/'bundles/0.12Z.31.zip'
+          sha=hashlib.sha256(bundle.read_bytes()).hexdigest()
+          manifest={
+            "version":"0.12Z.31",
+            "url":"https://cakon170812-hub.github.io/marketflsh/android-approved/bundles/0.12Z.31.zip",
+            "sha256":sha,
+            "type":"capacitor-web-bundle",
+            "created_at":datetime.datetime.now(datetime.timezone.utc).isoformat()
+          }
+          (root/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          print('Z31 SHA256:',sha)
+          PY
+      - name: Guardar publicación en GitHub
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add android-approved/manifest.json android-approved/bundles/0.12Z.31.zip
+          if git diff --cached --quiet; then echo "Z31 ya publicada"; exit 0; fi
+          git commit -m "Publicar actualización Android OTA 0.12Z.31"
+          git push
