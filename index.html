@@ -20797,13 +20797,18 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   document.addEventListener('dfc-z27-app-ready', function () {
     completed = true;
     if (timer) clearTimeout(timer);
+    // No mantener el splash encima de una aplicación ya inicializada.
+    window.setTimeout(removeBootMask, 3500);
   }, { once: true });
   document.addEventListener('dfc-z27-app-error', function () {
     bootError = true;
     window.setTimeout(function () { renderRecovery('error'); }, 250);
   }, { once: true });
   function beginWatchdog() {
-    if (window.dfcZ27AppReady) return;
+    if (window.dfcZ27AppReady) {
+      window.setTimeout(removeBootMask, 3500);
+      return;
+    }
     if (window.dfcZ27AppFailed || bootError) {
       renderRecovery('error');
       return;
