@@ -7218,7 +7218,7 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
 
   // Impide arrastrar la página completa; los paneles internos conservan su propio scroll.
   document.addEventListener('touchmove',e=>{
-    const scrollable=e.target.closest('.panel,.domino-mini-chat-list,.domino-chat-list,.wallet-history,.admin-user-list');
+    const scrollable=e.target.closest('.panel,.domino-mini-chat-list,.domino-chat-list,.wallet-history,.admin-user-list,#dfcZ31GiftsModal .dfc-z31-body');
     // La portada PWA debe poder desplazarse verticalmente con el dedo.
     // Se conserva el bloqueo de arrastre fuera de la portada (mesa horizontal).
     const inScrollableHome=!!e.target.closest('#appView,#authView,#leaderPanel,#leaderGatePanel,#adminWalletPanel,#dfcAdminModerationPanel');
@@ -8755,7 +8755,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 (function(){
   let activeField=null,liftTarget=null,raf=0;
   function editable(el){
-    if(!el||!el.matches)return false;
+    if(!el||!el.matches||el.closest('#dfcZ31GiftsModal'))return false;
     if(el.matches('textarea,select'))return true;
     if(!el.matches('input'))return false;
     return !['button','submit','reset','checkbox','radio','range','file','color','hidden'].includes(String(el.type||'text').toLowerCase());
@@ -20766,22 +20766,96 @@ body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card.dfc-lab-foc
 <style id="dfc-z31-admin-gifts-style">
 #dfcZ31AdminGiftsBtn{margin:5px 0;padding:10px 13px;border:1px solid #53baff;border-radius:12px;background:#082e52;color:#e5f6ff;font-weight:800;cursor:pointer}
 #dfcZ31GiftsModal[hidden],#dfcZ31AdminGiftsBtn[hidden],#dfcLabGiftAdminLaunch008{display:none!important}
-#dfcZ31GiftsModal{position:fixed;inset:0;z-index:2147483490;background:#020b19e8;display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}
-#dfcZ31GiftsModal .dfc-z31-box{width:min(96vw,560px);max-height:94dvh;overflow:auto;background:linear-gradient(150deg,#092b50,#050e26);border:1px solid #5bbdff;border-radius:16px;color:#f3f9ff;box-shadow:0 20px 60px #000c;padding:17px;font:14px system-ui,sans-serif}
-#dfcZ31GiftsModal .dfc-z31-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
+#dfcZ31GiftsModal{
+  position:fixed;inset:0;top:var(--dfc-z31-viewport-top,0px);
+  height:100vh;height:var(--dfc-z31-viewport-height,100dvh);
+  z-index:2147483490;background:#020b19e8;display:flex;align-items:center;
+  justify-content:center;box-sizing:border-box;overflow:hidden;
+  padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right))
+          max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
+}
+#dfcZ31GiftsModal .dfc-z31-box{
+  display:grid;box-sizing:border-box;
+  grid-template-areas:"head" "search" "send" "body";
+  grid-template-rows:auto auto auto minmax(0,1fr);
+  width:100%;max-width:740px;max-height:100%;min-height:0;overflow:hidden;
+  background:linear-gradient(150deg,#092b50,#050e26);border:1px solid #5bbdff;
+  border-radius:14px;color:#f3f9ff;box-shadow:0 20px 60px #000c;font:14px/1.25 system-ui,sans-serif;
+}
+#dfcZ31GiftsModal .dfc-z31-head{
+  grid-area:head;display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;
+  gap:6px 10px;padding:8px 12px;border-bottom:1px solid #477fa1;
+}
+#dfcZ31GiftsModal .dfc-z31-title{display:flex;align-items:center;gap:6px}
+#dfcZ31GiftsModal .dfc-z31-modes{display:flex;flex-wrap:wrap;gap:4px}
+#dfcZ31GiftsModal #dfcZ31SearchArea{grid-area:search}
+#dfcZ31GiftsModal .dfc-z31-send{grid-area:send}
+#dfcZ31GiftsModal #dfcZ31SearchArea,#dfcZ31GiftsModal .dfc-z31-send{min-width:0;padding:5px 12px}
+#dfcZ31GiftsModal .dfc-z31-box [hidden]{display:none!important}
+#dfcZ31GiftsModal label{display:block;font-size:12px;font-weight:700;margin:0 0 3px;color:#d5e8fa}
+#dfcZ31GiftsModal .dfc-z31-controls{display:flex;align-items:stretch;gap:5px}
+#dfcZ31GiftsModal .dfc-z31-controls input{
+  flex:1;min-width:0;width:100%;min-height:42px;box-sizing:border-box;font-size:16px;
+  color:#12243a;background:#f7fbff;border:1px solid #b8d8eb;border-radius:7px;padding:5px 8px;
+}
+#dfcZ31GiftsModal .dfc-z31-controls input::placeholder{font-size:12px}
 #dfcZ31GiftsModal button{cursor:pointer}
 #dfcZ31GiftsModal button:disabled{opacity:.5;cursor:not-allowed}
-#dfcZ31GiftsModal input:not([type=checkbox]){width:100%;min-height:40px;box-sizing:border-box;color:#12243a;background:#f7fbff;border:1px solid #b8d8eb;border-radius:8px;padding:9px}
-#dfcZ31GiftsModal label{font-weight:700;display:block;margin-top:11px;margin-bottom:5px}
-#dfcZ31GiftsModal .dfc-z31-modes{display:flex;gap:5px;flex-wrap:wrap;margin-top:13px}
-#dfcZ31GiftsModal .dfc-z31-modes button,#dfcZ31GiftsModal .dfc-z31-action{border:1px solid #69c4ee;background:#0d507e;color:#fff;padding:9px 12px;border-radius:9px;font-weight:750}
+#dfcZ31GiftsModal .dfc-z31-modes button,#dfcZ31GiftsModal .dfc-z31-action{
+  border:1px solid #69c4ee;background:#0d507e;color:#fff;padding:6px 10px;
+  border-radius:7px;font:700 13px/1.1 system-ui,sans-serif;
+}
 #dfcZ31GiftsModal .dfc-z31-modes button[aria-pressed=true]{background:#1ac2d3;color:#001c2b}
-#dfcZ31GiftsModal .dfc-z31-users{max-height:170px;overflow:auto;margin:7px 0;border:1px solid #477fa1;border-radius:10px;padding:5px}
-#dfcZ31GiftsModal .dfc-z31-user{padding:7px;border-bottom:1px solid #38637e;display:flex;gap:9px;align-items:center}
+#dfcZ31GiftsModal .dfc-z31-controls button{flex:none;min-width:48px}
+#dfcZ31GiftsModal #dfcZ31Send{background:#0b638f}
+#dfcZ31GiftsModal .dfc-z31-body{
+  grid-area:body;min-height:0;overflow:auto;overscroll-behavior:contain;
+  padding:5px 12px;border-top:1px solid #477fa1;
+}
+#dfcZ31GiftsModal .dfc-z31-body h4,#dfcZ31GiftsModal .dfc-z31-body p{margin:5px 0}
+#dfcZ31GiftsModal .dfc-z31-users{margin:0 0 4px}
+#dfcZ31GiftsModal label.dfc-z31-user{
+  display:flex;align-items:center;gap:6px;min-height:32px;margin:0;
+  padding:1px 4px;border-bottom:1px solid #38637e;
+}
 #dfcZ31GiftsModal .dfc-z31-user input{accent-color:#20d4eb}
 #dfcZ31GiftsModal .dfc-z31-muted{color:#b1d0e7;font-size:12px}
-#dfcZ31GiftsModal .dfc-z31-status{white-space:pre-wrap;margin-top:12px;color:#fce09a}
-#dfcZ31GiftsModal .dfc-z31-history{max-height:120px;overflow:auto;font-size:12px;color:#b7e5f9}
+#dfcZ31GiftsModal .dfc-z31-status{
+  white-space:pre-wrap;overflow-wrap:anywhere;color:#fce09a;padding:0 0 3px;font-size:12px;
+}
+#dfcZ31GiftsModal .dfc-z31-status:empty{display:none}
+#dfcZ31GiftsModal .dfc-z31-history{font-size:12px;color:#b7e5f9}
+@media (min-width:360px){
+  #dfcZ31GiftsModal .dfc-z31-box{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-areas:"head head" "search send" "body body";
+    grid-template-rows:auto auto minmax(0,1fr);
+  }
+}
+#dfcZ31GiftsModal.dfc-z31-compact{
+  padding-top:max(2px,env(safe-area-inset-top));padding-bottom:2px;
+}
+#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-box{font-size:12px}
+#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-head{gap:3px 6px;padding:3px 8px}
+#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-head strong{font-size:12px}
+#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-action,
+#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-modes button{font-size:12px;padding:4px 7px}
+#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-head button{min-height:28px}
+#dfcZ31GiftsModal.dfc-z31-compact #dfcZ31SearchArea,
+#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-send,
+#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-body{padding:3px 8px}
+#dfcZ31GiftsModal.dfc-z31-compact label{font-size:11px;margin-bottom:2px}
+#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-controls input{min-height:34px;padding:2px 6px}
+#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-status{font-size:11px;padding:0 0 2px}
+#dfcZ31GiftsModal.dfc-z31-compact label.dfc-z31-user{min-height:28px;margin:0}
+@media (min-width:520px){
+  #dfcZ31GiftsModal.dfc-z31-low #dfcZ31SearchArea:not([hidden]),
+  #dfcZ31GiftsModal.dfc-z31-low .dfc-z31-send{
+    display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:5px;
+  }
+  #dfcZ31GiftsModal.dfc-z31-low #dfcZ31SearchArea label,
+  #dfcZ31GiftsModal.dfc-z31-low .dfc-z31-send label{margin:0}
+}
 /* Elementos pertenecientes exclusivamente a la portada: no invadir otros paneles. */
 body.dfc-z31-secondary-open #dfcZ161Version,
 body.dfc-z31-secondary-open #dfcLabGiftCard018,
@@ -20806,31 +20880,89 @@ function isShown(e){
 }
 function adminVisible(){try{return typeof me!=='undefined'&&me?.role==='leader';}catch(_){return false;}}
 function make(){const host=document.querySelector('#leaderPanel .mf-admin-grid')||document.querySelector('#leaderPanel > .panel');if(!host||$('dfcZ31AdminGiftsBtn'))return;
-const launch=node('button','mf-admin-card', '🎁 Distribuir tarjetas FlashCoin');launch.id='dfcZ31AdminGiftsBtn';launch.type='button';launch.hidden=true;host.appendChild(launch);launch.onclick=()=>{if(!adminVisible()||!isShown($('leaderPanel')))return;open()};
+const launch=node('button','mf-admin-card', '🎁 Distribuir tarjetas FlashCoin');launch.id='dfcZ31AdminGiftsBtn';launch.type='button';launch.hidden=true;host.prepend(launch);launch.onclick=()=>{if(!adminVisible()||!isShown($('leaderPanel')))return;open()};
 const modal=node('div');modal.id='dfcZ31GiftsModal';modal.hidden=true;
 modal.innerHTML=`<section class="dfc-z31-box" role="dialog" aria-modal="true" aria-label="Distribución de tarjetas FlashCoin">
-<div class="dfc-z31-head"><strong>🎁 DISTRIBUIR TARJETAS FLASHCOIN</strong><button type="button" id="dfcZ31Close" class="dfc-z31-action">✕ Cerrar</button></div>
-<div class="dfc-z31-modes"><button data-mode="one" aria-pressed="true">Un usuario</button><button data-mode="many" aria-pressed="false">Varios usuarios</button><button data-mode="all" aria-pressed="false">Todos los usuarios</button></div>
-<div id="dfcZ31SearchArea"><label for="dfcZ31Search">Buscar por ID público</label><input id="dfcZ31Search" autocomplete="off" placeholder="ID de seis dígitos" inputmode="numeric"><button class="dfc-z31-action" id="dfcZ31SearchBtn" type="button">Buscar</button><div class="dfc-z31-users" id="dfcZ31Results"></div><div class="dfc-z31-muted" id="dfcZ31Selection">0 seleccionados</div></div>
-<div id="dfcZ31AllInfo" hidden><p>Se preparará una tarjeta idéntica para cada usuario registrado. El conteo final será confirmado por el servidor.</p></div>
-<label for="dfcZ31Amount">Valor de cada tarjeta (FC)</label><input id="dfcZ31Amount" type="number" inputmode="decimal" min="0.001" max="1000000" step="0.001" value="1.000">
-<p class="dfc-z31-muted">Cada destinatario recibirá exactamente una tarjeta con este mismo valor. El saldo se acredita al canjearla, una sola vez.</p>
-<button class="dfc-z31-action" id="dfcZ31Send" type="button">Confirmar y enviar tarjetas</button><div id="dfcZ31Status" class="dfc-z31-status" role="status" aria-live="polite"></div>
-<h4>Historial de distribución</h4><div class="dfc-z31-history" id="dfcZ31History"></div>
+<div class="dfc-z31-head">
+  <div class="dfc-z31-title">
+    <strong>Tarjetas FlashCoin</strong>
+    <button type="button" id="dfcZ31Close" class="dfc-z31-action" aria-label="Cerrar">✕</button>
+  </div>
+  <div class="dfc-z31-modes">
+    <button type="button" data-mode="one" aria-label="Un usuario" aria-pressed="true">Uno</button>
+    <button type="button" data-mode="many" aria-label="Varios usuarios" aria-pressed="false">Varios</button>
+    <button type="button" data-mode="all" aria-pressed="false">Todos</button>
+  </div>
+</div>
+<div id="dfcZ31SearchArea">
+  <label for="dfcZ31Search">ID público</label>
+  <div class="dfc-z31-controls">
+    <input id="dfcZ31Search" autocomplete="off" placeholder="6 dígitos" inputmode="numeric" enterkeyhint="search">
+    <button class="dfc-z31-action" id="dfcZ31SearchBtn" type="button">Buscar</button>
+  </div>
+</div>
+<div class="dfc-z31-send">
+  <label for="dfcZ31Amount">Valor (FC)</label>
+  <div class="dfc-z31-controls">
+    <input id="dfcZ31Amount" type="number" inputmode="decimal" enterkeyhint="done" min="0.001" max="1000000" step="0.001" value="1.000">
+    <button class="dfc-z31-action" id="dfcZ31Send" type="button">Enviar tarjetas</button>
+  </div>
+</div>
+<div class="dfc-z31-body">
+  <div id="dfcZ31Status" class="dfc-z31-status" role="status" aria-live="polite"></div>
+  <div id="dfcZ31Recipients">
+    <div class="dfc-z31-users" id="dfcZ31Results"></div>
+    <div class="dfc-z31-muted" id="dfcZ31Selection">0 seleccionados</div>
+  </div>
+  <div id="dfcZ31AllInfo" hidden><p>Se preparará una tarjeta idéntica para cada usuario registrado. El conteo final será confirmado por el servidor.</p></div>
+  <h4>Historial de distribución</h4>
+  <div class="dfc-z31-history" id="dfcZ31History"></div>
+  <p class="dfc-z31-muted">Cada destinatario recibirá una tarjeta por el valor indicado. El saldo se acredita al canjearla.</p>
+</div>
 </section>`;
 document.body.appendChild(modal);modal.onclick=e=>{if(e.target===modal)close()};$('dfcZ31Close').onclick=close;
-modal.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;selected.clear();modal.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('dfcZ31SearchArea').hidden=mode==='all';$('dfcZ31AllInfo').hidden=mode!=='all';$('dfcZ31Results').replaceChildren();refreshSelection();});
-$('dfcZ31SearchBtn').onclick=search;$('dfcZ31Search').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();search()}};
+modal.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;selected.clear();modal.querySelectorAll('[data-mode]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('dfcZ31SearchArea').hidden=mode==='all';$('dfcZ31Recipients').hidden=mode==='all';$('dfcZ31AllInfo').hidden=mode!=='all';$('dfcZ31Results').replaceChildren();refreshSelection();});
+const searchInput=$('dfcZ31Search');
+$('dfcZ31SearchBtn').onclick=search;searchInput.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();search()}};
+const amount=$('dfcZ31Amount');
+amount.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){e.preventDefault();amount.blur();}
+});
+// Evita que el teclado mueva el botón entre el toque y el clic.
+$('dfcZ31SearchBtn').addEventListener('pointerdown',e=>{
+  if(document.activeElement===searchInput)e.preventDefault();
+});
+$('dfcZ31Send').addEventListener('pointerdown',e=>{
+  if(document.activeElement===amount)e.preventDefault();
+});
 $('dfcZ31Send').onclick=send;
+window.addEventListener('resize',fitGiftViewport,{passive:true});
+window.visualViewport?.addEventListener('resize',fitGiftViewport,{passive:true});
+window.visualViewport?.addEventListener('scroll',fitGiftViewport,{passive:true});
+}
+function fitGiftViewport(){
+  const modal=$('dfcZ31GiftsModal'), viewport=window.visualViewport;
+  if(modal.hidden)return;
+  const height=Math.floor(viewport?.height||window.innerHeight);
+  const top=Math.max(0,Math.floor(viewport?.offsetTop||0));
+  const dimensions={'--dfc-z31-viewport-height':height+'px','--dfc-z31-viewport-top':top+'px'};
+  for(const [name,value] of Object.entries(dimensions)){
+    if(modal.style.getPropertyValue(name)!==value)modal.style.setProperty(name,value);
+  }
+  modal.classList.toggle('dfc-z31-compact',height<=460 && window.innerWidth>height);
+  modal.classList.toggle('dfc-z31-low',height<=145);
 }
 function refreshSelection(){$('dfcZ31Selection').textContent=selected.size+' usuario(s) seleccionado(s)';}
-async function search(){const seq=++searchSeq;const input=$('dfcZ31Search').value.trim();const root=$('dfcZ31Results');root.textContent='Buscando...';
+async function search(){const seq=++searchSeq;const input=$('dfcZ31Search').value.trim();const root=$('dfcZ31Results');root.textContent='Buscando...';root.closest('.dfc-z31-body').scrollTop=0;
 if(!/^\d{1,6}$/.test(input)){root.textContent='Escribe entre uno y seis dígitos del ID.';return;}
 try{const rows=await rpc('dfc_z31_admin_users',{p_search:input,p_limit:50});if(seq!==searchSeq)return;root.replaceChildren();if(!rows?.length){root.textContent='No se encontraron usuarios';return;}
 for(const u of rows){const item=node('label','dfc-z31-user');const ck=document.createElement('input');ck.type='checkbox';ck.checked=selected.has(u.public_id);ck.onchange=()=>{if(mode==='one')selected.clear();if(ck.checked)selected.set(u.public_id,u);else selected.delete(u.public_id);if(mode==='one')root.querySelectorAll('input').forEach(x=>{if(x!==ck)x.checked=false});refreshSelection();};
 item.append(ck,node('span','',u.public_id+' · '+(u.display_name||'Usuario')));root.appendChild(item);}
 }catch(e){root.textContent='No fue posible consultar: '+e.message;}}
-function status(s){$('dfcZ31Status').textContent=s;}
+function status(s){
+  const message=$('dfcZ31Status');message.textContent=s;
+  message.parentElement.scrollTop=0;
+}
 async function history(){try{const rows=await rpc('dfc_z31_admin_gift_history',{p_limit:15});const box=$('dfcZ31History');box.replaceChildren();for(const r of rows||[]){box.appendChild(node('div','',new Date(r.created_at).toLocaleString()+' · '+r.recipient_count+' usuarios · '+Number(r.amount_each).toFixed(3)+' FC por tarjeta · '+r.redeemed_count+' canjeadas'));}}
 catch(e){$('dfcZ31History').textContent='Historial no disponible: '+e.message;}}
 async function send(){if(busy)return;const n=Number($('dfcZ31Amount').value);if(!Number.isFinite(n)||n<=0||n>1000000||Math.abs(Math.round(n*1000)-n*1000)>1e-7){status('El valor debe ser positivo y tener máximo 3 decimales.');return;}
@@ -20841,7 +20973,7 @@ busy=true;$('dfcZ31Send').disabled=true;status('Creando las tarjetas de manera s
 try{const request=crypto.randomUUID();const result=await rpc('dfc_z31_admin_send_cards',{p_amount:n,p_all:mode==='all',p_public_ids:mode==='all'?[]:ids,p_request_id:request});if(!result?.ok)throw Error('El servidor no confirmó el envío');status('Envío confirmado. '+result.recipient_count+' tarjetas de '+Number(result.amount_each).toFixed(3)+' FC. Total: '+Number(result.total_fc??result.recipient_count*n).toFixed(3)+' FC.\nReferencia: '+result.campaign_id);await history();}
 catch(e){status('No se confirmó el envío: '+e.message+' (consulta el historial antes de reintentar).');}
 finally{busy=false;$('dfcZ31Send').disabled=false;}}
-function open(){if(!adminVisible())return;make();$('dfcZ31GiftsModal').hidden=false;status('');syncSecondary();history();}
+function open(){if(!adminVisible())return;make();$('dfcZ31GiftsModal').hidden=false;fitGiftViewport();status('');syncSecondary();history();}
 function close(){$('dfcZ31GiftsModal').hidden=true;syncSecondary();}
 function syncSecondary(){
  const visibleApp=isShown($('appView'));
