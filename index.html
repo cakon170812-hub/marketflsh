@@ -8755,7 +8755,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 (function(){
   let activeField=null,liftTarget=null,raf=0;
   function editable(el){
-    if(!el||!el.matches||el.closest('#dfcZ31GiftsModal'))return false;
+    if(!el||!el.matches||el.closest('.dfc-admin-viewport'))return false;
     if(el.matches('textarea,select'))return true;
     if(!el.matches('input'))return false;
     return !['button','submit','reset','checkbox','radio','range','file','color','hidden'].includes(String(el.type||'text').toLowerCase());
@@ -14231,32 +14231,151 @@ window.dfcZ9Refresh=()=>refresh(true);
 })();
 </script>
 <style id="dfcOTAAdminStyles">
-#dfcOTAAdminSection {margin:13px 0;padding:13px;border-radius:15px;background:linear-gradient(140deg,#0c2c4b,#071625);border:1px solid #3f9bdb;color:#e8f7ff}
-#dfcOTAAdminSection h3{margin:0 0 7px;color:#c5f4ff;font-size:16px}
-#dfcOTAAdminSection .dfc-ota-msg{padding:9px 4px;color:#b8def5;font-size:12px;white-space:pre-wrap}
-#dfcOTAAdminSection input{width:100%;margin:8px 0;color:#fff}
-#dfcOTAAdminSection .dfc-ota-inline{display:flex;gap:9px;flex-wrap:wrap}
-#dfcOTAAdminSection .dfc-ota-inline button{flex:1;min-width:145px}
+.dfc-admin-viewport[hidden]{display:none!important}
+.dfc-admin-viewport{
+  position:fixed;top:var(--dfc-admin-top,0px);left:var(--dfc-admin-left,0px);
+  width:var(--dfc-admin-width,100vw);height:100vh;height:var(--dfc-admin-height,100dvh);
+  box-sizing:border-box;z-index:2147483490;display:flex;align-items:center;justify-content:center;
+  background:#020b19e8;overflow:hidden;
+  padding:max(4px,env(safe-area-inset-top)) max(6px,env(safe-area-inset-right))
+          max(4px,env(safe-area-inset-bottom)) max(6px,env(safe-area-inset-left));
+}
+.dfc-admin-viewport.dfc-admin-short{padding-block:2px}
+#dfcOTAAdminSection{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto minmax(0,1fr);
+  width:min(100%,740px);max-height:100%;min-height:0;box-sizing:border-box;overflow:auto;
+  border:1px solid #5bbdff;border-radius:12px;background:linear-gradient(150deg,#092b50,#050e26);
+  color:#f3f9ff;font:13px/1.3 system-ui,sans-serif;
+}
+#dfcOTAAdminSection h3{margin:0;padding:8px 10px;color:#c5f4ff;font-size:15px;align-self:center}
+#dfcAdminReleaseActions{display:flex;flex-wrap:wrap;gap:6px;margin:5px 0 8px}
+#dfcOTAAdminClose{align-self:start}
+#dfcOTAAdminSection .dfc-ota-inline{
+  grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:5px;
+  min-width:0;padding:4px 8px;
+}
+#dfcOTAAdminSection label{font-size:11px;font-weight:700}
+#dfcOTAAdminVersion{
+  width:8ch;min-width:0;min-height:38px;padding:2px 5px;border:1px solid #abd1ea;border-radius:7px;
+  color:#102840;background:#f7fbff;font:16px system-ui,sans-serif;
+}
+#dfcOTAAdminSection button{
+  min-height:38px;margin:0;padding:4px 8px;border:1px solid #69c4ee;border-radius:7px;
+  background:#0d507e;color:#fff;font:700 12px/1.12 system-ui,sans-serif;
+}
+#dfcOTAAdminSection #dfcOTAAdminClose{margin:4px 8px}
+#dfcOTAAdminSection button:disabled{opacity:.55;cursor:not-allowed}
+#dfcOTAAdminSection #dfcOTAAdminPublish{background:#12634f}
+#dfcOTAAdminSection .dfc-ota-details{
+  grid-column:1/-1;min-height:0;overflow:auto;overscroll-behavior:contain;border-top:1px solid #477fa1;
+  padding:5px 10px;color:#b8def5;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;
+}
+#dfcZ29WebCheckStatus:not(:empty){margin-top:4px}
+#dfcOTAAdminModal.dfc-admin-short h3{font-size:12px;padding:3px 8px}
+#dfcOTAAdminModal.dfc-admin-short #dfcOTAAdminVersion,
+#dfcOTAAdminModal.dfc-admin-short button{min-height:32px}
+#dfcOTAAdminModal.dfc-admin-short button{font-size:11px;padding:3px 6px}
+#dfcOTAAdminModal.dfc-admin-flat #dfcOTAAdminSection{
+  grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr);
+}
+#dfcOTAAdminModal.dfc-admin-flat h3,
+#dfcZ31GiftsModal.dfc-admin-flat .dfc-z31-box label[for]{
+  position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);
+}
+#dfcOTAAdminModal.dfc-admin-flat .dfc-ota-inline{grid-area:1/1;gap:4px;padding:3px 6px}
+#dfcOTAAdminModal.dfc-admin-flat #dfcOTAAdminSection #dfcOTAAdminClose{grid-area:1/2;margin:3px 5px}
+@media (max-width:650px),(max-height:500px){
+  #leaderPanel #dfcOTAAdminLaunch,#leaderPanel #dfcZ31AdminGiftsBtn{min-height:38px!important;font-size:12px!important;padding:5px 8px!important}
+}
 </style>
+<script id="dfcAdminViewport">
+const dfcFitAdminViewport=(()=>{
+  function fit(){
+    const overlays=document.querySelectorAll('.dfc-admin-viewport:not([hidden])');
+    if(!overlays.length)return;
+    const view=window.visualViewport;
+    const offsetTop=Math.max(0,view?.offsetTop||0);
+    const offsetLeft=Math.max(0,view?.offsetLeft||0);
+    const top=Math.ceil(offsetTop);
+    const left=Math.ceil(offsetLeft);
+    const width=Math.max(1,Math.floor((view?.width||window.innerWidth)+offsetLeft-left));
+    const height=Math.max(1,Math.floor((view?.height||window.innerHeight)+offsetTop-top));
+    for(const overlay of overlays){
+      const dimensions={
+        '--dfc-admin-top':top+'px','--dfc-admin-left':left+'px',
+        '--dfc-admin-width':width+'px','--dfc-admin-height':height+'px'
+      };
+      for(const [name,value] of Object.entries(dimensions)){
+        if(overlay.style.getPropertyValue(name)!==value)overlay.style.setProperty(name,value);
+      }
+      overlay.classList.toggle('dfc-admin-wide',width>=400);
+      overlay.classList.toggle('dfc-admin-compact',height<=460 && width>height);
+      overlay.classList.toggle('dfc-admin-short',height<=155);
+      overlay.classList.toggle('dfc-admin-flat',height<=108 && width>=485);
+    }
+  }
+  window.addEventListener('resize',fit,{passive:true});
+  window.visualViewport?.addEventListener('resize',fit,{passive:true});
+  window.visualViewport?.addEventListener('scroll',fit,{passive:true});
+  return fit;
+})();
+</script>
 <script id="dfcOTAAdminPublishV1">
 (()=>{'use strict';
- const version=document.querySelector('meta[name="application-version"]').content;
  let preview=null,processing=false;
  const id='dfcOTAAdminSection';
- const root=()=>document.querySelector('#leaderPanel .panel');
+ const htmlVersion=()=>document.querySelector('meta[name="application-version"]')?.content||'';
+ const root=()=>document.querySelector('#leaderPanel > .panel');
  function render(){
-   if(document.getElementById(id)||!root())return;
-   const e=document.createElement('section');e.id=id;
-   e.innerHTML=`<h3>📲 Publicar actualización para Android</h3>
-    <p class="tiny">Versión para Android: <strong id="dfcOTAAdminVersion"></strong></p>
-    <p class="tiny">Revisa la versión web antes de enviar la actualización.</p>
-    <div class="dfc-ota-inline"><button class="action blue" type="button" id="dfcOTAAdminPreview">Revisar versión web</button>
-    <button class="action green" type="button" id="dfcOTAAdminPublish" disabled>Publicar actualización para Android</button></div>
-    <div class="dfc-ota-msg" id="dfcOTAAdminStatus" role="status" aria-live="polite">Pendiente de aprobación. No se ha enviado ninguna actualización.</div>`;
-   const anchor=root().querySelector('.section'); if(anchor)anchor.before(e);else root().append(e);
-   e.querySelector('#dfcOTAAdminPreview').addEventListener('click',()=>void previewHead());
-   e.querySelector('#dfcOTAAdminPublish').addEventListener('click',()=>void publish());
-   e.querySelector('#dfcOTAAdminVersion').textContent=version;
+   const panel=root();
+   if(document.getElementById(id)||!panel)return;
+   const launch=document.createElement('button');
+   launch.id='dfcOTAAdminLaunch';launch.className='action blue';launch.type='button';
+   launch.textContent='Actualizaciones web y Android';
+   const actions=document.createElement('div');actions.id='dfcAdminReleaseActions';actions.append(launch);
+   const heading=panel.querySelector(':scope > h2');
+   if(heading)heading.after(actions);else panel.prepend(actions);
+
+   const modal=document.createElement('div');
+   modal.id='dfcOTAAdminModal';modal.className='dfc-admin-viewport';modal.hidden=true;
+   modal.innerHTML=`<section id="${id}" role="dialog" aria-modal="true" aria-labelledby="dfcOTAAdminTitle">
+    <h3 id="dfcOTAAdminTitle">Actualizaciones</h3>
+    <button id="dfcOTAAdminClose" type="button" aria-label="Cerrar actualizaciones">✕</button>
+    <div class="dfc-ota-inline">
+      <label for="dfcOTAAdminVersion">Versión</label>
+      <input id="dfcOTAAdminVersion" autocomplete="off" autocapitalize="off" spellcheck="false"/>
+      <button type="button" id="dfcOTAAdminPreview">Revisar versión web</button>
+      <button type="button" id="dfcOTAAdminPublish" disabled>Publicar en Android</button>
+    </div>
+    <div class="dfc-ota-details">
+      <div class="dfc-ota-msg" id="dfcOTAAdminStatus" role="status" aria-live="polite">Revisa la revisión de GitHub antes de publicar en Android.</div>
+    </div>
+   </section>`;
+   document.body.append(modal);
+   const field=modal.querySelector('#dfcOTAAdminVersion');
+   const close=()=>{
+     if(modal.contains(document.activeElement))document.activeElement.blur();
+     modal.hidden=true;
+     launch.focus({preventScroll:true});
+   };
+   field.value=htmlVersion();field.placeholder=htmlVersion();
+   launch.addEventListener('click',()=>{
+     if(typeof me==='undefined'||me?.role!=='leader')return;
+     modal.hidden=false;dfcFitAdminViewport();
+   });
+   modal.querySelector('#dfcOTAAdminClose').addEventListener('click',close);
+   modal.addEventListener('click',e=>{if(e.target===modal)close();});
+   modal.addEventListener('keydown',e=>{if(e.key==='Escape')close();});
+   for(const button of modal.querySelectorAll('button')){
+     button.addEventListener('pointerdown',e=>{if(document.activeElement===field)e.preventDefault();});
+   }
+   modal.querySelector('#dfcOTAAdminPreview').addEventListener('click',()=>void previewHead());
+   modal.querySelector('#dfcOTAAdminPublish').addEventListener('click',()=>void publish());
+   field.addEventListener('input',syncPublishButton);
+ }
+ function syncPublishButton(){
+   const field=document.getElementById('dfcOTAAdminVersion');
+   document.getElementById('dfcOTAAdminPublish').disabled=processing||!preview||field.value.trim()!==htmlVersion();
  }
  function status(s){const t=document.getElementById('dfcOTAAdminStatus');if(t)t.textContent=s}
  async function invoke(action,params={}){
@@ -14296,19 +14415,17 @@ async function verifyPublished(expected,sha,receipt){
  async function previewHead(){
    if(processing)return;
    if(typeof me==='undefined'||me?.role!=='leader')return status('Solo el Administrador Líder puede publicar.');
-   processing=true;const b=document.getElementById('dfcOTAAdminPreview');b.disabled=true;
+   processing=true;syncPublishButton();const b=document.getElementById('dfcOTAAdminPreview');b.disabled=true;
    try{status('Consultando la revisión web de GitHub...');const data=await invoke('preview');
      preview={sha:data.sha,short:data.short,subject:data.subject};
-     status(`Revisión para aprobar: ${data.short}\nÚltimo cambio: ${data.subject}\nSi corresponde al HTML que probaste, puedes enviar ${version}.`);
-     document.getElementById('dfcOTAAdminPublish').disabled=false;
-   }catch(e){preview=null;status('No se pudo verificar: '+e.message)}finally{processing=false;b.disabled=false}
+     status(`Revisión para aprobar: ${data.short}\nÚltimo cambio: ${data.subject}\nComprueba que corresponda al HTML que probaste antes de publicar en Android.`);
+   }catch(e){preview=null;status('No se pudo verificar: '+e.message)}finally{processing=false;b.disabled=false;syncPublishButton();}
  }
  async function publish(){
-   if(processing||!preview)return;
-   if(typeof me==='undefined'||me?.role!=='leader')return;
-   processing=true;
-   const button=document.getElementById('dfcOTAAdminPublish');
-   button.disabled=true;
+   if(processing||!preview||typeof me==='undefined'||me?.role!=='leader')return;
+   const version=document.getElementById('dfcOTAAdminVersion').value.trim();
+   if(version!==htmlVersion()||numericVersion(version)<0)return;
+   processing=true;syncPublishButton();
    try{
       const {version:oldVersion}=await publishedManifest();
       if(numericVersion(version)<=numericVersion(oldVersion)){
@@ -14316,15 +14433,14 @@ async function verifyPublished(expected,sha,receipt){
         return status('La versión '+version+' ya está registrada o hay una más reciente ('+oldVersion+').');
       }
       if(!confirm(`¿Enviar Android ${version} desde la revisión ${preview.short}?`))return;
-      const result=await invoke('publish',{version,sha:preview.sha});
       const approvedSha=preview.sha;
+      const result=await invoke('publish',{version,sha:approvedSha});
       const reference=result.sha?.slice(0,8)||preview.short;
       const date=new Intl.DateTimeFormat('es-DO',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Santo_Domingo'}).format(new Date());
       preview=null;
       void verifyPublished(version,approvedSha,`${version}\n${date}\nReferencia: ${reference}`);
    }catch(e){status('No se confirmó la solicitud: '+e.message)}finally{
-      processing=false;
-      button.disabled=!preview;
+      processing=false;syncPublishButton();
    }
  }
  function boot(){render();}
@@ -17070,11 +17186,13 @@ function dfcZ28ShowTableText(row){
     if(document.getElementById('dfcZ29WebCheck'))return true;
     if(!anchor)return false;
     const btn=document.createElement('button');btn.id='dfcZ29WebCheck';btn.type='button';btn.className='action blue';
-    btn.textContent='🌐 Comprobar actualización web';btn.style.cssText='min-height:44px;margin:8px 5px 6px 0;';
+    btn.textContent='Comprobar web';
+    btn.addEventListener('pointerdown',event=>{if(document.activeElement?.id==='dfcOTAAdminVersion')event.preventDefault();});
     const status=document.createElement('div');status.id='dfcZ29WebCheckStatus';status.className='tiny';
     status.setAttribute('role','status');status.setAttribute('aria-live','polite');
     status.textContent='Verifica el HTML de GitHub Pages; no publica ni instala paquetes Android.';
-    anchor.parentElement.append(btn,status);
+    anchor.before(btn);
+    anchor.closest('#dfcOTAAdminSection').querySelector('.dfc-ota-details').append(status);
     btn.addEventListener('click',async()=>{
       if(btn.disabled)return;
       btn.disabled=true;msg('Comprobando el HTML público de GitHub Pages…');
@@ -20732,7 +20850,7 @@ body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card.dfc-lab-foc
 }
 /* Limitar a teléfonos táctiles verticales, no imponer rotación a monitores de escritorio. */
 @media (orientation:portrait) and (pointer:coarse) and (max-width:950px) {
-  html.dfc-z31-initial-load-complete #dfcZ31LandscapeGate {display:flex!important;}
+  html.dfc-z31-initial-load-complete:not(.dfc-z31-device-landscape) #dfcZ31LandscapeGate {display:flex!important;}
 }
 </style>
 <script id="dfc-z31-landscape-gate">
@@ -20745,6 +20863,15 @@ body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card.dfc-lab-foc
     gate.setAttribute('aria-label','Gira el teléfono para utilizar Dominó Flash Coin');
     gate.innerHTML='<div class="dfc-z31-rotate-content"><div class="dfc-z31-rotate-icon" aria-hidden="true">📱 ↻</div><h2>Gira tu teléfono</h2><p>DOMINÓ FLASH COIN está diseñado para jugar en horizontal. Coloca el teléfono de lado para continuar.</p></div>';
     document.body.appendChild(gate);
+    const orientation=window.screen?.orientation;
+    const syncOrientation=()=>{
+      const angle=window.orientation;
+      const landscape=orientation?.type ? orientation.type.startsWith('landscape') : Math.abs(angle)%180===90;
+      document.documentElement.classList.toggle('dfc-z31-device-landscape',!!landscape);
+    };
+    syncOrientation();
+    window.addEventListener('orientationchange',syncOrientation,{passive:true});
+    orientation?.addEventListener('change',syncOrientation);
     // La indicación de giro nunca debe tapar la carga Z30/Z31.
     // La carga retira su elemento solo después de completar al 100%.
     const loader=document.getElementById('dfc-z9-loader');
@@ -20766,19 +20893,11 @@ body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card.dfc-lab-foc
 <style id="dfc-z31-admin-gifts-style">
 #dfcZ31AdminGiftsBtn{margin:5px 0;padding:10px 13px;border:1px solid #53baff;border-radius:12px;background:#082e52;color:#e5f6ff;font-weight:800;cursor:pointer}
 #dfcZ31GiftsModal[hidden],#dfcZ31AdminGiftsBtn[hidden],#dfcLabGiftAdminLaunch008{display:none!important}
-#dfcZ31GiftsModal{
-  position:fixed;inset:0;top:var(--dfc-z31-viewport-top,0px);
-  height:100vh;height:var(--dfc-z31-viewport-height,100dvh);
-  z-index:2147483490;background:#020b19e8;display:flex;align-items:center;
-  justify-content:center;box-sizing:border-box;overflow:hidden;
-  padding:max(6px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right))
-          max(6px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));
-}
 #dfcZ31GiftsModal .dfc-z31-box{
   display:grid;box-sizing:border-box;
   grid-template-areas:"head" "search" "send" "body";
   grid-template-rows:auto auto auto minmax(0,1fr);
-  width:100%;max-width:740px;max-height:100%;min-height:0;overflow:hidden;
+  width:100%;max-width:740px;max-height:100%;min-height:0;overflow:auto;
   background:linear-gradient(150deg,#092b50,#050e26);border:1px solid #5bbdff;
   border-radius:14px;color:#f3f9ff;box-shadow:0 20px 60px #000c;font:14px/1.25 system-ui,sans-serif;
 }
@@ -20825,36 +20944,44 @@ body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card.dfc-lab-foc
 }
 #dfcZ31GiftsModal .dfc-z31-status:empty{display:none}
 #dfcZ31GiftsModal .dfc-z31-history{font-size:12px;color:#b7e5f9}
-@media (min-width:360px){
-  #dfcZ31GiftsModal .dfc-z31-box{
+#dfcZ31GiftsModal.dfc-admin-wide .dfc-z31-box{
     grid-template-columns:minmax(0,1fr) minmax(0,1fr);
     grid-template-areas:"head head" "search send" "body body";
     grid-template-rows:auto auto minmax(0,1fr);
-  }
 }
-#dfcZ31GiftsModal.dfc-z31-compact{
-  padding-top:max(2px,env(safe-area-inset-top));padding-bottom:2px;
+#dfcZ31GiftsModal.dfc-admin-compact .dfc-z31-box{font-size:12px}
+#dfcZ31GiftsModal.dfc-admin-compact .dfc-z31-head{gap:3px 6px;padding:3px 8px}
+#dfcZ31GiftsModal.dfc-admin-compact .dfc-z31-head strong{font-size:12px}
+#dfcZ31GiftsModal.dfc-admin-compact .dfc-z31-action,
+#dfcZ31GiftsModal.dfc-admin-compact .dfc-z31-modes button{font-size:12px;padding:4px 7px}
+#dfcZ31GiftsModal.dfc-admin-compact button{min-height:34px}
+#dfcZ31GiftsModal.dfc-admin-compact #dfcZ31SearchArea,
+#dfcZ31GiftsModal.dfc-admin-compact .dfc-z31-send,
+#dfcZ31GiftsModal.dfc-admin-compact .dfc-z31-body{padding:3px 8px}
+#dfcZ31GiftsModal.dfc-admin-compact label{font-size:11px;margin-bottom:2px}
+#dfcZ31GiftsModal.dfc-admin-compact .dfc-z31-controls input{min-height:36px;padding:2px 6px}
+#dfcZ31GiftsModal.dfc-admin-compact .dfc-z31-status{font-size:11px;padding:0 0 2px}
+#dfcZ31GiftsModal.dfc-admin-compact label.dfc-z31-user{min-height:28px;margin:0}
+#dfcZ31GiftsModal.dfc-admin-short.dfc-admin-wide #dfcZ31SearchArea:not([hidden]),
+#dfcZ31GiftsModal.dfc-admin-short.dfc-admin-wide .dfc-z31-send{
+  display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:5px;
 }
-#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-box{font-size:12px}
-#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-head{gap:3px 6px;padding:3px 8px}
-#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-head strong{font-size:12px}
-#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-action,
-#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-modes button{font-size:12px;padding:4px 7px}
-#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-head button{min-height:28px}
-#dfcZ31GiftsModal.dfc-z31-compact #dfcZ31SearchArea,
-#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-send,
-#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-body{padding:3px 8px}
-#dfcZ31GiftsModal.dfc-z31-compact label{font-size:11px;margin-bottom:2px}
-#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-controls input{min-height:34px;padding:2px 6px}
-#dfcZ31GiftsModal.dfc-z31-compact .dfc-z31-status{font-size:11px;padding:0 0 2px}
-#dfcZ31GiftsModal.dfc-z31-compact label.dfc-z31-user{min-height:28px;margin:0}
-@media (min-width:520px){
-  #dfcZ31GiftsModal.dfc-z31-low #dfcZ31SearchArea:not([hidden]),
-  #dfcZ31GiftsModal.dfc-z31-low .dfc-z31-send{
-    display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:5px;
-  }
-  #dfcZ31GiftsModal.dfc-z31-low #dfcZ31SearchArea label,
-  #dfcZ31GiftsModal.dfc-z31-low .dfc-z31-send label{margin:0}
+#dfcZ31GiftsModal.dfc-admin-short #dfcZ31SearchArea label,
+#dfcZ31GiftsModal.dfc-admin-short .dfc-z31-send label{margin:0}
+#dfcZ31GiftsModal.dfc-admin-flat .dfc-z31-box{
+  grid-template-columns:max-content minmax(0,1fr) minmax(0,1.1fr);
+  grid-template-areas:"head search send" "body body body";grid-template-rows:auto minmax(0,1fr);
+}
+#dfcZ31GiftsModal.dfc-admin-flat .dfc-z31-head{flex-wrap:nowrap;padding:2px 4px;border-bottom:0}
+#dfcZ31GiftsModal.dfc-admin-flat .dfc-z31-title strong{display:none}
+#dfcZ31GiftsModal.dfc-admin-flat .dfc-z31-modes{flex-wrap:nowrap}
+#dfcZ31GiftsModal.dfc-admin-flat button{font-size:11px;padding:2px 5px;min-height:32px;white-space:nowrap}
+#dfcZ31GiftsModal.dfc-admin-flat.dfc-admin-short.dfc-admin-wide #dfcZ31SearchArea:not([hidden]),
+#dfcZ31GiftsModal.dfc-admin-flat.dfc-admin-short.dfc-admin-wide .dfc-z31-send,
+#dfcZ31GiftsModal.dfc-admin-flat .dfc-z31-send{display:block;padding:2px 4px}
+#dfcZ31GiftsModal.dfc-admin-flat .dfc-z31-controls input{min-height:32px}
+#dfcZ31GiftsModal.dfc-admin-flat:has(#dfcZ31SearchArea[hidden]) .dfc-z31-box{
+  grid-template-areas:"head send send" "body body body";
 }
 /* Elementos pertenecientes exclusivamente a la portada: no invadir otros paneles. */
 body.dfc-z31-secondary-open #dfcZ161Version,
@@ -20879,9 +21006,11 @@ function isShown(e){
  return true;
 }
 function adminVisible(){try{return typeof me!=='undefined'&&me?.role==='leader';}catch(_){return false;}}
-function make(){const host=document.querySelector('#leaderPanel .mf-admin-grid')||document.querySelector('#leaderPanel > .panel');if(!host||$('dfcZ31AdminGiftsBtn'))return;
-const launch=node('button','mf-admin-card', '🎁 Distribuir tarjetas FlashCoin');launch.id='dfcZ31AdminGiftsBtn';launch.type='button';launch.hidden=true;host.prepend(launch);launch.onclick=()=>{if(!adminVisible()||!isShown($('leaderPanel')))return;open()};
-const modal=node('div');modal.id='dfcZ31GiftsModal';modal.hidden=true;
+function make(){const panel=document.querySelector('#leaderPanel > .panel');if(!panel||$('dfcZ31AdminGiftsBtn'))return;
+const launch=node('button','', '🎁 Distribuir tarjetas FlashCoin');launch.id='dfcZ31AdminGiftsBtn';launch.type='button';launch.hidden=true;
+($('dfcAdminReleaseActions')||panel.querySelector('.mf-admin-grid')||panel).appendChild(launch);
+launch.onclick=()=>{if(isShown($('leaderPanel')))open()};
+const modal=node('div');modal.id='dfcZ31GiftsModal';modal.className='dfc-admin-viewport';modal.hidden=true;
 modal.innerHTML=`<section class="dfc-z31-box" role="dialog" aria-modal="true" aria-label="Distribución de tarjetas FlashCoin">
 <div class="dfc-z31-head">
   <div class="dfc-z31-title">
@@ -20897,14 +21026,14 @@ modal.innerHTML=`<section class="dfc-z31-box" role="dialog" aria-modal="true" ar
 <div id="dfcZ31SearchArea">
   <label for="dfcZ31Search">ID público</label>
   <div class="dfc-z31-controls">
-    <input id="dfcZ31Search" autocomplete="off" placeholder="6 dígitos" inputmode="numeric" enterkeyhint="search">
+    <input id="dfcZ31Search" autocomplete="off" placeholder="ID público" inputmode="numeric" enterkeyhint="search">
     <button class="dfc-z31-action" id="dfcZ31SearchBtn" type="button">Buscar</button>
   </div>
 </div>
 <div class="dfc-z31-send">
   <label for="dfcZ31Amount">Valor (FC)</label>
   <div class="dfc-z31-controls">
-    <input id="dfcZ31Amount" type="number" inputmode="decimal" enterkeyhint="done" min="0.001" max="1000000" step="0.001" value="1.000">
+    <input id="dfcZ31Amount" type="number" placeholder="FC" inputmode="decimal" enterkeyhint="done" min="0.001" max="1000000" step="0.001" value="1.000">
     <button class="dfc-z31-action" id="dfcZ31Send" type="button">Enviar tarjetas</button>
   </div>
 </div>
@@ -20928,29 +21057,13 @@ const amount=$('dfcZ31Amount');
 amount.addEventListener('keydown',e=>{
   if(e.key==='Enter'){e.preventDefault();amount.blur();}
 });
-// Evita que el teclado mueva el botón entre el toque y el clic.
-$('dfcZ31SearchBtn').addEventListener('pointerdown',e=>{
-  if(document.activeElement===searchInput)e.preventDefault();
-});
-$('dfcZ31Send').addEventListener('pointerdown',e=>{
-  if(document.activeElement===amount)e.preventDefault();
-});
-$('dfcZ31Send').onclick=send;
-window.addEventListener('resize',fitGiftViewport,{passive:true});
-window.visualViewport?.addEventListener('resize',fitGiftViewport,{passive:true});
-window.visualViewport?.addEventListener('scroll',fitGiftViewport,{passive:true});
+// Conserva el foco del campo hasta que el toque complete el clic.
+for(const button of modal.querySelectorAll('button')){
+  button.addEventListener('pointerdown',event=>{
+    if(document.activeElement===searchInput||document.activeElement===amount)event.preventDefault();
+  });
 }
-function fitGiftViewport(){
-  const modal=$('dfcZ31GiftsModal'), viewport=window.visualViewport;
-  if(modal.hidden)return;
-  const height=Math.floor(viewport?.height||window.innerHeight);
-  const top=Math.max(0,Math.floor(viewport?.offsetTop||0));
-  const dimensions={'--dfc-z31-viewport-height':height+'px','--dfc-z31-viewport-top':top+'px'};
-  for(const [name,value] of Object.entries(dimensions)){
-    if(modal.style.getPropertyValue(name)!==value)modal.style.setProperty(name,value);
-  }
-  modal.classList.toggle('dfc-z31-compact',height<=460 && window.innerWidth>height);
-  modal.classList.toggle('dfc-z31-low',height<=145);
+$('dfcZ31Send').onclick=send;
 }
 function refreshSelection(){$('dfcZ31Selection').textContent=selected.size+' usuario(s) seleccionado(s)';}
 async function search(){const seq=++searchSeq;const input=$('dfcZ31Search').value.trim();const root=$('dfcZ31Results');root.textContent='Buscando...';root.closest('.dfc-z31-body').scrollTop=0;
@@ -20973,12 +21086,13 @@ busy=true;$('dfcZ31Send').disabled=true;status('Creando las tarjetas de manera s
 try{const request=crypto.randomUUID();const result=await rpc('dfc_z31_admin_send_cards',{p_amount:n,p_all:mode==='all',p_public_ids:mode==='all'?[]:ids,p_request_id:request});if(!result?.ok)throw Error('El servidor no confirmó el envío');status('Envío confirmado. '+result.recipient_count+' tarjetas de '+Number(result.amount_each).toFixed(3)+' FC. Total: '+Number(result.total_fc??result.recipient_count*n).toFixed(3)+' FC.\nReferencia: '+result.campaign_id);await history();}
 catch(e){status('No se confirmó el envío: '+e.message+' (consulta el historial antes de reintentar).');}
 finally{busy=false;$('dfcZ31Send').disabled=false;}}
-function open(){if(!adminVisible())return;make();$('dfcZ31GiftsModal').hidden=false;fitGiftViewport();status('');syncSecondary();history();}
-function close(){$('dfcZ31GiftsModal').hidden=true;syncSecondary();}
+function open(){if(!adminVisible())return;make();$('dfcZ31GiftsModal').hidden=false;dfcFitAdminViewport();status('');syncSecondary();history();}
+function close(){const modal=$('dfcZ31GiftsModal');if(modal.contains(document.activeElement))document.activeElement.blur();modal.hidden=true;syncSecondary();}
 function syncSecondary(){
  const visibleApp=isShown($('appView'));
  const modal=$('dfcZ31GiftsModal');
- let overlayOpen=isShown(modal);
+ const ota=$('dfcOTAAdminModal');
+ let overlayOpen=isShown(modal)||isShown(ota);
  if(visibleApp&&!overlayOpen){
   for(const e of document.querySelectorAll('.overlay,.modal,[role="dialog"]')){
    if(e===modal||modal?.contains(e)||!isShown(e))continue;
@@ -20990,7 +21104,10 @@ function syncSecondary(){
   document.body.classList.toggle('dfc-z31-secondary-open',secondary);
  const b=$('dfcZ31AdminGiftsBtn');
  if(b){const hide=!adminVisible()||!isShown($('leaderPanel'));if(b.hidden!==hide)b.hidden=hide;}
- if(modal&&!modal.hidden&&!adminVisible())modal.hidden=true;
+ if(!adminVisible()){
+  if(modal&&!modal.hidden)modal.hidden=true;
+  if(ota&&!ota.hidden)ota.hidden=true;
+ }
  document.dispatchEvent(new Event('dfc:home-visibility'));
 }
 // Escribir solo cambios reales: el observador también recibe nuestras escrituras.
