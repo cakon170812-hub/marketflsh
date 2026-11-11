@@ -1,3 +1,5 @@
+
+<!-- Z31 REVISIÓN WORK 1: observador de portada idempotente y salida de máscara corregida. -->
 <!-- DOMINÓ FLASH COIN OFICIAL 0.12Z.31 · visual LAB 0.21 integrada sobre Z30 · candidato de publicación -->
 <!-- DOMINÓ FLASH COIN · Paquete HTML Z30 · conexión Supabase compartida · sin alterar reglas ni saldos -->
 <!-- DFC Z29 - integración web y puente Android; preparación sin publicación automática. -->
@@ -20702,7 +20704,7 @@ item.append(ck,node('span','',u.public_id+' · '+(u.display_name||'Usuario')));r
 function status(s){$('dfcZ31Status').textContent=s;}
 async function history(){try{const rows=await rpc('dfc_z31_admin_gift_history',{p_limit:15});const box=$('dfcZ31History');box.replaceChildren();for(const r of rows||[]){box.appendChild(node('div','',new Date(r.created_at).toLocaleString()+' · '+r.recipient_count+' usuarios · '+Number(r.amount_each).toFixed(3)+' FC por tarjeta · '+r.redeemed_count+' canjeadas'));}}
 catch(e){$('dfcZ31History').textContent='Historial no disponible: '+e.message;}}
-async function send(){if(busy)return;const n=Number($('dfcZ31Amount').value);if(!Number.isFinite(n)||n<=0||n>1000000||Math.round(n*1000)!==n*1000){status('El valor debe ser positivo y tener máximo 3 decimales.');return;}
+async function send(){if(busy)return;const n=Number($('dfcZ31Amount').value);if(!Number.isFinite(n)||n<=0||n>1000000||Math.abs(Math.round(n*1000)-n*1000)>1e-7){status('El valor debe ser positivo y tener máximo 3 decimales.');return;}
 const ids=[...selected.keys()];if(mode!=='all'&&ids.length===0){status('Selecciona al menos un usuario.');return;}
 const audience=mode==='all'?'TODOS los usuarios registrados':ids.length+' usuario(s)';
 if(!confirm('Confirmar envío de una tarjeta de '+n.toFixed(3)+' FC a '+audience+'? Cada usuario recibirá ese mismo importe.'))return;
@@ -20721,10 +20723,16 @@ if(e.hidden||e.classList.contains('hidden')||e.getAttribute('aria-hidden')==='tr
 const style=getComputedStyle(e);if(style.display==='none'||style.visibility==='hidden')continue;
 if(e.getClientRects().length && style.position==='fixed'){overlayOpen=true;break;}
 }}
-document.body.classList.toggle('dfc-z31-secondary-open',!visibleApp||overlayOpen);
-const b=$('dfcZ31AdminGiftsBtn');if(b)b.hidden=!adminVisible();}
-function init(){make();syncSecondary();new MutationObserver(syncSecondary).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','hidden','style','aria-hidden']});
-document.addEventListener('click',()=>requestAnimationFrame(syncSecondary),true);setInterval(syncSecondary,1200);}
+const secondary=!visibleApp||overlayOpen;
+if(document.body.classList.contains('dfc-z31-secondary-open')!==secondary)
+  document.body.classList.toggle('dfc-z31-secondary-open',secondary);
+const b=$('dfcZ31AdminGiftsBtn');
+if(b){const hide=!adminVisible();if(b.hidden!==hide)b.hidden=hide;}}
+// Escribir solo cambios reales: el observador también recibe nuestras escrituras.
+let secondaryFrame=0;
+function scheduleSecondary(){if(secondaryFrame)return;secondaryFrame=requestAnimationFrame(()=>{secondaryFrame=0;syncSecondary();});}
+function init(){make();syncSecondary();new MutationObserver(scheduleSecondary).observe(document.body,{subtree:true,attributes:true,attributeFilter:['class','hidden','style','aria-hidden']});
+document.addEventListener('click',scheduleSecondary,true);setInterval(scheduleSecondary,1200);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -20765,6 +20773,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     var other = ['dominoTablePanel', 'dominoLobbyPanel', 'emailConfirmView']
       .some(function (id) { return isShown(document.getElementById(id)); });
     if (window.dfcZ27AppReady || isShown(app) || other) {
+      removeBootMask();
       completed = true;
       return;
     }
@@ -20781,14 +20790,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     var txt = document.createElement('div');
     txt.textContent = reason === 'error'
       ? 'No se completó el inicio. Comprueba tu conexión y vuelve a intentarlo.'
-      : 'La aplicación tardó más de lo esperado en iniciar. Puedes reintentar manualmente.';
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.textContent = 'Reintentar apertura';
-    btn.style.cssText = 'display:block;margin:10px auto 0;padding:10px 18px;border:0;border-radius:10px;background:#e9bf69;color:#172333;font-weight:750;cursor:pointer';
-    btn.addEventListener('click', function () { window.location.reload(); });
+      : 'La aplicación tardó más de lo esperado en iniciar. Comprueba tu conexión y vuelve a abrir la aplicación.';
     panel.appendChild(txt);
-    panel.appendChild(btn);
     document.body.appendChild(panel);
     completed = true;
     console.warn('[DFC Z31] Recuperación visual de arranque:', reason);
@@ -20796,6 +20799,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
   document.addEventListener('dfc-z27-app-ready', function () {
     completed = true;
+    document.getElementById('dfc-z31-start-recovery')?.remove();
     if (timer) clearTimeout(timer);
     // No mantener el splash encima de una aplicación ya inicializada.
     window.setTimeout(removeBootMask, 3500);
@@ -20823,3 +20827,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </body>
 
 </html>
+
+
+
