@@ -5771,17 +5771,13 @@ async function dominoStartRealtime(){
 function dominoConfigModeLabel(m){return m==='paid_pass'?'Pases pagados':'Clásico'}
 
 async function dominoForceLandscape(){
-  // Mantener la sesión de dominó activa sin obligar a girar el dispositivo.
+  // Mantener el estado visual de la mesa.
   document.body.classList.add('domino-playing');
   document.body.classList.remove('dfc161-native-landscape');
   dominoUpdateRotateGuard();
 }
 function dominoReleaseLandscape(){
   document.body.classList.remove('domino-playing','dfc161-native-landscape');
-  // Desbloquear orientaciones nativas que pudieron quedar fijadas en sesiones anteriores.
-  try{void window.Capacitor?.Plugins?.ScreenOrientation?.unlock?.()?.catch?.(()=>{});}catch(_){}
-  try{window.AndroidOrientation?.unlock?.()}catch(_){}
-  try{screen.orientation?.unlock?.()}catch(_){}
   dominoUpdateRotateGuard();
 }
 function dominoUpdateRotateGuard(){
@@ -14244,24 +14240,23 @@ window.dfcZ9Refresh=()=>refresh(true);
 </style>
 <script id="dfcOTAAdminPublishV1">
 (()=>{'use strict';
- const VERSION='0.12Z.28';let preview=null,processing=false;
+ const version=document.querySelector('meta[name="application-version"]').content;
+ let preview=null,processing=false;
  const id='dfcOTAAdminSection';
  const root=()=>document.querySelector('#leaderPanel .panel');
  function render(){
    if(document.getElementById(id)||!root())return;
    const e=document.createElement('section');e.id=id;
    e.innerHTML=`<h3>📲 Publicar actualización para Android</h3>
-    <p class="tiny">La web de pruebas NO modifica la aplicación. Selecciona una versión aprobada; GitHub creará un paquete independiente.</p>
-    <label class="tiny" for="dfcOTAAdminVersion">Versión que publicarás (ejemplo: 0.12Z.28)</label>
-    <input class="field" id="dfcOTAAdminVersion" value="0.12Z.28" placeholder="0.12Z.28" autocomplete="off" spellcheck="false"/>
-    <p class="tiny">Primero revisa el código exacto de la última publicación web. Las claves de GitHub nunca van en el HTML.</p>
+    <p class="tiny">Versión para Android: <strong id="dfcOTAAdminVersion"></strong></p>
+    <p class="tiny">Revisa la versión web antes de enviar la actualización.</p>
     <div class="dfc-ota-inline"><button class="action blue" type="button" id="dfcOTAAdminPreview">Revisar versión web</button>
     <button class="action green" type="button" id="dfcOTAAdminPublish" disabled>Publicar actualización para Android</button></div>
     <div class="dfc-ota-msg" id="dfcOTAAdminStatus" role="status" aria-live="polite">Pendiente de aprobación. No se ha enviado ninguna actualización.</div>`;
    const anchor=root().querySelector('.section'); if(anchor)anchor.before(e);else root().append(e);
    e.querySelector('#dfcOTAAdminPreview').addEventListener('click',()=>void previewHead());
    e.querySelector('#dfcOTAAdminPublish').addEventListener('click',()=>void publish());
-   e.querySelector('#dfcOTAAdminVersion').addEventListener('input',()=>{e.querySelector('#dfcOTAAdminPublish').disabled=!preview;});
+   e.querySelector('#dfcOTAAdminVersion').textContent=version;
  }
  function status(s){const t=document.getElementById('dfcOTAAdminStatus');if(t)t.textContent=s}
  async function invoke(action,params={}){
@@ -14275,23 +14270,28 @@ window.dfcZ9Refresh=()=>refresh(true);
 
 const PUBLISHED_MANIFEST='https://cakon170812-hub.github.io/marketflsh/android-approved/manifest.json';
 const numericVersion=v=>{const m=/^0\.12Z\.(\d{1,4})$/.exec(String(v||''));return m?Number(m[1]):-1};
-async function publishedVersion(){
+async function publishedManifest(){
   const r=await fetch(PUBLISHED_MANIFEST+'?v='+Date.now(),{cache:'no-store'});
   if(!r.ok)throw new Error('Manifiesto Android HTTP '+r.status);
   const m=await r.json();
   if(numericVersion(m.version)<0)throw new Error('El manifiesto tiene versión inválida');
-  return m.version;
+  return m;
 }
-async function verifyPublished(expected){
+async function verifyPublished(expected,sha,receipt){
+  status(`${receipt}\nEstado: En proceso`);
   for(let n=0;n<24;n++){
     await new Promise(resolve=>setTimeout(resolve,15000));
     try{
-      const actual=await publishedVersion();
-      if(actual===expected){status('GitHub confirmó la publicación de '+actual+'. Revisa el botón ACTUALIZAR en un Android de pruebas.');return;}
-      if(numericVersion(actual)>numericVersion(expected)){status('Hay una versión posterior ('+actual+'). Comprueba GitHub Actions.');return;}
+      const manifest=await publishedManifest();
+      const bundle=new URL(`bundles/${expected}.zip`,PUBLISHED_MANIFEST).href;
+      if(manifest.version===expected&&manifest.sha===sha&&manifest.url===bundle&&/^[a-f0-9]{64}$/.test(manifest.sha256||'')){
+        const response=await fetch(bundle+'?v='+Date.now(),{method:'HEAD',cache:'no-store'});
+        if(response.ok){status(`${receipt}\nEstado: Publicada / Disponible\nLos jugadores pueden tocar Actualizar en Android.`);return;}
+      }
+      if(numericVersion(manifest.version)>numericVersion(expected)){status(`${receipt}\nYa está disponible una versión posterior (${manifest.version}).`);return;}
     }catch(e){console.warn('Esperando manifiesto Android:',e);}
   }
-  status('No se confirmó la publicación en el manifiesto. Abre GitHub → Actions para ver el motivo. NO publiques otra vez el mismo número.');
+  status(`${receipt}\nEstado: Publicación sin confirmar. Revisa GitHub Actions.`);
 }
  async function previewHead(){
    if(processing)return;
@@ -14299,27 +14299,33 @@ async function verifyPublished(expected){
    processing=true;const b=document.getElementById('dfcOTAAdminPreview');b.disabled=true;
    try{status('Consultando la revisión web de GitHub...');const data=await invoke('preview');
      preview={sha:data.sha,short:data.short,subject:data.subject};
-     status(`Revisión para aprobar: ${data.short}\nÚltimo cambio: ${data.subject}\nComprueba que sea exactamente el HTML que probaste. Luego escribe una versión NUEVA y publica.`);
+     status(`Revisión para aprobar: ${data.short}\nÚltimo cambio: ${data.subject}\nSi corresponde al HTML que probaste, puedes enviar ${version}.`);
      document.getElementById('dfcOTAAdminPublish').disabled=false;
    }catch(e){preview=null;status('No se pudo verificar: '+e.message)}finally{processing=false;b.disabled=false}
  }
  async function publish(){
    if(processing||!preview)return;
    if(typeof me==='undefined'||me?.role!=='leader')return;
-   const version=(document.getElementById('dfcOTAAdminVersion')?.value||'').trim();
-   if(!/^0\.12Z\.\d{1,4}$/.test(version))return status('Escribe una versión como 0.12Z.28 (debe ser superior a las anteriores).');
-   const htmlVersion=document.querySelector('meta[name="application-version"]')?.content;
-   if(version!==htmlVersion)return status(`La versión para publicar (${version}) no coincide con la de este HTML (${htmlVersion}). Usa el mismo número y una versión que no esté publicada.`);
-   let oldVersion;
-   try{oldVersion=await publishedVersion();}catch(e){return status('Publicación detenida: '+e.message)}
-   if(numericVersion(version)<=numericVersion(oldVersion))return status('La versión '+version+' no es superior a '+oldVersion+'. No se ha enviado nada.');
-   if(!confirm(`¿Publicar en Android la revisión web ${preview.short} como versión ${version}?\nLas partidas activas no se reiniciarán. Se creará una copia separada.`))return;
-   processing=true;const b=document.getElementById('dfcOTAAdminPublish');b.disabled=true;
-   try{const r=await invoke('publish',{version,sha:preview.sha});
-      status(`Solicitud de publicación recibida para ${version}.\nRevisión: ${preview.short}.\nGitHub está preparando el paquete. Todavía no está publicada hasta que el proceso termine correctamente. Mira GitHub → Acciones.`);
+   processing=true;
+   const button=document.getElementById('dfcOTAAdminPublish');
+   button.disabled=true;
+   try{
+      const {version:oldVersion}=await publishedManifest();
+      if(numericVersion(version)<=numericVersion(oldVersion)){
+        preview=null;
+        return status('La versión '+version+' ya está registrada o hay una más reciente ('+oldVersion+').');
+      }
+      if(!confirm(`¿Enviar Android ${version} desde la revisión ${preview.short}?`))return;
+      const result=await invoke('publish',{version,sha:preview.sha});
+      const approvedSha=preview.sha;
+      const reference=result.sha?.slice(0,8)||preview.short;
+      const date=new Intl.DateTimeFormat('es-DO',{dateStyle:'medium',timeStyle:'short',timeZone:'America/Santo_Domingo'}).format(new Date());
       preview=null;
-      void verifyPublished(version);
-   }catch(e){status('No se envió la publicación: '+e.message)}finally{processing=false}
+      void verifyPublished(version,approvedSha,`${version}\n${date}\nReferencia: ${reference}`);
+   }catch(e){status('No se confirmó la solicitud: '+e.message)}finally{
+      processing=false;
+      button.disabled=!preview;
+   }
  }
  function boot(){render();}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
@@ -16436,25 +16442,22 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
  const panel=id=>!!$(id)?.classList.contains('active');
  const admin=()=>{try{return String(me?.role||'')==='leader'}catch{return false}};
  const isNative=()=>{try{return window.Capacitor?.getPlatform?.()==='android'&&window.Capacitor?.isNativePlatform?.()===true}catch{return false}};
- let previousOrientation='',orientBusy=false;
+ let orientBusy=false;
  async function orientation(){
    if(!isNative()||orientBusy)return;
-   const want=panel('dominoTablePanel')?'landscape':panel('dominoLobbyPanel')?'portrait':'auto';
-   if(want===previousOrientation)return;
-   const plugin=window.Capacitor?.Plugins?.ScreenOrientation;
-   if(!plugin)return;orientBusy=true;
+   orientBusy=true;
    try{
-     if(want==='auto'){
-       if(typeof plugin.unlock==='function')await plugin.unlock();
-       else if(typeof window.AndroidOrientation?.unlock==='function')window.AndroidOrientation.unlock();
-     }else if(typeof plugin.lock==='function')await plugin.lock({orientation:want});
-     previousOrientation=want;
-   }catch(e){console.warn('DFC orientación solicitada: Android puede restringirla',e)}
+     const plugin=window.Capacitor?.Plugins?.ScreenOrientation;
+     if(typeof plugin?.lock==='function')await plugin.lock({orientation:'landscape'});
+     else if(typeof window.AndroidOrientation?.lock==='function')window.AndroidOrientation.lock('landscape');
+   }catch(e){console.warn('No se pudo fijar la orientación horizontal en Android:',e)}
    finally{orientBusy=false}
  }
- let scheduled=false;const queue=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;void orientation();syncLaunch()})};
- ['dominoTablePanel','dominoLobbyPanel','gamesPanel','authView','appView'].forEach(id=>{const el=$(id);if(el)new MutationObserver(queue).observe(el,{attributes:true,attributeFilter:['class']})});
- window.addEventListener('orientationchange',queue);document.addEventListener('visibilitychange',()=>{if(!document.hidden){previousOrientation='';queue()}});
+ let scheduled=false;const queue=()=>{if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;syncLaunch()})};
+ ['dominoLobbyPanel','appView'].forEach(id=>{const el=$(id);if(el)new MutationObserver(queue).observe(el,{attributes:true,attributeFilter:['class']})});
+ window.addEventListener('load',orientation,{once:true});
+ window.addEventListener('orientationchange',orientation);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)void orientation()});
  let catalog=[];
  function build(){
    if($('dfc-z20-admin-launch'))return;
