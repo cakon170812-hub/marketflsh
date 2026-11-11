@@ -1,4 +1,3 @@
-
 {
   "id": "./",
   "name": "Dominos Flash Coin",
@@ -7,10 +6,10 @@
   "lang": "es",
   "start_url": "./?source=pwa",
   "scope": "./",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#020917",
   "theme_color": "#061d42",
-  "orientation": "any",
+  "orientation": "landscape",
   "icons": [
     {
       "src": "./icons/icon-192.png",
