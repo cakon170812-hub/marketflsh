@@ -18597,13 +18597,7 @@ body.dfc-lab-visual #appView #dfcLabStage004 .dfc09-tools{transform:none!importa
    $('dfcLabGiftIssue008').onclick=issue;
   }
   const heading=$('dfc09RoomsHeading');if(heading)heading.textContent='MESAS DISPONIBLES';
-  // El engranaje y el menú líder mantienen permisos originales; el botón administrativo adicional es discreto.
-  if(!$('dfcLabGiftAdminLaunch008')){
-   const leader=$('leaderBtn');if(leader){const b=document.createElement('button');b.id='dfcLabGiftAdminLaunch008';b.className='action dark';b.type='button';b.textContent='🎁 Tarjetas Flash Coin';b.hidden=true;leader.insertAdjacentElement('afterend',b);b.onclick=()=>openGift(true);
-    const sync=()=>{b.hidden=leader.classList.contains('hidden')||leader.hidden||getComputedStyle(leader).display==='none'};
-    sync();new MutationObserver(sync).observe(leader,{attributes:true,attributeFilter:['class','hidden','style']});
-   }
-  }
+
  }
  async function rpc(name,args){const client=getSB();if(!client?.rpc)throw Error('Sin conexión a Supabase');const {data,error}=await client.rpc(name,args||{});if(error)throw Error(error.message||String(error));return data}
  async function refresh(){
@@ -20501,13 +20495,18 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
 @media(max-width:600px){html body #dfcLabGiftCard018{width:76px!important;border-radius:6px!important}}
 @media(prefers-reduced-motion:reduce){html body #dfcLabGiftCard018{animation:none!important}#dfcLabMoneyBurst020 .dfc-money020{animation:none!important;display:none!important}}
 </style>
+<style id="dfc-z31-gift-list">
+#dfcLabGiftUser008:has(.dfc-z31-gift-choice){display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:12px 0}
+#dfcLabGiftUser008 .dfc-z31-gift-choice{display:flex;align-items:flex-end;justify-content:center;width:100%;margin:0;padding:8px;color:#fff;font-size:17px;font-weight:900;text-shadow:0 1px 4px #001325,0 1px 8px #001325}
+#dfcLabGiftUser008 .dfc-z31-gift-choice:focus-visible{outline:3px solid #fff;outline-offset:2px}
+</style>
 <script id="dfc-laboratorio-visual-js-020">
 (function(){'use strict';
  const $=id=>document.getElementById(id);
  const visible=$('dfcLabGiftCard018');
  if(!visible)return;
  const getSB=()=>window.dfcSupabase||window.sb;
- let list=[],busy=false,requestSeq=0,previousPosition='',lastMessage='';
+ let busy=false,previousPosition='',listRequest=0,mutation=0;
  let badge=$('dfcLabGiftCount020');
  if(!badge){badge=document.createElement('span');badge.id='dfcLabGiftCount020';badge.className='dfc-lab-gift-count020';badge.hidden=true;visible.appendChild(badge);}
  function setCount(count){
@@ -20521,17 +20520,48 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
    const {data,error}=await client.rpc('dfc_lab_gift_pending_v008');
    if(error)throw new Error(error.message||'No se pudo consultar los regalos');
    if(!Array.isArray(data))throw new Error('Respuesta inesperada del servidor');
-   list=data.filter(x=>x&&typeof x.gift_id==='string');
-   setCount(list.length);return list;
+   return data.filter(gift=>gift&&typeof gift.gift_id==='string'&&Number(gift.amount)>0);
  }
- async function update(){if(busy)return;try{await pending();lastMessage='';}catch(e){list=[];setCount(0);lastMessage=e.message||String(e);}}
- function status(msg){
-   if(typeof window.dfcLabEnsureGift008==='function')window.dfcLabEnsureGift008();
-   const ov=$('dfcLabGiftOverlay008');if(!ov)return;
-   ov.hidden=false;
-   const message=$('dfcLabGiftStatus008');if(message)message.textContent=msg;
-   const user=$('dfcLabGiftUser008');if(user){user.replaceChildren();const preview=document.createElement('div');preview.className='dfc-lab-gift-preview019';preview.setAttribute('aria-label','Tarjeta Flashcoin azul eléctrico');user.appendChild(preview);}
-   const admin=$('dfcLabGiftAdmin008');if(admin)admin.hidden=true;
+ async function update(){
+   if(busy)return;
+   const version=mutation;
+   try{const gifts=await pending();if(!busy&&version===mutation)setCount(gifts.length);}catch(_){}
+ }
+ function showCards(message,gifts=[]){
+   window.dfcLabEnsureGift008?.();
+   const overlay=$('dfcLabGiftOverlay008');
+   const user=$('dfcLabGiftUser008');
+   const status=$('dfcLabGiftStatus008');
+   overlay.hidden=false;
+   $('dfcLabGiftAdmin008').hidden=true;
+   status.textContent=message;
+   user.replaceChildren();
+   for(const gift of gifts){
+     const card=document.createElement('button');
+     card.type='button';
+     card.className='dfc-lab-gift-preview019 dfc-z31-gift-choice';
+     card.textContent=formatAmount(gift.amount)+' FC';
+     card.setAttribute('aria-label','Canjear tarjeta FlashCoin de '+card.textContent);
+     card.addEventListener('click',()=>redeemCard(gift));
+     user.appendChild(card);
+   }
+ }
+ function formatAmount(amount){
+   return new Intl.NumberFormat('es-DO',{maximumFractionDigits:3}).format(Number(amount));
+ }
+ async function openCards(){
+   if(busy)return;
+   const request=++listRequest;
+   showCards('Buscando tus tarjetas FlashCoin…');
+   try{
+     const gifts=await pending();
+     if(request!==listRequest||$('dfcLabGiftOverlay008').hidden)return;
+     setCount(gifts.length);
+     showCards(gifts.length?'Elige la tarjeta que quieres canjear.':'No tienes tarjetas FlashCoin disponibles.',gifts);
+   }catch(error){
+     if(request===listRequest&&!$('dfcLabGiftOverlay008').hidden)
+       showCards('No se pudieron consultar tus tarjetas. '+error.message);
+   }
  }
  function explode(){
    if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
@@ -20545,40 +20575,49 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
    }
    setTimeout(()=>layer.remove(),1900);
  }
- function refreshBalanceFromServer(client){
-   // Actualiza solo desde el saldo autoritativo, nunca suma importes en JavaScript.
-   return client.from('rf_profiles').select('balance').single().then(({data,error})=>{
-     if(error||!data||!Number.isFinite(Number(data.balance)))return;
-     const amount=Number(data.balance);
-     const label='$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(amount);
-     for(const id of ['balanceTop','balancePanelValue']){const el=$(id);if(el)el.textContent=label;}
-     document.dispatchEvent(new CustomEvent('dfc:giftRedeemed',{detail:{balance:amount}}));
-   }).catch(()=>{});
+ function renderServerBalance(balance){
+   if(balance==null||!Number.isFinite(Number(balance)))return;
+   const amount=Number(balance);
+   const label='$'+new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}).format(amount);
+   for(const id of ['balanceTop','balancePanelValue']){const el=$(id);if(el)el.textContent=label;}
+   document.dispatchEvent(new CustomEvent('dfc:giftRedeemed',{detail:{balance:amount}}));
  }
- async function redeemOnTouch(ev){
-   ev.preventDefault();ev.stopPropagation();
+ async function redeemCard(gift){
    if(busy)return;
-   busy=true;visible.disabled=true;
-   const seq=++requestSeq;
+   busy=true;
+   mutation++;
+   visible.disabled=true;
+   const overlay=$('dfcLabGiftOverlay008');
+   const user=$('dfcLabGiftUser008');
+   const status=$('dfcLabGiftStatus008');
+   for(const button of user.querySelectorAll('button'))button.disabled=true;
+   status.textContent='Canjeando tarjeta…';
+   let message;
    try{
-     const p=await pending();
-     if(!p.length){status('No tienes tarjetas Flashcoin disponibles. La tarjeta seguirá visible.');return;}
-     const gift=p[0];
      const client=getSB();
      const {data,error}=await client.rpc('dfc_lab_gift_redeem_v008',{p_gift_id:gift.gift_id});
-     if(error)throw new Error(error.message||'Reclamación rechazada');
-     // Validar que el servidor ha acreditado, no asumir éxito con una respuesta vacía.
-     if(!data||data.ok!==true||String(data.gift_id)!==gift.gift_id||!(Number(data.amount)>0)){
-        throw new Error('El servidor no confirmó la acreditación. No se mostrará el premio como cobrado.');
-     }
+     if(error)throw error;
+     if(data?.ok!==true||String(data.gift_id)!==gift.gift_id||!(Number(data.amount)>0))
+       throw new Error('El servidor no confirmó la acreditación.');
      explode();
-     status('¡Tarjeta Flashcoin acreditada! '+Number(data.amount).toFixed(3)+' FC.');
-     await refreshBalanceFromServer(client);
-     await update();
-   }catch(e){status('No se acreditó ninguna tarjeta: '+(e.message||String(e)));await update();}
-   finally{if(seq===requestSeq){busy=false;visible.disabled=false;}}
+     message='¡Tarjeta FlashCoin acreditada! '+formatAmount(data.amount)+' FC.';
+     renderServerBalance(data.balance_after);
+   }catch(error){
+     message='No se pudo confirmar el canje. '+error.message;
+   }
+   if(!overlay.hidden)status.textContent=message;
+   try{
+     const gifts=await pending();
+     setCount(gifts.length);
+     if(!overlay.hidden)showCards(message,gifts);
+   }catch(_){
+     if(!overlay.hidden)showCards(message+' Vuelve a abrir el listado para actualizar tus tarjetas.');
+   }finally{
+     busy=false;
+     visible.disabled=false;
+   }
  }
- visible.addEventListener('click',redeemOnTouch);
+ visible.addEventListener('click',openCards);
  // Anclar justo encima de Invitar: no depende del saldo ni de antiguos módulos.
  function locate(){
    const invite=$('inviteBtn'),app=$('appView');
@@ -20614,6 +20653,8 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
  setInterval(()=>{locate();if(!document.hidden)update()},30000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){locate();update();}});
  if('ResizeObserver' in window){const invite=$('inviteBtn');if(invite)new ResizeObserver(locate).observe(invite);}
+ const app=$('appView');
+ if(app)new MutationObserver(locate).observe(app,{attributes:true,attributeFilter:['class','hidden','style']});
  locate();update();
 })();
 </script>
@@ -20646,6 +20687,79 @@ body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card.dfc-lab-foc
 </style>
 
 <!-- Z31 · Panel administrativo de distribución y aislamiento de portada -->
+<style id="dfc-z31-landscape-style">
+#dfcZ31LandscapeGate {
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:2147483646;
+  background:linear-gradient(160deg,#051126 0%,#092c59 54%,#050f23 100%);
+  color:#f4fbff;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  padding:20px;
+  text-align:center;
+  overflow:auto;
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+#dfcZ31LandscapeGate .dfc-z31-rotate-content {
+  max-width:350px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:11px;
+  margin:auto;
+}
+#dfcZ31LandscapeGate .dfc-z31-rotate-icon {
+  font-size:68px;
+  line-height:1.2;
+  filter:drop-shadow(0 0 12px #4bb9ff8c);
+}
+#dfcZ31LandscapeGate h2 {
+  font-size:clamp(19px,5.5vw,26px);
+  font-weight:800;
+  margin:0;
+}
+#dfcZ31LandscapeGate p {
+  font-size:15px;
+  line-height:1.5;
+  margin:0;
+  color:#d8ebff;
+}
+/* Limitar a teléfonos táctiles verticales, no imponer rotación a monitores de escritorio. */
+@media (orientation:portrait) and (pointer:coarse) and (max-width:950px) {
+  html.dfc-z31-initial-load-complete #dfcZ31LandscapeGate {display:flex!important;}
+}
+</style>
+<script id="dfc-z31-landscape-gate">
+(function(){'use strict';
+  function mount(){
+    if(document.getElementById('dfcZ31LandscapeGate'))return;
+    const gate=document.createElement('div');
+    gate.id='dfcZ31LandscapeGate';
+    gate.setAttribute('role','status');
+    gate.setAttribute('aria-label','Gira el teléfono para utilizar Dominó Flash Coin');
+    gate.innerHTML='<div class="dfc-z31-rotate-content"><div class="dfc-z31-rotate-icon" aria-hidden="true">📱 ↻</div><h2>Gira tu teléfono</h2><p>DOMINÓ FLASH COIN está diseñado para jugar en horizontal. Coloca el teléfono de lado para continuar.</p></div>';
+    document.body.appendChild(gate);
+    // La indicación de giro nunca debe tapar la carga Z30/Z31.
+    // La carga retira su elemento solo después de completar al 100%.
+    const loader=document.getElementById('dfc-z9-loader');
+    if(!loader){document.documentElement.classList.add('dfc-z31-initial-load-complete');return;}
+    const update=()=>{
+      if(loader.isConnected&&!loader.classList.contains('hide'))return;
+      document.documentElement.classList.add('dfc-z31-initial-load-complete');
+      observer.disconnect();
+    };
+    const observer=new MutationObserver(update);
+    observer.observe(document.body,{childList:true});
+    observer.observe(loader,{attributes:true,attributeFilter:['class']});
+    update();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount,{once:true});
+  else mount();
+})();
+</script>
 <style id="dfc-z31-admin-gifts-style">
 #dfcZ31AdminGiftsBtn{margin:5px 0;padding:10px 13px;border:1px solid #53baff;border-radius:12px;background:#082e52;color:#e5f6ff;font-weight:800;cursor:pointer}
 #dfcZ31GiftsModal[hidden],#dfcZ31AdminGiftsBtn[hidden],#dfcLabGiftAdminLaunch008{display:none!important}
