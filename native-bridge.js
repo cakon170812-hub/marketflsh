@@ -1,5 +1,5 @@
 
- // DOMINÓ FLASH COIN · PUENTE ANDROID OTA · CORRECCIÓN Z30
+ // DOMINÓ FLASH COIN · PUENTE ANDROID OTA · ADAPTACIÓN INMERSIVA Z32
  // Solo recursos web del APK Capacitor; NO actualiza el binario Android.
  // Descargar durante una partida está permitido; activar exige estado seguro.
  import { Capacitor } from '@capacitor/core';
@@ -197,21 +197,33 @@
    window.dfcInstallApprovedUpdate = updateClicked;
    window.dfcOtaCheck = () => check(true);
    void CapacitorUpdater.notifyAppReady().catch(e => console.warn('[DFC OTA] READY', e));
-   void StatusBar.setOverlaysWebView({overlay:false}).catch(() => {});
+   // Mantener el modo inmersivo en todas las pantallas, no solo al entrar a la mesa.
+   // La navegación nativa (barra inferior) requiere además configuración del APK.
+   async function applyImmersiveMode() {
+     try { await ScreenOrientation.lock({orientation:'landscape'}); }
+     catch(e) { console.warn('[DFC ANDROID] ORIENTACION', String(e?.message || '')); }
+     try {
+       await StatusBar.setOverlaysWebView({overlay:true});
+       await StatusBar.hide();
+     } catch(e) { console.warn('[DFC ANDROID] STATUS_BAR', String(e?.message || '')); }
+     document.documentElement.classList.add('dfc-android-native','dfc-landscape-immersive');
+   }
+   void applyImmersiveMode();
    window.dominoForceLandscape = async () => {
      document.body.classList.add('domino-playing');
-     try { await ScreenOrientation.unlock(); await StatusBar.hide(); } catch(e) { console.warn('Orientación:',e); }
+     await applyImmersiveMode();
      document.getElementById('dominoRotateGuard')?.classList.remove('show');
    };
    window.dominoReleaseLandscape = async () => {
      document.body.classList.remove('domino-playing');
-     try { await ScreenOrientation.unlock(); await StatusBar.show(); } catch(e) { console.warn('Orientación:',e); }
+     await applyImmersiveMode();
      document.getElementById('dominoRotateGuard')?.classList.remove('show');
    };
    window.dominoUpdateRotateGuard = () => document.getElementById('dominoRotateGuard')?.classList.remove('show');
    App.addListener('appStateChange', async ({isActive}) => {
      if (!isActive) return;
      void check(true);
+     await applyImmersiveMode();
      if (tableOpen()) {
        try {
          if (typeof window.loadDominoState === 'function') await window.loadDominoState(true,true);
@@ -227,6 +239,7 @@
      else void App.minimizeApp();
    });
    function boot() {
+     void applyImmersiveMode();
      button(); void check(true);
      for(const id of ['dominoTablePanel','appView','dominoLobbyPanel']) {
        const el = document.getElementById(id);
