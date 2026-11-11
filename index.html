@@ -1,4 +1,5 @@
 
+<!-- Z31 REVISIÓN WORK 2: elimina realimentación del texto del tarro VIP durante el arranque. -->
 <!-- Z31 REVISIÓN WORK 1: observador de portada idempotente y salida de máscara corregida. -->
 <!-- DOMINÓ FLASH COIN OFICIAL 0.12Z.31 · visual LAB 0.21 integrada sobre Z30 · candidato de publicación -->
 <!-- DOMINÓ FLASH COIN · Paquete HTML Z30 · conexión Supabase compartida · sin alterar reglas ni saldos -->
@@ -17063,7 +17064,8 @@ function dfcZ28ShowTableText(row){
     || 'sin identificador';
   function install(){
     const anchor=document.getElementById('dfcOTAAdminPreview');
-    if(!anchor || document.getElementById('dfcZ29WebCheck'))return false;
+    if(document.getElementById('dfcZ29WebCheck'))return true;
+    if(!anchor)return false;
     const btn=document.createElement('button');btn.id='dfcZ29WebCheck';btn.type='button';btn.className='action blue';
     btn.textContent='🌐 Comprobar actualización web';btn.style.cssText='min-height:44px;margin:8px 5px 6px 0;';
     const status=document.createElement('div');status.id='dfcZ29WebCheckStatus';status.className='tiny';
@@ -17648,7 +17650,7 @@ body.dfc-lab-visual #appView [id="dfc012x-vip-home"]{display:none!important}
   }
   /* Espejo de ID basado en el valor real del perfil; sin inventar datos. */
   const src=$('myPublicId'),dest=$('dfc161PlayerId');if(src&&dest){
-    const copy=()=>{const v=src.textContent?.trim();if(v&&v!=='———'&&v!=='—')dest.textContent=v};
+    const copy=()=>{const v=src.textContent?.trim();if(v&&v!=='———'&&v!=='—'&&dest.textContent!==v)dest.textContent=v};
     copy();new MutationObserver(copy).observe(src,{childList:true,characterData:true,subtree:true});
   }
  }
@@ -17890,7 +17892,7 @@ body.dfc-lab-visual:has(#dominoTablePanel.active) #dfcLabFloatingTables004{displ
    if(total&&!total.dataset.labClean004){
     const clean=()=>{
      const value=(total.textContent||'').replace(/💎/g,'').replace(/\s+/g,' ').trim();
-     if(value)total.textContent=value;
+     if(value && total.textContent!==value)total.textContent=value;
     };
     total.dataset.labClean004='1';
     clean();
@@ -18192,7 +18194,7 @@ body.dfc-lab-visual #appView #dominoLobbyModes .dfc-lab-expanded006 .dfc-lab-clo
    if(!badge){badge=document.createElement('span');badge.className='dfc-lab-vip-badge006';
     badge.setAttribute('aria-hidden','true');badge.innerHTML='<span>VIP 0</span>';jar.appendChild(badge)}
    const sync=()=>{const match=(source.textContent||'').match(/\bVIP\s*(\d+)/i);
-    const level=match?match[1]:'0';badge.querySelector('span').textContent='VIP '+level;
+    const level=match?match[1]:'0';const label='VIP '+level;const text=badge.querySelector('span');if(text.textContent!==label)text.textContent=label;
     jar.setAttribute('aria-label','Nivel VIP '+level);
    };
    if(!source.dataset.dfcLabVipWatch006){source.dataset.dfcLabVipWatch006='1';new MutationObserver(sync).observe(source,{childList:true,characterData:true,subtree:true})}
@@ -20827,6 +20829,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </body>
 
 </html>
+
+
+
 
 
 
