@@ -20582,10 +20582,10 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
  // Anclar justo encima de Invitar: no depende del saldo ni de antiguos módulos.
  function locate(){
    const invite=$('inviteBtn'),app=$('appView');
-   if(!invite||!app||app.hidden||getComputedStyle(app).display==='none'||!invite.getClientRects().length){visible.hidden=true;return;}
+   if(!invite||!app||app.hidden||getComputedStyle(app).display==='none'||!invite.getClientRects().length){if(!visible.hidden)visible.hidden=true;return;}
    const r=invite.getBoundingClientRect();
-   if(r.width<5||r.height<5||r.bottom<0||r.top>innerHeight){visible.hidden=true;return;}
-   visible.hidden=false;
+   if(r.width<5||r.height<5||r.bottom<0||r.top>innerHeight){if(!visible.hidden)visible.hidden=true;return;}
+   if(visible.hidden)visible.hidden=false;
    // LAB 0.21 — Ajuste visual únicamente: tarjeta menor y más baja,
    // siempre centrada sobre Invitar y sin invadir la cabecera.
    const isCompact=innerWidth<650;
@@ -20608,6 +20608,7 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
      previousPosition=pos;
    }
  }
+ document.addEventListener('dfc:home-visibility',locate);
  addEventListener('resize',locate,{passive:true});addEventListener('orientationchange',locate,{passive:true});
  addEventListener('scroll',locate,{passive:true,capture:true});
  setInterval(()=>{locate();if(!document.hidden)update()},30000);
@@ -20647,7 +20648,7 @@ body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card.dfc-lab-foc
 <!-- Z31 · Panel administrativo de distribución y aislamiento de portada -->
 <style id="dfc-z31-admin-gifts-style">
 #dfcZ31AdminGiftsBtn{margin:5px 0;padding:10px 13px;border:1px solid #53baff;border-radius:12px;background:#082e52;color:#e5f6ff;font-weight:800;cursor:pointer}
-#dfcZ31GiftsModal[hidden],#dfcZ31AdminGiftsBtn[hidden]{display:none!important}
+#dfcZ31GiftsModal[hidden],#dfcZ31AdminGiftsBtn[hidden],#dfcLabGiftAdminLaunch008{display:none!important}
 #dfcZ31GiftsModal{position:fixed;inset:0;z-index:2147483490;background:#020b19e8;display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto}
 #dfcZ31GiftsModal .dfc-z31-box{width:min(96vw,560px);max-height:94dvh;overflow:auto;background:linear-gradient(150deg,#092b50,#050e26);border:1px solid #5bbdff;border-radius:16px;color:#f3f9ff;box-shadow:0 20px 60px #000c;padding:17px;font:14px system-ui,sans-serif}
 #dfcZ31GiftsModal .dfc-z31-head{display:flex;justify-content:space-between;gap:8px;align-items:center}
@@ -20677,9 +20678,18 @@ const sb=()=>window.dfcSupabase||window.sb;
 const selected=new Map();let mode='one',searchSeq=0,busy=false;
 function node(tag,cl,txt){const e=document.createElement(tag);if(cl)e.className=cl;if(txt!==undefined)e.textContent=txt;return e;}
 function rpc(name,args){const c=sb();if(!c?.rpc)throw Error('Sin conexión a Supabase');return c.rpc(name,args||{}).then(({data,error})=>{if(error)throw Error(error.message||'Error SQL');return data;});}
-function adminVisible(){const b=$('leaderBtn');return !!b&&!b.hidden&&!b.classList.contains('hidden')&&getComputedStyle(b).display!=='none';}
-function make(){const leader=$('leaderBtn');if(!leader||$('dfcZ31AdminGiftsBtn'))return;
-const launch=node('button','', '🎁 Distribuir tarjetas FlashCoin');launch.id='dfcZ31AdminGiftsBtn';launch.type='button';leader.insertAdjacentElement('afterend',launch);launch.onclick=()=>{if(!adminVisible())return;open()};
+function isShown(e){
+ if(!e||!e.isConnected||!e.getClientRects().length)return false;
+ for(let x=e;x&&x.nodeType===1;x=x.parentElement){
+  if(x.hidden||x.classList.contains('hidden')||x.getAttribute('aria-hidden')==='true')return false;
+  const css=getComputedStyle(x);
+  if(css.display==='none'||css.visibility==='hidden'||css.visibility==='collapse'||Number(css.opacity)===0)return false;
+ }
+ return true;
+}
+function adminVisible(){try{return typeof me!=='undefined'&&me?.role==='leader';}catch(_){return false;}}
+function make(){const host=document.querySelector('#leaderPanel .mf-admin-grid')||document.querySelector('#leaderPanel > .panel');if(!host||$('dfcZ31AdminGiftsBtn'))return;
+const launch=node('button','mf-admin-card', '🎁 Distribuir tarjetas FlashCoin');launch.id='dfcZ31AdminGiftsBtn';launch.type='button';launch.hidden=true;host.appendChild(launch);launch.onclick=()=>{if(!adminVisible()||!isShown($('leaderPanel')))return;open()};
 const modal=node('div');modal.id='dfcZ31GiftsModal';modal.hidden=true;
 modal.innerHTML=`<section class="dfc-z31-box" role="dialog" aria-modal="true" aria-label="Distribución de tarjetas FlashCoin">
 <div class="dfc-z31-head"><strong>🎁 DISTRIBUIR TARJETAS FLASHCOIN</strong><button type="button" id="dfcZ31Close" class="dfc-z31-action">✕ Cerrar</button></div>
@@ -20716,20 +20726,24 @@ catch(e){status('No se confirmó el envío: '+e.message+' (consulta el historial
 finally{busy=false;$('dfcZ31Send').disabled=false;}}
 function open(){if(!adminVisible())return;make();$('dfcZ31GiftsModal').hidden=false;status('');syncSecondary();history();}
 function close(){$('dfcZ31GiftsModal').hidden=true;syncSecondary();}
-function syncSecondary(){const app=$('appView');const visibleApp=!!app&&!app.hidden&&!app.classList.contains('hidden')&&getComputedStyle(app).display!=='none';
-const modal=$('dfcZ31GiftsModal');let overlayOpen=!!modal&&!modal.hidden;
-for(const id of ['dominoLobbyPanel','dominoTablePanel','settingsPanel','leaderPanel','balancePanel','profilePanel']){const x=$(id);if(x&&(!x.classList.contains('hidden'))&&(x.classList.contains('active')||x.classList.contains('show')||x.classList.contains('open'))){overlayOpen=true;break;}}
-if(visibleApp){for(const e of document.querySelectorAll('.overlay,.modal,[role="dialog"]')){
-if(e===modal||modal?.contains(e)||e.closest('#appView')&&e.id==='dfcZ31GiftsModal')continue;
-if(e.hidden||e.classList.contains('hidden')||e.getAttribute('aria-hidden')==='true')continue;
-const style=getComputedStyle(e);if(style.display==='none'||style.visibility==='hidden')continue;
-if(e.getClientRects().length && style.position==='fixed'){overlayOpen=true;break;}
-}}
-const secondary=!visibleApp||overlayOpen;
-if(document.body.classList.contains('dfc-z31-secondary-open')!==secondary)
+function syncSecondary(){
+ const visibleApp=isShown($('appView'));
+ const modal=$('dfcZ31GiftsModal');
+ let overlayOpen=isShown(modal);
+ if(visibleApp&&!overlayOpen){
+  for(const e of document.querySelectorAll('.overlay,.modal,[role="dialog"]')){
+   if(e===modal||modal?.contains(e)||!isShown(e))continue;
+   if(getComputedStyle(e).position==='fixed'){overlayOpen=true;break;}
+  }
+ }
+ const secondary=!visibleApp||overlayOpen;
+ if(document.body.classList.contains('dfc-z31-secondary-open')!==secondary)
   document.body.classList.toggle('dfc-z31-secondary-open',secondary);
-const b=$('dfcZ31AdminGiftsBtn');
-if(b){const hide=!adminVisible();if(b.hidden!==hide)b.hidden=hide;}}
+ const b=$('dfcZ31AdminGiftsBtn');
+ if(b){const hide=!adminVisible()||!isShown($('leaderPanel'));if(b.hidden!==hide)b.hidden=hide;}
+ if(modal&&!modal.hidden&&!adminVisible())modal.hidden=true;
+ document.dispatchEvent(new Event('dfc:home-visibility'));
+}
 // Escribir solo cambios reales: el observador también recibe nuestras escrituras.
 let secondaryFrame=0;
 function scheduleSecondary(){if(secondaryFrame)return;secondaryFrame=requestAnimationFrame(()=>{secondaryFrame=0;syncSecondary();});}
