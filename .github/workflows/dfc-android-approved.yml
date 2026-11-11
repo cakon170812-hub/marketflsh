@@ -89,6 +89,9 @@ jobs:
               stop('El manifiesto anterior tiene una versión inválida.')
 
           html = git('show', f'{approved}:index.html')
+          updated_bridge = git('show', f'{approved}:native-bridge.js')
+          if b'CapacitorUpdater' not in updated_bridge or b'dfcOTAUserButton' not in updated_bridge:
+              stop('El puente aprobado no incluye el actualizador Android.')
           parser = AppVersion()
           parser.feed(html.decode('utf-8'))
           if parser.values != [version] or not parser.has_native_bridge:
@@ -116,9 +119,15 @@ jobs:
                       stop('El puente compilado del paquete anterior no incluye el actualizador.')
                   with zipfile.ZipFile(bundle, 'x', zipfile.ZIP_DEFLATED) as new_zip:
                       for name in names:
-                          new_zip.writestr(name, html if name == 'index.html' else old_zip.read(name))
+                          if name == 'index.html':
+                              contents = html
+                          elif name == 'native-bridge.js':
+                              contents = updated_bridge
+                          else:
+                              contents = old_zip.read(name)
+                          new_zip.writestr(name, contents)
               with zipfile.ZipFile(bundle) as new_zip:
-                  if new_zip.testzip() is not None or new_zip.read('index.html') != html:
+                  if new_zip.testzip() is not None or new_zip.read('index.html') != html or new_zip.read('native-bridge.js') != updated_bridge:
                       stop('El ZIP nuevo no contiene el HTML aprobado o está dañado.')
               manifest = {
                   'version': version,
