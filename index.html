@@ -38,7 +38,7 @@ body{background-image:var(--dfc-z26-official-wallpaper)!important;background-siz
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
 <meta content="no-cache" http-equiv="Pragma"/>
 <meta content="0" http-equiv="Expires"/>
-<meta content="0.12Z.31" name="application-version"/>
+<meta content="0.12Z.32" name="application-version"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" name="viewport"/>
 <meta content="#081b39" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
@@ -2940,6 +2940,28 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020{
   console.info('[DFC] Web '+version+' / LAB VISUAL 0.21 / recarga automática desactivada');
 })();
 </script>
+
+<style id="dfc-z32-mobile-safe-layout">
+html.dfc-android-native,html.dfc-android-native body{
+ width:100%;max-width:100%;min-height:100dvh;
+}
+html.dfc-android-native #dominoTablePanel{
+ box-sizing:border-box!important;width:100vw!important;max-width:100vw!important;
+ min-height:100dvh!important;
+ padding:max(4px,env(safe-area-inset-top,0px))
+         max(6px,env(safe-area-inset-right,0px))
+         max(4px,env(safe-area-inset-bottom,0px))
+         max(6px,env(safe-area-inset-left,0px))!important;
+}
+@media (orientation:landscape) and (max-height:540px){
+ html.dfc-android-native #dominoTablePanel .domino-game-panel{
+   max-width:100%!important;min-width:0!important;
+ }
+ html.dfc-android-native #dominoTablePanel .domino-stage{
+   max-width:100%!important;max-height:calc(100dvh - 42px)!important;
+ }
+}
+</style>
 </head>
 <body>
 <div aria-label="Preparando DOMINÓ FLASH COIN" aria-live="polite" id="dfc-z9-loader" role="status"><div><span class="logo">💎</span><strong>DOMINÓ FLASH COIN</strong><p id="dfc-z27-loader-note">Preparando la aplicación…</p><div aria-label="Progreso visual de carga" aria-valuemax="100" aria-valuemin="0" aria-valuenow="1" id="dfc-z27-loading-track" role="progressbar" style="display:block;width:min(76vw,320px);height:10px;min-height:10px;margin:18px auto 9px;overflow:hidden;border-radius:99px;background:#ffffff26;border:1px solid #dfbd6d"><div id="dfc-z27-loading-fill" style="display:block;width:100%;height:100%;transform:scaleX(.01);transform-origin:left center;background:linear-gradient(90deg,#ba872b,#ffe8a4)"></div></div><output id="dfc-z27-percent">1%</output><p hidden="" id="dfc-z27-loader-error"></p></div></div>
@@ -11644,24 +11666,33 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script id="dfc011-new-visual-behavior">
 (function(){'use strict';
  const el=id=>document.getElementById(id);
- let handId='',visible=0,dealSince=0,phase='',lastSeenMove='',shownWins=new Set(),passMarks=new Map(),timer=0;
+ let handId='',visible=0,dealSince=0,phase='',lastSeenMove='',shownWins=new Set(),passMarks=new Map(),timer=0,stableTiles=[],stableAt=0;
  function redraw(){if(typeof window.dominoState==='undefined'||!window.dominoState)return; /* state refresh driven by server polling */ }
  window.dfc11VisibleTiles=function(st,tiles){
    const h=st?.hand,key=String(h?.id||''),status=String(h?.status||'');
-   if(!key||!h){handId='';phase='';visible=0;return tiles}
-   if(key!==handId){handId=key;phase=status;visible=status==='playing'?tiles.length:0;dealSince=0;passMarks.clear();}
+   if(!key||!h){handId='';phase='';visible=0;stableTiles=[];return tiles}
+   if(key!==handId){handId=key;phase=status;visible=status==='playing'?tiles.length:0;dealSince=0;stableTiles=[];stableAt=0;passMarks.clear();}
+   if(Array.isArray(tiles)&&tiles.length){stableTiles=tiles.slice();stableAt=Date.now();}
+   const canHold=status==='playing'&&h.me_in_hand===true&&
+     (!Array.isArray(tiles)||tiles.length===0)&&stableTiles.length>0&&
+     Date.now()-stableAt<1200&&!h.winner_user_id;
+   const source=canHold?stableTiles:(Array.isArray(tiles)?tiles:[]);
    if(status==='shuffling'){phase='shuffling';visible=0;return []}
    if(status==='playing'){
-      if(phase==='shuffling'){dealSince=Date.now();visible=0;phase='dealing'}
-      if(phase==='dealing'){
-        const count=Math.min(tiles.length,Math.floor((Date.now()-dealSince)/115));
-        visible=Math.max(visible,count);
-        if(visible>=tiles.length)phase='playing';
-        else if(!timer){timer=setInterval(()=>{if(phase==='dealing'&&typeof dominoState!=='undefined'&&dominoState&&typeof renderDominoState==='function'&&!dominoDragState?.active)renderDominoState(dominoState);else{clearInterval(timer);timer=0}},125)}
-        return tiles.slice(0,visible)
-      }
+     if(phase==='shuffling'){dealSince=Date.now();visible=0;phase='dealing'}
+     if(phase==='dealing'){
+       const elapsed=Math.max(0,Date.now()-dealSince);
+       visible=Math.max(visible,Math.min(source.length,Math.ceil(elapsed/3000*source.length)));
+       if(elapsed>=3000){phase='playing';visible=source.length;}
+       else if(!timer){timer=setInterval(()=>{
+         if(phase==='dealing'&&typeof dominoState!=='undefined'&&dominoState&&
+            typeof renderDominoState==='function'&&!dominoDragState?.active)renderDominoState(dominoState);
+         else{clearInterval(timer);timer=0}
+       },50)}
+       return source.slice(0,Math.min(visible,source.length));
+     }
    }
-   phase=status;return tiles;
+   phase=status;return source;
  };
  function lastNumbers(m){let t=m?.tile||m?.played_tile||m?.domino||m?.tile_value;
    if(typeof t==='string'){try{t=JSON.parse(t)}catch(_){let z=t.match(/([0-6])\D+([0-6])/);if(z)t=[+z[1],+z[2]]}}
@@ -11899,7 +11930,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #dfc012c-scene .coin:after{content:'ϟ';position:absolute;inset:0;display:grid;place-items:center;font-size:11px;font-weight:900;color:#714406;}
 #dfc012c-scene .coin.fly{transform:translate(var(--dx),var(--dy)) scale(.15);opacity:0}
 #dominoBoard .dfc012c-final{position:relative!important;z-index:21000!important;transform:scale(1.2)!important;filter:brightness(1.5) drop-shadow(0 0 14px #ffe58a)!important}
-#dominoTablePanel.dfc012c-locked #dominoHand{visibility:hidden!important;pointer-events:none!important}
+#dominoTablePanel.dfc012c-locked #dominoHand{visibility:visible!important;pointer-events:none!important}
 #dominoTablePanel.dfc012c-locked #dominoHand *{pointer-events:none!important}
 #dominoTablePanel.dfc012c-locked #dominoBoard{pointer-events:none!important}
 #dfc012c-rack{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);display:flex;gap:3px;align-items:center;z-index:22001;pointer-events:none;}
@@ -11983,7 +12014,7 @@ function dealing(st,id,end){
  if(tiles.length<28){for(let i=tiles.length;i<28;i++)tiles.push(back(25+Math.random()*50,20+Math.random()*55));}
  center.querySelectorAll('.phase-title').forEach(e=>e.remove());rack()?.replaceChildren();
  const title=text('REPARTIENDO FICHAS');
- const n=count(st),total=7*n,duration=Math.max(1200,Math.min(7000,end-Date.now())),step=duration/total;
+ const n=count(st),total=7*n,duration=3000,step=duration/total;
  const spots=[{x:50,y:85},{x:83,y:50},{x:50,y:15},{x:17,y:50}];
  const mine=Array.from($('dominoHand')?.querySelectorAll('.domino-piece.hand-piece')||[]);
  for(let i=0;i<total;i++)schedule(()=>{
@@ -12004,7 +12035,7 @@ function dealing(st,id,end){
    stop();center.replaceChildren();rack()?.replaceChildren();phase='ready-wait';lock(true);
    text('INICIANDO LA PARTIDA');
    if(typeof loadDominoState==='function')loadDominoState(false,false).catch(()=>{});
- },duration+150);
+ },duration+60);
 }
 
 function parseTime(v){const n=Date.parse(v||'');return Number.isFinite(n)?n:0}
