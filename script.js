@@ -298,6 +298,7 @@
   'use strict';
   if (window.dfcZ32Audio) return;
   let ctx = null, enabled = true, musicTimer = null, melodyIndex = 0;
+  let lastNavigation = 0;
   let lastEffect = Object.create(null);
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   const melody = [392, 493.88, 587.33, 493.88, 440, 392, 329.63, 392,
@@ -336,6 +337,15 @@
       tone(170,0.085,0.085,'triangle'); tone(115,0.09,0.045,'sine',0.06);
     } else if (kind==='pass') {
       tone(310,0.13,0.07,'sawtooth'); tone(225,0.14,0.06,'triangle',0.1);
+    } else if (kind==='explode' || kind==='burst') {
+      tone(145,0.12,0.075,'triangle');
+      [780,1046.5,1318.5,1568,2093].forEach((f,i)=>tone(f,0.17,0.047,'sine',i*0.065));
+    } else if (kind==='open' || kind==='panel') {
+      tone(450,0.085,0.03,'sine'); tone(680,0.11,0.032,'triangle',0.055);
+    } else if (kind==='close' || kind==='back') {
+      tone(680,0.065,0.028,'sine'); tone(380,0.085,0.027,'triangle',0.06);
+    } else if (kind==='error') {
+      tone(290,0.14,0.045,'triangle'); tone(230,0.16,0.04,'triangle',0.12);
     } else if (kind==='win') {
       [440,554.37,659.25,880].forEach((f,i)=>tone(f,0.23,0.06,'triangle',i*0.12));
     } else {
@@ -360,20 +370,47 @@
   }
   function classify(el) {
     const text=((el?.innerText||el?.textContent||'')+' '+(el?.id||'')+' '+(el?.className?.baseVal||el?.className||'')).toLowerCase();
+    if (/explosi[oó]n|explode|burst|estallar|monedas/.test(text)) return 'explode';
     if (/capic[uú]a/.test(text)) return 'capicua';
+    if (/cerrar|volver|salir|atr[aá]s|close|back/.test(text)) return 'close';
+    if (/abrir|panel|men[uú]|opciones|configurar|open/.test(text)) return 'open';
     if (/flash.?coin|tarjeta|card|recompensa|premio/.test(text)) return 'card';
     if (/domin[oó]|jugar|ficha|tirar|playtile/.test(text)) return 'domino';
     if (/pasar|pase|no voy/.test(text)) return 'pass';
     if (/gan[aó]|victoria|ganador/.test(text)) return 'win';
     return 'tap';
   }
+  // El primer toque habilita el audio (autoplay en Android, iOS y navegadores).
+  // Se reproduce el efecto solo para controles activos; no al arrastrar la pantalla.
   document.addEventListener('pointerdown', (event) => {
-    const target=event.target?.closest?.('button,[role="button"],a,input[type="button"],input[type="submit"],[onclick],.dfc-card,.flashcoin-card,.dfc-lab-gift-card,.domino-tile,.domino-hand-tile,[data-sound]');
-    if (!target || target.disabled) return;
-    bootMusic(); effect(target.dataset?.sound || classify(target));
+    bootMusic();
+    const el=event.target;
+    const target=el?.closest?.('button,[role="button"],a,input[type="button"],input[type="submit"],input[type="checkbox"],input[type="radio"],select,[onclick],[data-action],[data-sound],.dfc-card,.flashcoin-card,.dfc-lab-gift-card,.domino-tile,.domino-hand-tile,.clickable,.btn');
+    if (!target || target.disabled || target.getAttribute('aria-disabled')==='true') return;
+    effect(target.dataset?.sound || classify(target));
   }, {passive:true,capture:true});
+  // Un solo sonido por navegación; funciona con componentes que no sean botones.
+  document.addEventListener('click', (event) => {
+    const element=event.target?.closest?.('[role="tab"],[role="menuitem"],summary,[data-nav],[data-screen]');
+    if (!element || element.disabled) return;
+    const now=Date.now();
+    if (now-lastNavigation>150) {lastNavigation=now;effect(classify(element));}
+  }, {passive:true,capture:true});
+  // Detecta las animaciones Flash Coin ya existentes sin modificar su lógica.
+  document.addEventListener('animationstart', (event) => {
+    const target=event.target;
+    if (!(target instanceof Element)) return;
+    const id=(String(event.animationName||'')+' '+String(target.id||'')+' '+String(target.className||'')).toLowerCase();
+    if (/flash.?coin|moneda|coin|gift|tarjeta/.test(id) && /explod|burst|estall|scatter|confetti|particul|explosi|flycoin/.test(id)) {
+      effect('explode');
+    }
+  }, {capture:true});
+  document.addEventListener('dfc:flashcoin:explode',()=>{bootMusic();effect('explode');});
+  document.addEventListener('dfc:flashcoin:open',()=>{bootMusic();effect('open');});
+  window.addEventListener('pageshow',()=>{if(ctx?.state==='running')bootMusic();});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden && ctx?.state==='running')bootMusic();});
   document.addEventListener('keydown',(event)=>{
-    if (event.key==='Enter' || event.key===' ') {bootMusic();const b=event.target?.closest?.('button,[role="button"]');if(b)effect(classify(b));}
+    if (event.key==='Enter' || event.key===' ') {bootMusic();const b=event.target?.closest?.('button,[role="button"],a,[role="tab"],summary');if(b)effect(classify(b));}
   },{capture:true});
   // Eventos explícitos para jugadas, premios o animación de explosión.
   document.addEventListener('dfc:sound',(event)=>{bootMusic();effect(event.detail?.kind||'tap');});
