@@ -6753,7 +6753,7 @@ function renderDominoState(st){
       const share=Number(lr.player_count||0)===4?Math.round(normalPrize*500)/1000:normalPrize;
       const basic='¡FELICIDADES! Premio de la partida: '+mfCash(share)+'.';
       $('dominoVictoryText').textContent=ownCapicua
-        ? '¡CAPICÚA! ¡FELICIDADES! '+basic+' Verificando tu bono adicional del 1%…'
+        ? '¡CAPICÚA! ¡FELICIDADES! '+basic+' Tu bono del 10% aparecerá en una tarjeta para reclamar.'
         : capicua ? '¡FELICIDADES! Tu equipo ganó por capicúa. '+basic
         : (lr.winner_reason==='TRANQUE_MENOS_PUNTOS'?'¡FELICIDADES! Ganaste por tener menos puntos. ':'¡FELICIDADES! Cerraste con tu última ficha. ')+basic;
       const victory=$('dominoVictory');
@@ -6773,12 +6773,12 @@ function renderDominoState(st){
           }
           if(data.status==='paid'){
             const scope=data.credited_to==='mesa'?'saldo de tu mesa':'balance principal';
-            $('dominoVictoryText').textContent='¡CAPICÚA! ¡FELICIDADES! '+basic+' ¡Has recibido +'+Number(data.amount).toFixed(3)+' de bono especial (1% del bote), acreditados al '+scope+'!';
+            $('dominoVictoryText').textContent='¡CAPICÚA! ¡FELICIDADES! '+basic+' ¡Has recibido +'+Number(data.amount).toFixed(3)+' de bono especial (10% del bote), acreditados al '+scope+'!';
             try{await loadMe();renderMe()}catch(_){ }
             // Refrescar el saldo de mesa confirmado por Supabase.
             if(dominoCurrentTableId)loadDominoState(false,true).catch(()=>{});
           }else if(data.status==='pending'){
-            $('dominoVictoryText').textContent='¡CAPICÚA! ¡FELICIDADES! '+basic+' Bono especial de '+mfCash(data.amount)+' pendiente de fondos administrativos; aún no acreditado.';
+            $('dominoVictoryText').textContent='¡CAPICÚA! ¡FELICIDADES! '+basic+' Bono especial del 10%: '+mfCash(data.amount)+' FC. Reclama la tarjeta Flash Coin cuando aparezca.';
             if(tries<12)setTimeout(()=>pollBonus(tries+1),2500);
           }
         };
@@ -8381,8 +8381,12 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
           dominoLobbyData=fresh;
           if(fresh.my_table)
             throw new Error('Ya tienes un asiento activo. Vuelve a tu mesa desde el listado.');
-          const observed=(fresh.tables||[]).find(t=>Number(t.id)===observedId);
-          if(!observed)throw new Error('Esta mesa dejó de estar disponible. Vuelve al listado.');
+          let observed=(fresh.tables||[]).find(t=>Number(t.id)===observedId);
+          if(!observed){
+            const {data:check,error:checkError}=await sb.rpc('rf_domino_table_availability_z32',{p_table_id:observedId});
+            if(checkError || !check?.available)throw new Error('Esta mesa no está disponible. Vuelve al listado.');
+            observed={id:observedId,config_id:Number(check.config_id)};
+          }
           const config=(fresh.configs||[]).find(c=>Number(c.id)===Number(observed.config_id));
           if(!config)throw new Error('No se pudo identificar la modalidad de esta mesa.');
           const minimum=Number(config.min_entry||0);
@@ -16665,7 +16669,7 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 </script>
 <script id="dfc-z27-html-ready-signal">document.dispatchEvent(new Event("dfc-z27-html-ready"));</script>
 <link rel="stylesheet" href="./style.css?v=0.12Z.31">
-<script src="./script.js?v=0.12Z.31" defer></script>
+<script src="./script.js?v=0.12Z.32" defer></script>
 <script src="./native-bridge.js?v=0.12Z.31" type="module"></script>
 <style id="dfc-z27-shared-home-lobby-wallpaper">
 #appView.bg.dfc09-view,
