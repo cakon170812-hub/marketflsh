@@ -554,11 +554,23 @@
     overlay.style.cssText='position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at center,#102548ed,#010712f5);font-family:system-ui,sans-serif;overflow:auto;';
     const btn=document.createElement('button');
     btn.type='button';btn.dataset.sound='card';
-    btn.style.cssText='position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:min(88vw,440px);min-height:min(72vh,520px);padding:24px 18px;border:4px solid #ffdf81;border-radius:30px;background:radial-gradient(circle at 50% 26%,#ffca52,#99550f 48%,#2b170c 100%);color:#fff4ce;box-shadow:0 0 38px #ffcb5790,0 20px 70px #000c;text-shadow:0 2px 4px #4b2600;cursor:pointer;touch-action:manipulation;';
+    // Usar la misma tarjeta nativa del HTML, sin sustituirla por un diseño dorado.
+    btn.className='dfc-lab-gift-preview019 dfc-z31-gift-choice dfc-z32-native-announcement';
+    btn.style.cssText='position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:min(88vw,440px);height:min(72vh,520px);min-height:260px;max-height:540px;padding:24px 18px;cursor:pointer;touch-action:manipulation;transform-origin:center;box-sizing:border-box;background-size:cover;background-position:center;';
+    // La clase original conserva sus ilustraciones, bordes, colores y efectos.
+    const nativeCard=document.querySelector('#dfcLabGiftUser008 .dfc-lab-gift-preview019');
+    const nativeStyle=nativeCard?getComputedStyle(nativeCard):null;
+    if(nativeStyle){
+      for(const prop of ['background-image','background-color','border','border-radius','box-shadow','color']){
+        const value=nativeStyle.getPropertyValue(prop);
+        if(value)btn.style.setProperty(prop,value);
+      }
+    }
     const top=document.createElement('div');top.textContent='🎁 NUEVA TARJETA FLASHCOIN';
     top.style.cssText='font:900 clamp(17px,4vw,25px) system-ui;text-align:center;letter-spacing:.4px;';
-    const coin=document.createElement('div');coin.textContent='🪙';
-    coin.style.cssText='font-size:clamp(90px,20vw,160px);line-height:1;filter:drop-shadow(0 9px 12px #0007);';
+    // No dibujar una moneda ajena: conservar la ilustración FlashCoin nativa de CSS.
+    const coin=document.createElement('div');coin.className='dfc-z32-native-card-art';
+    coin.style.cssText='flex:1;min-height:30px;width:100%;pointer-events:none;';
     const amount=document.createElement('strong');amount.textContent=money(card.amount);
     amount.style.cssText='font:900 clamp(36px,10vw,65px) system-ui;color:#fff;text-align:center;';
     const instruction=document.createElement('span');instruction.textContent='TOCA LA TARJETA PARA GUARDARLA';
@@ -652,7 +664,9 @@
       (status==='playing'&&document.getElementById('dominoTablePanel')?.classList.contains('dfc-z32-progressive-deal')));
     expected=isEmptyOrDealing?(status==='shuffling'?0:shown.length):null;
     const gen=++generation;
-    requestAnimationFrame(()=>{sync(gen);requestAnimationFrame(()=>sync(gen));});
+    // Sincronizar en el mismo ciclo de render; no esperar a que termine el reparto.
+    sync(gen);
+    requestAnimationFrame(()=>sync(gen));
   }
   function install(){
     const current=window.dfc11VisibleTiles;
