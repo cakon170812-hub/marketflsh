@@ -384,3 +384,97 @@
     get requiresInteraction(){return !ctx || ctx.state!=='running';}
   });
 })();
+
+/* DOMINÓ FLASH COIN Z32 — Tarjetas de capicúa reclamables.
+   La autorización, importe y acreditación se verifican en Supabase.
+   La interfaz nunca altera saldo por su cuenta. */
+(function dfcZ32CapicuaCards() {
+ 'use strict';
+ if(window.dfcZ32CapicuaCards) return;
+ let cards=[], busy=false, lastPoll=0, inflight=false;
+ const fc=n=>Number(n||0).toLocaleString('es-DO',{minimumFractionDigits:3,maximumFractionDigits:3});
+ function client(){
+   if(window.dfcWebIntegration?.getClientAvailable?.()) {
+     for(const c of [window.sb,window.dfcSupabase,window.supabaseClient,window.rfSupabase])
+       if(c&&typeof c.rpc==='function')return c;
+   }
+   for(const c of [window.sb,window.dfcSupabase,window.supabaseClient,window.rfSupabase])
+     if(c&&typeof c.rpc==='function'&&typeof c.auth?.getSession==='function')return c;
+   return null;
+ }
+ function host(){
+   let h=document.getElementById('dfcZ32CapicuaHost');
+   if(h)return h;
+   h=document.createElement('div');h.id='dfcZ32CapicuaHost';
+   h.style.cssText='position:fixed;right:12px;bottom:calc(15px + env(safe-area-inset-bottom));z-index:1500;display:flex;flex-direction:column;gap:7px;max-width:min(260px,45vw);pointer-events:none;';
+   document.body.append(h);return h;
+ }
+ function onScreen(){
+   if(document.hidden)return false;
+   const table=document.getElementById('dominoTablePanel');
+   const main=document.getElementById('appView');
+   return !!(table?.classList.contains('active') || (main && !main.classList.contains('hidden')));
+ }
+ function render(){
+   const h=host();
+   h.replaceChildren();
+   h.style.display=onScreen()&&cards.length?'flex':'none';
+   cards.slice(0,3).forEach(b=>{
+     const btn=document.createElement('button');btn.type='button';btn.dataset.sound='card';
+     btn.style.cssText='pointer-events:auto;border:2px solid #ffe69a;border-radius:12px;background:linear-gradient(135deg,#39230a,#d39321 54%,#68400b);color:#fff6d5;padding:8px 11px;font:800 12px system-ui;box-shadow:0 3px 15px #000a;text-align:center;min-height:50px;max-width:100%;';
+     btn.textContent='🪙 CAPICÚA · +'+fc(b.amount)+' FC · TOCAR PARA RECLAMAR';
+     btn.disabled=busy;btn.onclick=()=>void claim(b,btn);
+     h.append(btn);
+   });
+   if(cards.length>3){
+     const extra=document.createElement('small');extra.textContent='+'+(cards.length-3)+' tarjetas pendientes';
+     extra.style.cssText='text-align:right;color:#ffe6a3;font:700 11px system-ui;text-shadow:0 1px 3px #000';
+     h.append(extra);
+   }
+ }
+ async function refresh(force=false){
+   if(inflight || !onScreen() || (!force&&Date.now()-lastPoll<12000))return;
+   const db=client();if(!db)return;
+   inflight=true;lastPoll=Date.now();
+   try{
+     const {data,error}=await db.rpc('rf_domino_pending_capicua_z32');
+     if(error)throw error;
+     cards=Array.isArray(data)?data.filter(v=>v&&Number(v.amount)>0):[];
+     render();
+   }catch(e){console.warn('[DFC Z32 tarjetas]',String(e?.message||e));}
+   finally{inflight=false;}
+ }
+ async function claim(b,btn){
+   if(busy || !b?.hand_id)return;
+   const db=client();if(!db)return;
+   busy=true;btn.disabled=true;
+   try{
+     const {data,error}=await db.rpc('rf_domino_claim_capicua_z32',{p_hand_id:b.hand_id});
+     if(error)throw error;
+     if(!data?.ok)throw new Error(data?.message||'No se pudo reclamar la tarjeta');
+     const dest=document.getElementById('balanceBtn')||document.getElementById('balanceTop');
+     window.dfcZ32Audio?.play('flashcoin');
+     if(dest){
+       const rect=dest.getBoundingClientRect(),src=btn.getBoundingClientRect();
+       if(typeof btn.animate==='function'){
+         const a=btn.animate([{opacity:1,transform:'scale(1)'},{opacity:.05,transform:'translate('+
+           (rect.left-src.left)+'px,'+(rect.top-src.top)+'px) scale(.2)'}],
+           {duration:650,easing:'ease-in',fill:'forwards'});
+         await a.finished.catch(()=>{});
+       }
+     }
+     cards=cards.filter(v=>String(v.hand_id)!==String(b.hand_id));
+     if(typeof window.loadMe==='function')await window.loadMe().catch(()=>{});
+     if(typeof window.renderMe==='function')window.renderMe();
+     document.dispatchEvent(new CustomEvent('dfc:z32:capicua-claimed',{detail:{amount:data.amount,hand_id:b.hand_id}}));
+   }catch(e){alert('No se pudo reclamar la tarjeta: '+String(e?.message||e));}
+   finally{busy=false;render();}
+ }
+ window.dfcZ32CapicuaCards=Object.freeze({refresh:()=>refresh(true)});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh(true);else render();});
+ document.addEventListener('click',()=>{if(onScreen())void refresh(false);},{passive:true});
+ document.addEventListener('dfc:z32:capicua-settled',()=>void refresh(true));
+ setInterval(()=>void refresh(false),14000);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>void refresh(true),{once:true});
+ else void refresh(true);
+})();
