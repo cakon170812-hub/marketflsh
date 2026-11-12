@@ -618,3 +618,54 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>void refresh(),{once:true});
   else void refresh();
 })();
+
+
+/* DFC Z32 — sincronizar fichas visibles y ocultar piezas anticipadas */
+(function dfcZ32DealRackVisibility(){
+  'use strict';
+  if(window.dfcZ32DealRackVisibility)return;
+  let expected=null, activeHand='', generation=0;
+  const selectors='#dominoHand .hand-piece';
+  function sync(gen){
+    if(gen!==generation)return;
+    const pieces=Array.from(document.querySelectorAll(selectors));
+    pieces.forEach((piece,index)=>{
+      if(expected!==null && index>=expected){
+        if(piece.dataset.dfcZ32RackSuppressed!=='1'){
+          piece.dataset.dfcZ32RackSuppressed='1';
+          piece.dataset.dfcZ32RackOriginalVisibility=piece.style.visibility||'';
+        }
+        piece.style.setProperty('visibility','hidden','important');
+        piece.style.setProperty('pointer-events','none','important');
+      }else if(piece.dataset.dfcZ32RackSuppressed==='1'){
+        piece.style.visibility=piece.dataset.dfcZ32RackOriginalVisibility||'';
+        piece.style.removeProperty('pointer-events');
+        delete piece.dataset.dfcZ32RackSuppressed;
+        delete piece.dataset.dfcZ32RackOriginalVisibility;
+      }
+    });
+  }
+  function apply(st,shown){
+    const h=st?.hand, id=String(h?.id||''), status=String(h?.status||'');
+    if(id!==activeHand){activeHand=id;expected=null;}
+    const isEmptyOrDealing=!!id&&(status==='shuffling'||
+      (status==='playing'&&document.getElementById('dominoTablePanel')?.classList.contains('dfc-z32-progressive-deal')));
+    expected=isEmptyOrDealing?(status==='shuffling'?0:shown.length):null;
+    const gen=++generation;
+    requestAnimationFrame(()=>{sync(gen);requestAnimationFrame(()=>sync(gen));});
+  }
+  function install(){
+    const current=window.dfc11VisibleTiles;
+    if(typeof current!=='function'||current.__dfcZ32RackGuard)return;
+    const guarded=function(st,tiles){
+      const result=current.apply(this,arguments);
+      try{apply(st,Array.isArray(result)?result:[]);}catch(err){console.warn('[DFC Z32 reparto]',err);}
+      return result;
+    };
+    guarded.__dfcZ32RackGuard=true;
+    window.dfc11VisibleTiles=guarded;
+  }
+  window.dfcZ32DealRackVisibility=Object.freeze({sync:()=>sync(generation)});
+  install();
+  setInterval(install,1000);
+})();
