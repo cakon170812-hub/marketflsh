@@ -11674,29 +11674,49 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  function redraw(){if(typeof window.dominoState==='undefined'||!window.dominoState)return; /* state refresh driven by server polling */ }
  window.dfc11VisibleTiles=function(st,tiles){
    const h=st?.hand,key=String(h?.id||''),status=String(h?.status||'');
-   if(!key||!h){handId='';phase='';visible=0;stableTiles=[];return tiles}
-   if(key!==handId){handId=key;phase=status;visible=status==='playing'?tiles.length:0;dealSince=0;stableTiles=[];stableAt=0;passMarks.clear();}
-   if(Array.isArray(tiles)&&tiles.length){stableTiles=tiles.slice();stableAt=Date.now();}
+   const incoming=Array.isArray(tiles)?tiles:[];
+   const boardLength=Array.isArray(h?.board)?h.board.length:0;
+   const panel=document.getElementById('dominoTablePanel');
+   function progress(active){panel?.classList.toggle('dfc-z32-progressive-deal',!!active);}
+   if(!key||!h){handId='';phase='';visible=0;stableTiles=[];progress(false);return incoming;}
+   if(key!==handId){
+     handId=key;dealSince=0;stableTiles=[];stableAt=0;passMarks.clear();
+     // Un cliente puede recibir primero "playing", sin haber visto "shuffling".
+     const freshHand=status==='shuffling'||(status==='playing'&&h.me_in_hand===true&&boardLength===0&&incoming.length>=6);
+     phase=freshHand?(status==='shuffling'?'shuffling':'dealing'):status;
+     visible=freshHand?0:incoming.length;
+     if(phase==='dealing')dealSince=Date.now();
+   }
+   if(incoming.length){stableTiles=incoming.slice();stableAt=Date.now();}
    const canHold=status==='playing'&&h.me_in_hand===true&&
-     (!Array.isArray(tiles)||tiles.length===0)&&stableTiles.length>0&&
-     Date.now()-stableAt<1200&&!h.winner_user_id;
-   const source=canHold?stableTiles:(Array.isArray(tiles)?tiles:[]);
-   if(status==='shuffling'){phase='shuffling';visible=0;return []}
+     !incoming.length&&stableTiles.length>0&&Date.now()-stableAt<1200&&!h.winner_user_id;
+   const source=canHold?stableTiles:incoming;
+   if(status==='shuffling'){
+     phase='shuffling';visible=0;progress(false);return [];
+   }
    if(status==='playing'){
-     if(phase==='shuffling'){dealSince=Date.now();visible=0;phase='dealing'}
-     if(phase==='dealing'){
+     if(phase==='shuffling'){dealSince=Date.now();visible=0;phase='dealing';}
+     if(phase==='dealing'&&boardLength===0&&h.me_in_hand===true){
+       if(!dealSince)dealSince=Date.now();
        const elapsed=Math.max(0,Date.now()-dealSince);
-       visible=Math.max(visible,Math.min(source.length,Math.ceil(elapsed/3000*source.length)));
-       if(elapsed>=3000){phase='playing';visible=source.length;}
-       else if(!timer){timer=setInterval(()=>{
-         if(phase==='dealing'&&typeof dominoState!=='undefined'&&dominoState&&
-            typeof renderDominoState==='function'&&!dominoDragState?.active)renderDominoState(dominoState);
-         else{clearInterval(timer);timer=0}
-       },50)}
+       // Siete fichas: una nueva aproximadamente cada 429 ms, hasta tres segundos.
+       const next=elapsed>=3000?source.length:Math.floor(elapsed/3000*source.length);
+       visible=Math.max(visible,Math.min(source.length,next));
+       if(elapsed>=3000){phase='playing';visible=source.length;progress(false);}
+       else{
+         progress(true);
+         if(!timer)timer=setInterval(()=>{
+           if(phase==='dealing'&&typeof dominoState!=='undefined'&&dominoState&&
+              typeof renderDominoState==='function'&&!dominoDragState?.active)renderDominoState(dominoState);
+           else{clearInterval(timer);timer=0;}
+         },55);
+       }
        return source.slice(0,Math.min(visible,source.length));
      }
+     // El servidor ya admitió una jugada: no retrasar ni esconder fichas.
+     if(phase==='dealing'&&boardLength>0){phase='playing';visible=source.length;}
    }
-   phase=status;return source;
+   phase=status;progress(false);return source;
  };
  function lastNumbers(m){let t=m?.tile||m?.played_tile||m?.domino||m?.tile_value;
    if(typeof t==='string'){try{t=JSON.parse(t)}catch(_){let z=t.match(/([0-6])\D+([0-6])/);if(z)t=[+z[1],+z[2]]}}
@@ -21241,6 +21261,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 
 </script>
+
+<style id="dfc-z32-deal-visual-stable">
+/* Z32: fichas entregadas visibles y definitivas durante reparto de 3 segundos. */
+#dominoTablePanel.dfc-z32-progressive-deal #dominoHand {
+  visibility:visible!important;opacity:1!important;display:flex!important;
+}
+#dominoTablePanel.dfc-z32-progressive-deal #dominoHand .hand-piece {
+  visibility:visible!important;opacity:1!important;animation:none!important;
+  transition:opacity .12s ease-out!important;
+}
+#dominoTablePanel.dfc-z32-progressive-deal #dominoStage.dfc011-dealing #dominoHand .hand-piece{
+  animation:none!important;
+}
+/* El overlay puede animar dorsos, pero no ocultar las fichas ya repartidas. */
+#dominoTablePanel.dfc-z32-progressive-deal.dfc012a-dealing #dominoHand,
+#dominoTablePanel.dfc-z32-progressive-deal.dfc011w-clear #dominoHand{
+  visibility:visible!important;opacity:1!important;
+}
+</style>
 </body>
 
 </html>
