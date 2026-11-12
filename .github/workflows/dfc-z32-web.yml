@@ -1,0 +1,41 @@
+name: DOMINÓ FLASH COIN Z32 - integrar HTML web
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/dfc-z32-web.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: dfc-z32-html-main
+  cancel-in-progress: false
+jobs:
+  integrar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - name: Aplicar integración Z32 sobre el HTML oficial
+        run: python3 tools/dfc_z32_patch.py
+      - name: Verificar código de audio y tarjetas
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check script.js
+          grep -q 'dfcZ32Audio' script.js
+          grep -q 'dfcZ32CapicuaCards' script.js
+          grep -q 'script.js?v=0.12Z.32' index.html
+          grep -q 'rf_domino_table_availability_z32' index.html
+      - name: Guardar HTML integrado en main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add index.html
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Z32: integrar audio tarjetas y validación de mesas en HTML oficial'
+            git push origin HEAD:main
+          fi
