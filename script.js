@@ -683,3 +683,79 @@
   install();
   setInterval(install,1000);
 })();
+
+
+/* Z32 — Controles administrativos de caducidad y revisión de tarjetas. */
+(function dfcZ32ExpiryAdminControls(){
+ 'use strict';
+ if(window.dfcZ32ExpiryAdminControls)return;
+ const $=id=>document.getElementById(id);
+ const getDb=()=>[window.sb,window.dfcSupabase,window.supabaseClient,window.rfSupabase]
+   .find(x=>x&&typeof x.rpc==='function'&&typeof x.auth?.getSession==='function');
+ async function rpc(name,args){
+   const db=getDb();if(!db)throw Error('No hay conexión con Supabase');
+   const {data,error}=await db.rpc(name,args||{});
+   if(error)throw Error(error.message||String(error));
+   return data;
+ }
+ function build(){
+   const main=$('dfcZ31GiftsModal');
+   const box=main?.querySelector('.dfc-z31-box');
+   if(!box||$('dfcZ32ExpiryControls'))return;
+   const section=document.createElement('section');
+   section.id='dfcZ32ExpiryControls';
+   section.style.cssText='border-top:1px solid #64b9ee88;margin-top:14px;padding-top:12px;display:grid;gap:9px;';
+   const head=document.createElement('strong');
+   head.textContent='⏳ Caducidad de tarjetas FlashCoin';
+   const desc=document.createElement('p');
+   desc.textContent='Configura el vencimiento de nuevas tarjetas. Las ya enviadas conservan su fecha actual.';
+   desc.style.cssText='font-size:12px;margin:0;color:#cae7fb';
+   const line=document.createElement('div');
+   line.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center;';
+   const select=document.createElement('select');
+   select.id='dfcZ32ExpiryDays';
+   select.setAttribute('aria-label','Caducidad de nuevas tarjetas');
+   select.style.cssText='min-width:120px;flex:1;max-width:210px;padding:9px;color:#fff;background:#103657;border:1px solid #6caad4;border-radius:9px;';
+   for(const [v,t] of [['','Sin caducidad'],['1','1 día'],['3','3 días'],['7','7 días'],['15','15 días'],['30','30 días']]){
+     const o=document.createElement('option');o.value=v;o.textContent=t;select.append(o);
+   }
+   const save=document.createElement('button');save.type='button';save.textContent='Guardar caducidad';
+   const review=document.createElement('button');review.type='button';review.textContent='Revisar tarjetas vencidas';
+   for(const b of [save,review]){
+     b.className='dfc-z31-action';
+     b.style.cssText='padding:9px 10px;border:1px solid #65bfff;background:#0c3c66;color:white;border-radius:9px;cursor:pointer;';
+   }
+   const status=document.createElement('p');
+   status.id='dfcZ32ExpiryStatus';status.setAttribute('role','status');
+   status.style.cssText='margin:0;font-size:12px;color:#e0effb;overflow-wrap:anywhere;';
+   const caution=document.createElement('p');
+   caution.textContent='Las devoluciones económicas automáticas aún no están habilitadas: requieren verificar previamente la reserva de fondos.';
+   caution.style.cssText='font-size:11px;color:#ffd59a;margin:0;';
+   line.append(select,save,review);section.append(head,desc,line,status,caution);
+   box.append(section);
+   async function load(){
+     try{
+       const v=await rpc('dfc_z32_admin_expiry_status');
+       select.value=v.expiry_days==null?'':String(v.expiry_days);
+       status.textContent='Tarjetas: '+v.total_cards+' · Vencidas sin reclamar: '+v.expired_unclaimed+' · Devoluciones registradas: '+v.refunds_recorded+'.';
+     }catch(e){status.textContent='No se pudo consultar la configuración: '+e.message;}
+   }
+   save.addEventListener('click',async()=>{
+     save.disabled=true;
+     try{
+       await rpc('dfc_z32_admin_expiry_config',{p_days:select.value===''?null:Number(select.value)});
+       status.textContent='Caducidad guardada para las nuevas tarjetas.';
+     }catch(e){status.textContent='Error al guardar: '+e.message;}
+     finally{save.disabled=false;}
+   });
+   review.addEventListener('click',()=>void load());
+   main.addEventListener('click',e=>{if(e.target?.id==='dfcZ31Close')return;},{passive:true});
+   $('dfcZ31AdminGiftsBtn')?.addEventListener('click',()=>void load());
+   void load();
+ }
+ window.dfcZ32ExpiryAdminControls=Object.freeze({refresh:build});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});
+ else build();
+ let checks=0;
+ const timer=setInterval(()=>{build();if($('dfcZ32ExpiryControls')||++checks>120)clearInterval(timer);},1000);
+})();
