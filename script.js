@@ -515,3 +515,106 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>void refresh(true),{once:true});
  else void refresh(true);
 })();
+
+
+/* DFC Z32 — anuncio universal de tarjetas FlashCoin recibidas */
+(function dfcZ32UniversalGiftAnnouncement(){
+  'use strict';
+  if(window.dfcZ32UniversalGiftAnnouncement)return;
+  let busy=false, presenting=false, lastUser='', current=null, queue=[], pollTimer=null;
+  const known=new Set();
+  function client(){
+    for(const k of ['sb','dfcSupabase','supabaseClient','rfSupabase']){
+      const s=window[k];
+      if(s && typeof s.rpc==='function' && typeof s.auth?.getSession==='function')return s;
+    }
+    return null;
+  }
+  function seenKey(uid){return 'dfc-z32-announced-gifts:'+uid;}
+  function readSeen(uid){
+    known.clear();
+    try{
+      const arr=JSON.parse(localStorage.getItem(seenKey(uid))||'[]');
+      if(Array.isArray(arr))arr.slice(-300).forEach(v=>known.add(String(v)));
+    }catch(e){}
+  }
+  function markSeen(uid,id){
+    known.add(String(id));
+    try{localStorage.setItem(seenKey(uid),JSON.stringify([...known].slice(-300)));}catch(e){}
+  }
+  function money(n){return Number(n).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:3})+' FC';}
+  function draw(card){
+    if(document.hidden || presenting || !card)return;
+    presenting=true;current=card;
+    const overlay=document.createElement('div');
+    overlay.id='dfcZ32GiftFullScreen';
+    overlay.setAttribute('role','dialog');
+    overlay.setAttribute('aria-modal','true');
+    overlay.setAttribute('aria-label','Nueva tarjeta FlashCoin de '+money(card.amount));
+    overlay.style.cssText='position:fixed;inset:0;z-index:2147483646;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at center,#102548ed,#010712f5);font-family:system-ui,sans-serif;overflow:auto;';
+    const btn=document.createElement('button');
+    btn.type='button';btn.dataset.sound='card';
+    btn.style.cssText='position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;width:min(88vw,440px);min-height:min(72vh,520px);padding:24px 18px;border:4px solid #ffdf81;border-radius:30px;background:radial-gradient(circle at 50% 26%,#ffca52,#99550f 48%,#2b170c 100%);color:#fff4ce;box-shadow:0 0 38px #ffcb5790,0 20px 70px #000c;text-shadow:0 2px 4px #4b2600;cursor:pointer;touch-action:manipulation;';
+    const top=document.createElement('div');top.textContent='🎁 NUEVA TARJETA FLASHCOIN';
+    top.style.cssText='font:900 clamp(17px,4vw,25px) system-ui;text-align:center;letter-spacing:.4px;';
+    const coin=document.createElement('div');coin.textContent='🪙';
+    coin.style.cssText='font-size:clamp(90px,20vw,160px);line-height:1;filter:drop-shadow(0 9px 12px #0007);';
+    const amount=document.createElement('strong');amount.textContent=money(card.amount);
+    amount.style.cssText='font:900 clamp(36px,10vw,65px) system-ui;color:#fff;text-align:center;';
+    const instruction=document.createElement('span');instruction.textContent='TOCA LA TARJETA PARA GUARDARLA';
+    instruction.style.cssText='font:800 clamp(12px,3.2vw,18px) system-ui;text-align:center;';
+    const sub=document.createElement('span');sub.textContent='Se añadirá a tus tarjetas FlashCoin pendientes';
+    sub.style.cssText='font-size:clamp(11px,2.5vw,14px);text-align:center;';
+    btn.append(top,coin,amount,instruction,sub);overlay.append(btn);document.body.append(overlay);
+    const previouslyFocused=document.activeElement;
+    btn.focus({preventScroll:true});
+    btn.addEventListener('click',async()=>{
+      if(btn.disabled)return;
+      btn.disabled=true;
+      window.dfcZ32Audio?.play('flashcoin');
+      document.dispatchEvent(new CustomEvent('dfc:flashcoin:explode',{detail:{source:'z32-gift-announcement'}}));
+      const animation=btn.animate?.([{transform:'scale(1)',opacity:1},{transform:'scale(1.12)',opacity:1,offset:.3},{transform:'scale(.15) translateY(-100px)',opacity:0}],{duration:550,easing:'ease-in',fill:'forwards'});
+      if(animation)await animation.finished.catch(()=>{});
+      markSeen(lastUser,card.gift_id);
+      overlay.remove();
+      presenting=false;current=null;
+      document.dispatchEvent(new CustomEvent('dfc:z32:gift-stored',{detail:{gift_id:card.gift_id,amount:card.amount}}));
+      if(previouslyFocused?.isConnected)previouslyFocused.focus?.({preventScroll:true});
+      if(!document.hidden && queue.length)draw(queue.shift());
+    },{once:true});
+  }
+  async function refresh(){
+    if(busy || document.hidden)return;
+    const db=client();if(!db)return;
+    busy=true;
+    try{
+      const auth=await db.auth.getSession();
+      const uid=auth?.data?.session?.user?.id;
+      if(!uid){lastUser='';known.clear();queue=[];return;}
+      if(uid!==lastUser){lastUser=uid;readSeen(uid);queue=[];}
+      const {data,error}=await db.rpc('dfc_lab_gift_pending_v008');
+      if(error)throw error;
+      if(!Array.isArray(data))return;
+      const pending=data.filter(x=>x?.gift_id && Number(x.amount)>0&&!known.has(String(x.gift_id)));
+      const nowIds=new Set(pending.map(x=>String(x.gift_id)));
+      queue=queue.filter(x=>nowIds.has(String(x.gift_id)));
+      if(current && !nowIds.has(String(current.gift_id))) {
+        document.getElementById('dfcZ32GiftFullScreen')?.remove();
+        current=null;presenting=false;
+      }
+      const queuedIds=new Set(queue.map(x=>String(x.gift_id)));
+      if(current)queuedIds.add(String(current.gift_id));
+      pending.forEach(x=>{if(!queuedIds.has(String(x.gift_id))){queue.push(x);queuedIds.add(String(x.gift_id));}});
+      if(!presenting && queue.length)draw(queue.shift());
+    }catch(e){console.warn('[DFC Z32 anuncio tarjetas]',String(e?.message||e));}
+    finally{busy=false;}
+  }
+  window.dfcZ32UniversalGiftAnnouncement=Object.freeze({refresh:()=>void refresh()});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh();});
+  window.addEventListener('pageshow',()=>void refresh());
+  document.addEventListener('dfc:z32:gift-sent',()=>void refresh());
+  document.addEventListener('dfc:flashcoin:received',()=>void refresh());
+  pollTimer=setInterval(()=>void refresh(),6000);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>void refresh(),{once:true});
+  else void refresh();
+})();
