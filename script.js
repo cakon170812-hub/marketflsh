@@ -2,7 +2,7 @@
 /*
  * DOMINÓ FLASH COIN
  * Archivo: script.js
- * Versión: 0.12Z.30
+ * Versión: 0.12Z.32
  *
  * Integración y diagnóstico del sistema de actualización.
  * Compatible con index.html y native-bridge.js Z30.
@@ -14,7 +14,7 @@
 (function () {
   'use strict';
 
-  const BUILD = '0.12Z.30';
+  const BUILD = '0.12Z.32';
   const MANIFEST = './android-approved/manifest.json';
   const EXPECTED_ORIGIN = 'https://cakon170812-hub.github.io';
   const EXPECTED_PATH = '/marketflsh/android-approved/bundles/';
@@ -368,7 +368,7 @@
     return 'tap';
   }
   document.addEventListener('pointerdown', (event) => {
-    const target=event.target?.closest?.('button,[role="button"],a,input[type="button"],input[type="submit"],.dfc-card,.flashcoin-card,[data-sound]');
+    const target=event.target?.closest?.('button,[role="button"],a,input[type="button"],input[type="submit"],[onclick],.dfc-card,.flashcoin-card,.dfc-lab-gift-card,.domino-tile,.domino-hand-tile,[data-sound]');
     if (!target || target.disabled) return;
     bootMusic(); effect(target.dataset?.sound || classify(target));
   }, {passive:true,capture:true});
@@ -452,7 +452,7 @@
      const {data,error}=await db.rpc('rf_domino_claim_capicua_z32',{p_hand_id:b.hand_id});
      if(error)throw error;
      if(!data?.ok)throw new Error(data?.message||'No se pudo reclamar la tarjeta');
-     const dest=document.getElementById('balanceBtn')||document.getElementById('balanceTop');
+     const dest=document.getElementById('dfcLabGiftCard018')||document.getElementById('balanceBtn')||document.getElementById('balanceTop');
      window.dfcZ32Audio?.play('flashcoin');
      if(dest){
        const rect=dest.getBoundingClientRect(),src=btn.getBoundingClientRect();
