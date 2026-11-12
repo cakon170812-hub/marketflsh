@@ -11678,9 +11678,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    const boardLength=Array.isArray(h?.board)?h.board.length:0;
    const panel=document.getElementById('dominoTablePanel');
    function progress(active){panel?.classList.toggle('dfc-z32-progressive-deal',!!active);}
-   if(!key||!h){handId='';phase='';visible=0;stableTiles=[];progress(false);return incoming;}
+   if(!key||!h){if(timer){clearInterval(timer);timer=0;}handId='';phase='';visible=0;stableTiles=[];progress(false);return incoming;}
    if(key!==handId){
-     handId=key;dealSince=0;stableTiles=[];stableAt=0;passMarks.clear();
+     if(timer){clearInterval(timer);timer=0;}handId=key;dealSince=0;stableTiles=[];stableAt=0;passMarks.clear();
      // Un cliente puede recibir primero "playing", sin haber visto "shuffling".
      const freshHand=status==='shuffling'||(status==='playing'&&h.me_in_hand===true&&boardLength===0&&incoming.length>=6);
      phase=freshHand?(status==='shuffling'?'shuffling':'dealing'):status;
@@ -11689,10 +11689,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    }
    if(incoming.length){stableTiles=incoming.slice();stableAt=Date.now();}
    const canHold=status==='playing'&&h.me_in_hand===true&&
-     !incoming.length&&stableTiles.length>0&&Date.now()-stableAt<1200&&!h.winner_user_id;
+     !incoming.length&&stableTiles.length>0&&Date.now()-stableAt<1800&&!h.winner_user_id;
    const source=canHold?stableTiles:incoming;
    if(status==='shuffling'){
-     phase='shuffling';visible=0;progress(false);return [];
+     phase='shuffling';visible=0;if(timer){clearInterval(timer);timer=0;}progress(false);return [];
    }
    if(status==='playing'){
      if(phase==='shuffling'){dealSince=Date.now();visible=0;phase='dealing';}
@@ -11700,9 +11700,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
        if(!dealSince)dealSince=Date.now();
        const elapsed=Math.max(0,Date.now()-dealSince);
        // Siete fichas: una nueva aproximadamente cada 429 ms, hasta tres segundos.
-       const next=elapsed>=3000?source.length:Math.floor(elapsed/3000*source.length);
+       const next=elapsed>=3000?source.length:(source.length?Math.min(source.length,1+Math.floor(elapsed/3000*source.length)):0);
        visible=Math.max(visible,Math.min(source.length,next));
-       if(elapsed>=3000){phase='playing';visible=source.length;progress(false);}
+       if(elapsed>=3000){phase='playing';visible=source.length;if(timer){clearInterval(timer);timer=0;}progress(false);}
        else{
          progress(true);
          if(!timer)timer=setInterval(()=>{
@@ -11714,9 +11714,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
        return source.slice(0,Math.min(visible,source.length));
      }
      // El servidor ya admitió una jugada: no retrasar ni esconder fichas.
-     if(phase==='dealing'&&boardLength>0){phase='playing';visible=source.length;}
+     if(phase==='dealing'&&boardLength>0){phase='playing';visible=source.length;if(timer){clearInterval(timer);timer=0;}}
    }
-   phase=status;progress(false);return source;
+   if(timer){clearInterval(timer);timer=0;}phase=status;progress(false);return source;
  };
  function lastNumbers(m){let t=m?.tile||m?.played_tile||m?.domino||m?.tile_value;
    if(typeof t==='string'){try{t=JSON.parse(t)}catch(_){let z=t.match(/([0-6])\D+([0-6])/);if(z)t=[+z[1],+z[2]]}}
@@ -12051,7 +12051,7 @@ function dealing(st,id,end){
    piece.style.transition='left '+Math.min(400,step*.9)+'ms cubic-bezier(.2,.7,.2,1),top '+Math.min(400,step*.9)+'ms cubic-bezier(.2,.7,.2,1),opacity .38s';
    requestAnimationFrame(()=>{piece.style.left=pos.x+'%';piece.style.top=pos.y+'%';piece.style.transform='rotate(0deg) scale(.8)';});
    schedule(()=>{piece.style.opacity='0';schedule(()=>piece.remove(),180)},Math.min(370,Math.max(150,step*.78)));
-   if(i%n===0){const orig=mine[Math.floor(i/n)];if(orig){const clone=orig.cloneNode(true);clone.removeAttribute('id');clone.disabled=true;clone.style.opacity='0';rack()?.append(clone);requestAnimationFrame(()=>{clone.style.transition='opacity .24s';clone.style.opacity='1'})}}
+   // La mano real muestra cada ficha entregada; no usar copias temporales que luego desaparecen.
    title.textContent='REPARTIENDO FICHAS · '+(Math.floor(i/n)+1)+'/7';
  },i*step);
  schedule(()=>{
