@@ -90,6 +90,9 @@ jobs:
 
           html = git('show', f'{approved}:index.html')
           updated_bridge = git('show', f'{approved}:native-bridge.js')
+          updated_script = git('show', f'{approved}:script.js')
+          if b'dfc_z32_admin_reward_settings' not in updated_script:
+              stop('La revisión aprobada no contiene controles de recompensas Z32.')
           if b'CapacitorUpdater' not in updated_bridge or b'dfcOTAUserButton' not in updated_bridge:
               stop('El puente aprobado no incluye el actualizador Android.')
           parser = AppVersion()
@@ -112,7 +115,7 @@ jobs:
                   stop('El paquete anterior no coincide con su manifiesto.')
               with zipfile.ZipFile(old_bundle) as old_zip:
                   names = old_zip.namelist()
-                  if len(names) != len(set(names)) or not {'index.html', 'native-bridge.js'} <= set(names):
+                  if len(names) != len(set(names)) or not {'index.html', 'native-bridge.js', 'script.js'} <= set(names):
                       stop('El paquete anterior no tiene la estructura Android esperada.')
                   bridge = old_zip.read('native-bridge.js')
                   if b'CapacitorUpdater' not in bridge or b'dfcOTAUserButton' not in bridge:
@@ -123,11 +126,13 @@ jobs:
                               contents = html
                           elif name == 'native-bridge.js':
                               contents = updated_bridge
+                          elif name == 'script.js':
+                              contents = updated_script
                           else:
                               contents = old_zip.read(name)
                           new_zip.writestr(name, contents)
               with zipfile.ZipFile(bundle) as new_zip:
-                  if new_zip.testzip() is not None or new_zip.read('index.html') != html or new_zip.read('native-bridge.js') != updated_bridge:
+                  if new_zip.testzip() is not None or new_zip.read('index.html') != html or new_zip.read('native-bridge.js') != updated_bridge or new_zip.read('script.js') != updated_script:
                       stop('El ZIP nuevo no contiene el HTML aprobado o está dañado.')
               manifest = {
                   'version': version,
