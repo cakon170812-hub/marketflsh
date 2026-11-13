@@ -948,3 +948,49 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
  let checks=0;const boot=setInterval(()=>{connect();if(++checks>=180)clearInterval(boot);},1000);
 })();
+
+
+/* Z32 — Botón PEGAR ID sin abrir teclado (admin FlashCoin). */
+(function dfcZ32PasteRecipientId(){
+ 'use strict';
+ if(window.dfcZ32PasteRecipientId)return;
+ const modalId='dfcZ31GiftsModal';
+ function attach(){
+  const modal=document.getElementById(modalId);
+  if(!modal)return;
+  const area=modal.querySelector('#dfcZ31SearchArea');
+  if(!area)return;
+  const field=area.querySelector('input:not([type="checkbox"]):not([type="radio"])');
+  if(!field||area.querySelector('#dfcZ32PasteId'))return;
+  const button=document.createElement('button');
+  button.id='dfcZ32PasteId';
+  button.type='button';
+  button.textContent='📋 PEGAR ID';
+  button.setAttribute('aria-label','Pegar ID del usuario desde el portapapeles');
+  button.style.cssText='flex:none;min-height:34px;padding:5px 9px;border:1px solid #8ac7ff;border-radius:8px;background:#13518b;color:white;font:700 12px system-ui;touch-action:manipulation;white-space:nowrap';
+  button.addEventListener('click',async()=>{
+   // El botón evita enfocar el input, para no abrir el teclado móvil.
+   try{
+    if(!navigator.clipboard?.readText)throw new Error('Portapapeles no disponible');
+    const value=(await navigator.clipboard.readText()).trim();
+    if(!value){alert('El portapapeles está vacío. Copia primero el ID.');return;}
+    const setter=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')?.set;
+    if(setter)setter.call(field,value);else field.value=value;
+    field.dispatchEvent(new Event('input',{bubbles:true}));
+    field.dispatchEvent(new Event('change',{bubbles:true}));
+   }catch(e){
+    alert('No se pudo leer el portapapeles. Autoriza el acceso al pegar o usa el campo de ID. '+String(e?.message||''));
+   }
+  });
+  const wrapper=document.createElement('div');
+  wrapper.style.cssText='display:flex;align-items:center;gap:5px;max-width:100%;min-width:0';
+  field.parentNode.insertBefore(wrapper,field);
+  wrapper.append(field,button);
+  field.style.minWidth='0';
+  field.style.flex='1 1 auto';
+ }
+ const observer=new MutationObserver(attach);
+ function start(){attach();observer.observe(document.body,{childList:true,subtree:true});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+ window.dfcZ32PasteRecipientId=Object.freeze({attach});
+})();
