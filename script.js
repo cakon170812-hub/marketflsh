@@ -715,7 +715,7 @@
    const head=document.createElement('strong');
    head.textContent='⏳ Caducidad de tarjetas FlashCoin';
    const desc=document.createElement('p');
-   desc.textContent='Configura la caducidad de todas las tarjetas pendientes: las existentes y las nuevas. Las tarjetas ya reclamadas no se modifican.';
+   desc.textContent='Aplica a tarjetas pendientes existentes y nuevas. No modifica las reclamadas.';
    desc.style.cssText='font-size:12px;margin:0;color:#cae7fb';
    const line=document.createElement('div');
    line.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center;';
@@ -739,7 +739,14 @@
    caution.textContent='Las devoluciones económicas automáticas aún no están habilitadas: requieren verificar previamente la reserva de fondos.';
    caution.style.cssText='font-size:11px;color:#ffd59a;margin:0;';
    line.append(select,save,review);section.append(head,desc,line,status,caution);
-   box.append(section);
+   const body=box.querySelector('.dfc-z31-body')||box;
+   const fold=document.createElement('details');
+   fold.id='dfcZ32ExpiryFold';
+   fold.style.cssText='border-top:1px solid #64b9ee88;margin:7px 0 2px;min-width:0;';
+   const summary=document.createElement('summary');
+   summary.textContent='⏳ Caducidad de tarjetas · Configurar';
+   summary.style.cssText='font:800 12px system-ui;padding:7px 3px;cursor:pointer;';
+   fold.append(summary,section);body.append(fold);
    async function load(){
      try{
        const v=await rpc('dfc_z32_admin_expiry_status');
@@ -815,7 +822,7 @@
    btn.className='mf-admin-card';btn.type='button';btn.textContent='⏳ Revisar caducidad de tarjetas';
    btn.addEventListener('click',()=>{
      const parent=$('dfcZ31AdminGiftsBtn');
-     if(parent){parent.click();setTimeout(()=>$('dfcZ32ExpiryControls')?.scrollIntoView({block:'nearest',behavior:'smooth'}),120);}
+     if(parent){parent.click();setTimeout(()=>{const fold=$('dfcZ32ExpiryFold');if(fold)fold.open=true;$('dfcZ32ExpiryControls')?.scrollIntoView({block:'nearest',behavior:'smooth'});},150);}
    });
    host.append(btn);
  }
@@ -840,4 +847,29 @@
  document.addEventListener('dfc:giftRedeemed',()=>void refresh());
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh();});
  setInterval(()=>{if(!document.hidden)void refresh();},30000);
+})();
+
+/* Z32: scroll táctil para selección y fichas visibles durante entrega. */
+(function(){
+ 'use strict';
+ if(window.dfcZ32CompactSelectionAndDeal)return;
+ const css=document.createElement('style');
+ css.id='dfcZ32CompactSelectionAndDealStyle';
+ css.textContent="\n#dfcZ31GiftsModal{overscroll-behavior:contain!important;touch-action:pan-y!important}\n#dfcZ31GiftsModal .dfc-z31-box{min-height:0!important;max-height:calc(100dvh - 8px)!important;overflow:hidden!important}\n#dfcZ31GiftsModal .dfc-z31-body{min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important}\n#dfcZ31GiftsModal #dfcZ31Results{max-height:none!important;overflow:visible!important;touch-action:pan-y!important}\n#dfcZ31GiftsModal #dfcZ31Results .dfc-z31-user{min-height:34px!important;padding:5px 4px!important;cursor:pointer!important;touch-action:manipulation!important}\n#dfcZ31GiftsModal #dfcZ31Results .dfc-z31-user input{width:19px!important;height:19px!important;flex:none!important}\n#dfcZ31GiftsModal #dfcZ32ExpiryControls{margin:0!important;padding:4px 2px!important;gap:4px!important;border:0!important}\n#dfcZ31GiftsModal #dfcZ32ExpiryControls p{font-size:11px!important;line-height:1.25!important;margin:0!important}\n#dfcZ31GiftsModal #dfcZ32ExpiryDays{min-height:30px!important;font-size:12px!important;padding:4px!important}\n#dfcZ31GiftsModal .dfc-z31-head{padding:4px 8px!important}\n#dfcZ31GiftsModal #dfcZ31SearchArea,#dfcZ31GiftsModal .dfc-z31-send{padding:4px 7px!important}\n#dfcZ31GiftsModal #dfcZ31SearchArea input,#dfcZ31GiftsModal .dfc-z31-send input{min-height:34px!important;max-height:38px!important}\n#dfcZ31GiftsModal #dfcZ31Send{min-height:34px!important;white-space:nowrap}\n@media (orientation:landscape) and (max-height:520px){\n #dfcZ31GiftsModal .dfc-z31-box{font-size:12px!important}\n #dfcZ31GiftsModal .dfc-z31-body{padding:2px 7px!important}\n #dfcZ31GiftsModal .dfc-z31-history{font-size:10px!important}\n #dfcZ31GiftsModal .dfc-z31-head{padding:2px 7px!important}\n}\n#dominoTablePanel.dfc-z32-progressive-deal #dominoHand,\n#dominoTablePanel.dfc-z32-progressive-deal #dominoStage #dominoHand,\n#dominoTablePanel.dfc012a-dealing #dominoHand,\n#dominoTablePanel.dfc012c-locked.dfc-z32-progressive-deal #dominoHand{display:flex!important;visibility:visible!important;opacity:1!important;z-index:22005!important}\n#dominoTablePanel.dfc-z32-progressive-deal #dominoHand .hand-piece,\n#dominoTablePanel.dfc-z32-progressive-deal #dominoHand .domino-piece{visibility:visible!important;opacity:1!important;animation:none!important}\n";
+ function install(){
+  if(!css.isConnected)document.head.append(css);
+  const results=document.getElementById('dfcZ31Results'), modal=document.getElementById('dfcZ31GiftsModal');
+  if(!results||!modal||results.dataset.dfcZ32TouchScroll)return;
+  results.dataset.dfcZ32TouchScroll='1';
+  new MutationObserver(()=>{
+   if(modal.hidden||!results.querySelector('.dfc-z31-user'))return;
+   requestAnimationFrame(()=>{
+    const body=results.closest('.dfc-z31-body');
+    if(body&&!modal.hidden)body.scrollTop=0;
+   });
+  }).observe(results,{childList:true});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+ let checks=0;const interval=setInterval(()=>{install();if(++checks>=180)clearInterval(interval);},1000);
+ window.dfcZ32CompactSelectionAndDeal=Object.freeze({install});
 })();
