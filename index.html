@@ -21176,51 +21176,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script id="dfc-z31-boot-recovery-fix">
 /* DOMINÓ FLASH COIN 0.12Z.31 — protección de arranque web.
    Insertar inmediatamente ANTES de 
-<!-- DFC Z32: controles de tarjetas por resultado (administrador) -->
-<style id="dfc-z32-result-reward-style">
-#dfcZ32RewardsBtn{display:block;margin:8px auto;padding:9px 13px;font-weight:700;max-width:100%;white-space:normal}
-#dfcZ32RewardsPanel{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;padding:12px;box-sizing:border-box}
-#dfcZ32RewardsPanel.dfc-open{display:flex}
-#dfcZ32RewardsPanel .dfc-reward-box{box-sizing:border-box;width:min(530px,100%);max-height:calc(100dvh - 24px);overflow:auto;color:#fff;background:#101e37;border:1px solid #5180b0;border-radius:15px;padding:13px;font-family:system-ui,sans-serif;font-size:13px}
-#dfcZ32RewardsPanel h3{margin:0 0 7px;font-size:17px}
-#dfcZ32RewardsPanel .dfc-r-row{display:flex;gap:9px;align-items:center;justify-content:space-between;margin:8px 0;padding:7px 0;border-bottom:1px solid #ffffff22;flex-wrap:wrap}
-#dfcZ32RewardsPanel input[type=number]{width:105px;max-width:35vw;border-radius:7px;padding:6px;background:#fff;color:#111;border:0}
-#dfcZ32RewardsPanel input[type=checkbox]{width:18px;height:18px}
-#dfcZ32RewardsPanel button{padding:9px 13px;border:0;border-radius:8px;background:#2477db;color:#fff;font-weight:700}
-#dfcZ32RewardsPanel .dfc-r-actions{display:flex;justify-content:flex-end;gap:8px}
-#dfcZ32RewardsPanel #dfcZ32RewardMessage{min-height:20px;margin:7px 0}
-</style>
-<script id="dfc-z32-result-reward-script">
-(function(){
-'use strict';
-if(window.DFC_Z32_REWARD_ADMIN_UI)return;window.DFC_Z32_REWARD_ADMIN_UI=true;
-function init(){
- const panel=document.querySelector('#leaderPanel > .panel')||document.getElementById('leaderPanel');
- if(!panel||document.getElementById('dfcZ32RewardsBtn'))return;
- const btn=document.createElement('button');btn.id='dfcZ32RewardsBtn';btn.type='button';btn.className='action';
- btn.textContent='🎁 Premios por Dominó / Tranque / Capicúa';
- (document.getElementById('dfcAdminReleaseActions')||panel.querySelector('.mf-admin-grid')||panel).appendChild(btn);
- const modal=document.createElement('div');modal.id='dfcZ32RewardsPanel';
- modal.innerHTML='<section class="dfc-reward-box" role="dialog" aria-modal="true" aria-labelledby="dfcZ32RewardsTitle">'+
- '<h3 id="dfcZ32RewardsTitle">🎁 Tarjetas FlashCoin por jugadas</h3>'+
- '<p>Activa una, dos o las tres recompensas. El valor de cada tarjeta se configura por separado.</p>'+
- '<div class="dfc-r-row"><label><input type="checkbox" id="dfcRDomino"> Dominó</label><label>Tarjeta FC <input type="number" id="dfcRDominoFc" min="0" max="1000000" step="0.001"></label></div>'+
- '<div class="dfc-r-row"><label><input type="checkbox" id="dfcRTranque"> Tranque</label><label>Tarjeta FC <input type="number" id="dfcRTranqueFc" min="0" max="1000000" step="0.001"></label></div>'+
- '<div class="dfc-r-row"><label><input type="checkbox" id="dfcRCapicua"> Capicúa</label><strong>10% del bote</strong></div>'+
- '<p id="dfcZ32RewardMessage" aria-live="polite"></p><div class="dfc-r-actions"><button type="button" id="dfcRClose">Cerrar</button><button type="button" id="dfcRSave">Guardar configuración</button></div></section>';
- document.body.appendChild(modal);
- const $=id=>document.getElementById(id),message=$('dfcZ32RewardMessage');
- function client(){return window.sb||((typeof sb!=='undefined')?sb:null)}
- async function rpc(args){const c=client();if(!c||typeof c.rpc!=='function')throw Error('Sin conexión con Supabase');const {data,error}=await c.rpc('dfc_z32_admin_reward_settings',args);if(error)throw Error(error.message);if(!data||!data.ok)throw Error('No se confirmó la configuración');return data}
- function fill(v){$('dfcRDomino').checked=!!v.domino_enabled;$('dfcRTranque').checked=!!v.tranque_enabled;$('dfcRCapicua').checked=!!v.capicua_enabled;$('dfcRDominoFc').value=v.domino_fc??0;$('dfcRTranqueFc').value=v.tranque_fc??0}
- btn.addEventListener('click',async()=>{modal.classList.add('dfc-open');message.textContent='Cargando configuración...';$('dfcRSave').disabled=true;try{fill(await rpc({}));message.textContent='Selecciona las recompensas que quieres pagar.';$('dfcRSave').disabled=false}catch(e){message.textContent='No se pudo cargar: '+e.message}});
- $('dfcRClose').addEventListener('click',()=>modal.classList.remove('dfc-open'));
- $('dfcRSave').addEventListener('click',async()=>{const d=Number($('dfcRDominoFc').value),t=Number($('dfcRTranqueFc').value);if(!Number.isFinite(d)||!Number.isFinite(t)||d<0||t<0||d>1000000||t>1000000||Math.round(d*1000)!==d*1000||Math.round(t*1000)!==t*1000){message.textContent='Revisa los importes: entre 0 y 1,000,000 FC, hasta 3 decimales.';return}const save=$('dfcRSave');save.disabled=true;message.textContent='Guardando en Supabase...';try{fill(await rpc({p_domino_enabled:$('dfcRDomino').checked,p_tranque_enabled:$('dfcRTranque').checked,p_capicua_enabled:$('dfcRCapicua').checked,p_domino_fc:d,p_tranque_fc:t}));message.textContent='✓ Configuración guardada correctamente.'}catch(e){message.textContent='No se pudo guardar: '+e.message}finally{save.disabled=false}});
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-})();
-</script>
-
 </body> en index.html.
    No toca balances, turnos, mesa ni funciones RPC. */
 (function () {
