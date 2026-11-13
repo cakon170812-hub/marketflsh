@@ -669,7 +669,7 @@
     if(id!==activeHand){activeHand=id;expected=null;}
     const isEmptyOrDealing=!!id&&(status==='shuffling'||
       (status==='playing'&&document.getElementById('dominoTablePanel')?.classList.contains('dfc-z32-progressive-deal')));
-    expected=isEmptyOrDealing?(status==='shuffling'?0:shown.length):null;
+    expected=isEmptyOrDealing?shown.length:null;
     const gen=++generation;
     // Sincronizar en el mismo ciclo de render; no esperar a que termine el reparto.
     sync(gen);
@@ -679,7 +679,8 @@
     const current=window.dfc11VisibleTiles;
     if(typeof current!=='function'||current.__dfcZ32RackGuard)return;
     const guarded=function(st,tiles){
-      const result=current.apply(this,arguments);
+      const original=current.apply(this,arguments);
+      const result=window.dfcZ32Z31Arrival?.tiles(st,tiles,original) ?? original;
       try{apply(st,Array.isArray(result)?result:[]);}catch(err){console.warn('[DFC Z32 reparto]',err);}
       return result;
     };
@@ -871,4 +872,79 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
  let checks=0;const interval=setInterval(()=>{install();if(++checks>=180)clearInterval(interval);},1000);
  window.dfcZ32CompactSelectionAndDeal=Object.freeze({install});
+})();
+
+
+/* Z32 — Reparto Z31: revelar cada ficha verdadera al llegar al jugador.
+   No duplicar fichas ni cambiar la asignación de Supabase. */
+(function dfcZ32Z31Arrival(){
+ 'use strict';
+ if(window.dfcZ32Z31Arrival)return;
+ let activeHand='',flyCount=0,visible=0,previousTiles=[],observedStage=null,observer=null;
+ const seen=new WeakSet();
+ const panel=()=>document.getElementById('dominoTablePanel');
+ function state(){
+   try{return typeof dominoState!=='undefined'&&dominoState ? dominoState : window.dominoState;}
+   catch(_){return window.dominoState;}
+ }
+ function participants(st){
+   return Math.max(2,Math.min(4,(st?.seats||[]).filter(s=>s?.user_id&&s.state!=='empty').length||2));
+ }
+ function reset(id){
+   if(id===activeHand)return;
+   activeHand=id;flyCount=0;visible=0;previousTiles=[];
+   panel()?.classList.remove('dfc-z32-progressive-deal');
+ }
+ function tiles(st,actual,original){
+   const h=st?.hand,id=String(h?.id||''),phase=String(h?.status||'');
+   if(!id){reset('');return Array.isArray(original)?original:[];}
+   if(id!==activeHand)reset(id);
+   const real=Array.isArray(actual)?actual:[];
+   if(phase==='shuffling'){
+     if(real.length)previousTiles=real.slice();
+     const approved=real.length?real:previousTiles;
+     const n=Math.min(visible,approved.length);
+     panel()?.classList.toggle('dfc-z32-progressive-deal',n>0);
+     return approved.slice(0,n);
+   }
+   if(phase==='playing'){
+     flyCount=0;visible=0;previousTiles=[];
+     panel()?.classList.remove('dfc-z32-progressive-deal');
+     return real;
+   }
+   return Array.isArray(original)?original:real;
+ }
+ function arrive(){
+   const st=state(),h=st?.hand;
+   if(!h?.id||String(h.status)!=='shuffling')return;
+   const id=String(h.id);
+   if(id!==activeHand)reset(id);
+   const i=flyCount++;
+   if(i%participants(st)!==0||visible>=7)return;
+   visible++;
+   panel()?.classList.add('dfc-z32-progressive-deal');
+   if(typeof renderDominoState==='function' && !((typeof dominoDragState!=='undefined')&&dominoDragState?.active)){
+     try{renderDominoState(st);}catch(e){console.warn('[DFC Z32 reparto por entrega]',e);}
+   }
+ }
+ function connect(){
+   const stage=document.getElementById('dominoStage');
+   if(!stage||stage===observedStage)return;
+   observer?.disconnect();observedStage=stage;
+   observer=new MutationObserver(records=>{
+     for(const m of records){
+       if(m.type!=='attributes'||m.attributeName!=='class')continue;
+       const el=m.target;
+       if(!el.classList?.contains('mix-tile')||!el.classList.contains('dfc012m-flying')||seen.has(el))continue;
+       seen.add(el);arrive();
+     }
+   });
+   observer.observe(stage,{subtree:true,attributes:true,attributeFilter:['class']});
+ }
+ const css=document.createElement('style');css.id='dfcZ32Z31ArrivalStyle';
+ css.textContent="\n#dominoTablePanel.dfc-z32-progressive-deal #dominoHand,\n#dominoTablePanel.dfc-z32-progressive-deal.dfc011w-clear #dominoHand,\n#dominoTablePanel.dfc-z32-progressive-deal.dfc012a-dealing #dominoHand,\n#dominoTablePanel.dfc-z32-progressive-deal.dfc012c-locked #dominoHand {\n display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:none!important;\n}\n#dominoTablePanel.dfc-z32-progressive-deal #dominoHand .hand-piece {\n visibility:visible!important;opacity:1!important;animation:none!important;transition:none!important;\n}";
+ function init(){if(!css.isConnected)document.head.append(css);connect();}
+ window.dfcZ32Z31Arrival=Object.freeze({tiles,get visible(){return visible;}});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+ let checks=0;const boot=setInterval(()=>{connect();if(++checks>=180)clearInterval(boot);},1000);
 })();
