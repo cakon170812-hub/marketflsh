@@ -708,7 +708,7 @@
    const head=document.createElement('strong');
    head.textContent='⏳ Caducidad de tarjetas FlashCoin';
    const desc=document.createElement('p');
-   desc.textContent='Configura el vencimiento de nuevas tarjetas. Las ya enviadas conservan su fecha actual.';
+   desc.textContent='Configura la caducidad de todas las tarjetas pendientes: las existentes y las nuevas. Las tarjetas ya reclamadas no se modifican.';
    desc.style.cssText='font-size:12px;margin:0;color:#cae7fb';
    const line=document.createElement('div');
    line.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center;';
@@ -743,8 +743,8 @@
    save.addEventListener('click',async()=>{
      save.disabled=true;
      try{
-       await rpc('dfc_z32_admin_expiry_config',{p_days:select.value===''?null:Number(select.value)});
-       status.textContent='Caducidad guardada para las nuevas tarjetas.';
+       const result=await rpc('dfc_z32_admin_expiry_config',{p_days:select.value===''?null:Number(select.value)});
+       status.textContent='Caducidad guardada para todas las tarjetas pendientes: '+(result.updated_pending_cards??0)+' actualizadas.';
      }catch(e){status.textContent='Error al guardar: '+e.message;}
      finally{save.disabled=false;}
    });
