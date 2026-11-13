@@ -692,7 +692,7 @@
 })();
 
 
-/* Z32 — Controles administrativos de caducidad y revisión de tarjetas. */
+/* Z32 — Ventana independiente para revisar y configurar caducidad. */
 (function dfcZ32ExpiryAdminControls(){
  'use strict';
  if(window.dfcZ32ExpiryAdminControls)return;
@@ -705,73 +705,75 @@
    if(error)throw Error(error.message||String(error));
    return data;
  }
- function build(){
-   const main=$('dfcZ31GiftsModal');
-   const box=main?.querySelector('.dfc-z31-box');
-   if(!box||$('dfcZ32ExpiryControls'))return;
-   const section=document.createElement('section');
-   section.id='dfcZ32ExpiryControls';
-   section.style.cssText='border-top:1px solid #64b9ee88;margin-top:14px;padding-top:12px;display:grid;gap:9px;';
-   const head=document.createElement('strong');
-   head.textContent='⏳ Caducidad de tarjetas FlashCoin';
+ function create(){
+   if($('dfcZ32ExpiryModal'))return;
+   const modal=document.createElement('div');
+   modal.id='dfcZ32ExpiryModal';
+   modal.hidden=true;
+   modal.setAttribute('role','dialog');
+   modal.setAttribute('aria-modal','true');
+   modal.setAttribute('aria-label','Caducidad de tarjetas FlashCoin');
+   modal.style.cssText='position:fixed;inset:0;z-index:2147483500;display:flex;align-items:center;justify-content:center;background:#020b19e9;padding:clamp(5px,2vw,12px);box-sizing:border-box;';
+   const box=document.createElement('section');
+   box.style.cssText='width:min(96vw,550px);max-height:calc(100dvh - 14px);overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:linear-gradient(145deg,#092b50,#050e26);border:1px solid #5bbdff;border-radius:13px;color:#f3f9ff;padding:clamp(9px,2vw,15px);box-sizing:border-box;font:13px system-ui;display:grid;gap:9px;';
+   const header=document.createElement('div');
+   header.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:8px;';
+   const title=document.createElement('strong');title.textContent='⏳ Caducidad de tarjetas FlashCoin';
+   const close=document.createElement('button');close.type='button';close.textContent='✕ Cerrar';
    const desc=document.createElement('p');
-   desc.textContent='Aplica a tarjetas pendientes existentes y nuevas. No modifica las reclamadas.';
-   desc.style.cssText='font-size:12px;margin:0;color:#cae7fb';
+   desc.textContent='Plazo para todas las tarjetas pendientes, existentes y nuevas. Las reclamadas no cambian.';
+   desc.style.cssText='margin:0;color:#cae7fb;font-size:12px;';
    const line=document.createElement('div');
-   line.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center;';
-   const select=document.createElement('select');
-   select.id='dfcZ32ExpiryDays';
-   select.setAttribute('aria-label','Caducidad de nuevas tarjetas');
-   select.style.cssText='min-width:120px;flex:1;max-width:210px;padding:9px;color:#fff;background:#103657;border:1px solid #6caad4;border-radius:9px;';
+   line.style.cssText='display:flex;gap:7px;flex-wrap:wrap;align-items:center;';
+   const select=document.createElement('select');select.id='dfcZ32ExpiryDays';
+   select.setAttribute('aria-label','Plazo de caducidad de las tarjetas');
+   select.style.cssText='flex:1;min-width:110px;padding:7px;color:#fff;background:#103657;border:1px solid #6caad4;border-radius:8px;font-size:13px;';
    for(const [v,t] of [['','Sin caducidad'],['1','1 día'],['3','3 días'],['7','7 días'],['15','15 días'],['30','30 días']]){
-     const o=document.createElement('option');o.value=v;o.textContent=t;select.append(o);
+     const option=document.createElement('option');option.value=v;option.textContent=t;select.append(option);
    }
    const save=document.createElement('button');save.type='button';save.textContent='Guardar caducidad';
-   const review=document.createElement('button');review.type='button';review.textContent='Revisar tarjetas vencidas';
-   for(const b of [save,review]){
-     b.className='dfc-z31-action';
-     b.style.cssText='padding:9px 10px;border:1px solid #65bfff;background:#0c3c66;color:white;border-radius:9px;cursor:pointer;';
+   const review=document.createElement('button');review.type='button';review.textContent='Revisar vencidas';
+   for(const b of [close,save,review]){
+     b.style.cssText='padding:8px 10px;border:1px solid #65bfff;background:#0c3c66;color:white;border-radius:8px;cursor:pointer;font:700 12px system-ui;';
    }
-   const status=document.createElement('p');
-   status.id='dfcZ32ExpiryStatus';status.setAttribute('role','status');
+   const status=document.createElement('p');status.id='dfcZ32ExpiryStatus';status.setAttribute('role','status');
    status.style.cssText='margin:0;font-size:12px;color:#e0effb;overflow-wrap:anywhere;';
    const caution=document.createElement('p');
-   caution.textContent='Las devoluciones económicas automáticas aún no están habilitadas: requieren verificar previamente la reserva de fondos.';
-   caution.style.cssText='font-size:11px;color:#ffd59a;margin:0;';
-   line.append(select,save,review);section.append(head,desc,line,status,caution);
-   const body=box.querySelector('.dfc-z31-body')||box;
-   const fold=document.createElement('details');
-   fold.id='dfcZ32ExpiryFold';
-   fold.style.cssText='border-top:1px solid #64b9ee88;margin:7px 0 2px;min-width:0;';
-   const summary=document.createElement('summary');
-   summary.textContent='⏳ Caducidad de tarjetas · Configurar';
-   summary.style.cssText='font:800 12px system-ui;padding:7px 3px;cursor:pointer;';
-   fold.append(summary,section);body.append(fold);
+   caution.textContent='La devolución monetaria automática continúa pendiente de revisión del origen de los fondos.';
+   caution.style.cssText='margin:0;color:#ffd59a;font-size:11px;';
+   header.append(title,close);line.append(select,save,review);
+   box.append(header,desc,line,status,caution);modal.append(box);document.body.append(modal);
+   const style=document.createElement('style');style.textContent='#dfcZ32ExpiryModal[hidden]{display:none!important;}';
+   document.head.append(style);
+   function dismiss(){modal.hidden=true;}
+   close.addEventListener('click',dismiss);
+   modal.addEventListener('click',e=>{if(e.target===modal)dismiss();});
+   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)dismiss();});
    async function load(){
      try{
        const v=await rpc('dfc_z32_admin_expiry_status');
        select.value=v.expiry_days==null?'':String(v.expiry_days);
        status.textContent='Tarjetas: '+v.total_cards+' · Vencidas sin reclamar: '+v.expired_unclaimed+' · Devoluciones registradas: '+v.refunds_recorded+'.';
-     }catch(e){status.textContent='No se pudo consultar la configuración: '+e.message;}
+     }catch(e){status.textContent='No se pudo consultar: '+e.message;}
    }
    save.addEventListener('click',async()=>{
      save.disabled=true;
      try{
        const result=await rpc('dfc_z32_admin_expiry_config',{p_days:select.value===''?null:Number(select.value)});
-       status.textContent='Caducidad guardada para todas las tarjetas pendientes: '+(result.updated_pending_cards??0)+' actualizadas.';
-     }catch(e){status.textContent='Error al guardar: '+e.message;}
+       status.textContent='Guardado para '+(result.updated_pending_cards??0)+' tarjetas pendientes. Las nuevas usarán el mismo plazo.';
+     }catch(e){status.textContent='No se pudo guardar: '+e.message;}
      finally{save.disabled=false;}
    });
    review.addEventListener('click',()=>void load());
-   main.addEventListener('click',e=>{if(e.target?.id==='dfcZ31Close')return;},{passive:true});
-   $('dfcZ31AdminGiftsBtn')?.addEventListener('click',()=>void load());
-   void load();
+   window.dfcZ32ExpiryOpen=()=>{
+     const leader=$('leaderPanel');
+     if(!leader||leader.hidden||leader.classList.contains('hidden')||!leader.getClientRects().length)return;
+     modal.hidden=false;void load();
+   };
  }
- window.dfcZ32ExpiryAdminControls=Object.freeze({refresh:build});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});
- else build();
- let checks=0;
- const timer=setInterval(()=>{build();if($('dfcZ32ExpiryControls')||++checks>120)clearInterval(timer);},1000);
+ window.dfcZ32ExpiryAdminControls=Object.freeze({refresh:create});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',create,{once:true});else create();
+ let checks=0;const timer=setInterval(()=>{create();if($('dfcZ32ExpiryModal')||++checks>120)clearInterval(timer);},1000);
 })();
 
 
@@ -820,10 +822,7 @@
    if(!host||$('dfcZ32ReviewExpiredBtn'))return;
    const btn=document.createElement('button');btn.id='dfcZ32ReviewExpiredBtn';
    btn.className='mf-admin-card';btn.type='button';btn.textContent='⏳ Revisar caducidad de tarjetas';
-   btn.addEventListener('click',()=>{
-     const parent=$('dfcZ31AdminGiftsBtn');
-     if(parent){parent.click();setTimeout(()=>{const fold=$('dfcZ32ExpiryFold');if(fold)fold.open=true;$('dfcZ32ExpiryControls')?.scrollIntoView({block:'nearest',behavior:'smooth'});},150);}
-   });
+   btn.addEventListener('click',()=>{window.dfcZ32ExpiryAdminControls?.refresh();window.dfcZ32ExpiryOpen?.();});
    host.append(btn);
  }
  function init(){
