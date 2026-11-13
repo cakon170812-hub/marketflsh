@@ -1022,7 +1022,7 @@
   heading.setAttribute('aria-expanded','false');
   heading.style.cssText='background:#103f6a;color:#fff;border:1px solid #68bbef;border-radius:7px;padding:6px 9px;font:700 12px system-ui;max-width:100%;';
   const body=document.createElement('div');body.hidden=true;
-  body.style.cssText='display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;';
+  body.style.cssText='display:none;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;';
   const caption=document.createElement('label');caption.textContent='FC por Dominó';caption.htmlFor='dfcZ32DominoTariffValue';
   const input=document.createElement('input');
   input.id='dfcZ32DominoTariffValue';input.type='number';input.min='0';input.max='1000000';input.step='0.001';input.inputMode='decimal';input.placeholder='0.000';
@@ -1037,7 +1037,7 @@
    catch(e){status.textContent='No se pudo consultar: '+String(e?.message||e);}
   };
   heading.addEventListener('click',()=>{
-   body.hidden=!body.hidden;heading.setAttribute('aria-expanded',String(!body.hidden));
+   body.hidden=!body.hidden;body.style.display=body.hidden?'none':'flex';heading.setAttribute('aria-expanded',String(!body.hidden));
    if(!body.hidden)void refresh();
   });
   save.addEventListener('click',async()=>{
