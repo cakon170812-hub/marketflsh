@@ -16689,7 +16689,7 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 </script>
 <script id="dfc-z27-html-ready-signal">document.dispatchEvent(new Event("dfc-z27-html-ready"));</script>
 <link rel="stylesheet" href="./style.css?v=0.12Z.31">
-<script src="./script.js?v=0.12Z.32.2" defer></script>
+<script src="./script.js?v=0.12Z.32.3" defer></script>
 <script src="./native-bridge.js?v=0.12Z.31" type="module"></script>
 <style id="dfc-z27-shared-home-lobby-wallpaper">
 #appView.bg.dfc09-view,
@@ -20672,11 +20672,31 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
 @media(prefers-reduced-motion:reduce){html body #dfcLabGiftCard018{animation:none!important}#dfcLabMoneyBurst020 .dfc-money020{animation:none!important;display:none!important}}
 </style>
 <style id="dfc-z31-gift-list">
-#dfcLabGiftUser008:has(.dfc-z31-gift-choice){display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:12px 0}
-#dfcLabGiftUser008 .dfc-z31-gift-choice{display:flex;align-items:flex-end;justify-content:center;width:100%;margin:0;padding:8px;color:#fff;font-size:17px;font-weight:900;text-shadow:0 1px 4px #001325,0 1px 8px #001325}
+#dfcLabGiftUser008:has(.dfc-z31-gift-choice){display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,155px),178px));justify-content:center;gap:10px;margin:12px 0}
+#dfcLabGiftUser008 .dfc-z31-gift-choice{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-end;gap:4px;width:100%;min-height:104px;margin:0;padding:5px;box-sizing:border-box;color:#fff;font-size:16px;font-weight:900;text-shadow:0 1px 4px #001325}
+.dfc-z32-card-dates{display:grid;gap:3px;align-self:stretch;padding:5px;background:#061c39ed;color:#fff;border-radius:6px;font:600 10px/1.25 system-ui,sans-serif;text-align:center;text-shadow:none}
+.dfc-z32-native-announcement .dfc-z32-card-dates{font-size:clamp(11px,2vw,14px)}
 #dfcLabGiftUser008 .dfc-z31-gift-choice:focus-visible{outline:3px solid #fff;outline-offset:2px}
 </style>
 <script id="dfc-laboratorio-visual-js-020">
+window.dfcZ32GiftDates = (() => {
+ const formatter = new Intl.DateTimeFormat('es-DO',{timeZone:'America/Santo_Domingo',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+ function format(value, fallback){
+   const date=value?new Date(value):null;
+   return date && Number.isFinite(date.getTime()) ? formatter.format(date) : fallback;
+ }
+ function render(gift){
+   const dates=document.createElement('span');
+   dates.className='dfc-z32-card-dates';
+   for(const [label,value,fallback] of [['Emisión',gift.created_at,'Fecha no disponible'],['Vence',gift.expires_at,'Sin vencimiento']]){
+     const line=document.createElement('span');
+     line.textContent=label+' · '+format(value,fallback);
+     dates.append(line);
+   }
+   return dates;
+ }
+ return Object.freeze({format,render});
+})();
 (function(){'use strict';
  const $=id=>document.getElementById(id);
  const visible=$('dfcLabGiftCard018');
@@ -20693,7 +20713,7 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
  }
  async function pending(){
    const client=getSB();if(!client?.rpc)throw Error('Todavía no hay conexión con Supabase');
-   const {data,error}=await client.rpc('dfc_lab_gift_pending_v008');
+   const {data,error}=await client.rpc('dfc_z32_gift_pending_dates');
    if(error)throw new Error(error.message||'No se pudo consultar los regalos');
    if(!Array.isArray(data))throw new Error('Respuesta inesperada del servidor');
    return data.filter(gift=>gift&&typeof gift.gift_id==='string'&&Number(gift.amount)>0);
@@ -20716,8 +20736,11 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
      const card=document.createElement('button');
      card.type='button';
      card.className='dfc-lab-gift-preview019 dfc-z31-gift-choice';
-     card.textContent=formatAmount(gift.amount)+' FC';
-     card.setAttribute('aria-label','Canjear tarjeta FlashCoin de '+card.textContent);
+     const amount=document.createElement('strong');
+     amount.textContent=formatAmount(gift.amount)+' FC';
+     const dates=window.dfcZ32GiftDates.render(gift);
+     card.append(amount,dates);
+     card.setAttribute('aria-label',['Canjear tarjeta FlashCoin de '+amount.textContent,...Array.from(dates.children,line=>line.textContent)].join('. '));
      card.addEventListener('click',()=>redeemCard(gift));
      user.appendChild(card);
    }
@@ -20773,6 +20796,8 @@ html body #dfcLabGiftCard018 .dfc-lab-gift-count020[hidden]{display:none!importa
      const client=getSB();
      const {data,error}=await client.rpc('dfc_lab_gift_redeem_v008',{p_gift_id:gift.gift_id});
      if(error)throw error;
+     if(data?.expired===true && String(data.gift_id)===gift.gift_id)
+       throw new Error(data.message||'Esta tarjeta FlashCoin ha vencido.');
      if(data?.ok!==true||String(data.gift_id)!==gift.gift_id||!(Number(data.amount)>0))
        throw new Error('El servidor no confirmó la acreditación.');
      explode();
@@ -21131,8 +21156,23 @@ function status(s){
   const message=$('dfcZ31Status');message.textContent=s;
   message.parentElement.scrollTop=0;
 }
-async function history(){try{const rows=await rpc('dfc_z31_admin_gift_history',{p_limit:15});const box=$('dfcZ31History');box.replaceChildren();for(const r of rows||[]){box.appendChild(node('div','',new Date(r.created_at).toLocaleString()+' · '+r.recipient_count+' usuarios · '+Number(r.amount_each).toFixed(3)+' FC por tarjeta · '+r.redeemed_count+' canjeadas'));}}
-catch(e){$('dfcZ31History').textContent='Historial no disponible: '+e.message;}}
+async function history(){
+  const box=$('dfcZ31History');
+  try{
+    const rows=await rpc('dfc_z32_admin_gift_history_dates',{p_limit:15});
+    const formatDate=window.dfcZ32GiftDates.format;
+    box.replaceChildren();
+    for(const row of rows||[]){
+      const issued='Emisión · '+formatDate(row.created_at,'Fecha no disponible');
+      const summary=row.recipient_count+' usuarios · '+Number(row.amount_each).toFixed(3)+' FC por tarjeta · '+row.redeemed_count+' canjeadas';
+      box.append(node('div','',issued+' · '+summary));
+      for(const group of row.expiry_groups||[]){
+        const expiry=formatDate(group.expires_at,'Sin vencimiento');
+        box.append(node('div','dfc-z31-muted','Vence · '+expiry+' · '+group.card_count+' tarjeta(s)'));
+      }
+    }
+  }catch(error){box.textContent='Historial no disponible: '+error.message;}
+}
 async function send(){if(busy)return;const n=Number($('dfcZ31Amount').value);if(!Number.isFinite(n)||n<=0||n>1000000||Math.abs(Math.round(n*1000)-n*1000)>1e-7){status('El valor debe ser positivo y tener máximo 3 decimales.');return;}
 const ids=[...selected.keys()];if(mode!=='all'&&ids.length===0){status('Selecciona al menos un usuario.');return;}
 const audience=mode==='all'?'TODOS los usuarios registrados':ids.length+' usuario(s)';

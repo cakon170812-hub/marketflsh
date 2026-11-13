@@ -577,14 +577,10 @@
     instruction.style.cssText='font:800 clamp(12px,3.2vw,18px) system-ui;text-align:center;';
     const sub=document.createElement('span');sub.textContent='Se añadirá a tus tarjetas FlashCoin pendientes';
     sub.style.cssText='font-size:clamp(11px,2.5vw,14px);text-align:center;';
-    if(card.expires_at){
-      const expiry=document.createElement('span');
-      expiry.className='dfc-z32-expiry-label';
-      expiry.textContent='Caduca: '+new Intl.DateTimeFormat('es-DO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(card.expires_at));
-      expiry.style.cssText='position:absolute;top:10px;right:10px;font:800 clamp(10px,2.5vw,13px) system-ui;color:#fff;background:#102b53dc;padding:6px;border-radius:7px;text-shadow:0 1px 2px #0017;z-index:2;';
-      btn.append(expiry);
-    }
-    btn.append(top,coin,amount,instruction,sub);overlay.append(btn);document.body.append(overlay);
+    const dates=window.dfcZ32GiftDates?.render(card);
+    btn.append(top,coin,amount);
+    if(dates)btn.append(dates);
+    btn.append(instruction,sub);overlay.append(btn);document.body.append(overlay);
     const previouslyFocused=document.activeElement;
     btn.focus({preventScroll:true});
     btn.addEventListener('click',async()=>{
@@ -778,75 +774,21 @@
 })();
 
 
-/* Z32: fecha de caducidad en cada tarjeta del listado nativo y acceso administrativo. */
-(function dfcZ32GiftExpiryLabels(){
+/* Acceso administrativo a la revisión de caducidad. */
+(function(){
  'use strict';
- if(window.dfcZ32GiftExpiryLabels)return;
- let inFlight=false, cache=new Map(), lastFetched=0, renderedSignature='';
- const $=id=>document.getElementById(id);
- function db(){return [window.sb,window.dfcSupabase,window.supabaseClient,window.rfSupabase].find(x=>x?.rpc&&x?.auth?.getSession);}
- function format(d){if(!d)return 'Sin caducidad';const x=new Date(d);return isNaN(x.getTime())?'Fecha no disponible':'Caduca: '+new Intl.DateTimeFormat('es-DO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(x);}
- async function refresh(){
-   if(inFlight||!db())return;
-   inFlight=true;
-   try{
-     const {data,error}=await db().rpc('dfc_z32_gift_pending_dates');
-     if(error)throw error;
-     if(!Array.isArray(data))return;
-     cache=new Map(data.map(x=>[String(x.gift_id),x]));
-     lastFetched=Date.now();render();
-   }catch(e){console.warn('[Z32 fechas tarjetas]',e?.message||e);}
-   finally{inFlight=false;}
- }
- function render(){
-   const list=$('dfcLabGiftUser008');if(!list)return;
-   const cards=Array.from(list.querySelectorAll('.dfc-z31-gift-choice'));
-   if(!cards.length)return;
-   const pending=Array.from(cache.values());
-   const signature=cards.length+'|'+pending.map(x=>x.gift_id+'='+x.expires_at).join(',');
-   if(signature===renderedSignature&&cards.every(c=>c.querySelector('.dfc-z32-expiry-list-label')))return;
-   cards.forEach((card,i)=>{
-     // El listado nativo usa el orden de creación devuelto por la RPC.
-     // No asignar fecha a una tarjeta si el importe no coincide.
-     const gift=pending[i];
-     if(!gift||Math.abs(Number(gift.amount)-Number((card.textContent||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.')))>0.001)return;
-     let label=card.querySelector('.dfc-z32-expiry-list-label');
-     if(!label){label=document.createElement('span');label.className='dfc-z32-expiry-list-label';card.append(label);}
-     label.textContent=format(gift.expires_at);
-     label.style.cssText='position:absolute;top:3px;right:3px;padding:3px 5px;background:#092a4fdf;color:#fff;border-radius:5px;font:800 9px system-ui;text-shadow:none;max-width:calc(100% - 6px);';
-     card.style.position='relative';
-   });
-   renderedSignature=signature;
- }
- function adminButton(){
-   const host=$('leaderPanel')?.querySelector('.mf-admin-grid')||$('leaderPanel')?.querySelector('.panel');
-   if(!host||$('dfcZ32ReviewExpiredBtn'))return;
-   const btn=document.createElement('button');btn.id='dfcZ32ReviewExpiredBtn';
-   btn.className='mf-admin-card';btn.type='button';btn.textContent='⏳ Revisar caducidad de tarjetas';
+ function addReviewButton(){
+   const panel=document.getElementById('leaderPanel');
+   const host=panel?.querySelector('.mf-admin-grid')||panel?.querySelector('.panel');
+   if(!host||document.getElementById('dfcZ32ReviewExpiredBtn'))return;
+   const btn=document.createElement('button');
+   btn.id='dfcZ32ReviewExpiredBtn';btn.className='mf-admin-card';btn.type='button';
+   btn.textContent='⏳ Revisar caducidad de tarjetas';
    btn.addEventListener('click',()=>{window.dfcZ32ExpiryAdminControls?.refresh();window.dfcZ32ExpiryOpen?.();});
    host.append(btn);
  }
- function init(){
-   adminButton();
-   if(!$('dfcZ32ExpiryLabelStyles')){
-     const css=document.createElement('style');css.id='dfcZ32ExpiryLabelStyles';
-     css.textContent='#dfcLabGiftUser008 .dfc-z31-gift-choice{position:relative!important;padding-top:24px!important}';
-     document.head.append(css);
-   }
-   const list=$('dfcLabGiftUser008');
-   if(list&&!list.dataset.dfcZ32ExpiryObserver){
-     list.dataset.dfcZ32ExpiryObserver='1';
-     new MutationObserver(()=>{if(Date.now()-lastFetched>3500)void refresh();else render();}).observe(list,{childList:true,subtree:false});
-   }
- }
- window.dfcZ32GiftExpiryLabels=Object.freeze({refresh});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
- let counter=0;const boot=setInterval(()=>{init();if(++counter>180)clearInterval(boot);},1000);
- document.addEventListener('click',e=>{if(e.target?.closest?.('#dfcLabGiftCard018,#dfcZ31AdminGiftsBtn,#dfcZ32ExpiryControls'))void refresh();},{passive:true});
- document.addEventListener('dfc:z32:gift-stored',()=>void refresh());
- document.addEventListener('dfc:giftRedeemed',()=>void refresh());
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh();});
- setInterval(()=>{if(!document.hidden)void refresh();},30000);
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',addReviewButton,{once:true});
+ else addReviewButton();
 })();
 
 /* Z32: scroll táctil para selección y fichas visibles durante entrega. */
