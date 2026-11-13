@@ -1135,9 +1135,10 @@
   const host=byId('leaderPanel')?.querySelector('.mf-admin-grid')||byId('leaderPanel')?.querySelector('.panel');
   if(!host||byId('dfcZ32RewardAdminBtn'))return;
   const btn=document.createElement('button');btn.id='dfcZ32RewardAdminBtn';btn.className='mf-admin-card';btn.type='button';
-  btn.textContent='🎁 Premios: Dominó · Tranque · Capicúa';
+  btn.textContent='🎁 CONFIGURAR TARJETAS: Dominó · Tranque · Capicúa';
+  btn.style.cssText='display:block;visibility:visible;min-height:42px;white-space:normal;font-weight:800;border:2px solid #35bbff;';
   btn.addEventListener('click',()=>{if(!opener)opener=create();if(opener)void opener();});
-  host.append(btn);
+  host.prepend(btn);
  }
  function init(){attach();new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
