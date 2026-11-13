@@ -1057,3 +1057,89 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
  window.dfcZ32DominoCardTariffAdmin=Object.freeze({attach});
 })();
+
+
+/* Z32: Administrador - premios independientes Domino, Tranque y Capicua */
+(function dfcZ32RewardAdmin(){
+ 'use strict';
+ if(window.dfcZ32RewardAdmin)return;
+ const byId=id=>document.getElementById(id);
+ const db=()=>[window.sb,window.dfcSupabase,window.supabaseClient,window.rfSupabase].find(x=>x&&typeof x.rpc==='function');
+ async function rpc(args){
+  const s=db();if(!s)throw Error('Sin conexión a Supabase');
+  const {data,error}=await s.rpc('dfc_z32_admin_reward_settings',args);
+  if(error)throw Error(error.message);
+  if(!data?.ok)throw Error('Configuración no confirmada');
+  return data;
+ }
+ function create(){
+  if(byId('dfcZ32RewardModal'))return;
+  const overlay=document.createElement('div');overlay.id='dfcZ32RewardModal';overlay.hidden=true;
+  overlay.style.cssText='position:fixed;inset:0;z-index:2147483501;background:#030c20ed;display:none;align-items:center;justify-content:center;padding:10px;box-sizing:border-box;';
+  const panel=document.createElement('section');
+  panel.style.cssText='max-width:520px;width:100%;max-height:95dvh;overflow:auto;border:1px solid #49b9ff;border-radius:14px;background:#092749;color:white;padding:14px;font:13px system-ui;box-sizing:border-box;';
+  const heading=document.createElement('h3');heading.textContent='🎁 Premios FlashCoin por jugadas';heading.style.cssText='font:700 17px system-ui;margin:0 0 10px;';
+  panel.append(heading);
+  const controls={};
+  for(const [key,label,desc] of [
+   ['domino','Dominó','Tarjeta de importe fijo por terminar las fichas'],
+   ['tranque','Tranque','Tarjeta de importe fijo por ganar el tranque'],
+   ['capicua','Capicúa','Tarjeta del 10 % del bote']]){
+    const row=document.createElement('label');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #356389;';
+    const input=document.createElement('input');input.type='checkbox';input.id='dfcReward_'+key;input.style.cssText='width:22px;height:22px;accent-color:#17baff;';
+    const labelBox=document.createElement('span');labelBox.style.cssText='flex:1;';
+    const strong=document.createElement('strong');strong.textContent=label;
+    const small=document.createElement('small');small.textContent=desc;small.style.cssText='display:block;color:#bfe5ff;margin-top:3px;';
+    labelBox.append(strong,small);row.append(input,labelBox);panel.append(row);controls[key]=input;
+    if(key!=='capicua'){
+     const amt=document.createElement('input');amt.type='number';amt.min='0';amt.max='1000000';amt.step='0.001';amt.placeholder='Cantidad FC';amt.inputMode='decimal';
+     amt.id='dfcRewardAmount_'+key;amt.style.cssText='width:100%;box-sizing:border-box;margin:5px 0 9px;padding:9px;border-radius:6px;color:#12263a;background:white;';
+     panel.append(amt);controls[key+'Amount']=amt;
+    }
+  }
+  const status=document.createElement('p');status.style.cssText='font-size:12px;color:#c7ecff;min-height:17px;';
+  status.setAttribute('role','status');panel.append(status);
+  const actions=document.createElement('div');actions.style.cssText='display:flex;gap:8px;';
+  const close=document.createElement('button');close.textContent='Cerrar';close.type='button';close.style.cssText='flex:1;padding:10px;border-radius:8px;background:#263e5c;color:white;';
+  const save=document.createElement('button');save.textContent='Guardar configuración';save.type='button';save.style.cssText='flex:2;padding:10px;border-radius:8px;background:#087ed1;color:white;font-weight:bold;';
+  actions.append(close,save);panel.append(actions);overlay.append(panel);document.body.append(overlay);
+  function hide(){overlay.hidden=true;overlay.style.display='none';}
+  close.addEventListener('click',hide);
+  async function open(){
+   overlay.hidden=false;overlay.style.display='flex';status.textContent='Cargando configuración actual…';
+   try{
+    const v=await rpc({});
+    controls.domino.checked=!!v.domino_enabled;controls.tranque.checked=!!v.tranque_enabled;controls.capicua.checked=!!v.capicua_enabled;
+    controls.dominoAmount.value=Number(v.domino_fc||0).toFixed(3);controls.tranqueAmount.value=Number(v.tranque_fc||0).toFixed(3);
+    status.textContent='Selecciona una, dos o las tres recompensas.';
+   }catch(e){status.textContent='Error al consultar: '+String(e.message||e);}
+  }
+  save.addEventListener('click',async()=>{
+   const d=Number(controls.dominoAmount.value),t=Number(controls.tranqueAmount.value);
+   if(![d,t].every(x=>Number.isFinite(x)&&x>=0&&x<=1000000&&Math.abs(x*1000-Math.round(x*1000))<0.00001)){
+    status.textContent='Importes inválidos (máximo tres decimales).';return;
+   }
+   save.disabled=true;status.textContent='Guardando en Supabase…';
+   try{
+    await rpc({p_domino_enabled:controls.domino.checked,p_tranque_enabled:controls.tranque.checked,
+      p_capicua_enabled:controls.capicua.checked,p_domino_fc:d,p_tranque_fc:t});
+    status.textContent='Configuración guardada correctamente.';
+   }catch(e){status.textContent='No se guardó: '+String(e.message||e);}
+   finally{save.disabled=false;}
+  });
+  return open;
+ }
+ let opener;
+ function attach(){
+  const host=byId('leaderPanel')?.querySelector('.mf-admin-grid')||byId('leaderPanel')?.querySelector('.panel');
+  if(!host||byId('dfcZ32RewardAdminBtn'))return;
+  const btn=document.createElement('button');btn.id='dfcZ32RewardAdminBtn';btn.className='mf-admin-card';btn.type='button';
+  btn.textContent='🎁 Premios: Dominó · Tranque · Capicúa';
+  btn.addEventListener('click',()=>{if(!opener)opener=create();if(opener)void opener();});
+  host.append(btn);
+ }
+ function init(){attach();new MutationObserver(attach).observe(document.body,{childList:true,subtree:true});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+ window.dfcZ32RewardAdmin={open:()=>{if(!opener)opener=create();if(opener)return opener();}};
+})();
