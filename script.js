@@ -994,3 +994,66 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
  window.dfcZ32PasteRecipientId=Object.freeze({attach});
 })();
+
+
+/* Z32 — Tarifa de tarjeta por Dominó en administración. */
+(function dfcZ32DominoCardTariffAdmin(){
+ 'use strict';
+ if(window.dfcZ32DominoCardTariffAdmin)return;
+ const id='dfcZ32DominoTariffSection';
+ const client=()=>[window.sb,window.dfcSupabase,window.supabaseClient,window.rfSupabase].find(x=>x&&typeof x.rpc==='function'&&x.auth?.getSession);
+ async function call(amount){
+  const db=client();if(!db)throw Error('Supabase no disponible');
+  const {data,error}=await db.rpc('dfc_z32_admin_domino_card_tariff',{p_domino_fc:amount});
+  if(error)throw Error(error.message||String(error));
+  if(!data?.ok)throw Error('Configuración no confirmada');
+  return data;
+ }
+ function attach(){
+  const modal=document.getElementById('dfcZ31GiftsModal');
+  if(!modal||document.getElementById(id))return;
+  const target=modal.querySelector('.dfc-z31-body');
+  if(!target)return;
+  const section=document.createElement('section');
+  section.id=id;
+  section.style.cssText='border-top:1px solid #407aa2;margin:8px 0;padding:7px 2px;';
+  const heading=document.createElement('button');
+  heading.type='button';heading.textContent='⚙ Tarifa por Dominó (tarjeta FlashCoin)';
+  heading.setAttribute('aria-expanded','false');
+  heading.style.cssText='background:#103f6a;color:#fff;border:1px solid #68bbef;border-radius:7px;padding:6px 9px;font:700 12px system-ui;max-width:100%;';
+  const body=document.createElement('div');body.hidden=true;
+  body.style.cssText='display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px;';
+  const caption=document.createElement('label');caption.textContent='FC por Dominó';caption.htmlFor='dfcZ32DominoTariffValue';
+  const input=document.createElement('input');
+  input.id='dfcZ32DominoTariffValue';input.type='number';input.min='0';input.max='1000000';input.step='0.001';input.inputMode='decimal';input.placeholder='0.000';
+  input.style.cssText='width:100px;max-width:33vw;min-height:34px;background:white;color:#162b43;padding:5px;border-radius:6px;';
+  const save=document.createElement('button');save.type='button';save.textContent='Guardar tarifa';
+  save.style.cssText='background:#1475a2;color:white;border-radius:6px;padding:7px 10px;min-height:34px;';
+  const status=document.createElement('span');status.setAttribute('role','status');
+  status.style.cssText='font:11px system-ui;color:#d0eeff;flex-basis:100%;';
+  const refresh=async()=>{
+   status.textContent='Consultando tarifa…';
+   try{const value=await call(null);input.value=Number(value.domino_fc||0).toFixed(3);status.textContent='Tarifa actual: '+input.value+' FC · Capicúa: 10% del bote.';}
+   catch(e){status.textContent='No se pudo consultar: '+String(e?.message||e);}
+  };
+  heading.addEventListener('click',()=>{
+   body.hidden=!body.hidden;heading.setAttribute('aria-expanded',String(!body.hidden));
+   if(!body.hidden)void refresh();
+  });
+  save.addEventListener('click',async()=>{
+   const raw=input.value.trim(),value=Number(raw);
+   if(!raw||!Number.isFinite(value)||value<0||value>1000000||Math.abs(value*1000-Math.round(value*1000))>1e-6){
+    status.textContent='Introduce un importe válido con hasta tres decimales.';return;
+   }
+   save.disabled=true;status.textContent='Guardando en Supabase…';
+   try{const result=await call(value);input.value=Number(result.domino_fc).toFixed(3);status.textContent='Tarifa guardada: '+input.value+' FC.';}
+   catch(e){status.textContent='Error: '+String(e?.message||e);}
+   finally{save.disabled=false;}
+  });
+  body.append(caption,input,save,status);section.append(heading,body);target.prepend(section);
+ }
+ const observer=new MutationObserver(attach);
+ function start(){attach();observer.observe(document.body,{childList:true,subtree:true});}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+ window.dfcZ32DominoCardTariffAdmin=Object.freeze({attach});
+})();
