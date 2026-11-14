@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 18
     env:
-      DFC_VERSION: ${{ inputs.version || '0.12Z.33' }}
+      DFC_VERSION: ${{ inputs.version || '0.12Z.34' }}
       DFC_APPROVED_SHA: ${{ inputs.sha || github.sha }}
       DFC_PUBLIC_BASE: https://cakon170812-hub.github.io/marketflsh/android-approved
     steps:
@@ -120,8 +120,8 @@ jobs:
               stop('El puente aprobado no incluye el actualizador Android.')
           parser = AppVersion()
           parser.feed(html.decode('utf-8'))
-          # Z33 es solo el número OTA del parche de compatibilidad: la interfaz permanece Z32.
-          expected_html_version = '0.12Z.32' if os.environ['GITHUB_EVENT_NAME'] == 'push' and version == '0.12Z.33' else version
+          # Z34 es el parche OTA técnico posterior a Z33: la interfaz y las reglas permanecen Z32.
+          expected_html_version = '0.12Z.32' if os.environ['GITHUB_EVENT_NAME'] == 'push' and version == '0.12Z.34' else version
           if parser.values != [expected_html_version] or not parser.has_native_bridge:
               stop('La revisión aprobada debe declarar la versión HTML esperada y cargar el puente Android.')
           bundle = root / 'bundles' / f'{version}.zip'
