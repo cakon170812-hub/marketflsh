@@ -34,6 +34,25 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+      - name: Compilar puente Android con las dependencias Capacitor
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage="$RUNNER_TEMP/dfc-bridge-build"
+          mkdir -p "$stage"
+          git show "$DFC_APPROVED_SHA:native-bridge.js" > "$stage/native-bridge.js"
+          npm install --prefix "$stage" --no-audit --no-fund --no-save \
+            esbuild@0.25.12 @capacitor/core@7.6.10 @capacitor/app@7.1.2 \
+            @capacitor/screen-orientation@7.0.4 @capacitor/status-bar@7.0.6 \
+            @capgo/capacitor-updater@7.53.0
+          "$stage/node_modules/.bin/esbuild" "$stage/native-bridge.js" \
+            --bundle --platform=browser --format=iife --target=es2020 \
+            --outfile="$stage/native-bridge-bundled.js"
+          node --check "$stage/native-bridge-bundled.js"
+          if grep -Eq '^[[:space:]]*import[[:space:]].*from' "$stage/native-bridge-bundled.js"; then
+            echo 'El puente Android conserva importaciones sin resolver' >&2
+            exit 1
+          fi
       - name: Validar la revisión y preparar el paquete
         id: package
         shell: bash
@@ -89,7 +108,7 @@ jobs:
               stop('El manifiesto anterior tiene una versión inválida.')
 
           html = git('show', f'{approved}:index.html')
-          updated_bridge = git('show', f'{approved}:native-bridge.js')
+          updated_bridge = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'dfc-bridge-build' / 'native-bridge-bundled.js').read_bytes()
           updated_script = git('show', f'{approved}:script.js')
           if b'dfc_z32_admin_reward_settings' not in updated_script:
               stop('La revisión aprobada no contiene controles de recompensas Z32.')
