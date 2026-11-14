@@ -8271,6 +8271,7 @@ body.domino-spectating #dominoSpectatorBar{
 .domino-spectator-nav:disabled{opacity:.26}
 #dominoSpectatorLabel{min-width:98px;max-width:220px;text-align:center;color:#dff2ff;font-size:7px;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.02em}
 #dominoSpectatorLabel b{display:block;color:#fff;font-size:8.5px}
+#dominoSpectatorLabel span{display:block;white-space:normal;overflow-wrap:anywhere}
 body.domino-spectating #dominoHand,
 body.domino-spectating #dominoReadyBtn,
 body.domino-spectating #dominoMiniChat,
@@ -8425,7 +8426,15 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
     const label=document.getElementById('dominoSpectatorLabel');
     const prev=document.getElementById('dominoSpectatorPrev'),next=document.getElementById('dominoSpectatorNext');
     const t=(dominoLobbyData?.tables||[]).find(x=>Number(x.id)===Number(dominoCurrentTableId));
-    if(label)label.innerHTML=`<b>👁️ ESPECTADOR · ${Number(t?.players||0)}/4</b><span>${esc(tableLabel(t))}</span>`;
+    if(label){
+      const seats=dominoState?.seats||[];
+      const players=seats.filter(seat=>seat.state==='active'||seat.state==='leave_after_hand').length;
+      const hand=dominoState?.hand;
+      const phase=hand?.status==='playing'?'Mano en curso':hand?.status==='shuffling'?'Repartiendo fichas':players<2?'Esperando jugadores':'Esperando la próxima mano';
+      const name=t?tableLabel(t):`${dominoState?.config?.name||'Dominó'} · Mesa ${dominoCurrentTableId}`;
+      const markup=`<b>👁️ ESPECTADOR · ${players}/4</b><span>${esc(name)} · ${phase}</span>`;
+      if(label.innerHTML!==markup)label.innerHTML=markup;
+    }
     const sit=document.getElementById('mf110SpectatorSit');
     const config=(dominoLobbyData?.configs||[]).find(c=>Number(c.id)===Number(t?.config_id))||dominoState?.config;
     if(sit){
@@ -8685,15 +8694,19 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
   if(typeof originalLoadState==='function')window.loadDominoState=async function(force,skipTick=false){
     if(!spectatorMode)return originalLoadState(force,skipTick);
     if(!dominoCurrentTableId||spectatorReadInFlight)return;
+    const tableId=Number(dominoCurrentTableId);
+    const isCurrentTable=()=>spectatorMode&&Number(dominoCurrentTableId)===tableId;
     spectatorReadInFlight=true;
     try{
       let snapshot;
-      try{snapshot=await spectatorRequest(dominoCurrentTableId)}catch(e){
+      try{snapshot=await spectatorRequest(tableId)}catch(e){
+        if(!isCurrentTable())return;
         dominoSetSyncState('Espectador: conexión pendiente, puedes reintentar','warn');
         const retry=document.getElementById('mf195SpectatorRetry');if(retry)retry.hidden=false;
         if(force)window.mf19Toast?.('No se pudo actualizar la mesa: '+errText(e),'error');
         return;
       }
+      if(!isCurrentTable())return;
       const retry=document.getElementById('mf195SpectatorRetry');if(retry)retry.hidden=true;
       if(dominoDragState?.active&&!force)return;
       renderDominoState(snapshot);updateSpectatorBar();
