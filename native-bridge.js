@@ -149,8 +149,8 @@
          {version:data.version,url:url.href,sha256:data.sha256} : null;
        if (pending && versionNumber(pending.version) <= versionNumber(current)) savePending(null);
        button();
-       if (pending) void activatePending(false);
-       else if (candidate) void updateClicked(true);
+       // La comprobación solo anuncia la versión; NUNCA descarga ni instala sin un toque.
+       // Mantener el botón visible en la pantalla principal hasta que el usuario actúe.
      } catch (e) { console.warn('[DFC OTA] CONSULTA_FALLIDA', String(e?.message || '')); }
    }
    async function activatePending(showMessages = true) {
@@ -171,12 +171,12 @@
        if (showMessages) alert('No se pudo activar la actualización. La versión actual se conserva.');
      } finally { activating = false; button(); }
    }
-   async function updateClicked(automatic = false) {
+   async function updateClicked() {
      if (downloading || activating) return;
      if (pending) return void activatePending(true);
      if (!candidate) { await check(true); return; }
      const target = candidate;
-     if (!automatic && !confirm('¿Descargar ' + target.version + '? Puedes seguir jugando; no se reiniciará la partida durante la descarga.')) return;
+     if (!confirm('¿Descargar ' + target.version + '? Puedes seguir jugando; no se reiniciará la partida durante la descarga.')) return;
      downloading = true; button();
      try {
        const bundle = await CapacitorUpdater.download({version:target.version,url:target.url,checksum:target.sha256});
@@ -184,14 +184,14 @@
        savePending({version:target.version,id:bundle.id});
        // No activar automáticamente durante una partida ni alterar sus turnos.
        if (await safeToActivate()) {
-         if (!automatic) alert('Actualización descargada. Toca «Activar» para instalarla.');
+         alert('Actualización descargada. Toca «Activar» para instalarla.');
        } else {
-         if (!automatic) alert('Actualización descargada. Puedes continuar jugando; cuando el servidor confirme que no tienes una mesa activa, toca «Activar».');
+         alert('Actualización descargada. Puedes continuar jugando; cuando el servidor confirme que no tienes una mesa activa, toca «Activar».');
        }
      } catch(e) {
        console.warn('[DFC OTA] DESCARGA_FALLIDA', String(e?.message || ''));
-       if (!automatic) alert('No fue posible descargar la actualización. Se conserva la versión actual.');
-     } finally { downloading = false; button(); if (automatic && pending) void activatePending(false); }
+       alert('No fue posible descargar la actualización. Se conserva la versión actual.');
+     } finally { downloading = false; button(); }
    }
    // El paquete descargado se conserva por su id; no llamar a set mientras hay jugadas.
    savePending(readPending());
