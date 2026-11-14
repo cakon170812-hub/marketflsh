@@ -100,7 +100,7 @@
        btn.id = 'dfcOTAUserButton';
        btn.type = 'button';
        btn.style.cssText = [
-         'position:fixed','bottom:calc(74px + env(safe-area-inset-bottom,0px))',
+         'position:fixed','bottom:calc(16px + env(safe-area-inset-bottom,0px))',
          'left:50%','transform:translateX(-50%)','z-index:2147483000',
          'max-width:calc(100vw - 24px)','min-height:46px','padding:12px 18px',
          'background:linear-gradient(135deg,#0874db,#00428b)',
@@ -108,7 +108,7 @@
          'font:700 14px system-ui','box-shadow:0 4px 18px #0009'
        ].join(';');
        btn.addEventListener('click', () => void updateClicked());
-       document.body.appendChild(btn);
+       document.documentElement.appendChild(btn);
      }
      btn.disabled = downloading || activating;
      btn.textContent = activating ? 'Activando actualización…' : downloading ? 'Descargando actualización…' :
@@ -149,6 +149,8 @@
          {version:data.version,url:url.href,sha256:data.sha256} : null;
        if (pending && versionNumber(pending.version) <= versionNumber(current)) savePending(null);
        button();
+       if (pending) void activatePending(false);
+       else if (candidate) void updateClicked(true);
      } catch (e) { console.warn('[DFC OTA] CONSULTA_FALLIDA', String(e?.message || '')); }
    }
    async function activatePending(showMessages = true) {
@@ -169,12 +171,12 @@
        if (showMessages) alert('No se pudo activar la actualización. La versión actual se conserva.');
      } finally { activating = false; button(); }
    }
-   async function updateClicked() {
+   async function updateClicked(automatic = false) {
      if (downloading || activating) return;
      if (pending) return void activatePending(true);
      if (!candidate) { await check(true); return; }
      const target = candidate;
-     if (!confirm('¿Descargar ' + target.version + '? Puedes seguir jugando; no se reiniciará la partida durante la descarga.')) return;
+     if (!automatic && !confirm('¿Descargar ' + target.version + '? Puedes seguir jugando; no se reiniciará la partida durante la descarga.')) return;
      downloading = true; button();
      try {
        const bundle = await CapacitorUpdater.download({version:target.version,url:target.url,checksum:target.sha256});
@@ -182,14 +184,14 @@
        savePending({version:target.version,id:bundle.id});
        // No activar automáticamente durante una partida ni alterar sus turnos.
        if (await safeToActivate()) {
-         alert('Actualización descargada. Toca «Activar» para instalarla.');
+         if (!automatic) alert('Actualización descargada. Toca «Activar» para instalarla.');
        } else {
-         alert('Actualización descargada. Puedes continuar jugando; cuando el servidor confirme que no tienes una mesa activa, toca «Activar».');
+         if (!automatic) alert('Actualización descargada. Puedes continuar jugando; cuando el servidor confirme que no tienes una mesa activa, toca «Activar».');
        }
      } catch(e) {
        console.warn('[DFC OTA] DESCARGA_FALLIDA', String(e?.message || ''));
-       alert('No fue posible descargar la actualización. Se conserva la versión actual.');
-     } finally { downloading = false; button(); }
+       if (!automatic) alert('No fue posible descargar la actualización. Se conserva la versión actual.');
+     } finally { downloading = false; button(); if (automatic && pending) void activatePending(false); }
    }
    // El paquete descargado se conserva por su id; no llamar a set mientras hay jugadas.
    savePending(readPending());
@@ -248,6 +250,7 @@
    }
    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
    else boot();
+   setInterval(() => void check(true), 120000);
    window.addEventListener('online',()=>void check(true));
    document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check(true);});
  }
