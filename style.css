@@ -32,7 +32,7 @@
   left: 50%;
 
   bottom: calc(
-    74px + env(safe-area-inset-bottom, 0px)
+    16px + env(safe-area-inset-bottom, 0px)
   );
 
   transform: translateX(-50%);
@@ -113,21 +113,7 @@
   filter: brightness(1.08);
 }
 
-/* NO MOSTRAR ACTUALIZACIONES DURANTE UNA PARTIDA */
-
-body:has(#dominoTablePanel.active)
-#dfcOTAUserButton {
-  display: none !important;
-}
-
-/* NO MOSTRAR ACTUALIZACIONES DENTRO DEL LOBBY */
-
-body:has(#dominoLobbyPanel.active)
-#dfcOTAUserButton,
-body:has(#dominoLobbyPanel.show)
-#dfcOTAUserButton {
-  display: none !important;
-}
+/* El botón OTA permanece accesible; la activación se valida con el servidor. */
 
 /* ADAPTACIÓN A TELÉFONOS PEQUEÑOS */
 
