@@ -1,6 +1,10 @@
 name: Publicar actualización Android de Dominó Flash Coin
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'android-approved/ota-z33-trigger.txt'
   workflow_dispatch:
     inputs:
       version:
@@ -26,8 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 18
     env:
-      DFC_VERSION: ${{ inputs.version }}
-      DFC_APPROVED_SHA: ${{ inputs.sha }}
+      DFC_VERSION: ${{ inputs.version || '0.12Z.33' }}
+      DFC_APPROVED_SHA: ${{ inputs.sha || github.sha }}
       DFC_PUBLIC_BASE: https://cakon170812-hub.github.io/marketflsh/android-approved
     steps:
       - uses: actions/checkout@v4
@@ -116,8 +120,10 @@ jobs:
               stop('El puente aprobado no incluye el actualizador Android.')
           parser = AppVersion()
           parser.feed(html.decode('utf-8'))
-          if parser.values != [version] or not parser.has_native_bridge:
-              stop('La revisión aprobada debe declarar esa versión y cargar el puente Android.')
+          # Z33 es solo el número OTA del parche de compatibilidad: la interfaz permanece Z32.
+          expected_html_version = '0.12Z.32' if os.environ['GITHUB_EVENT_NAME'] == 'push' and version == '0.12Z.33' else version
+          if parser.values != [expected_html_version] or not parser.has_native_bridge:
+              stop('La revisión aprobada debe declarar la versión HTML esperada y cargar el puente Android.')
           bundle = root / 'bundles' / f'{version}.zip'
 
           if version == previous and manifest.get('sha') == approved:
