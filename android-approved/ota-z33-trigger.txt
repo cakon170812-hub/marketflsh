@@ -1,5 +1,7 @@
-DOMINÓ FLASH COIN — prueba OTA Android de compatibilidad
-Versión OTA: 0.12Z.33
-Base de interfaz y juego: Z32
-Finalidad: botón Actualizar accesible, puente Android compilado y actualización automática con protección de partida.
-No contiene credenciales ni modifica saldos.
+DOMINÓ FLASH COIN — envío OTA Android de reparación del actualizador
+Paquete OTA técnico: 0.12Z.34 (sustituye a Z33 como versión descargable más reciente)
+Interfaz, funciones y juego: 0.12Z.32 sin modificaciones.
+Motivo: el paquete Z33 fue generado antes de la corrección del botón Actualizar.
+Corregido: la detección solo avisa; descarga y activación requieren toque del usuario.
+Seguridad: no reiniciar una partida ni alterar sesiones, mesas, saldos o Supabase.
+Fecha de aprobación: 2026-11-14.
