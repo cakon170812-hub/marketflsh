@@ -7226,7 +7226,7 @@ async function saveDominoAdminCard(card){const id=Number(card.dataset.dominoAdmi
 
   let fullscreenTried=false;
   async function requestImmersiveOnce(){
-    if(fullscreenTried||standalone())return;
+    if(fullscreenTried||standalone()||window.Capacitor?.isNativePlatform?.())return;
     fullscreenTried=true;
     try{
       const el=document.documentElement;

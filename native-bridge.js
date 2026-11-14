@@ -21,7 +21,7 @@
    let candidate = null;
    let downloading = false;
    let activating = false;
-   let lastCheck = 0;
+   let checkInProgress = null;
    let pending = null;
    let errorCode = '';
 
@@ -87,11 +87,12 @@
    async function installedVersion() {
      try {
        const current = await CapacitorUpdater.current();
-       if (current?.bundle?.id && current.bundle.id !== 'builtin' && versionNumber(current.bundle.version) >= 0) {
+       if (current?.bundle?.id === 'builtin') return BASE_VERSION;
+       if (current?.bundle?.id && versionNumber(current.bundle.version) >= 0) {
          return current.bundle.version;
        }
      } catch (e) { console.warn('[DFC OTA] VERSION_ERROR', String(e?.message || '')); }
-     return BASE_VERSION;
+     return null;
    }
    function button() {
      let btn = document.getElementById('dfcOTAUserButton');
@@ -108,13 +109,15 @@
          'font:700 14px system-ui','box-shadow:0 4px 18px #0009'
        ].join(';');
        btn.addEventListener('click', () => void updateClicked());
-       document.documentElement.appendChild(btn);
+       document.body.appendChild(btn);
      }
      btn.disabled = downloading || activating;
      btn.textContent = activating ? 'Activando actualización…' : downloading ? 'Descargando actualización…' :
        pending ? `📲 Activar · ${pending.version}` : `📲 Actualizar · ${candidate?.version || ''}`;
-     // Se muestra incluso en mesa; nunca implica reinicio inmediato de una partida.
-     const show = !!(candidate || pending) && !document.hidden;
+     const home = document.getElementById('appView');
+     const lobby = document.getElementById('dominoLobbyPanel');
+     const onHome = (home && !home.classList.contains('hidden')) || lobby?.classList.contains('active');
+     const show = !!(candidate || pending) && !!onHome && !tableOpen() && !document.hidden;
      btn.hidden = !show;
      btn.style.display = show ? 'block' : 'none';
      return btn;
@@ -133,48 +136,54 @@
      } catch (_) {}
      button();
    }
-   async function check(force = false) {
-     if (downloading || activating || document.hidden || (!force && Date.now() - lastCheck < 90000)) return;
-     lastCheck = Date.now();
+   function check() {
+     if (checkInProgress) return checkInProgress;
+     if (downloading || activating || document.hidden) return Promise.resolve();
+     checkInProgress = checkManifest().finally(() => { checkInProgress = null; });
+     return checkInProgress;
+   }
+   async function checkManifest() {
+     const controller = new AbortController();
+     const timer = setTimeout(() => controller.abort(), 10000);
      try {
-       const res = await fetch(MANIFEST + '?v=' + Date.now(), {cache:'no-store'});
+       const res = await fetch(MANIFEST + '?v=' + Date.now(), {cache:'no-store',signal:controller.signal});
        if (!res.ok) throw new Error('MANIFEST_HTTP_' + res.status);
        const data = await res.json();
        const url = new URL(String(data?.url || ''));
        if (versionNumber(data?.version) < 0 || !SHA_RE.test(String(data?.sha256 || '')) ||
            url.protocol !== 'https:' || url.origin !== EXPECTED_ORIGIN ||
            url.pathname !== BUNDLES_PATH + data.version + '.zip') throw new Error('MANIFEST_NO_VALIDO');
-       const current = await installedVersion();
+       const current = await withTimeout(installedVersion(), 5000, 'TIEMPO_VERSION');
+       if (versionNumber(current) < 0) return;
        candidate = versionNumber(data.version) > versionNumber(current) ?
          {version:data.version,url:url.href,sha256:data.sha256} : null;
        if (pending && versionNumber(pending.version) <= versionNumber(current)) savePending(null);
-       button();
        // La comprobación solo anuncia la versión; NUNCA descarga ni instala sin un toque.
        // Mantener el botón visible en la pantalla principal hasta que el usuario actúe.
      } catch (e) { console.warn('[DFC OTA] CONSULTA_FALLIDA', String(e?.message || '')); }
+     finally { clearTimeout(timer); button(); }
    }
-   async function activatePending(showMessages = true) {
+   async function activatePending() {
      if (!pending || downloading || activating) return;
-     if (!(await safeToActivate())) {
-       if (showMessages) alert('La actualización está descargada. Se activará cuando salgas de la mesa y el servidor confirme que no hay asiento activo. Estado: ' + errorCode);
-       return;
-     }
-     if (showMessages && !confirm('¿Activar ' + pending.version + ' ahora? La aplicación se reiniciará.')) return;
-     activating = true; button();
      const saved = pending;
+     activating = true; button();
      try {
-       // Segunda comprobación inmediatamente antes del reinicio.
-       if (!(await safeToActivate())) { if (showMessages) alert('Activación aplazada: ' + errorCode); return; }
+       if (!(await safeToActivate())) {
+         alert('La actualización está descargada. Toca «Activar» cuando salgas de la mesa. Estado: ' + errorCode);
+         return;
+       }
+       if (!confirm('¿Activar ' + saved.version + ' ahora? La aplicación se reiniciará.')) return;
+       if (!(await safeToActivate())) { alert('Activación aplazada: ' + errorCode); return; }
        await CapacitorUpdater.set({id:saved.id});
      } catch(e) {
        console.warn('[DFC OTA] ACTIVACION_FALLIDA', String(e?.message || ''));
-       if (showMessages) alert('No se pudo activar la actualización. La versión actual se conserva.');
+       alert('No se pudo activar la actualización. La versión actual se conserva.');
      } finally { activating = false; button(); }
    }
    async function updateClicked() {
      if (downloading || activating) return;
-     if (pending) return void activatePending(true);
-     if (!candidate) { await check(true); return; }
+     if (pending) return activatePending();
+     if (!candidate) { await check(); return; }
      const target = candidate;
      if (!confirm('¿Descargar ' + target.version + '? Puedes seguir jugando; no se reiniciará la partida durante la descarga.')) return;
      downloading = true; button();
@@ -197,7 +206,7 @@
    savePending(readPending());
    window.dfcGetInstalledAndroidVersion = installedVersion;
    window.dfcInstallApprovedUpdate = updateClicked;
-   window.dfcOtaCheck = () => check(true);
+   window.dfcOtaCheck = () => check();
    void CapacitorUpdater.notifyAppReady().catch(e => console.warn('[DFC OTA] READY', e));
    // Mantener el modo inmersivo en todas las pantallas, no solo al entrar a la mesa.
    // La navegación nativa (barra inferior) requiere además configuración del APK.
@@ -224,7 +233,7 @@
    window.dominoUpdateRotateGuard = () => document.getElementById('dominoRotateGuard')?.classList.remove('show');
    App.addListener('appStateChange', async ({isActive}) => {
      if (!isActive) return;
-     void check(true);
+     void check();
      await applyImmersiveMode();
      if (tableOpen()) {
        try {
@@ -242,15 +251,24 @@
    });
    function boot() {
      void applyImmersiveMode();
-     button(); void check(true);
+     button(); void check();
      for(const id of ['dominoTablePanel','appView','dominoLobbyPanel']) {
        const el = document.getElementById(id);
        if (el) new MutationObserver(button).observe(el,{attributes:true,attributeFilter:['class','style']});
      }
+     const home = document.getElementById('appView');
+     if (home) {
+       let wasHidden = home.classList.contains('hidden');
+       new MutationObserver(() => {
+         const hidden = home.classList.contains('hidden');
+         if (wasHidden && !hidden) void check();
+         wasHidden = hidden;
+       }).observe(home,{attributes:true,attributeFilter:['class']});
+     }
    }
    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',boot,{once:true});
    else boot();
-   setInterval(() => void check(true), 120000);
-   window.addEventListener('online',()=>void check(true));
-   document.addEventListener('visibilitychange',()=>{if(!document.hidden)void check(true);});
+   setInterval(() => void check(), 30000);
+   window.addEventListener('online',()=>void check());
+   document.addEventListener('visibilitychange',()=>{button();if(!document.hidden)void check();});
  }
