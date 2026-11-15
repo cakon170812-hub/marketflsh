@@ -1077,75 +1077,91 @@
 })();
 
 
-/* Z36 — Navegación administrativa segura de modalidades. No altera partidas ni saldos. */
-(function dfcZ36AdminModes(){
-  'use strict';
-  if(window.dfcZ36AdminModes)return;
-  const cssId='dfcZ36ModesCSS', modalId='dfcZ36ModesModal', buttonId='dfcZ36ModesButton';
-  const modalText='La modalidad Por puntos está en preparación. No acepta inscripciones, aportes ni partidas nuevas.';
-  function mountStyle(){
-    if(document.getElementById(cssId))return;
-    const s=document.createElement('style');s.id=cssId;
-    s.textContent=`
-    #dfcZ36ModesModal{position:fixed;inset:0;z-index:2147483500;background:rgba(2,7,24,.92);overflow:auto;padding:18px;box-sizing:border-box;color:#fff;font-family:system-ui,sans-serif}
-    #dfcZ36ModesModal[hidden]{display:none!important}
-    #dfcZ36ModesModal .dfc-z36-wrap{max-width:680px;margin:2vh auto;padding:18px;background:linear-gradient(145deg,#14234c,#241342);border:2px solid #d3af59;border-radius:20px;box-shadow:0 12px 50px #0009}
-    #dfcZ36ModesModal .dfc-z36-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    #dfcZ36ModesModal .dfc-z36-title{font-size:clamp(19px,5vw,28px);font-weight:900;color:#ffe29a;text-align:center;margin:12px 0}
-    #dfcZ36ModesModal .dfc-z36-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-    #dfcZ36ModesModal .dfc-z36-tile{display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;min-height:112px;padding:12px 8px;border:1.5px solid #c6a55b;border-radius:15px;background:linear-gradient(130deg,#254a88,#151e48);color:#fff;font-weight:800;text-align:center}
-    #dfcZ36ModesModal button{cursor:pointer;font:inherit}
-    #dfcZ36ModesModal .dfc-z36-close{background:#161e39;color:white;border:1px solid #fff8;border-radius:12px;padding:9px 13px}
-    #dfcZ36ModesModal .dfc-z36-note{font-size:13px;line-height:1.5;color:#e2dfeb;margin:14px 0 0}
-    #dfcZ36ModesModal .dfc-z36-disabled{opacity:.75;background:linear-gradient(120deg,#50556a,#292d42)}
-    #dfcZ36ModesModal .dfc-z36-icon{font-size:28px}
-    @media(max-width:380px){#dfcZ36ModesModal .dfc-z36-grid{grid-template-columns:1fr}#dfcZ36ModesModal .dfc-z36-tile{min-height:72px}}
-    `;
-    document.head.append(s);
+
+/* Z36 — Editor integrado de mesas, sin modificar el motor de partidas */
+(function dfcZ36UnifiedEditor(){
+ 'use strict';
+ if(window.dfcZ36UnifiedEditor)return;
+ const style=document.createElement('style');style.id='dfc-z36-unified-style';
+ style.textContent=`
+ #dfcZ36UnifiedEditor{padding:15px;border:1.5px solid #d7b267;border-radius:20px;background:linear-gradient(145deg,#0d1e45,#251648);color:#fff;margin:12px 0}
+ #dfcZ36UnifiedEditor .dfc-z36-logo{width:100%;height:100px;object-fit:cover;border-radius:12px;border:1px solid #c7a65c;background:var(--dfc-z26-official-wallpaper) center/cover no-repeat}
+ #dfcZ36UnifiedEditor h3{text-align:center;color:#ffe5a3;margin:10px 0 6px}
+ #dfcZ36UnifiedEditor .dfc-z36-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:12px}
+ #dfcZ36UnifiedEditor button{font:inherit;color:white;border:1px solid #a9b8e2;border-radius:12px;padding:12px 6px;min-height:72px;background:linear-gradient(120deg,#155d8c,#17274f);cursor:pointer}
+ #dfcZ36UnifiedEditor button[data-mode="paid_pass"]{background:linear-gradient(120deg,#925c1c,#44311f)}
+ #dfcZ36UnifiedEditor button[disabled]{background:linear-gradient(120deg,#50546c,#282d42);opacity:.78;cursor:not-allowed}
+ #dfcZ36UnifiedEditor button[aria-pressed="true"]{border:3px solid #ffdd72;box-shadow:0 0 12px #f3c45166}
+ #dfcZ36UnifiedEditor small{display:block;color:#e9e9f2;font-size:11px;margin-top:3px}
+ #dfcZ36UnifiedEditor .dfc-z36-note{font-size:12px;margin:12px 0 0}
+ #dfcZ36UnifiedEditor .dfc-z36-rooms{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+ #dfcZ36UnifiedEditor .dfc-z36-rooms button{min-height:38px;padding:7px 10px}
+ #mfAdmin16_domino #dominoAdminConfigs .dfc012n-mode-section{display:none!important}
+ #dfc-z20-admin-modal #dfc-z20-target,#dfc-z20-admin-modal #dfc-z20-capicua,#dfc-z20-admin-modal #dfc-z20-round,#dfc-z20-admin-modal #dfc-z20-seats{pointer-events:none}
+ #dfcZ36ModesButton{display:none!important}
+ @media(max-width:380px){#dfcZ36UnifiedEditor .dfc-z36-grid{gap:6px}#dfcZ36UnifiedEditor button{font-size:12px;padding:8px 4px}}
+ `;
+ function mount(){
+  if(!document.getElementById(style.id))document.head.append(style);
+  const target=document.getElementById('dominoAdminConfigs');
+  if(!target||!target.parentElement)return;
+  let root=document.getElementById('dfcZ36UnifiedEditor');
+  if(!root){
+   root=document.createElement('div');root.id='dfcZ36UnifiedEditor';
+   root.innerHTML='<div class="dfc-z36-logo" aria-label="Imagen de DOMINÓ FLASH COIN"></div><h3>🁫 DOMINÓ FLASH COIN · EDITAR MESAS</h3><div class="dfc-z36-grid"><button type="button" data-mode="normal">🁫 POR GANE<small>Editar reglas y tarifas</small></button><button type="button" data-mode="points" disabled>🎯 POR PUNTOS<small>En preparación</small></button><button type="button" data-mode="paid_pass">🎲 PINTINTÍN<small>Editar las mesas existentes</small></button><button type="button" data-mode="tournament" disabled>🏆 TORNEO<small>Próximamente</small></button></div><div class="dfc-z36-rooms"></div><p class="dfc-z36-note">Selecciona una modalidad y una mesa. Por puntos no permite sentarse, aportar ni jugar; Torneo se desarrollará después como sección independiente.</p>';
+   target.before(root);
+   root.querySelectorAll('button[data-mode]:not([disabled])').forEach(btn=>btn.addEventListener('click',()=>{root.dataset.selected=btn.dataset.mode;render()}));
+   root.dataset.selected='normal';
   }
-  function open(){
-    mountStyle();
-    let panel=document.getElementById(modalId);
-    if(!panel){
-      panel=document.createElement('div');panel.id=modalId;panel.hidden=true;
-      panel.innerHTML=`<div class="dfc-z36-wrap" role="dialog" aria-modal="true" aria-label="Editar mesas de Dominó Flash Coin">
-        <div class="dfc-z36-head"><strong>DOMINÓ FLASH COIN</strong><button class="dfc-z36-close" type="button">✕ Cerrar</button></div>
-        <div class="dfc-z36-title">🎲 EDITAR MESAS · MESA 1</div>
-        <div class="dfc-z36-grid">
-          <button type="button" class="dfc-z36-tile" data-mode="normal"><span class="dfc-z36-icon">🁫</span>Por gane</button>
-          <div class="dfc-z36-tile dfc-z36-disabled" aria-disabled="true"><span class="dfc-z36-icon">🎯</span>Por puntos<small>En preparación</small></div>
-          <button type="button" class="dfc-z36-tile" data-mode="pintintin"><span class="dfc-z36-icon">🎲</span>Pintintín</button>
-          <div class="dfc-z36-tile dfc-z36-disabled" aria-disabled="true"><span class="dfc-z36-icon">🏆</span>Torneo<small>Próximamente</small></div>
-        </div>
-        <p class="dfc-z36-note">Por puntos y Torneo están reservados para próximas actualizaciones. Las reglas, los saldos y las estadísticas de las mesas existentes se conservan.</p>
-      </div>`;
-      document.body.append(panel);
-      panel.querySelector('.dfc-z36-close').addEventListener('click',()=>{panel.hidden=true});
-      panel.addEventListener('click',e=>{if(e.target===panel)panel.hidden=true});
-      panel.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>{
-        const mode=btn.dataset.mode;
-        panel.hidden=true;
-        const host=document.getElementById('leaderPanel');
-        const rx=mode==='normal'?/por gane|normal/i:/pintintín|pintintin/i;
-        const target=[...(host?.querySelectorAll('button')||[])].find(b=>b.id!==buttonId&&!b.closest('#'+modalId)&&rx.test(b.textContent||''));
-        if(target)target.click();
-        else window.alert('La configuración de '+(mode==='normal'?'Por gane':'Pintintín')+' se mantiene en el editor original de mesas.');
-      }));
-    }
-    panel.hidden=false;
+  const legacy=document.getElementById('dfc-z20-mode');
+  legacy?.querySelectorAll('option[value="points"]').forEach(o=>o.remove());
+  const oldTournament=document.getElementById('dfcTournamentAdminBtn');
+  if(oldTournament){oldTournament.disabled=true;oldTournament.textContent='🏆 Torneo · Próximamente';oldTournament.title='El torneo independiente está en preparación';}
+  const select=document.getElementById('dfc-z20-mode');
+  if(select?.value==='points')select.value='normal';
+  render();
+ }
+ function render(){
+  const root=document.getElementById('dfcZ36UnifiedEditor'),target=document.getElementById('dominoAdminConfigs');
+  if(!root||!target)return;
+  const mode=root.dataset.selected||'normal';
+  root.querySelectorAll('[data-mode]:not([disabled])').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+  const cards=[...target.querySelectorAll('[data-domino-admin]')];
+  let ids=cards.filter(card=>{const id=Number(card.dataset.dominoAdmin);return mode==='normal'?[1,3,4].includes(id):[2,5,6].includes(id)});
+  const area=root.querySelector('.dfc-z36-rooms');
+  if(!area.dataset.ready){
+   area.addEventListener('click',e=>{const btn=e.target.closest('button[data-card]');if(!btn)return;root.dataset.card=btn.dataset.card;render()});
+   area.dataset.ready='1';
   }
-  function attach(){
-    const host=document.querySelector('#leaderPanel .mf-admin-grid') || document.querySelector('#leaderPanel .panel');
-    if(!host||document.getElementById(buttonId))return;
-    mountStyle();
-    const b=document.createElement('button');
-    b.id=buttonId;b.type='button';b.className='mf-admin-card';
-    b.textContent='🎲 Editar mesas · Z36';
-    b.addEventListener('click',open);
-    host.append(b);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});else attach();
-  const observer=new MutationObserver(attach);
-  if(document.body)observer.observe(document.body,{childList:true,subtree:true});
-  window.dfcZ36AdminModes=Object.freeze({open,attach});
+  if(!ids.some(c=>c.dataset.dominoAdmin===root.dataset.card))root.dataset.card=ids[0]?.dataset.dominoAdmin||'';
+  area.replaceChildren();
+  ids.forEach((c,i)=>{
+   const b=document.createElement('button');b.type='button';b.dataset.card=c.dataset.dominoAdmin;b.textContent='Mesa '+(i+1);
+   b.setAttribute('aria-pressed',String(root.dataset.card===b.dataset.card));area.append(b);
+  });
+  cards.forEach(c=>{const id=Number(c.dataset.dominoAdmin);
+   const selected=c.dataset.dominoAdmin===root.dataset.card;
+   c.style.display=selected?'':'none';
+   c.querySelectorAll('.dfc012n-mode-section').forEach(n=>n.style.display='none');
+  });
+ }
+ function neutralize(){
+  const mode=document.getElementById('dfc-z20-mode');
+  mode?.querySelectorAll('option[value="points"]').forEach(o=>o.remove());
+  document.querySelectorAll('#dominoAdminConfigs .dfc012n-mode-section').forEach(n=>{n.hidden=true;n.style.display='none'});
+  const fields=['dfc-z20-target','dfc-z20-capicua','dfc-z20-round','dfc-z20-seats'];
+  fields.forEach(id=>{const el=document.getElementById(id);const l=el?.closest('label');if(l)l.hidden=true});
+  document.querySelectorAll('#dominoLobbyModes [data-mode="points"],#dominoLobbyModes [data-game-mode="points"]').forEach(el=>{el.setAttribute('aria-disabled','true');el.querySelectorAll('button').forEach(b=>b.disabled=true)});
+ }
+ function boot(){
+  mount();neutralize();
+  const observer=new MutationObserver(()=>{if(!document.getElementById('dfcZ36UnifiedEditor'))mount();neutralize()});
+  observer.observe(document.body,{childList:true,subtree:true});
+  document.addEventListener('click',e=>{
+   const el=e.target.closest?.('button');
+   if(el?.matches('.d012n-save')||el?.closest('.dfc012n-mode-section')){e.preventDefault();e.stopImmediatePropagation();}
+  },true);
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+ window.dfcZ36UnifiedEditor=Object.freeze({refresh:mount});
 })();
