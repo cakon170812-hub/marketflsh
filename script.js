@@ -1127,7 +1127,7 @@
   const mode=root.dataset.selected||'normal';
   root.querySelectorAll('[data-mode]:not([disabled])').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   const cards=[...target.querySelectorAll('[data-domino-admin]')];
-  let ids=cards.filter(card=>{const id=Number(card.dataset.dominoAdmin);return mode==='normal'?[1,3,4].includes(id):[2,5,6].includes(id)});
+  let ids=cards.filter(card=>{const id=Number(card.dataset.dominoAdmin);return mode==='normal'?[3,4].includes(id):[1,2,5,6].includes(id)});
   const area=root.querySelector('.dfc-z36-rooms');
   if(!area.dataset.ready){
    area.addEventListener('click',e=>{const btn=e.target.closest('button[data-card]');if(!btn)return;root.dataset.card=btn.dataset.card;render()});
