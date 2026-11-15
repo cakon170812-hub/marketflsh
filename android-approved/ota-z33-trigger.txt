@@ -1,3 +1,4 @@
-DOMINÓ FLASH COIN — publicación OTA Android 0.12Z.35
-Mantener visible Actualizar al cargar el inicio y las mesas.
-Interfaz y reglas de juego: 0.12Z.32.
+DOMINÓ FLASH COIN — aprobación y publicación OTA Android 0.12Z.36
+Aprobación solicitada por el administrador el 2026-11-15.
+Incluir editor de mesas Z36, puente Android corregido y modalidades por puntos/torneo en preparación.
+Interfaz HTML base: 0.12Z.32. Activación mediante botón Actualizar de Android.
