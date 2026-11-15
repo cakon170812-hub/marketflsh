@@ -14406,7 +14406,7 @@ const dfcFitAdminViewport=(()=>{
 (()=>{'use strict';
  let preview=null,processing=false;
  const id='dfcOTAAdminSection';
- const htmlVersion=()=>document.querySelector('meta[name="application-version"]')?.content||'';
+ const htmlVersion=()=> '0.12Z.36'; // Versión OTA Z36; base de interfaz HTML Z32.
  const root=()=>document.querySelector('#leaderPanel > .panel');
  function render(){
    const panel=root();
