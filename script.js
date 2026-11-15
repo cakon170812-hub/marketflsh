@@ -1165,3 +1165,48 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
  window.dfcZ36UnifiedEditor=Object.freeze({refresh:mount});
 })();
+
+
+/* Z36 — Avisos de modalidades reservadas en el listado público. */
+(function dfcZ36FutureModes(){
+ 'use strict';
+ if(window.dfcZ36FutureModes)return;
+ const styles=document.createElement('style');styles.id='dfc-z36-future-css';
+ styles.textContent=`
+ #dominoLobbyModes .dfc-z36-coming-card{position:relative;box-sizing:border-box;min-width:0;min-height:145px;padding:16px 14px;border:1.5px solid #be9d54;border-radius:15px;background:linear-gradient(145deg,#203358,#17152f);color:#fff;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:8px;box-shadow:0 4px 16px #0005}
+ #dominoLobbyModes .dfc-z36-coming-card .dfc-z36-emblem{font-size:30px}
+ #dominoLobbyModes .dfc-z36-coming-card strong{font-size:18px;letter-spacing:.03em}
+ #dominoLobbyModes .dfc-z36-coming-card small{font-size:12px;color:#e5dcbf}
+ `;
+ function update(){
+  const host=document.getElementById('dominoLobbyModes');if(!host)return;
+  if(!document.getElementById(styles.id))document.head.append(styles);
+  for(const config of [
+   {id:'points',label:'POR PUNTOS',symbol:'🎯',detail:'En preparación · Sin aportes ni partidas'},
+   {id:'tournament',label:'TORNEO',symbol:'🏆',detail:'Próximamente · Inscripción y categorías'}
+  ]){
+   if(host.querySelector('[data-dfc-z36-future="'+config.id+'"]'))continue;
+   const el=document.createElement('article');el.className='dfc-z36-coming-card';
+   el.dataset.dfcZ36Future=config.id;el.setAttribute('aria-disabled','true');
+   const icon=document.createElement('span');icon.className='dfc-z36-emblem';icon.textContent=config.symbol;
+   const head=document.createElement('strong');head.textContent=config.label;
+   const subtitle=document.createElement('small');subtitle.textContent=config.detail;
+   el.append(icon,head,subtitle);host.append(el);
+  }
+  host.querySelectorAll('[data-table-id="54"],[data-table-id="74"],[data-table-id="75"],[data-table-id="128"]').forEach(card=>{
+   if(card.matches('[data-dfc-z36-future]'))return;
+   card.style.display='none';
+   card.querySelectorAll('button').forEach(btn=>btn.disabled=true);
+  });
+  host.querySelectorAll('[data-config="7"],[data-config-card="7"]').forEach(el=>{el.style.display='none';el.querySelectorAll('button').forEach(b=>b.disabled=true)});
+ }
+ function boot(){
+  update();
+  const observer=new MutationObserver(records=>{
+   if(records.some(r=>r.addedNodes.length&&[...r.addedNodes].some(n=>n.nodeType===1&&!n.matches?.('[data-dfc-z36-future]'))))update();
+  });
+  observer.observe(document.body,{childList:true,subtree:true});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+ window.dfcZ36FutureModes=Object.freeze({refresh:update});
+})();
