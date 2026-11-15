@@ -1075,3 +1075,77 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
  window.dfcZ32RewardAdmin={open:()=>{if(!opener)opener=create();if(opener)return opener();}};
 })();
+
+
+/* Z36 — Navegación administrativa segura de modalidades. No altera partidas ni saldos. */
+(function dfcZ36AdminModes(){
+  'use strict';
+  if(window.dfcZ36AdminModes)return;
+  const cssId='dfcZ36ModesCSS', modalId='dfcZ36ModesModal', buttonId='dfcZ36ModesButton';
+  const modalText='La modalidad Por puntos está en preparación. No acepta inscripciones, aportes ni partidas nuevas.';
+  function mountStyle(){
+    if(document.getElementById(cssId))return;
+    const s=document.createElement('style');s.id=cssId;
+    s.textContent=`
+    #dfcZ36ModesModal{position:fixed;inset:0;z-index:2147483500;background:rgba(2,7,24,.92);overflow:auto;padding:18px;box-sizing:border-box;color:#fff;font-family:system-ui,sans-serif}
+    #dfcZ36ModesModal[hidden]{display:none!important}
+    #dfcZ36ModesModal .dfc-z36-wrap{max-width:680px;margin:2vh auto;padding:18px;background:linear-gradient(145deg,#14234c,#241342);border:2px solid #d3af59;border-radius:20px;box-shadow:0 12px 50px #0009}
+    #dfcZ36ModesModal .dfc-z36-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    #dfcZ36ModesModal .dfc-z36-title{font-size:clamp(19px,5vw,28px);font-weight:900;color:#ffe29a;text-align:center;margin:12px 0}
+    #dfcZ36ModesModal .dfc-z36-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    #dfcZ36ModesModal .dfc-z36-tile{display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;min-height:112px;padding:12px 8px;border:1.5px solid #c6a55b;border-radius:15px;background:linear-gradient(130deg,#254a88,#151e48);color:#fff;font-weight:800;text-align:center}
+    #dfcZ36ModesModal button{cursor:pointer;font:inherit}
+    #dfcZ36ModesModal .dfc-z36-close{background:#161e39;color:white;border:1px solid #fff8;border-radius:12px;padding:9px 13px}
+    #dfcZ36ModesModal .dfc-z36-note{font-size:13px;line-height:1.5;color:#e2dfeb;margin:14px 0 0}
+    #dfcZ36ModesModal .dfc-z36-disabled{opacity:.75;background:linear-gradient(120deg,#50556a,#292d42)}
+    #dfcZ36ModesModal .dfc-z36-icon{font-size:28px}
+    @media(max-width:380px){#dfcZ36ModesModal .dfc-z36-grid{grid-template-columns:1fr}#dfcZ36ModesModal .dfc-z36-tile{min-height:72px}}
+    `;
+    document.head.append(s);
+  }
+  function open(){
+    mountStyle();
+    let panel=document.getElementById(modalId);
+    if(!panel){
+      panel=document.createElement('div');panel.id=modalId;panel.hidden=true;
+      panel.innerHTML=`<div class="dfc-z36-wrap" role="dialog" aria-modal="true" aria-label="Editar mesas de Dominó Flash Coin">
+        <div class="dfc-z36-head"><strong>DOMINÓ FLASH COIN</strong><button class="dfc-z36-close" type="button">✕ Cerrar</button></div>
+        <div class="dfc-z36-title">🎲 EDITAR MESAS · MESA 1</div>
+        <div class="dfc-z36-grid">
+          <button type="button" class="dfc-z36-tile" data-mode="normal"><span class="dfc-z36-icon">🁫</span>Por gane</button>
+          <div class="dfc-z36-tile dfc-z36-disabled" aria-disabled="true"><span class="dfc-z36-icon">🎯</span>Por puntos<small>En preparación</small></div>
+          <button type="button" class="dfc-z36-tile" data-mode="pintintin"><span class="dfc-z36-icon">🎲</span>Pintintín</button>
+          <div class="dfc-z36-tile dfc-z36-disabled" aria-disabled="true"><span class="dfc-z36-icon">🏆</span>Torneo<small>Próximamente</small></div>
+        </div>
+        <p class="dfc-z36-note">Por puntos y Torneo están reservados para próximas actualizaciones. Las reglas, los saldos y las estadísticas de las mesas existentes se conservan.</p>
+      </div>`;
+      document.body.append(panel);
+      panel.querySelector('.dfc-z36-close').addEventListener('click',()=>{panel.hidden=true});
+      panel.addEventListener('click',e=>{if(e.target===panel)panel.hidden=true});
+      panel.querySelectorAll('[data-mode]').forEach(btn=>btn.addEventListener('click',()=>{
+        const mode=btn.dataset.mode;
+        panel.hidden=true;
+        const host=document.getElementById('leaderPanel');
+        const rx=mode==='normal'?/por gane|normal/i:/pintintín|pintintin/i;
+        const target=[...(host?.querySelectorAll('button')||[])].find(b=>b.id!==buttonId&&!b.closest('#'+modalId)&&rx.test(b.textContent||''));
+        if(target)target.click();
+        else window.alert('La configuración de '+(mode==='normal'?'Por gane':'Pintintín')+' se mantiene en el editor original de mesas.');
+      }));
+    }
+    panel.hidden=false;
+  }
+  function attach(){
+    const host=document.querySelector('#leaderPanel .mf-admin-grid') || document.querySelector('#leaderPanel .panel');
+    if(!host||document.getElementById(buttonId))return;
+    mountStyle();
+    const b=document.createElement('button');
+    b.id=buttonId;b.type='button';b.className='mf-admin-card';
+    b.textContent='🎲 Editar mesas · Z36';
+    b.addEventListener('click',open);
+    host.append(b);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attach,{once:true});else attach();
+  const observer=new MutationObserver(attach);
+  if(document.body)observer.observe(document.body,{childList:true,subtree:true});
+  window.dfcZ36AdminModes=Object.freeze({open,attach});
+})();
