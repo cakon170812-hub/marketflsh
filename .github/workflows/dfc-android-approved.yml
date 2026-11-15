@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 18
     env:
-      DFC_VERSION: ${{ inputs.version || '0.12Z.35' }}
+      DFC_VERSION: ${{ inputs.version || '0.12Z.36' }}
       DFC_APPROVED_SHA: ${{ inputs.sha || github.sha }}
       DFC_PUBLIC_BASE: https://cakon170812-hub.github.io/marketflsh/android-approved
     steps:
