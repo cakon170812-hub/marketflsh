@@ -92,7 +92,11 @@
          return current.bundle.version;
        }
      } catch (e) { console.warn('[DFC OTA] VERSION_ERROR', String(e?.message || '')); }
-     return null;
+     // Algunas compilaciones nativas devuelven bundle nulo o sin version
+     // al iniciar. No esconder indefinidamente la actualización por ello.
+     // El comprobador compara con la versión base solo como respaldo.
+     console.warn('[DFC OTA] VERSION_DESCONOCIDA_USANDO_BASE', BASE_VERSION);
+     return BASE_VERSION;
    }
    function button() {
      let btn = document.getElementById('dfcOTAUserButton');
