@@ -1155,7 +1155,7 @@
  }
  function boot(){
   mount();neutralize();
-  const observer=new MutationObserver(()=>{if(!document.getElementById('dfcZ36UnifiedEditor'))mount();neutralize()});
+  const observer=new MutationObserver(records=>{if(!document.getElementById('dfcZ36UnifiedEditor'))mount();neutralize();if(records.some(r=>[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('[data-domino-admin]')||n.querySelector?.('[data-domino-admin]')))))window.dfcZ36UnifiedEditor?.refresh()});
   observer.observe(document.body,{childList:true,subtree:true});
   document.addEventListener('click',e=>{
    const el=e.target.closest?.('button');
