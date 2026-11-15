@@ -109,17 +109,16 @@
          'font:700 14px system-ui','box-shadow:0 4px 18px #0009'
        ].join(';');
        btn.addEventListener('click', () => void updateClicked());
-       document.body.appendChild(btn);
+       document.documentElement.appendChild(btn);
      }
      btn.disabled = downloading || activating;
      btn.textContent = activating ? 'Activando actualización…' : downloading ? 'Descargando actualización…' :
        pending ? `📲 Activar · ${pending.version}` : `📲 Actualizar · ${candidate?.version || ''}`;
-     const home = document.getElementById('appView');
-     const lobby = document.getElementById('dominoLobbyPanel');
-     const onHome = (home && !home.classList.contains('hidden')) || lobby?.classList.contains('active');
-     const show = !!(candidate || pending) && !!onHome && !tableOpen() && !document.hidden;
+     // La pantalla de inicio cambia de clases al autenticar; no retirar una OTA pendiente.
+     // El botón permanece disponible mientras haya actualización y no haya partida abierta.
+     const show = !!(candidate || pending) && !tableOpen() && !document.hidden;
      btn.hidden = !show;
-     btn.style.display = show ? 'block' : 'none';
+     btn.style.setProperty('display', show ? 'block' : 'none', 'important');
      return btn;
    }
    function readPending() {
