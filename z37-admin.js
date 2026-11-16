@@ -14,10 +14,15 @@
   return authorized;
  }
  function setup(){
-  if(document.getElementById('dfc-z37-admin-entry'))return;
-  const b=e('button',{id:'dfc-z37-admin-entry',type:'button',style:'position:fixed;bottom:56px;right:10px;z-index:18000;background:#1b4268;color:#fff;border:2px solid #dbc37d;border-radius:12px;padding:8px 12px;font:700 12px system-ui'},'⚙️ Z37 ADMIN');
-  b.hidden=true;b.addEventListener('click',open);document.body.append(b);
-  setInterval(async()=>{if(!document.getElementById('dfc-z37-admin-entry'))return;const ok=await verify();const atHome=!!document.getElementById('appView')&&!document.getElementById('appView').classList.contains('hidden');b.hidden=!ok||!atHome||!!document.getElementById('dfc-z37-admin-panel')},7000);
+  const parent=document.querySelector('#leaderPanel > .panel');
+  if(!parent)return;
+  let b=document.getElementById('dfc-z37-admin-entry');
+  if(!b){
+   b=e('button',{id:'dfc-z37-admin-entry',type:'button',style:'background:#1b4268;color:#fff;border:2px solid #dbc37d;border-radius:12px;padding:9px 12px;font:700 12px system-ui'},'🏆 Control Z37: Torneos y Puntos');
+   b.hidden=true;b.addEventListener('click',open);
+   (parent.querySelector('.mf-admin-grid')||parent).append(b);
+  }
+  verify().then(ok=>{b.hidden=!ok}).catch(()=>{b.hidden=true});
  }
  function close(){view?.remove();view=null;const b=document.getElementById('dfc-z37-admin-entry');if(b)b.hidden=false;}
  async function open(){
@@ -27,7 +32,7 @@
   document.body.append(view);
   view.querySelector('#z37-admin-exit').onclick=close;
   const tabs=view.querySelector('#z37-admin-tabs');
-  [['tournaments','🏆 Torneos'],['points','🪙 Mesas por puntos'],['funds','💰 Premios'],['status','📋 Supervisión']].forEach(([id,name])=>{const btn=e('button',{type:'button','data-tab':id},name);btn.style.cssText='background:#1e486d;color:white;border:1px solid #81a1c5;border-radius:10px;padding:9px 12px';btn.onclick=()=>render(id);tabs.append(btn)});
+  [['tournaments','🏆 Torneos'],['funds','💰 Premios y fondos'],['points','🪙 Por puntos'],['cards','🎁 Tarjetas'],['status','📋 Supervisión'],['updates','📲 Web y Android']].forEach(([id,name])=>{const btn=e('button',{type:'button','data-tab':id},name);btn.style.cssText='background:#1e486d;color:white;border:1px solid #81a1c5;border-radius:10px;padding:9px 12px';btn.onclick=()=>render(id);tabs.append(btn)});
   render('tournaments');
  }
  function field(k,label,type='number',val='',other=''){
@@ -68,7 +73,7 @@
     field('rebuy_diamonds','Diamantes por recompra','number','100','min="0" required')+
     field('card_expiry_days','Vencimiento tarjetas (días)','number','30','min="1" required')+
     sel('paid_places','Puestos premiados',Array.from({length:10},(_,i)=>[String(i+1),String(i+1)]))+
-    field('prize_pct','Porcentajes ganadores separados por coma','text','50,30,10','required')+
+    field('prize_pct','Porcentajes ganadores separados por coma','text','100','required')+
     '<div style="width:100%"><button type="submit">Guardar borrador</button><p data-status aria-live="polite"></p></div>';
    host.replaceChildren(f);
    saveHandler(f,'dfc_z37_admin_save_tournament',x=>{
@@ -96,6 +101,16 @@
    saveHandler(f,'dfc_z37_admin_save_points',x=>({...x,players:Number(x.players),target_points:Number(x.target_points),
      entry_fc:Number(x.entry_fc),entry_diamonds:Number(x.entry_diamonds),
      max_negative_diamonds:Number(x.max_negative_diamonds),admin_pct:Number(x.admin_pct)}));
+  }else if(tab==='cards'){
+   host.innerHTML='<h3>Tarjetas FlashCoin de Z36 y premios Z37</h3><p>Se conserva el sistema existente de distribución de tarjetas FlashCoin y su historial. Los premios automáticos de torneos se activarán únicamente cuando la liquidación esté verificada.</p><button type="button" id="z37-open-existing-gifts">Abrir distribución actual de tarjetas</button>';
+   host.querySelector('#z37-open-existing-gifts').onclick=()=>{
+     const btn=document.getElementById('dfcZ31AdminGiftsBtn');
+     if(!btn){window.alert('El administrador de tarjetas existente todavía no se ha cargado');return}
+     close();btn.click();
+   };
+  }else if(tab==='updates'){
+   host.innerHTML='<h3>Actualización Web y Android</h3><p>Se conserva el sistema de publicación Z36, el botón de actualización OTA y las comprobaciones del manifiesto. El paquete Z37 todavía no debe enviarse a Android.</p><p>El icono instalado de la APK requiere reconstruir el proyecto nativo y firmarlo con el certificado original; las OTA web no modifican iconos nativos.</p><button type="button" id="z37-back-to-admin">Regresar al panel actual</button>';
+   host.querySelector('#z37-back-to-admin').onclick=close;
   }else if(tab==='funds'){
    host.innerHTML='<h3>Premios, tarjetas y fondos</h3><p>La distribución acordada de recompras es 50% administración y 50% premios, sin segunda comisión.</p><p>Los fondos y premios reales se habilitarán después de verificar el libro de diamantes y las tarjetas FlashCoin de Z36. Esta pantalla no genera premios ficticios.</p>';
   }else{
@@ -105,7 +120,7 @@
    catch(err){host.textContent='No fue posible consultar: '+err.message}
   }
  }
- function boot(){setup();verify()}
+ function boot(){setup();setInterval(setup,7000)}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
  window.dfcZ37Admin=Object.freeze({open});
 })();
