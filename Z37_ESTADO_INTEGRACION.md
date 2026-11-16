@@ -50,3 +50,14 @@
 
 ### No confundir
 La infraestructura nueva en Supabase no cambia las mesas actuales ni publica Z37. Los formularios Z37 son BORRADORES; no producen cobros ni crean partidas. No informar “integrado completo”, “listo para APK” o “publicado”.
+
+
+## Fase de contabilidad y verificación — 16/11/2026
+- **APLICADA A SUPABASE:** migración `dfc_z37_diamond_accounting`. Agrega carteras personales separadas, ledger de diamantes, botes puntos y función transaccional de preparación de asiento.
+- **BLOQUEADA A PROPÓSITO:** función `dfc_z37_points_join` sin permiso `EXECUTE` para usuarios hasta disponer de motor completo, reconciliar diamantes originales y pasar pruebas.
+- **PROBADOS CON ROL ADMINISTRADOR en transacciones ROLLBACK:** creación de borrador de mesa por puntos y creación de borrador de torneo. Las operaciones de prueba no quedaron persistidas.
+- **COMPILACIÓN SINTÁCTICA:** `z37-ui.js` y `z37-admin.js` pasan validación JavaScript.
+- **VERIFICACIÓN DE SEGURIDAD:** `has_function_privilege('authenticated', 'public.dfc_z37_points_join(uuid,uuid)', 'execute')=false`; `anon` también false. Crear borradores autorizado solo con role verificado.
+- **CUENTAS ACTUALES:** cero carteras de diamantes verificadas y cero torneos Z37 creados. No inventar saldos iniciales.
+- **IMÁGENES DISPONIBLES** en archivos locales de esta conversación, pendientes de transferencia a GitHub en formatos originales.
+- **PUBLICACIÓN:** `main`, APK y `android-approved/manifest.json` no modificados.
