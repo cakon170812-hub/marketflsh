@@ -61,3 +61,16 @@ La infraestructura nueva en Supabase no cambia las mesas actuales ni publica Z37
 - **CUENTAS ACTUALES:** cero carteras de diamantes verificadas y cero torneos Z37 creados. No inventar saldos iniciales.
 - **IMÁGENES DISPONIBLES** en archivos locales de esta conversación, pendientes de transferencia a GitHub en formatos originales.
 - **PUBLICACIÓN:** `main`, APK y `android-approved/manifest.json` no modificados.
+
+
+## Integración adicional — 16/11/2026
+- **HTML original de Z36 leído y actualizado exclusivamente en rama Z37**: `index.html` recibe una sola pareja de botones TORNEO/POR PUNTOS en `#appView` dentro de `.dfc09-head-tools`. Los demás elementos originales se conservan.
+- Verificado: una sola etiqueta `application-version` 0.12Z.32 compatible con el flujo OTA existente, una sola cabecera de accesos Z37, una mesa `dominoTablePanel` y cierre HTML correcto.
+- `z37-ui.js`: corrige que el avance automático respete 10s entre cambios, incorpora swipe horizontal, evita movimiento del carrusel mientras se lee información, usa el fondo oficial cuando está disponible, y enlaza los botones del HTML sin duplicaciones.
+- `z37-admin.js`: botón dentro del panel existente `#leaderPanel` y seis apartados previstos; los apartados de tarjetas y actualizaciones remiten a controles Z36 sin sustituirlos, edición Z37 solo en borradores. Validación de sintaxis JavaScript realizada.
+- `.github/workflows/dfc-android-approved.yml`: en rama Z37 añade inclusión/verificación de `z37-ui.js` y `z37-admin.js` al futuro bundle OTA; **no se ha ejecutado el workflow ni tocado el manifiesto público**.
+- **APLICADA a Supabase** migración `dfc_z37_capicua_detector`: función de comprobación de capicúa a partir de jugada registrada y manos del servidor. Sin premios reales y sin ejecución pública. Cero manos cerradas elegibles para verificar con datos reales.
+- **APLICADA a Supabase** migración `dfc_z37_signup_rebuy`: RPCs transaccionales de inscripción/recompra, **sin permiso de ejecución para clientes** por falta de motor y cobertura de cancelaciones/liquidación.
+- **Icono Android**: generado paquete separado `DFC_Z37_iconos_android.zip` a partir de imagen aprobada. No integrado en APK, pues los repositorios accesibles carecen de proyecto nativo Android y firma original.
+- **FALTA**: subida de imágenes originales de torneos como assets servidos, juego multijugador por puntos y torneo, reagrupaciones, pase diamantes, tarjeta premio y liquidación completa, reconciliación con diamantes personales, pruebas de Android real, APK nativa firmada.
+- **ATENCIÓN**: no fusionar a main ni publicar Z37 hasta resolver todos los puntos anteriores. Al público sigue correspondiendo `0.12Z.36`.
