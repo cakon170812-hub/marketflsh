@@ -1210,3 +1210,23 @@
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
  window.dfcZ36FutureModes=Object.freeze({refresh:update});
 })();
+
+
+/* Z37: carga controlada del modulo de interfaz. La rama NO es publica. */
+(function dfcZ37Bootstrap(){
+ 'use strict';
+ if(window.dfcZ37Bootstrap)return;
+ window.dfcZ37Bootstrap=true;
+ function boot(){
+   if(document.querySelector('script[data-dfc-z37-ui]'))return;
+   const s=document.createElement('script');
+   s.src='./z37-ui.js';s.defer=true;s.dataset.dfcZ37Ui='true';
+   s.onerror=()=>console.warn('[DFC Z37] modulo visual no disponible');
+   document.head.append(s);
+   if(!document.querySelector('script[data-dfc-z37-admin]')){
+     const admin=document.createElement('script');
+     admin.src='./z37-admin.js';admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
+   }
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
