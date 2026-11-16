@@ -1108,15 +1108,19 @@
   let root=document.getElementById('dfcZ36UnifiedEditor');
   if(!root){
    root=document.createElement('div');root.id='dfcZ36UnifiedEditor';
-   root.innerHTML='<div class="dfc-z36-logo" aria-label="Imagen de DOMINÓ FLASH COIN"></div><h3>🁫 DOMINÓ FLASH COIN · EDITAR MESAS</h3><div class="dfc-z36-grid"><button type="button" data-mode="normal">🁫 POR GANE<small>Editar reglas y tarifas</small></button><button type="button" data-mode="points" disabled>🎯 POR PUNTOS<small>En preparación</small></button><button type="button" data-mode="paid_pass">🎲 PINTINTÍN<small>Editar las mesas existentes</small></button><button type="button" data-mode="tournament" disabled>🏆 TORNEO<small>Próximamente</small></button></div><div class="dfc-z36-rooms"></div><p class="dfc-z36-note">Selecciona una modalidad y una mesa. Por puntos no permite sentarse, aportar ni jugar; Torneo se desarrollará después como sección independiente.</p>';
+   root.innerHTML='<div class="dfc-z36-logo" aria-label="Imagen de DOMINÓ FLASH COIN"></div><h3>🁫 DOMINÓ FLASH COIN · EDITAR MESAS</h3><div class="dfc-z36-grid"><button type="button" data-mode="normal">🁫 POR GANE<small>Editar reglas y tarifas</small></button><button type="button" data-z37-admin-tab="points">🎯 POR PUNTOS<small>Editar borradores</small></button><button type="button" data-mode="paid_pass">🎲 PINTINTÍN<small>Editar las mesas existentes</small></button><button type="button" data-z37-admin-tab="tournaments">🏆 TORNEO<small>Editar borradores</small></button></div><div class="dfc-z36-rooms"></div><p class="dfc-z36-note">Selecciona una modalidad y una mesa. Por puntos no permite sentarse, aportar ni jugar; Torneo se desarrollará después como sección independiente.</p>';
    target.before(root);
    root.querySelectorAll('button[data-mode]:not([disabled])').forEach(btn=>btn.addEventListener('click',()=>{root.dataset.selected=btn.dataset.mode;render()}));
+   root.querySelectorAll('[data-z37-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+    if(window.dfcZ37Admin)void window.dfcZ37Admin.open(btn.dataset.z37AdminTab);
+    else window.alert('El editor Z37 todavía está cargando. Vuelve a tocar el botón.');
+   }));
    root.dataset.selected='normal';
   }
   const legacy=document.getElementById('dfc-z20-mode');
   legacy?.querySelectorAll('option[value="points"]').forEach(o=>o.remove());
   const oldTournament=document.getElementById('dfcTournamentAdminBtn');
-  if(oldTournament){oldTournament.disabled=true;oldTournament.textContent='🏆 Torneo · Próximamente';oldTournament.title='El torneo independiente está en preparación';}
+  if(oldTournament&&window.dfcZ37Admin){oldTournament.disabled=false;oldTournament.textContent='🏆 Mesas de torneo';oldTournament.title='';oldTournament.onclick=()=>window.dfcZ37Admin.open('tournaments');}
   const select=document.getElementById('dfc-z20-mode');
   if(select?.value==='points')select.value='normal';
   render();
@@ -1127,7 +1131,7 @@
   const mode=root.dataset.selected||'normal';
   root.querySelectorAll('[data-mode]:not([disabled])').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   const cards=[...target.querySelectorAll('[data-domino-admin]')];
-  let ids=cards.filter(card=>{const id=Number(card.dataset.dominoAdmin);return mode==='normal'?[3,4].includes(id):[1,2,5,6].includes(id)});
+  let ids=cards.filter(card=>{const id=Number(card.dataset.dominoAdmin);return (card.querySelector('.d-mode')?.value||([3,4].includes(id)?'normal':'paid_pass'))===mode});
   const area=root.querySelector('.dfc-z36-rooms');
   if(!area.dataset.ready){
    area.addEventListener('click',e=>{const btn=e.target.closest('button[data-card]');if(!btn)return;root.dataset.card=btn.dataset.card;render()});
@@ -1136,10 +1140,11 @@
   if(!ids.some(c=>c.dataset.dominoAdmin===root.dataset.card))root.dataset.card=ids[0]?.dataset.dominoAdmin||'';
   area.replaceChildren();
   ids.forEach((c,i)=>{
-   const b=document.createElement('button');b.type='button';b.dataset.card=c.dataset.dominoAdmin;b.textContent='Mesa '+(i+1);
+   const b=document.createElement('button');b.type='button';b.dataset.card=c.dataset.dominoAdmin;b.textContent=c.querySelector('.d-name')?.value||'Mesa '+(i+1);
    b.setAttribute('aria-pressed',String(root.dataset.card===b.dataset.card));area.append(b);
   });
-  cards.forEach(c=>{const id=Number(c.dataset.dominoAdmin);
+  if(!ids.length){const empty=document.createElement('p');empty.textContent='No hay mesas disponibles para esta modalidad. Revisa el estado del catálogo debajo.';area.append(empty)}
+  cards.forEach(c=>{
    const selected=c.dataset.dominoAdmin===root.dataset.card;
    c.style.display=selected?'':'none';
    c.querySelectorAll('.dfc012n-mode-section').forEach(n=>n.style.display='none');
@@ -1212,7 +1217,7 @@
 })();
 
 
-/* Z37: carga controlada del modulo de interfaz. La rama NO es publica. */
+/* Z37: interfaz web pública. */
 (function dfcZ37Bootstrap(){
  'use strict';
  if(window.dfcZ37Bootstrap)return;
@@ -1220,13 +1225,27 @@
  function boot(){
    if(document.querySelector('script[data-dfc-z37-ui]'))return;
    const s=document.createElement('script');
-   s.src='./z37-ui.js';s.defer=true;s.dataset.dfcZ37Ui='true';
+   s.src='./z37-ui.js?v=37.1';s.defer=true;s.dataset.dfcZ37Ui='true';
    s.onerror=()=>console.warn('[DFC Z37] modulo visual no disponible');
    document.head.append(s);
    if(!document.querySelector('script[data-dfc-z37-admin]')){
      const admin=document.createElement('script');
-     admin.src='./z37-admin.js';admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
+     admin.src='./z37-admin.js?v=37.1';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
    }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+
+/* Abre el panel tras el acceso original y reporta las consultas que fallen. */
+(function () {
+  if(typeof openLeaderPanel!=='function')return;
+  window.openLeaderPanel=async function () {
+    if(typeof me==='undefined'||me?.role!=='leader')return;
+    show('leaderPanel');
+    const remote=await Promise.allSettled([loadSettings,loadStats,loadLeaderWallets,loadDominoAdminConfigs].map(load=>Promise.resolve().then(load)));
+    if(remote[0].status==='fulfilled')renderSettings();
+    const failed=remote.filter(result=>result.status==='rejected');
+    if(failed.length)console.warn('[DFC] Consultas del administrador incompletas',failed.map(result=>result.reason));
+    if(remote[3].status==='rejected')msg('dominoAdminMsg','No se pudo cargar el catálogo de mesas. Vuelve a abrir Administrador para reintentar.');
+  };
 })();

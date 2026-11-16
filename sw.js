@@ -21,7 +21,17 @@
 
 'use strict';
 
-const DFC_SW_REVISION = '0.12Z.30-maintenance-1';
+const DFC_SW_REVISION = '0.12Z.37-web-controls-1';
+
+// Solicita los scripts de interfaz actualizados aunque el HTML mantenga su versión.
+const DFC_WEB_SCRIPTS = new Set(['script.js', 'z37-ui.js', 'z37-admin.js'].map(path=>new URL(path,self.registration.scope).pathname));
+self.addEventListener('fetch', event=>{
+  const request=event.request;
+  const url=new URL(request.url);
+  if(request.method==='GET'&&url.origin===self.location.origin&&DFC_WEB_SCRIPTS.has(url.pathname)){
+    event.respondWith(fetch(request,{cache:'reload'}));
+  }
+});
 
 const DFC_OLD_CACHE_PREFIXES = [
   'dfc-',
@@ -121,18 +131,8 @@ self.addEventListener('activate', (event) => {
  3. PETICIONES DE RED
 =========================================================
 
- No registrar un evento "fetch".
-
- De esta forma, este Service Worker no intercepta:
- - index.html
- - native-bridge.js
- - script.js
- - style.css
- - manifest.json
- - Paquetes ZIP Android
- - Peticiones a Supabase
-
- El navegador utiliza su comportamiento normal de red.
+ Solo los scripts de interfaz usan una petición directa a la red.
+ El HTML, Supabase y los paquetes Android mantienen su flujo habitual.
 
 =========================================================
 */

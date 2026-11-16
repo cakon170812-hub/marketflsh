@@ -16,7 +16,7 @@
  #dfc-z37-shortcuts{position:fixed;top:clamp(58px,11vh,125px);right:12px;z-index:10020;display:flex;flex-direction:column;gap:6px}
  #dfc-z37-shortcuts button{font:800 clamp(11px,1.8vw,15px) system-ui;color:white;padding:8px 13px;border-radius:12px;border:2px solid #f0d089;box-shadow:0 4px 14px #0008;background:linear-gradient(120deg,#805416,#21162e);cursor:pointer;white-space:nowrap}
  #dfc-z37-shortcuts button+button{background:linear-gradient(120deg,#19598d,#092449);border-color:#79c7ee}
- #dfc-z37-screen{position:fixed;inset:0;z-index:190000;background:linear-gradient(180deg,rgba(4,12,32,.75),rgba(4,12,32,.83)),var(--dfc-z26-official-wallpaper,#08162d) center/cover no-repeat;color:#fff;display:flex;flex-direction:column;font:14px/1.4 system-ui;overflow:auto;box-sizing:border-box;padding:12px max(12px,3vw)}
+ #dfc-z37-screen{position:fixed;inset:0;z-index:2147483650;background:linear-gradient(180deg,rgba(4,12,32,.75),rgba(4,12,32,.83)),var(--dfc-z26-official-wallpaper,#08162d) center/cover no-repeat;color:#fff;display:flex;flex-direction:column;font:14px/1.4 system-ui;overflow:auto;box-sizing:border-box;padding:12px max(12px,3vw)}
  #dfc-z37-screen *{box-sizing:border-box}
  #dfc-z37-screen button,#dfc-z37-screen select,#dfc-z37-screen input{font:inherit}
  #dfc-z37-screen button{cursor:pointer}
@@ -51,24 +51,23 @@
    if(state.screen || $('#dominoTablePanel')?.classList.contains('active'))return false;
    const panel=$('#appView');
    if(!panel || panel.classList.contains('hidden'))return false;
-   if($('#dominoLobbyPanel')?.classList.contains('active'))return false;
+   if($('#dominoLobbyPanel')?.matches('.active,.show')||$('#leaderPanel.active')||$('#mfAdmin16_domino.active'))return false;
    return true;
  }
  function buttons(){
    let host=$('#dfc-z37-shortcuts');
    if(!host){host=document.createElement('div');host.id='dfc-z37-shortcuts';host.innerHTML='<button type="button" data-z37="tournament">🏆 TORNEO</button><button type="button" data-z37="points">🪙 POR PUNTOS</button>'; document.body.append(host);}
-   if(host.dataset.dfcZ37Bound!=='1'){
-     host.dataset.dfcZ37Bound='1';
-     host.addEventListener('click',e=>{const b=e.target.closest('button[data-z37]');if(b)open(b.dataset.z37)});
-   }
+   host.style.setProperty('position','relative','important');
+   host.dataset.dfcZ37Bound='1';
    host.style.display=home()?'flex':'none';
  }
- function cleanup(){if(state.timer)clearInterval(state.timer);state.timer=null;state.screen?.remove();state.screen=null;state.infoOpen=false;buttons()}
+ let activeEscape;
+ function cleanup(){if(activeEscape)window.removeEventListener('keydown',activeEscape);activeEscape=null;if(state.timer)clearInterval(state.timer);state.timer=null;state.screen?.remove();state.screen=null;state.infoOpen=false;buttons()}
  function shell(title){
   cleanup();const e=document.createElement('section');e.id='dfc-z37-screen';e.setAttribute('role','dialog');e.setAttribute('aria-modal','true');e.setAttribute('aria-label',title);
   e.innerHTML='<div class="dfc-z37-bar"><button type="button" class="dfc-z37-btn" id="dfc-z37-back">← Volver</button><strong>'+esc(title)+'</strong><span style="width:68px"></span></div><div id="dfc-z37-content" style="flex:1;min-height:0;display:flex;flex-direction:column"></div>';
   document.body.append(e);state.screen=e;$('#dfc-z37-back',e).addEventListener('click',cleanup);
-  window.addEventListener('keydown',function key(ev){if(ev.key==='Escape'){window.removeEventListener('keydown',key);cleanup()}},{once:true});
+  activeEscape=event=>{if(event.key==='Escape')cleanup()};window.addEventListener('keydown',activeEscape);
   buttons();return $('#dfc-z37-content',e);
  }
  function drawSlide(){
@@ -109,7 +108,7 @@
   state.timer=setInterval(()=>{if(!state.screen)return;if(!state.infoOpen&&Date.now()-state.lastInteraction>=10000){state.slide++;state.lastInteraction=Date.now();drawSlide()}},1000);
  }
  async function open(mode){state.mode=mode;mode==='points'?showPoints():showTournament();try{await refresh();if(state.screen&&state.mode===mode){mode==='points'?showPoints():drawSlide()}}catch(error){console.warn('[DFC Z37] Catálogo no disponible',error)}}
- function boot(){style();buttons();let obsAt=0;const observer=new MutationObserver(()=>{if(Date.now()-obsAt>500){obsAt=Date.now();buttons()}});observer.observe(document.body,{attributes:true,childList:true,subtree:true,attributeFilter:['class']});}
+ function boot(){style();buttons();document.addEventListener('click',event=>{const button=event.target.closest?.('#dfc-z37-shortcuts button[data-z37]');if(!button)return;event.preventDefault();event.stopImmediatePropagation();void open(button.dataset.z37)},true);let obsAt=0;const observer=new MutationObserver(()=>{if(Date.now()-obsAt>500){obsAt=Date.now();buttons()}});observer.observe(document.body,{attributes:true,childList:true,subtree:true,attributeFilter:['class']});}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
  window.dfcZ37UI=Object.freeze({open,refresh});
 })();

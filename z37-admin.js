@@ -4,14 +4,12 @@
 (()=>{'use strict';if(window.dfcZ37Admin)return;
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const db=()=>[window.sb,window.dfcSupabase,window.supabaseClient,window.rfSupabase].find(x=>x&&x.rpc&&x.auth?.getSession);
- let authorized=false,view=null,checkedAt=0;
+ let view=null,verification=null;
  async function rpc(name,args={}){const c=db();if(!c)throw Error('Supabase no conectado');const {data,error}=await c.rpc(name,args);if(error)throw Error(error.message||'Error de servidor');return data;}
  function e(tag,props={},text=''){const x=document.createElement(tag);Object.entries(props).forEach(([a,v])=>x.setAttribute(a,v));if(text)x.textContent=text;return x;}
  async function verify(){
-  if(Date.now()-checkedAt<30000)return authorized;
-  checkedAt=Date.now();
-  try{authorized=(await rpc('dfc_z37_is_admin'))===true}catch(_){authorized=false}
-  return authorized;
+  if(!verification)verification=rpc('dfc_z37_is_admin').then(result=>result===true).catch(()=>false).finally(()=>{verification=null});
+  return verification;
  }
  function setup(){
   const parent=document.querySelector('#leaderPanel > .panel');
@@ -19,21 +17,22 @@
   let b=document.getElementById('dfc-z37-admin-entry');
   if(!b){
    b=e('button',{id:'dfc-z37-admin-entry',type:'button',style:'background:#1b4268;color:#fff;border:2px solid #dbc37d;border-radius:12px;padding:9px 12px;font:700 12px system-ui'},'🏆 Control Z37: Torneos y Puntos');
-   b.hidden=true;b.addEventListener('click',open);
+   b.hidden=true;b.addEventListener('click',()=>open('tournaments'));
    (parent.querySelector('.mf-admin-grid')||parent).append(b);
   }
-  verify().then(ok=>{b.hidden=!ok}).catch(()=>{b.hidden=true});
+  if(parent.closest('#leaderPanel.active'))verify().then(ok=>{b.hidden=!ok});
  }
  function close(){view?.remove();view=null;const b=document.getElementById('dfc-z37-admin-entry');if(b)b.hidden=false;}
- async function open(){
-  if(!await verify())return;
-  close();view=e('div',{id:'dfc-z37-admin-panel',style:'position:fixed;inset:0;background:#09192f;color:#fff;z-index:210000;overflow:auto;padding:clamp(12px,3vw,24px);font:14px system-ui'});
+ async function open(section){
+  if(!document.querySelector('#leaderPanel.active,#mfAdmin16_domino.active'))return;
+  if(!await verify()){window.alert('No se pudo confirmar el acceso a la administración Z37.');return;}
+  close();view=e('div',{id:'dfc-z37-admin-panel',style:'position:fixed;inset:0;background:#09192f;color:#fff;z-index:2147483651;overflow:auto;padding:clamp(12px,3vw,24px);font:14px system-ui'});
   view.innerHTML='<header style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>ADMINISTRADOR Z37 · BORRADORES</h2><button type="button" id="z37-admin-exit">✕ Salir</button></header><div style="display:flex;gap:10px;flex-wrap:wrap" id="z37-admin-tabs"></div><div id="z37-admin-body"></div><p style="font-size:12px;color:#acc0d7">Las mesas y torneos nuevos permanecerán desactivados hasta completar el motor de juego, la auditoría de saldos y las pruebas Android.</p>';
   document.body.append(view);
   view.querySelector('#z37-admin-exit').onclick=close;
   const tabs=view.querySelector('#z37-admin-tabs');
   [['tournaments','🏆 Torneos'],['funds','💰 Premios y fondos'],['points','🪙 Por puntos'],['cards','🎁 Tarjetas'],['status','📋 Supervisión'],['updates','📲 Web y Android']].forEach(([id,name])=>{const btn=e('button',{type:'button','data-tab':id},name);btn.style.cssText='background:#1e486d;color:white;border:1px solid #81a1c5;border-radius:10px;padding:9px 12px';btn.onclick=()=>render(id);tabs.append(btn)});
-  render('tournaments');
+  render(section==='points'?'points':'tournaments');
  }
  function field(k,label,type='number',val='',other=''){
   return '<label style="display:flex;flex-direction:column;gap:4px;min-width:145px;flex:1 1 160px">'+esc(label)+'<input name="'+esc(k)+'" type="'+type+'" value="'+esc(val)+'" '+other+' style="padding:10px;border-radius:8px;color:#fff;background:#132d49;border:1px solid #8194a9"></label>'
