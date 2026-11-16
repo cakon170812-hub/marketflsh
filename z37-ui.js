@@ -55,8 +55,10 @@
  }
  function buttons(){
    let host=$('#dfc-z37-shortcuts');
-   if(!host){host=document.createElement('div');host.id='dfc-z37-shortcuts';host.innerHTML='<button type="button" data-z37="tournament">🏆 TORNEO</button><button type="button" data-z37="points">🪙 POR PUNTOS</button>'; document.body.append(host);
-   host.addEventListener('click',e=>{const b=e.target.closest('button[data-z37]');if(b)open(b.dataset.z37)});
+   if(!host){host=document.createElement('div');host.id='dfc-z37-shortcuts';host.innerHTML='<button type="button" data-z37="tournament">🏆 TORNEO</button><button type="button" data-z37="points">🪙 POR PUNTOS</button>'; document.body.append(host);}
+   if(host.dataset.dfcZ37Bound!=='1'){
+     host.dataset.dfcZ37Bound='1';
+     host.addEventListener('click',e=>{const b=e.target.closest('button[data-z37]');if(b)open(b.dataset.z37)});
    }
    host.style.display=home()?'flex':'none';
  }
