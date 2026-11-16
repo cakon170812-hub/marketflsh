@@ -115,6 +115,10 @@ jobs:
           updated_bridge = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'dfc-bridge-build' / 'native-bridge-bundled.js').read_bytes()
           updated_script = git('show', f'{approved}:script.js')
           updated_style = git('show', f'{approved}:style.css')
+          z37_ui = git('show', f'{approved}:z37-ui.js') if version == '0.12Z.37' else None
+          z37_admin = git('show', f'{approved}:z37-admin.js') if version == '0.12Z.37' else None
+          if version == '0.12Z.37' and (b'dfcZ37UI' not in z37_ui or b'dfcZ37Admin' not in z37_admin or b'./z37-ui.js' not in updated_script):
+              stop('Faltan los módulos Z37 en la revisión aprobada.')
           if b'#dfcOTAUserButton' not in updated_style:
               stop('Faltan los estilos actuales del botón Android.')
           if b'dfc_z32_admin_reward_settings' not in updated_script:
@@ -124,7 +128,7 @@ jobs:
           parser = AppVersion()
           parser.feed(html.decode('utf-8'))
           # Z34, Z35 y Z36 usan la interfaz web Z32; las mejoras Z36 van en script.js.
-          expected_html_version = '0.12Z.32' if version in {'0.12Z.34', '0.12Z.35', '0.12Z.36'} else version
+          expected_html_version = '0.12Z.32' if version in {'0.12Z.34', '0.12Z.35', '0.12Z.36', '0.12Z.37'} else version
           if parser.values != [expected_html_version] or not parser.has_native_bridge:
               stop('La revisión aprobada debe declarar la versión HTML esperada y cargar el puente Android.')
           bundle = root / 'bundles' / f'{version}.zip'
@@ -161,8 +165,13 @@ jobs:
                           else:
                               contents = old_zip.read(name)
                           new_zip.writestr(name, contents)
+                      if version == '0.12Z.37':
+                          for name, contents in [('z37-ui.js', z37_ui), ('z37-admin.js', z37_admin)]:
+                              if name in names:
+                                  stop('El paquete anterior ya incluía un archivo Z37 inesperado.')
+                              new_zip.writestr(name, contents)
               with zipfile.ZipFile(bundle) as new_zip:
-                  if new_zip.testzip() is not None or new_zip.read('index.html') != html or new_zip.read('native-bridge.js') != updated_bridge or new_zip.read('script.js') != updated_script or new_zip.read('style.css') != updated_style:
+                  if new_zip.testzip() is not None or new_zip.read('index.html') != html or new_zip.read('native-bridge.js') != updated_bridge or new_zip.read('script.js') != updated_script or new_zip.read('style.css') != updated_style or (version == '0.12Z.37' and (new_zip.read('z37-ui.js') != z37_ui or new_zip.read('z37-admin.js') != z37_admin)):
                       stop('El ZIP nuevo no contiene el HTML aprobado o está dañado.')
               manifest = {
                   'version': version,
