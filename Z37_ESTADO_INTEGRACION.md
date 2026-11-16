@@ -37,3 +37,16 @@
 6. Publicar solo tras pruebas manuales de Web/Android y comprobación de integridad del bundle.
 
 **Estado:** PARCIAL. No se debe informar al usuario que Z37 esté lista para Android.
+
+
+## Actualización tras segunda fase (16 de noviembre de 2026)
+- **APLICADA A SUPABASE** la migración `dfc_z37_base_aislada`: nueve tablas Z37 con RLS y clientes sin permisos directos para escribir fondos.
+- **APLICADA A SUPABASE** la migración `dfc_z37_catalog_admin`: RPCs de listado público limitado, lectura administrativa, edición de borradores de torneos y de mesas por puntos. Guardar borradores exige rol administrativo `leader/admin` validado en servidor.
+- **GUARDADOS EN RAMA** `z37-ui.js` y `z37-admin.js`; añadida su carga desde `script.js` solo en `feature/z37-integracion`. El código de interfaz deliberadamente desactiva inscripción, cobros y asientos hasta que el motor financiero sea seguro.
+- **VERIFICADO** que usuarios anon no pueden ejecutar la RPC administrativa de guardado de torneos y que el permiso solo se concede a authenticated más verificación de rol interna.
+- **LOCALIZADAS EN ARCHIVOS DE CONVERSACIÓN** cuatro ilustraciones concretas de torneo en formatos verticales (azul/dorado, morado, rojo, verde). No se han subido aún al repositorio.
+- **LIMITACIÓN MATERIAL**: el esquema público actual de `rf_profiles` registra `balance` FlashCoin, pero no expone una cuenta o ledger de diamantes personales. No se puede conectar deuda negativa y premios de diamantes de Z37 sin crear una fuente autoritativa y reconciliarla con la visual de Z36.
+- **NO SE HA COMPLETADO** motor de dominó Z37, contabilidad de diamantes, tarjetas reales de premio, OTA Z37 ni pruebas de Android.
+
+### No confundir
+La infraestructura nueva en Supabase no cambia las mesas actuales ni publica Z37. Los formularios Z37 son BORRADORES; no producen cobros ni crean partidas. No informar “integrado completo”, “listo para APK” o “publicado”.
