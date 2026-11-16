@@ -15,7 +15,7 @@
  Object.values(artwork).forEach(src=>{const image=new Image();image.src=src});
  const state={screen:null,slide:0,timer:null,items:[],pointTables:[],mode:'tournament',lastInteraction:0,infoOpen:false,catalogStatus:'loading',pendingSlide:false};
  const previewStyles=[['Azul y oro','gold_blue'],['Morado neón','purple_neon'],['Campeonato rojo','red_championship'],['Verde esmeralda','emerald_green']].map(([name,artwork_key])=>({name,artwork_key,state:'Vista previa',description:'Diseño de torneo',preview:true}));
- const colors={gold_blue:['#07132e','#cfaf60'],purple_neon:['#27133f','#bb82ef'],red_championship:['#43121f','#e57d6b'],emerald_green:['#0c3c2e','#88d5ac']};
+ const accents={gold_blue:'#cfaf60',purple_neon:'#bb82ef',red_championship:'#e57d6b',emerald_green:'#88d5ac'};
  function style(){
  if($('#dfc-z37-styles'))return;
  const e=document.createElement('style');e.id='dfc-z37-styles';e.textContent=`
@@ -24,34 +24,34 @@
  #dfc-z37-shortcuts button{min-height:36px;min-width:clamp(82px,13vw,132px);font:800 clamp(11px,1.5vw,15px) system-ui;color:white;padding:8px 13px;border-radius:12px;border:2px solid #f0d089;box-shadow:0 4px 14px #0008;background:linear-gradient(120deg,#805416,#21162e);cursor:pointer;white-space:nowrap}
  #dfc-z37-shortcuts button[data-z37]{background:linear-gradient(90deg,#080d23f2 5%,#080d2366 75%),var(--z37-art) center 54%/cover no-repeat,#101a2e;text-align:left;text-shadow:0 1px 5px #000;min-height:44px}
  #dfc-z37-shortcuts button[data-z37="points"]{border-color:#64dfd1}
- .dfc-z37-hero{flex:none;min-height:clamp(152px,48dvh,460px);margin:0;display:flex;align-items:center;border-radius:18px;padding:clamp(14px,4vw,36px);font-size:clamp(23px,4vw,48px);line-height:1.1;text-shadow:0 2px 10px #000;background:linear-gradient(90deg,#061024aa,transparent 70%),var(--z37-art) center 52%/cover no-repeat,#08162d}
- #dfc-z37-screen[data-mode="points"] .dfc-z37-hero{border:1px solid #64dfd1}
- #dfc-z37-screen[data-mode="tournament"] .dfc-z37-hero{border:1px solid #e4ba60}
- #dfc-z37-screen{position:fixed;inset:0;z-index:2147483650;background:linear-gradient(180deg,rgba(4,12,32,.75),rgba(4,12,32,.83)),var(--dfc-z26-official-wallpaper,#08162d) center/cover no-repeat;color:#fff;display:flex;flex-direction:column;font:14px/1.4 system-ui;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;box-sizing:border-box;padding:12px max(12px,3vw) calc(12px + env(safe-area-inset-bottom))}
+ #dfc-z37-screen{position:fixed;inset:0;z-index:2147483650;background:linear-gradient(90deg,#061024e8 0%,#0610248c 45%,#06102432 100%),var(--z37-art) center/cover no-repeat,#08162d;color:#fff;display:flex;flex-direction:column;gap:12px;font:14px/1.4 system-ui;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;box-sizing:border-box;padding:12px max(12px,3vw) calc(12px + env(safe-area-inset-bottom))}
+ .dfc-z37-header{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
+ .dfc-z37-header h1{margin:0;font-size:clamp(20px,4vw,40px);line-height:1.15;text-shadow:0 2px 10px #000}
  #dfc-z37-screen *{box-sizing:border-box}
  #dfc-z37-screen button,#dfc-z37-screen select,#dfc-z37-screen input{font:inherit}
  #dfc-z37-screen button{cursor:pointer}
- #dfc-z37-content{flex:1 0 auto;min-height:0;display:flex;flex-direction:column;gap:8px}
+ #dfc-z37-content{flex:1 0 auto;min-height:0;width:min(100%,560px);display:flex;flex-direction:column;gap:8px}
  .dfc-z37-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px}
  .dfc-z37-btn{background:#244568;color:white;border:1px solid #88a3c5;border-radius:10px;padding:9px 12px;font-weight:700}
  .dfc-z37-btn:disabled{opacity:.45;cursor:not-allowed}
  .dfc-z37-primary{background:linear-gradient(90deg,#e4ba60,#b88d38);color:#1e2632;border-color:#e9d09b}
- .dfc-z37-card{width:100%;flex:1;min-height:200px;border:3px solid var(--accent,#d8b262);border-radius:22px;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(12px,3vw,26px);gap:16px;background:linear-gradient(125deg,var(--base,#162e52),#080f22)}
- .dfc-z37-title{text-align:center;font-size:clamp(23px,4vw,46px);font-weight:900;text-shadow:0 3px 10px #000}
- .dfc-z37-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
- .dfc-z37-actions button{min-width:130px}
+ .dfc-z37-card{display:grid;gap:10px;text-shadow:0 1px 6px #000}
+ .dfc-z37-card .dfc-z37-bar{min-height:0;color:var(--accent,#e4ba60)}
+ .dfc-z37-card p{margin:4px 0}
+ .dfc-z37-title{font-size:clamp(20px,3vw,34px);font-weight:900}
+ .dfc-z37-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
  .dfc-z37-dots{display:flex;justify-content:center;gap:6px;margin:7px}
  .dfc-z37-dots button{width:12px;height:12px;border-radius:99px;border:0;background:#657990;padding:0}
  .dfc-z37-dots button[aria-current=true]{background:#e6bf66;width:26px}
- .dfc-z37-controls{display:flex;align-items:center;justify-content:space-between;gap:8px}
- .dfc-z37-summary{padding:10px;background:#102540;border-radius:12px;margin:4px 0;color:#d9e6f4}
+ .dfc-z37-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+ .dfc-z37-summary{padding:10px;background:#102540b8;border-radius:12px;margin:4px 0;color:#d9e6f4}
  .dfc-z37-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px;margin-top:12px}
- .dfc-z37-tile{padding:16px;border:1px solid #7088aa;border-radius:12px;background:#142a45;color:white;text-align:left;min-height:80px}
+ .dfc-z37-tile{padding:16px;border:1px solid #7088aa;border-radius:12px;background:#102540b8;color:white;text-align:left;min-height:80px}
  .dfc-z37-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:12px;border:1px solid #607b9d;border-radius:15px}
  .dfc-z37-form label{display:flex;flex-direction:column;gap:5px;font-weight:650}
  .dfc-z37-form input,.dfc-z37-form select{width:100%;min-width:0;border:1px solid #8aa0ba;background:#102841;color:white;border-radius:8px;padding:9px}
  .dfc-z37-note{font-size:12px;color:#b6c8d9}
- @media (orientation:portrait){#dfc-z37-shortcuts{top:28dvh!important;right:8px!important}#dfc-z37-screen{padding:10px} .dfc-z37-card{max-height:none;min-height:55vh}}
+ @media (orientation:portrait){#dfc-z37-shortcuts{top:28dvh!important;right:8px!important}#dfc-z37-screen{padding:10px}}
  `;document.head.append(e);
  }
  function rpc(fn,args={}){const c=db();if(!c)return Promise.resolve({data:null,error:{message:'Supabase no disponible'}});return c.rpc(fn,args)}
@@ -105,7 +105,7 @@
  function cleanup(){if(activeEscape)window.removeEventListener('keydown',activeEscape);activeEscape=null;if(state.timer)clearInterval(state.timer);state.timer=null;state.screen?.remove();state.screen=null;state.infoOpen=false;buttons()}
  function shell(title,mode){
   cleanup();const e=document.createElement('section');e.id='dfc-z37-screen';e.dataset.mode=mode;e.style.setProperty('--z37-art','url("'+artwork[mode]+'")');e.setAttribute('role','dialog');e.setAttribute('aria-modal','true');e.setAttribute('aria-label',title);
-  e.innerHTML='<div class="dfc-z37-bar"><button type="button" class="dfc-z37-btn" id="dfc-z37-back">← Volver</button><strong>'+esc(title)+'</strong><span style="width:68px"></span></div><h1 class="dfc-z37-hero">'+esc(title)+'</h1><div id="dfc-z37-content"></div>';
+  e.innerHTML='<header class="dfc-z37-header"><button type="button" class="dfc-z37-btn" id="dfc-z37-back">← Volver</button><h1>'+esc(title)+'</h1></header><div id="dfc-z37-content"></div>';
   // Keep this vertical scroll surface outside the legacy game touch lock.
   e.addEventListener('touchmove',event=>event.stopPropagation(),{passive:true});
   e.addEventListener('scroll',()=>{state.lastInteraction=Date.now()},{passive:true});
@@ -117,10 +117,10 @@
   const host=$('#dfc-z37-content');if(!host)return;
   const slides=state.items.length?state.items:previewStyles;
   state.slide=(state.slide+slides.length)%slides.length;
-  const t=slides[state.slide],palette=colors[t.artwork_key]||colors.gold_blue;
-  host.innerHTML=catalogNotice()+'<article class="dfc-z37-card" style="--base:'+palette[0]+';--accent:'+palette[1]+'">'+
-   '<div class="dfc-z37-bar"><b>'+esc(t.state)+'</b><span>🏆</span></div>'+
-   '<div><div class="dfc-z37-title">'+esc(t.name)+'</div><p style="text-align:center">'+esc(t.description)+'</p></div>'+
+  const t=slides[state.slide],accent=Object.hasOwn(accents,t.artwork_key)?accents[t.artwork_key]:accents.gold_blue;
+  host.innerHTML=catalogNotice()+'<article class="dfc-z37-card" style="--accent:'+accent+'">'+
+   '<div class="dfc-z37-bar"><b>'+esc(t.state)+'</b></div>'+
+   '<div><div class="dfc-z37-title">'+esc(t.name)+'</div><p>'+esc(t.description)+'</p></div>'+
    '<div><div class="dfc-z37-summary">'+(t.preview?'Inscripciones aún cerradas':'Inscripción: '+(Number(t.entry_fc)>0?esc(t.entry_fc)+' FC':'Gratis')+' · Inscritos: '+esc(t.registered_count||0)+' · Inicio: '+esc(t.starts_at||'Pendiente'))+'</div>'+
    '<div class="dfc-z37-actions"><button class="dfc-z37-btn dfc-z37-primary" data-z37-action="join" disabled>Registrarse</button><button class="dfc-z37-btn" data-z37-action="info">Ver información</button></div></div></article>'+
    '<div class="dfc-z37-controls"><button class="dfc-z37-btn" data-z37-nav="-1">❮ Anterior</button><div class="dfc-z37-dots">'+slides.map((_,i)=>'<button aria-label="Torneo '+(i+1)+'" aria-current="'+(i===state.slide)+'" data-z37-nav="'+(i-state.slide)+'"></button>').join('')+'</div><button class="dfc-z37-btn" data-z37-nav="1">Siguiente ❯</button></div>';
