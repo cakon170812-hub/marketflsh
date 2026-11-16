@@ -1225,7 +1225,7 @@
  function boot(){
    if(document.querySelector('script[data-dfc-z37-ui]'))return;
    const s=document.createElement('script');
-   s.src='./z37-ui.js?v=37.5';s.defer=true;s.dataset.dfcZ37Ui='true';
+   s.src='./z37-ui.js?v=37.6';s.defer=true;s.dataset.dfcZ37Ui='true';
    s.onerror=()=>console.warn('[DFC Z37] modulo visual no disponible');
    document.head.append(s);
    if(!document.querySelector('script[data-dfc-z37-admin]')){
@@ -1270,7 +1270,7 @@
     }
     html body :is(
       .overlay[id], dialog[open], .dfc-admin-viewport,
-      #dfc-z37-screen, #dfc-z37-admin-panel,
+      #dfc-z37-admin-panel,
       #dfc012r-choice, #dfc012u-modal, #dfc-z9-modal, #dfcZ16WalletModal,
       #dfc-z20-admin-modal, #dfcLabGiftOverlay008, #dfcLabProfileOverlay016,
       #dfcZ32GiftFullScreen, #dfcZ32ExpiryModal, #dfcZ32RewardModal
@@ -1298,6 +1298,36 @@
     html body :is(#gamesPanel,#dominoLobbyPanel) > .domino-lobby-shell,
     html body #leaderPanel > .panel {
       background: transparent !important;
+    }
+    html body :is(
+      #authView, .overlay[id]:not(#dominoTablePanel), dialog[open], .dfc-admin-viewport,
+      #dfc-z37-admin-panel, #dfc012r-choice, #dfc012u-modal, #dfc-z9-modal,
+      #dfcZ16WalletModal, #dfc-z20-admin-modal, #dfcLabGiftOverlay008,
+      #dfcLabProfileOverlay016, #dfcZ32GiftFullScreen, #dfcZ32ExpiryModal, #dfcZ32RewardModal
+    ) :is(button, a.action, input[type="submit"]):not([role="switch"]),
+    html body #appView :is(.dfc09-tool, .dfc13-actions button, .action) {
+      background-image: linear-gradient(150deg,#403023,#151526 75%) !important;
+      border-color: #d9ae686b !important;
+      color: #fff4dd !important;
+      box-shadow: inset 0 1px #ffe2a32b, 0 3px 10px #05030966 !important;
+    }
+    html body :is(.overlay[id], dialog[open], .dfc-admin-viewport) .action.red {
+      background-image: linear-gradient(145deg,#722f39,#3b1824) !important;
+      border-color: #ef9d936e !important;
+    }
+    html body :is(.overlay[id], dialog[open], .dfc-admin-viewport) .action.green {
+      background-image: linear-gradient(145deg,#29564a,#152f2c) !important;
+      border-color: #aaebc26e !important;
+    }
+    html body :is(
+      #authView, .overlay[id]:not(#dominoTablePanel), dialog[open], .dfc-admin-viewport,
+      #dfc-z37-admin-panel, #dfc012r-choice, #dfc012u-modal, #dfc-z9-modal,
+      #dfcZ16WalletModal, #dfc-z20-admin-modal, #dfcLabGiftOverlay008,
+      #dfcLabProfileOverlay016, #dfcZ32GiftFullScreen, #dfcZ32ExpiryModal, #dfcZ32RewardModal
+    ) :is(button, a.action, input[type="submit"]):focus-visible,
+    html body #appView :is(.dfc09-tool, .dfc13-actions button, .action):focus-visible {
+      outline: 2px solid #ffda91 !important;
+      outline-offset: 2px;
     }
     #dfcZ36UnifiedEditor .dfc-z36-logo,
     #dfcTournamentAdmin > img,

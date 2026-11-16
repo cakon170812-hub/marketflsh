@@ -24,7 +24,7 @@
  #dfc-z37-shortcuts button{min-height:36px;min-width:clamp(82px,13vw,132px);font:800 clamp(11px,1.5vw,15px) system-ui;color:white;padding:8px 13px;border-radius:12px;border:2px solid #f0d089;box-shadow:0 4px 14px #0008;background:linear-gradient(120deg,#805416,#21162e);cursor:pointer;white-space:nowrap}
  #dfc-z37-shortcuts button[data-z37]{background:linear-gradient(90deg,#080d23f2 5%,#080d2366 75%),var(--z37-art) center 54%/cover no-repeat,#101a2e;text-align:left;text-shadow:0 1px 5px #000;min-height:44px}
  #dfc-z37-shortcuts button[data-z37="points"]{border-color:#64dfd1}
- #dfc-z37-screen{position:fixed;inset:0;z-index:2147483650;background:linear-gradient(90deg,#061024e8 0%,#0610248c 45%,#06102432 100%),var(--z37-art) center/cover no-repeat,#08162d;color:#fff;display:flex;flex-direction:column;gap:12px;font:14px/1.4 system-ui;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;box-sizing:border-box;padding:12px max(12px,3vw) calc(12px + env(safe-area-inset-bottom))}
+ #dfc-z37-screen{position:fixed;inset:0;z-index:2147483650;background:linear-gradient(180deg,#100a239e,#100a235e 35%,#100a23db),var(--z37-art) center/cover no-repeat,#08162d;color:#fff;display:flex;flex-direction:column;gap:12px;font:14px/1.4 system-ui;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;box-sizing:border-box;padding:max(12px,env(safe-area-inset-top)) max(12px,3vw,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(12px,3vw,env(safe-area-inset-left))}
  .dfc-z37-header{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px}
  .dfc-z37-header h1{margin:0;font-size:clamp(20px,4vw,40px);line-height:1.15;text-shadow:0 2px 10px #000}
  #dfc-z37-screen *{box-sizing:border-box}
@@ -32,25 +32,40 @@
  #dfc-z37-screen button{cursor:pointer}
  #dfc-z37-content{flex:1 0 auto;min-height:0;width:min(100%,560px);display:flex;flex-direction:column;gap:8px}
  .dfc-z37-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px}
- .dfc-z37-btn{background:#244568;color:white;border:1px solid #88a3c5;border-radius:10px;padding:9px 12px;font-weight:700}
- .dfc-z37-btn:disabled{opacity:.45;cursor:not-allowed}
- .dfc-z37-primary{background:linear-gradient(90deg,#e4ba60,#b88d38);color:#1e2632;border-color:#e9d09b}
+ #dfc-z37-screen .dfc-z37-btn{min-height:44px;background:linear-gradient(155deg,#4b315d,#22182e 65%);color:#fff4dc;border:1px solid #e7b97794;border-radius:12px;padding:8px 15px;font-weight:750;box-shadow:inset 0 1px #ffdfa12c,0 4px 14px #0e061b7d}
+ #dfc-z37-screen .dfc-z37-btn:disabled{opacity:.62;cursor:not-allowed}
+ #dfc-z37-screen .dfc-z37-primary{background:linear-gradient(150deg,#ffe0a1,#cb8736);color:#211126;border-color:#ffedbe}
+ #dfc-z37-screen button:focus-visible{outline:2px solid #ffda91;outline-offset:3px}
  .dfc-z37-card{display:grid;gap:10px;text-shadow:0 1px 6px #000}
  .dfc-z37-card .dfc-z37-bar{min-height:0;color:var(--accent,#e4ba60)}
  .dfc-z37-card p{margin:4px 0}
  .dfc-z37-title{font-size:clamp(20px,3vw,34px);font-weight:900}
  .dfc-z37-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
- .dfc-z37-dots{display:flex;justify-content:center;gap:6px;margin:7px}
- .dfc-z37-dots button{width:12px;height:12px;border-radius:99px;border:0;background:#657990;padding:0}
- .dfc-z37-dots button[aria-current=true]{background:#e6bf66;width:26px}
+ .dfc-z37-dots{display:flex;flex-wrap:wrap;justify-content:center;gap:3px}
+ .dfc-z37-dots button{width:28px;height:36px;border:0;border-radius:7px;background:transparent;padding:0}
+ .dfc-z37-dots button::before{content:"";display:block;width:9px;height:9px;margin:auto;border-radius:99px;background:#b19bbd}
+ .dfc-z37-dots button[aria-current=true]::before{background:#ffce79;width:19px}
  .dfc-z37-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
- .dfc-z37-summary{padding:10px;background:#102540b8;border-radius:12px;margin:4px 0;color:#d9e6f4}
+ .dfc-z37-summary{padding:10px;background:#1c132bd1;border-radius:12px;margin:4px 0;color:#d9e6f4}
  .dfc-z37-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px;margin-top:12px}
- .dfc-z37-tile{padding:16px;border:1px solid #7088aa;border-radius:12px;background:#102540b8;color:white;text-align:left;min-height:80px}
+ .dfc-z37-tile{padding:16px;border:1px solid #e7b97769;border-radius:12px;background:#1c132bd1;color:white;text-align:left;min-height:80px}
  .dfc-z37-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:12px;border:1px solid #607b9d;border-radius:15px}
  .dfc-z37-form label{display:flex;flex-direction:column;gap:5px;font-weight:650}
  .dfc-z37-form input,.dfc-z37-form select{width:100%;min-width:0;border:1px solid #8aa0ba;background:#102841;color:white;border-radius:8px;padding:9px}
  .dfc-z37-note{font-size:12px;color:#b6c8d9}
+ .dfc-z37-tile .dfc-z37-btn{display:block;margin-inline:auto}
+ @media (orientation:landscape){
+   .dfc-z37-header{display:grid;grid-template-columns:minmax(84px,1fr) auto minmax(84px,1fr)}
+   #dfc-z37-back{justify-self:start}
+   .dfc-z37-header h1{text-align:center}
+   #dfc-z37-content{width:min(100%,740px);margin-inline:auto}
+   #dfc-z37-content > [role="status"],.dfc-z37-card,.dfc-z37-card .dfc-z37-bar{text-align:center;justify-content:center}
+   .dfc-z37-actions{justify-content:center}
+   .dfc-z37-controls{display:grid;grid-template-columns:1fr minmax(0,auto) 1fr}
+   .dfc-z37-controls > button:first-child{justify-self:start}
+   .dfc-z37-controls > button:last-child{justify-self:end}
+   .dfc-z37-grid:has(> .dfc-z37-summary){justify-items:center}
+ }
  @media (orientation:portrait){#dfc-z37-shortcuts{top:28dvh!important;right:8px!important}#dfc-z37-screen{padding:10px}}
  `;document.head.append(e);
  }
@@ -104,7 +119,7 @@
  let activeEscape;
  function cleanup(){if(activeEscape)window.removeEventListener('keydown',activeEscape);activeEscape=null;if(state.timer)clearInterval(state.timer);state.timer=null;state.screen?.remove();state.screen=null;state.infoOpen=false;buttons()}
  function shell(title,mode){
-  cleanup();const e=document.createElement('section');e.id='dfc-z37-screen';e.dataset.mode=mode;e.style.setProperty('--z37-art','url("'+artwork[mode]+'")');e.setAttribute('role','dialog');e.setAttribute('aria-modal','true');e.setAttribute('aria-label',title);
+  cleanup();const e=document.createElement('section');e.id='dfc-z37-screen';e.dataset.mode=mode;e.style.setProperty('--z37-art','url("'+artwork.tournament+'")');e.setAttribute('role','dialog');e.setAttribute('aria-modal','true');e.setAttribute('aria-label',title);
   e.innerHTML='<header class="dfc-z37-header"><button type="button" class="dfc-z37-btn" id="dfc-z37-back">← Volver</button><h1>'+esc(title)+'</h1></header><div id="dfc-z37-content"></div>';
   // Keep this vertical scroll surface outside the legacy game touch lock.
   e.addEventListener('touchmove',event=>event.stopPropagation(),{passive:true});
