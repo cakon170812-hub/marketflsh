@@ -64,7 +64,7 @@ declare
  uid uuid := auth.uid();
  cfg public.dfc_z37_points_configs;
  matchrow public.dfc_z37_points_matches;
- match_id uuid;
+ v_match_id uuid;
  v_existing uuid;
  v_fc_after numeric;
  v_d_after bigint;
@@ -98,9 +98,9 @@ begin
   returning * into matchrow;
   insert into public.dfc_z37_points_pots(match_id) values(matchrow.id);
  end if;
- match_id=matchrow.id;
+ v_match_id=matchrow.id;
  select gs.n into v_seat from generate_series(1,cfg.players) as gs(n)
- where not exists(select 1 from public.dfc_z37_points_participants pp where pp.match_id=match_id and pp.seat_number=gs.n)
+ where not exists(select 1 from public.dfc_z37_points_participants pp where pp.match_id=v_match_id and pp.seat_number=gs.n)
  order by gs.n limit 1;
  if v_seat is null then raise exception 'Sin asientos disponibles';end if;
  v_team=case when cfg.players=4 then (case when v_seat in (1,3) then 1 else 2 end)
@@ -117,18 +117,18 @@ begin
  returning p.balance into v_fc_after;
  if not found then raise exception 'FlashCoin insuficiente';end if;
  insert into public.dfc_z37_diamond_ledger(user_id,event_key,delta,balance_after,event_type,match_id)
- values(uid,p_request,-cfg.entry_diamonds,v_d_after,'Z37_POINTS_ENTRY',match_id);
- perform public.rf_add_ledger(uid,-cfg.entry_fc,'Z37_POINTS_ENTRY','Ingreso mesa puntos '||match_id,uid);
+ values(uid,p_request,-cfg.entry_diamonds,v_d_after,'Z37_POINTS_ENTRY',v_match_id);
+ perform public.rf_add_ledger(uid,-cfg.entry_fc,'Z37_POINTS_ENTRY','Ingreso mesa puntos '||v_match_id,uid);
  insert into public.dfc_z37_points_participants(match_id,user_id,seat_number,team,charged)
- values(match_id,uid,v_seat,v_team,true);
+ values(v_match_id,uid,v_seat,v_team,true);
  insert into public.dfc_z37_points_entry_requests(request_id,user_id,match_id)
- values(p_request,uid,match_id);
+ values(p_request,uid,v_match_id);
  update public.dfc_z37_points_pots set fc_amount=fc_amount+cfg.entry_fc,
- diamond_amount=diamond_amount+cfg.entry_diamonds where dfc_z37_points_pots.match_id=match_id;
- select count(*) into v_total from public.dfc_z37_points_participants where match_id=match_id;
+ diamond_amount=diamond_amount+cfg.entry_diamonds where dfc_z37_points_pots.match_id=v_match_id;
+ select count(*) into v_total from public.dfc_z37_points_participants where match_id=v_match_id;
  -- No iniciar partida hasta que exista motor de mano + RPC protegido.
  -- El estado waiting sigue siendo verdadero incluso al llenar la mesa.
- return match_id;
+ return v_match_id;
 end $$;
 revoke all on function public.dfc_z37_points_join(uuid,uuid) from public,anon;
 -- Se deja SIN permiso de ejecución para authenticated hasta cerrar el motor.
