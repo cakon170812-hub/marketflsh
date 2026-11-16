@@ -98,7 +98,7 @@
  }
  function showTournament(){
   shell('🏆 Torneos FlashCoin Z37');state.slide=0;state.lastInteraction=Date.now();drawSlide();
-  state.timer=setInterval(()=>{if(!state.screen)return;if(Date.now()-state.lastInteraction>10000){state.slide++;drawSlide()}},1000);
+  state.timer=setInterval(()=>{if(!state.screen)return;if(Date.now()-state.lastInteraction>=10000){state.slide++;state.lastInteraction=Date.now();drawSlide()}},1000);
  }
  async function open(mode){state.mode=mode;await refresh();mode==='points'?showPoints():showTournament()}
  function boot(){style();buttons();let obsAt=0;const observer=new MutationObserver(()=>{if(Date.now()-obsAt>500){obsAt=Date.now();buttons()}});observer.observe(document.body,{attributes:true,childList:true,subtree:true,attributeFilter:['class']});}
