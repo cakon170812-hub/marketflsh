@@ -13,8 +13,9 @@
  function style(){
  if($('#dfc-z37-styles'))return;
  const e=document.createElement('style');e.id='dfc-z37-styles';e.textContent=`
- #dfc-z37-shortcuts{position:fixed;top:clamp(58px,11vh,125px);right:12px;z-index:10020;display:flex;flex-direction:column;gap:6px}
- #dfc-z37-shortcuts button{font:800 clamp(11px,1.8vw,15px) system-ui;color:white;padding:8px 13px;border-radius:12px;border:2px solid #f0d089;box-shadow:0 4px 14px #0008;background:linear-gradient(120deg,#805416,#21162e);cursor:pointer;white-space:nowrap}
+ #dfc-z37-shortcuts{position:fixed!important;top:31dvh!important;right:max(3.5vw,env(safe-area-inset-right))!important;z-index:10021!important;flex-direction:column;align-items:stretch;gap:clamp(6px,2vh,14px)}
+ body:has(#dfc-z37-shortcuts[data-dfc-z37-bound="1"]) #dominoLobbyModes > [data-dfc-z36-future]{display:none!important}
+ #dfc-z37-shortcuts button{min-height:36px;min-width:clamp(82px,13vw,132px);font:800 clamp(11px,1.5vw,15px) system-ui;color:white;padding:8px 13px;border-radius:12px;border:2px solid #f0d089;box-shadow:0 4px 14px #0008;background:linear-gradient(120deg,#805416,#21162e);cursor:pointer;white-space:nowrap}
  #dfc-z37-shortcuts button+button{background:linear-gradient(120deg,#19598d,#092449);border-color:#79c7ee}
  #dfc-z37-screen{position:fixed;inset:0;z-index:2147483650;background:linear-gradient(180deg,rgba(4,12,32,.75),rgba(4,12,32,.83)),var(--dfc-z26-official-wallpaper,#08162d) center/cover no-repeat;color:#fff;display:flex;flex-direction:column;font:14px/1.4 system-ui;overflow:auto;box-sizing:border-box;padding:12px max(12px,3vw)}
  #dfc-z37-screen *{box-sizing:border-box}
@@ -39,7 +40,7 @@
  .dfc-z37-form label{display:flex;flex-direction:column;gap:5px;font-weight:650}
  .dfc-z37-form input,.dfc-z37-form select{width:100%;min-width:0;border:1px solid #8aa0ba;background:#102841;color:white;border-radius:8px;padding:9px}
  .dfc-z37-note{font-size:12px;color:#b6c8d9}
- @media (orientation:portrait){#dfc-z37-shortcuts{top:80px;right:5px}#dfc-z37-screen{padding:10px} .dfc-z37-card{max-height:none;min-height:55vh}}
+ @media (orientation:portrait){#dfc-z37-shortcuts{top:28dvh!important;right:8px!important}#dfc-z37-screen{padding:10px} .dfc-z37-card{max-height:none;min-height:55vh}}
  `;document.head.append(e);
  }
  function rpc(fn,args={}){const c=db();if(!c)return Promise.resolve({data:null,error:{message:'Supabase no disponible'}});return c.rpc(fn,args)}
@@ -50,14 +51,15 @@
  function home(){
    if(state.screen || $('#dominoTablePanel')?.classList.contains('active'))return false;
    const panel=$('#appView');
-   if(!panel || panel.classList.contains('hidden'))return false;
+   if(!panel || panel.classList.contains('hidden') || $('.overlay.active'))return false;
    if($('#dominoLobbyPanel')?.matches('.active,.show')||$('#leaderPanel.active')||$('#mfAdmin16_domino.active'))return false;
    return true;
  }
  function buttons(){
    let host=$('#dfc-z37-shortcuts');
    if(!host){host=document.createElement('div');host.id='dfc-z37-shortcuts';host.innerHTML='<button type="button" data-z37="tournament">🏆 TORNEO</button><button type="button" data-z37="points">🪙 POR PUNTOS</button>'; document.body.append(host);}
-   host.style.setProperty('position','relative','important');
+   if(host.parentElement!==document.body)document.body.append(host);
+   ['position','top','right','z-index'].forEach(property=>host.style.removeProperty(property));
    host.dataset.dfcZ37Bound='1';
    host.style.display=home()?'flex':'none';
  }

@@ -1120,7 +1120,7 @@
   const legacy=document.getElementById('dfc-z20-mode');
   legacy?.querySelectorAll('option[value="points"]').forEach(o=>o.remove());
   const oldTournament=document.getElementById('dfcTournamentAdminBtn');
-  if(oldTournament&&window.dfcZ37Admin){oldTournament.disabled=false;oldTournament.textContent='🏆 Mesas de torneo';oldTournament.title='';oldTournament.onclick=()=>window.dfcZ37Admin.open('tournaments');}
+  if(oldTournament&&window.dfcZ37Admin){oldTournament.disabled=false;oldTournament.textContent='🏆 Mesas de torneo';oldTournament.title='';}
   const select=document.getElementById('dfc-z20-mode');
   if(select?.value==='points')select.value='normal';
   render();
@@ -1225,12 +1225,19 @@
  function boot(){
    if(document.querySelector('script[data-dfc-z37-ui]'))return;
    const s=document.createElement('script');
-   s.src='./z37-ui.js?v=37.1';s.defer=true;s.dataset.dfcZ37Ui='true';
+   s.src='./z37-ui.js?v=37.2';s.defer=true;s.dataset.dfcZ37Ui='true';
    s.onerror=()=>console.warn('[DFC Z37] modulo visual no disponible');
    document.head.append(s);
    if(!document.querySelector('script[data-dfc-z37-admin]')){
      const admin=document.createElement('script');
-     admin.src='./z37-admin.js?v=37.1';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
+     document.addEventListener('click',event=>{
+       if(!event.target.closest?.('#dfcTournamentAdminBtn')||!window.dfcZ37Admin)return;
+       event.preventDefault();event.stopImmediatePropagation();
+       const previous=document.getElementById('dfcTournamentAdmin');
+       if(previous?.open)previous.close();
+       void window.dfcZ37Admin.open('tournaments');
+     },true);
+     admin.src='./z37-admin.js?v=37.2';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
    }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
