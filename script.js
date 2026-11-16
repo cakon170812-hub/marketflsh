@@ -1225,7 +1225,7 @@
  function boot(){
    if(document.querySelector('script[data-dfc-z37-ui]'))return;
    const s=document.createElement('script');
-   s.src='./z37-ui.js?v=37.3';s.defer=true;s.dataset.dfcZ37Ui='true';
+   s.src='./z37-ui.js?v=37.4';s.defer=true;s.dataset.dfcZ37Ui='true';
    s.onerror=()=>console.warn('[DFC Z37] modulo visual no disponible');
    document.head.append(s);
    if(!document.querySelector('script[data-dfc-z37-admin]')){
@@ -1237,7 +1237,7 @@
        if(previous?.open)previous.close();
        void window.dfcZ37Admin.open('tournaments');
      },true);
-     admin.src='./z37-admin.js?v=37.3';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
+     admin.src='./z37-admin.js?v=37.4';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
    }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

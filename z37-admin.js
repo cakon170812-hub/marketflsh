@@ -73,7 +73,7 @@
     field('rebuy_diamonds','Diamantes por recompra','number','100','min="0" required')+
     field('card_expiry_days','Vencimiento tarjetas (días)','number','30','min="1" required')+
     sel('paid_places','Puestos premiados',Array.from({length:10},(_,i)=>[String(i+1),String(i+1)]))+
-    field('prize_pct','Porcentajes ganadores separados por coma','text','100','required')+
+    field('prize_pct','Porcentajes ganadores separados por coma','text','90','required')+
     '<div style="width:100%"><button type="submit">Guardar borrador</button><p data-status aria-live="polite"></p></div>';
    host.replaceChildren(f);
    saveHandler(f,'dfc_z37_admin_save_tournament',x=>{
