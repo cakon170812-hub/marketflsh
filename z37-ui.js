@@ -7,7 +7,7 @@
  const $=(s,root=document)=>root.querySelector(s);
  const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const db=()=>[window.sb,window.dfcSupabase,window.supabaseClient,window.rfSupabase].find(s=>s&&typeof s.rpc==='function');
- const state={screen:null,slide:0,timer:null,items:[],pointTables:[],mode:'tournament',lastInteraction:0};
+ const state={screen:null,slide:0,timer:null,items:[],pointTables:[],mode:'tournament',lastInteraction:0,infoOpen:false};
  const colors={gold_blue:['#07132e','#cfaf60'],purple_neon:['#27133f','#bb82ef'],red_championship:['#43121f','#e57d6b'],emerald_green:['#0c3c2e','#88d5ac']};
  function style(){
  if($('#dfc-z37-styles'))return;
@@ -15,7 +15,7 @@
  #dfc-z37-shortcuts{position:fixed;top:clamp(58px,11vh,125px);right:12px;z-index:10020;display:flex;flex-direction:column;gap:6px}
  #dfc-z37-shortcuts button{font:800 clamp(11px,1.8vw,15px) system-ui;color:white;padding:8px 13px;border-radius:12px;border:2px solid #f0d089;box-shadow:0 4px 14px #0008;background:linear-gradient(120deg,#805416,#21162e);cursor:pointer;white-space:nowrap}
  #dfc-z37-shortcuts button+button{background:linear-gradient(120deg,#19598d,#092449);border-color:#79c7ee}
- #dfc-z37-screen{position:fixed;inset:0;z-index:190000;background:#08162d;color:#fff;display:flex;flex-direction:column;font:14px/1.4 system-ui;overflow:auto;box-sizing:border-box;padding:12px max(12px,3vw)}
+ #dfc-z37-screen{position:fixed;inset:0;z-index:190000;background:linear-gradient(180deg,rgba(4,12,32,.75),rgba(4,12,32,.83)),var(--dfc-z26-official-wallpaper,#08162d) center/cover no-repeat;color:#fff;display:flex;flex-direction:column;font:14px/1.4 system-ui;overflow:auto;box-sizing:border-box;padding:12px max(12px,3vw)}
  #dfc-z37-screen *{box-sizing:border-box}
  #dfc-z37-screen button,#dfc-z37-screen select,#dfc-z37-screen input{font:inherit}
  #dfc-z37-screen button{cursor:pointer}
@@ -62,7 +62,7 @@
    }
    host.style.display=home()?'flex':'none';
  }
- function cleanup(){if(state.timer)clearInterval(state.timer);state.timer=null;state.screen?.remove();state.screen=null;buttons()}
+ function cleanup(){if(state.timer)clearInterval(state.timer);state.timer=null;state.screen?.remove();state.screen=null;state.infoOpen=false;buttons()}
  function shell(title){
   cleanup();const e=document.createElement('section');e.id='dfc-z37-screen';e.setAttribute('role','dialog');e.setAttribute('aria-modal','true');e.setAttribute('aria-label',title);
   e.innerHTML='<div class="dfc-z37-bar"><button type="button" class="dfc-z37-btn" id="dfc-z37-back">← Volver</button><strong>'+esc(title)+'</strong><span style="width:68px"></span></div><div id="dfc-z37-content" style="flex:1;min-height:0;display:flex;flex-direction:column"></div>';
@@ -82,14 +82,19 @@
    '<div class="dfc-z37-actions"><button class="dfc-z37-btn dfc-z37-primary" data-z37-action="join" '+(!editable?'disabled':'')+'>Registrarse</button><button class="dfc-z37-btn" data-z37-action="info">Ver información</button></div></div></article>'+
    '<div class="dfc-z37-controls"><button class="dfc-z37-btn" data-z37-nav="-1">❮ Anterior</button><div class="dfc-z37-dots">'+state.items.map((_,i)=>'<button aria-label="Torneo '+(i+1)+'" aria-current="'+(i===state.slide)+'" data-z37-nav="'+(i-state.slide)+'"></button>').join('')+'</div><button class="dfc-z37-btn" data-z37-nav="1">Siguiente ❯</button></div>';
   host.querySelectorAll('[data-z37-nav]').forEach(b=>b.onclick=()=>{state.lastInteraction=Date.now();state.slide+=Number(b.dataset.z37Nav);drawSlide()});
+  let x0=null;
+  host.ontouchstart=ev=>{if(ev.touches?.length===1){x0=ev.touches[0].clientX;state.lastInteraction=Date.now()}};
+  host.ontouchend=ev=>{if(x0==null)return;const distance=ev.changedTouches[0].clientX-x0;x0=null;
+    if(Math.abs(distance)>45 && !state.infoOpen){state.slide+=distance<0?1:-1;state.lastInteraction=Date.now();drawSlide()}
+  };
   host.querySelector('[data-z37-action=info]').onclick=()=>info(t);
   host.querySelector('[data-z37-action=join]').onclick=()=>join(t);
  }
  function info(t){
   state.lastInteraction=Date.now();
-  const v=document.createElement('div');v.className='dfc-z37-summary';
+  state.infoOpen=true;const v=document.createElement('div');v.className='dfc-z37-summary';
   v.innerHTML='<h3>'+esc(t.name)+'</h3><p>'+esc(t.description)+'</p><p>Inicio: '+esc(t.starts_at)+'</p><p>Inscripción: '+esc(t.entry_fc)+' FC · Diamantes iniciales: '+esc(t.diamond_initial)+'</p><p>Por pase: '+esc(t.diamond_pass_cost)+' · Mínimo: '+esc(t.diamond_minimum)+'</p><p>Recompra: '+esc(t.rebuy_fc)+' FC / '+esc(t.rebuy_diamonds)+' diamantes · Máximo 2</p><p>Puestos premiados: '+esc(t.paid_places)+'</p><button class="dfc-z37-btn">Cerrar información</button>';
-  $('#dfc-z37-content').append(v);v.querySelector('button').onclick=()=>v.remove();
+  $('#dfc-z37-content').append(v);v.querySelector('button').onclick=()=>{v.remove();state.infoOpen=false;state.lastInteraction=Date.now()};
  }
  function join(t){state.lastInteraction=Date.now();window.alert('Inscripciones pendientes de activar: la integración financiera y del motor de Z37 aún no está verificada. No se efectuó ningún cobro.')}
  function showPoints(){
@@ -100,7 +105,7 @@
  }
  function showTournament(){
   shell('🏆 Torneos FlashCoin Z37');state.slide=0;state.lastInteraction=Date.now();drawSlide();
-  state.timer=setInterval(()=>{if(!state.screen)return;if(Date.now()-state.lastInteraction>=10000){state.slide++;state.lastInteraction=Date.now();drawSlide()}},1000);
+  state.timer=setInterval(()=>{if(!state.screen)return;if(!state.infoOpen&&Date.now()-state.lastInteraction>=10000){state.slide++;state.lastInteraction=Date.now();drawSlide()}},1000);
  }
  async function open(mode){state.mode=mode;await refresh();mode==='points'?showPoints():showTournament()}
  function boot(){style();buttons();let obsAt=0;const observer=new MutationObserver(()=>{if(Date.now()-obsAt>500){obsAt=Date.now();buttons()}});observer.observe(document.body,{attributes:true,childList:true,subtree:true,attributeFilter:['class']});}
