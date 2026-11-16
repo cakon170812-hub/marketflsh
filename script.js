@@ -1223,6 +1223,10 @@
    s.src='./z37-ui.js';s.defer=true;s.dataset.dfcZ37Ui='true';
    s.onerror=()=>console.warn('[DFC Z37] modulo visual no disponible');
    document.head.append(s);
+   if(!document.querySelector('script[data-dfc-z37-admin]')){
+     const admin=document.createElement('script');
+     admin.src='./z37-admin.js';admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
+   }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
