@@ -26,7 +26,8 @@
  async function open(section){
   if(!document.querySelector('#leaderPanel.active,#mfAdmin16_domino.active'))return;
   if(!await verify()){window.alert('No se pudo confirmar el acceso a la administración Z37.');return;}
-  close();view=e('div',{id:'dfc-z37-admin-panel',style:'position:fixed;inset:0;background:#09192f;color:#fff;z-index:2147483651;overflow:auto;padding:clamp(12px,3vw,24px);font:14px system-ui'});
+  close();view=e('div',{id:'dfc-z37-admin-panel',style:'position:fixed;inset:0;background:#09192f;color:#fff;z-index:2147483651;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;padding:clamp(12px,3vw,24px);font:14px system-ui'});
+  view.addEventListener('touchmove',event=>event.stopPropagation(),{passive:true});
   view.innerHTML='<header style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>ADMINISTRADOR Z37 · BORRADORES</h2><button type="button" id="z37-admin-exit">✕ Salir</button></header><div style="display:flex;gap:10px;flex-wrap:wrap" id="z37-admin-tabs"></div><div id="z37-admin-body"></div><p style="font-size:12px;color:#acc0d7">Las mesas y torneos nuevos permanecerán desactivados hasta completar el motor de juego, la auditoría de saldos y las pruebas Android.</p>';
   document.body.append(view);
   view.querySelector('#z37-admin-exit').onclick=close;

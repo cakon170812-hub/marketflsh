@@ -13,19 +13,20 @@
  function style(){
  if($('#dfc-z37-styles'))return;
  const e=document.createElement('style');e.id='dfc-z37-styles';e.textContent=`
- #dfc-z37-shortcuts{position:fixed!important;top:31dvh!important;right:max(3.5vw,env(safe-area-inset-right))!important;z-index:10021!important;flex-direction:column;align-items:stretch;gap:clamp(6px,2vh,14px)}
+ #dfc-z37-shortcuts{position:fixed!important;top:31dvh!important;right:max(3.5vw,env(safe-area-inset-right))!important;z-index:2147482001!important;flex-direction:column;align-items:stretch;gap:clamp(6px,2vh,14px)}
  body:has(#dfc-z37-shortcuts[data-dfc-z37-bound="1"]) #dominoLobbyModes > [data-dfc-z36-future]{display:none!important}
  #dfc-z37-shortcuts button{min-height:36px;min-width:clamp(82px,13vw,132px);font:800 clamp(11px,1.5vw,15px) system-ui;color:white;padding:8px 13px;border-radius:12px;border:2px solid #f0d089;box-shadow:0 4px 14px #0008;background:linear-gradient(120deg,#805416,#21162e);cursor:pointer;white-space:nowrap}
  #dfc-z37-shortcuts button+button{background:linear-gradient(120deg,#19598d,#092449);border-color:#79c7ee}
- #dfc-z37-screen{position:fixed;inset:0;z-index:2147483650;background:linear-gradient(180deg,rgba(4,12,32,.75),rgba(4,12,32,.83)),var(--dfc-z26-official-wallpaper,#08162d) center/cover no-repeat;color:#fff;display:flex;flex-direction:column;font:14px/1.4 system-ui;overflow:auto;box-sizing:border-box;padding:12px max(12px,3vw)}
+ #dfc-z37-screen{position:fixed;inset:0;z-index:2147483650;background:linear-gradient(180deg,rgba(4,12,32,.75),rgba(4,12,32,.83)),var(--dfc-z26-official-wallpaper,#08162d) center/cover no-repeat;color:#fff;display:flex;flex-direction:column;font:14px/1.4 system-ui;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;box-sizing:border-box;padding:12px max(12px,3vw) calc(12px + env(safe-area-inset-bottom))}
  #dfc-z37-screen *{box-sizing:border-box}
  #dfc-z37-screen button,#dfc-z37-screen select,#dfc-z37-screen input{font:inherit}
  #dfc-z37-screen button{cursor:pointer}
+ #dfc-z37-content{flex:1 0 auto;min-height:0;display:flex;flex-direction:column;gap:8px}
  .dfc-z37-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px}
  .dfc-z37-btn{background:#244568;color:white;border:1px solid #88a3c5;border-radius:10px;padding:9px 12px;font-weight:700}
  .dfc-z37-btn:disabled{opacity:.45;cursor:not-allowed}
  .dfc-z37-primary{background:linear-gradient(90deg,#e4ba60,#b88d38);color:#1e2632;border-color:#e9d09b}
- .dfc-z37-card{width:100%;flex:1;min-height:200px;border:3px solid var(--accent,#d8b262);border-radius:22px;display:flex;flex-direction:column;justify-content:space-between;overflow:auto;padding:clamp(12px,3vw,26px);gap:16px;background:linear-gradient(125deg,var(--base,#162e52),#080f22)}
+ .dfc-z37-card{width:100%;flex:1;min-height:200px;border:3px solid var(--accent,#d8b262);border-radius:22px;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(12px,3vw,26px);gap:16px;background:linear-gradient(125deg,var(--base,#162e52),#080f22)}
  .dfc-z37-title{text-align:center;font-size:clamp(23px,4vw,46px);font-weight:900;text-shadow:0 3px 10px #000}
  .dfc-z37-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
  .dfc-z37-actions button{min-width:130px}
@@ -51,8 +52,8 @@
  function home(){
    if(state.screen || $('#dominoTablePanel')?.classList.contains('active'))return false;
    const panel=$('#appView');
-   if(!panel || panel.classList.contains('hidden') || $('.overlay.active'))return false;
-   if($('#dominoLobbyPanel')?.matches('.active,.show')||$('#leaderPanel.active')||$('#mfAdmin16_domino.active'))return false;
+   if(!panel || panel.classList.contains('hidden'))return false;
+   if($('#leaderPanel.active')||$('#leaderGatePanel.active')||$('#mfAdmin16_domino.active'))return false;
    return true;
  }
  function buttons(){
@@ -67,7 +68,10 @@
  function cleanup(){if(activeEscape)window.removeEventListener('keydown',activeEscape);activeEscape=null;if(state.timer)clearInterval(state.timer);state.timer=null;state.screen?.remove();state.screen=null;state.infoOpen=false;buttons()}
  function shell(title){
   cleanup();const e=document.createElement('section');e.id='dfc-z37-screen';e.setAttribute('role','dialog');e.setAttribute('aria-modal','true');e.setAttribute('aria-label',title);
-  e.innerHTML='<div class="dfc-z37-bar"><button type="button" class="dfc-z37-btn" id="dfc-z37-back">← Volver</button><strong>'+esc(title)+'</strong><span style="width:68px"></span></div><div id="dfc-z37-content" style="flex:1;min-height:0;display:flex;flex-direction:column"></div>';
+  e.innerHTML='<div class="dfc-z37-bar"><button type="button" class="dfc-z37-btn" id="dfc-z37-back">← Volver</button><strong>'+esc(title)+'</strong><span style="width:68px"></span></div><div id="dfc-z37-content"></div>';
+  // Keep this vertical scroll surface outside the legacy game touch lock.
+  e.addEventListener('touchmove',event=>event.stopPropagation(),{passive:true});
+  e.addEventListener('scroll',()=>{state.lastInteraction=Date.now()},{passive:true});
   document.body.append(e);state.screen=e;$('#dfc-z37-back',e).addEventListener('click',cleanup);
   activeEscape=event=>{if(event.key==='Escape')cleanup()};window.addEventListener('keydown',activeEscape);
   buttons();return $('#dfc-z37-content',e);
@@ -84,10 +88,11 @@
    '<div class="dfc-z37-actions"><button class="dfc-z37-btn dfc-z37-primary" data-z37-action="join" disabled>Registrarse</button><button class="dfc-z37-btn" data-z37-action="info">Ver información</button></div></div></article>'+
    '<div class="dfc-z37-controls"><button class="dfc-z37-btn" data-z37-nav="-1">❮ Anterior</button><div class="dfc-z37-dots">'+slides.map((_,i)=>'<button aria-label="Torneo '+(i+1)+'" aria-current="'+(i===state.slide)+'" data-z37-nav="'+(i-state.slide)+'"></button>').join('')+'</div><button class="dfc-z37-btn" data-z37-nav="1">Siguiente ❯</button></div>';
   host.querySelectorAll('[data-z37-nav]').forEach(b=>b.onclick=()=>{state.lastInteraction=Date.now();state.slide+=Number(b.dataset.z37Nav);drawSlide()});
-  let x0=null;
-  host.ontouchstart=ev=>{if(ev.touches?.length===1){x0=ev.touches[0].clientX;state.lastInteraction=Date.now()}};
-  host.ontouchend=ev=>{if(x0==null)return;const distance=ev.changedTouches[0].clientX-x0;x0=null;
-    if(Math.abs(distance)>45 && !state.infoOpen){state.slide+=distance<0?1:-1;state.lastInteraction=Date.now();drawSlide()}
+  let start=null;
+  host.ontouchstart=ev=>{start=ev.touches.length===1?ev.touches[0]:null;state.lastInteraction=Date.now()};
+  host.ontouchcancel=()=>{start=null};
+  host.ontouchend=ev=>{if(!start)return;const end=ev.changedTouches[0];const distance=end.clientX-start.clientX;const vertical=end.clientY-start.clientY;start=null;
+    if(Math.abs(distance)>45 && Math.abs(distance)>Math.abs(vertical) && !state.infoOpen){state.slide+=distance<0?1:-1;state.lastInteraction=Date.now();drawSlide()}
   };
   host.querySelector('[data-z37-action=info]').onclick=()=>info(t);
  }
@@ -110,7 +115,7 @@
   state.timer=setInterval(()=>{if(!state.screen)return;if(!state.infoOpen&&Date.now()-state.lastInteraction>=10000){state.slide++;state.lastInteraction=Date.now();drawSlide()}},1000);
  }
  async function open(mode){state.mode=mode;mode==='points'?showPoints():showTournament();try{await refresh();if(state.screen&&state.mode===mode){mode==='points'?showPoints():drawSlide()}}catch(error){console.warn('[DFC Z37] Catálogo no disponible',error)}}
- function boot(){style();buttons();document.addEventListener('click',event=>{const button=event.target.closest?.('#dfc-z37-shortcuts button[data-z37]');if(!button)return;event.preventDefault();event.stopImmediatePropagation();void open(button.dataset.z37)},true);let obsAt=0;const observer=new MutationObserver(()=>{if(Date.now()-obsAt>500){obsAt=Date.now();buttons()}});observer.observe(document.body,{attributes:true,childList:true,subtree:true,attributeFilter:['class']});}
+ function boot(){style();buttons();document.addEventListener('click',event=>{const button=event.target.closest?.('#dfc-z37-shortcuts button[data-z37]');if(!button)return;event.preventDefault();event.stopImmediatePropagation();void open(button.dataset.z37)},true);const observer=new MutationObserver(buttons);['#appView','#dominoTablePanel','#leaderPanel','#leaderGatePanel','#mfAdmin16_domino'].forEach(id=>{const panel=$(id);if(panel)observer.observe(panel,{attributes:true,attributeFilter:['class']})});}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
  window.dfcZ37UI=Object.freeze({open,refresh});
 })();
