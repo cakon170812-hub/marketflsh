@@ -1256,3 +1256,57 @@
     if(remote[3].status==='rejected')msg('dominoAdminMsg','No se pudo cargar el catálogo de mesas. Vuelve a abrir Administrador para reintentar.');
   };
 })();
+
+/* Una sola ilustración oficial detrás de los controles de cada pantalla. */
+(function dfcIllustratedScreens(){
+  'use strict';
+  const style=document.createElement('style');
+  style.id='dfc-illustrated-screens';
+  style.textContent=`
+    :root {
+      --dfc-screen-art: linear-gradient(90deg,#061024df,#06102488 58%,#06102455),
+        var(--dfc-z26-official-wallpaper,linear-gradient(#102440,#08162d));
+      --dfc-screen-glass: #08172ab3;
+    }
+    html body :is(
+      .overlay[id], dialog[open], .dfc-admin-viewport,
+      #dfc-z37-screen, #dfc-z37-admin-panel,
+      #dfc012r-choice, #dfc012u-modal, #dfc-z9-modal, #dfcZ16WalletModal,
+      #dfc-z20-admin-modal, #dfcLabGiftOverlay008, #dfcLabProfileOverlay016,
+      #dfcZ32GiftFullScreen, #dfcZ32ExpiryModal, #dfcZ32RewardModal
+    ) {
+      background-image: var(--dfc-screen-art) !important;
+      background-position: center !important;
+      background-repeat: no-repeat !important;
+      background-size: cover !important;
+      background-color: #08162d !important;
+    }
+    html body :is(
+      .overlay[id]:not(#dominoTablePanel):not(#dominoPhotoFullscreen) > .panel,
+      .dfc-admin-viewport > [role="dialog"],
+      #dfc012r-choice > article, #dfc012u-modal > .dfcu-card,
+      #dfc-z9-modal > .dfc-z9-sheet, #dfcZ16WalletModal > .dfc-z16-wallet-card,
+      #dfc-z20-admin-modal > .dfc-z20-dialog,
+      #dfcLabGiftOverlay008 > .dfc-lab-gift-sheet,
+      #dfcLabProfileOverlay016 > .dfc16-profile-panel,
+      #dfcZ32ExpiryModal > section, #dfcZ32RewardModal > section
+    ) {
+      background: var(--dfc-screen-glass) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html body :is(#gamesPanel,#dominoLobbyPanel) > .domino-lobby-shell,
+    html body #leaderPanel > .panel {
+      background: transparent !important;
+    }
+    #dfcZ36UnifiedEditor .dfc-z36-logo,
+    #dfcTournamentAdmin > img,
+    #dfcZ32TournamentDialog > img {
+      display: none !important;
+    }
+    #dfcZ36UnifiedEditor {
+      background: var(--dfc-screen-glass);
+    }
+  `;
+  document.head.append(style);
+})();
