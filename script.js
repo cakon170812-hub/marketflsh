@@ -1269,7 +1269,7 @@
        if(previous?.open)previous.close();
        void window.dfcZ37Admin.open('tournaments');
      },true);
-     admin.src='./z37-admin.js?v=37.7';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
+     admin.src='./z37-admin.js?v=37.8';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
    }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

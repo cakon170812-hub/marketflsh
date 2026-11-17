@@ -28,7 +28,7 @@
   if(!await verify()){window.alert('No se pudo confirmar el acceso a la administración Z37.');return;}
   close();view=e('div',{id:'dfc-z37-admin-panel',style:'position:fixed;inset:0;background:#09192f;color:#fff;z-index:2147483651;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;padding:clamp(12px,3vw,24px);font:14px system-ui'});
   view.addEventListener('touchmove',event=>event.stopPropagation(),{passive:true});
-  view.innerHTML='<header style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>ADMINISTRADOR Z37 · BORRADORES</h2><button type="button" id="z37-admin-exit">✕ Salir</button></header><div style="display:flex;gap:10px;flex-wrap:wrap" id="z37-admin-tabs"></div><div id="z37-admin-body"></div><p style="font-size:12px;color:#acc0d7">Las mesas y torneos nuevos permanecerán desactivados hasta completar el motor de juego, la auditoría de saldos y las pruebas Android.</p>';
+  view.innerHTML='<header style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>ADMINISTRADOR Z37 · BORRADORES</h2><button type="button" id="z37-admin-exit">✕ Salir</button></header><div style="display:flex;gap:10px;flex-wrap:wrap" id="z37-admin-tabs"></div><div id="z37-admin-body"></div><p style="font-size:12px;color:#acc0d7">Las mesas por puntos activadas aparecen en el listado público. El acceso para jugar sigue pendiente.</p>';
   document.body.append(view);
   view.querySelector('#z37-admin-exit').onclick=close;
   const tabs=view.querySelector('#z37-admin-tabs');
@@ -48,7 +48,7 @@
    f.addEventListener('submit',async ev=>{
     ev.preventDefault();const status=f.querySelector('[data-status]'),button=f.querySelector('[type=submit]');
     button.disabled=true;status.textContent='Guardando...';
-    try{const payload=map(formValues(f));const id=await rpc(rpcName,{p_input:payload});status.textContent='Borrador guardado correctamente.';if(onSaved)await onSaved(id,status);}
+    try{const payload=map(formValues(f));const id=await rpc(rpcName,{p_input:payload});if(onSaved)await onSaved(id,status);else status.textContent='Borrador guardado correctamente.';}
     catch(err){status.textContent='No se guardó: '+err.message;}finally{button.disabled=false;}
    });
  }
@@ -67,10 +67,6 @@
      for(const button of list.querySelectorAll('button')){
        button.setAttribute('aria-pressed',String(button.dataset.tableId===(selected||'')));
      }
-     if(table?.enabled){
-       formHost.textContent='Esta mesa está activa. La edición individual está disponible para mesas desactivadas.';
-       return;
-     }
      const form=e('form',{style:formStyle});
      form.innerHTML='<h3 style="width:100%">'+(table?'Editar mesa por puntos':'Crear mesa por puntos')+'</h3>'+
        field('name','Nombre','text',table?.name??'','required maxlength="160"')+
@@ -80,13 +76,16 @@
        field('entry_diamonds','Entrada diamantes','number',table?.entry_diamonds??50,'min="0" required')+
        field('max_negative_diamonds','Límite deuda de diamantes','number',table?.max_negative_diamonds??200,'min="0" required')+
        field('admin_pct','Comisión sobre ambos botes (%)','number',table?.admin_pct??10,'min="0" max="50" step=".01" required')+
-       '<div style="width:100%"><button type="submit">Guardar borrador</button><p data-status aria-live="polite"></p></div>';
+       '<label style="width:100%;display:flex;gap:8px;align-items:center"><input type="checkbox" role="switch" name="enabled" value="1" '+(table?.enabled?'checked':'')+'> Mostrar en Mesas por puntos</label>'+
+       '<div style="width:100%"><button type="submit">Guardar cambios</button><p data-status aria-live="polite"></p></div>';
      form.elements.players.value=String(table?.players??2);
      formHost.replaceChildren(form);
-     saveHandler(form,'dfc_z37_admin_save_points',x=>({...x,...(table?{id:table.id}:{}),players:Number(x.players),
+     saveHandler(form,'dfc_z37_admin_save_points',x=>({...x,enabled:x.enabled==='1',...(table?{id:table.id}:{}),players:Number(x.players),
        target_points:Number(x.target_points),entry_fc:Number(x.entry_fc),entry_diamonds:Number(x.entry_diamonds),
-       max_negative_diamonds:Number(x.max_negative_diamonds),admin_pct:Number(x.admin_pct)}),async id=>{
-       notice.textContent='Mesa guardada.';
+       max_negative_diamonds:Number(x.max_negative_diamonds),admin_pct:Number(x.admin_pct)}),async (id,status)=>{
+       const enabled=form.elements.enabled.checked;
+       status.textContent='Cambios guardados.';
+       notice.textContent=enabled?'Mesa visible en Por puntos.':'Mesa guardada y oculta en Por puntos.';
        await loadTables(id);
      });
    }
@@ -100,7 +99,7 @@
        add.onclick=()=>showForm(null);
        list.replaceChildren(add);
        for(const table of tables){
-         const button=e('button',{type:'button','data-table-id':table.id},table.name);
+         const button=e('button',{type:'button','data-table-id':table.id},table.name+(table.enabled?' · Visible':' · Oculta'));
          button.onclick=()=>showForm(table);
          list.append(button);
        }
