@@ -121,7 +121,10 @@
    const isPoints=mode==='points';
    let result;
    try{
-     result=await rpc(isPoints?'dfc_z37_public_points':'dfc_z37_public_tournaments');
+     result=await rpc(isPoints?'dfc_z37_points_lobby':'dfc_z37_public_tournaments');
+     if(isPoints && ['PGRST202','42883','42501'].includes(result.error?.code)){
+       result=await rpc('dfc_z37_public_points');
+     }
    }catch(error){
      result={error};
    }
