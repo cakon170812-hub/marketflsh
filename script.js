@@ -1116,6 +1116,34 @@
     if(window.dfcZ37Admin)void window.dfcZ37Admin.open(btn.dataset.z37AdminTab);
     else window.alert('El editor Z37 todavía está cargando. Vuelve a tocar el botón.');
    }));
+   const form=document.createElement('form');
+   form.hidden=true;
+   form.innerHTML='<h4>Crear mesa</h4><label>Nombre <input class="field" name="name" maxlength="80" required></label><label>Entrada mínima (FC) <input class="field" name="minEntry" type="number" min="0.001" max="999999999.999" step="0.001" required></label><button type="submit">Guardar mesa desactivada</button><p role="status"></p>';
+   root.querySelector('.dfc-z36-rooms').after(form);
+   form.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const mode=root.dataset.selected;
+    const submit=form.querySelector('button[type="submit"]');
+    const status=form.querySelector('[role="status"]');
+    if(submit.disabled||!['normal','paid_pass'].includes(mode))return;
+    const name=form.elements.namedItem('name').value.trim();
+    const minEntry=Number(form.elements.namedItem('minEntry').value);
+    if(!name||!Number.isFinite(minEntry)||minEntry<0.001){status.textContent='Escribe el nombre y la entrada mínima.';return;}
+    submit.disabled=true;status.textContent='Guardando…';
+    let id;
+    try{
+     const {data,error}=await sb.rpc('dfc_z37_admin_create_domino_config',{p_name:name,p_mode:mode,p_min_entry:minEntry});
+     if(error)throw error;
+     id=data;
+     form.reset();
+     if(root.dataset.selected===mode)root.dataset.card=String(id);
+     await loadDominoAdminConfigs();
+     render();
+     status.textContent='Mesa guardada. Revisa la configuración y actívala desde su ficha.';
+    }catch(error){
+     status.textContent=(id==null?'No se pudo crear la mesa: ':'Mesa guardada. No se pudo actualizar el listado: ')+error.message;
+    }finally{submit.disabled=false;}
+   });
    root.dataset.selected='';
   }
   const legacy=document.getElementById('dfc-z20-mode');
@@ -1130,11 +1158,12 @@
   const root=document.getElementById('dfcZ36UnifiedEditor'),target=document.getElementById('dominoAdminConfigs');
   if(!root||!target)return;
   const mode=root.dataset.selected;
+  root.querySelector('form').hidden=!mode;
   target.hidden=!mode;
   target.style.display=mode?'':'none';
   root.querySelectorAll('[data-mode]:not([disabled])').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   const cards=[...target.querySelectorAll('[data-domino-admin]')];
-  const ids=mode?cards.filter(card=>card.querySelector('.d-mode')?.value===mode):[];
+  const ids=mode?cards.filter(card=>card.dataset.dominoAdmin!=='7'&&card.querySelector('.d-mode')?.value===mode):[];
   const area=root.querySelector('.dfc-z36-rooms');
   if(!area.dataset.ready){
    area.addEventListener('click',e=>{const btn=e.target.closest('button[data-card]');if(!btn)return;root.dataset.card=btn.dataset.card;render()});
