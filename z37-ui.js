@@ -14,6 +14,53 @@
  };
  Object.values(artwork).forEach(src=>{const image=new Image();image.src=src});
  const state={screen:null,slide:0,timer:null,items:[],pointTables:[],mode:'tournament',lastInteraction:0,infoOpen:false,catalogStatus:'loading',pendingSlide:false};
+ const requests=new Map();
+ const registeredTournaments=new Set();
+ let pendingAdmission=false;
+ async function admit(button,item,mode){
+   if(pendingAdmission || button.disabled)return;
+   const screen=state.screen;
+   const key=mode+':'+item.id;
+   let request=requests.get(key);
+   if(!request){request=crypto.randomUUID();requests.set(key,request)}
+   const status=$('[data-z37-admission-status]',button.parentElement);
+   pendingAdmission=true;
+   button.disabled=true;
+   status.textContent='Consultando la entrada…';
+   try{
+     const points=mode==='points';
+     const args=points?{p_config:item.id,p_request:request}:{p_tournament:item.id,p_request:request};
+     const {data,error}=await rpc(points?'dfc_z37_points_join_engine':'dfc_z37_tournament_register',args);
+     if(error)throw error;
+     if(state.screen!==screen)return;
+     if(points){
+       if(data?.state==='waiting'){
+         status.textContent='Esperando jugadores ('+data.seated+'/'+data.capacity+'). Toca Sentarse para consultar el estado.';
+       }else if(data?.state==='playing' && data.table_id){
+         if(typeof window.openDominoLobby!=='function')throw Error('No se pudo abrir el salón de dominó');
+         await window.openDominoLobby();
+         if(state.screen!==screen)return;
+         const resume=$('#dominoResumeTableBtn');
+         if(!resume || typeof resume.onclick!=='function')throw Error('Vuelve a tocar Sentarse para abrir tu partida');
+         await resume.onclick();
+         requests.delete(key);
+         if(state.screen===screen)cleanup();
+       }else{
+         throw Error('La partida aún no está disponible');
+       }
+     }else{
+       registeredTournaments.add(item.id);
+       status.textContent='Inscripción registrada.';
+       button.textContent='Inscrito';
+     }
+   }catch(error){
+     status.textContent=error?.message || 'No se pudo completar la entrada';
+   }finally{
+     pendingAdmission=false;
+     state.lastInteraction=Date.now();
+     button.disabled=button.textContent==='Inscrito';
+   }
+ }
  const previewStyles=[['Azul y oro','gold_blue'],['Morado neón','purple_neon'],['Campeonato rojo','red_championship'],['Verde esmeralda','emerald_green']].map(([name,artwork_key])=>({name,artwork_key,state:'Vista previa',description:'Diseño de torneo',preview:true}));
  const accents={gold_blue:'#cfaf60',purple_neon:'#bb82ef',red_championship:'#e57d6b',emerald_green:'#88d5ac'};
  function style(){
@@ -137,15 +184,21 @@
    '<div class="dfc-z37-bar"><b>'+esc(t.state)+'</b></div>'+
    '<div><div class="dfc-z37-title">'+esc(t.name)+'</div><p>'+esc(t.description)+'</p></div>'+
    '<div><div class="dfc-z37-summary">'+(t.preview?'Inscripciones aún cerradas':(t.state==='scheduled'?'Programado · ':'')+'Inscripción: '+(Number(t.entry_fc)>0?esc(t.entry_fc)+' FC':'Gratis')+' · Inscritos: '+esc(t.registered_count||0)+' · Inicio: '+esc(t.starts_at?new Date(t.starts_at).toLocaleString('es-DO',{timeZone:'America/Santo_Domingo',dateStyle:'short',timeStyle:'short'}):'Pendiente'))+'</div>'+
-   '<div class="dfc-z37-actions"><button class="dfc-z37-btn dfc-z37-primary" data-z37-action="join" disabled>'+(t.state==='scheduled'?'Sentarse':'Registrarse')+'</button><button class="dfc-z37-btn" data-z37-action="info">Ver información</button></div>'+(t.state==='scheduled'?'<p class="dfc-z37-note">Entrada aún no disponible.</p>':'')+'</div></article>'+
+   '<div class="dfc-z37-actions"><button class="dfc-z37-btn dfc-z37-primary" data-z37-action="join" '+(t.can_register===true&&t.state==='open'?'':'disabled')+'>'+(t.state==='scheduled'?'Sentarse':'Registrarse')+'</button><button class="dfc-z37-btn" data-z37-action="info">Ver información</button><p role="status" data-z37-admission-status></p></div>'+(t.state==='scheduled'?'<p class="dfc-z37-note">Entrada aún no disponible.</p>':'')+'</div></article>'+
    '<div class="dfc-z37-controls"><button class="dfc-z37-btn" data-z37-nav="-1">❮ Anterior</button><div class="dfc-z37-dots">'+slides.map((_,i)=>'<button aria-label="Torneo '+(i+1)+'" aria-current="'+(i===state.slide)+'" data-z37-nav="'+(i-state.slide)+'"></button>').join('')+'</div><button class="dfc-z37-btn" data-z37-nav="1">Siguiente ❯</button></div>';
-  host.querySelectorAll('[data-z37-nav]').forEach(b=>b.onclick=()=>{state.lastInteraction=Date.now();if(!state.infoOpen){state.slide+=Number(b.dataset.z37Nav);drawSlide()}});
+  host.querySelectorAll('[data-z37-nav]').forEach(b=>b.onclick=()=>{state.lastInteraction=Date.now();if(!state.infoOpen&&!pendingAdmission){state.slide+=Number(b.dataset.z37Nav);drawSlide()}});
   let start=null;
   host.ontouchstart=ev=>{start=ev.touches.length===1?ev.touches[0]:null;state.lastInteraction=Date.now()};
   host.ontouchcancel=()=>{start=null};
   host.ontouchend=ev=>{if(!start)return;const end=ev.changedTouches[0];const distance=end.clientX-start.clientX;const vertical=end.clientY-start.clientY;start=null;
-    if(Math.abs(distance)>45 && Math.abs(distance)>Math.abs(vertical) && !state.infoOpen){state.slide+=distance<0?1:-1;state.lastInteraction=Date.now();drawSlide()}
+    if(Math.abs(distance)>45 && Math.abs(distance)>Math.abs(vertical) && !state.infoOpen && !pendingAdmission){state.slide+=distance<0?1:-1;state.lastInteraction=Date.now();drawSlide()}
   };
+  const register=host.querySelector('[data-z37-action=join]');
+  if(registeredTournaments.has(t.id)){
+    register.textContent='Inscrito';
+    register.disabled=true;
+  }
+  register.onclick=()=>void admit(register,t,'tournament');
   host.querySelector('[data-z37-action=info]').onclick=()=>info(t);
  }
  function info(t){
@@ -158,13 +211,16 @@
 
  function drawPoints(){
   const e=$('#dfc-z37-content');
-  e.innerHTML=catalogNotice()+'<div class="dfc-z37-grid">'+(state.pointTables.length?state.pointTables.map(t=>
-    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p><p>'+esc(t.players)+' jugadores</p><button class="dfc-z37-btn" disabled>Sentarse — pendiente de motor Z37</button></div>').join(''):
+  e.innerHTML=catalogNotice()+'<div class="dfc-z37-grid">'+(state.pointTables.length?state.pointTables.map((t,index)=>
+    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p><p>'+esc(t.players)+' jugadores</p><button class="dfc-z37-btn" data-z37-seat="'+index+'" '+(t.can_join===true?'':'disabled')+'>Sentarse</button><p role="status" data-z37-admission-status></p></div>').join(''):
     state.catalogStatus==='ready'?'<div class="dfc-z37-summary">No hay mesas por puntos publicadas.</div>':'')+'</div>';
+  e.querySelectorAll('[data-z37-seat]').forEach(button=>{
+    button.onclick=()=>void admit(button,state.pointTables[Number(button.dataset.z37Seat)],'points');
+  });
  }
  function showTournament(){
   shell('Torneos FlashCoin','tournament');state.slide=0;state.lastInteraction=Date.now();drawSlide();
-  state.timer=setInterval(()=>{if(!state.screen)return;if(!state.infoOpen&&Date.now()-state.lastInteraction>=10000){state.slide++;state.lastInteraction=Date.now();drawSlide()}},1000);
+  state.timer=setInterval(()=>{if(!state.screen)return;if(!state.infoOpen&&!pendingAdmission&&Date.now()-state.lastInteraction>=10000){state.slide++;state.lastInteraction=Date.now();drawSlide()}},1000);
  }
  function open(mode){
    state.catalogStatus='loading';
