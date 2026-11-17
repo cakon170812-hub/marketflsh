@@ -1108,14 +1108,15 @@
   let root=document.getElementById('dfcZ36UnifiedEditor');
   if(!root){
    root=document.createElement('div');root.id='dfcZ36UnifiedEditor';
-   root.innerHTML='<div class="dfc-z36-logo" aria-label="Imagen de DOMINÓ FLASH COIN"></div><h3>🁫 DOMINÓ FLASH COIN · EDITAR MESAS</h3><div class="dfc-z36-grid"><button type="button" data-mode="normal">🁫 POR GANE<small>Editar reglas y tarifas</small></button><button type="button" data-z37-admin-tab="points">🎯 POR PUNTOS<small>Editar borradores</small></button><button type="button" data-mode="paid_pass">🎲 PINTINTÍN<small>Editar las mesas existentes</small></button><button type="button" data-z37-admin-tab="tournaments">🏆 TORNEO<small>Editar borradores</small></button></div><div class="dfc-z36-rooms"></div><p class="dfc-z36-note">Selecciona una modalidad y una mesa. Por puntos no permite sentarse, aportar ni jugar; Torneo se desarrollará después como sección independiente.</p>';
+   root.innerHTML='<div class="dfc-z36-logo" aria-label="Imagen de DOMINÓ FLASH COIN"></div><h3>🁫 DOMINÓ FLASH COIN · EDITAR MESAS</h3><div class="dfc-z36-grid"><button type="button" data-mode="normal">🁫 POR GANE<small>Editar reglas y tarifas</small></button><button type="button" data-z37-admin-tab="points">🎯 POR PUNTOS<small>Editar borradores</small></button><button type="button" data-mode="paid_pass">🎲 PINTINTÍN<small>Editar las mesas existentes</small></button><button type="button" data-z37-admin-tab="tournaments">🏆 TORNEO<small>Editar borradores</small></button></div><div class="dfc-z36-rooms"></div><p class="dfc-z36-note">Selecciona una modalidad para ver y configurar sus mesas.</p>';
    target.before(root);
+   root.append(target);
    root.querySelectorAll('button[data-mode]:not([disabled])').forEach(btn=>btn.addEventListener('click',()=>{root.dataset.selected=btn.dataset.mode;render()}));
    root.querySelectorAll('[data-z37-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>{
     if(window.dfcZ37Admin)void window.dfcZ37Admin.open(btn.dataset.z37AdminTab);
     else window.alert('El editor Z37 todavía está cargando. Vuelve a tocar el botón.');
    }));
-   root.dataset.selected='normal';
+   root.dataset.selected='';
   }
   const legacy=document.getElementById('dfc-z20-mode');
   legacy?.querySelectorAll('option[value="points"]').forEach(o=>o.remove());
@@ -1128,10 +1129,12 @@
  function render(){
   const root=document.getElementById('dfcZ36UnifiedEditor'),target=document.getElementById('dominoAdminConfigs');
   if(!root||!target)return;
-  const mode=root.dataset.selected||'normal';
+  const mode=root.dataset.selected;
+  target.hidden=!mode;
+  target.style.display=mode?'':'none';
   root.querySelectorAll('[data-mode]:not([disabled])').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   const cards=[...target.querySelectorAll('[data-domino-admin]')];
-  let ids=cards.filter(card=>{const id=Number(card.dataset.dominoAdmin);return (card.querySelector('.d-mode')?.value||([3,4].includes(id)?'normal':'paid_pass'))===mode});
+  const ids=mode?cards.filter(card=>card.querySelector('.d-mode')?.value===mode):[];
   const area=root.querySelector('.dfc-z36-rooms');
   if(!area.dataset.ready){
    area.addEventListener('click',e=>{const btn=e.target.closest('button[data-card]');if(!btn)return;root.dataset.card=btn.dataset.card;render()});
@@ -1143,9 +1146,9 @@
    const b=document.createElement('button');b.type='button';b.dataset.card=c.dataset.dominoAdmin;b.textContent=c.querySelector('.d-name')?.value||'Mesa '+(i+1);
    b.setAttribute('aria-pressed',String(root.dataset.card===b.dataset.card));area.append(b);
   });
-  if(!ids.length){const empty=document.createElement('p');empty.textContent='No hay mesas disponibles para esta modalidad. Revisa el estado del catálogo debajo.';area.append(empty)}
+  if(mode&&!ids.length){const empty=document.createElement('p');empty.textContent='No hay mesas disponibles para esta modalidad. Revisa el estado del catálogo debajo.';area.append(empty)}
   cards.forEach(c=>{
-   const selected=c.dataset.dominoAdmin===root.dataset.card;
+   const selected=ids.includes(c)&&c.dataset.dominoAdmin===root.dataset.card;
    c.style.display=selected?'':'none';
    c.querySelectorAll('.dfc012n-mode-section').forEach(n=>n.style.display='none');
   });
@@ -1237,7 +1240,7 @@
        if(previous?.open)previous.close();
        void window.dfcZ37Admin.open('tournaments');
      },true);
-     admin.src='./z37-admin.js?v=37.4';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
+     admin.src='./z37-admin.js?v=37.7';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
    }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

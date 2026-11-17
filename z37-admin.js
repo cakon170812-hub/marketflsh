@@ -44,13 +44,76 @@
  function wrap(html){const el=e('div');el.innerHTML=html;el.style.cssText='max-width:1100px;margin:10px auto;display:flex;flex-wrap:wrap;gap:10px';return el}
  const formStyle='width:100%;display:flex;flex-wrap:wrap;gap:10px;border:1px solid #54728e;border-radius:14px;padding:15px';
  function formValues(f){return Object.fromEntries(new FormData(f).entries())}
- function saveHandler(f,rpcName,map){
+ function saveHandler(f,rpcName,map,onSaved){
    f.addEventListener('submit',async ev=>{
     ev.preventDefault();const status=f.querySelector('[data-status]'),button=f.querySelector('[type=submit]');
     button.disabled=true;status.textContent='Guardando...';
-    try{const payload=map(formValues(f));const id=await rpc(rpcName,{p_input:payload});status.textContent='Borrador guardado correctamente. Identificador: '+id;}
+    try{const payload=map(formValues(f));const id=await rpc(rpcName,{p_input:payload});status.textContent='Borrador guardado correctamente.';if(onSaved)await onSaved(id,status);}
     catch(err){status.textContent='No se guardó: '+err.message;}finally{button.disabled=false;}
    });
+ }
+ async function renderPoints(host){
+   const section=e('section',{'aria-label':'Configuración de mesas por puntos'});
+   const list=e('div');
+   list.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0';
+   const formHost=e('div');
+   const notice=e('p',{'aria-live':'polite'});
+   section.append(e('h3',{},'Mesas por puntos'),list,notice,formHost);
+   host.replaceChildren(section);
+   let selected=null;
+
+   function showForm(table){
+     selected=table?.id||null;
+     for(const button of list.querySelectorAll('button')){
+       button.setAttribute('aria-pressed',String(button.dataset.tableId===(selected||'')));
+     }
+     if(table?.enabled){
+       formHost.textContent='Esta mesa está activa. La edición individual está disponible para mesas desactivadas.';
+       return;
+     }
+     const form=e('form',{style:formStyle});
+     form.innerHTML='<h3 style="width:100%">'+(table?'Editar mesa por puntos':'Crear mesa por puntos')+'</h3>'+
+       field('name','Nombre','text',table?.name??'','required maxlength="160"')+
+       sel('players','Participantes',[['2','2 jugadores'],['3','3 jugadores'],['4','4 jugadores (parejas)']])+
+       field('target_points','Meta de puntos','number',table?.target_points??200,'min="1" required')+
+       field('entry_fc','Entrada FC','number',table?.entry_fc??10,'min="0" step=".01" required')+
+       field('entry_diamonds','Entrada diamantes','number',table?.entry_diamonds??50,'min="0" required')+
+       field('max_negative_diamonds','Límite deuda de diamantes','number',table?.max_negative_diamonds??200,'min="0" required')+
+       field('admin_pct','Comisión sobre ambos botes (%)','number',table?.admin_pct??10,'min="0" max="50" step=".01" required')+
+       '<div style="width:100%"><button type="submit">Guardar borrador</button><p data-status aria-live="polite"></p></div>';
+     form.elements.players.value=String(table?.players??2);
+     formHost.replaceChildren(form);
+     saveHandler(form,'dfc_z37_admin_save_points',x=>({...x,...(table?{id:table.id}:{}),players:Number(x.players),
+       target_points:Number(x.target_points),entry_fc:Number(x.entry_fc),entry_diamonds:Number(x.entry_diamonds),
+       max_negative_diamonds:Number(x.max_negative_diamonds),admin_pct:Number(x.admin_pct)}),async id=>{
+       notice.textContent='Mesa guardada.';
+       await loadTables(id);
+     });
+   }
+
+   async function loadTables(selectedId){
+     try{
+       const tables=await rpc('dfc_z37_admin_points');
+       if(!section.isConnected)return;
+       if(!Array.isArray(tables))throw Error('Respuesta de catálogo inválida');
+       const add=e('button',{type:'button','data-table-id':''},'Crear mesa por puntos');
+       add.onclick=()=>showForm(null);
+       list.replaceChildren(add);
+       for(const table of tables){
+         const button=e('button',{type:'button','data-table-id':table.id},table.name);
+         button.onclick=()=>showForm(table);
+         list.append(button);
+       }
+       const current=tables.find(table=>table.id===(selectedId||selected));
+       if(current||tables[0])showForm(current||tables[0]);
+       else formHost.textContent='Todavía no hay mesas por puntos.';
+     }catch(error){
+       if(section.isConnected)notice.textContent=(selectedId?'Mesa guardada. ':'')+'No se pudo cargar el listado: '+error.message;
+     }
+   }
+   notice.textContent='Consultando mesas…';
+   await loadTables();
+   if(notice.textContent==='Consultando mesas…')notice.textContent='';
  }
  async function render(tab){
   if(!view)return;const host=view.querySelector('#z37-admin-body');host.innerHTML='<p>Consultando...</p>';
@@ -88,19 +151,7 @@
        paid_places:Number(x.paid_places),card_expiry_days:Number(x.card_expiry_days)};
    });
   }else if(tab==='points'){
-   const f=e('form',{style:formStyle});f.innerHTML='<h3 style="width:100%">Crear mesa por puntos — solo borrador</h3>'+
-    field('name','Nombre','text','Mesa por puntos 1','required maxlength="160"')+
-    sel('players','Participantes', [['2','2 jugadores'],['3','3 jugadores'],['4','4 jugadores (parejas)']])+
-    field('target_points','Meta de puntos','number','200','min="1" required')+
-    field('entry_fc','Entrada FC','number','10','min="0" step=".01" required')+
-    field('entry_diamonds','Entrada diamantes','number','50','min="0" required')+
-    field('max_negative_diamonds','Límite deuda de diamantes','number','200','min="0" required')+
-    field('admin_pct','Comisión sobre ambos botes (%)','number','10','min="0" max="50" required')+
-    '<div style="width:100%"><p>Capicúa +30 · Pase a la redonda +30 · Pase normal +0</p><button type="submit">Guardar borrador</button><p data-status aria-live="polite"></p></div>';
-   host.replaceChildren(f);
-   saveHandler(f,'dfc_z37_admin_save_points',x=>({...x,players:Number(x.players),target_points:Number(x.target_points),
-     entry_fc:Number(x.entry_fc),entry_diamonds:Number(x.entry_diamonds),
-     max_negative_diamonds:Number(x.max_negative_diamonds),admin_pct:Number(x.admin_pct)}));
+   await renderPoints(host);
   }else if(tab==='cards'){
    host.innerHTML='<h3>Tarjetas FlashCoin de Z36 y premios Z37</h3><p>Se conserva el sistema existente de distribución de tarjetas FlashCoin y su historial. Los premios automáticos de torneos se activarán únicamente cuando la liquidación esté verificada.</p><button type="button" id="z37-open-existing-gifts">Abrir distribución actual de tarjetas</button>';
    host.querySelector('#z37-open-existing-gifts').onclick=()=>{
