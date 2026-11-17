@@ -28,7 +28,7 @@
   if(!await verify()){window.alert('No se pudo confirmar el acceso a la administración Z37.');return;}
   close();view=e('div',{id:'dfc-z37-admin-panel',style:'position:fixed;inset:0;background:#09192f;color:#fff;z-index:2147483651;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;padding:clamp(12px,3vw,24px);font:14px system-ui'});
   view.addEventListener('touchmove',event=>event.stopPropagation(),{passive:true});
-  view.innerHTML='<header style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>ADMINISTRADOR Z37 · BORRADORES</h2><button type="button" id="z37-admin-exit">✕ Salir</button></header><div style="display:flex;gap:10px;flex-wrap:wrap" id="z37-admin-tabs"></div><div id="z37-admin-body"></div><p style="font-size:12px;color:#acc0d7">Las mesas por puntos activadas aparecen en el listado público. El acceso para jugar sigue pendiente.</p>';
+  view.innerHTML='<header style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>ADMINISTRADOR Z37</h2><button type="button" id="z37-admin-exit">✕ Salir</button></header><div style="display:flex;gap:10px;flex-wrap:wrap" id="z37-admin-tabs"></div><div id="z37-admin-body"></div><p style="font-size:12px;color:#acc0d7">Las mesas por puntos activadas aparecen en el listado público. El acceso para jugar sigue pendiente.</p>';
   document.body.append(view);
   view.querySelector('#z37-admin-exit').onclick=close;
   const tabs=view.querySelector('#z37-admin-tabs');
@@ -48,7 +48,7 @@
    f.addEventListener('submit',async ev=>{
     ev.preventDefault();const status=f.querySelector('[data-status]'),button=f.querySelector('[type=submit]');
     button.disabled=true;status.textContent='Guardando...';
-    try{const payload=map(formValues(f));const id=await rpc(rpcName,{p_input:payload});if(onSaved)await onSaved(id,status);else status.textContent='Borrador guardado correctamente.';}
+    try{const payload=map(formValues(f));const id=await rpc(rpcName,{p_input:payload});if(onSaved)await onSaved(id,status,payload);else status.textContent='Borrador guardado correctamente.';}
     catch(err){status.textContent='No se guardó: '+err.message;}finally{button.disabled=false;}
    });
  }
@@ -56,6 +56,7 @@
    const section=e('section',{'aria-label':'Configuración de mesas por puntos'});
    const list=e('div');
    list.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0';
+   const picker=e('select',{'aria-label':'Seleccionar mesa por puntos'});
    const formHost=e('div');
    const notice=e('p',{'aria-live':'polite'});
    section.append(e('h3',{},'Mesas por puntos'),list,notice,formHost);
@@ -64,9 +65,7 @@
 
    function showForm(table){
      selected=table?.id||null;
-     for(const button of list.querySelectorAll('button')){
-       button.setAttribute('aria-pressed',String(button.dataset.tableId===(selected||'')));
-     }
+     picker.value=selected||'';
      const form=e('form',{style:formStyle});
      form.innerHTML='<h3 style="width:100%">'+(table?'Editar mesa por puntos':'Crear mesa por puntos')+'</h3>'+
        field('name','Nombre','text',table?.name??'','required maxlength="160"')+
@@ -95,14 +94,14 @@
        const tables=await rpc('dfc_z37_admin_points');
        if(!section.isConnected)return;
        if(!Array.isArray(tables))throw Error('Respuesta de catálogo inválida');
-       const add=e('button',{type:'button','data-table-id':''},'Crear mesa por puntos');
+       const add=e('button',{type:'button'},'+ Agregar mesa');
        add.onclick=()=>showForm(null);
-       list.replaceChildren(add);
+       picker.replaceChildren(e('option',{value:''},'Seleccionar mesa'));
        for(const table of tables){
-         const button=e('button',{type:'button','data-table-id':table.id},table.name+(table.enabled?' · Visible':' · Oculta'));
-         button.onclick=()=>showForm(table);
-         list.append(button);
+         picker.append(e('option',{value:table.id},table.name+(table.enabled?' · Visible':' · Oculta')));
        }
+       picker.onchange=()=>showForm(tables.find(table=>table.id===picker.value)||null);
+       list.replaceChildren(picker,add);
        const current=tables.find(table=>table.id===(selectedId||selected));
        if(current||tables[0])showForm(current||tables[0]);
        else formHost.textContent='Todavía no hay mesas por puntos.';
@@ -114,11 +113,21 @@
    await loadTables();
    if(notice.textContent==='Consultando mesas…')notice.textContent='';
  }
- async function render(tab){
-  if(!view)return;const host=view.querySelector('#z37-admin-body');host.innerHTML='<p>Consultando...</p>';
-  if(tab==='tournaments'){
+ async function renderTournaments(host){
+   const section=e('section'),toolbar=e('div'),formHost=e('div'),notice=e('p',{'aria-live':'polite'});
+   const picker=e('select',{'aria-label':'Seleccionar torneo'});
+   const add=e('button',{type:'button'},'+ Agregar torneo');
+   toolbar.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0';
+   toolbar.append(picker,add);
+   section.append(toolbar,notice,formHost);
+   host.replaceChildren(section);
+   let tournaments=[];
+   function show(table){
+     if(!table&&!tournaments.length){picker.value='';}
+     if(table)picker.value=table.id;
+     if(table&&table.state!=='draft'){formHost.textContent='Este torneo ya no está en edición.';return;}
    const f=e('form',{style:formStyle});
-   f.innerHTML='<h3 style="width:100%">Crear torneo — solo borrador</h3>'+
+   f.innerHTML='<h3 style="width:100%">Configuración del torneo</h3>'+
     field('name','Nombre','text','Gran Torneo FlashCoin','required maxlength="160"')+
     field('description','Descripción','text','Campeonato FlashCoin')+
     sel('artwork_key','Diseño', [['gold_blue','Dorado y azul'],['purple_neon','Morado neón'],['red_championship','Campeonato rojo'],['emerald_green','Esmeralda']])+
@@ -136,19 +145,53 @@
     field('card_expiry_days','Vencimiento tarjetas (días)','number','30','min="1" required')+
     sel('paid_places','Puestos premiados',Array.from({length:10},(_,i)=>[String(i+1),String(i+1)]))+
     field('prize_pct','Porcentajes ganadores separados por coma','text','90','required')+
-    '<div style="width:100%"><button type="submit">Guardar borrador</button><p data-status aria-live="polite"></p></div>';
-   host.replaceChildren(f);
+    '<label style="width:100%"><input type="checkbox" role="switch" name="visible" value="1"> Mostrar en Torneos</label>'+
+    '<div style="width:100%"><button type="submit">Guardar cambios</button><p data-status aria-live="polite"></p></div>';
+   if(table){
+     for(const control of f.elements){
+       const value=table[control.name];
+       if(value==null)continue;
+       if(control.name==='visible'){control.checked=table.visible;continue;}
+       if(control.type==='datetime-local'){
+         const date=new Date(value);
+         control.value=new Date(date.getTime()-date.getTimezoneOffset()*60000).toISOString().slice(0,19);
+       }else control.value=Array.isArray(value)?value.join(', '):String(value);
+     }
+   }
+   formHost.replaceChildren(f);
    saveHandler(f,'dfc_z37_admin_save_tournament',x=>{
      const p=x.prize_pct.split(',').map(v=>Number(v.trim()));
      if(p.length!==Number(x.paid_places)||p.some(v=>!Number.isFinite(v)||v<=0))throw Error('Introduzca un porcentaje válido por puesto premiado');
      const start=new Date(x.starts_at),end=new Date(x.registration_closes_at);
      if(!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime()))throw Error('Fechas inválidas');
-     return {...x,starts_at:start.toISOString(),registration_closes_at:end.toISOString(),prize_pct:p,
+     return {...x,visible:x.visible==='1',...(table?{id:table.id}:{}),starts_at:start.toISOString(),registration_closes_at:end.toISOString(),prize_pct:p,
        entry_fc:Number(x.entry_fc),guaranteed_fc:Number(x.guaranteed_fc),signup_admin_pct:Number(x.signup_admin_pct),
        min_players:Number(x.min_players),diamond_initial:Number(x.diamond_initial),diamond_pass_cost:Number(x.diamond_pass_cost),
        diamond_minimum:Number(x.diamond_minimum),rebuy_fc:Number(x.rebuy_fc),rebuy_diamonds:Number(x.rebuy_diamonds),
        paid_places:Number(x.paid_places),card_expiry_days:Number(x.card_expiry_days)};
+   },async (id,status,payload)=>{
+     notice.textContent=payload.visible?'Torneo visible en el listado.':'Torneo guardado y oculto.';
+     await refresh(id);
    });
+   }
+   add.onclick=()=>{picker.value='';show(null)};
+   picker.onchange=()=>show(tournaments.find(table=>table.id===picker.value)||null);
+   async function refresh(id){
+     try{
+       tournaments=await rpc('dfc_z37_admin_tournaments')??[];
+       if(!section.isConnected)return;
+       picker.replaceChildren(e('option',{value:''},'Seleccionar torneo'));
+       for(const table of tournaments)picker.append(e('option',{value:table.id},table.name+(table.visible?' · Visible':'')));
+       const current=tournaments.find(table=>table.id===id)??tournaments[0];
+       if(current)show(current);else formHost.textContent='Aún no hay torneos.';
+     }catch(err){notice.textContent='No se pudo cargar el listado: '+err.message;}
+   }
+   await refresh();
+ }
+ async function render(tab){
+  if(!view)return;const host=view.querySelector('#z37-admin-body');host.innerHTML='<p>Consultando...</p>';
+  if(tab==='tournaments'){
+   await renderTournaments(host);
   }else if(tab==='points'){
    await renderPoints(host);
   }else if(tab==='cards'){

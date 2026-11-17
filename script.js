@@ -1111,12 +1111,13 @@
    root.innerHTML='<div class="dfc-z36-logo" aria-label="Imagen de DOMINÓ FLASH COIN"></div><h3>🁫 DOMINÓ FLASH COIN · EDITAR MESAS</h3><div class="dfc-z36-grid"><button type="button" data-mode="normal">🁫 POR GANE<small>Editar reglas y tarifas</small></button><button type="button" data-z37-admin-tab="points">🎯 POR PUNTOS<small>Editar borradores</small></button><button type="button" data-mode="paid_pass">🎲 PINTINTÍN<small>Editar las mesas existentes</small></button><button type="button" data-z37-admin-tab="tournaments">🏆 TORNEO<small>Editar borradores</small></button></div><div class="dfc-z36-rooms"></div><p class="dfc-z36-note">Selecciona una modalidad para ver y configurar sus mesas.</p>';
    target.before(root);
    root.append(target);
-   root.querySelectorAll('button[data-mode]:not([disabled])').forEach(btn=>btn.addEventListener('click',()=>{root.dataset.selected=btn.dataset.mode;render()}));
+   root.querySelectorAll('button[data-mode]:not([disabled])').forEach(btn=>btn.addEventListener('click',()=>{root.dataset.selected=btn.dataset.mode;root.dataset.creating='';render()}));
    root.querySelectorAll('[data-z37-admin-tab]').forEach(btn=>btn.addEventListener('click',()=>{
     if(window.dfcZ37Admin)void window.dfcZ37Admin.open(btn.dataset.z37AdminTab);
     else window.alert('El editor Z37 todavía está cargando. Vuelve a tocar el botón.');
    }));
    const form=document.createElement('form');
+   form.className='dfc-z36-create';
    form.hidden=true;
    form.innerHTML='<h4>Crear mesa</h4><label>Nombre <input class="field" name="name" maxlength="80" required></label><label>Entrada mínima (FC) <input class="field" name="minEntry" type="number" min="0.001" max="999999999.999" step="0.001" required></label><button type="submit">Guardar mesa desactivada</button><p role="status"></p>';
    root.querySelector('.dfc-z36-rooms').after(form);
@@ -1136,7 +1137,7 @@
      if(error)throw error;
      id=data;
      form.reset();
-     if(root.dataset.selected===mode)root.dataset.card=String(id);
+     if(root.dataset.selected===mode){root.dataset.card=String(id);root.dataset.creating='';}
      await loadDominoAdminConfigs();
      render();
      status.textContent='Mesa guardada. Revisa la configuración y actívala desde su ficha.';
@@ -1158,24 +1159,33 @@
   const root=document.getElementById('dfcZ36UnifiedEditor'),target=document.getElementById('dominoAdminConfigs');
   if(!root||!target)return;
   const mode=root.dataset.selected;
-  root.querySelector('form').hidden=!mode;
-  target.hidden=!mode;
-  target.style.display=mode?'':'none';
+  const creating=root.dataset.creating===mode && !!mode;
+  root.querySelector('.dfc-z36-create').hidden=!creating;
+  target.hidden=!mode||creating;
+  target.style.display=target.hidden?'none':'';
   root.querySelectorAll('[data-mode]:not([disabled])').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
   const cards=[...target.querySelectorAll('[data-domino-admin]')];
   const ids=mode?cards.filter(card=>card.dataset.dominoAdmin!=='7'&&card.querySelector('.d-mode')?.value===mode):[];
   const area=root.querySelector('.dfc-z36-rooms');
-  if(!area.dataset.ready){
-   area.addEventListener('click',e=>{const btn=e.target.closest('button[data-card]');if(!btn)return;root.dataset.card=btn.dataset.card;render()});
-   area.dataset.ready='1';
-  }
   if(!ids.some(c=>c.dataset.dominoAdmin===root.dataset.card))root.dataset.card=ids[0]?.dataset.dominoAdmin||'';
   area.replaceChildren();
-  ids.forEach((c,i)=>{
-   const b=document.createElement('button');b.type='button';b.dataset.card=c.dataset.dominoAdmin;b.textContent=c.querySelector('.d-name')?.value||'Mesa '+(i+1);
-   b.setAttribute('aria-pressed',String(root.dataset.card===b.dataset.card));area.append(b);
-  });
-  if(mode&&!ids.length){const empty=document.createElement('p');empty.textContent='No hay mesas disponibles para esta modalidad. Revisa el estado del catálogo debajo.';area.append(empty)}
+  if(mode){
+   if(ids.length){
+    const label=document.createElement('label');label.textContent='Mesa ';
+    const picker=document.createElement('select');picker.className='field';
+    picker.setAttribute('aria-label','Seleccionar mesa');
+    ids.forEach((card,index)=>{
+     const option=document.createElement('option');option.value=card.dataset.dominoAdmin;
+     option.textContent=card.querySelector('.d-name')?.value||'Mesa '+(index+1);
+     picker.append(option);
+    });
+    picker.value=creating?'':root.dataset.card;
+    picker.onchange=()=>{root.dataset.card=picker.value;root.dataset.creating='';render()};
+    label.append(picker);area.append(label);
+   }
+   const add=document.createElement('button');add.type='button';add.textContent=creating?'Cancelar creación':'+ Agregar mesa';
+   add.onclick=()=>{root.dataset.creating=creating?'':mode;render()};area.append(add);
+  }
   cards.forEach(c=>{
    const selected=ids.includes(c)&&c.dataset.dominoAdmin===root.dataset.card;
    c.style.display=selected?'':'none';
@@ -1257,7 +1267,7 @@
  function boot(){
    if(document.querySelector('script[data-dfc-z37-ui]'))return;
    const s=document.createElement('script');
-   s.src='./z37-ui.js?v=37.6';s.defer=true;s.dataset.dfcZ37Ui='true';
+   s.src='./z37-ui.js?v=37.9';s.defer=true;s.dataset.dfcZ37Ui='true';
    s.onerror=()=>console.warn('[DFC Z37] modulo visual no disponible');
    document.head.append(s);
    if(!document.querySelector('script[data-dfc-z37-admin]')){
@@ -1269,7 +1279,7 @@
        if(previous?.open)previous.close();
        void window.dfcZ37Admin.open('tournaments');
      },true);
-     admin.src='./z37-admin.js?v=37.8';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
+     admin.src='./z37-admin.js?v=37.9';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
    }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();

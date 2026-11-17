@@ -136,8 +136,8 @@
   host.innerHTML=catalogNotice()+'<article class="dfc-z37-card" style="--accent:'+accent+'">'+
    '<div class="dfc-z37-bar"><b>'+esc(t.state)+'</b></div>'+
    '<div><div class="dfc-z37-title">'+esc(t.name)+'</div><p>'+esc(t.description)+'</p></div>'+
-   '<div><div class="dfc-z37-summary">'+(t.preview?'Inscripciones aún cerradas':'Inscripción: '+(Number(t.entry_fc)>0?esc(t.entry_fc)+' FC':'Gratis')+' · Inscritos: '+esc(t.registered_count||0)+' · Inicio: '+esc(t.starts_at||'Pendiente'))+'</div>'+
-   '<div class="dfc-z37-actions"><button class="dfc-z37-btn dfc-z37-primary" data-z37-action="join" disabled>Registrarse</button><button class="dfc-z37-btn" data-z37-action="info">Ver información</button></div></div></article>'+
+   '<div><div class="dfc-z37-summary">'+(t.preview?'Inscripciones aún cerradas':(t.state==='scheduled'?'Programado · ':'')+'Inscripción: '+(Number(t.entry_fc)>0?esc(t.entry_fc)+' FC':'Gratis')+' · Inscritos: '+esc(t.registered_count||0)+' · Inicio: '+esc(t.starts_at?new Date(t.starts_at).toLocaleString('es-DO',{timeZone:'America/Santo_Domingo',dateStyle:'short',timeStyle:'short'}):'Pendiente'))+'</div>'+
+   '<div class="dfc-z37-actions"><button class="dfc-z37-btn dfc-z37-primary" data-z37-action="join" disabled>'+(t.state==='scheduled'?'Sentarse':'Registrarse')+'</button><button class="dfc-z37-btn" data-z37-action="info">Ver información</button></div>'+(t.state==='scheduled'?'<p class="dfc-z37-note">Entrada aún no disponible.</p>':'')+'</div></article>'+
    '<div class="dfc-z37-controls"><button class="dfc-z37-btn" data-z37-nav="-1">❮ Anterior</button><div class="dfc-z37-dots">'+slides.map((_,i)=>'<button aria-label="Torneo '+(i+1)+'" aria-current="'+(i===state.slide)+'" data-z37-nav="'+(i-state.slide)+'"></button>').join('')+'</div><button class="dfc-z37-btn" data-z37-nav="1">Siguiente ❯</button></div>';
   host.querySelectorAll('[data-z37-nav]').forEach(b=>b.onclick=()=>{state.lastInteraction=Date.now();if(!state.infoOpen){state.slide+=Number(b.dataset.z37Nav);drawSlide()}});
   let start=null;
