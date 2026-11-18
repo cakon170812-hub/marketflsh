@@ -1525,8 +1525,8 @@
 
   const css = document.createElement('style');
   css.textContent = `
-    #dfcExpiredBin {position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(12px,env(safe-area-inset-bottom)); z-index:2147483646; width:72px; height:80px; pointer-events:auto; color:#fff; padding:0; border:0; background:none; cursor:pointer}
-    body:has(#appView.hidden) #dfcExpiredBin {display:none}
+    #dfcExpiredBin {position:fixed; left:max(12px,env(safe-area-inset-left)); bottom:max(12px,env(safe-area-inset-bottom)); z-index:2147483646; width:72px; height:80px; pointer-events:auto; color:#fff; padding:0; border:0; background:none; cursor:pointer}
+    #dfcLabGiftOverlay008[hidden] #dfcExpiredBin {display:none}
     #dfcExpiredBin .bin-lid {position:absolute; top:10px; left:0; width:72px; height:10px; border-radius:5px; background:linear-gradient(#8397a9,#24364a); transform-origin:100% 50%; transition:transform .18s ease}
     #dfcExpiredBin .bin-lid::before {content:''; position:absolute; width:24px; height:7px; top:-6px; left:24px; border-radius:5px 5px 0 0; background:#60778c}
     #dfcExpiredBin.open .bin-lid {transform:rotate(31deg)}
@@ -1573,7 +1573,18 @@
   bin.id = 'dfcExpiredBin';
   bin.setAttribute('aria-label', 'Abrir zafacón de tarjetas vencidas');
   bin.innerHTML = '<span class="bin-lid" aria-hidden="true"></span><span class="bin-body" aria-hidden="true"></span>';
-  document.body.append(bin);
+  function mountBin() {
+    const overlay = document.getElementById('dfcLabGiftOverlay008');
+    if (!overlay) return false;
+    overlay.append(bin);
+    return true;
+  }
+  if (!mountBin()) {
+    const observer = new MutationObserver(() => {
+      if (mountBin()) observer.disconnect();
+    });
+    observer.observe(document.body, {childList:true});
+  }
 
   const panel = document.createElement('dialog');
   panel.style.cssText = 'width:min(88vw,360px);max-height:76dvh;overflow:auto;border:1px solid #7ebdeb;border-radius:14px;background:#102746;color:white;padding:14px';
@@ -1620,6 +1631,7 @@
 
   async function discard(rect, amount) {
     const serial = ++animationId;
+    if (!bin.getClientRects().length) return;
     bin.classList.add('open');
     sound(false);
     const card = document.createElement('span');
@@ -1683,10 +1695,15 @@
     .dfc-gift-origin {display:block;align-self:center;justify-self:start;text-align:left;max-width:52%;padding:2px 4px;
       color:#eaf7ff;background:#082747;border-radius:4px;font:700 clamp(8px,1.5vmin,12px)/1.15 system-ui;overflow-wrap:anywhere}
     html body #dfcLabGiftUser008 .dfc-gift-origin {grid-row:2}
-    #inviteBtn .dfc09-tool-icon,#groupBtn .dfc09-tool-icon {position:relative}
-    #inviteBtn .dfc09-tool-icon::after,#groupBtn .dfc09-tool-icon::after {position:absolute;right:-.42em;top:-.55em;transform:rotate(12deg);font-size:.68em;line-height:1;pointer-events:none}
-    #inviteBtn .dfc09-tool-icon::after {content:'🎅'}
-    #groupBtn .dfc09-tool-icon::after {content:'🦌'}
+    #appView #promotersInfoBtn .dfc012x-prom-icon,#appView #promotersInfoBtn .dfc09-tool-icon,
+    #appView #groupBtn .dfc012x-wa-logo,#appView #groupBtn .dfc09-tool-icon {position:relative;overflow:visible!important}
+    #appView #promotersInfoBtn :is(.dfc012x-prom-icon,.dfc09-tool-icon)::after,
+    #appView #groupBtn :is(.dfc012x-wa-logo,.dfc09-tool-icon)::after {
+      display:block!important;position:absolute;right:-.5em;top:-.42em;z-index:2;
+      transform:rotate(12deg);font-size:clamp(13px,2.5vmin,19px);line-height:1;pointer-events:none
+    }
+    #appView #promotersInfoBtn :is(.dfc012x-prom-icon,.dfc09-tool-icon)::after {content:'🎅'}
+    #appView #groupBtn :is(.dfc012x-wa-logo,.dfc09-tool-icon)::after {content:'🦌'}
   `;
   document.head.append(style);
   const dates = window.dfcZ32GiftDates;
