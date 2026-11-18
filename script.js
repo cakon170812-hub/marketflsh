@@ -1525,7 +1525,8 @@
 
   const css = document.createElement('style');
   css.textContent = `
-    #dfcExpiredBin {position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(12px,env(safe-area-inset-bottom)); z-index:2147483646; width:72px; height:80px; pointer-events:none; color:#fff}
+    #dfcExpiredBin {position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(12px,env(safe-area-inset-bottom)); z-index:2147483646; width:72px; height:80px; pointer-events:auto; color:#fff; padding:0; border:0; background:none; cursor:pointer}
+    body:has(#appView.hidden) #dfcExpiredBin {display:none}
     #dfcExpiredBin .bin-lid {position:absolute; top:10px; left:0; width:72px; height:10px; border-radius:5px; background:linear-gradient(#8397a9,#24364a); transform-origin:100% 50%; transition:transform .18s ease}
     #dfcExpiredBin .bin-lid::before {content:''; position:absolute; width:24px; height:7px; top:-6px; left:24px; border-radius:5px 5px 0 0; background:#60778c}
     #dfcExpiredBin.open .bin-lid {transform:rotate(31deg)}
@@ -1534,7 +1535,6 @@
     .dfcExpiredCardFlight {position:fixed; z-index:2147483647; pointer-events:none}
   `;
   document.head.append(css);
-  let hideTimer;
   let animationId = 0;
 
   function sound(impact) {
@@ -1559,18 +1559,67 @@
     noise.start(now);
   }
 
+  const getClient = () => window.dfcSupabase || window.sb;
+  async function call(name, args) {
+    const client = getClient();
+    if (!client) throw Error('Sesión no disponible');
+    const {data,error} = await client.rpc(name,args);
+    if (error) throw error;
+    return data;
+  }
+
+  const bin = document.createElement('button');
+  bin.type = 'button';
+  bin.id = 'dfcExpiredBin';
+  bin.setAttribute('aria-label', 'Abrir zafacón de tarjetas vencidas');
+  bin.innerHTML = '<span class="bin-lid" aria-hidden="true"></span><span class="bin-body" aria-hidden="true"></span>';
+  document.body.append(bin);
+
+  const panel = document.createElement('dialog');
+  panel.style.cssText = 'width:min(88vw,360px);max-height:76dvh;overflow:auto;border:1px solid #7ebdeb;border-radius:14px;background:#102746;color:white;padding:14px';
+  panel.innerHTML = '<header><strong>Tarjetas vencidas</strong> <button type="button" data-close>Cerrar</button></header><p role="status"></p><div data-cards></div><button type="button" data-clear hidden>Vaciar zafacón</button>';
+  document.body.append(panel);
+  const status = panel.querySelector('[role="status"]');
+  const cards = panel.querySelector('[data-cards]');
+  const clear = panel.querySelector('[data-clear]');
+  let list = [];
+  async function loadTrash() {
+    status.textContent = 'Consultando tarjetas…';
+    clear.hidden = true;
+    cards.replaceChildren();
+    try {
+      list = await call('dfc_gift_trash_v1') || [];
+      status.textContent = list.length ? '' : 'El zafacón está vacío.';
+      clear.hidden = !list.length;
+      for (const gift of list) {
+        const row = document.createElement('p');
+        row.textContent = gift.origin_name + ' · ' + gift.amount + ' FC';
+        cards.append(row);
+      }
+    } catch {
+      status.textContent = 'No se pudieron consultar las tarjetas.';
+    }
+  }
+  panel.querySelector('[data-close]').onclick = () => panel.close();
+  bin.onclick = () => {
+    if (!panel.open) panel.showModal();
+    void loadTrash();
+  };
+  clear.onclick = async () => {
+    clear.disabled = true;
+    try {
+      await call('dfc_gift_trash_clear_v1', {p_ids:list.map(gift => gift.gift_id)});
+      bin.querySelector('.bin-body').replaceChildren();
+      await loadTrash();
+    } catch {
+      status.textContent = 'No se pudo vaciar el zafacón. Intenta de nuevo.';
+    } finally {
+      clear.disabled = false;
+    }
+  };
+
   async function discard(rect, amount) {
     const serial = ++animationId;
-    clearTimeout(hideTimer);
-    let bin = document.getElementById('dfcExpiredBin');
-    if (!bin) {
-      bin = document.createElement('div');
-      bin.id = 'dfcExpiredBin';
-      bin.setAttribute('role', 'status');
-      bin.setAttribute('aria-label', 'Zafacón de tarjetas vencidas');
-      bin.innerHTML = '<div class="bin-lid"></div><div class="bin-body"></div>';
-      document.body.append(bin);
-    }
     bin.classList.add('open');
     sound(false);
     const card = document.createElement('span');
@@ -1596,7 +1645,7 @@
     bin.querySelector('.bin-body').replaceChildren(discarded);
     bin.classList.remove('open');
     sound(true);
-    hideTimer = setTimeout(() => bin.remove(), 600000);
+    if (panel.open) void loadTrash();
   }
 
   document.addEventListener('click', event => {
@@ -1616,4 +1665,58 @@
     const timeout = setTimeout(() => observer.disconnect(), 30000);
     observer.observe(status, {childList:true,subtree:true,characterData:true});
   }, true);
+})();
+
+/* Arte de tarjeta y adornos de temporada en la portada. */
+(function () {
+  const style = document.createElement('style');
+  style.textContent = `
+    html body #dfcLabGiftCard018,
+    html body #dfcLabGiftOverlay008 .dfc-lab-gift-preview019,
+    html body #dfcZ32GiftFullScreen .dfc-z32-native-announcement {
+      background:linear-gradient(90deg,#061c38 0%,#08284b 34%,transparent 48%),var(--dfc-card-art019) center/100% 100% no-repeat !important;
+    }
+    html body #dfcLabGiftCard018::after {
+      content:'Tarjeta FlashCoin';position:absolute;inset:20% 50% 10% 6%;color:#eefaff;
+      font:800 clamp(7px,1.3vw,12px)/1.1 system-ui;text-align:left;
+    }
+    .dfc-gift-origin {display:block;align-self:center;justify-self:start;text-align:left;max-width:52%;padding:2px 4px;
+      color:#eaf7ff;background:#082747;border-radius:4px;font:700 clamp(8px,1.5vmin,12px)/1.15 system-ui;overflow-wrap:anywhere}
+    html body #dfcLabGiftUser008 .dfc-gift-origin {grid-row:2}
+    #inviteBtn .dfc09-tool-icon,#groupBtn .dfc09-tool-icon {position:relative}
+    #inviteBtn .dfc09-tool-icon::after,#groupBtn .dfc09-tool-icon::after {position:absolute;right:-.42em;top:-.55em;transform:rotate(12deg);font-size:.68em;line-height:1;pointer-events:none}
+    #inviteBtn .dfc09-tool-icon::after {content:'🎅'}
+    #groupBtn .dfc09-tool-icon::after {content:'🦌'}
+  `;
+  document.head.append(style);
+  const dates = window.dfcZ32GiftDates;
+  if (!dates?.render) return;
+  let details = new Map();
+  function render(gift) {
+    const fields = dates.render(gift);
+    if (gift?.gift_id) {
+      requestAnimationFrame(() => {
+        const parent = fields.issued.parentElement;
+        if (!parent) return;
+        const label = document.createElement('span');
+        label.className = 'dfc-gift-origin';
+        label.textContent = 'Tarjeta FlashCoin';
+        fields.issued.after(label);
+        const client = window.dfcSupabase || window.sb;
+        if (!client) return;
+        const key = gift.gift_id;
+        if (!details.has(key)) {
+          if (details.size>=200) details.delete(details.keys().next().value);
+          details.set(key,Promise.resolve().then(()=>client.rpc('dfc_gift_card_details_v1',{p_gift_id:key}))
+            .then(({data,error})=>{if(error)throw error;return data?.[0];})
+            .catch(()=>{details.delete(key);return null;}));
+        }
+        void details.get(key).then(origin => {
+          if (origin?.origin_name) label.textContent = origin.origin_name + (origin.origin_detail ? ' · ' + origin.origin_detail : '');
+        });
+      });
+    }
+    return fields;
+  }
+  window.dfcZ32GiftDates = Object.freeze({...dates,render});
 })();
