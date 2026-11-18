@@ -70,11 +70,18 @@
  `;document.head.append(e);
  }
  function rpc(fn,args={}){const c=db();if(!c)return Promise.resolve({data:null,error:{message:'Supabase no disponible'}});return c.rpc(fn,args)}
+ let pointIds=[];
  async function refresh(mode,screen){
    const isPoints=mode==='points';
    let result;
    try{
-     result=await rpc(isPoints?'dfc_z37_public_points':'dfc_z37_public_tournaments');
+     const results=await Promise.all([
+       rpc(isPoints?'dfc_z37_public_points':'dfc_z37_public_tournaments'),
+       isPoints?rpc('dfc_z37_points_table_ids').catch(()=>null):null
+     ]);
+     if(state.screen!==screen)return;
+     result=results[0];
+     pointIds=Array.isArray(results[1]?.data)?results[1].data.filter(row=>['waiting','playing'].includes(row.state)):[];
    }catch(error){
      result={error};
    }
@@ -205,11 +212,26 @@
      button.disabled=false;
    }
  }
+ function pointIdControls(config){
+   const ids=pointIds.filter(row=>row.config_id===config);
+   return ids.map(row=>'<p>ID de mesa <code style="user-select:all;-webkit-user-select:all">'+esc(row.table_id)+'</code> '+
+     '<button type="button" class="dfc-z37-btn" data-copy-table-id="'+esc(row.table_id)+'">Copiar ID</button></p>').join('');
+ }
  function drawPoints(){
   const e=$('#dfc-z37-content');
   e.innerHTML=catalogNotice()+'<div class="dfc-z37-grid">'+(state.pointTables.length?state.pointTables.map(t=>
-    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p><p>'+esc(t.players)+' jugadores</p>'+(t.id===trialId?'<button type="button" class="dfc-z37-btn" data-z37-trial>Sentarse</button><p role="status"></p>':'<button type="button" class="dfc-z37-btn" disabled>Entrada aún no disponible</button>')+'</div>').join(''):
+    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p><p>'+esc(t.players)+' jugadores</p>'+pointIdControls(t.id)+(t.id===trialId?'<button type="button" class="dfc-z37-btn" data-z37-trial>Sentarse</button><p role="status"></p>':'<button type="button" class="dfc-z37-btn" disabled>Entrada aún no disponible</button>')+'</div>').join(''):
     state.catalogStatus==='ready'?'<div class="dfc-z37-summary">No hay mesas por puntos publicadas.</div>':'')+'</div>';
+  e.querySelectorAll('[data-copy-table-id]').forEach(button=>{
+    button.onclick=async()=>{
+      try{
+        await navigator.clipboard.writeText(button.dataset.copyTableId);
+        button.textContent='ID copiado';
+      }catch{
+        button.textContent='Selecciona el ID para copiarlo';
+      }
+    };
+  });
   const trial=$('[data-z37-trial]',e);
   if(trial)trial.onclick=()=>void joinTrial(trial);
  }
@@ -222,6 +244,7 @@
    state.pendingSlide=false;
    state.items=[];
    state.pointTables=[];
+   pointIds=[];
    if(mode==='points'){
      shell('Mesas por puntos','points');
      drawPoints();
