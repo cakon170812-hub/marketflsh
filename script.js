@@ -1508,3 +1508,112 @@
   new MutationObserver(positionCloud).observe(board, {childList:true, subtree:true});
   window.addEventListener('resize', positionCloud);
 })();
+
+
+/* Tarjetas FlashCoin vencidas: animación posterior a la confirmación del servidor. */
+(function dfcExpiredCardBin() {
+  'use strict';
+  const originalContext = window.getAudioContext;
+  if (typeof originalContext === 'function') {
+    window.getAudioContext = function () {
+      const context = originalContext.apply(this, arguments);
+      if (typeof audioMasterGain !== 'undefined' && audioMasterGain) audioMasterGain.gain.value = 1;
+      return context;
+    };
+    if (typeof audioMasterGain !== 'undefined' && audioMasterGain) audioMasterGain.gain.value = 1;
+  }
+
+  const css = document.createElement('style');
+  css.textContent = `
+    #dfcExpiredBin {position:fixed; right:max(12px,env(safe-area-inset-right)); bottom:max(12px,env(safe-area-inset-bottom)); z-index:2147483646; width:72px; height:80px; pointer-events:none; color:#fff}
+    #dfcExpiredBin .bin-lid {position:absolute; top:10px; left:0; width:72px; height:10px; border-radius:5px; background:linear-gradient(#8397a9,#24364a); transform-origin:100% 50%; transition:transform .18s ease}
+    #dfcExpiredBin .bin-lid::before {content:''; position:absolute; width:24px; height:7px; top:-6px; left:24px; border-radius:5px 5px 0 0; background:#60778c}
+    #dfcExpiredBin.open .bin-lid {transform:rotate(31deg)}
+    #dfcExpiredBin .bin-body {position:absolute; top:22px; left:6px; width:60px; height:56px; border-radius:4px 4px 12px 12px; background:repeating-linear-gradient(90deg,#3c5368 0 9px,#506b82 10px 13px); box-shadow:inset 0 0 0 1px #b6cad3,0 3px 10px #0008; display:grid; place-items:center}
+    #dfcExpiredBin .discarded-card,.dfcExpiredCardFlight {background:linear-gradient(135deg,#094482,#182e59); border:1px solid #98cfee; border-radius:4px; color:#fff; padding:4px; font:700 9px/1.25 system-ui; text-align:center}
+    .dfcExpiredCardFlight {position:fixed; z-index:2147483647; pointer-events:none}
+  `;
+  document.head.append(css);
+  let hideTimer;
+  let animationId = 0;
+
+  function sound(impact) {
+    if (typeof dominoSoundIsEnabled === 'function' && !dominoSoundIsEnabled()) return;
+    const ctx = window.getAudioContext?.();
+    if (!ctx || ctx.state !== 'running') return;
+    const duration = impact ? .24 : .16;
+    const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * duration), ctx.sampleRate);
+    const samples = buffer.getChannelData(0);
+    for (let index = 0; index < samples.length; index++) samples[index] = Math.random() * 2 - 1;
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    const now = ctx.currentTime;
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(impact ? 460 : 1100, now);
+    filter.frequency.exponentialRampToValueAtTime(impact ? 160 : 2200, now + duration);
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(impact ? .48 : .28, now);
+    gain.gain.exponentialRampToValueAtTime(.001, now + duration);
+    noise.connect(filter).connect(gain).connect(window.audioOutput?.() || ctx.destination);
+    noise.start(now);
+  }
+
+  async function discard(rect, amount) {
+    const serial = ++animationId;
+    clearTimeout(hideTimer);
+    let bin = document.getElementById('dfcExpiredBin');
+    if (!bin) {
+      bin = document.createElement('div');
+      bin.id = 'dfcExpiredBin';
+      bin.setAttribute('role', 'status');
+      bin.setAttribute('aria-label', 'Zafacón de tarjetas vencidas');
+      bin.innerHTML = '<div class="bin-lid"></div><div class="bin-body"></div>';
+      document.body.append(bin);
+    }
+    bin.classList.add('open');
+    sound(false);
+    const card = document.createElement('span');
+    card.className = 'dfcExpiredCardFlight';
+    card.textContent = amount;
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    card.style.left = x + 'px';
+    card.style.top = y + 'px';
+    const destination = bin.getBoundingClientRect();
+    document.body.append(card);
+    if (card.animate && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      await card.animate([
+        {transform:'translate(-50%,-50%) scale(2)'},
+        {transform:`translate(${destination.left + destination.width / 2 - x}px,${destination.top + 44 - y}px) translate(-50%,-50%) rotate(15deg) scale(.72)`}
+      ], {duration:620,easing:'ease-in',fill:'forwards'}).finished.catch(()=>{});
+    }
+    card.remove();
+    if (serial !== animationId) return;
+    const discarded = document.createElement('span');
+    discarded.className = 'discarded-card';
+    discarded.textContent = amount;
+    bin.querySelector('.bin-body').replaceChildren(discarded);
+    bin.classList.remove('open');
+    sound(true);
+    hideTimer = setTimeout(() => bin.remove(), 600000);
+  }
+
+  document.addEventListener('click', event => {
+    const card = event.target.closest?.('#dfcLabGiftUser008 .dfc-z31-gift-choice');
+    const status = document.getElementById('dfcLabGiftStatus008');
+    if (!card || !status || card.disabled) return;
+    const rect = card.getBoundingClientRect();
+    const amount = card.querySelector('.dfc-z32-card-amount')?.textContent || 'Tarjeta vencida';
+    if (typeof armAudioFromGesture === 'function') armAudioFromGesture(false);
+    const observer = new MutationObserver(() => {
+      const text = status.textContent.trim();
+      if (!text || text === 'Canjeando tarjeta…') return;
+      observer.disconnect();
+      clearTimeout(timeout);
+      if (text.includes('Esta tarjeta FlashCoin ha vencido')) void discard(rect, amount);
+    });
+    const timeout = setTimeout(() => observer.disconnect(), 30000);
+    observer.observe(status, {childList:true,subtree:true,characterData:true});
+  }, true);
+})();
