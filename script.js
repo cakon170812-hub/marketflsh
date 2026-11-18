@@ -1881,7 +1881,7 @@
     button.style.top=flashTop==='auto'?rect.top+'px':flashTop;
     const original=flashcoin.getAnimations?.().find(animation=>animation.animationName==='dfcLabGiftBounce018');
     const copy=button.getAnimations?.().find(animation=>animation.animationName==='dfcLabGiftBounce018');
-    if(original&&copy&&original.startTime!==null&&copy.startTime!==original.startTime)copy.startTime=original.startTime;
+    if(original&&copy&&typeof original.startTime==='number'&&copy.startTime!==original.startTime+480)copy.startTime=original.startTime+480;
   }
   function draw(card,action){
     const element=document.createElement('button');
@@ -1981,4 +1981,36 @@
   addEventListener('resize',place);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){update();if(account())void refresh(true);}});
   update();
+})();
+
+/* Tipografía integrada en el arte de ambas tarjetas. */
+(function () {
+ const style=document.createElement('style');
+ style.textContent=`
+  #dfcDiamondFlashcardPanel button.dfc-diamond-flashcard {gap:2px;padding:5px 8px}
+  #dfcDiamondFlashcardPanel button.dfc-diamond-flashcard > :is(strong,span,small) {
+   background:none;color:#f0e5ff;line-height:1.13;text-shadow:0 1px 2px #1b104d,0 0 6px #180f41;
+   padding:0 3px;letter-spacing:.015em
+  }
+  #dfcDiamondFlashcardPanel button.dfc-diamond-flashcard > strong {
+   color:#f6eaff;font-size:1.14em;font-weight:850;font-variant-numeric:tabular-nums;letter-spacing:.025em
+  }
+  #dfcDiamondFlashcardPanel button.dfc-diamond-flashcard > span {font-size:.84em;font-weight:650}
+  #dfcDiamondFlashcardPanel button.dfc-diamond-flashcard > small {font-size:.76em;color:#e1d4ff}
+  #dfcLabGiftUser008 .dfc-z31-gift-choice .dfc-z32-card-date,
+  #dfcZ32GiftFullScreen .dfc-z32-native-announcement .dfc-z32-card-date {
+   background:none;color:#dbf0ff;padding:1px 4px;
+   font-size:clamp(9px,1.55vmin,12px);text-shadow:0 1px 3px #001225
+  }
+  #dfcLabGiftUser008 .dfc-z31-gift-choice .dfc-z32-card-amount,
+  #dfcZ32GiftFullScreen .dfc-z32-native-announcement .dfc-z32-card-amount {
+   color:#ecfaff;font-size:clamp(13px,2.8vmin,22px);font-weight:850;
+   letter-spacing:.025em;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #001728,0 0 6px #08244e
+  }
+  #dfcLabGiftUser008 .dfc-z31-gift-choice .dfc-gift-origin,
+  #dfcZ32GiftFullScreen .dfc-z32-native-announcement .dfc-gift-origin {
+   background:none;color:#daeeff;font-weight:700;text-shadow:0 1px 3px #001225
+  }
+ `;
+ document.head.append(style);
 })();
