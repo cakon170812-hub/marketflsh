@@ -156,11 +156,48 @@
   $('#dfc-z37-content').append(v);v.querySelector('button').onclick=()=>{v.remove();state.infoOpen=false;state.lastInteraction=Date.now();if(state.pendingSlide){state.pendingSlide=false;drawSlide()}};
  }
 
+
+ const trialId='b3abde40-ea42-4a52-ab24-0ce93c090200';
+ let joiningTrial=false;
+ async function joinTrial(button){
+   if(joiningTrial)return;
+   const screen=state.screen;
+   const status=button.nextElementSibling;
+   joiningTrial=true;
+   button.disabled=true;
+   status.textContent='Buscando asiento…';
+   try{
+     const client=db();
+     if(!client)throw new Error('Espera a que cargue tu sesión y vuelve a intentar.');
+     const {data,error}=await client.rpc('dfc_z37_points_join_engine',{p_config:trialId,p_request:crypto.randomUUID()});
+     if(error)throw error;
+     if(state.screen!==screen)return;
+     if(data?.state==='waiting'){
+       status.textContent='Asiento reservado ('+data.seated+'/2). Cuando se una el segundo jugador, toca Abrir partida.';
+       button.textContent='Abrir partida';
+       return;
+     }
+     if(data?.state!=='playing'||!data.table_id)throw new Error('La partida todavía no está disponible.');
+     await window.openDominoLobby();
+     if(state.screen!==screen)return;
+     const resume=$('#dominoResumeTableBtn');
+     if(typeof resume?.onclick!=='function')throw new Error('Vuelve a tocar Abrir partida para recuperar tu asiento.');
+     await resume.onclick();
+     if(state.screen===screen)cleanup();
+   }catch(error){
+     status.textContent=error?.message||'No se pudo entrar a la mesa.';
+   }finally{
+     joiningTrial=false;
+     button.disabled=false;
+   }
+ }
  function drawPoints(){
   const e=$('#dfc-z37-content');
   e.innerHTML=catalogNotice()+'<div class="dfc-z37-grid">'+(state.pointTables.length?state.pointTables.map(t=>
-    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p><p>'+esc(t.players)+' jugadores</p><button class="dfc-z37-btn" disabled>Sentarse — pendiente de motor Z37</button></div>').join(''):
+    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p><p>'+esc(t.players)+' jugadores</p>'+(t.id===trialId?'<button type="button" class="dfc-z37-btn" data-z37-trial>Sentarse</button><p role="status"></p>':'<button type="button" class="dfc-z37-btn" disabled>Entrada aún no disponible</button>')+'</div>').join(''):
     state.catalogStatus==='ready'?'<div class="dfc-z37-summary">No hay mesas por puntos publicadas.</div>':'')+'</div>';
+  const trial=$('[data-z37-trial]',e);
+  if(trial)trial.onclick=()=>void joinTrial(trial);
  }
  function showTournament(){
   shell('Torneos FlashCoin','tournament');state.slide=0;state.lastInteraction=Date.now();drawSlide();
