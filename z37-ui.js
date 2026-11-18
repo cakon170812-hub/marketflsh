@@ -166,8 +166,10 @@
 
  const trialId='b3abde40-ea42-4a52-ab24-0ce93c090200';
  let joiningTrial=false;
- async function joinTrial(button){
+ async function joinPoints(button,config){
    if(joiningTrial)return;
+   const isTrial=config.id===trialId;
+   if(!isTrial&&!window.confirm('Sentarte en '+config.name+' · Aporte: '+config.entry_fc+' FlashCoin y '+config.entry_diamonds+' diamantes.'))return;
    const screen=state.screen;
    const status=button.nextElementSibling;
    joiningTrial=true;
@@ -176,10 +178,12 @@
    try{
      const client=db();
      if(!client)throw new Error('Espera a que cargue tu sesión y vuelve a intentar.');
-     const {data,error}=await client.rpc('dfc_z37_points_join_engine',{p_config:trialId,p_request:crypto.randomUUID()});
+     const args={p_config:config.id,p_request:crypto.randomUUID()};
+     if(!isTrial){args.p_fc=config.entry_fc;args.p_diamonds=config.entry_diamonds;}
+     const {data,error}=await client.rpc(isTrial?'dfc_z37_points_join_engine':'dfc_z37_points_join_paid',args);
      if(error)throw error;
      if(state.screen!==screen)return;
-     if(!['waiting','playing'].includes(data?.state)||!data.table_id)throw new Error('La mesa todavía no está disponible.');
+     if(!['waiting','playing','settled'].includes(data?.state)||!data.table_id)throw new Error('La mesa todavía no está disponible.');
      await window.openDominoLobby();
      if(state.screen!==screen)return;
      const resume=$('#dominoResumeTableBtn');
@@ -220,7 +224,7 @@
  function drawPoints(){
   const e=$('#dfc-z37-content');
   e.innerHTML=catalogNotice()+'<div class="dfc-z37-grid">'+(state.pointTables.length?state.pointTables.map(t=>
-    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p><p>'+esc(t.players)+' jugadores</p>'+pointIdControls(t.id)+(t.id===trialId?'<button type="button" class="dfc-z37-btn" data-z37-trial>Sentarse</button><p role="status"></p>':'<button type="button" class="dfc-z37-btn" disabled>Entrada aún no disponible</button>')+'</div>').join(''):
+    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p><p>'+esc(t.players)+' jugadores</p>'+pointIdControls(t.id)+(t.id===trialId||(Number(t.players)===2&&(Number(t.entry_fc)>0||Number(t.entry_diamonds)>0))?'<button type="button" class="dfc-z37-btn" data-z37-point-config="'+esc(t.id)+'">Sentarse en mesa</button><p role="status"></p>':'<button type="button" class="dfc-z37-btn" disabled>Entrada aún no disponible</button>')+'</div>').join(''):
     state.catalogStatus==='ready'?'<div class="dfc-z37-summary">No hay mesas por puntos publicadas.</div>':'')+'</div>';
   e.querySelectorAll('[data-copy-table-id]').forEach(button=>{
     button.onclick=async()=>{
@@ -232,8 +236,10 @@
       }
     };
   });
-  const trial=$('[data-z37-trial]',e);
-  if(trial)trial.onclick=()=>void joinTrial(trial);
+  for(const button of e.querySelectorAll('[data-z37-point-config]')){
+    const config=state.pointTables.find(table=>table.id===button.dataset.z37PointConfig);
+    button.onclick=()=>void joinPoints(button,config);
+  }
  }
  function showTournament(){
   shell('Torneos FlashCoin','tournament');state.slide=0;state.lastInteraction=Date.now();drawSlide();
