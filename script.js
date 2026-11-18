@@ -1603,8 +1603,15 @@
       status.textContent = list.length ? '' : 'El zafacón está vacío.';
       clear.hidden = !list.length;
       for (const gift of list) {
-        const row = document.createElement('p');
-        row.textContent = gift.origin_name + ' · ' + gift.amount + ' FC';
+        const row = document.createElement('article');
+        row.className = 'dfc-expired-gift-card';
+        const origin = document.createElement('strong');
+        origin.textContent = gift.origin_name || 'Tarjeta FlashCoin';
+        const amount = document.createElement('span');
+        amount.textContent = new Intl.NumberFormat('es-DO',{maximumFractionDigits:3}).format(Number(gift.amount)) + ' FC';
+        const expired = document.createElement('small');
+        expired.textContent = 'Vencida';
+        row.append(origin,amount,expired);
         cards.append(row);
       }
     } catch {
@@ -1683,15 +1690,28 @@
 (function () {
   const style = document.createElement('style');
   style.textContent = `
-    html body #dfcLabGiftCard018,
-    html body #dfcLabGiftOverlay008 .dfc-lab-gift-preview019,
-    html body #dfcZ32GiftFullScreen .dfc-z32-native-announcement {
-      background:linear-gradient(90deg,#061c38 0%,#08284b 34%,transparent 48%),var(--dfc-card-art019) center/100% 100% no-repeat !important;
+    html body #dfcLabGiftCard018 {
+      background-image:linear-gradient(0deg,#071e3a 0%,#082747 23%,transparent 46%),var(--dfc-card-art019)!important;
+      background-color:#09234b!important;
+      background-size:100% 100%!important;
+      background-repeat:no-repeat!important;
     }
-    html body #dfcLabGiftCard018::after {
-      content:'Tarjeta FlashCoin';position:absolute;inset:20% 50% 10% 6%;color:#eefaff;
-      font:800 clamp(7px,1.3vw,12px)/1.1 system-ui;text-align:left;
+    html body #dfcLabGiftOverlay008 #dfcLabGiftUser008 button.dfc-z31-gift-choice,
+    html body #dfcZ32GiftFullScreen button.dfc-z32-native-announcement,
+    html body .dfc-expired-gift-card {
+      background-color:#09234b!important;
+      background-image:linear-gradient(0deg,#071e3a 0%,#082747 23%,transparent 46%),var(--dfc-card-art019)!important;
+      background-position:center!important;
+      background-repeat:no-repeat!important;
+      background-size:100% 100%!important;
     }
+    .dfc-expired-gift-card {
+      display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;
+      width:min(100%,210px);aspect-ratio:5/3;box-sizing:border-box;margin:8px auto;padding:10px;
+      color:#fff;border:1px solid #80ceff;border-radius:10px;text-shadow:0 1px 3px #07111f;
+      font:600 12px/1.15 system-ui;text-align:left;
+    }
+    .dfc-expired-gift-card strong,.dfc-expired-gift-card span,.dfc-expired-gift-card small {max-width:63%;overflow-wrap:anywhere}
     .dfc-gift-origin {display:block;align-self:center;justify-self:start;text-align:left;max-width:52%;padding:2px 4px;
       color:#eaf7ff;background:#082747;border-radius:4px;font:700 clamp(8px,1.5vmin,12px)/1.15 system-ui;overflow-wrap:anywhere}
     html body #dfcLabGiftUser008 .dfc-gift-origin {grid-row:2}
