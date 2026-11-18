@@ -77,7 +77,7 @@
    try{
      const results=await Promise.all([
        rpc(isPoints?'dfc_z37_public_points':'dfc_z37_public_tournaments'),
-       isPoints?rpc('dfc_z37_points_table_ids').catch(()=>null):null
+       isPoints?Promise.resolve().then(()=>rpc('dfc_z37_points_table_ids')).catch(()=>null):null
      ]);
      if(state.screen!==screen)return;
      result=results[0];
