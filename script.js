@@ -1399,3 +1399,112 @@
     }
   });
 })();
+
+
+/* Chat visible sobre el tablero de dominó. */
+(function () {
+  'use strict';
+  const panel = document.getElementById('dominoTablePanel');
+  const stage = document.getElementById('dominoStage');
+  const board = document.getElementById('dominoBoard');
+  const showSeatMessage = window.dominoShowSeatMessage;
+  if (!panel || !stage || !board || typeof showSeatMessage !== 'function') return;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    #dfcDominoChatCloud {
+      position:absolute; left:50%; top:var(--cloud-top, 29%); z-index:44;
+      transform:translate(-50%, -100%); box-sizing:border-box; isolation:isolate;
+      width:max-content; max-width:min(56%, 340px); padding:.55em 1.25em .65em;
+      border-radius:48% 43% 38% 40% / 46% 51% 46% 47%;
+      background:linear-gradient(175deg, rgba(255,255,255,.94), rgba(211,230,244,.82));
+      box-shadow:inset 0 2px 5px #fff9, 0 4px 15px #03192f40;
+      color:#0c253a; font:600 clamp(12px, 2.15vmin, 16px)/1.25 system-ui;
+      text-align:center; overflow-wrap:anywhere; white-space:pre-wrap; pointer-events:none;
+    }
+    #dfcDominoChatCloud:empty {display:none}
+    #dfcDominoChatCloud::before {
+      content:''; position:absolute; z-index:-1; inset:-15% 0 0;
+      background:
+        radial-gradient(ellipse 26% 39% at 23% 42%, #f4faffc9 65%, transparent 100%),
+        radial-gradient(ellipse 30% 53% at 50% 49%, #ffffffe0 66%, transparent 100%),
+        radial-gradient(ellipse 22% 45% at 76% 52%, #edf8ffd9 66%, transparent 100%);
+    }
+    #dfcDominoChatCloud strong {display:block; color:#244969; font-size:.83em}
+  `;
+  document.head.append(style);
+  const cloud = document.createElement('div');
+  cloud.id = 'dfcDominoChatCloud';
+  cloud.setAttribute('role', 'status');
+  cloud.setAttribute('aria-atomic', 'true');
+  stage.append(cloud);
+
+  let tableId = 0;
+  let timer = null;
+  let queue = [];
+  const seen = new Set();
+  const currentTable = () => Number(dominoCurrentTableId || 0);
+  const isOpen = () => panel.classList.contains('active');
+  const isBlocked = row => typeof dfcBlockedUsers !== 'undefined' && dfcBlockedUsers.has(String(row.user_id));
+
+  function reset() {
+    clearTimeout(timer);
+    timer = null;
+    tableId = 0;
+    queue = [];
+    seen.clear();
+    cloud.replaceChildren();
+  }
+
+  function positionCloud() {
+    if (!cloud.firstChild) return;
+    const stageRect = stage.getBoundingClientRect();
+    const pieces = [...board.querySelectorAll('.board-piece')];
+    const firstTileTop = Math.min(...pieces.map(piece => piece.getBoundingClientRect().top));
+    const bottom = Math.min(stageRect.height * .36, firstTileTop - stageRect.top - 10);
+    cloud.style.setProperty('--cloud-top', Math.max(0, bottom) + 'px');
+  }
+
+  function showNext() {
+    if (!isOpen() || currentTable() !== tableId) {
+      reset();
+      return;
+    }
+    let row = queue.shift();
+    while (row && isBlocked(row)) row = queue.shift();
+    if (!row) return;
+    const author = document.createElement('strong');
+    author.textContent = String(row.full_name || row.public_id || 'Jugador').slice(0, 40);
+    const message = document.createElement('span');
+    message.textContent = row.message;
+    cloud.replaceChildren(author, message);
+    positionCloud();
+    timer = setTimeout(() => {
+      timer = null;
+      cloud.replaceChildren();
+      showNext();
+    }, Math.min(10000, Math.max(3500, 1800 + row.message.length * 45)));
+  }
+
+  window.dominoShowSeatMessage = function (row) {
+    if (String(row?.kind || 'text') !== 'text') return showSeatMessage.apply(this, arguments);
+    const message = String(row?.message || '').trim();
+    const id = currentTable();
+    if (!message || !id || !isOpen() || isBlocked(row)) return;
+    if (tableId !== id) {
+      reset();
+      tableId = id;
+    }
+    const key = row.message_id ?? row.id ?? JSON.stringify([row.created_at, row.user_id, message]);
+    if (seen.has(key)) return;
+    seen.add(key);
+    if (seen.size > 400) seen.delete(seen.values().next().value);
+    queue.push({...row, message});
+    if (timer === null) showNext();
+  };
+
+  new MutationObserver(() => { if (!isOpen()) reset(); })
+    .observe(panel, {attributes:true, attributeFilter:['class']});
+  new MutationObserver(positionCloud).observe(board, {childList:true, subtree:true});
+  window.addEventListener('resize', positionCloud);
+})();
