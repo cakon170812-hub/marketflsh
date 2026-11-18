@@ -2044,7 +2044,7 @@
 })();
 
 
-/* Marcador y cierre de mano de la mesa gratuita por puntos. */
+/* Marcador y cierre de mano de las mesas por puntos. */
 (function(){
  'use strict';
  const panel=document.getElementById('dominoTablePanel');
@@ -2055,6 +2055,10 @@
  style.textContent=`
  #dfcPointsScore,#dfcPointsResult {color:#fff;background:#101f3af5;border:1px solid #dabf70;border-radius:9px;font:700 clamp(10px,2vmin,15px)/1.22 system-ui}
  #dfcPointsScore {padding:4px 7px;max-width:min(42vw,270px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+ #dominoTablePanel[data-dfc-points-playing] #dominoSurrenderBtn,
+ body:has(#dominoTablePanel.active[data-dfc-points-playing]) #dominoExitBtn{display:none!important}
+ #dominoSeats .dfc-seat-points{display:inline-block;margin-inline-start:.35em;color:#ffe39b;font:700 clamp(9px,1.5vmin,13px)/1.2 system-ui;white-space:nowrap}
+ #dominoSeats .domino-seat.empty .dfc-seat-points{display:none}
  #dfcPointsReplay{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);z-index:182;display:flex;align-items:center;gap:8px;background:#101f3af5;color:white;border:1px solid #dabf70;border-radius:9px;padding:6px 9px;font:700 clamp(10px,2vmin,15px)/1.2 system-ui;max-width:90%}
  #dfcPointsReplay button{padding:5px 9px;white-space:nowrap}
  #dfcPointsReplay[hidden],#dfcPointsReplay button[hidden],#dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
@@ -2116,6 +2120,8 @@
  const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
  function reset(id){
    table=id;epoch++;last=null;pending=false;retryAfter=0;dismissed='';shown='';
+   delete panel.dataset.dfcPointsPlaying;
+   stage.querySelectorAll('.dfc-seat-points').forEach(label=>label.remove());
    score.hidden=true;result.hidden=true;result.replaceChildren();
    replayState=null;confirmedMatch='';confirming=false;replay.hidden=true;
    document.querySelectorAll('.dfc-point-coin').forEach(coin=>coin.remove());
@@ -2125,12 +2131,20 @@
  }
  function drawScore(data,animatedSeat,points){
    score.hidden=false;
-   score.replaceChildren(document.createTextNode('Puntos · Meta '+data.target+' '));
-   for(const player of data.players){
-     const line=document.createElement('span');
-     line.dataset.pointsSeat=player.seat;
-     line.textContent=(player.mine?'Tú':player.name)+' '+(player.seat===animatedSeat?points:player.points);
-     score.append(document.createTextNode(' · '),line);
+   score.textContent='Meta · '+data.target+' puntos';
+   panel.toggleAttribute('data-dfc-points-playing',data.state==='playing');
+   for(const seat of stage.querySelectorAll('#dominoSeats .domino-seat')){
+     let label=seat.querySelector('.dfc-seat-points');
+     const player=data.players.find(entry=>String(entry.seat)===seat.dataset.realSeat);
+     const balance=seat.querySelector('.seat-bal');
+     if(!player||!balance){label?.remove();continue;}
+     if(!label){
+       label=document.createElement('span');
+       label.className='dfc-seat-points';
+       balance.after(label);
+     }
+     label.dataset.pointsSeat=player.seat;
+     label.textContent=(player.seat===animatedSeat?points:player.points)+' puntos';
    }
  }
  function text(tag,value,root=result){
@@ -2181,7 +2195,9 @@
    drawScore(data,hand.seat,winner.points-hand.points);
    showHand({...data,state:'playing'});
    sound(1200,.15);
-   const destination=score.querySelector('[data-points-seat="'+hand.seat+'"]').getBoundingClientRect();
+   const pointLabel=stage.querySelector('.dfc-seat-points[data-points-seat="'+hand.seat+'"]');
+   if(!pointLabel){drawScore(data);showHand(data);return;}
+   const destination=pointLabel.getBoundingClientRect();
    const count=Math.min(hand.points,14);
    const pointsBefore=winner.points-hand.points;
    await Promise.all(Array.from({length:count},async(_,index)=>{
@@ -2230,6 +2246,7 @@
      drawReplay();
      const first=!last;
      last=data;
+     panel.toggleAttribute('data-dfc-points-playing',data.state==='playing');
      const hand=data.last_hand;
      if(!hand||hand.id===shown){drawScore(data);return;}
      shown=hand.id;
