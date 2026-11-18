@@ -59,7 +59,8 @@
    const picker=e('select',{'aria-label':'Seleccionar mesa por puntos'});
    const formHost=e('div');
    const notice=e('p',{'aria-live':'polite'});
-   section.append(e('h3',{},'Mesas por puntos'),list,notice,formHost);
+   const generated=e('section',{'aria-label':'Mesas generadas'});
+   section.append(e('h3',{},'Mesas por puntos'),list,notice,formHost,generated);
    host.replaceChildren(section);
    let selected=null;
 
@@ -91,7 +92,10 @@
 
    async function loadTables(selectedId){
      try{
-       const tables=await rpc('dfc_z37_admin_points');
+       const [tables,ids]=await Promise.all([
+         rpc('dfc_z37_admin_points'),
+         rpc('dfc_z37_points_table_ids').catch(()=>null)
+       ]);
        if(!section.isConnected)return;
        if(!Array.isArray(tables))throw Error('Respuesta de catálogo inválida');
        const add=e('button',{type:'button'},'+ Agregar mesa');
@@ -102,6 +106,29 @@
        }
        picker.onchange=()=>showForm(tables.find(table=>table.id===picker.value)||null);
        list.replaceChildren(picker,add);
+       generated.replaceChildren(e('h3',{},'Mesas por puntos generadas'));
+       if(!Array.isArray(ids)){
+         generated.append(e('p',{},'No se pudieron consultar los IDs.'));
+       }else if(!ids.length){
+         generated.append(e('p',{},'Todavía no se han generado tableros.'));
+       }else{
+         const names=new Map(tables.map(table=>[table.id,table.name]));
+         for(const row of ids){
+           const entry=e('p');
+           const code=e('code',{style:'user-select:all;-webkit-user-select:all'},row.table_id);
+           const copy=e('button',{type:'button'},'Copiar ID');
+           copy.onclick=async()=>{
+             try{
+               await navigator.clipboard.writeText(String(row.table_id));
+               copy.textContent='ID copiado';
+             }catch{
+               copy.textContent='Selecciona el ID para copiarlo';
+             }
+           };
+           entry.append(names.get(row.config_id)||'Mesa por puntos',' · ID ',code,' ',copy);
+           generated.append(entry);
+         }
+       }
        const current=tables.find(table=>table.id===(selectedId||selected));
        if(current||tables[0])showForm(current||tables[0]);
        else formHost.textContent='Todavía no hay mesas por puntos.';
