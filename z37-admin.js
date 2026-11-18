@@ -72,17 +72,28 @@
        field('name','Nombre','text',table?.name??'','required maxlength="160"')+
        sel('players','Participantes',[['2','2 jugadores'],['3','3 jugadores'],['4','4 jugadores (parejas)']])+
        field('target_points','Meta de puntos','number',table?.target_points??200,'min="1" required')+
+       sel('pot_mode','Tipo de bote',[['free','Gratis'],['fc','Solo FlashCoin'],['diamonds','Solo diamantes'],['both','FlashCoin y diamantes']])+ 
        field('entry_fc','Entrada FC','number',table?.entry_fc??10,'min="0" step=".01" required')+
        field('entry_diamonds','Entrada diamantes','number',table?.entry_diamonds??50,'min="0" required')+
-       field('max_negative_diamonds','Límite deuda de diamantes','number',table?.max_negative_diamonds??200,'min="0" required')+
-       field('admin_pct','Comisión sobre ambos botes (%)','number',table?.admin_pct??10,'min="0" max="50" step=".01" required')+
+       field('admin_pct','Comisión FlashCoin (%)','number',table?.admin_pct??10,'min="0" max="50" step=".01" required')+
+       field('diamond_admin_pct','Comisión diamantes (%)','number',table?.diamond_admin_pct??table?.admin_pct??10,'min="0" max="50" step=".01" required')+
        '<label style="width:100%;display:flex;gap:8px;align-items:center"><input type="checkbox" role="switch" name="enabled" value="1" '+(table?.enabled?'checked':'')+'> Mostrar en Mesas por puntos</label>'+
        '<div style="width:100%"><button type="submit">Guardar cambios</button><p data-status aria-live="polite"></p></div>';
      form.elements.players.value=String(table?.players??2);
+     const {pot_mode,entry_fc,entry_diamonds}=form.elements;
+     pot_mode.value=table?Number(table.entry_fc)>0?(Number(table.entry_diamonds)>0?'both':'fc'):(Number(table.entry_diamonds)>0?'diamonds':'free'):'both';
+     const syncPot=()=>{
+       entry_fc.disabled=!['fc','both'].includes(pot_mode.value);
+       entry_diamonds.disabled=!['diamonds','both'].includes(pot_mode.value);
+       entry_fc.min=entry_fc.disabled?'0':'0.01';
+       entry_diamonds.min=entry_diamonds.disabled?'0':'1';
+     };
+     pot_mode.addEventListener('change',syncPot);
+     syncPot();
      formHost.replaceChildren(form);
      saveHandler(form,'dfc_z37_admin_save_points',x=>({...x,enabled:x.enabled==='1',...(table?{id:table.id}:{}),players:Number(x.players),
-       target_points:Number(x.target_points),entry_fc:Number(x.entry_fc),entry_diamonds:Number(x.entry_diamonds),
-       max_negative_diamonds:Number(x.max_negative_diamonds),admin_pct:Number(x.admin_pct)}),async (id,status)=>{
+       target_points:Number(x.target_points),entry_fc:Number(x.entry_fc||0),entry_diamonds:Number(x.entry_diamonds||0),
+       diamond_admin_pct:Number(x.diamond_admin_pct),admin_pct:Number(x.admin_pct)}),async (id,status)=>{
        const enabled=form.elements.enabled.checked;
        status.textContent='Cambios guardados.';
        notice.textContent=enabled?'Mesa visible en Por puntos.':'Mesa guardada y oculta en Por puntos.';
