@@ -1691,19 +1691,20 @@
   const style = document.createElement('style');
   style.textContent = `
     html body #dfcLabGiftCard018 {
-      background-image:linear-gradient(0deg,#071e3a 0%,#082747 23%,transparent 46%),var(--dfc-card-art019)!important;
+      background-image:linear-gradient(0deg,#071e3a 0%,#082747 72%,transparent 100%),var(--dfc-card-art019)!important;
       background-color:#09234b!important;
-      background-size:100% 100%!important;
+      background-position:left bottom,center!important;
+      background-size:34% 47%,100% 100%!important;
       background-repeat:no-repeat!important;
     }
     html body #dfcLabGiftOverlay008 #dfcLabGiftUser008 button.dfc-z31-gift-choice,
     html body #dfcZ32GiftFullScreen button.dfc-z32-native-announcement,
     html body .dfc-expired-gift-card {
       background-color:#09234b!important;
-      background-image:linear-gradient(0deg,#071e3a 0%,#082747 23%,transparent 46%),var(--dfc-card-art019)!important;
-      background-position:center!important;
+      background-image:linear-gradient(0deg,#071e3a 0%,#082747 72%,transparent 100%),var(--dfc-card-art019)!important;
+      background-position:left bottom,center!important;
       background-repeat:no-repeat!important;
-      background-size:100% 100%!important;
+      background-size:34% 47%,100% 100%!important;
     }
     .dfc-expired-gift-card {
       display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;
