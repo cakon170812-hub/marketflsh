@@ -1279,7 +1279,7 @@
        if(previous?.open)previous.close();
        void window.dfcZ37Admin.open('tournaments');
      },true);
-     admin.src='./z37-admin.js?v=37.10';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
+     admin.src='./z37-admin.js?v=37.11';admin.onload=()=>window.dfcZ36UnifiedEditor?.refresh();admin.defer=true;admin.dataset.dfcZ37Admin='true';document.head.append(admin);
    }
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
@@ -1908,17 +1908,20 @@
     if(!uid)return;
     if(!announce){status.textContent='Consultando tarjetas…';list.replaceChildren();}
     try{
-      const [cards,wallet]=await Promise.all([
+      const [daily,wallet,prizes]=await Promise.all([
         rpc('dfc_diamond_flashcards_pending_v1'),
-        rpc('dfc_z9_status').catch(()=>null)
+        rpc('dfc_z9_status').catch(()=>null),
+        rpc('dfc_z37_diamond_prizes_pending')
       ]);
       if(id!==request||uid!==account())return;
-      showCount(wallet?.cards_pending??cards.length);
+      const cards=[...daily,...prizes];
+      showCount((wallet?.cards_pending??daily.length)+prizes.length);
       if(announce){
         const card=cards.at(-1);
         if(!card||dialog.open)return;
         const key='dfc-diamond-arrival:'+uid;
-        try{if(localStorage.getItem(key)===card.created_on)return;localStorage.setItem(key,card.created_on)}catch{}
+        const noticeId=card.prize_id||card.created_on;
+        try{if(localStorage.getItem(key)===noticeId)return;localStorage.setItem(key,noticeId)}catch{}
         dialog.dataset.arrival='';
         status.textContent='Toca la tarjeta para guardarla.';
         list.replaceChildren(draw(card,()=>dialog.close()));
@@ -1926,7 +1929,8 @@
         return;
       }
       list.replaceChildren(...cards.map(card=>draw(card,claim)));
-      all.hidden=cards.length<2;
+      all.hidden=daily.length<2;
+      all.textContent=prizes.length?'Reclamar todas las diarias':'Reclamar todas';
       status.textContent=cards.length?'Toca una tarjeta para reclamar sus diamantes.':'No tienes tarjetas pendientes.';
     }catch(e){if(id===request&&!announce)status.textContent=e.message}
   }
@@ -1936,7 +1940,8 @@
     const r=element.getBoundingClientRect();
     const jar=document.querySelector('#dfc-z9-home .dfc-z9-jar')?.getBoundingClientRect();
     try{
-      const result=await rpc('dfc_diamond_flashcard_claim_v1',{p_created_on:card.created_on});
+      const result=card.prize_id?await rpc('dfc_z37_diamond_prize_redeem',{p_prize_id:card.prize_id}):
+        await rpc('dfc_diamond_flashcard_claim_v1',{p_created_on:card.created_on});
       if(result.redeemed){
         if(jar&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
           const layer=document.createElement('div');
