@@ -1267,7 +1267,7 @@
  function boot(){
    if(document.querySelector('script[data-dfc-z37-ui]'))return;
    const s=document.createElement('script');
-   s.src='./z37-ui.js?v=37.9';s.defer=true;s.dataset.dfcZ37Ui='true';
+   s.src='./z37-ui.js?v=37.10';s.defer=true;s.dataset.dfcZ37Ui='true';
    s.onerror=()=>console.warn('[DFC Z37] modulo visual no disponible');
    document.head.append(s);
    if(!document.querySelector('script[data-dfc-z37-admin]')){
