@@ -2037,3 +2037,153 @@
  `;
  document.head.append(style);
 })();
+
+
+/* Marcador y cierre de mano de la mesa gratuita por puntos. */
+(function(){
+ 'use strict';
+ const panel=document.getElementById('dominoTablePanel');
+ const stage=document.getElementById('dominoStage');
+ const controls=stage?.querySelector('.domino-live-top-controls');
+ if(!panel||!controls)return;
+ const style=document.createElement('style');
+ style.textContent=`
+ #dfcPointsScore,#dfcPointsResult {color:#fff;background:#101f3af5;border:1px solid #dabf70;border-radius:9px;font:700 clamp(10px,2vmin,15px)/1.22 system-ui}
+ #dfcPointsScore {padding:4px 7px;max-width:min(42vw,270px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+ #dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
+ #dfcPointsResult {position:absolute;inset:12% auto auto 50%;transform:translateX(-50%);width:min(84%,570px);max-height:76%;box-sizing:border-box;overflow:auto;z-index:180;padding:10px;text-align:center;box-shadow:0 8px 25px #0009}
+ #dfcPointsResult p{margin:4px 0}
+ #dfcPointsResult h2{font-size:1.4em;margin:4px 0 7px}
+ #dfcPointsResult .dfc-points-tiles {display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+ #dfcPointsResult .dfc-points-tile {display:inline-block;padding:3px 5px;border-radius:4px;background:#fff3d9;color:#102032;border:1px solid #bca67a}
+ .dfc-point-coin {position:fixed;pointer-events:none;z-index:2147483646;color:#503100;background:radial-gradient(circle at 35% 26%,#fff5a3,#efb338 55%,#c58319);border:2px solid #ffdf79;border-radius:50%;width:25px;height:25px;display:grid;place-items:center;font:900 11px system-ui}
+ `;
+ document.head.append(style);
+ const score=document.createElement('div');
+ score.id='dfcPointsScore';score.hidden=true;score.setAttribute('aria-label','Marcador por puntos');
+ controls.prepend(score);
+ const result=document.createElement('section');
+ result.id='dfcPointsResult';result.hidden=true;result.setAttribute('role','region');result.setAttribute('aria-label','Resultado de mano');
+ stage.append(result);
+ let table=0,epoch=0,pending=false,available=true,last=null;
+ let dismissed='',shown='';
+ const format=new Intl.NumberFormat('es-DO',{maximumFractionDigits:2});
+ const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+ function reset(id){
+   table=id;epoch++;last=null;pending=false;available=true;dismissed='';shown='';
+   score.hidden=true;result.hidden=true;result.replaceChildren();
+   document.querySelectorAll('.dfc-point-coin').forEach(coin=>coin.remove());
+ }
+ function current(){
+   return panel.classList.contains('active')&&typeof dominoCurrentTableId!=='undefined'?Number(dominoCurrentTableId)||0:0;
+ }
+ function drawScore(data,animatedSeat,points){
+   score.hidden=false;
+   score.replaceChildren(document.createTextNode('Puntos · Meta '+data.target+' '));
+   for(const player of data.players){
+     const line=document.createElement('span');
+     line.dataset.pointsSeat=player.seat;
+     line.textContent=(player.mine?'Tú':player.name)+' '+(player.seat===animatedSeat?points:player.points);
+     score.append(document.createTextNode(' · '),line);
+   }
+ }
+ function text(tag,value,root=result){
+   const item=document.createElement(tag);item.textContent=value;root.append(item);return item;
+ }
+ function tiles(values,root){
+   const row=document.createElement('div');row.className='dfc-points-tiles';
+   for(const tile of values||[]){
+     if(Array.isArray(tile)&&tile.length===2)text('span',tile[0]+' │ '+tile[1],row).className='dfc-points-tile';
+   }
+   root.append(row);
+ }
+ function showHand(data){
+   const hand=data.last_hand;
+   if(!hand||dismissed===hand.id)return;
+   const winner=data.players.find(player=>player.seat===hand.seat);
+   if(!winner)return;
+   result.hidden=false;result.replaceChildren();
+   const blocked=hand.kind==='trancazo';
+   const victory=data.state==='settled';
+   text('h2',victory?'¡'+winner.name+' ganó la partida!':blocked?'Tranque':'Dominó');
+   text('p',winner.name+' · +'+hand.points+' puntos · '+winner.points+' / '+data.target);
+   if(victory){
+     text('p',format.format(100*winner.points/data.target)+' % de la meta · '+format.format(100*hand.points/data.target)+' % aportado por esta mano');
+     text('p','Bote ganado: '+data.pot_fc+' FlashCoin · '+data.pot_diamonds+' diamantes');
+     text('p','Parte del ganador: 100 % del bote');
+   }
+   if(hand.deciding_tile){
+     text('p',blocked?'Ficha que cerró el juego':'Ficha decisiva');
+     tiles([hand.deciding_tile],result);
+   }
+   for(const row of hand.remaining){
+     const player=data.players.find(entry=>entry.seat===row.seat);
+     text('p',(player?.name||'Asiento '+row.seat)+' · '+row.points+' puntos restantes');
+     tiles(row.tiles,result);
+   }
+   const close=text('button','Cerrar resultado');
+   close.type='button';close.onclick=()=>{dismissed=hand.id;result.hidden=true;};
+ }
+ function sound(freq,length){
+   if(typeof playOscTone==='function'&&(typeof dominoSoundIsEnabled!=='function'||dominoSoundIsEnabled()))
+     playOscTone(freq,length,.06,'triangle',freq*.67,0,'domino');
+ }
+ async function award(data,token){
+   const hand=data.last_hand;
+   const winner=data.players.find(player=>player.seat===hand.seat);
+   if(!winner||reduce()){drawScore(data);showHand(data);return;}
+   drawScore(data,hand.seat,winner.points-hand.points);
+   showHand({...data,state:'playing'});
+   sound(1200,.15);
+   const destination=score.querySelector('[data-points-seat="'+hand.seat+'"]').getBoundingClientRect();
+   const count=Math.min(hand.points,14);
+   const pointsBefore=winner.points-hand.points;
+   await Promise.all(Array.from({length:count},async(_,index)=>{
+     const value=Math.floor(hand.points*(index+1)/count);
+     const batch=value-Math.floor(hand.points*index/count);
+     if(token!==epoch)return;
+     const coin=document.createElement('span');coin.className='dfc-point-coin';coin.textContent=batch;coin.setAttribute('aria-hidden','true');
+     coin.style.left=(destination.left+destination.width/2-12)+'px';
+     coin.style.top=(destination.top+destination.height/2-12)+'px';
+     document.body.append(coin);
+     const angle=index*2.399;
+     const startX=Math.cos(angle)*Math.min(150,innerWidth*.28);
+     const startY=Math.sin(angle)*Math.min(105,innerHeight*.3)+innerHeight*.25;
+     try{
+       await coin.animate([
+         {transform:'translate(0,'+innerHeight*.2+'px) scale(.68)',opacity:0},
+         {transform:'translate('+startX+'px,'+startY+'px) scale(1)',opacity:1,offset:.35},
+         {transform:'translate(0,0) scale(.45)',opacity:1}
+       ],{duration:600,delay:index*65,fill:'both'}).finished;
+     }catch{}finally{coin.remove();}
+     if(token===epoch){
+       sound(620,.08);
+       drawScore(data,hand.seat,pointsBefore+value);
+     }
+   }));
+   if(token===epoch){drawScore(data);if(data.state==='settled'){dismissed='';showHand(data);}}
+ }
+ async function update(){
+   const id=current();
+   if(id!==table)reset(id);
+   if(!id||pending||!available||document.hidden)return;
+   const client=window.sb||window.dfcSupabase;
+   if(!client?.rpc)return;
+   pending=true;const token=epoch;
+   try{
+     const {data,error}=await client.rpc('dfc_z37_points_scoreboard',{p_table_id:id});
+     if(token!==epoch||current()!==id||error)return;
+     if(!data){available=false;return;}
+     const first=!last;
+     last=data;
+     const hand=data.last_hand;
+     if(!hand||hand.id===shown){drawScore(data);return;}
+     shown=hand.id;
+     if(first){drawScore(data);if(data.state==='settled')showHand(data);}
+     else await award(data,token);
+   }finally{if(token===epoch)pending=false;}
+ }
+ new MutationObserver(()=>void update()).observe(panel,{attributes:true,attributeFilter:['class']});
+ setInterval(()=>void update(),1800);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)void update();});
+})();
