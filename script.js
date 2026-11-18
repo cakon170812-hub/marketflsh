@@ -2050,7 +2050,9 @@
  style.textContent=`
  #dfcPointsScore,#dfcPointsResult {color:#fff;background:#101f3af5;border:1px solid #dabf70;border-radius:9px;font:700 clamp(10px,2vmin,15px)/1.22 system-ui}
  #dfcPointsScore {padding:4px 7px;max-width:min(42vw,270px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
- #dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
+ #dfcPointsReplay{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);z-index:182;display:flex;align-items:center;gap:8px;background:#101f3af5;color:white;border:1px solid #dabf70;border-radius:9px;padding:6px 9px;font:700 clamp(10px,2vmin,15px)/1.2 system-ui;max-width:90%}
+ #dfcPointsReplay button{padding:5px 9px;white-space:nowrap}
+ #dfcPointsReplay[hidden],#dfcPointsReplay button[hidden],#dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
  #dfcPointsResult {position:absolute;inset:12% auto auto 50%;transform:translateX(-50%);width:min(84%,570px);max-height:76%;box-sizing:border-box;overflow:auto;z-index:180;padding:10px;text-align:center;box-shadow:0 8px 25px #0009}
  #dfcPointsResult p{margin:4px 0}
  #dfcPointsResult h2{font-size:1.4em;margin:4px 0 7px}
@@ -2065,6 +2067,48 @@
  const result=document.createElement('section');
  result.id='dfcPointsResult';result.hidden=true;result.setAttribute('role','region');result.setAttribute('aria-label','Resultado de mano');
  stage.append(result);
+ const replay=document.createElement('div');
+ replay.id='dfcPointsReplay';replay.hidden=true;
+ const replayText=document.createElement('span');
+ const replayButton=document.createElement('button');
+ replayButton.type='button';replayButton.textContent='Jugar otra vez';
+ replay.append(replayText,replayButton);
+ stage.append(replay);
+ let replayState=null,replayOffset=0,confirming=false,confirmedMatch='';
+ function drawReplay(){
+   if(!replayState){replay.hidden=true;return;}
+   replay.hidden=false;
+   if(replayState.released){
+     replayText.textContent='Terminó el plazo. Tu asiento quedó libre.';
+     replayButton.hidden=true;return;
+   }
+   const now=Date.now()+replayOffset;
+   const deadline=Date.parse(replayState.replay_deadline);
+   const opens=Date.parse(replayState.replay_opens);
+   const seconds=Math.max(0,Math.ceil((deadline-now)/1000));
+   const confirmed=replayState.replay_confirmed||confirmedMatch===replayState.match_id;
+   replayButton.hidden=confirmed||!seconds||now<opens;
+   replayButton.disabled=confirming;
+   replayText.textContent=now<opens?'La revancha abre en un momento.':
+     confirmed?'Confirmaste · '+seconds+' s':
+     seconds?'Revancha gratis · '+seconds+' s':'Terminó el plazo de confirmación.';
+ }
+ replayButton.onclick=async()=>{
+   if(confirming||!replayState||replayState.released)return;
+   const match=replayState.match_id,token=epoch;
+   confirming=true;drawReplay();
+   try{
+     const client=window.sb||window.dfcSupabase;
+     const {data,error}=await client.rpc('dfc_z37_trial_replay_confirm',{p_match_id:match});
+     if(error||data!==true)throw Error(error?.message||'No se pudo confirmar.');
+     if(token===epoch)confirmedMatch=match;
+   }catch(error){
+     if(token===epoch)replayText.textContent=error.message;
+   }finally{
+     if(token===epoch){confirming=false;if(confirmedMatch===match)drawReplay();else replayButton.disabled=false;}
+   }
+ };
+ setInterval(()=>{if(replayState&&current())drawReplay();},250);
  let table=0,epoch=0,pending=false,available=true,last=null;
  let dismissed='',shown='';
  const format=new Intl.NumberFormat('es-DO',{maximumFractionDigits:2});
@@ -2072,6 +2116,7 @@
  function reset(id){
    table=id;epoch++;last=null;pending=false;available=true;dismissed='';shown='';
    score.hidden=true;result.hidden=true;result.replaceChildren();
+   replayState=null;confirmedMatch='';confirming=false;replay.hidden=true;
    document.querySelectorAll('.dfc-point-coin').forEach(coin=>coin.remove());
  }
  function current(){
@@ -2173,7 +2218,15 @@
    try{
      const {data,error}=await client.rpc('dfc_z37_points_scoreboard',{p_table_id:id});
      if(token!==epoch||current()!==id||error)return;
-     if(!data){available=false;return;}
+     if(!data){
+       available=false;
+       if(replayState){replayState={released:true};score.hidden=true;result.hidden=true;drawReplay();}
+       return;
+     }
+     if(last&&last.match_id!==data.match_id){last=null;shown='';dismissed='';result.hidden=true;}
+     replayState=data.replay_deadline?data:null;
+     if(replayState)replayOffset=Date.parse(data.server_time)-Date.now();
+     drawReplay();
      const first=!last;
      last=data;
      const hand=data.last_hand;
