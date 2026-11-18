@@ -172,17 +172,31 @@
      const {data,error}=await client.rpc('dfc_z37_points_join_engine',{p_config:trialId,p_request:crypto.randomUUID()});
      if(error)throw error;
      if(state.screen!==screen)return;
-     if(data?.state==='waiting'){
-       status.textContent='Asiento reservado ('+data.seated+'/2). Cuando se una el segundo jugador, toca Abrir partida.';
-       button.textContent='Abrir partida';
-       return;
-     }
-     if(data?.state!=='playing'||!data.table_id)throw new Error('La partida todavía no está disponible.');
+     if(!['waiting','playing'].includes(data?.state)||!data.table_id)throw new Error('La mesa todavía no está disponible.');
      await window.openDominoLobby();
      if(state.screen!==screen)return;
      const resume=$('#dominoResumeTableBtn');
      if(typeof resume?.onclick!=='function')throw new Error('Vuelve a tocar Abrir partida para recuperar tu asiento.');
      await resume.onclick();
+     const tableInfo=$('#dfcZ16TableInfo');
+     if(tableInfo){
+       let tableId=$('#dfc-z37-trial-table-id',tableInfo);
+       if(!tableId){
+         tableId=document.createElement('div');
+         tableId.id='dfc-z37-trial-table-id';
+         tableInfo.append(tableId);
+       }
+       tableId.textContent='ID de mesa: '+data.table_id;
+       const panel=$('#dominoTablePanel');
+       if(panel){
+         const observer=new MutationObserver(()=>{
+           if(panel.classList.contains('active'))return;
+           observer.disconnect();
+           tableId.remove();
+         });
+         observer.observe(panel,{attributes:true,attributeFilter:['class']});
+       }
+     }
      if(state.screen===screen)cleanup();
    }catch(error){
      status.textContent=error?.message||'No se pudo entrar a la mesa.';
