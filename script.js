@@ -1891,10 +1891,11 @@
     image.alt='';
     image.src=artwork;
     element.append(image);
+    element.setAttribute('aria-label',format.format(card.amount)+' diamantes, '+card.origin+', creada el '+dates.format(new Date(card.created_on)));
     for(const [tag,value] of [
-      ['strong',format.format(card.amount)+' diamantes'],
-      ['span',card.origin],
-      ['small','Creada el '+dates.format(new Date(card.created_on))]
+      ['strong',format.format(card.amount)],
+      ['span','Diamantes Flashcard'],
+      ['small',card.origin+' · '+dates.format(new Date(card.created_on))]
     ]){
       const label=document.createElement(tag);label.textContent=value;element.append(label);
     }
@@ -2010,6 +2011,28 @@
   #dfcLabGiftUser008 .dfc-z31-gift-choice .dfc-gift-origin,
   #dfcZ32GiftFullScreen .dfc-z32-native-announcement .dfc-gift-origin {
    background:none;color:#daeeff;font-weight:700;text-shadow:0 1px 3px #001225
+  }
+ `;
+ document.head.append(style);
+})();
+
+/* Importe visible en las facetas de la tarjeta de diamantes. */
+(function () {
+ const style=document.createElement('style');
+ style.textContent=`
+  #dfcDiamondFlashcardPanel button.dfc-diamond-flashcard {container-type:inline-size}
+  #dfcDiamondFlashcardPanel button.dfc-diamond-flashcard > strong {
+   position:absolute;inset:30% auto auto 50%;transform:translate(-50%,-50%);
+   max-width:35%;padding:0;white-space:nowrap;
+   color:#fff;font-size:clamp(24px,13cqi,76px);font-weight:900;line-height:1;
+   letter-spacing:-.055em;-webkit-text-stroke:1px #432363;
+   text-shadow:0 2px 1px #281052,0 0 6px #371b6d,0 0 10px #6b46ac
+  }
+  #dfcDiamondFlashcardPanel button.dfc-diamond-flashcard > span {
+   color:#f0e5ff;font-size:clamp(12px,6.2cqi,34px);font-weight:850;line-height:1.05
+  }
+  #dfcDiamondFlashcardPanel button.dfc-diamond-flashcard > small {
+   color:#ebdfff;font-size:clamp(9px,3.9cqi,16px);line-height:1.15;max-width:94%
   }
  `;
  document.head.append(style);
