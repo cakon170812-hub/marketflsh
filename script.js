@@ -2083,10 +2083,6 @@
  function drawReplay(){
    if(!replayState){replay.hidden=true;return;}
    replay.hidden=false;
-   if(replayState.released){
-     replayText.textContent='Terminó el plazo. Tu asiento quedó libre.';
-     replayButton.hidden=true;return;
-   }
    const now=Date.now()+replayOffset;
    const deadline=Date.parse(replayState.replay_deadline);
    const opens=Date.parse(replayState.replay_opens);
@@ -2099,7 +2095,7 @@
      seconds?'Revancha gratis · '+seconds+' s':'Terminó el plazo de confirmación.';
  }
  replayButton.onclick=async()=>{
-   if(confirming||!replayState||replayState.released)return;
+   if(confirming||!replayState)return;
    const match=replayState.match_id,token=epoch;
    confirming=true;drawReplay();
    try{
@@ -2114,12 +2110,12 @@
    }
  };
  setInterval(()=>{if(replayState&&current())drawReplay();},250);
- let table=0,epoch=0,pending=false,available=true,last=null;
+ let table=0,epoch=0,pending=false,retryAfter=0,last=null;
  let dismissed='',shown='';
  const format=new Intl.NumberFormat('es-DO',{maximumFractionDigits:2});
  const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
  function reset(id){
-   table=id;epoch++;last=null;pending=false;available=true;dismissed='';shown='';
+   table=id;epoch++;last=null;pending=false;retryAfter=0;dismissed='';shown='';
    score.hidden=true;result.hidden=true;result.replaceChildren();
    replayState=null;confirmedMatch='';confirming=false;replay.hidden=true;
    document.querySelectorAll('.dfc-point-coin').forEach(coin=>coin.remove());
@@ -2216,7 +2212,7 @@
  async function update(){
    const id=current();
    if(id!==table)reset(id);
-   if(!id||pending||!available||document.hidden)return;
+   if(!id||pending||Date.now()<retryAfter||document.hidden)return;
    const client=window.sb||window.dfcSupabase;
    if(!client?.rpc)return;
    pending=true;const token=epoch;
@@ -2224,8 +2220,8 @@
      const {data,error}=await client.rpc('dfc_z37_points_scoreboard',{p_table_id:id});
      if(token!==epoch||current()!==id||error)return;
      if(!data){
-       available=false;
-       if(replayState){replayState={released:true};score.hidden=true;result.hidden=true;drawReplay();}
+       // An empty response can occur while seating or rotating a match.
+       retryAfter=last?0:Date.now()+5000;
        return;
      }
      if(last&&last.match_id!==data.match_id){last=null;shown='';dismissed='';result.hidden=true;}
