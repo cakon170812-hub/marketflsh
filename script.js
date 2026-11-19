@@ -1724,6 +1724,16 @@
       background-repeat:no-repeat!important;
       background-size:34% 47%,100% 100%!important;
     }
+    #dfcLabGiftOverlay008 .dfc-lab-gift-sheet {
+      max-height: calc(100dvh - 28px);
+      overflow-y: auto !important;
+      overscroll-behavior-y: contain;
+      touch-action: pan-y !important;
+    }
+    #dfcLabGiftOverlay008 #dfcLabGiftUser008,
+    #dfcLabGiftOverlay008 #dfcLabGiftUser008 button.dfc-z31-gift-choice {
+      touch-action: pan-y !important;
+    }
     .dfc-expired-gift-card {
       display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;
       width:min(100%,210px);aspect-ratio:5/3;box-sizing:border-box;margin:8px auto;padding:10px;
