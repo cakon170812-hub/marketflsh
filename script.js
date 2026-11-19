@@ -866,14 +866,14 @@
    if(id!==activeHand)reset(id);
    const playerCount=participants(st);
    const i=flyCount++;
-   if(flyCount===playerCount*7){
-     document.dispatchEvent(new CustomEvent('dfc:domino:deal-complete',{detail:{handId:id}}));
-   }
    if(i%playerCount!==0||visible>=7)return;
    visible++;
    panel()?.classList.add('dfc-z32-progressive-deal');
    if(typeof renderDominoState==='function' && !((typeof dominoDragState!=='undefined')&&dominoDragState?.active)){
      try{renderDominoState(st);}catch(e){console.warn('[DFC Z32 reparto por entrega]',e);}
+   }
+   if(visible===7){
+     document.dispatchEvent(new CustomEvent('dfc:domino:deal-complete',{detail:{handId:id}}));
    }
  }
  function connect(){
@@ -2314,7 +2314,8 @@
         }
       }
     }
-    setTimeout(() => void check(0), wait + 25);
+    if (wait > 0) setTimeout(() => void check(0), wait);
+    else void check(0);
   }
   document.addEventListener('dfc:domino:deal-complete', event => {
     completedHand = String(event.detail?.handId || '');
