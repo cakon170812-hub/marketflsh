@@ -382,4 +382,3 @@ CREATE TRIGGER zz_dfc_z37_points_mark_auto_departures
 AFTER UPDATE OF state ON public.dfc_z37_points_matches
 FOR EACH ROW WHEN (OLD.state='playing' AND NEW.state='settled')
 EXECUTE FUNCTION dfc_private.points_mark_auto_departures();
-
