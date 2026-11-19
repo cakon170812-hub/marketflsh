@@ -556,6 +556,20 @@
     const btn=document.createElement('button');
     btn.type='button';btn.dataset.sound='card';
     btn.className='dfc-z32-native-announcement';
+    const artwork = getComputedStyle(document.documentElement).getPropertyValue('--dfc-card-art019').trim();
+    const artworkUrl = artwork.match(/^url\(["']?(data:image\/webp;base64,[A-Za-z0-9+/=]+)["']?\)$/)?.[1];
+    if (artworkUrl) {
+      const image = document.createElement('img');
+      image.alt = '';
+      image.draggable = false;
+      image.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:contain;pointer-events:none;z-index:-1';
+      btn.style.position = 'relative';
+      btn.style.isolation = 'isolate';
+      btn.style.overflow = 'hidden';
+      image.addEventListener('load', () => btn.style.setProperty('background-image', 'none', 'important'), {once:true});
+      image.src = artworkUrl;
+      btn.append(image);
+    }
     const top=document.createElement('strong');top.className='dfc-z32-card-announcement-title';
     top.textContent='Nueva tarjeta FlashCoin';
     const amount=document.createElement('strong');amount.className='dfc-z32-card-amount';
