@@ -864,8 +864,12 @@
    if(!h?.id||String(h.status)!=='shuffling')return;
    const id=String(h.id);
    if(id!==activeHand)reset(id);
+   const playerCount=participants(st);
    const i=flyCount++;
-   if(i%participants(st)!==0||visible>=7)return;
+   if(flyCount===playerCount*7){
+     document.dispatchEvent(new CustomEvent('dfc:domino:deal-complete',{detail:{handId:id}}));
+   }
+   if(i%playerCount!==0||visible>=7)return;
    visible++;
    panel()?.classList.add('dfc-z32-progressive-deal');
    if(typeof renderDominoState==='function' && !((typeof dominoDragState!=='undefined')&&dominoDragState?.active)){
@@ -2279,12 +2283,13 @@
   const stage = document.getElementById('dominoStage');
   if (!stage) return;
   let pendingHand = '';
+  let completedHand = '';
   function scheduleTurnCheck() {
     const hand = dominoState?.hand;
     const tableId = dominoCurrentTableId;
     const phase = stage.querySelector('#dfc012c-scene .phase-title');
     if (!tableId || !hand?.id || !hand.me_in_hand || hand.status !== 'shuffling' ||
-        phase?.textContent !== 'INICIANDO LA PARTIDA') return;
+        (completedHand !== String(hand.id) && phase?.textContent !== 'INICIANDO LA PARTIDA')) return;
     const key = String(tableId) + ':' + String(hand.id);
     if (pendingHand === key) return;
     pendingHand = key;
@@ -2309,8 +2314,12 @@
         }
       }
     }
-    setTimeout(() => void check(0), Math.min(wait + 50, 1500));
+    setTimeout(() => void check(0), wait + 25);
   }
+  document.addEventListener('dfc:domino:deal-complete', event => {
+    completedHand = String(event.detail?.handId || '');
+    scheduleTurnCheck();
+  });
   new MutationObserver(scheduleTurnCheck).observe(stage, {childList: true, subtree: true});
   document.addEventListener('visibilitychange', scheduleTurnCheck);
 })();
