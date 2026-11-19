@@ -2272,3 +2272,45 @@
  setInterval(()=>void update(),1800);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void update();});
 })();
+
+
+/* Confirm the first turn as soon as the shared deal animation finishes. */
+(function syncFirstDominoTurn() {
+  const stage = document.getElementById('dominoStage');
+  if (!stage) return;
+  let pendingHand = '';
+  function scheduleTurnCheck() {
+    const hand = dominoState?.hand;
+    const tableId = dominoCurrentTableId;
+    const phase = stage.querySelector('#dfc012c-scene .phase-title');
+    if (!tableId || !hand?.id || !hand.me_in_hand || hand.status !== 'shuffling' ||
+        phase?.textContent !== 'INICIANDO LA PARTIDA') return;
+    const key = String(tableId) + ':' + String(hand.id);
+    if (pendingHand === key) return;
+    pendingHand = key;
+    const startsAt = Date.parse(hand.play_starts_at);
+    const wait = Number.isFinite(startsAt) ? Math.max(0, startsAt - mfDominoNow()) : 0;
+    const sameHand = () => String(dominoCurrentTableId) === String(tableId) &&
+      String(dominoState?.hand?.id) === String(hand.id) &&
+      dominoState?.hand?.status === 'shuffling';
+    async function check(attempt) {
+      try {
+        if (!sameHand() || document.hidden) return;
+        const result = await sb.rpc('rf_domino_progress_v012i', {p_table_id: Number(tableId)});
+        if (result.error) throw result.error;
+        if (sameHand()) await loadDominoState(true, true);
+      } catch (_) {
+        // The server worker and regular state refresh remain available.
+      } finally {
+        if (sameHand() && !document.hidden && attempt < 3) {
+          setTimeout(() => void check(attempt + 1), 400);
+        } else if (pendingHand === key) {
+          pendingHand = '';
+        }
+      }
+    }
+    setTimeout(() => void check(0), Math.min(wait + 50, 1500));
+  }
+  new MutationObserver(scheduleTurnCheck).observe(stage, {childList: true, subtree: true});
+  document.addEventListener('visibilitychange', scheduleTurnCheck);
+})();
