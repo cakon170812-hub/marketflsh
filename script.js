@@ -2115,7 +2115,7 @@
  #dominoSeats .dfc-seat-points{display:inline-grid;place-items:center;vertical-align:middle;margin-inline-start:.35em;min-width:2.9em;aspect-ratio:1;border-radius:50%;box-sizing:border-box;padding:.2em;color:#fff;border:1px solid #bc9ee7;background:linear-gradient(180deg,#7358a2,#50377f 45%,#2d224e 51%,#392d62);box-shadow:inset 0 1px 4px #fff5,0 2px 6px #160d2b99;font:800 clamp(9px,1.7vmin,14px)/1 system-ui;font-variant-numeric:tabular-nums}
  #dominoSeats .domino-seat.empty .dfc-seat-points{display:none}
  #dfcPointsReplay{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);z-index:182;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;background:#101f3af5;color:white;border:1px solid #dabf70;border-radius:9px;padding:6px 9px;font:700 clamp(10px,2vmin,15px)/1.2 system-ui;max-width:90%}
- #dfcPointsReplay button{padding:5px 9px;white-space:nowrap}
+ #dfcPointsReplay button{padding:5px 9px;white-space:normal}
  #dfcPointsReplay[hidden],#dfcPointsReplay button[hidden],#dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
  #dfcPointsResult {position:absolute;inset:12% auto auto 50%;transform:translateX(-50%);width:min(84%,570px);max-height:76%;box-sizing:border-box;overflow:auto;z-index:180;padding:10px;text-align:center;box-shadow:0 8px 25px #0009}
  #dfcPointsResult[data-prize]{background:radial-gradient(ellipse at top,#383269,#10172e 72%);border-color:#f9d38c;box-shadow:0 12px 36px #090c1bc9,inset 0 0 36px #f4c97518}
@@ -2159,7 +2159,9 @@
    const missing=Number(replayState.replay_fc_missing)||0;
    const entry=[Number(replayState.entry_fc)>0?money.format(replayState.entry_fc)+' FlashCoin':'',
      Number(replayState.entry_diamonds)>0?format.format(replayState.entry_diamonds)+' diamantes':''].filter(Boolean).join(' + ')||'Gratis';
-   replayButton.textContent='Confirmar y seguir · '+entry;
+   const passFee=Number(replayState.replay_pass_fee_fc)||0;
+   const passPrice=passFee>0?money.format(passFee)+' FlashCoin por pase':'Pase normal';
+   replayButton.textContent='Confirmar y seguir · '+entry+' · '+passPrice;
    const seatReleased=replayState.replay_seat_released;
    replayButton.hidden=confirmed||!seconds||now<opens||missing>0||seatReleased;
    exitButton.hidden=confirmed||!seconds||now<opens||missing>0||seatReleased;
@@ -2174,11 +2176,11 @@
  }
  async function chooseReplay(choice){
    if(confirming||!replayState)return;
-   const match=replayState.match_id,token=epoch;
+   const match=replayState.match_id,token=epoch,passFee=Number(replayState.replay_pass_fee_fc)||0;
    confirming=true;replayError='';drawReplay();
    try{
      const client=window.sb||window.dfcSupabase;
-     const {data,error}=await client.rpc('dfc_points_replay_choice',{p_match_id:match,p_choice:choice});
+     const {data,error}=await client.rpc('dfc_points_replay_choice_priced',{p_match_id:match,p_choice:choice,p_pass_fee:passFee});
      if(error)throw error;
      if(token!==epoch)return;
      if(data?.state==='confirmed')confirmedMatch=match;

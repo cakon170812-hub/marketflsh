@@ -189,10 +189,10 @@
      const client=db();
      if(!client)throw new Error('Espera a que cargue tu sesión y vuelve a intentar.');
      const args={p_config:config.id,p_request:crypto.randomUUID()};
-     if(!isTrial){args.p_fc=config.entry_fc;args.p_diamonds=config.entry_diamonds;}
+     if(!isTrial){args.p_fc=config.entry_fc;args.p_diamonds=config.entry_diamonds;args.p_pass_fee=passFee;}
      const {data,error}=viewedTable
        ? await client.rpc('dfc_z37_points_join_viewed',{p_table:viewedTable,p_request:args.p_request,p_fc:config.entry_fc,p_diamonds:config.entry_diamonds,p_pass_fee:passFee})
-       : await client.rpc(isTrial?'dfc_z37_points_join_engine':'dfc_z37_points_join_paid',args);
+       : await client.rpc(isTrial?'dfc_z37_points_join_engine':'dfc_z37_points_join_priced',args);
      if(error)throw error;
      if(state.screen!==screen)return;
      if(!['waiting','playing','settled'].includes(data?.state)||!data.table_id)throw new Error('La mesa todavía no está disponible.');
@@ -223,6 +223,15 @@
      if(state.screen===screen)cleanup();
    }catch(error){
      status.textContent=error?.message||'No se pudo entrar a la mesa.';
+     if(error?.code==='DF001'&&screen&&state.screen===screen){
+       await refresh('points',screen);
+       if(state.screen===screen){
+         const notice=document.createElement('p');
+         notice.setAttribute('role','status');
+         notice.textContent='Cambió el precio por pase. Revisa la tarifa y vuelve a confirmar.';
+         $('#dfc-z37-content')?.prepend(notice);
+       }
+     }
    }finally{
      joiningTrial=false;
      button.disabled=false;
