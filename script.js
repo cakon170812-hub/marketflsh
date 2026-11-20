@@ -2108,6 +2108,9 @@
  style.textContent=`
  #dfcPointsScore,#dfcPointsResult {color:#fff;background:#101f3af5;border:1px solid #dabf70;border-radius:9px;font:700 clamp(10px,2vmin,15px)/1.22 system-ui}
  #dfcPointsScore {display:grid;gap:2px;padding:4px 7px;max-width:min(42vw,270px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+ #dominoStage .domino-inside-pot[data-dfc-points-pot] > :not(#dfcPointsPots){display:none!important}
+ #dfcPointsPots{display:grid;gap:3px;white-space:nowrap;font-variant-numeric:tabular-nums}
+ #dfcPointsPots[hidden]{display:none}
  #dominoTablePanel[data-dfc-points-playing] #dominoSurrenderBtn,
  body:has(#dominoTablePanel.active[data-dfc-points-playing]) #dominoExitBtn,
  #dominoTablePanel[data-dfc-points-replay] #dominoSurrenderBtn,
@@ -2133,6 +2136,13 @@
  const score=document.createElement('div');
  score.id='dfcPointsScore';score.hidden=true;score.setAttribute('aria-label','Marcador por puntos');
  controls.prepend(score);
+ const basePot=stage.querySelector('.domino-inside-pot');
+ const pots=document.createElement('div');
+ pots.id='dfcPointsPots';pots.hidden=true;pots.setAttribute('aria-label','Botes de la mesa');
+ const flashCoinPot=document.createElement('b');
+ const diamondPot=document.createElement('b');
+ pots.append(flashCoinPot,diamondPot);
+ basePot?.append(pots);
  const result=document.createElement('section');
  result.id='dfcPointsResult';result.hidden=true;result.setAttribute('role','region');result.setAttribute('aria-label','Resultado de mano');
  stage.append(result);
@@ -2231,6 +2241,7 @@
    retryReplayAt=0;
    stage.querySelectorAll('.dfc-seat-points').forEach(label=>label.remove());
    score.hidden=true;result.hidden=true;result.replaceChildren();
+   pots.hidden=true;basePot?.removeAttribute('data-dfc-points-pot');
    replayState=null;confirmedMatch='';confirming=false;replayError='';replay.hidden=true;
    document.querySelectorAll('.dfc-point-coin').forEach(coin=>coin.remove());
  }
@@ -2239,11 +2250,12 @@
  }
  function drawScore(data,animatedSeat,points){
    score.hidden=false;
-   const labels=[
-     'Meta · '+data.target+' puntos',
-     'Bote FlashCoin · '+money.format(data.state==='settled'?data.pot_fc:data.live_pot_fc||0),
-     'Bote diamantes · '+format.format(data.state==='settled'?data.pot_diamonds:data.live_pot_diamonds||0)
-   ];
+   const labels=['Meta · '+data.target+' puntos'];
+   const settled=data.state==='settled';
+   flashCoinPot.textContent=money.format((settled?data.pot_fc:data.live_pot_fc)??0)+' FC';
+   diamondPot.textContent=format.format((settled?data.pot_diamonds:data.live_pot_diamonds)??0)+' diamantes';
+   basePot?.setAttribute('data-dfc-points-pot','');
+   pots.hidden=false;
    if(data.state==='waiting'&&Number(data.capacity)===3){
      const missing=Math.max(0,3-data.players.length);
      if(missing)labels.unshift(missing===1?'Esperando 1 jugador':'Esperando '+missing+' jugadores');
@@ -2391,7 +2403,7 @@
      }
      if(last&&last.match_id!==data.match_id){last=null;shown='';dismissed='';replayError='';result.hidden=true;}
      window.dfcZ37UI?.syncSpectator(data,id);
-     replayState=!window.dominoSpectatorMode&&data.replay_deadline?data:null;
+     replayState=!window.dominoSpectatorMode&&data.state==='settled'&&data.replay_deadline?data:null;
      if(replayState)replayOffset=Date.parse(data.server_time)-Date.now();
      drawReplay();
      const first=!last;
