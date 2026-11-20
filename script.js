@@ -1836,7 +1836,7 @@
     #dfcDiamondFlashcardPanel[data-tools] > :not(#dfc-z9-modal){display:none!important}
     #dfcDiamondFlashcardPanel[data-arrival] .dfc-diamond-actions{display:none}
     #dfcDiamondFlashcardPanel .dfc-diamond-actions{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
-    #dfcDiamondFlashcardPanel{width:min(90vw,580px);max-height:85dvh;overflow:auto;border:1px solid #aa94ee;border-radius:14px;background:#161333;color:#fff;padding:12px}
+    #dfcDiamondFlashcardPanel{width:min(90vw,580px);max-height:calc(100dvh - 24px);box-sizing:border-box;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;border:1px solid #aa94ee;border-radius:14px;background:#161333;color:#fff;padding:12px}
     #dfcDiamondFlashcardPanel::backdrop{background:#09051add}
     #dfcDiamondFlashcardPanel[data-arrival]{width:min(96vw,760px);padding:16px}
     #dfcDiamondFlashcardPanel header{display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -1864,6 +1864,7 @@
   home.append(button);
   const dialog=document.createElement('dialog');
   dialog.id='dfcDiamondFlashcardPanel';
+  dialog.addEventListener('touchmove',event=>event.stopPropagation(),{passive:true});
   dialog.innerHTML='<header><strong>Tarjeta de Diamantes Flashcard</strong><button type="button" data-close>Cerrar</button></header><nav class="dfc-diamond-actions" aria-label="Opciones de diamantes"><button type="button" data-diamond-tool="send">Enviar diamantes</button><button type="button" data-diamond-tool="history">Historial</button><button type="button" data-diamond-all hidden>Reclamar todas</button></nav><p role="status"></p><div class="dfc-diamond-cards"></div>';
   document.body.append(dialog);
   const status=dialog.querySelector('[role=status]');
@@ -2391,7 +2392,7 @@
 
 
 /* Show the separate points-prize balance in the FlashCoin card panel. */
-(function showPointsCardBalance() {
+(function showPendingFlashCoinBalance() {
  const connect=()=>{
    const overlay=document.getElementById('dfcLabGiftOverlay008');
    const cards=document.getElementById('dfcLabGiftUser008');
@@ -2401,17 +2402,22 @@
    balance.style.cssText='margin:6px 0;text-align:center;font-weight:700';
    cards.before(balance);
    const format=new Intl.NumberFormat('es-DO',{minimumFractionDigits:2,maximumFractionDigits:3});
-   let version=0;
+   let version=0,expiryTimer;
    async function refresh(){
      const request=++version;
-     balance.hidden=true;
-     if(overlay.hidden||cards.hidden)return;
+     clearTimeout(expiryTimer);
+     if(overlay.hidden||cards.hidden){balance.hidden=true;return;}
      const client=window.sb||window.dfcSupabase;
      if(!client?.rpc)return;
-     const {data,error}=await client.rpc('dfc_points_card_balance');
-     if(request!==version||error||data==null)return;
-     balance.textContent='Saldo de tarjetas FlashCoin · '+format.format(data)+' FC';
+     const {data,error}=await client.rpc('dfc_flashcoin_pending_total');
+     if(request!==version)return;
+     if(error||!data){balance.hidden=true;return;}
+     balance.textContent='Saldo de tarjetas FlashCoin · '+format.format(data.total)+' FC';
      balance.hidden=false;
+     if(data.next_expiry){
+       const delay=Date.parse(data.next_expiry)-Date.parse(data.server_time);
+       expiryTimer=setTimeout(refresh,Math.min(2147483647,Math.max(100,delay)));
+     }
    }
    const observer=new MutationObserver(()=>void refresh());
    observer.observe(overlay,{attributes:true,attributeFilter:['hidden']});
