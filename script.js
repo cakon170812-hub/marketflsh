@@ -2235,6 +2235,10 @@
      'Bote FlashCoin · '+money.format(data.state==='settled'?data.pot_fc:data.live_pot_fc||0),
      'Bote diamantes · '+format.format(data.state==='settled'?data.pot_diamonds:data.live_pot_diamonds||0)
    ];
+   if(data.state==='waiting'&&Number(data.capacity)===3){
+     const missing=Math.max(0,3-data.players.length);
+     if(missing)labels.unshift(missing===1?'Esperando 1 jugador':'Esperando '+missing+' jugadores');
+   }
    if(score.dataset.summary!==labels.join('|')){
      score.dataset.summary=labels.join('|');
      score.replaceChildren(...labels.map(label=>{
