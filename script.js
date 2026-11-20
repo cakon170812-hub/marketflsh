@@ -2082,12 +2082,14 @@
  const style=document.createElement('style');
  style.textContent=`
  #dfcPointsScore,#dfcPointsResult {color:#fff;background:#101f3af5;border:1px solid #dabf70;border-radius:9px;font:700 clamp(10px,2vmin,15px)/1.22 system-ui}
- #dfcPointsScore {padding:4px 7px;max-width:min(42vw,270px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+ #dfcPointsScore {display:grid;gap:2px;padding:4px 7px;max-width:min(42vw,270px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
  #dominoTablePanel[data-dfc-points-playing] #dominoSurrenderBtn,
- body:has(#dominoTablePanel.active[data-dfc-points-playing]) #dominoExitBtn{display:none!important}
+ body:has(#dominoTablePanel.active[data-dfc-points-playing]) #dominoExitBtn,
+ #dominoTablePanel[data-dfc-points-replay] #dominoSurrenderBtn,
+ body:has(#dominoTablePanel.active[data-dfc-points-replay]) #dominoExitBtn{display:none!important}
  #dominoSeats .dfc-seat-points{display:inline-grid;place-items:center;vertical-align:middle;margin-inline-start:.35em;min-width:2.9em;aspect-ratio:1;border-radius:50%;box-sizing:border-box;padding:.2em;color:#fff;border:1px solid #bc9ee7;background:linear-gradient(180deg,#7358a2,#50377f 45%,#2d224e 51%,#392d62);box-shadow:inset 0 1px 4px #fff5,0 2px 6px #160d2b99;font:800 clamp(9px,1.7vmin,14px)/1 system-ui;font-variant-numeric:tabular-nums}
  #dominoSeats .domino-seat.empty .dfc-seat-points{display:none}
- #dfcPointsReplay{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);z-index:182;display:flex;align-items:center;gap:8px;background:#101f3af5;color:white;border:1px solid #dabf70;border-radius:9px;padding:6px 9px;font:700 clamp(10px,2vmin,15px)/1.2 system-ui;max-width:90%}
+ #dfcPointsReplay{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);z-index:182;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;background:#101f3af5;color:white;border:1px solid #dabf70;border-radius:9px;padding:6px 9px;font:700 clamp(10px,2vmin,15px)/1.2 system-ui;max-width:90%}
  #dfcPointsReplay button{padding:5px 9px;white-space:nowrap}
  #dfcPointsReplay[hidden],#dfcPointsReplay button[hidden],#dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
  #dfcPointsResult {position:absolute;inset:12% auto auto 50%;transform:translateX(-50%);width:min(84%,570px);max-height:76%;box-sizing:border-box;overflow:auto;z-index:180;padding:10px;text-align:center;box-shadow:0 8px 25px #0009}
@@ -2113,11 +2115,15 @@
  replay.id='dfcPointsReplay';replay.hidden=true;
  const replayText=document.createElement('span');
  const replayButton=document.createElement('button');
- replayButton.type='button';replayButton.textContent='Confirmar siguiente partida';
- replay.append(replayText,replayButton);
+ replayButton.type='button';
+ const exitButton=document.createElement('button');
+ exitButton.type='button';exitButton.textContent='Salir';
+ replayText.setAttribute('role','status');
+ replay.append(replayText,replayButton,exitButton);
  stage.append(replay);
- let replayState=null,replayOffset=0,confirming=false,confirmedMatch='',replayError='';
+ let replayState=null,replayOffset=0,confirming=false,confirmedMatch='',replayError='',retryReplayAt=0;
  function drawReplay(){
+   panel.toggleAttribute('data-dfc-points-replay',Boolean(replayState));
    if(!replayState){replay.hidden=true;return;}
    replay.hidden=false;
    const now=Date.now()+replayOffset;
@@ -2125,29 +2131,54 @@
    const opens=Date.parse(replayState.replay_opens);
    const seconds=Math.max(0,Math.ceil((deadline-now)/1000));
    const confirmed=replayState.replay_confirmed||confirmedMatch===replayState.match_id;
-   replayButton.hidden=confirmed||!seconds||now<opens;
-   replayButton.disabled=confirming;
-   const entry=[Number(replayState.entry_fc)>0?money.format(replayState.entry_fc)+' FC':'',
+   const missing=Number(replayState.replay_fc_missing)||0;
+   const entry=[Number(replayState.entry_fc)>0?money.format(replayState.entry_fc)+' FlashCoin':'',
      Number(replayState.entry_diamonds)>0?format.format(replayState.entry_diamonds)+' diamantes':''].filter(Boolean).join(' + ')||'Gratis';
-   replayText.textContent=replayError||(confirmed?'Confirmada · '+entry+' · '+seconds+' s':
-     now<opens?'Siguiente partida · '+entry:
-     seconds?'Entrada '+entry+' · '+seconds+' s':'Terminó el plazo de confirmación.');
+   replayButton.textContent='Confirmar y seguir · '+entry;
+   replayButton.hidden=confirmed||!seconds||now<opens||missing>0;
+   exitButton.hidden=confirmed||!seconds||now<opens||missing>0;
+   replayButton.disabled=exitButton.disabled=confirming;
+   replayText.textContent=replayError||(confirmed?'Aporte confirmado · '+seconds+' s':
+     now<opens?'Siguiente partida':missing>0?'FlashCoin insuficiente':
+     seconds?seconds+' s para decidir':'Cerrando la revancha…');
+   if(!confirmed&&!confirming&&now>=opens&&Date.now()>=retryReplayAt){
+     if(!seconds)void chooseReplay('timeout');
+     else if(missing>0)void chooseReplay('check');
+   }
  }
- replayButton.onclick=async()=>{
+ async function chooseReplay(choice){
    if(confirming||!replayState)return;
    const match=replayState.match_id,token=epoch;
    confirming=true;replayError='';drawReplay();
    try{
      const client=window.sb||window.dfcSupabase;
-     const {data,error}=await client.rpc('dfc_points_replay_confirm',{p_match_id:match});
-     if(error||data!==true)throw Error(error?.message||'No se pudo confirmar.');
-     if(token===epoch)confirmedMatch=match;
+     const {data,error}=await client.rpc('dfc_points_replay_choice',{p_match_id:match,p_choice:choice});
+     if(error)throw error;
+     if(token!==epoch)return;
+     if(data?.state==='confirmed')confirmedMatch=match;
+     if(data?.state==='pending')retryReplayAt=Date.now()+1800;
+     if(data?.state==='left'){
+       if(Number(data.missing_fc)>0){
+         replayError='Saldo insuficiente. Te faltan '+money.format(data.missing_fc)+' FlashCoin.';
+         drawReplay();
+         await new Promise(resolve=>setTimeout(resolve,2200));
+       }
+       if(token!==epoch)return;
+       hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoTablePanel');
+       dominoStopPolling();await dominoStopRealtime();await dominoReleaseWakeLock();
+       window.DFC_Z15?.onExit();
+       dominoCurrentTableId=null;dominoViewAway=false;dominoResetTableEffects();dominoReleaseLandscape();
+       await loadMe();renderMe();
+       window.dfcZ37UI?.open('points');
+     }
    }catch(error){
-     if(token===epoch){replayError=error.message;drawReplay();}
+     if(token===epoch){replayError=error.message||'No se pudo completar la revancha.';retryReplayAt=Date.now()+2500;}
    }finally{
-     if(token===epoch){confirming=false;if(confirmedMatch===match)drawReplay();else replayButton.disabled=false;}
+     if(token===epoch){confirming=false;drawReplay();}
    }
- };
+ }
+ replayButton.onclick=()=>chooseReplay('confirm');
+ exitButton.onclick=()=>chooseReplay('exit');
  setInterval(()=>{if(replayState&&current())drawReplay();},250);
  let table=0,epoch=0,pending=false,retryAfter=0,last=null;
  let dismissed='',shown='';
@@ -2157,6 +2188,8 @@
  function reset(id){
    table=id;epoch++;last=null;pending=false;retryAfter=0;dismissed='';shown='';
    delete panel.dataset.dfcPointsPlaying;
+   delete panel.dataset.dfcPointsReplay;
+   retryReplayAt=0;
    stage.querySelectorAll('.dfc-seat-points').forEach(label=>label.remove());
    score.hidden=true;result.hidden=true;result.replaceChildren();
    replayState=null;confirmedMatch='';confirming=false;replayError='';replay.hidden=true;
@@ -2167,7 +2200,19 @@
  }
  function drawScore(data,animatedSeat,points){
    score.hidden=false;
-   score.textContent='Meta · '+data.target+' puntos';
+   const labels=[
+     'Meta · '+data.target+' puntos',
+     'Bote FlashCoin · '+money.format(data.state==='settled'?data.pot_fc:data.live_pot_fc||0),
+     'Bote diamantes · '+format.format(data.state==='settled'?data.pot_diamonds:data.live_pot_diamonds||0)
+   ];
+   if(score.dataset.summary!==labels.join('|')){
+     score.dataset.summary=labels.join('|');
+     score.replaceChildren(...labels.map(label=>{
+       const row=document.createElement('span');
+       row.textContent=label;
+       return row;
+     }));
+   }
    panel.toggleAttribute('data-dfc-points-playing',data.state==='playing');
    for(const seat of stage.querySelectorAll('#dominoSeats .domino-seat')){
      let label=seat.querySelector('.dfc-seat-points');
