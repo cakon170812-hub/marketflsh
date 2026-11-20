@@ -2139,12 +2139,14 @@
  const replay=document.createElement('div');
  replay.id='dfcPointsReplay';replay.hidden=true;
  const replayText=document.createElement('span');
+ const replayTerms=document.createElement('span');
+ replayTerms.style.flexBasis='100%';
  const replayButton=document.createElement('button');
  replayButton.type='button';
  const exitButton=document.createElement('button');
  exitButton.type='button';exitButton.textContent='Salir';
  replayText.setAttribute('role','status');
- replay.append(replayText,replayButton,exitButton);
+ replay.append(replayText,replayTerms,replayButton,exitButton);
  stage.append(replay);
  let replayState=null,replayOffset=0,confirming=false,confirmedMatch='',replayError='',retryReplayAt=0;
  function drawReplay(){
@@ -2157,18 +2159,25 @@
    const seconds=Math.max(0,Math.ceil((deadline-now)/1000));
    const confirmed=replayState.replay_confirmed||confirmedMatch===replayState.match_id;
    const missing=Number(replayState.replay_fc_missing)||0;
-   const entry=[Number(replayState.entry_fc)>0?money.format(replayState.entry_fc)+' FlashCoin':'',
-     Number(replayState.entry_diamonds)>0?format.format(replayState.entry_diamonds)+' diamantes':''].filter(Boolean).join(' + ')||'Gratis';
-   const passFee=Number(replayState.replay_pass_fee_fc)||0;
-   const passPrice=passFee>0?money.format(passFee)+' FlashCoin por pase':'Pase normal';
-   replayButton.textContent='Confirmar y seguir · '+entry+' · '+passPrice;
+   const terms=replayState.replay_terms;
    const seatReleased=replayState.replay_seat_released;
-   const canConfirm=replayState.replay_can_confirm!==false;
+   const canConfirm=Boolean(terms&&replayState.replay_can_confirm);
+   replayTerms.hidden=!canConfirm;
+   if(canConfirm){
+     const entry=[Number(terms.entry_fc)>0?money.format(terms.entry_fc)+' FlashCoin':'',
+       Number(terms.entry_diamonds)>0?format.format(terms.entry_diamonds)+' diamantes':''].filter(Boolean).join(' + ')||'Gratis';
+     const passFee=Number(terms.pass_fee_fc)||0;
+     const passPrice=passFee>0?money.format(passFee)+' FlashCoin por pase':'Pase normal';
+     replayTerms.textContent=terms.players+' jugadores · Meta '+terms.target_points+' puntos · Aporte '+entry+
+       ' · '+passPrice+' · Comisión '+format.format(terms.admin_pct)+' % FC / '+format.format(terms.diamond_admin_pct)+' % diamantes';
+   }
+   replayButton.textContent='Confirmar y seguir';
+   exitButton.textContent=canConfirm?'Salir':'Volver a Mesas por puntos';
    replayButton.hidden=!canConfirm||confirmed||!seconds||now<opens||missing>0||seatReleased;
    exitButton.hidden=confirmed||!seconds||now<opens||(canConfirm&&missing>0)||seatReleased;
    replayButton.disabled=exitButton.disabled=confirming;
    replayText.textContent=replayError||(confirmed?'Aporte confirmado · '+seconds+' s':
-     !canConfirm?'Mesa desactivada · Revancha cerrada':now<opens?'Siguiente partida':missing>0?'FlashCoin insuficiente':
+     !canConfirm?(replayState.replay_closed_reason==='capacity'?'Cambió el cupo · Revancha cerrada':'Mesa desactivada · Revancha cerrada'):now<opens?'Siguiente partida':missing>0?'FlashCoin insuficiente':
      seconds?seconds+' s para decidir':'Cerrando la revancha…');
    if(!confirmed&&!confirming&&(seatReleased||now>=opens)&&Date.now()>=retryReplayAt){
      if(seatReleased||!seconds)void chooseReplay('timeout');
@@ -2177,11 +2186,11 @@
  }
  async function chooseReplay(choice){
    if(confirming||!replayState)return;
-   const match=replayState.match_id,token=epoch,passFee=Number(replayState.replay_pass_fee_fc)||0;
+   const match=replayState.match_id,token=epoch,terms=replayState.replay_terms||null;
    confirming=true;replayError='';drawReplay();
    try{
      const client=window.sb||window.dfcSupabase;
-     const {data,error}=await client.rpc('dfc_points_replay_choice_priced',{p_match_id:match,p_choice:choice,p_pass_fee:passFee});
+     const {data,error}=await client.rpc('dfc_points_replay_choice_terms',{p_match_id:match,p_choice:choice,p_terms:terms});
      if(error)throw error;
      if(token!==epoch)return;
      if(data?.state==='confirmed')confirmedMatch=match;
