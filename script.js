@@ -2085,12 +2085,17 @@
  #dfcPointsScore {padding:4px 7px;max-width:min(42vw,270px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
  #dominoTablePanel[data-dfc-points-playing] #dominoSurrenderBtn,
  body:has(#dominoTablePanel.active[data-dfc-points-playing]) #dominoExitBtn{display:none!important}
- #dominoSeats .dfc-seat-points{display:inline-block;margin-inline-start:.35em;color:#ffe39b;font:700 clamp(9px,1.5vmin,13px)/1.2 system-ui;white-space:nowrap}
+ #dominoSeats .dfc-seat-points{display:inline-grid;place-items:center;vertical-align:middle;margin-inline-start:.35em;min-width:2.9em;aspect-ratio:1;border-radius:50%;box-sizing:border-box;padding:.2em;color:#fff;border:1px solid #bc9ee7;background:linear-gradient(180deg,#7358a2,#50377f 45%,#2d224e 51%,#392d62);box-shadow:inset 0 1px 4px #fff5,0 2px 6px #160d2b99;font:800 clamp(9px,1.7vmin,14px)/1 system-ui;font-variant-numeric:tabular-nums}
  #dominoSeats .domino-seat.empty .dfc-seat-points{display:none}
  #dfcPointsReplay{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);z-index:182;display:flex;align-items:center;gap:8px;background:#101f3af5;color:white;border:1px solid #dabf70;border-radius:9px;padding:6px 9px;font:700 clamp(10px,2vmin,15px)/1.2 system-ui;max-width:90%}
  #dfcPointsReplay button{padding:5px 9px;white-space:nowrap}
  #dfcPointsReplay[hidden],#dfcPointsReplay button[hidden],#dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
  #dfcPointsResult {position:absolute;inset:12% auto auto 50%;transform:translateX(-50%);width:min(84%,570px);max-height:76%;box-sizing:border-box;overflow:auto;z-index:180;padding:10px;text-align:center;box-shadow:0 8px 25px #0009}
+ #dfcPointsResult[data-prize]{background:radial-gradient(ellipse at top,#383269,#10172e 72%);border-color:#f9d38c;box-shadow:0 12px 36px #090c1bc9,inset 0 0 36px #f4c97518}
+ #dfcPointsResult[data-prize] h2{color:#ffe7ad;font-size:clamp(18px,4vmin,34px)}
+ #dfcPointsResult .dfc-points-prize{display:grid;gap:.45em;justify-items:start;width:min(100%,260px);margin:10px auto;padding:16px 19px;text-align:left;border:1px solid #8ce4ff;border-radius:15px;color:#fff;background:linear-gradient(145deg,#192650,#124b85 60%,#176784);box-shadow:0 7px 20px #020817a6,inset 0 1px 1px #c4eeff90;cursor:pointer}
+ #dfcPointsResult .dfc-points-prize strong{font-size:clamp(20px,4vmin,34px);font-variant-numeric:tabular-nums}
+ #dfcPointsResult .dfc-points-prize small{color:#c3f0ff}
  #dfcPointsResult p{margin:4px 0}
  #dfcPointsResult h2{font-size:1.4em;margin:4px 0 7px}
  #dfcPointsResult .dfc-points-tiles {display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
@@ -2108,10 +2113,10 @@
  replay.id='dfcPointsReplay';replay.hidden=true;
  const replayText=document.createElement('span');
  const replayButton=document.createElement('button');
- replayButton.type='button';replayButton.textContent='Jugar otra vez';
+ replayButton.type='button';replayButton.textContent='Confirmar siguiente partida';
  replay.append(replayText,replayButton);
  stage.append(replay);
- let replayState=null,replayOffset=0,confirming=false,confirmedMatch='';
+ let replayState=null,replayOffset=0,confirming=false,confirmedMatch='',replayError='';
  function drawReplay(){
    if(!replayState){replay.hidden=true;return;}
    replay.hidden=false;
@@ -2122,21 +2127,23 @@
    const confirmed=replayState.replay_confirmed||confirmedMatch===replayState.match_id;
    replayButton.hidden=confirmed||!seconds||now<opens;
    replayButton.disabled=confirming;
-   replayText.textContent=now<opens?'La revancha abre en un momento.':
-     confirmed?'Confirmaste · '+seconds+' s':
-     seconds?'Revancha gratis · '+seconds+' s':'Terminó el plazo de confirmación.';
+   const entry=[Number(replayState.entry_fc)>0?money.format(replayState.entry_fc)+' FC':'',
+     Number(replayState.entry_diamonds)>0?format.format(replayState.entry_diamonds)+' diamantes':''].filter(Boolean).join(' + ')||'Gratis';
+   replayText.textContent=replayError||(confirmed?'Confirmada · '+entry+' · '+seconds+' s':
+     now<opens?'Siguiente partida · '+entry:
+     seconds?'Entrada '+entry+' · '+seconds+' s':'Terminó el plazo de confirmación.');
  }
  replayButton.onclick=async()=>{
    if(confirming||!replayState)return;
    const match=replayState.match_id,token=epoch;
-   confirming=true;drawReplay();
+   confirming=true;replayError='';drawReplay();
    try{
      const client=window.sb||window.dfcSupabase;
-     const {data,error}=await client.rpc('dfc_z37_trial_replay_confirm',{p_match_id:match});
+     const {data,error}=await client.rpc('dfc_points_replay_confirm',{p_match_id:match});
      if(error||data!==true)throw Error(error?.message||'No se pudo confirmar.');
      if(token===epoch)confirmedMatch=match;
    }catch(error){
-     if(token===epoch)replayText.textContent=error.message;
+     if(token===epoch){replayError=error.message;drawReplay();}
    }finally{
      if(token===epoch){confirming=false;if(confirmedMatch===match)drawReplay();else replayButton.disabled=false;}
    }
@@ -2145,13 +2152,14 @@
  let table=0,epoch=0,pending=false,retryAfter=0,last=null;
  let dismissed='',shown='';
  const format=new Intl.NumberFormat('es-DO',{maximumFractionDigits:2});
+ const money=new Intl.NumberFormat('es-DO',{minimumFractionDigits:2,maximumFractionDigits:3});
  const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
  function reset(id){
    table=id;epoch++;last=null;pending=false;retryAfter=0;dismissed='';shown='';
    delete panel.dataset.dfcPointsPlaying;
    stage.querySelectorAll('.dfc-seat-points').forEach(label=>label.remove());
    score.hidden=true;result.hidden=true;result.replaceChildren();
-   replayState=null;confirmedMatch='';confirming=false;replay.hidden=true;
+   replayState=null;confirmedMatch='';confirming=false;replayError='';replay.hidden=true;
    document.querySelectorAll('.dfc-point-coin').forEach(coin=>coin.remove());
  }
  function current(){
@@ -2172,7 +2180,10 @@
        balance.after(label);
      }
      label.dataset.pointsSeat=player.seat;
-     label.textContent=(player.seat===animatedSeat?points:player.points)+' puntos';
+     const value=player.seat===animatedSeat?points:player.points;
+     label.textContent=format.format(value);
+     label.setAttribute('aria-label',format.format(value)+' puntos');
+     label.title=format.format(value)+' puntos';
    }
  }
  function text(tag,value,root=result){
@@ -2193,12 +2204,33 @@
    result.hidden=false;result.replaceChildren();
    const blocked=hand.kind==='trancazo';
    const victory=data.state==='settled';
-   text('h2',victory?'¡'+winner.name+' ganó la partida!':blocked?'Tranque':'Dominó');
+   const won=victory&&data.players.some(player=>player.mine&&player.team===data.winner_team);
+   result.toggleAttribute('data-prize',won);
+   text('h2',won?'¡Felicidades, ganaste!':victory?'¡'+winner.name+' ganó la partida!':blocked?'Tranque':'Dominó');
    text('p',winner.name+' · +'+hand.points+' puntos · '+winner.points+' / '+data.target);
    if(victory){
      text('p',format.format(100*winner.points/data.target)+' % de la meta · '+format.format(100*hand.points/data.target)+' % aportado por esta mano');
      text('p','Bote ganado: '+data.pot_fc+' FlashCoin · '+data.pot_diamonds+' diamantes');
-     text('p','Parte del ganador: 100 % del bote');
+     if(data.my_prize){
+       const prize=data.my_prize;
+       const card=text('button','');
+       card.type='button';card.className='dfc-points-prize';
+       text('small','TARJETA FLASHCOIN',card);
+       text('strong',money.format(prize.amount)+' FC',card);
+       const status=text('small',prize.redeemed?'Tarjeta acreditada':'Toca para acreditar al saldo de tarjetas',card);
+       card.disabled=prize.redeemed;
+       card.onclick=async()=>{
+         card.disabled=true;
+         try{
+           const client=window.sb||window.dfcSupabase;
+           const {data:claim,error}=await client.rpc('dfc_lab_gift_redeem_v008',{p_gift_id:prize.id});
+           if(error||!(claim?.ok||claim?.already_redeemed))throw Error(error?.message||claim?.message||'No se pudo acreditar.');
+           prize.redeemed=true;
+           status.textContent=claim.card_balance==null?'Tarjeta acreditada':
+             'Saldo de tarjetas · '+money.format(claim.card_balance)+' FC';
+         }catch(error){status.textContent=error.message;card.disabled=false;}
+       };
+     }
    }
    if(hand.deciding_tile){
      text('p',blocked?'Ficha que cerró el juego':'Ficha decisiva');
@@ -2268,7 +2300,7 @@
        retryAfter=last?0:Date.now()+5000;
        return;
      }
-     if(last&&last.match_id!==data.match_id){last=null;shown='';dismissed='';result.hidden=true;}
+     if(last&&last.match_id!==data.match_id){last=null;shown='';dismissed='';replayError='';result.hidden=true;}
      replayState=data.replay_deadline?data:null;
      if(replayState)replayOffset=Date.parse(data.server_time)-Date.now();
      drawReplay();
@@ -2287,6 +2319,40 @@
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)void update();});
 })();
 
+
+/* Show the separate points-prize balance in the FlashCoin card panel. */
+(function showPointsCardBalance() {
+ const connect=()=>{
+   const overlay=document.getElementById('dfcLabGiftOverlay008');
+   const cards=document.getElementById('dfcLabGiftUser008');
+   if(!overlay||!cards)return false;
+   const balance=document.createElement('p');
+   balance.hidden=true;
+   balance.style.cssText='margin:6px 0;text-align:center;font-weight:700';
+   cards.before(balance);
+   const format=new Intl.NumberFormat('es-DO',{minimumFractionDigits:2,maximumFractionDigits:3});
+   let version=0;
+   async function refresh(){
+     const request=++version;
+     balance.hidden=true;
+     if(overlay.hidden||cards.hidden)return;
+     const client=window.sb||window.dfcSupabase;
+     if(!client?.rpc)return;
+     const {data,error}=await client.rpc('dfc_points_card_balance');
+     if(request!==version||error||data==null)return;
+     balance.textContent='Saldo de tarjetas FlashCoin · '+format.format(data)+' FC';
+     balance.hidden=false;
+   }
+   const observer=new MutationObserver(()=>void refresh());
+   observer.observe(overlay,{attributes:true,attributeFilter:['hidden']});
+   observer.observe(cards,{attributes:true,attributeFilter:['hidden'],childList:true});
+   void refresh();
+   return true;
+ };
+ if(connect())return;
+ const observer=new MutationObserver(()=>{if(connect())observer.disconnect();});
+ observer.observe(document.body,{childList:true});
+})();
 
 /* Confirm the first turn as soon as the shared deal animation finishes. */
 (function syncFirstDominoTurn() {
