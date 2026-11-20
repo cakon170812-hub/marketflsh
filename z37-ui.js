@@ -170,7 +170,9 @@
    if(joiningTrial)return;
    const isTrial=config.id===trialId;
    const hasContribution=Number(config.entry_fc)>0||Number(config.entry_diamonds)>0;
-   if(hasContribution&&!window.confirm('Sentarte en '+config.name+' · Aporte: '+config.entry_fc+' FlashCoin y '+config.entry_diamonds+' diamantes.'))return;
+   const passFee=Number(config.pass_fee_fc)||0;
+   if((hasContribution||passFee>0)&&!window.confirm('Sentarte en '+config.name+' · Aporte: '+config.entry_fc+
+     ' FlashCoin y '+config.entry_diamonds+' diamantes.'+(passFee>0?' Cada pase cuesta '+passFee+' FlashCoin.':'')))return;
    const screen=state.screen;
    const status=button.nextElementSibling;
    joiningTrial=true;
@@ -225,7 +227,7 @@
  function drawPoints(){
   const e=$('#dfc-z37-content');
   e.innerHTML=catalogNotice()+'<div class="dfc-z37-grid">'+(state.pointTables.length?state.pointTables.map(t=>
-    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p><p>'+esc(t.players)+' jugadores</p>'+pointIdControls(t.id)+(t.id===trialId||[2,3,4].includes(Number(t.players))?'<button type="button" class="dfc-z37-btn" data-z37-point-config="'+esc(t.id)+'">Sentarse en mesa</button><p role="status"></p>':'<button type="button" class="dfc-z37-btn" disabled>Entrada aún no disponible</button>')+'</div>').join(''):
+    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p>'+(Number(t.pass_fee_fc)>0?'<p>Cada pase: '+esc(t.pass_fee_fc)+' FlashCoin</p>':'')+'<p>'+esc(t.players)+' jugadores</p>'+pointIdControls(t.id)+(t.id===trialId||[2,3,4].includes(Number(t.players))?'<button type="button" class="dfc-z37-btn" data-z37-point-config="'+esc(t.id)+'">Sentarse en mesa</button><p role="status"></p>':'<button type="button" class="dfc-z37-btn" disabled>Entrada aún no disponible</button>')+'</div>').join(''):
     state.catalogStatus==='ready'?'<div class="dfc-z37-summary">No hay mesas por puntos publicadas.</div>':'')+'</div>';
   e.querySelectorAll('[data-copy-table-id]').forEach(button=>{
     button.onclick=async()=>{

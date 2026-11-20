@@ -2135,14 +2135,15 @@
    const entry=[Number(replayState.entry_fc)>0?money.format(replayState.entry_fc)+' FlashCoin':'',
      Number(replayState.entry_diamonds)>0?format.format(replayState.entry_diamonds)+' diamantes':''].filter(Boolean).join(' + ')||'Gratis';
    replayButton.textContent='Confirmar y seguir · '+entry;
-   replayButton.hidden=confirmed||!seconds||now<opens||missing>0;
-   exitButton.hidden=confirmed||!seconds||now<opens||missing>0;
+   const seatReleased=replayState.replay_seat_released;
+   replayButton.hidden=confirmed||!seconds||now<opens||missing>0||seatReleased;
+   exitButton.hidden=confirmed||!seconds||now<opens||missing>0||seatReleased;
    replayButton.disabled=exitButton.disabled=confirming;
    replayText.textContent=replayError||(confirmed?'Aporte confirmado · '+seconds+' s':
      now<opens?'Siguiente partida':missing>0?'FlashCoin insuficiente':
      seconds?seconds+' s para decidir':'Cerrando la revancha…');
-   if(!confirmed&&!confirming&&now>=opens&&Date.now()>=retryReplayAt){
-     if(!seconds)void chooseReplay('timeout');
+   if(!confirmed&&!confirming&&(seatReleased||now>=opens)&&Date.now()>=retryReplayAt){
+     if(seatReleased||!seconds)void chooseReplay('timeout');
      else if(missing>0)void chooseReplay('check');
    }
  }
