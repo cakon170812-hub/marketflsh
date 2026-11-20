@@ -83,7 +83,7 @@
    let result;
    try{
      const results=await Promise.all([
-       rpc(isPoints?'dfc_z37_public_points':'dfc_z37_public_tournaments'),
+       rpc(isPoints?'dfc_z37_points_catalog_terms':'dfc_z37_public_tournaments'),
        isPoints?Promise.resolve().then(()=>rpc('dfc_z37_points_live_boards')).catch(()=>null):null
      ]);
      if(state.screen!==screen)return;
@@ -96,7 +96,7 @@
    state.catalogStatus=result.error || !Array.isArray(result.data)?'error':'ready';
    const items=state.catalogStatus==='ready'?result.data:[];
    if(isPoints){
-     state.pointTables=items;
+     state.pointTables=items.map(row=>({...row.terms,id:row.id,name:row.name,terms:row.terms}));
      drawPoints();
    }else{
      state.items=items;
@@ -171,28 +171,29 @@
  }
 
 
- const trialId='b3abde40-ea42-4a52-ab24-0ce93c090200';
  let joiningTrial=false;
  async function joinPoints(button,config,viewedTable){
    if(joiningTrial)return;
-   const isTrial=config.id===trialId;
-   const hasContribution=Number(config.entry_fc)>0||Number(config.entry_diamonds)>0;
-   const passFee=Number(config.pass_fee_fc)||0;
-   if((hasContribution||passFee>0)&&!window.confirm('Sentarte en '+config.name+' · Aporte: '+config.entry_fc+
-     ' FlashCoin y '+config.entry_diamonds+' diamantes.'+(passFee>0?' Cada pase cuesta '+passFee+' FlashCoin.':'')))return;
    const screen=state.screen;
    const status=button.nextElementSibling;
+   const terms=config.terms;
+   if(!terms){status.textContent='Vuelve a abrir la mesa para consultar las condiciones.';return;}
+   const amount=new Intl.NumberFormat('es-DO',{maximumFractionDigits:3});
+   const entry=[Number(terms.entry_fc)>0?amount.format(terms.entry_fc)+' FlashCoin':'',
+     Number(terms.entry_diamonds)>0?amount.format(terms.entry_diamonds)+' diamantes':''].filter(Boolean).join(' + ')||'Gratis';
+   const pass=Number(terms.pass_fee_fc)>0?amount.format(terms.pass_fee_fc)+' FlashCoin por pase':'Pase normal';
+   const details=['Sentarte en '+config.name,terms.players+' jugadores · Meta '+terms.target_points+' puntos',
+     'Aporte '+entry+' · '+pass,'Comisiones: '+amount.format(terms.admin_pct)+' % FlashCoin y '+amount.format(terms.diamond_admin_pct)+' % diamantes'];
+   if(!window.confirm(details.join('\n')))return;
    joiningTrial=true;
    button.disabled=true;
    status.textContent='Buscando asiento…';
    try{
      const client=db();
      if(!client)throw new Error('Espera a que cargue tu sesión y vuelve a intentar.');
-     const args={p_config:config.id,p_request:crypto.randomUUID()};
-     if(!isTrial){args.p_fc=config.entry_fc;args.p_diamonds=config.entry_diamonds;args.p_pass_fee=passFee;}
-     const {data,error}=viewedTable
-       ? await client.rpc('dfc_z37_points_join_viewed',{p_table:viewedTable,p_request:args.p_request,p_fc:config.entry_fc,p_diamonds:config.entry_diamonds,p_pass_fee:passFee})
-       : await client.rpc(isTrial?'dfc_z37_points_join_engine':'dfc_z37_points_join_priced',args);
+     const {data,error}=await client.rpc('dfc_z37_points_join_terms',{
+       p_config:config.id,p_request:crypto.randomUUID(),p_terms:terms,p_table:viewedTable||null
+     });
      if(error)throw error;
      if(state.screen!==screen)return;
      if(!['waiting','playing','settled'].includes(data?.state)||!data.table_id)throw new Error('La mesa todavía no está disponible.');
@@ -223,12 +224,20 @@
      if(state.screen===screen)cleanup();
    }catch(error){
      status.textContent=error?.message||'No se pudo entrar a la mesa.';
+     if(error?.code==='DF002'&&viewedTable){
+       await window.dominoExitSpectator?.();
+       await open('points');
+       const notice=document.createElement('p');
+       notice.setAttribute('role','status');
+       notice.textContent=error.message;
+       $('#dfc-z37-content')?.prepend(notice);
+     }
      if(error?.code==='DF001'&&screen&&state.screen===screen){
        await refresh('points',screen);
        if(state.screen===screen){
          const notice=document.createElement('p');
          notice.setAttribute('role','status');
-         notice.textContent='Cambió el precio por pase. Revisa la tarifa y vuelve a confirmar.';
+         notice.textContent='Cambiaron las condiciones. Revísalas y vuelve a confirmar.';
          $('#dfc-z37-content')?.prepend(notice);
        }
      }
@@ -316,8 +325,7 @@
    host.hidden=false;
    const button=host.querySelector('button');
    if(!joiningTrial)button.onclick=()=>joinPoints(button,{
-     id:data.config_id,name:data.table_name,entry_fc:data.entry_fc,
-     entry_diamonds:data.entry_diamonds,pass_fee_fc:data.pass_fee_fc
+     id:data.config_id,name:data.table_name,terms:data.entry_terms
    },tableId);
  }
  function showTournament(){
