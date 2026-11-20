@@ -2213,6 +2213,7 @@
  const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
  function reset(id){
    table=id;epoch++;last=null;pending=false;retryAfter=0;dismissed='';shown='';
+   window.dfcZ37UI?.syncSpectator(null,id);
    delete panel.dataset.dfcPointsPlaying;
    delete panel.dataset.dfcPointsReplay;
    retryReplayAt=0;
@@ -2239,7 +2240,7 @@
        return row;
      }));
    }
-   panel.toggleAttribute('data-dfc-points-playing',data.state==='playing');
+   panel.toggleAttribute('data-dfc-points-playing',data.state==='playing'&&!window.dominoSpectatorMode);
    for(const seat of stage.querySelectorAll('#dominoSeats .domino-seat')){
      let label=seat.querySelector('.dfc-seat-points');
      const player=data.players.find(entry=>String(entry.seat)===seat.dataset.realSeat);
@@ -2367,17 +2368,19 @@
      const {data,error}=await client.rpc('dfc_z37_points_scoreboard',{p_table_id:id});
      if(token!==epoch||current()!==id||error)return;
      if(!data){
+       window.dfcZ37UI?.syncSpectator(null,id);
        // An empty response can occur while seating or rotating a match.
        retryAfter=last?0:Date.now()+5000;
        return;
      }
      if(last&&last.match_id!==data.match_id){last=null;shown='';dismissed='';replayError='';result.hidden=true;}
-     replayState=data.replay_deadline?data:null;
+     window.dfcZ37UI?.syncSpectator(data,id);
+     replayState=!window.dominoSpectatorMode&&data.replay_deadline?data:null;
      if(replayState)replayOffset=Date.parse(data.server_time)-Date.now();
      drawReplay();
      const first=!last;
      last=data;
-     panel.toggleAttribute('data-dfc-points-playing',data.state==='playing');
+     panel.toggleAttribute('data-dfc-points-playing',data.state==='playing'&&!window.dominoSpectatorMode);
      const hand=data.last_hand;
      if(!hand||hand.id===shown){drawScore(data);return;}
      shown=hand.id;

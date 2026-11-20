@@ -47,6 +47,13 @@
  .dfc-z37-dots button[aria-current=true]::before{background:#ffce79;width:19px}
  .dfc-z37-controls{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
  .dfc-z37-summary{padding:10px;background:#1c132bd1;border-radius:12px;margin:4px 0;color:#d9e6f4}
+ #dfc-z37-screen[data-mode="points"]{touch-action:pan-x pan-y}
+ .dfc-z37-points-carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;touch-action:pan-x pan-y;padding:5px 2px 12px}
+ .dfc-z37-points-carousel>.dfc-z37-tile{flex:0 0 min(82%,360px);scroll-snap-align:start}
+ .dfc-z37-points-nav{display:flex;gap:8px}
+ #dominoTablePanel[data-dfc-points-viewer] :is(#mf110SpectatorSit,#dominoSpectatorPrev,#dominoSpectatorNext){display:none!important}
+ #dfcPointsSpectatorJoin:not([hidden]){position:absolute;right:max(3%,env(safe-area-inset-right));bottom:6%;z-index:190;max-width:44%;color:#fff}
+ #dfcPointsSpectatorJoin button{background:#15345a;color:#fff;border:1px solid #d2bc79;border-radius:9px;padding:8px 12px}
  .dfc-z37-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px;margin-top:12px}
  .dfc-z37-tile{padding:16px;border:1px solid #e7b97769;border-radius:12px;background:#1c132bd1;color:white;text-align:left;min-height:80px}
  .dfc-z37-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;padding:12px;border:1px solid #607b9d;border-radius:15px}
@@ -77,7 +84,7 @@
    try{
      const results=await Promise.all([
        rpc(isPoints?'dfc_z37_public_points':'dfc_z37_public_tournaments'),
-       isPoints?Promise.resolve().then(()=>rpc('dfc_z37_points_table_ids')).catch(()=>null):null
+       isPoints?Promise.resolve().then(()=>rpc('dfc_z37_points_live_boards')).catch(()=>null):null
      ]);
      if(state.screen!==screen)return;
      result=results[0];
@@ -166,7 +173,7 @@
 
  const trialId='b3abde40-ea42-4a52-ab24-0ce93c090200';
  let joiningTrial=false;
- async function joinPoints(button,config){
+ async function joinPoints(button,config,viewedTable){
    if(joiningTrial)return;
    const isTrial=config.id===trialId;
    const hasContribution=Number(config.entry_fc)>0||Number(config.entry_diamonds)>0;
@@ -183,7 +190,9 @@
      if(!client)throw new Error('Espera a que cargue tu sesión y vuelve a intentar.');
      const args={p_config:config.id,p_request:crypto.randomUUID()};
      if(!isTrial){args.p_fc=config.entry_fc;args.p_diamonds=config.entry_diamonds;}
-     const {data,error}=await client.rpc(isTrial?'dfc_z37_points_join_engine':'dfc_z37_points_join_paid',args);
+     const {data,error}=viewedTable
+       ? await client.rpc('dfc_z37_points_join_viewed',{p_table:viewedTable,p_request:args.p_request,p_fc:config.entry_fc,p_diamonds:config.entry_diamonds,p_pass_fee:passFee})
+       : await client.rpc(isTrial?'dfc_z37_points_join_engine':'dfc_z37_points_join_paid',args);
      if(error)throw error;
      if(state.screen!==screen)return;
      if(!['waiting','playing','settled'].includes(data?.state)||!data.table_id)throw new Error('La mesa todavía no está disponible.');
@@ -226,9 +235,40 @@
  }
  function drawPoints(){
   const e=$('#dfc-z37-content');
-  e.innerHTML=catalogNotice()+'<div class="dfc-z37-grid">'+(state.pointTables.length?state.pointTables.map(t=>
-    '<div class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p>'+(Number(t.pass_fee_fc)>0?'<p>Cada pase: '+esc(t.pass_fee_fc)+' FlashCoin</p>':'')+'<p>'+esc(t.players)+' jugadores</p>'+pointIdControls(t.id)+(t.id===trialId||[2,3,4].includes(Number(t.players))?'<button type="button" class="dfc-z37-btn" data-z37-point-config="'+esc(t.id)+'">Sentarse en mesa</button><p role="status"></p>':'<button type="button" class="dfc-z37-btn" disabled>Entrada aún no disponible</button>')+'</div>').join(''):
-    state.catalogStatus==='ready'?'<div class="dfc-z37-summary">No hay mesas por puntos publicadas.</div>':'')+'</div>';
+  const tiles=state.pointTables.map(t=>{
+    const boards=pointIds.filter(row=>row.config_id===t.id);
+    const watch=boards.find(row=>row.state==='playing')||boards[0];
+    const joinable=boards.some(row=>row.can_join)||!boards.length;
+    return '<article class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p>'+
+     (Number(t.pass_fee_fc)>0?'<p>Cada pase: '+esc(t.pass_fee_fc)+' FlashCoin</p>':'')+
+     '<p>'+esc(t.players)+' jugadores</p>'+pointIdControls(t.id)+
+     '<div class="dfc-z37-actions"><button type="button" class="dfc-z37-btn" data-z37-watch="'+esc(watch?.table_id||'')+'" '+(watch?'':'disabled')+'>Ver mesa</button>'+
+     '<button type="button" class="dfc-z37-btn" data-z37-point-config="'+esc(t.id)+'" '+(joinable?'':'disabled')+'>Sentarse</button><p role="status"></p></div></article>';
+  }).join('');
+  e.innerHTML=catalogNotice()+(tiles?'<div class="dfc-z37-points-carousel" aria-label="Mesas por puntos" tabindex="0">'+tiles+'</div>'+
+    (state.pointTables.length>1?'<nav class="dfc-z37-points-nav" aria-label="Cambiar de mesa"><button type="button" class="dfc-z37-btn" data-step="-1">‹ Anterior</button><button type="button" class="dfc-z37-btn" data-step="1">Siguiente ›</button></nav>':''):
+    state.catalogStatus==='ready'?'<div class="dfc-z37-summary">No hay mesas por puntos publicadas.</div>':'');
+  const carousel=$('.dfc-z37-points-carousel',e);
+  state.screen?.addEventListener('touchmove',allowPanelGesture,{passive:true});
+  for(const control of e.querySelectorAll('[data-step]')){
+    control.onclick=()=>carousel.scrollBy({left:Number(control.dataset.step)*(carousel.firstElementChild.offsetWidth+12),behavior:'smooth'});
+  }
+  for(const button of e.querySelectorAll('[data-z37-watch]:not(:disabled)')){
+    button.onclick=async()=>{
+      if(joiningTrial)return;
+      const screen=state.screen;
+      const status=button.parentElement.querySelector('[role="status"]');
+      status.textContent='Abriendo mesa…';
+      button.disabled=true;
+      try{
+        const tableId=Number(button.dataset.z37Watch);
+        if(!await window.enterDominoSpectatorTable?.(tableId))throw Error('No se pudo abrir la mesa.');
+        syncSpectator({can_join:false},tableId);
+        if(state.screen===screen)cleanup();
+      }catch(error){status.textContent=error.message;}
+      finally{button.disabled=false;}
+    };
+  }
   e.querySelectorAll('[data-copy-table-id]').forEach(button=>{
     button.onclick=async()=>{
       try{
@@ -243,6 +283,33 @@
     const config=state.pointTables.find(table=>table.id===button.dataset.z37PointConfig);
     button.onclick=()=>void joinPoints(button,config);
   }
+ }
+ function allowPanelGesture(event){event.stopPropagation();}
+ let pointsViewerId=0;
+ function syncSpectator(data,tableId){
+   const panel=$('#dominoTablePanel');
+   if(!panel)return;
+   let host=$('#dfcPointsSpectatorJoin',panel);
+   if(data&&window.dominoSpectatorMode)pointsViewerId=tableId;
+   if(!window.dominoSpectatorMode||pointsViewerId!==tableId)pointsViewerId=0;
+   const watching=Boolean(pointsViewerId);
+   panel.toggleAttribute('data-dfc-points-viewer',watching);
+   if(!watching||!data?.can_join){
+     if(host)host.hidden=true;
+     return;
+   }
+   if(!host){
+     host=document.createElement('div');
+     host.id='dfcPointsSpectatorJoin';
+     host.innerHTML='<button type="button">Sentarse</button><p role="status"></p>';
+     panel.append(host);
+   }
+   host.hidden=false;
+   const button=host.querySelector('button');
+   if(!joiningTrial)button.onclick=()=>joinPoints(button,{
+     id:data.config_id,name:data.table_name,entry_fc:data.entry_fc,
+     entry_diamonds:data.entry_diamonds,pass_fee_fc:data.pass_fee_fc
+   },tableId);
  }
  function showTournament(){
   shell('Torneos FlashCoin','tournament');state.slide=0;state.lastInteraction=Date.now();drawSlide();
@@ -264,5 +331,5 @@
  }
  function boot(){style();buttons();document.addEventListener('click',event=>{const button=event.target.closest?.('#dfc-z37-shortcuts button[data-z37]');if(!button)return;event.preventDefault();event.stopImmediatePropagation();void open(button.dataset.z37)},true);const observer=new MutationObserver(buttons);['#appView','#dominoTablePanel','#leaderPanel','#leaderGatePanel','#mfAdmin16_domino'].forEach(id=>{const panel=$(id);if(panel)observer.observe(panel,{attributes:true,attributeFilter:['class']})});}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
- window.dfcZ37UI=Object.freeze({open,refresh:()=>refresh(state.screen?.dataset.mode,state.screen)});
+ window.dfcZ37UI=Object.freeze({open,syncSpectator,refresh:()=>refresh(state.screen?.dataset.mode,state.screen)});
 })();
