@@ -57,6 +57,8 @@
    const list=e('div');
    list.style.cssText='display:flex;flex-wrap:wrap;gap:8px;margin:12px 0';
    const picker=e('select',{'aria-label':'Seleccionar mesa por puntos'});
+   const remove=e('button',{type:'button'},'Borrar del listado');
+   remove.hidden=true;
    const formHost=e('div');
    const notice=e('p',{'aria-live':'polite'});
    const generated=e('section',{'aria-label':'Mesas generadas'});
@@ -67,6 +69,20 @@
    function showForm(table){
      selected=table?.id||null;
      picker.value=selected||'';
+     remove.hidden=!table;
+     remove.onclick=async()=>{
+       if(!window.confirm('¿Borrar «'+table.name+'» de Mesas guardadas?'))return;
+       remove.disabled=true;
+       try{
+         await rpc('dfc_z37_admin_archive_points',{p_config:table.id});
+         if(!section.isConnected)return;
+         notice.textContent='Mesa retirada del listado.';
+         if(selected===table.id)selected=null;
+         await loadTables();
+       }catch(error){
+         if(section.isConnected)notice.textContent='No se pudo retirar la mesa: '+error.message;
+       }finally{remove.disabled=false;}
+     };
      const form=e('form',{style:formStyle});
      form.innerHTML='<h3 style="width:100%">'+(table?'Editar mesa por puntos':'Crear mesa por puntos')+'</h3>'+
        field('name','Nombre','text',table?.name??'','required maxlength="160"')+
@@ -118,20 +134,21 @@
        if(!Array.isArray(tables))throw Error('Respuesta de catálogo inválida');
        const add=e('button',{type:'button'},'+ Agregar mesa');
        add.onclick=()=>showForm(null);
-       picker.replaceChildren(e('option',{value:''},'Seleccionar mesa'));
+       picker.replaceChildren(e('option',{value:''},'Mesas guardadas'));
        for(const table of tables){
          picker.append(e('option',{value:table.id},table.name+(table.enabled?' · Visible':' · Oculta')));
        }
        picker.onchange=()=>showForm(tables.find(table=>table.id===picker.value)||null);
-       list.replaceChildren(picker,add);
+       list.replaceChildren(picker,add,remove);
+       const names=new Map(tables.map(table=>[table.id,table.name]));
+       const visibleIds=Array.isArray(ids)?ids.filter(row=>names.has(row.config_id)):null;
        generated.replaceChildren(e('h3',{},'Mesas por puntos generadas'));
-       if(!Array.isArray(ids)){
+       if(!visibleIds){
          generated.append(e('p',{},'No se pudieron consultar los IDs.'));
-       }else if(!ids.length){
+       }else if(!visibleIds.length){
          generated.append(e('p',{},'Todavía no se han generado tableros.'));
        }else{
-         const names=new Map(tables.map(table=>[table.id,table.name]));
-         for(const row of ids){
+         for(const row of visibleIds){
            const entry=e('p');
            const code=e('code',{style:'user-select:all;-webkit-user-select:all'},row.table_id);
            const copy=e('button',{type:'button'},'Copiar ID');
@@ -149,7 +166,7 @@
        }
        const current=tables.find(table=>table.id===(selectedId||selected));
        if(current||tables[0])showForm(current||tables[0]);
-       else formHost.textContent='Todavía no hay mesas por puntos.';
+       else {remove.hidden=true;formHost.textContent='Todavía no hay mesas por puntos.';}
      }catch(error){
        if(section.isConnected)notice.textContent=(selectedId?'Mesa guardada. ':'')+'No se pudo cargar el listado: '+error.message;
      }

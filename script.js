@@ -1550,6 +1550,13 @@
     #dfcExpiredBin.open .bin-lid {transform:rotate(31deg)}
     #dfcExpiredBin .bin-body {position:absolute; top:22px; left:6px; width:60px; height:56px; border-radius:4px 4px 12px 12px; background:repeating-linear-gradient(90deg,#3c5368 0 9px,#506b82 10px 13px); box-shadow:inset 0 0 0 1px #b6cad3,0 3px 10px #0008; display:grid; place-items:center}
     #dfcExpiredBin .discarded-card,.dfcExpiredCardFlight {background:linear-gradient(135deg,#094482,#182e59); border:1px solid #98cfee; border-radius:4px; color:#fff; padding:4px; font:700 9px/1.25 system-ui; text-align:center}
+    #dfcExpiredTrashDialog {width:min(88vw,420px);max-height:calc(100dvh - 24px);box-sizing:border-box;overflow:hidden;border:1px solid #7ebdeb;border-radius:14px;background:#102746;color:white;padding:12px}
+    #dfcExpiredTrashDialog[open] {display:flex;flex-direction:column;gap:8px}
+    #dfcExpiredTrashDialog header {display:flex;justify-content:space-between;align-items:center;gap:10px}
+    #dfcExpiredTrashDialog p {margin:0}
+    #dfcExpiredTrashDialog [data-cards] {min-height:0;overflow-y:auto;overscroll-behavior-y:contain;touch-action:pan-y;-webkit-overflow-scrolling:touch;margin:0;padding:0}
+    #dfcExpiredTrashDialog [data-cards] li {display:flex;gap:8px;align-items:center}
+    #dfcExpiredTrashDialog [data-clear] {flex:none}
     .dfcExpiredCardFlight {position:fixed; z-index:2147483647; pointer-events:none}
   `;
   document.head.append(css);
@@ -1594,6 +1601,8 @@
   function mountBin() {
     const overlay = document.getElementById('dfcLabGiftOverlay008');
     if (!overlay) return false;
+    // Keep the document's page-drag lock outside this panel.
+    overlay.addEventListener('touchmove',event=>event.stopPropagation(),{passive:true});
     overlay.append(bin);
     return true;
   }
@@ -1605,35 +1614,47 @@
   }
 
   const panel = document.createElement('dialog');
-  panel.style.cssText = 'width:min(88vw,360px);max-height:76dvh;overflow:auto;border:1px solid #7ebdeb;border-radius:14px;background:#102746;color:white;padding:14px';
-  panel.innerHTML = '<header><strong>Tarjetas vencidas</strong> <button type="button" data-close>Cerrar</button></header><p role="status"></p><div data-cards></div><button type="button" data-clear hidden>Vaciar zafacón</button>';
+  panel.id = 'dfcExpiredTrashDialog';
+  panel.setAttribute('aria-labelledby','dfcExpiredTrashTitle');
+  panel.innerHTML = '<header><strong id="dfcExpiredTrashTitle">Tarjetas vencidas</strong><button type="button" data-close>Cerrar</button></header><p role="status"></p><ol data-cards aria-label="Tarjetas vencidas" tabindex="0"></ol><button type="button" data-clear hidden>Borrar todas las tarjetas</button>';
   document.body.append(panel);
+  panel.addEventListener('touchmove',event=>event.stopPropagation(),{passive:true});
   const status = panel.querySelector('[role="status"]');
   const cards = panel.querySelector('[data-cards]');
   const clear = panel.querySelector('[data-clear]');
-  let list = [];
+  const amounts = new Intl.NumberFormat('es-DO',{maximumFractionDigits:3});
+  let loadId = 0;
   async function loadTrash() {
+    const request = ++loadId;
     status.textContent = 'Consultando tarjetas…';
     clear.hidden = true;
     cards.replaceChildren();
     try {
-      list = await call('dfc_gift_trash_v1') || [];
-      status.textContent = list.length ? '' : 'El zafacón está vacío.';
+      const list = await call('dfc_gift_trash_all') || [];
+      if (request !== loadId) return;
+      status.textContent = list.length === 1 ? '1 tarjeta en el zafacón' : list.length + ' tarjetas en el zafacón';
       clear.hidden = !list.length;
-      for (const gift of list) {
+      const rows = document.createDocumentFragment();
+      for (const [index,gift] of list.entries()) {
+        const item = document.createElement('li');
+        const number = document.createElement('span');
+        number.textContent = String(index + 1) + '.';
+        number.setAttribute('aria-hidden','true');
         const row = document.createElement('article');
         row.className = 'dfc-expired-gift-card';
         const origin = document.createElement('strong');
         origin.textContent = gift.origin_name || 'Tarjeta FlashCoin';
         const amount = document.createElement('span');
-        amount.textContent = new Intl.NumberFormat('es-DO',{maximumFractionDigits:3}).format(Number(gift.amount)) + ' FC';
+        amount.textContent = amounts.format(Number(gift.amount)) + ' FC';
         const expired = document.createElement('small');
         expired.textContent = 'Vencida';
         row.append(origin,amount,expired);
-        cards.append(row);
+        item.append(number,row);
+        rows.append(item);
       }
+      cards.replaceChildren(rows);
     } catch {
-      status.textContent = 'No se pudieron consultar las tarjetas.';
+      if (request === loadId) status.textContent = 'No se pudieron consultar las tarjetas.';
     }
   }
   panel.querySelector('[data-close]').onclick = () => panel.close();
@@ -1642,9 +1663,10 @@
     void loadTrash();
   };
   clear.onclick = async () => {
+    if (clear.disabled || !window.confirm('¿Borrar todas las tarjetas vencidas del zafacón?')) return;
     clear.disabled = true;
     try {
-      await call('dfc_gift_trash_clear_v1', {p_ids:list.map(gift => gift.gift_id)});
+      await call('dfc_gift_trash_clear_v1', {p_ids:null});
       bin.querySelector('.bin-body').replaceChildren();
       await loadTrash();
     } catch {
@@ -1725,6 +1747,8 @@
       background-size:34% 47%,100% 100%!important;
     }
     #dfcLabGiftOverlay008 .dfc-lab-gift-sheet {
+      min-height: 0;
+      -webkit-overflow-scrolling: touch;
       max-height: calc(100dvh - 28px);
       overflow-y: auto !important;
       overscroll-behavior-y: contain;
