@@ -78,6 +78,7 @@
        field('admin_pct','Comisión FlashCoin (%)','number',table?.admin_pct??10,'min="0" max="50" step=".01" required')+
        field('diamond_admin_pct','Comisión diamantes (%)','number',table?.diamond_admin_pct??table?.admin_pct??10,'min="0" max="50" step=".01" required')+
        '<label style="width:100%;display:flex;gap:8px;align-items:center"><input type="checkbox" role="switch" name="enabled" value="1" '+(table?.enabled?'checked':'')+'> Mostrar en Mesas por puntos</label>'+
+       '<label style="width:100%;display:flex;gap:8px;align-items:center"><input type="checkbox" name="bots_allowed" value="1" '+(table?.bots_allowed?'checked':'')+'> Permitir un bot asignado</label>'+
        '<div style="width:100%"><button type="submit">Guardar cambios</button><p data-status aria-live="polite"></p></div>';
      form.elements.players.value=String(table?.players??2);
      const {pot_mode,entry_fc,entry_diamonds}=form.elements;
@@ -91,7 +92,7 @@
      pot_mode.addEventListener('change',syncPot);
      syncPot();
      formHost.replaceChildren(form);
-     saveHandler(form,'dfc_z37_admin_save_points',x=>({...x,enabled:x.enabled==='1',...(table?{id:table.id}:{}),players:Number(x.players),
+     saveHandler(form,'dfc_z37_admin_save_points',x=>({...x,enabled:x.enabled==='1',bots_allowed:x.bots_allowed==='1',...(table?{id:table.id}:{}),players:Number(x.players),
        target_points:Number(x.target_points),entry_fc:Number(x.entry_fc||0),entry_diamonds:Number(x.entry_diamonds||0),
        diamond_admin_pct:Number(x.diamond_admin_pct),admin_pct:Number(x.admin_pct)}),async (id,status)=>{
        const enabled=form.elements.enabled.checked;
