@@ -2163,15 +2163,16 @@
    const passPrice=passFee>0?money.format(passFee)+' FlashCoin por pase':'Pase normal';
    replayButton.textContent='Confirmar y seguir · '+entry+' · '+passPrice;
    const seatReleased=replayState.replay_seat_released;
-   replayButton.hidden=confirmed||!seconds||now<opens||missing>0||seatReleased;
-   exitButton.hidden=confirmed||!seconds||now<opens||missing>0||seatReleased;
+   const canConfirm=replayState.replay_can_confirm!==false;
+   replayButton.hidden=!canConfirm||confirmed||!seconds||now<opens||missing>0||seatReleased;
+   exitButton.hidden=confirmed||!seconds||now<opens||(canConfirm&&missing>0)||seatReleased;
    replayButton.disabled=exitButton.disabled=confirming;
    replayText.textContent=replayError||(confirmed?'Aporte confirmado · '+seconds+' s':
-     now<opens?'Siguiente partida':missing>0?'FlashCoin insuficiente':
+     !canConfirm?'Mesa desactivada · Revancha cerrada':now<opens?'Siguiente partida':missing>0?'FlashCoin insuficiente':
      seconds?seconds+' s para decidir':'Cerrando la revancha…');
    if(!confirmed&&!confirming&&(seatReleased||now>=opens)&&Date.now()>=retryReplayAt){
      if(seatReleased||!seconds)void chooseReplay('timeout');
-     else if(missing>0)void chooseReplay('check');
+     else if(canConfirm&&missing>0)void chooseReplay('check');
    }
  }
  async function chooseReplay(choice){
