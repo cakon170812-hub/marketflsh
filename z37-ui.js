@@ -319,8 +319,10 @@
      panel.append(status);
    }
    const missing=Math.max(0,Number(data.capacity)-players.length);
-   const message=missing===0?'Mesa completa. Preparando reparto…':
-     missing===1?'Esperando 1 jugador':('Esperando '+missing+' jugadores');
+   let message;
+   if(data.verifying_contributions)message='Verificando aportes…';
+   else if(missing===0)message='Mesa completa. Preparando reparto…';
+   else message=missing===1?'Esperando 1 jugador':('Esperando '+missing+' jugadores');
    if(status.textContent!==message)status.textContent=message;
    status.hidden=false;
  }
