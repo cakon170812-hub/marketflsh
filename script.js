@@ -2263,12 +2263,13 @@
  exitButton.onclick=()=>chooseReplay('exit');
  setInterval(()=>{if(replayState&&current())drawReplay();},250);
  let table=0,epoch=0,pending=false,retryAfter=0,last=null;
- let shown='',observedClosure='';
+ let shown='',observedClosure='',closureRefreshQueued=false;
  const format=new Intl.NumberFormat('es-DO',{maximumFractionDigits:2});
  const money=new Intl.NumberFormat('es-DO',{minimumFractionDigits:2,maximumFractionDigits:3});
  const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
  function reset(id){
    table=id;epoch++;last=null;pending=false;retryAfter=0;shown='';observedClosure='';
+   closureRefreshQueued=false;
    window.dfcZ37UI?.syncSpectator(null,id);
    delete panel.dataset.dfcPointsPlaying;
    delete panel.dataset.dfcPointsReplay;
@@ -2479,6 +2480,8 @@
      const hand=data.last_hand;
      if(!hand||window.dominoSpectatorMode){result.hidden=true;return;}
      const handId=String(hand.id);
+     // Una lectura en curso puede contener todavía el resultado de la mano anterior.
+     if(observedClosure&&BigInt(handId)<BigInt(observedClosure))return;
      const live=typeof dominoState==='undefined'?null:dominoState?.hand;
      if(data.state!=='settled'&&live?.id&&['shuffling','playing'].includes(live.status)&&BigInt(live.id)>BigInt(handId)){
        shown=handId;
@@ -2491,16 +2494,30 @@
      showHand(data,hand,winner);
      shown=handId;
      void animateHandPoints(hand,token);
-   }finally{if(token===epoch)pending=false;}
+   }finally{
+     if(token===epoch){
+       pending=false;
+       if(closureRefreshQueued){
+         closureRefreshQueued=false;
+         // Una respuesta vacía anterior al cierre puede haber restablecido la espera.
+         retryAfter=0;
+         if(current()===id)void update();
+       }
+     }
+   }
  }
  window.dfcRefreshPointsOnClosure=state=>{
    const id=current();
    if(!id)return;
    if(table!==id)reset(id);
-   const closure=state?.last_result?.id??(state?.hand?.status==='settled'?state.hand.id:null);
-   if(closure==null||String(closure)===observedClosure)return;
+   const closure=(state?.hand?.status==='settled'?state.hand.id:null)??state?.last_result?.id;
+   if(closure==null||(observedClosure&&BigInt(closure)<=BigInt(observedClosure)))return;
    observedClosure=String(closure);
    retryAfter=0;
+   if(pending){
+     closureRefreshQueued=true;
+     return;
+   }
    void update();
  };
  new MutationObserver(()=>void update()).observe(panel,{attributes:true,attributeFilter:['class']});
