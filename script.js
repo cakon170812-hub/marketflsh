@@ -2108,31 +2108,14 @@
  style.textContent=`
  #dfcPointsScore,#dfcPointsResult {color:#fff;background:#101f3af5;border:1px solid #dabf70;border-radius:9px;font:700 clamp(10px,2vmin,15px)/1.22 system-ui}
  #dfcPointsScore {display:grid;gap:2px;padding:4px 7px;max-width:min(42vw,270px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
- #dominoTablePanel #dominoStage .domino-inside-pot[data-dfc-points-pot]{display:block!important;left:5%!important;top:24%!important;right:auto!important;transform:none!important;min-width:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important}
  #dominoStage .domino-inside-pot[data-dfc-points-pot] > :not(#dfcPointsPots){display:none!important}
- #dfcPointsPots{display:grid;border:1px solid #66dfff;border-radius:10px;background:#06162cef;box-shadow:0 0 8px #14b4e46b;white-space:nowrap;font:750 clamp(8px,2.25vmin,14px)/1.2 system-ui;font-variant-numeric:tabular-nums}
+ #dfcPointsPots{display:grid;gap:3px;white-space:nowrap;font-variant-numeric:tabular-nums}
  #dfcPointsPots[hidden]{display:none}
- #dfcPointsPots .dfc-bet-row{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:clamp(3px,1vmin,7px);padding:clamp(3px,1vmin,7px);color:#edf8ff;text-align:left}
- #dfcPointsPots .dfc-bet-row+.dfc-bet-row{border-top:1px solid #2caed58c}
- #dfcPointsPots .dfc-bet-row strong{color:#ffe192}
- #dfcPointsPots .dfc-bet-row+.dfc-bet-row strong{color:#a9efff}
- .dfc-bet-token{display:inline-block;width:clamp(12px,4vmin,23px);aspect-ratio:1;flex:none}
- .dfc-bet-token-coin{background:var(--fc-coin-image) center/contain no-repeat}
- .dfc-bet-token-gem{background:conic-gradient(from 35deg at 50% 37%,#d9ffff,#44dbff 16%,#0b70ca 32%,#01b8f5 47%,#adffff 62%,#1a9ddf 78%,#40e4ff 89%,#d9ffff);clip-path:polygon(22% 12%,78% 12%,100% 39%,50% 94%,0 39%)}
- .dfc-points-flying-gem{position:fixed;pointer-events:none;z-index:2147483646;font-size:clamp(16px,4vmin,25px);line-height:1;filter:drop-shadow(0 0 5px #19c5ff)}
- #dominoStage:has(.domino-inside-pot[data-dfc-points-pot]) #dominoSeats .domino-seat[data-seat-user] .dfc-profile-currency-row > .seat-bal::after{content:'Saldo de mesa';order:-1;font-size:.8em;margin-inline-end:.3em}
- #dominoStage:has(.domino-inside-pot[data-dfc-points-pot]) #dominoSeats .domino-seat .dfc-profile-currency-row > .seat-bal::before{order:-2;margin-right:3px!important}
- @media(max-height:480px),(max-width:700px){#dominoTablePanel #dominoStage .domino-inside-pot[data-dfc-points-pot]{left:3%!important;top:21%!important}}
  #dominoTablePanel[data-dfc-points-playing] #dominoSurrenderBtn,
  body:has(#dominoTablePanel.active[data-dfc-points-playing]) #dominoExitBtn,
  #dominoTablePanel[data-dfc-points-replay] #dominoSurrenderBtn,
  body:has(#dominoTablePanel.active[data-dfc-points-replay]) #dominoExitBtn{display:none!important}
- #dominoSeats .dfc-seat-points{display:inline-grid;place-items:center;align-self:center;flex:none;margin-inline-start:.25em;min-width:2.45em;aspect-ratio:1;border-radius:50%;box-sizing:border-box;padding:.2em;color:#271600;border:1px solid #ffed9b;background:linear-gradient(#ffe694,#eca633 68%,#b97018);box-shadow:inset 0 1px 4px #fff8,0 2px 6px #130b0399;font:900 clamp(9px,2.4vmin,16px)/.9 system-ui;font-variant-numeric:tabular-nums}
- #dominoSeats .dfc-seat-points::after{content:'pts';font-size:.62em}
- #dominoTablePanel #dominoStage #dominoSeats .domino-seat .domino-seat-heading:has(.dfc-seat-points){display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center!important;column-gap:3px!important}
- #dominoTablePanel #dominoStage #dominoSeats .domino-seat .domino-seat-heading:has(.dfc-seat-points) .domino-seat-name{grid-area:1/1!important}
- #dominoTablePanel #dominoStage #dominoSeats .domino-seat .domino-seat-heading:has(.dfc-seat-points) .domino-turn-seconds{grid-area:2/1/-1/-1!important}
- #dominoSeats .domino-seat-heading .dfc-seat-points{grid-area:1/2}
+ #dominoSeats .dfc-seat-points{display:inline-grid;place-items:center;vertical-align:middle;margin-inline-start:.35em;min-width:2.9em;aspect-ratio:1;border-radius:50%;box-sizing:border-box;padding:.2em;color:#fff;border:1px solid #bc9ee7;background:linear-gradient(180deg,#7358a2,#50377f 45%,#2d224e 51%,#392d62);box-shadow:inset 0 1px 4px #fff5,0 2px 6px #160d2b99;font:800 clamp(9px,1.7vmin,14px)/1 system-ui;font-variant-numeric:tabular-nums}
  #dominoSeats .domino-seat.empty .dfc-seat-points{display:none}
  #dfcPointsReplay,#dfcPointsTopup{position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:182;width:min(94%,780px);max-height:95%;overflow:auto;box-sizing:border-box;display:grid;gap:clamp(3px,1.5vmin,12px);padding:clamp(6px,2vmin,18px);text-align:center;background:radial-gradient(ellipse at 50% 0,#103d72,#06152d 65%);color:#edf8ff;border:2px solid #1bd5ff;border-radius:clamp(10px,3vmin,22px);box-shadow:0 0 22px #0bb7ee66,0 10px 30px #000a;font:700 clamp(10px,2.6vmin,17px)/1.2 system-ui}
  #dfcPointsTopup{width:min(68%,650px);gap:clamp(4px,1.6vmin,12px);box-shadow:0 0 0 100vmax #020a1980,0 0 20px #17d3ff80,inset 0 0 24px #16518e45}
@@ -2234,21 +2217,9 @@
  const basePot=stage.querySelector('.domino-inside-pot');
  const pots=document.createElement('div');
  pots.id='dfcPointsPots';pots.hidden=true;pots.setAttribute('aria-label','Botes de la mesa');
- function potRow(label,kind){
-   const row=document.createElement('div');
-   row.className='dfc-bet-row';
-   const icon=document.createElement('span');
-   icon.className='dfc-bet-token dfc-bet-token-'+kind;
-   icon.setAttribute('aria-hidden','true');
-   const name=document.createElement('span');
-   name.textContent=label;
-   const total=document.createElement('strong');
-   row.append(icon,name,total);
-   pots.append(row);
-   return total;
- }
- const flashCoinPot=potRow('Bote FlashCoin','coin');
- const diamondPot=potRow('Bote de diamantes','gem');
+ const flashCoinPot=document.createElement('b');
+ const diamondPot=document.createElement('b');
+ pots.append(flashCoinPot,diamondPot);
  basePot?.append(pots);
  const result=document.createElement('section');
  result.id='dfcPointsResult';result.hidden=true;result.setAttribute('role','region');result.setAttribute('aria-label','Resultado de mano');
@@ -2511,7 +2482,6 @@
    result.removeAttribute('data-match-victory');
    retryReplayAt=0;
    stage.querySelectorAll('.dfc-seat-points').forEach(label=>label.remove());
-   document.querySelectorAll('.dfc-points-flying-gem').forEach(gem=>gem.remove());
    score.hidden=true;result.hidden=true;result.replaceChildren();
    pots.hidden=true;basePot?.removeAttribute('data-dfc-points-pot');
    replayState=null;confirmedMatch='';confirming=false;replayError='';replay.hidden=true;
@@ -2526,7 +2496,7 @@
    const labels=['Meta · '+data.target+' puntos'];
    const settled=data.state==='settled';
    flashCoinPot.textContent=money.format((settled?data.pot_fc:data.live_pot_fc)??0)+' FC';
-   diamondPot.textContent=format.format((settled?data.pot_diamonds:data.live_pot_diamonds)??0);
+   diamondPot.textContent=format.format((settled?data.pot_diamonds:data.live_pot_diamonds)??0)+' diamantes';
    basePot?.setAttribute('data-dfc-points-pot','');
    pots.hidden=false;
    if(data.state==='waiting'&&Number(data.capacity)===3){
@@ -2545,12 +2515,12 @@
    for(const seat of stage.querySelectorAll('#dominoSeats .domino-seat')){
      let label=seat.querySelector('.dfc-seat-points');
      const player=data.players.find(entry=>String(entry.seat)===seat.dataset.realSeat);
-     const heading=seat.querySelector('.domino-seat-heading');
-     if(!player||!heading){label?.remove();continue;}
+     const balance=seat.querySelector('.seat-bal');
+     if(!player||!balance){label?.remove();continue;}
      if(!label){
        label=document.createElement('span');
        label.className='dfc-seat-points';
-       heading.append(label);
+       balance.after(label);
      }
      label.dataset.pointsSeat=player.seat;
      const value=player.points;
@@ -2743,45 +2713,6 @@
    const label=(replayState?'Continuando en ':'Cerrando en ')+seconds+' s';
    if(countdown.textContent!==label)countdown.textContent=label;
  }
- // Mantener la gema cerca de su saldo y reservar espacio para los marcadores y las fichas.
- window.dfcPointsFlyDiamond=(target,positive)=>{
-   if(pots.hidden||!panel.classList.contains('active'))return false;
-   if(reduce()||!target?.animate)return true;
-   const end=target.getBoundingClientRect();
-   if(!end.width||!end.height)return true;
-   const area=stage.getBoundingClientRect();
-   const size=Math.max(16,Math.min(25,Math.min(innerWidth,innerHeight)*.04));
-   const x=end.left+end.width/2-size/2;
-   const y=end.top+end.height/2-size/2;
-   const avoid=[...stage.querySelectorAll('.dfc-seat-points,.domino-seat-name,.seat-bal,#dfcPointsPots,#dfcPointsScore,.domino-piece')]
-     .map(item=>item.getBoundingClientRect()).filter(rect=>rect.width&&rect.height);
-   const path=[[0,46],[-50,0],[50,0],[0,-46]].find(([dx,dy])=>{
-     const left=Math.min(x,x+dx)-5,top=Math.min(y,y+dy)-5;
-     const right=Math.max(x,x+dx)+size+5,bottom=Math.max(y,y+dy)+size+5;
-     return left>=Math.max(0,area.left)&&right<=Math.min(innerWidth,area.right)&&
-       top>=Math.max(0,area.top)&&bottom<=Math.min(innerHeight,area.bottom)&&
-       !avoid.some(rect=>left<rect.right&&right>rect.left&&top<rect.bottom&&bottom>rect.top);
-   });
-   if(!path){
-     target.animate([{filter:'brightness(1.5)'},{filter:'brightness(1)'}],320);
-     return true;
-   }
-   const [dx,dy]=path;
-   const gem=document.createElement('span');
-   gem.className='dfc-points-flying-gem';
-   gem.textContent='💎';
-   gem.setAttribute('aria-hidden','true');
-   gem.style.left=x+'px';
-   gem.style.top=y+'px';
-   document.body.append(gem);
-   const frames=[
-     {transform:'translate('+dx+'px,'+dy+'px) scale(1)',opacity:1},
-     {transform:'translate(0,0) scale(.48)',opacity:0}
-   ];
-   gem.animate(positive?frames:frames.reverse(),{duration:540,easing:'ease-in-out'})
-     .finished.catch(()=>{}).finally(()=>gem.remove());
-   return true;
- };
  function sound(freq,length){
    if(typeof playOscTone==='function'&&(typeof dominoSoundIsEnabled!=='function'||dominoSoundIsEnabled()))
      playOscTone(freq,length,.06,'triangle',freq*.67,0,'domino');
