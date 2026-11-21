@@ -2119,6 +2119,11 @@
  #dominoSeats .domino-seat.empty .dfc-seat-points{display:none}
  #dfcPointsReplay{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);z-index:182;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;background:#101f3af5;color:white;border:1px solid #dabf70;border-radius:9px;padding:6px 9px;font:700 clamp(10px,2vmin,15px)/1.2 system-ui;max-width:90%}
  #dfcPointsReplay button{padding:5px 9px;white-space:normal}
+ #dfcPointsReplay h2{flex-basis:100%;margin:0;text-align:center;color:#ffdb7c;font:inherit;font-size:1.3em}
+ #dfcPointsResult .dfc-panel-close,#dfcPointsReplay .dfc-panel-close{min-height:34px;padding:5px 16px;border:1px solid #71d7ff;border-radius:12px;background:linear-gradient(#1b4a74,#061f3b);box-shadow:inset 0 1px 0 #a0e4ff48;color:#f1faff;font:inherit;cursor:pointer}
+ #dfcPointsResult .dfc-panel-close{margin:7px auto 0;display:block}
+ #dfcPointsReplay #dfcPointsConfirmReplay{min-height:34px;padding:5px 16px;border:1px solid #ffe6a0;border-radius:12px;background:linear-gradient(#ffe293,#e8a825);color:#142947;font:inherit;cursor:pointer}
+ #dfcPointsResult .dfc-panel-close:focus-visible,#dfcPointsReplay button:focus-visible{outline:2px solid #e9f8ff;outline-offset:3px}
  #dfcPointsReplay[hidden],#dfcPointsReplay button[hidden],#dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
  #dfcPointsResult {position:absolute;inset:12% auto auto 50%;transform:translateX(-50%);width:min(84%,570px);max-height:76%;box-sizing:border-box;overflow:auto;z-index:180;padding:10px;text-align:center;box-shadow:0 8px 25px #0009}
  #dfcPointsResult .dfc-points-prize{display:block;position:relative;container-type:inline-size;width:min(100%,260px);aspect-ratio:3/2;margin:10px auto 4px;padding:0;border:0;border-radius:14px;background:var(--dfc-official-fc-card) center/contain no-repeat;filter:drop-shadow(0 5px 16px #1187f9a8);cursor:pointer}
@@ -2190,15 +2195,18 @@
  stage.append(result);
  const replay=document.createElement('div');
  replay.id='dfcPointsReplay';replay.hidden=true;
+ const replayTitle=document.createElement('h2');
+ replayTitle.textContent='Nuevo aporte';
  const replayText=document.createElement('span');
  const replayTerms=document.createElement('span');
  replayTerms.style.flexBasis='100%';
  const replayButton=document.createElement('button');
- replayButton.type='button';
+ replayButton.type='button';replayButton.id='dfcPointsConfirmReplay';
  const exitButton=document.createElement('button');
- exitButton.type='button';exitButton.textContent='Salir';
+ exitButton.type='button';exitButton.textContent='Cerrar';exitButton.className='dfc-panel-close';
+ exitButton.setAttribute('aria-label','Cerrar y salir de la revancha');
  replayText.setAttribute('role','status');
- replay.append(replayText,replayTerms,replayButton,exitButton);
+ replay.append(replayTitle,replayText,replayTerms,replayButton,exitButton);
  stage.append(replay);
  let replayState=null,replayOffset=0,confirming=false,confirmedMatch='',replayError='',retryReplayAt=0;
  function drawReplay(){
@@ -2208,6 +2216,10 @@
    const deadline=Date.parse(replayState.replay_deadline);
    const opens=Date.parse(replayState.replay_opens);
    if(now<opens){replay.hidden=true;return;}
+   if(replaySoundMatch!==replayState.match_id&&now<deadline&&!replayState.replay_seat_released){
+     replaySoundMatch=replayState.match_id;
+     playPanelSound('replay');
+   }
    replay.hidden=false;
    const seconds=Math.max(0,Math.ceil((deadline-now)/1000));
    const confirmed=replayState.replay_confirmed||confirmedMatch===replayState.match_id;
@@ -2225,7 +2237,6 @@
        ' · '+passPrice+' · Comisión '+format.format(terms.admin_pct)+' % FC / '+format.format(terms.diamond_admin_pct)+' % diamantes';
    }
    replayButton.textContent='Confirmar y seguir';
-   exitButton.textContent=canConfirm?'Salir':'Volver a Mesas por puntos';
    replayButton.hidden=!canConfirm||confirmed||!seconds||now<opens||missing>0||seatReleased;
    exitButton.hidden=confirmed||!seconds||now<opens||seatReleased;
    replayButton.disabled=exitButton.disabled=confirming;
@@ -2246,7 +2257,7 @@
      const {data,error}=await client.rpc('dfc_points_replay_choice_terms',{p_match_id:match,p_choice:choice,p_terms:terms});
      if(error)throw error;
      if(token!==epoch)return;
-     if(data?.state==='confirmed')confirmedMatch=match;
+     if(data?.state==='confirmed'){confirmedMatch=match;refreshAfterClose();}
      if(data?.state==='pending')retryReplayAt=Date.now()+1800;
      if(data?.state==='insufficient')replayError=data.message||'Saldo insuficiente para la revancha.';
      if(data?.state==='left'){
@@ -2270,7 +2281,7 @@
    }
  }
  replayButton.onclick=()=>chooseReplay('confirm');
- exitButton.onclick=()=>chooseReplay('exit');
+ exitButton.onclick=()=>{if(!confirming){playPanelSound('close');void chooseReplay('exit');}};
  setInterval(()=>{
    if(current()!==table||!last)return;
    drawConclusion();
@@ -2280,6 +2291,15 @@
  let shown='',observedClosure='',closureRefreshQueued=false;
  const panelDuration=10000;
  let handResultUntil=0;
+ let dismissedVictory='',replaySoundMatch='';
+ const panelNotes={
+   domino:[660,880,1047],
+   trancazo:[392,523,659],
+   capicua:[784,988,1175],
+   victory:[523,659,784,1047],
+   replay:[587,784],
+   close:[988,740]
+ };
  const format=new Intl.NumberFormat('es-DO',{maximumFractionDigits:2});
  const money=new Intl.NumberFormat('es-DO',{minimumFractionDigits:2,maximumFractionDigits:3});
  const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -2291,6 +2311,7 @@
    delete panel.dataset.dfcPointsReplay;
    delete panel.dataset.dfcPointsMode;
    handResultUntil=0;
+   dismissedVictory='';replaySoundMatch='';
    result.removeAttribute('data-hand-result');
    result.removeAttribute('data-match-victory');
    retryReplayAt=0;
@@ -2344,6 +2365,40 @@
  function text(tag,value,root=result){
    const item=document.createElement(tag);item.textContent=value;root.append(item);return item;
  }
+ function playPanelSound(kind){
+   if(typeof playOscTone!=='function'||(typeof dominoSoundIsEnabled==='function'&&!dominoSoundIsEnabled()))return;
+   panelNotes[kind].forEach((note,index)=>playOscTone(note,kind==='close'?.11:.19,
+     kind==='close'?.09:.075,index===0?'triangle':'sine',null,index*.065,'domino'));
+ }
+ function refreshAfterClose(){
+   if(pending){closureRefreshQueued=true;return;}
+   retryAfter=0;
+   void update();
+ }
+ function addPanelClose(data,phase,handId){
+   const button=text('button','Cerrar');
+   button.type='button';
+   button.className='dfc-panel-close';
+   button.onclick=async()=>{
+     if(button.disabled||last?.match_id!==data.match_id)return;
+     button.disabled=true;
+     if(phase==='victory')dismissedVictory=data.match_id;
+     result.hidden=true;
+     playPanelSound('close');
+     const token=epoch;
+     try{
+       const client=window.sb||window.dfcSupabase;
+       const {error}=await client.rpc('dfc_points_close_panel',{
+         p_match_id:data.match_id,p_hand_id:handId,p_phase:phase
+       });
+       if(error)console.warn('Cierre del panel Por puntos:',error.message);
+     }catch(error){
+       console.warn('Cierre del panel Por puntos:',error.message);
+     }finally{
+       if(token===epoch&&current()===table)refreshAfterClose();
+     }
+   };
+ }
  function resultTiles(values,root){
    const row=text('div','',root);
    row.className='dfc-points-tiles';
@@ -2394,9 +2449,12 @@
      text('p',format.format(row.points)+(row.points===1?' punto restante':' puntos restantes'),holder);
      resultTiles(row.tiles,holder);
    }
-   handResultUntil=Date.now()+panelDuration;
+   const settled=Date.parse(hand.settled_at);
+   handResultUntil=Number.isFinite(settled)?settled+panelDuration-replayOffset:Date.now()+panelDuration;
+   addPanelClose(data,'hand',String(hand.id));
    result.scrollTop=0;
    result.hidden=false;
+   playPanelSound(['capicua','trancazo'].includes(hand.kind)?hand.kind:'domino');
  }
  function showVictory(data,hand,champions){
    result.hidden=true;
@@ -2458,8 +2516,14 @@
      };
    }
    text('p','').className='dfc-victory-next';
+   addPanelClose(data,'victory','0');
    result.scrollTop=0;
    result.hidden=false;
+   playPanelSound('victory');
+ }
+ function victoryOpens(data){
+   const opens=Date.parse(data.victory_opens);
+   return Number.isFinite(opens)?opens:Date.parse(data.match_settled_at)+panelDuration;
  }
  function drawConclusion(){
    if(window.dominoSpectatorMode){result.hidden=true;return;}
@@ -2468,11 +2532,12 @@
      if(handResultUntil&&Date.now()>=handResultUntil)result.hidden=true;
      return;
    }
-   const victoryStarts=settled+panelDuration;
-   const victoryEnds=victoryStarts+panelDuration;
+   const victoryStarts=victoryOpens(last);
+   const replayOpens=Date.parse(replayState?.replay_opens);
+   const victoryEnds=Number.isFinite(replayOpens)?replayOpens:victoryStarts+panelDuration;
    const now=Date.now()+replayOffset;
    if(now<victoryStarts)return;
-   if(now>=victoryEnds){result.hidden=true;return;}
+   if(now>=victoryEnds||last.victory_closed||dismissedVictory===last.match_id){result.hidden=true;return;}
    const champions=last.winner_team==null?[]:last.players.filter(player=>player.team===last.winner_team);
    if(!champions.length){result.hidden=true;return;}
    if(!result.hasAttribute('data-match-victory'))showVictory(last,last.last_hand,champions);
@@ -2550,12 +2615,13 @@
      drawScore(data);
      drawConclusion();
      drawReplay();
-     if(data.state==='settled'&&Date.now()+replayOffset>=Date.parse(data.match_settled_at)+panelDuration)return;
+     if(data.state==='settled'&&Date.now()+replayOffset>=victoryOpens(data))return;
      const hand=data.last_hand;
      if(!hand||window.dominoSpectatorMode){result.hidden=true;return;}
      const handId=String(hand.id);
      // Una lectura en curso puede contener todavía el resultado de la mano anterior.
      if(observedClosure&&BigInt(handId)<BigInt(observedClosure))return;
+     if(hand.closed){shown=handId;result.hidden=true;return;}
      const live=typeof dominoState==='undefined'?null:dominoState?.hand;
      if(data.state!=='settled'&&live?.id&&['shuffling','playing'].includes(live.status)&&BigInt(live.id)>BigInt(handId)){
        shown=handId;
@@ -2565,8 +2631,9 @@
      if(handId===shown)return;
      const winner=data.players.find(player=>player.seat===hand.seat);
      if(!winner)return;
-     showHand(data,hand,winner);
      shown=handId;
+     if(data.state!=='settled'&&Date.now()+replayOffset>=Date.parse(hand.settled_at)+panelDuration)return;
+     showHand(data,hand,winner);
      void animateHandPoints(hand,token);
    }finally{
      if(token===epoch){
