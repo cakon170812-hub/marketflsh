@@ -2131,6 +2131,37 @@
  #dfcPointsResult h2{font-size:1.4em;margin:4px 0 7px}
  #dfcPointsResult .dfc-points-tiles {display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
  #dfcPointsResult .dfc-points-tile {display:inline-block;padding:3px 5px;border-radius:4px;background:#fff3d9;color:#102032;border:1px solid #bca67a}
+ #dominoTablePanel.active[data-dfc-points-mode] #dominoStage :is(#mf196TranqueOverlay,#dfc012m-tranque-near,#dfc011v-layer,#dfc012j-tranque-coins){display:none!important;visibility:hidden!important}
+ #dfcPointsResult[data-tranque]{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(74%,980px);max-height:87%;padding:clamp(9px,2.3vmin,23px) clamp(12px,3.1vmin,30px);border:2px solid #16bfff;border-radius:clamp(13px,2.6vmin,22px);background:linear-gradient(155deg,#092c46,#031624 72%);box-shadow:0 0 19px #079fe867,inset 0 0 20px #0476b734,0 12px 42px #01121dbb;font-size:clamp(10px,2.35vmin,19px);z-index:181}
+ #dfcPointsResult[data-tranque] h2{font-size:clamp(18px,5.7vmin,46px);line-height:1.05;text-align:left;margin:0 0 clamp(6px,1.6vmin,13px);padding-inline-start:.45em;border-inline-start:.2em solid #00c9f2}
+ #dfcPointsResult .dfc-tranque-summary{display:grid;grid-template-columns:1.24fr 1.05fr .75fr;align-items:center;padding:clamp(4px,1.6vmin,14px) 0;min-width:0;border-top:1px solid #4b9ac746}
+ #dfcPointsResult .dfc-tranque-summary>div{min-width:0;padding:0 clamp(4px,1.5vmin,14px)}
+ #dfcPointsResult .dfc-tranque-summary>div:first-child{text-align:left;padding-inline-start:0}
+ #dfcPointsResult .dfc-tranque-summary>div+div{border-inline-start:1px solid #4b9ac77a}
+ #dfcPointsResult .dfc-tranque-summary small{display:block;color:#b8d3e6;font-size:clamp(9px,2.4vmin,20px)}
+ #dfcPointsResult .dfc-tranque-summary strong{display:block;margin-top:2px;font-size:clamp(13px,4.3vmin,40px);line-height:1.15;overflow-wrap:anywhere}
+ #dfcPointsResult .dfc-tranque-summary .dfc-tranque-gain strong{color:#ffd36c;white-space:nowrap;font-size:clamp(13px,5.1vmin,47px);text-shadow:0 2px 8px #8b451252}
+ #dfcPointsResult .dfc-tranque-summary .dfc-tranque-score strong{white-space:nowrap;font-variant-numeric:tabular-nums}
+ #dfcPointsResult .dfc-tranque-progress{appearance:none;display:block;width:100%;height:clamp(5px,1.35vmin,11px);margin:2px 0 0;overflow:hidden;border:0;border-radius:999px;background:#22394e;color:#00d2e9}
+ #dfcPointsResult .dfc-tranque-progress::-webkit-progress-bar{background:#22394e}
+ #dfcPointsResult .dfc-tranque-progress::-webkit-progress-value{background:linear-gradient(90deg,#05b9fb,#00ddec);border-radius:999px}
+ #dfcPointsResult .dfc-tranque-progress::-moz-progress-bar{background:#00cbee;border-radius:999px}
+ #dfcPointsResult .dfc-tranque-details{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,86px),1fr));gap:5px;margin-top:clamp(7px,2vmin,16px);padding-top:clamp(6px,1.8vmin,15px);border-top:1px solid #4b9ac77a}
+ #dfcPointsResult .dfc-tranque-details>div{min-width:0;padding:0 4px}
+ #dfcPointsResult .dfc-tranque-details>div+div{border-inline-start:1px solid #4b9ac756}
+ #dfcPointsResult .dfc-tranque-details p{margin:0 0 2px;overflow-wrap:anywhere;color:#bad3e6}
+ #dfcPointsResult .dfc-tranque-details strong{color:#fff}
+ #dfcPointsResult .dfc-tranque-details .dfc-points-tiles{margin-top:clamp(5px,1.3vmin,12px)}
+ #dfcPointsResult .dfc-tranque-tile{display:grid!important;grid-template-rows:1fr 1fr;box-sizing:border-box;width:clamp(18px,5.8vmin,42px)!important;height:clamp(33px,10.3vmin,74px)!important;padding:2px;flex:none;border:1px solid #bdab7f;border-radius:5px;background:#fff3d9!important;box-shadow:0 2px 0 #bba576,0 5px 8px #0006}
+ #dfcPointsResult .dfc-tranque-tile .domino-face{width:100%;height:100%;padding:2px}
+ #dfcPointsResult .dfc-tranque-tile .domino-pip{width:clamp(2px,.78vmin,6px);height:clamp(2px,.78vmin,6px);background:#172328;box-shadow:none}
+ #dfcPointsResult .dfc-tranque-tile .domino-divider{left:3px;right:3px;top:50%;height:1px;background:#74684d;box-shadow:none}
+ #dfcPointsResult .dfc-tranque-close{display:block;margin:clamp(6px,1.6vmin,14px) 0 0 auto;padding:clamp(4px,1.15vmin,10px) clamp(9px,2vmin,20px);border:1.5px solid #ffd36c;border-radius:999px;background:#071b29;color:white;font:inherit;cursor:pointer;white-space:nowrap}
+ #dfcPointsResult .dfc-tranque-close:focus-visible{outline:2px solid #8cecff;outline-offset:2px}
+ body:has(#dfcPointsResult[data-tranque]:not([hidden])) .dfc-point-coin{visibility:hidden}
+ @media(max-height:480px){#dfcPointsResult[data-tranque]{width:min(82%,980px)}}
+ @media(max-width:440px) and (orientation:portrait){#dfcPointsResult[data-tranque]{width:94%} #dfcPointsResult .dfc-tranque-summary{grid-template-columns:1.16fr .94fr .76fr}}
+
  .dfc-point-coin {position:fixed;pointer-events:none;z-index:2147483646;color:#503100;background:radial-gradient(circle at 35% 26%,#fff5a3,#efb338 55%,#c58319);border:2px solid #ffdf79;border-radius:50%;width:25px;height:25px;display:grid;place-items:center;font:900 11px system-ui}
  `;
  document.head.append(style);
@@ -2167,6 +2198,10 @@
    const now=Date.now()+replayOffset;
    const deadline=Date.parse(replayState.replay_deadline);
    const opens=Date.parse(replayState.replay_opens);
+   if(replayState.last_hand?.kind==='trancazo'){
+     if(now<opens){replay.hidden=true;return;}
+     if(result.hasAttribute('data-tranque'))result.hidden=true;
+   }
    const seconds=Math.max(0,Math.ceil((deadline-now)/1000));
    const confirmed=replayState.replay_confirmed||confirmedMatch===replayState.match_id;
    const missing=Number(replayState.replay_fc_missing)||0;
@@ -2240,6 +2275,8 @@
    window.dfcZ37UI?.syncSpectator(null,id);
    delete panel.dataset.dfcPointsPlaying;
    delete panel.dataset.dfcPointsReplay;
+   delete panel.dataset.dfcPointsMode;
+   result.removeAttribute('data-tranque');
    retryReplayAt=0;
    stage.querySelectorAll('.dfc-seat-points').forEach(label=>label.remove());
    score.hidden=true;result.hidden=true;result.replaceChildren();
@@ -2298,6 +2335,60 @@
    }
    root.append(row);
  }
+ function closeHandResult(hand,styled=false){
+   const close=text('button','Cerrar resultado');
+   close.type='button';
+   if(styled)close.className='dfc-tranque-close';
+   close.onclick=()=>{dismissed=hand.id;result.hidden=true;};
+ }
+ function tranqueTiles(values,root){
+   const row=text('div','',root);
+   row.className='dfc-points-tiles';
+   for(const tile of values||[]){
+     if(!Array.isArray(tile)||tile.length!==2||!tile.every(pip=>Number.isInteger(pip)&&pip>=0&&pip<=6))continue;
+     const piece=text('div','',row);
+     piece.className='domino-piece dfc-tranque-tile';
+     piece.setAttribute('role','img');
+     piece.setAttribute('aria-label','Ficha '+tile.join('–'));
+     piece.innerHTML=dominoFace(tile[0])+'<span class="domino-divider"></span>'+dominoFace(tile[1]);
+   }
+ }
+ function showTranque(data,hand,winner){
+   text('h2','Tranque');
+   const summary=text('div','');
+   summary.className='dfc-tranque-summary';
+   const player=text('div','',summary);
+   text('small','Ganó la mano',player);
+   text('strong',winner.name,player);
+   const gain=text('div','',summary);
+   gain.className='dfc-tranque-gain';
+   text('strong','+'+format.format(hand.points)+(hand.points===1?' punto':' puntos'),gain);
+   const total=text('div','',summary);
+   total.className='dfc-tranque-score';
+   text('small','Marcador',total);
+   text('strong',format.format(winner.points)+' / '+format.format(data.target),total);
+   const progress=text('progress','');
+   progress.className='dfc-tranque-progress';
+   progress.max=Math.max(1,Number(data.target)||1);
+   progress.value=Math.max(0,Math.min(progress.max,winner.points));
+   progress.setAttribute('aria-label','Avance hacia la meta');
+
+   const details=text('div','');
+   details.className='dfc-tranque-details';
+   if(hand.deciding_tile){
+     const finalTile=text('div','',details);
+     text('p','Última ficha jugada',finalTile);
+     tranqueTiles([hand.deciding_tile],finalTile);
+   }
+   for(const row of hand.remaining||[]){
+     const holder=text('div','',details);
+     const player=data.players.find(entry=>entry.seat===row.seat);
+     text('strong',player?.name||'Asiento '+row.seat,holder);
+     text('p',format.format(row.points)+(row.points===1?' punto restante':' puntos restantes'),holder);
+     tranqueTiles(row.tiles,holder);
+   }
+   closeHandResult(hand,true);
+ }
  function showHand(data){
    const hand=data.last_hand;
    if(!hand||dismissed===hand.id)return;
@@ -2308,6 +2399,15 @@
    const victory=data.state==='settled';
    const won=victory&&data.players.some(player=>player.mine&&player.team===data.winner_team);
    result.toggleAttribute('data-prize',won);
+   result.toggleAttribute('data-tranque',blocked&&!victory);
+   if(blocked&&!victory){
+     if(replayState?.last_hand?.id===hand.id&&Date.now()+replayOffset>=Date.parse(replayState.replay_opens)){
+       result.hidden=true;
+       return;
+     }
+     showTranque(data,hand,winner);
+     return;
+   }
    text('h2',won?'¡Felicidades, ganaste!':victory?'¡'+winner.name+' ganó la partida!':blocked?'Tranque':'Dominó');
    text('p',winner.name+' · +'+hand.points+' puntos · '+winner.points+' / '+data.target);
    if(victory){
@@ -2346,8 +2446,7 @@
      text('p',(player?.name||'Asiento '+row.seat)+' · '+row.points+' puntos restantes');
      tiles(row.tiles,result);
    }
-   const close=text('button','Cerrar resultado');
-   close.type='button';close.onclick=()=>{dismissed=hand.id;result.hidden=true;};
+   closeHandResult(hand);
  }
  function sound(freq,length){
    if(typeof playOscTone==='function'&&(typeof dominoSoundIsEnabled!=='function'||dominoSoundIsEnabled()))
@@ -2359,6 +2458,11 @@
    if(!winner||reduce()){drawScore(data);showHand(data);return;}
    drawScore(data,hand.seat,winner.points-hand.points);
    showHand({...data,state:'playing'});
+   if(hand.kind==='trancazo'&&data.state!=='settled'){
+     await new Promise(resolve=>setTimeout(resolve,2300));
+     if(token!==epoch)return;
+     result.hidden=true;
+   }
    sound(1200,.15);
    const pointLabel=stage.querySelector('.dfc-seat-points[data-points-seat="'+hand.seat+'"]');
    if(!pointLabel){drawScore(data);showHand(data);return;}
@@ -2410,6 +2514,7 @@
        return;
      }
      if(last&&last.match_id!==data.match_id){last=null;shown='';dismissed='';replayError='';result.hidden=true;}
+     panel.toggleAttribute('data-dfc-points-mode',!window.dominoSpectatorMode);
      window.dfcZ37UI?.syncSpectator(data,id);
      replayState=!window.dominoSpectatorMode&&data.state==='settled'&&data.replay_deadline?data:null;
      if(replayState)replayOffset=Date.parse(data.server_time)-Date.now();
@@ -2418,6 +2523,10 @@
      last=data;
      panel.toggleAttribute('data-dfc-points-playing',data.state==='playing'&&!window.dominoSpectatorMode);
      const hand=data.last_hand;
+     const live=typeof dominoState==='undefined'?null:dominoState?.hand;
+     if(hand&&result.hasAttribute('data-tranque')&&live?.id&&['shuffling','playing'].includes(live.status)&&BigInt(live.id)>BigInt(hand.id)){
+       result.hidden=true;
+     }
      if(!hand||hand.id===shown){drawScore(data);return;}
      shown=hand.id;
      if(first){drawScore(data);if(data.state==='settled')showHand(data);}
