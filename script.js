@@ -2118,8 +2118,19 @@
  #dominoSeats .dfc-seat-points{display:inline-grid;place-items:center;vertical-align:middle;margin-inline-start:.35em;min-width:2.9em;aspect-ratio:1;border-radius:50%;box-sizing:border-box;padding:.2em;color:#fff;border:1px solid #bc9ee7;background:linear-gradient(180deg,#7358a2,#50377f 45%,#2d224e 51%,#392d62);box-shadow:inset 0 1px 4px #fff5,0 2px 6px #160d2b99;font:800 clamp(9px,1.7vmin,14px)/1 system-ui;font-variant-numeric:tabular-nums}
  #dominoSeats .domino-seat.empty .dfc-seat-points{display:none}
  #dfcPointsReplay,#dfcPointsTopup{position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:182;width:min(94%,780px);max-height:95%;overflow:auto;box-sizing:border-box;display:grid;gap:clamp(3px,1.5vmin,12px);padding:clamp(6px,2vmin,18px);text-align:center;background:radial-gradient(ellipse at 50% 0,#103d72,#06152d 65%);color:#edf8ff;border:2px solid #1bd5ff;border-radius:clamp(10px,3vmin,22px);box-shadow:0 0 22px #0bb7ee66,0 10px 30px #000a;font:700 clamp(10px,2.6vmin,17px)/1.2 system-ui}
- #dfcPointsTopup{width:min(90%,440px)}
+ #dfcPointsTopup{width:min(68%,650px);gap:clamp(4px,1.6vmin,12px);box-shadow:0 0 0 100vmax #020a1980,0 0 20px #17d3ff80,inset 0 0 24px #16518e45}
  #dfcPointsReplay h2,#dfcPointsTopup h2{margin:0;color:#ffdc7a;font-size:clamp(18px,6vmin,39px);line-height:1.05}
+ #dfcPointsTopup h2{padding-block:3px;font-size:clamp(17px,5.6vmin,35px);text-shadow:0 2px 8px #96611c86}
+ #dfcPointsTopup .dfc-topup-balances{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin:0;padding-block:5px;border-block:1px solid #1ca3cf8c}
+ #dfcPointsTopup .dfc-topup-balances div+div{border-inline-start:1px solid #1ca3cf}
+ #dfcPointsTopup .dfc-topup-balances dd,#dfcPointsTopup .dfc-topup-projection dd{margin:2px 0 0;color:#ffdd78;font-size:clamp(15px,4.4vmin,29px);font-variant-numeric:tabular-nums}
+ #dfcPointsTopup .dfc-funding-strip{width:min(90%,440px);margin-inline:auto;border-color:#55e4ff;box-shadow:0 0 10px #17d3ff62}
+ #dfcPointsTopup .dfc-funding-strip button,#dfcPointsTopup .dfc-funding-strip output{font-size:clamp(14px,4.6vmin,28px)}
+ #dfcPointsTopup .dfc-topup-projection{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:3px 12px;margin:0;padding-block:3px;border-block:1px solid #1ca3cf8c}
+ #dfcPointsTopup .dfc-topup-projection dd{margin:0}
+ #dfcPointsTopup [role=status]:empty{display:none}
+ #dfcPointsTopup button:focus-visible{outline:2px solid #e9f8ff;outline-offset:-3px}
+ @media(orientation:portrait){#dfcPointsTopup{width:min(92%,520px)}}
  .dfc-funding-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(5px,2vmin,16px);align-items:center}
  .dfc-funding-ledger{display:grid;gap:3px;margin:0}
  .dfc-funding-ledger div{display:flex;justify-content:space-between;align-items:center;gap:5px;padding:3px 5px;text-align:left;border-bottom:1px solid #4b9ac773}
@@ -2249,8 +2260,14 @@
  const topup=text('div','',stage);topup.id='dfcPointsTopup';topup.hidden=true;
  topup.setAttribute('role','region');topup.setAttribute('aria-label','Agregar saldo de mesa');
  text('h2','Agregar saldo de mesa',topup);
- const tableBalance=text('div','',topup);
+ const topupBalances=text('dl','',topup);topupBalances.className='dfc-topup-balances';
+ const tableBalance=fundingRow(topupBalances,'Saldo de mesa');
+ const personalBalance=fundingRow(topupBalances,'Saldo personal');
+ text('strong','Importe a agregar',topup);
  const topupStrip=fundingStrip(topup,change=>{topupExtra+=change;topupRequest=null;topupStatus.textContent='';drawTopup();});
+ const topupProjection=text('dl','',topup);topupProjection.className='dfc-topup-projection';
+ text('dt','Nuevo saldo de mesa',topupProjection);
+ const projectedBalance=text('dd','',topupProjection);projectedBalance.setAttribute('aria-live','polite');
  const topupStatus=text('div','',topup);topupStatus.setAttribute('role','status');
  const topupActions=text('div','',topup);topupActions.className='dfc-funding-actions';
  const topupConfirm=text('button','Agregar FlashCoin',topupActions);topupConfirm.type='button';topupConfirm.className='dfc-funding-confirm';
@@ -2386,7 +2403,11 @@
    if(topup.hidden)return;
    const max=Math.max(0,Math.min(10000000,units(funding.wallet_fc)));
    if(!topupBusy&&!topupUncertain)topupExtra=Math.max(0,Math.min(max,topupExtra));
-   tableBalance.textContent='En mesa · '+fc(units(funding.table_balance))+'   |   Disponible · '+fc(units(funding.wallet_fc));
+   const currentBalance=units(funding.table_balance);
+   tableBalance.textContent=fc(currentBalance);
+   personalBalance.textContent=fc(units(funding.wallet_fc));
+   const preview=fc(currentBalance+topupExtra);
+   if(projectedBalance.textContent!==preview)projectedBalance.textContent=preview;
    drawFundingStrip(topupStrip,topupExtra,0,max,topupBusy||topupUncertain);
    topupConfirm.disabled=topupBusy||!topupExtra||(!topupUncertain&&topupExtra>max);
    topupConfirm.textContent=topupUncertain?'Verificar recarga':'Agregar FlashCoin';
