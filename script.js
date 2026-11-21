@@ -2117,14 +2117,34 @@
  body:has(#dominoTablePanel.active[data-dfc-points-replay]) #dominoExitBtn{display:none!important}
  #dominoSeats .dfc-seat-points{display:inline-grid;place-items:center;vertical-align:middle;margin-inline-start:.35em;min-width:2.9em;aspect-ratio:1;border-radius:50%;box-sizing:border-box;padding:.2em;color:#fff;border:1px solid #bc9ee7;background:linear-gradient(180deg,#7358a2,#50377f 45%,#2d224e 51%,#392d62);box-shadow:inset 0 1px 4px #fff5,0 2px 6px #160d2b99;font:800 clamp(9px,1.7vmin,14px)/1 system-ui;font-variant-numeric:tabular-nums}
  #dominoSeats .domino-seat.empty .dfc-seat-points{display:none}
- #dfcPointsReplay{position:absolute;left:50%;bottom:3%;transform:translateX(-50%);z-index:182;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;background:#101f3af5;color:white;border:1px solid #dabf70;border-radius:9px;padding:6px 9px;font:700 clamp(10px,2vmin,15px)/1.2 system-ui;max-width:90%}
- #dfcPointsReplay button{padding:5px 9px;white-space:normal}
- #dfcPointsReplay h2{flex-basis:100%;margin:0;text-align:center;color:#ffdb7c;font:inherit;font-size:1.3em}
- #dfcPointsResult .dfc-panel-close,#dfcPointsReplay .dfc-panel-close{min-height:34px;padding:5px 16px;border:1px solid #71d7ff;border-radius:12px;background:linear-gradient(#1b4a74,#061f3b);box-shadow:inset 0 1px 0 #a0e4ff48;color:#f1faff;font:inherit;cursor:pointer}
+ #dfcPointsReplay,#dfcPointsTopup{position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:182;width:min(94%,780px);max-height:95%;overflow:auto;box-sizing:border-box;display:grid;gap:clamp(3px,1.5vmin,12px);padding:clamp(6px,2vmin,18px);text-align:center;background:radial-gradient(ellipse at 50% 0,#103d72,#06152d 65%);color:#edf8ff;border:2px solid #1bd5ff;border-radius:clamp(10px,3vmin,22px);box-shadow:0 0 22px #0bb7ee66,0 10px 30px #000a;font:700 clamp(10px,2.6vmin,17px)/1.2 system-ui}
+ #dfcPointsTopup{width:min(90%,440px)}
+ #dfcPointsReplay h2,#dfcPointsTopup h2{margin:0;color:#ffdc7a;font-size:clamp(18px,6vmin,39px);line-height:1.05}
+ .dfc-funding-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(5px,2vmin,16px);align-items:center}
+ .dfc-funding-ledger{display:grid;gap:3px;margin:0}
+ .dfc-funding-ledger div{display:flex;justify-content:space-between;align-items:center;gap:5px;padding:3px 5px;text-align:left;border-bottom:1px solid #4b9ac773}
+ .dfc-funding-ledger dd{margin:0;white-space:nowrap;color:#ffdc7a}
+ .dfc-funding-ledger .dfc-funding-total{border-radius:6px;background:linear-gradient(#ffe5a4,#e9aa28);color:#102339}
+ .dfc-funding-ledger .dfc-funding-total dd{color:inherit}
+ .dfc-funding-right{min-width:0;display:grid;gap:4px;align-content:center;border-inline-start:1px solid #23abd2;padding-inline-start:clamp(4px,1.6vmin,16px)}
+ .dfc-funding-strip{display:grid;grid-template-columns:1fr 2fr 1fr;align-items:center;border:1px solid #32d9ff;border-radius:9px;overflow:hidden;background:#08274a;color:#ffe080}
+ .dfc-funding-strip output{white-space:nowrap;font-variant-numeric:tabular-nums}
+ .dfc-funding-strip button{min-height:32px;border:0;background:#124875;color:#effaff;font:inherit;cursor:pointer}
+ .dfc-funding-strip button:disabled{opacity:.48}
+ .dfc-funding-note{color:#c1deef;font-size:.85em}
+ .dfc-funding-warning{color:#ffe080;font-size:.95em}
+ .dfc-funding-actions{display:grid;grid-template-columns:2fr 1fr;gap:6px}
+ #dfcPointsReplay progress{appearance:none;width:100%;height:7px;border:0;border-radius:10px;overflow:hidden;background:#244364;color:#10d8f3}
+ #dfcPointsReplay progress::-webkit-progress-bar{background:#244364}
+ #dfcPointsReplay progress::-webkit-progress-value{background:#10d8f3}
+ #dfcPointsReplay progress::-moz-progress-bar{background:#10d8f3}
+ #dfcPointsAddBalance{border:1px solid #71d7ff;border-radius:9px;padding:4px 7px;background:#092c50;color:#f1faff;font:700 clamp(9px,1.9vmin,13px) system-ui;cursor:pointer}
+ #dfcPointsResult .dfc-panel-close,#dfcPointsReplay .dfc-panel-close,#dfcPointsTopup .dfc-panel-close{min-height:32px;padding:4px 12px;border:1px solid #71d7ff;border-radius:10px;background:linear-gradient(#1b4a74,#061f3b);box-shadow:inset 0 1px 0 #a0e4ff48;color:#f1faff;font:inherit;cursor:pointer}
  #dfcPointsResult .dfc-panel-close{margin:7px auto 0;display:block}
- #dfcPointsReplay #dfcPointsConfirmReplay{min-height:34px;padding:5px 16px;border:1px solid #ffe6a0;border-radius:12px;background:linear-gradient(#ffe293,#e8a825);color:#142947;font:inherit;cursor:pointer}
+ .dfc-funding-confirm{min-height:32px;padding:4px 12px;border:1px solid #ffe6a0;border-radius:10px;background:linear-gradient(#ffe293,#e8a825);color:#142947;font:inherit;cursor:pointer}
  #dfcPointsResult .dfc-panel-close:focus-visible,#dfcPointsReplay button:focus-visible{outline:2px solid #e9f8ff;outline-offset:3px}
- #dfcPointsReplay[hidden],#dfcPointsReplay button[hidden],#dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
+ #dfcPointsReplay [hidden],#dfcPointsReplay[hidden],#dfcPointsTopup[hidden],#dfcPointsAddBalance[hidden],#dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
+ @media(max-width:480px) and (orientation:portrait){.dfc-funding-grid{grid-template-columns:1fr}.dfc-funding-right{border-inline-start:0;padding-inline-start:0}}
  #dfcPointsResult {position:absolute;inset:12% auto auto 50%;transform:translateX(-50%);width:min(84%,570px);max-height:76%;box-sizing:border-box;overflow:auto;z-index:180;padding:10px;text-align:center;box-shadow:0 8px 25px #0009}
  #dfcPointsResult .dfc-points-prize{display:block;position:relative;container-type:inline-size;width:min(100%,260px);aspect-ratio:3/2;margin:10px auto 4px;padding:0;border:0;border-radius:14px;background:var(--dfc-official-fc-card) center/contain no-repeat;filter:drop-shadow(0 5px 16px #1187f9a8);cursor:pointer}
  #dfcPointsResult .dfc-points-prize:disabled{opacity:1;cursor:default}
@@ -2195,20 +2215,71 @@
  stage.append(result);
  const replay=document.createElement('div');
  replay.id='dfcPointsReplay';replay.hidden=true;
+ replay.setAttribute('role','region');replay.setAttribute('aria-label','Nuevo aporte');
  const replayTitle=document.createElement('h2');
  replayTitle.textContent='Nuevo aporte';
- const replayText=document.createElement('span');
- const replayTerms=document.createElement('span');
- replayTerms.style.flexBasis='100%';
+ const replayTable=text('div','',replay);
+ replay.prepend(replayTitle);
+ const replayGrid=text('div','',replay);replayGrid.className='dfc-funding-grid';
+ const ledger=text('dl','',replayGrid);ledger.className='dfc-funding-ledger';
+ const entryAmount=fundingRow(ledger,'Aporte de la partida');
+ const extraAmount=fundingRow(ledger,'Recarga al saldo de mesa');
+ const totalAmount=fundingRow(ledger,'Total a descontar',true);
+ const diamondAmount=fundingRow(ledger,'Diamantes');
+ const replayFunding=text('div','',replayGrid);replayFunding.className='dfc-funding-right';
+ text('strong','Agregar al saldo de mesa',replayFunding);
+ const replayShortage=text('span','',replayFunding);replayShortage.className='dfc-funding-warning';
+ const replayStrip=fundingStrip(replayFunding,(change)=>{replayExtra+=change;replayError='';drawReplay();});
+ const replayWallet=text('span','',replayFunding);replayWallet.className='dfc-funding-note';
+ const replayTerms=text('div','',replay);replayTerms.className='dfc-funding-note';
+ const replayText=text('div','',replay);replayText.setAttribute('role','status');
+ const replayProgress=text('progress','',replay);
+ replayProgress.max=10;replayProgress.setAttribute('aria-label','Tiempo para decidir');
+ const actions=text('div','',replay);actions.className='dfc-funding-actions';
  const replayButton=document.createElement('button');
- replayButton.type='button';replayButton.id='dfcPointsConfirmReplay';
+ replayButton.type='button';replayButton.className='dfc-funding-confirm';replayButton.textContent='Confirmar y seguir';
  const exitButton=document.createElement('button');
  exitButton.type='button';exitButton.textContent='Cerrar';exitButton.className='dfc-panel-close';
  exitButton.setAttribute('aria-label','Cerrar y salir de la revancha');
- replayText.setAttribute('role','status');
- replay.append(replayTitle,replayText,replayTerms,replayButton,exitButton);
+ actions.append(replayButton,exitButton);
+ const replayExitNote=text('small','Al cerrar, sales de la revancha',replay);replayExitNote.className='dfc-funding-note';
  stage.append(replay);
+ const addBalance=text('button','Agregar saldo de mesa',controls);
+ addBalance.id='dfcPointsAddBalance';addBalance.type='button';addBalance.hidden=true;
+ const topup=text('div','',stage);topup.id='dfcPointsTopup';topup.hidden=true;
+ topup.setAttribute('role','region');topup.setAttribute('aria-label','Agregar saldo de mesa');
+ text('h2','Agregar saldo de mesa',topup);
+ const tableBalance=text('div','',topup);
+ const topupStrip=fundingStrip(topup,change=>{topupExtra+=change;topupRequest=null;topupStatus.textContent='';drawTopup();});
+ const topupStatus=text('div','',topup);topupStatus.setAttribute('role','status');
+ const topupActions=text('div','',topup);topupActions.className='dfc-funding-actions';
+ const topupConfirm=text('button','Agregar FlashCoin',topupActions);topupConfirm.type='button';topupConfirm.className='dfc-funding-confirm';
+ const topupClose=text('button','Cerrar',topupActions);topupClose.type='button';topupClose.className='dfc-panel-close';
  let replayState=null,replayOffset=0,confirming=false,confirmedMatch='',replayError='',retryReplayAt=0;
+ let replayExtra=0,topupExtra=0,topupRequest=null,topupBusy=false,topupUncertain=false;
+ const step=100;
+ function units(amount){return Math.round((Number(amount)||0)*1000);}
+ function fc(amount){return money.format(amount/1000)+' FC';}
+ function fundingRow(root,label,total=false){
+   const row=text('div','',root);
+   if(total)row.className='dfc-funding-total';
+   text('dt',label,row);
+   return text('dd','',row);
+ }
+ function fundingStrip(root,change){
+   const strip=text('div','',root);strip.className='dfc-funding-strip';
+   const minus=text('button','−',strip);minus.type='button';minus.setAttribute('aria-label','Reducir recarga');
+   const value=text('output','',strip);
+   const plus=text('button','+',strip);plus.type='button';plus.setAttribute('aria-label','Aumentar recarga');
+   minus.onclick=()=>change(-step);
+   plus.onclick=()=>change(step);
+   return {minus,value,plus};
+ }
+ function drawFundingStrip(strip,amount,min,max,locked){
+   strip.value.textContent=fc(amount);
+   strip.minus.disabled=locked||amount<=min;
+   strip.plus.disabled=locked||amount>=max;
+ }
  function drawReplay(){
    panel.toggleAttribute('data-dfc-points-replay',Boolean(replayState));
    if(!replayState||!result.hidden){replay.hidden=true;return;}
@@ -2223,29 +2294,47 @@
    replay.hidden=false;
    const seconds=Math.max(0,Math.ceil((deadline-now)/1000));
    const confirmed=replayState.replay_confirmed||confirmedMatch===replayState.match_id;
-   const missing=Number(replayState.replay_fc_missing)||0;
    const terms=replayState.replay_terms;
+   const funding=replayState.my_table_funding;
    const seatReleased=replayState.replay_seat_released;
    const canConfirm=Boolean(terms&&replayState.replay_can_confirm);
+   const entry=units(terms?.entry_fc);
+   const minimum=units(funding?.missing_fc);
+   const wallet=units(funding?.wallet_fc);
+   const maximum=Math.max(0,Math.min(10000000,wallet-entry));
+   const shortfall=entry+minimum-wallet;
+   if(!confirmed&&!confirming)replayExtra=Math.max(minimum,Math.min(maximum,replayExtra));
+   const locked=confirming||confirmed||!seconds||!canConfirm||!funding||seatReleased;
+   replayGrid.hidden=!canConfirm;
+   replayTable.textContent=terms?terms.players+' jugadores · Meta de '+terms.target_points+' puntos':'';
    replayTerms.hidden=!canConfirm;
    if(canConfirm){
-     const entry=[Number(terms.entry_fc)>0?money.format(terms.entry_fc)+' FlashCoin':'',
-       Number(terms.entry_diamonds)>0?format.format(terms.entry_diamonds)+' diamantes':''].filter(Boolean).join(' + ')||'Gratis';
+     entryAmount.textContent=fc(entry);
+     extraAmount.textContent=fc(replayExtra);
+     totalAmount.textContent=fc(entry+replayExtra);
+     diamondAmount.textContent=format.format(terms.entry_diamonds)+' diamantes';
+     replayShortage.textContent=minimum>0?'Te faltan '+fc(minimum)+' de saldo de mesa':'Puedes agregar más';
+     replayWallet.textContent=funding?'Saldo personal disponible · '+fc(wallet):'Comprobando el saldo de mesa…';
+     drawFundingStrip(replayStrip,replayExtra,minimum,maximum,locked);
      const passFee=Number(terms.pass_fee_fc)||0;
      const passPrice=passFee>0?money.format(passFee)+' FlashCoin por pase':'Pase normal';
-     replayTerms.textContent=terms.players+' jugadores · Meta '+terms.target_points+' puntos · Aporte '+entry+
-       ' · '+passPrice+' · Comisión '+format.format(terms.admin_pct)+' % FC / '+format.format(terms.diamond_admin_pct)+' % diamantes';
+     replayTerms.textContent=passPrice+' · Comisión '+format.format(terms.admin_pct)+' % FC / '+format.format(terms.diamond_admin_pct)+' % diamantes';
    }
-   replayButton.textContent='Confirmar y seguir';
-   replayButton.hidden=!canConfirm||confirmed||!seconds||now<opens||missing>0||seatReleased;
-   exitButton.hidden=confirmed||!seconds||now<opens||seatReleased;
-   replayButton.disabled=exitButton.disabled=confirming;
-   replayText.textContent=replayError||(confirmed?'Aporte confirmado · '+seconds+' s':
-     !canConfirm?(replayState.replay_closed_reason==='capacity'?'Cambió el cupo · Revancha cerrada':'Mesa desactivada · Revancha cerrada'):now<opens?'Siguiente partida':missing>0?'FlashCoin insuficiente. Te faltan '+money.format(missing)+' FC.':
+   replayProgress.value=Math.max(0,Math.min(10,(deadline-now)/1000));
+   replayButton.hidden=!canConfirm||confirmed||!seconds||seatReleased;
+   exitButton.hidden=confirmed||!seconds||seatReleased;
+   replayExitNote.hidden=exitButton.hidden;
+   actions.hidden=replayButton.hidden&&exitButton.hidden;
+   replayButton.disabled=locked||shortfall>0||replayExtra>maximum;
+   exitButton.disabled=confirming;
+   const status=replayError||(confirmed?'Aporte confirmado · Esperando a los demás':
+     !canConfirm?(replayState.replay_closed_reason==='capacity'?'Cambió el cupo · Revancha cerrada':'Mesa desactivada · Revancha cerrada'):
      seconds?seconds+' s para decidir':'Cerrando la revancha…');
+   const message=funding&&shortfall>0&&!confirmed&&!replayError&&seconds
+     ?status+' · Te faltan '+fc(shortfall)+' en tu saldo personal.':status;
+   if(replayText.textContent!==message)replayText.textContent=message;
    if(!confirmed&&!confirming&&(seatReleased||now>=opens)&&Date.now()>=retryReplayAt){
      if(seatReleased||!seconds)void chooseReplay('timeout');
-     else if(canConfirm&&missing>0)void chooseReplay('check');
    }
  }
  async function chooseReplay(choice){
@@ -2254,12 +2343,19 @@
    confirming=true;replayError='';drawReplay();
    try{
      const client=window.sb||window.dfcSupabase;
-     const {data,error}=await client.rpc('dfc_points_replay_choice_terms',{p_match_id:match,p_choice:choice,p_terms:terms});
+     const {data,error}=await client.rpc('dfc_points_replay_choice_with_balance',{
+       p_match_id:match,p_choice:choice,p_terms:terms,p_add_fc:choice==='confirm'?replayExtra/1000:0
+     });
      if(error)throw error;
      if(token!==epoch)return;
      if(data?.state==='confirmed'){confirmedMatch=match;refreshAfterClose();}
      if(data?.state==='pending')retryReplayAt=Date.now()+1800;
      if(data?.state==='insufficient')replayError=data.message||'Saldo insuficiente para la revancha.';
+     if(data?.state==='topup_required'){
+       replayExtra=Math.max(replayExtra,units(data.missing_fc));
+       replayError='El saldo de mesa cambió. Revisa la recarga y confirma de nuevo.';
+       refreshAfterClose();
+     }
      if(data?.state==='left'){
        if(Number(data.missing_fc)>0){
          replayError='Saldo insuficiente. Te faltan '+money.format(data.missing_fc)+' FlashCoin.';
@@ -2275,17 +2371,66 @@
        window.dfcZ37UI?.open('points');
      }
    }catch(error){
-     if(token===epoch){replayError=error.message||'No se pudo completar la revancha.';retryReplayAt=Date.now()+2500;}
+     if(token===epoch){replayError=error.message||'No se pudo completar la revancha.';retryReplayAt=Date.now()+2500;refreshAfterClose();}
    }finally{
      if(token===epoch){confirming=false;drawReplay();}
    }
  }
  replayButton.onclick=()=>chooseReplay('confirm');
  exitButton.onclick=()=>{if(!confirming){playPanelSound('close');void chooseReplay('exit');}};
+ function drawTopup(){
+   const funding=last?.my_table_funding;
+   const available=current()===table&&last?.state==='playing'&&funding&&result.hidden&&!window.dominoSpectatorMode;
+   addBalance.hidden=!available;
+   if(!available){topup.hidden=true;return;}
+   if(topup.hidden)return;
+   const max=Math.max(0,Math.min(10000000,units(funding.wallet_fc)));
+   if(!topupBusy&&!topupUncertain)topupExtra=Math.max(0,Math.min(max,topupExtra));
+   tableBalance.textContent='En mesa · '+fc(units(funding.table_balance))+'   |   Disponible · '+fc(units(funding.wallet_fc));
+   drawFundingStrip(topupStrip,topupExtra,0,max,topupBusy||topupUncertain);
+   topupConfirm.disabled=topupBusy||!topupExtra||(!topupUncertain&&topupExtra>max);
+   topupConfirm.textContent=topupUncertain?'Verificar recarga':'Agregar FlashCoin';
+   topupClose.disabled=topupBusy;
+ }
+ function resetFunding(){
+   replayExtra=0;topupExtra=0;topupRequest=null;topupBusy=false;topupUncertain=false;
+   topupStatus.textContent='';topup.hidden=true;addBalance.hidden=true;
+ }
+ addBalance.onclick=()=>{topup.hidden=false;drawTopup();};
+ topupClose.onclick=()=>{playPanelSound('close');topup.hidden=true;};
+ topupConfirm.onclick=async()=>{
+   if(topupConfirm.disabled||topupBusy||current()!==table||last?.state!=='playing')return;
+   const token=epoch, match=last.match_id;
+   topupRequest??=crypto.randomUUID();
+   topupBusy=true;topupStatus.textContent='Verificando recarga…';drawTopup();
+   try{
+     const client=window.sb||window.dfcSupabase;
+     const {data,error}=await client.rpc('dfc_points_add_table_balance',{
+       p_match_id:match,p_request_id:topupRequest,p_amount_fc:topupExtra/1000
+     });
+     if(error)throw error;
+     if(!data?.ok)throw Error('El servidor no confirmó la recarga.');
+     if(token!==epoch||last?.match_id!==match)return;
+     topupRequest=null;topupExtra=0;topupUncertain=false;
+     Object.assign(last.my_table_funding,{table_balance:data.table_balance,wallet_fc:data.wallet_fc});
+     topupStatus.textContent=fc(units(data.amount_fc))+' agregados al saldo de mesa.';
+     refreshAfterClose();
+     if(typeof loadDominoState==='function')void loadDominoState(false,true).catch(()=>{});
+   }catch(error){
+     if(token!==epoch||last?.match_id!==match)return;
+     const rejected=typeof error.code==='string'&&/^[A-Z0-9]{5}$/.test(error.code);
+     topupUncertain=!rejected;
+     if(rejected)topupRequest=null;
+     topupStatus.textContent=rejected?error.message:'No pudimos confirmar la recarga. Usa «Verificar recarga» para consultar la misma solicitud.';
+   }finally{
+     if(token===epoch&&last?.match_id===match){topupBusy=false;drawTopup();}
+   }
+ };
  setInterval(()=>{
    if(current()!==table||!last)return;
    drawConclusion();
    if(replayState)drawReplay();
+   drawTopup();
  },200);
  let table=0,epoch=0,pending=false,retryAfter=0,last=null;
  let shown='',observedClosure='',closureRefreshQueued=false;
@@ -2319,6 +2464,7 @@
    score.hidden=true;result.hidden=true;result.replaceChildren();
    pots.hidden=true;basePot?.removeAttribute('data-dfc-points-pot');
    replayState=null;confirmedMatch='';confirming=false;replayError='';replay.hidden=true;
+   resetFunding();
    document.querySelectorAll('.dfc-point-coin').forEach(coin=>coin.remove());
  }
  function current(){
@@ -2602,6 +2748,7 @@
        shown='';replayError='';handResultUntil=0;
        result.hidden=true;
        result.removeAttribute('data-match-victory');
+       resetFunding();
      }
      panel.toggleAttribute('data-dfc-points-mode',!window.dominoSpectatorMode);
      window.dfcZ37UI?.syncSpectator(data,id);
@@ -2615,6 +2762,7 @@
      drawScore(data);
      drawConclusion();
      drawReplay();
+     drawTopup();
      if(data.state==='settled'&&Date.now()+replayOffset>=victoryOpens(data))return;
      const hand=data.last_hand;
      if(!hand||window.dominoSpectatorMode){result.hidden=true;return;}
