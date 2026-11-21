@@ -15880,7 +15880,7 @@ setInterval(()=>{if(!inTable()||!dominoState?.last_result||!dominoState?.me||bus
    if(tid!==tableId())return;
    wallet=data;
    if(typeof window.DFC_Z163?.onSync==='function')window.DFC_Z163.onSync(data,tid);
-   if(!Array.isArray(data?.passes)&&previousDiamond!==null&&Number.isFinite(previousDiamond)&&Number(data?.table_balance)>previousDiamond)window.DFC_Z161?.flyDiamond?.();
+   if(document.getElementById('dfcPointsPots')?.hidden!==false&&!Array.isArray(data?.passes)&&previousDiamond!==null&&Number.isFinite(previousDiamond)&&Number(data?.table_balance)>previousDiamond)window.DFC_Z161?.flyDiamond?.();
    const amount=$('dfcZ16TableDiamondAmount');if(amount)amount.textContent=fmt(data?.table_balance);
    if($('dfcZ16WalletModal')&&!$('dfcZ16WalletModal').hidden)showWallet();
   }catch(e){const el=$('dfcZ16TableDiamondAmount');if(el)el.textContent='—';console.debug('0.12Z.16 cartera mesa:',e?.message||e)}
@@ -16740,7 +16740,7 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 </script>
 <script id="dfc-z27-html-ready-signal">document.dispatchEvent(new Event("dfc-z27-html-ready"));</script>
 <link rel="stylesheet" href="./style.css?v=0.12Z.31">
-<script src="./script.js?v=0.12Z.32.5" defer></script>
+<script src="./script.js?v=0.12Z.32.6" defer></script>
 <script src="./native-bridge.js?v=0.12Z.31" type="module"></script>
 <style id="dfc-z27-shared-home-lobby-wallpaper">
 #appView.bg.dfc09-view,
@@ -17238,7 +17238,7 @@ function dfcZ28ShowTableText(row){
        const previous=last.get(key);
        // Do not interpret our own frame updates as new server balances.
        if(running.has(el))continue;
-       if(previous!==undefined&&Math.abs(current-previous)>.0005){last.set(key,current);animate(el,previous,current,kind);particles(el,kind,current>previous)}
+       if(previous!==undefined&&Math.abs(current-previous)>.0005){last.set(key,current);if(kind!=='gem'||!window.dfcPointsFlyDiamond?.(el,current>previous)){animate(el,previous,current,kind);particles(el,kind,current>previous)}}
        else last.set(key,current);
      }
    }
