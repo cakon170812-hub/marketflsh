@@ -2123,9 +2123,10 @@
  #dfcPointsResult {position:absolute;inset:12% auto auto 50%;transform:translateX(-50%);width:min(84%,570px);max-height:76%;box-sizing:border-box;overflow:auto;z-index:180;padding:10px;text-align:center;box-shadow:0 8px 25px #0009}
  #dfcPointsResult[data-prize]{background:radial-gradient(ellipse at top,#383269,#10172e 72%);border-color:#f9d38c;box-shadow:0 12px 36px #090c1bc9,inset 0 0 36px #f4c97518}
  #dfcPointsResult[data-prize] h2{color:#ffe7ad;font-size:clamp(18px,4vmin,34px)}
- #dfcPointsResult .dfc-points-prize{display:grid;gap:.45em;justify-items:start;width:min(100%,260px);margin:10px auto;padding:16px 19px;text-align:left;border:1px solid #8ce4ff;border-radius:15px;color:#fff;background:linear-gradient(145deg,#192650,#124b85 60%,#176784);box-shadow:0 7px 20px #020817a6,inset 0 1px 1px #c4eeff90;cursor:pointer}
- #dfcPointsResult .dfc-points-prize strong{font-size:clamp(20px,4vmin,34px);font-variant-numeric:tabular-nums}
- #dfcPointsResult .dfc-points-prize small{color:#c3f0ff}
+ #dfcPointsResult .dfc-points-prize{display:block;position:relative;container-type:inline-size;width:min(100%,260px);aspect-ratio:3/2;margin:10px auto 4px;padding:0;border:0;border-radius:14px;background:var(--dfc-official-fc-card) center/contain no-repeat;filter:drop-shadow(0 5px 16px #1187f9a8);cursor:pointer}
+ #dfcPointsResult .dfc-points-prize:disabled{opacity:1;cursor:default}
+ #dfcPointsResult .dfc-points-prize-amount{position:absolute;box-sizing:border-box;left:25%;right:13%;top:48%;height:31%;display:grid;place-items:center;border:2px solid #00e6ff;border-radius:13px;background:radial-gradient(ellipse at 50% 20%,#006acb 0%,#001956 70%);box-shadow:0 0 20px #00d2fa;color:#ffd65d;white-space:nowrap;font-weight:1000;font-size:clamp(12px,10cqi,26px);text-shadow:1px 3px 2px #714300,0 0 10px #f6b843}
+ #dfcPointsResult .dfc-points-prize-status{display:block;color:#c3f0ff;text-align:center}
  #dfcPointsResult p{margin:4px 0}
  #dfcPointsResult h2{font-size:1.4em;margin:4px 0 7px}
  #dfcPointsResult .dfc-points-tiles {display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
@@ -2315,9 +2316,12 @@
        const prize=data.my_prize;
        const card=text('button','');
        card.type='button';card.className='dfc-points-prize';
-       text('small','TARJETA FLASHCOIN',card);
-       text('strong',money.format(prize.amount)+' FC',card);
-       const status=text('small',prize.redeemed?'Tarjeta acreditada':'Toca para acreditar al saldo de tarjetas',card);
+       const amount='$'+money.format(prize.amount);
+       text('strong',amount,card).className='dfc-points-prize-amount';
+       card.setAttribute('aria-label','Tarjeta FlashCoin '+amount);
+       const status=text('small',prize.redeemed?'Tarjeta acreditada':'Toca para acreditar al saldo de tarjetas');
+       status.className='dfc-points-prize-status';
+       status.setAttribute('role','status');
        card.disabled=prize.redeemed;
        card.onclick=async()=>{
          card.disabled=true;
