@@ -1285,7 +1285,7 @@
  function boot(){
    if(document.querySelector('script[data-dfc-z37-ui]'))return;
    const s=document.createElement('script');
-   s.src='./z37-ui.js?v=37.15';s.defer=true;s.dataset.dfcZ37Ui='true';
+   s.src='./z37-ui.js?v=37.16';s.defer=true;s.dataset.dfcZ37Ui='true';
    s.onerror=()=>console.warn('[DFC Z37] modulo visual no disponible');
    document.head.append(s);
    if(!document.querySelector('script[data-dfc-z37-admin]')){
@@ -2185,10 +2185,10 @@
    replayButton.textContent='Confirmar y seguir';
    exitButton.textContent=canConfirm?'Salir':'Volver a Mesas por puntos';
    replayButton.hidden=!canConfirm||confirmed||!seconds||now<opens||missing>0||seatReleased;
-   exitButton.hidden=confirmed||!seconds||now<opens||(canConfirm&&missing>0)||seatReleased;
+   exitButton.hidden=confirmed||!seconds||now<opens||seatReleased;
    replayButton.disabled=exitButton.disabled=confirming;
    replayText.textContent=replayError||(confirmed?'Aporte confirmado · '+seconds+' s':
-     !canConfirm?(replayState.replay_closed_reason==='capacity'?'Cambió el cupo · Revancha cerrada':'Mesa desactivada · Revancha cerrada'):now<opens?'Siguiente partida':missing>0?'FlashCoin insuficiente':
+     !canConfirm?(replayState.replay_closed_reason==='capacity'?'Cambió el cupo · Revancha cerrada':'Mesa desactivada · Revancha cerrada'):now<opens?'Siguiente partida':missing>0?'FlashCoin insuficiente. Te faltan '+money.format(missing)+' FC.':
      seconds?seconds+' s para decidir':'Cerrando la revancha…');
    if(!confirmed&&!confirming&&(seatReleased||now>=opens)&&Date.now()>=retryReplayAt){
      if(seatReleased||!seconds)void chooseReplay('timeout');
@@ -2206,6 +2206,7 @@
      if(token!==epoch)return;
      if(data?.state==='confirmed')confirmedMatch=match;
      if(data?.state==='pending')retryReplayAt=Date.now()+1800;
+     if(data?.state==='insufficient')replayError=data.message||'Saldo insuficiente para la revancha.';
      if(data?.state==='left'){
        if(Number(data.missing_fc)>0){
          replayError='Saldo insuficiente. Te faltan '+money.format(data.missing_fc)+' FlashCoin.';

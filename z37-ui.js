@@ -173,6 +173,22 @@
 
 
  let joiningTrial=false;
+ const pendingSeatRequests=new Map();
+ function seatRequest(key){
+   let request=pendingSeatRequests.get(key);
+   if(!request){
+     try{request=sessionStorage.getItem(key);}catch{}
+   }
+   request ||= crypto.randomUUID();
+   pendingSeatRequests.set(key,request);
+   try{sessionStorage.setItem(key,request);}catch{}
+   return request;
+ }
+ function forgetSeatRequest(key){
+   if(!key)return;
+   pendingSeatRequests.delete(key);
+   try{sessionStorage.removeItem(key);}catch{}
+ }
  async function joinPoints(button,config,viewedTable){
    if(joiningTrial)return;
    const screen=state.screen;
@@ -189,11 +205,16 @@
    joiningTrial=true;
    button.disabled=true;
    status.textContent='Buscando asiento…';
+   let requestKey;
    try{
      const client=db();
      if(!client)throw new Error('Espera a que cargue tu sesión y vuelve a intentar.');
+     const {data:{session},error:sessionError}=await client.auth.getSession();
+     if(sessionError)throw sessionError;
+     if(!session)throw new Error('Inicia sesión para sentarte.');
+     requestKey='dfc-points-seat:'+session.user.id+':'+config.id+':'+(viewedTable||'next');
      const {data,error}=await client.rpc('dfc_z37_points_join_terms',{
-       p_config:config.id,p_request:crypto.randomUUID(),p_terms:terms,p_table:viewedTable||null
+       p_config:config.id,p_request:seatRequest(requestKey),p_terms:terms,p_table:viewedTable||null
      });
      if(error)throw error;
      if(state.screen!==screen)return;
@@ -203,6 +224,7 @@
      const resume=$('#dominoResumeTableBtn');
      if(typeof resume?.onclick!=='function')throw new Error('Vuelve a tocar Abrir partida para recuperar tu asiento.');
      await resume.onclick();
+     forgetSeatRequest(requestKey);
      const tableInfo=$('#dfcZ16TableInfo');
      if(tableInfo){
        let tableId=$('#dfc-z37-trial-table-id',tableInfo);
@@ -225,6 +247,11 @@
      if(state.screen===screen)cleanup();
    }catch(error){
      status.textContent=error?.message||'No se pudo entrar a la mesa.';
+     if(error?.code==='DF004'){
+       status.textContent+=' Puedes usar «Ver mesa» para mirar las partidas disponibles.';
+       if(window.dominoSpectatorMode)status.textContent=error.message;
+     }
+     if(['DF001','DF002','DF005'].includes(error?.code))forgetSeatRequest(requestKey);
      if(error?.code==='DF002'&&viewedTable){
        await window.dominoExitSpectator?.();
        await open('points');
@@ -247,10 +274,11 @@
      button.disabled=false;
    }
  }
- function pointIdControls(config){
-   const ids=pointIds.filter(row=>row.config_id===config);
-   return ids.map(row=>'<p>ID de mesa <code style="user-select:all;-webkit-user-select:all">'+esc(row.table_id)+'</code> '+
-     '<button type="button" class="dfc-z37-btn" data-copy-table-id="'+esc(row.table_id)+'">Copiar ID</button></p>').join('');
+ function pointIdControls(boards,primaryBoard){
+   return boards.map(row=>'<p>ID de mesa <code style="user-select:all;-webkit-user-select:all">'+esc(row.table_id)+'</code> '+
+     '<button type="button" class="dfc-z37-btn" data-copy-table-id="'+esc(row.table_id)+'">Copiar ID</button>'+
+     (row.state==='playing'&&row!==primaryBoard?' <button type="button" class="dfc-z37-btn" data-z37-watch="'+esc(row.table_id)+'">Ver mesa #'+esc(row.table_id)+'</button>':'')+
+     '</p>').join('');
  }
  function drawPoints(){
   const e=$('#dfc-z37-content');
@@ -259,7 +287,7 @@
     const watch=boards.find(row=>row.state==='playing')||boards[0];
     return '<article class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p>'+
      (Number(t.pass_fee_fc)>0?'<p>Cada pase: '+esc(t.pass_fee_fc)+' FlashCoin</p>':'')+
-     '<p>'+esc(t.players)+' jugadores</p>'+pointIdControls(t.id)+
+     '<p>'+esc(t.players)+' jugadores</p>'+pointIdControls(boards,watch)+
      '<div class="dfc-z37-actions"><button type="button" class="dfc-z37-btn" data-z37-watch="'+esc(watch?.table_id||'')+'" '+(watch?'':'disabled')+'>Ver mesa</button>'+
      '<button type="button" class="dfc-z37-btn" data-z37-point-config="'+esc(t.id)+'">Sentarse</button><p role="status"></p></div></article>';
   }).join('');
@@ -275,7 +303,7 @@
     button.onclick=async()=>{
       if(joiningTrial)return;
       const screen=state.screen;
-      const status=button.parentElement.querySelector('[role="status"]');
+      const status=button.closest('.dfc-z37-tile').querySelector('[role="status"]');
       status.textContent='Abriendo mesa…';
       button.disabled=true;
       try{
