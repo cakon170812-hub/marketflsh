@@ -53,6 +53,7 @@
  .dfc-z37-points-nav{display:flex;gap:8px}
  #dominoTablePanel[data-dfc-points-viewer] :is(#mf110SpectatorSit,#dominoSpectatorPrev,#dominoSpectatorNext){display:none!important}
  #dfcPointsSpectatorJoin:not([hidden]){position:absolute;right:max(3%,env(safe-area-inset-right));bottom:6%;z-index:190;max-width:44%;color:#fff}
+ #dfcPointsWaitingStatus:not([hidden]){position:absolute;inset:auto 0 16%;z-index:190;margin:auto;width:max-content;max-width:80%;padding:6px 12px;border-radius:9px;background:#102841;color:#fff;font:700 13px system-ui;text-align:center;pointer-events:none}
  #dfcPointsSpectatorJoin button{background:#15345a;color:#fff;border:1px solid #d2bc79;border-radius:9px;padding:8px 12px}
  .dfc-z37-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:9px;margin-top:12px}
  .dfc-z37-tile{padding:16px;border:1px solid #e7b97769;border-radius:12px;background:#1c132bd1;color:white;text-align:left;min-height:80px}
@@ -229,7 +230,7 @@
        await open('points');
        const notice=document.createElement('p');
        notice.setAttribute('role','status');
-       notice.textContent=error.message;
+       notice.textContent='Esta mesa ya no admite asientos. Elige la mesa vigente en Por puntos.';
        $('#dfc-z37-content')?.prepend(notice);
      }
      if(error?.code==='DF001'&&screen&&state.screen===screen){
@@ -256,12 +257,11 @@
   const tiles=state.pointTables.map(t=>{
     const boards=pointIds.filter(row=>row.config_id===t.id);
     const watch=boards.find(row=>row.state==='playing')||boards[0];
-    const joinable=boards.some(row=>row.can_join)||!boards.length;
     return '<article class="dfc-z37-tile"><h3>'+esc(t.name)+'</h3><p>Meta '+esc(t.target_points)+' puntos</p><p>Entrada '+esc(t.entry_fc)+' FC + '+esc(t.entry_diamonds)+' diamantes</p>'+
      (Number(t.pass_fee_fc)>0?'<p>Cada pase: '+esc(t.pass_fee_fc)+' FlashCoin</p>':'')+
      '<p>'+esc(t.players)+' jugadores</p>'+pointIdControls(t.id)+
      '<div class="dfc-z37-actions"><button type="button" class="dfc-z37-btn" data-z37-watch="'+esc(watch?.table_id||'')+'" '+(watch?'':'disabled')+'>Ver mesa</button>'+
-     '<button type="button" class="dfc-z37-btn" data-z37-point-config="'+esc(t.id)+'" '+(joinable?'':'disabled')+'>Sentarse</button><p role="status"></p></div></article>';
+     '<button type="button" class="dfc-z37-btn" data-z37-point-config="'+esc(t.id)+'">Sentarse</button><p role="status"></p></div></article>';
   }).join('');
   e.innerHTML=catalogNotice()+(tiles?'<div class="dfc-z37-points-carousel" aria-label="Mesas por puntos" tabindex="0">'+tiles+'</div>'+
     (state.pointTables.length>1?'<nav class="dfc-z37-points-nav" aria-label="Cambiar de mesa"><button type="button" class="dfc-z37-btn" data-step="-1">‹ Anterior</button><button type="button" class="dfc-z37-btn" data-step="1">Siguiente ›</button></nav>':''):
@@ -303,10 +303,32 @@
   }
  }
  function allowPanelGesture(event){event.stopPropagation();}
+ function syncWaitingStatus(panel,data){
+   let status=$('#dfcPointsWaitingStatus',panel);
+   const players=data?.players;
+   const seated=!window.dominoSpectatorMode && data?.state==='waiting' &&
+     Array.isArray(players) && players.some(player=>player.mine);
+   if(!seated){
+     if(status)status.hidden=true;
+     return;
+   }
+   if(!status){
+     status=document.createElement('div');
+     status.id='dfcPointsWaitingStatus';
+     status.setAttribute('role','status');
+     panel.append(status);
+   }
+   const missing=Math.max(0,Number(data.capacity)-players.length);
+   const message=missing===0?'Mesa completa. Preparando reparto…':
+     missing===1?'Esperando 1 jugador':('Esperando '+missing+' jugadores');
+   if(status.textContent!==message)status.textContent=message;
+   status.hidden=false;
+ }
  let pointsViewerId=0;
  function syncSpectator(data,tableId){
    const panel=$('#dominoTablePanel');
    if(!panel)return;
+   syncWaitingStatus(panel,data);
    let host=$('#dfcPointsSpectatorJoin',panel);
    if(data&&window.dominoSpectatorMode)pointsViewerId=tableId;
    if(!window.dominoSpectatorMode||pointsViewerId!==tableId)pointsViewerId=0;

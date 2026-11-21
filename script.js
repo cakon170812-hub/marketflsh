@@ -1285,7 +1285,7 @@
  function boot(){
    if(document.querySelector('script[data-dfc-z37-ui]'))return;
    const s=document.createElement('script');
-   s.src='./z37-ui.js?v=37.13';s.defer=true;s.dataset.dfcZ37Ui='true';
+   s.src='./z37-ui.js?v=37.14';s.defer=true;s.dataset.dfcZ37Ui='true';
    s.onerror=()=>console.warn('[DFC Z37] modulo visual no disponible');
    document.head.append(s);
    if(!document.querySelector('script[data-dfc-z37-admin]')){
@@ -2391,7 +2391,10 @@
  }
  async function update(){
    const id=current();
-   if(id!==table)reset(id);
+   if(id!==table){
+     window.dfcZ37UI?.syncSpectator(null,id);
+     reset(id);
+   }
    if(!id||pending||Date.now()<retryAfter||document.hidden)return;
    const client=window.sb||window.dfcSupabase;
    if(!client?.rpc)return;
