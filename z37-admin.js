@@ -93,6 +93,7 @@
        field('entry_diamonds','Entrada diamantes','number',table?.entry_diamonds??50,'min="0" required')+
        sel('pass_mode','Tipo de pase',[['normal','Pase normal'],['paid','Pase pagado en FlashCoin']])+
        field('pass_fee_fc','Precio por pase en FlashCoin','number',table?.pass_fee_fc||'','min="0.001" max="999999" step="0.001" required')+
+       field('min_pass_balance_fc','Saldo mínimo de mesa (FC)','number',table?.min_pass_balance_fc??0,'min="0" max="10000" step="0.001" required')+
        field('admin_pct','Comisión FlashCoin (%)','number',table?.admin_pct??10,'min="0" max="50" step=".01" required')+
        field('diamond_admin_pct','Comisión diamantes (%)','number',table?.diamond_admin_pct??table?.admin_pct??10,'min="0" max="50" step=".01" required')+
        '<label style="width:100%;display:flex;gap:8px;align-items:center"><input type="checkbox" role="switch" name="enabled" value="1" '+(table?.enabled?'checked':'')+'> Mostrar en Mesas por puntos</label>'+
@@ -116,7 +117,8 @@
      formHost.replaceChildren(form);
      saveHandler(form,'dfc_z37_admin_save_points',x=>({...x,pass_fee_fc:x.pass_mode==='paid'?Number(x.pass_fee_fc):0,enabled:x.enabled==='1',bots_allowed:x.bots_allowed==='1',...(table?{id:table.id}:{}),players:Number(x.players),
        target_points:Number(x.target_points),entry_fc:Number(x.entry_fc||0),entry_diamonds:Number(x.entry_diamonds||0),
-       diamond_admin_pct:Number(x.diamond_admin_pct),admin_pct:Number(x.admin_pct)}),async (id,status)=>{
+       diamond_admin_pct:Number(x.diamond_admin_pct),admin_pct:Number(x.admin_pct),
+       min_pass_balance_fc:Number(x.min_pass_balance_fc)}),async (id,status)=>{
        const enabled=form.elements.enabled.checked;
        status.textContent='Cambios guardados.';
        notice.textContent=enabled?'Mesa visible en Por puntos.':'Mesa guardada y oculta en Por puntos.';

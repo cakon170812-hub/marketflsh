@@ -61,6 +61,24 @@
  .dfc-z37-form label{display:flex;flex-direction:column;gap:5px;font-weight:650}
  .dfc-z37-form input,.dfc-z37-form select{width:100%;min-width:0;border:1px solid #8aa0ba;background:#102841;color:white;border-radius:8px;padding:9px}
  .dfc-z37-note{font-size:12px;color:#b6c8d9}
+ #dfcPointsEntry{box-sizing:border-box;width:min(92vw,980px);max-height:90dvh;overflow:auto;margin:auto;padding:clamp(12px,2.4vmin,24px);border:2px solid #22c7ed;border-radius:18px;background:radial-gradient(ellipse at top,#143a67,#08152d 75%);color:#edf7ff;font:650 clamp(13px,2.6vmin,17px)/1.35 system-ui;box-shadow:0 0 28px #13b5f45c;text-align:center}
+ #dfcPointsEntry::backdrop{background:#0312249c}
+ #dfcPointsEntry h2{margin:0;color:#ffe292;font-size:clamp(21px,5vmin,36px)}
+ #dfcPointsEntry p{margin:6px 0}
+ #dfcPointsEntry dl{margin:0;text-align:left}
+ #dfcPointsEntry dl div{display:flex;justify-content:space-between;gap:8px;padding:5px 8px;border-bottom:1px solid #5284a5}
+ #dfcPointsEntry dd{margin:0;color:#ffe292;white-space:nowrap}
+ #dfcPointsEntry .dfc-entry-total{border-radius:8px;background:linear-gradient(#ffebaf,#e9ab2d);color:#152035}
+ #dfcPointsEntry .dfc-entry-total dd{color:inherit}
+ #dfcPointsEntry .dfc-entry-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,2vw,22px);align-items:center;margin:10px 0}
+ #dfcPointsEntry .dfc-entry-strip{display:grid;grid-template-columns:1fr 2fr 1fr;align-items:center;border:1px solid #21bddf;border-radius:12px;background:#0c2948;overflow:hidden}
+ #dfcPointsEntry button{min-height:40px;font:inherit;color:#f5fbff;background:linear-gradient(#184c72,#0b233f);border:1px solid #78ceef;border-radius:10px;padding:5px 12px;cursor:pointer}
+ #dfcPointsEntry .dfc-entry-strip button{border:0;border-radius:0}
+ #dfcPointsEntry button:disabled{opacity:.55;cursor:default}
+ #dfcPointsEntry output{color:#ffe292;font-variant-numeric:tabular-nums}
+ #dfcPointsEntry .dfc-entry-actions{display:grid;grid-template-columns:2fr 1fr;gap:8px;margin-top:12px}
+ #dfcPointsEntry [data-confirm]{background:linear-gradient(#ffebaf,#e9ab2d);border-color:#ffe292;color:#152035}
+ @media (max-width:540px) and (orientation:portrait){#dfcPointsEntry .dfc-entry-grid{grid-template-columns:1fr}}
  .dfc-z37-tile .dfc-z37-btn{display:block;margin-inline:auto}
  @media (orientation:landscape){
    .dfc-z37-header{display:grid;grid-template-columns:minmax(84px,1fr) auto minmax(84px,1fr)}
@@ -189,22 +207,93 @@
    pendingSeatRequests.delete(key);
    try{sessionStorage.removeItem(key);}catch{}
  }
+ function promptPointsFunding(config,quote,confirm){
+   const terms=config.terms;
+   const units=value=>Math.round(Number(value)*1000);
+   const format=new Intl.NumberFormat('es-DO',{minimumFractionDigits:2,maximumFractionDigits:3});
+   const fc=value=>format.format(value/1000)+' FC';
+   const entry=units(terms.entry_fc);
+   const minimum=units(quote.minimum_fc);
+   const wallet=units(quote.wallet_fc);
+   const maximum=Math.min(10000000,wallet-entry);
+   let extra=minimum;
+   let busy=false;
+   let error='';
+   let staleEntry=null;
+   const dialog=document.createElement('dialog');
+   dialog.id='dfcPointsEntry';
+   dialog.setAttribute('aria-labelledby','dfcPointsEntryTitle');
+   dialog.innerHTML=`<h2 id="dfcPointsEntryTitle">Nuevo aporte</h2>
+     <p>${esc(config.name)} · ${esc(terms.players)} jugadores · Meta de ${esc(terms.target_points)} puntos</p>
+     <div class="dfc-entry-grid"><dl>
+       <div><dt>Aporte de la partida</dt><dd>${fc(entry)}</dd></div>
+       <div><dt>Recarga al saldo de mesa</dt><dd data-recharge></dd></div>
+       <div class="dfc-entry-total"><dt>Total a descontar</dt><dd data-total></dd></div>
+       <div><dt>Diamantes</dt><dd>${esc(terms.entry_diamonds)}</dd></div>
+     </dl><div><strong>Agregar al saldo de mesa</strong>
+       <p>Mínimo de mesa · ${fc(minimum)}</p>
+       <div class="dfc-entry-strip">
+         <button type="button" data-minus aria-label="Reducir recarga">−</button><output></output>
+         <button type="button" data-plus aria-label="Aumentar recarga">+</button>
+       </div>
+       <p>Saldo personal disponible · ${fc(wallet)}</p>
+     </div></div>
+     <p>${units(terms.pass_fee_fc)>0?fc(units(terms.pass_fee_fc))+' por pase':'Pase normal'} · Comisión ${esc(terms.admin_pct)} % FC / ${esc(terms.diamond_admin_pct)} % diamantes</p>
+     <p role="status"></p>
+     <div class="dfc-entry-actions"><button type="button" data-confirm>Confirmar y sentarme</button>
+       <button type="button" data-close-entry>Cerrar</button></div>`;
+   const minus=$('[data-minus]',dialog),plus=$('[data-plus]',dialog);
+   const submit=$('[data-confirm]',dialog),close=$('[data-close-entry]',dialog);
+   const status=$('[role="status"]',dialog);
+   function render(){
+     $('[data-recharge]',dialog).textContent=$('output',dialog).textContent=fc(extra);
+     $('[data-total]',dialog).textContent=fc(entry+extra);
+     minus.disabled=busy||extra<=minimum;
+     plus.disabled=busy||extra>=maximum;
+     submit.disabled=busy||extra>maximum;
+     close.disabled=busy;
+     status.textContent=error||(busy?'Confirmando asiento…':extra>maximum?'Te faltan '+fc(extra-maximum)+' en tu saldo personal.':'');
+   }
+   function adjust(change){
+     extra=Math.max(minimum,Math.min(maximum,extra+change));
+     error='';
+     render();
+   }
+   return new Promise((resolve,reject)=>{
+     minus.onclick=()=>adjust(-100);
+     plus.onclick=()=>adjust(100);
+     dialog.addEventListener('cancel',event=>event.preventDefault());
+     close.onclick=()=>{
+       dialog.close();dialog.remove();
+       if(staleEntry)reject(staleEntry);
+       else resolve(null);
+     };
+     submit.onclick=async()=>{
+       busy=true;error='';staleEntry=null;render();
+       try{
+         const result=await confirm(extra/1000);
+         dialog.close();dialog.remove();resolve(result);
+       }catch(reason){
+         if(['DF001','DF002'].includes(reason?.code))staleEntry=reason;
+         error=reason?.message||'No se pudo confirmar el asiento.';
+         busy=false;render();
+       }
+     };
+     render();
+     document.body.append(dialog);
+     try{dialog.showModal();}
+     catch(reason){dialog.remove();reject(reason);}
+   });
+ }
  async function joinPoints(button,config,viewedTable){
    if(joiningTrial)return;
    const screen=state.screen;
    const status=button.nextElementSibling;
    const terms=config.terms;
    if(!terms){status.textContent='Vuelve a abrir la mesa para consultar las condiciones.';return;}
-   const amount=new Intl.NumberFormat('es-DO',{maximumFractionDigits:3});
-   const entry=[Number(terms.entry_fc)>0?amount.format(terms.entry_fc)+' FlashCoin':'',
-     Number(terms.entry_diamonds)>0?amount.format(terms.entry_diamonds)+' diamantes':''].filter(Boolean).join(' + ')||'Gratis';
-   const pass=Number(terms.pass_fee_fc)>0?amount.format(terms.pass_fee_fc)+' FlashCoin por pase':'Pase normal';
-   const details=['Sentarte en '+config.name,terms.players+' jugadores · Meta '+terms.target_points+' puntos',
-     'Aporte '+entry+' · '+pass,'Comisiones: '+amount.format(terms.admin_pct)+' % FlashCoin y '+amount.format(terms.diamond_admin_pct)+' % diamantes'];
-   if(!window.confirm(details.join('\n')))return;
    joiningTrial=true;
    button.disabled=true;
-   status.textContent='Buscando asiento…';
+   status.textContent='Consultando el saldo mínimo…';
    let requestKey;
    try{
      const client=db();
@@ -213,12 +302,27 @@
      if(sessionError)throw sessionError;
      if(!session)throw new Error('Inicia sesión para sentarte.');
      requestKey='dfc-points-seat:'+session.user.id+':'+config.id+':'+(viewedTable||'next');
-     const {data,error}=await client.rpc('dfc_z37_points_join_terms',{
-       p_config:config.id,p_request:seatRequest(requestKey),p_terms:terms,p_table:viewedTable||null
-     });
-     if(error)throw error;
+     const {data:quote,error:quoteError}=await client.rpc('dfc_z37_points_funding_quote',{p_config:config.id});
+     if(quoteError)throw quoteError;
+     if(!quote)throw new Error('La mesa ya no está disponible.');
      if(state.screen!==screen)return;
-     if(!['waiting','playing','settled'].includes(data?.state)||!data.table_id)throw new Error('La mesa todavía no está disponible.');
+     status.textContent='';
+     const data=await promptPointsFunding(config,quote,async passBalance=>{
+       const {data:seat,error}=await client.rpc('dfc_z37_points_join_with_balance',{
+         p_config:config.id,p_request:seatRequest(requestKey),p_terms:terms,
+         p_table:viewedTable||null,p_pass_balance:passBalance
+       });
+       if(error){
+         if(['DF001','DF002','DF005'].includes(error.code))forgetSeatRequest(requestKey);
+         throw error;
+       }
+       if(!['waiting','playing','settled'].includes(seat?.state)||!seat.table_id){
+         throw new Error('La mesa todavía no está disponible.');
+       }
+       return seat;
+     });
+     if(!data)return;
+     if(state.screen!==screen)return;
      await window.openDominoLobby();
      if(state.screen!==screen)return;
      const resume=$('#dominoResumeTableBtn');

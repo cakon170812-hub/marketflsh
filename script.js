@@ -2304,11 +2304,15 @@
    const deadline=Date.parse(replayState.replay_deadline);
    const opens=Date.parse(replayState.replay_opens);
    if(now<opens){replay.hidden=true;return;}
-   if(replaySoundMatch!==replayState.match_id&&now<deadline&&!replayState.replay_seat_released){
+   const needsFunding=replayState.replay_funding_required===true;
+   const choosing=needsFunding||now<deadline;
+   if(replaySoundMatch!==replayState.match_id&&choosing&&!replayState.replay_seat_released){
      replaySoundMatch=replayState.match_id;
      playPanelSound('replay');
    }
    replay.hidden=false;
+   replayTitle.textContent=needsFunding?'Nuevo aporte':'Revancha';
+   replay.setAttribute('aria-label',replayTitle.textContent);
    const seconds=Math.max(0,Math.ceil((deadline-now)/1000));
    const confirmed=replayState.replay_confirmed||confirmedMatch===replayState.match_id;
    const terms=replayState.replay_terms;
@@ -2320,9 +2324,11 @@
    const wallet=units(funding?.wallet_fc);
    const maximum=Math.max(0,Math.min(10000000,wallet-entry));
    const shortfall=entry+minimum-wallet;
-   if(!confirmed&&!confirming)replayExtra=Math.max(minimum,Math.min(maximum,replayExtra));
-   const locked=confirming||confirmed||!seconds||!canConfirm||!funding||seatReleased;
+   if(!confirmed&&!confirming)replayExtra=needsFunding?Math.max(minimum,Math.min(maximum,replayExtra)):0;
+   const locked=confirming||confirmed||!choosing||!canConfirm||!funding||seatReleased;
    replayGrid.hidden=!canConfirm;
+   replayFunding.hidden=!needsFunding;
+   extraAmount.parentElement.hidden=!needsFunding;
    replayTable.textContent=terms?terms.players+' jugadores · Meta de '+terms.target_points+' puntos':'';
    replayTerms.hidden=!canConfirm;
    if(canConfirm){
@@ -2337,21 +2343,22 @@
      const passPrice=passFee>0?money.format(passFee)+' FlashCoin por pase':'Pase normal';
      replayTerms.textContent=passPrice+' · Comisión '+format.format(terms.admin_pct)+' % FC / '+format.format(terms.diamond_admin_pct)+' % diamantes';
    }
+   replayProgress.hidden=needsFunding;
    replayProgress.value=Math.max(0,Math.min(10,(deadline-now)/1000));
-   replayButton.hidden=!canConfirm||confirmed||!seconds||seatReleased;
-   exitButton.hidden=confirmed||!seconds||seatReleased;
+   replayButton.hidden=!canConfirm||confirmed||!choosing||seatReleased;
+   exitButton.hidden=confirmed||!choosing||seatReleased;
    replayExitNote.hidden=exitButton.hidden;
    actions.hidden=replayButton.hidden&&exitButton.hidden;
    replayButton.disabled=locked||shortfall>0||replayExtra>maximum;
    exitButton.disabled=confirming;
    const status=replayError||(confirmed?'Aporte confirmado · Esperando a los demás':
      !canConfirm?(replayState.replay_closed_reason==='capacity'?'Cambió el cupo · Revancha cerrada':'Mesa desactivada · Revancha cerrada'):
-     seconds?seconds+' s para decidir':'Cerrando la revancha…');
-   const message=funding&&shortfall>0&&!confirmed&&!replayError&&seconds
-     ?status+' · Te faltan '+fc(shortfall)+' en tu saldo personal.':status;
+     needsFunding?'':seconds?seconds+' s para decidir':'Cerrando la revancha…');
+   const message=funding&&shortfall>0&&!confirmed&&!replayError&&choosing
+     ?[status,'Te faltan '+fc(shortfall)+' en tu saldo personal.'].filter(Boolean).join(' · '):status;
    if(replayText.textContent!==message)replayText.textContent=message;
    if(!confirmed&&!confirming&&(seatReleased||now>=opens)&&Date.now()>=retryReplayAt){
-     if(seatReleased||!seconds)void chooseReplay('timeout');
+     if(seatReleased||!choosing)void chooseReplay('timeout');
    }
  }
  async function chooseReplay(choice){
