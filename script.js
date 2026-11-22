@@ -2174,7 +2174,11 @@
  #dfcPointsResult .dfc-hand-result-summary small{display:block;color:#b8d3e6;font-size:clamp(9px,2.4vmin,20px)}
  #dfcPointsResult .dfc-hand-result-summary strong{display:block;margin-top:2px;font-size:clamp(13px,4.3vmin,40px);line-height:1.15;overflow-wrap:anywhere}
  #dfcPointsResult .dfc-hand-result-summary .dfc-hand-result-gain strong{color:#ffd36c;white-space:nowrap;font-size:clamp(13px,5.1vmin,47px);text-shadow:0 2px 8px #8b451252}
- #dfcPointsResult .dfc-hand-result-summary .dfc-hand-result-score strong{white-space:nowrap;font-variant-numeric:tabular-nums}
+ #dfcPointsResult .dfc-hand-result-summary .dfc-hand-result-score strong{font-size:clamp(13px,3.6vmin,33px);font-variant-numeric:tabular-nums}
+ #dfcPointsResult .dfc-hand-result-badge{display:inline-block;color:#ffe086;border:1px solid #eab854;border-radius:12px;padding:.1em .45em;font-size:.78em;vertical-align:middle;white-space:nowrap}
+ #dfcPointsResult .dfc-hand-result-tally{font-variant-numeric:tabular-nums;color:#bad3e6}
+ #dfcPointsResult .dfc-hand-result-details .dfc-hand-result-player-score{color:#fff;font-variant-numeric:tabular-nums}
+ #dfcPointsResult .dfc-hand-result-details [data-winner] .dfc-hand-result-player-score{color:#ffe086}
  #dfcPointsResult .dfc-hand-result-progress{appearance:none;display:block;width:100%;height:clamp(5px,1.35vmin,11px);margin:2px 0 0;overflow:hidden;border:0;border-radius:999px;background:#22394e;color:#00d2e9}
  #dfcPointsResult .dfc-hand-result-progress::-webkit-progress-bar{background:#22394e}
  #dfcPointsResult .dfc-hand-result-progress::-webkit-progress-value{background:linear-gradient(90deg,#05b9fb,#00ddec);border-radius:999px}
@@ -2185,10 +2189,8 @@
  #dfcPointsResult .dfc-hand-result-details p{margin:0 0 2px;overflow-wrap:anywhere;color:#bad3e6}
  #dfcPointsResult .dfc-hand-result-details strong{color:#fff}
  #dfcPointsResult .dfc-hand-result-details .dfc-points-tiles{margin-top:clamp(5px,1.3vmin,12px)}
- #dfcPointsResult .dfc-hand-result-tile{display:grid!important;grid-template-rows:1fr 1fr;box-sizing:border-box;width:clamp(18px,5.8vmin,42px)!important;height:clamp(33px,10.3vmin,74px)!important;padding:2px;flex:none;border:1px solid #bdab7f;border-radius:5px;background:#fff3d9!important;box-shadow:0 2px 0 #bba576,0 5px 8px #0006}
- #dfcPointsResult .dfc-hand-result-tile .domino-face{width:100%;height:100%;padding:2px}
- #dfcPointsResult .dfc-hand-result-tile .domino-pip{width:clamp(2px,.78vmin,6px);height:clamp(2px,.78vmin,6px);background:#172328;box-shadow:none}
- #dfcPointsResult .dfc-hand-result-tile .domino-divider{left:3px;right:3px;top:50%;height:1px;background:#74684d;box-shadow:none}
+ #dominoTablePanel #dfcPointsResult .dfc-hand-result-tile.hand-piece{width:clamp(20px,5.8vmin,46px)!important;height:clamp(35px,10.3vmin,82px)!important;border-radius:6px!important;background:#f8f5ec!important;border:1px solid #aec3d9!important;box-shadow:0 4px 8px #0009!important;opacity:1!important;filter:none!important;pointer-events:none}
+ #dfcPointsResult .dfc-hand-result-tile.hand-piece .domino-pip{width:clamp(2px,.78vmin,6px)!important;height:clamp(2px,.78vmin,6px)!important}
  #dfcPointsResult[data-match-victory]{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(92%,980px);max-height:90%;padding:clamp(10px,3vmin,28px);border:2px solid #16bfff;border-radius:20px;background:radial-gradient(ellipse at 90% 12%,#11417d,#06152d 68%);}
  #dfcPointsResult[data-match-victory] h2{color:#ffda78;font-size:clamp(21px,6vmin,52px);margin:0;line-height:1.05}
  #dfcPointsResult .dfc-victory-winner{font-size:clamp(15px,3.7vmin,30px);color:#eef7ff;overflow-wrap:anywhere}
@@ -2574,15 +2576,19 @@
    };
  }
  function resultTiles(values,root){
+   if(!values?.length)return;
    const row=text('div','',root);
    row.className='dfc-points-tiles';
+   const template=document.createElement('template');
    for(const tile of values||[]){
      if(!Array.isArray(tile)||tile.length!==2||!tile.every(pip=>Number.isInteger(pip)&&pip>=0&&pip<=6))continue;
-     const piece=text('div','',row);
-     piece.className='domino-piece dfc-hand-result-tile';
+     template.innerHTML=dominoPiece(tile,0,false,true,'dfc-hand-result-tile');
+     const piece=template.content.firstElementChild;
+     piece.classList.replace('board-piece','hand-piece');
+     piece.classList.remove('domino-double');
      piece.setAttribute('role','img');
      piece.setAttribute('aria-label','Ficha '+tile.join('–'));
-     piece.innerHTML=dominoFace(tile[0])+'<span class="domino-divider"></span>'+dominoFace(tile[1]);
+     row.append(piece);
    }
  }
  function showHand(data,hand,winner){
@@ -2591,6 +2597,15 @@
    result.setAttribute('data-hand-result','');
    const reason=hand.kind==='trancazo'?'Tranque':hand.kind==='capicua'?'Capicúa':'Dominó';
    text('h2',reason);
+   const remaining=new Map((hand.remaining||[]).map(row=>[row.seat,row]));
+   const teams=Number(data.capacity)===4;
+   const awarded=Number(hand.points);
+   const handPoints=data.players
+     .filter(entry=>hand.kind==='trancazo'||!teams||entry.team!==winner.team)
+     .map(entry=>remaining.get(entry.seat)?.points);
+   const allKnown=handPoints.length>0&&handPoints.every(points=>Number.isFinite(points));
+   const pipTotal=handPoints.reduce((sum,points)=>sum+(points??0),0);
+   const scoreLine=(entry,gain)=>format.format(entry.points-gain)+' + '+format.format(gain)+' = '+format.format(entry.points);
    const summary=text('div','');
    summary.className='dfc-hand-result-summary';
    const player=text('div','',summary);
@@ -2598,11 +2613,18 @@
    text('strong',winner.name,player);
    const gain=text('div','',summary);
    gain.className='dfc-hand-result-gain';
-   text('strong','+'+format.format(hand.points)+(hand.points===1?' punto':' puntos'),gain);
+   text('small','Puntos acreditados',gain);
+   text('strong','+'+format.format(awarded)+(awarded===1?' punto':' puntos'),gain);
+   if(allKnown){
+     const tally=handPoints.map(points=>format.format(points)).join(' + ')+' = '+format.format(pipTotal);
+     text('p','Fichas que suman: '+tally,gain).className='dfc-hand-result-tally';
+     if(hand.kind==='capicua'&&awarded-pipTotal===30)text('small','Bono de Capicúa: +30',gain);
+   }
    const total=text('div','',summary);
    total.className='dfc-hand-result-score';
-   text('small','Marcador',total);
-   text('strong',format.format(winner.points)+' / '+format.format(data.target),total);
+   text('small',teams?'Marcador de la pareja ganadora':'Marcador del ganador',total);
+   text('strong',scoreLine(winner,awarded),total);
+   text('small','Meta: '+format.format(data.target)+' puntos',total);
    const progress=text('progress','');
    progress.className='dfc-hand-result-progress';
    progress.max=Math.max(1,Number(data.target)||1);
@@ -2616,12 +2638,20 @@
      text('p','Última ficha jugada',finalTile);
      resultTiles([hand.deciding_tile],finalTile);
    }
-   for(const row of hand.remaining||[]){
+   for(const entry of data.players){
      const holder=text('div','',details);
-     const player=data.players.find(entry=>entry.seat===row.seat);
-     text('strong',player?.name||'Asiento '+row.seat,holder);
-     text('p',format.format(row.points)+(row.points===1?' punto restante':' puntos restantes'),holder);
-     resultTiles(row.tiles,holder);
+     const won=entry.seat===winner.seat;
+     const row=remaining.get(entry.seat);
+     const name=text('strong',entry.name,holder);
+     if(won){
+       holder.setAttribute('data-winner','');
+       text('span',' 🏆 Ganador',name).className='dfc-hand-result-badge';
+     }
+     if(row)text('p',format.format(row.points)+(row.points===1?' punto en fichas':' puntos en fichas'),holder);
+     const receivesPoints=won||(teams&&entry.team===winner.team);
+     const label=teams?'Marcador de pareja: ':'Marcador: ';
+     text('p',label+scoreLine(entry,receivesPoints?awarded:0),holder).className='dfc-hand-result-player-score';
+     resultTiles(row?.tiles,holder);
    }
    const settled=Date.parse(hand.settled_at);
    handResultUntil=Number.isFinite(settled)?settled+panelDuration-replayOffset:Date.now()+panelDuration;
