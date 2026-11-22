@@ -2666,7 +2666,7 @@
      text('strong',amount,card).className='dfc-points-prize-amount';
      card.setAttribute('aria-label','Tarjeta FlashCoin '+amount);
      text('p','Premio por partida',reward);
-     const status=text('small',prize.redeemed?'Tarjeta acreditada':'Toca para acreditar al saldo de tarjetas',reward);
+     const status=text('small',prize.redeemed?'Tarjeta acreditada':'Toca para acreditar al saldo principal',reward);
      status.className='dfc-points-prize-status';
      status.setAttribute('role','status');
      card.disabled=prize.redeemed;
@@ -2677,8 +2677,10 @@
          const {data:claim,error}=await client.rpc('dfc_lab_gift_redeem_v008',{p_gift_id:prize.id});
          if(error||!(claim?.ok||claim?.already_redeemed))throw Error(error?.message||claim?.message||'No se pudo acreditar.');
          prize.redeemed=true;
-         status.textContent=claim.card_balance==null?'Tarjeta acreditada':
-           'Saldo de tarjetas · '+money.format(claim.card_balance)+' FC';
+         if(claim.ok && claim.balance_after != null){
+           document.dispatchEvent(new CustomEvent('dfc:giftRedeemed',{detail:{balance:claim.balance_after}}));
+         }
+         status.textContent='Acreditada al saldo principal';
        }catch(error){status.textContent=error.message;card.disabled=false;}
      };
    }
@@ -2921,3 +2923,11 @@
   new MutationObserver(scheduleTurnCheck).observe(stage, {childList: true, subtree: true});
   document.addEventListener('visibilitychange', scheduleTurnCheck);
 })();
+
+document.addEventListener('dfc:giftRedeemed', event => {
+  const value = event.detail?.balance;
+  if (value == null || !Number.isFinite(Number(value))) return;
+  const balance = Number(value);
+  if (typeof me !== 'undefined' && me) me.balance = balance;
+  if (typeof setBalanceDisplay === 'function') setBalanceDisplay(balance);
+});
