@@ -450,10 +450,11 @@
      status.setAttribute('role','status');
      panel.append(status);
    }
-   const missing=Math.max(0,Number(data.capacity)-players.length);
+   const needed=data.allow_short_start ? 2 : Number(data.capacity);
+   const missing=Math.max(0,needed-players.length);
    let message;
    if(data.verifying_contributions)message='Verificando aportes…';
-   else if(missing===0)message='Mesa completa. Preparando reparto…';
+   else if(missing===0)message='Preparando reparto…';
    else message=missing===1?'Esperando 1 jugador':('Esperando '+missing+' jugadores');
    if(status.textContent!==message)status.textContent=message;
    status.hidden=false;
@@ -468,7 +469,7 @@
    if(!window.dominoSpectatorMode||pointsViewerId!==tableId)pointsViewerId=0;
    const watching=Boolean(pointsViewerId);
    panel.toggleAttribute('data-dfc-points-viewer',watching);
-   if(!watching||!data?.can_join){
+   if(!watching||!(data?.can_join||data?.waiting_for_next)){
      if(host)host.hidden=true;
      return;
    }
@@ -480,9 +481,15 @@
    }
    host.hidden=false;
    const button=host.querySelector('button');
-   if(!joiningTrial)button.onclick=()=>joinPoints(button,{
+   const status=button.nextElementSibling;
+   if(!joiningTrial){
+     button.disabled=!data.can_join;
+     if(data.waiting_for_next)status.textContent='Podrás sentarte al terminar esta partida.';
+     else if(status.textContent==='Podrás sentarte al terminar esta partida.')status.textContent='';
+     button.onclick=data.can_join ? ()=>joinPoints(button,{
      id:data.config_id,name:data.table_name,terms:data.entry_terms
-   },tableId);
+     },tableId) : null;
+   }
  }
  function showTournament(){
   shell('Torneos FlashCoin','tournament');state.slide=0;state.lastInteraction=Date.now();drawSlide();

@@ -86,7 +86,7 @@
      const form=e('form',{style:formStyle});
      form.innerHTML='<h3 style="width:100%">'+(table?'Editar mesa por puntos':'Crear mesa por puntos')+'</h3>'+
        field('name','Nombre','text',table?.name??'','required maxlength="160"')+
-       sel('players','Participantes',[['2','2 jugadores'],['3','3 jugadores'],['4','4 jugadores (parejas)']])+
+       sel('players','Cupo máximo',[['2','2 jugadores'],['3','3 jugadores'],['4','4 jugadores (parejas)']])+
        field('target_points','Meta de puntos','number',table?.target_points??200,'min="1" required')+
        sel('pot_mode','Tipo de bote',[['free','Gratis'],['fc','Solo FlashCoin'],['diamonds','Solo diamantes'],['both','FlashCoin y diamantes']])+ 
        field('entry_fc','Entrada FC','number',table?.entry_fc??10,'min="0" step=".01" required')+
@@ -97,6 +97,7 @@
        field('admin_pct','Comisión FlashCoin (%)','number',table?.admin_pct??10,'min="0" max="50" step=".01" required')+
        field('diamond_admin_pct','Comisión diamantes (%)','number',table?.diamond_admin_pct??table?.admin_pct??10,'min="0" max="50" step=".01" required')+
        '<label style="width:100%;display:flex;gap:8px;align-items:center"><input type="checkbox" role="switch" name="enabled" value="1" '+(table?.enabled?'checked':'')+'> Mostrar en Mesas por puntos</label>'+
+       '<label style="width:100%;display:flex;gap:8px;align-items:center"><input type="checkbox" role="switch" name="allow_short_start" value="1" '+(table?.allow_short_start?'checked':'')+'> Permitir inicio con 2 jugadores</label>'+
        '<label style="width:100%;display:flex;gap:8px;align-items:center"><input type="checkbox" name="bots_allowed" value="1" '+(table?.bots_allowed?'checked':'')+'> Permitir un bot asignado</label>'+
        '<div style="width:100%"><button type="submit">Guardar cambios</button><p data-status aria-live="polite"></p></div>';
      form.elements.players.value=String(table?.players??2);
@@ -115,7 +116,7 @@
      pot_mode.addEventListener('change',syncPot);
      syncPot();
      formHost.replaceChildren(form);
-     saveHandler(form,'dfc_z37_admin_save_points',x=>({...x,pass_fee_fc:x.pass_mode==='paid'?Number(x.pass_fee_fc):0,enabled:x.enabled==='1',bots_allowed:x.bots_allowed==='1',...(table?{id:table.id}:{}),players:Number(x.players),
+     saveHandler(form,'dfc_z37_admin_save_points',x=>({...x,pass_fee_fc:x.pass_mode==='paid'?Number(x.pass_fee_fc):0,enabled:x.enabled==='1',allow_short_start:x.allow_short_start==='1',bots_allowed:x.bots_allowed==='1',...(table?{id:table.id}:{}),players:Number(x.players),
        target_points:Number(x.target_points),entry_fc:Number(x.entry_fc||0),entry_diamonds:Number(x.entry_diamonds||0),
        diamond_admin_pct:Number(x.diamond_admin_pct),admin_pct:Number(x.admin_pct),
        min_pass_balance_fc:Number(x.min_pass_balance_fc)}),async (id,status)=>{
