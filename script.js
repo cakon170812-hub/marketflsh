@@ -2193,7 +2193,26 @@
  #dfcPointsResult .dfc-hand-result-tile.hand-piece .domino-pip{width:clamp(2px,.78vmin,6px)!important;height:clamp(2px,.78vmin,6px)!important}
  #dfcPointsResult[data-match-victory]{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(92%,980px);max-height:90%;padding:clamp(10px,3vmin,28px);border:2px solid #16bfff;border-radius:20px;background:radial-gradient(ellipse at 90% 12%,#11417d,#06152d 68%);}
  #dfcPointsResult[data-match-victory] h2{color:#ffda78;font-size:clamp(21px,6vmin,52px);margin:0;line-height:1.05}
- #dfcPointsResult .dfc-victory-winner{font-size:clamp(15px,3.7vmin,30px);color:#eef7ff;overflow-wrap:anywhere}
+ #dfcPointsResult .dfc-victory-winner{font-size:clamp(16px,4.2vmin,34px);color:#eef7ff;overflow-wrap:anywhere}
+ #dfcPointsResult .dfc-victory-trophy{display:block;margin:0 auto 4px;font-size:clamp(26px,8vmin,62px);line-height:1.1;animation:dfc-victory-bounce .7s ease-out both}
+ #dfcPointsResult .dfc-victory-grid,#dfcPointsResult .dfc-victory-standings,#dfcPointsResult .dfc-victory-continue{position:relative;z-index:1}
+ #dfcPointsResult .dfc-victory-standings{margin:8px 0;font-size:clamp(12px,3vmin,20px)}
+ #dfcPointsResult .dfc-victory-standings h3{margin:2px 0 6px}
+ #dfcPointsResult .dfc-victory-standings ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,215px),1fr));gap:6px;list-style:none;margin:0;padding:0;text-align:left}
+ #dfcPointsResult .dfc-victory-standings li{display:flex;align-items:center;gap:7px;padding:5px 8px;border:1px solid #2876a0;border-radius:10px;background:#0b2544;color:#fff}
+ #dfcPointsResult .dfc-victory-standings li[data-champion]{border-color:#e7b950;color:#ffe69a}
+ #dfcPointsResult .dfc-victory-avatar{display:grid;place-items:center;flex:0 0 auto;width:clamp(26px,7vmin,50px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#205783;color:white}
+ #dfcPointsResult .dfc-victory-avatar img{width:100%;height:100%;object-fit:cover}
+ #dfcPointsResult .dfc-victory-place{white-space:nowrap;color:#ffdf81;font-weight:800}
+ #dfcPointsResult .dfc-victory-player{flex:1;min-width:0;overflow-wrap:anywhere}
+ #dfcPointsResult .dfc-victory-player small{display:block;color:#cae9fd}
+ #dfcPointsResult .dfc-victory-continue{display:block;margin:8px auto 0;min-height:36px;padding:5px 26px;font-size:clamp(13px,3.4vmin,21px)}
+ .dfc-victory-confetti,.dfc-victory-confetti span,.dfc-victory-flying-coin{pointer-events:none}
+ .dfc-victory-confetti{position:absolute;inset:0;overflow:hidden}
+ .dfc-victory-confetti span{position:absolute;top:6%;width:6px;height:9px;border-radius:1px}
+ .dfc-victory-flying-coin{position:fixed;z-index:2147483000;font-size:21px;color:#ffda74;filter:drop-shadow(0 0 5px #ffad35)}
+ @keyframes dfc-victory-bounce{0%,78%,100%{transform:translateY(0)} 48%{transform:translateY(-9px) rotate(-5deg)}}
+ @media(prefers-reduced-motion:reduce){#dfcPointsResult .dfc-victory-trophy{animation:none}}
  #dfcPointsResult .dfc-victory-grid{display:grid;grid-template-columns:1.4fr 1fr;align-items:center;gap:clamp(6px,2vmin,18px);margin:8px 0}
  #dfcPointsResult .dfc-victory-facts{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:8px;border:1px solid #17a8da;border-radius:12px}
  #dfcPointsResult .dfc-victory-stats{min-width:0;margin:0}
@@ -2205,7 +2224,6 @@
  #dfcPointsResult .dfc-victory-grid:not(:has(.dfc-victory-prize)){grid-template-columns:1fr}
  #dfcPointsResult .dfc-victory-prize{min-width:0}
  #dfcPointsResult .dfc-victory-prize .dfc-points-prize{width:min(100%,clamp(105px,40vmin,260px));margin:0 auto 4px}
- #dfcPointsResult .dfc-victory-next{display:inline-block;padding:5px 14px;border-radius:10px;background:linear-gradient(#ffde86,#e4a319);color:#111d33;font-weight:900}
  @media(max-height:480px){#dfcPointsResult[data-hand-result]{width:min(82%,980px)}}
  @media(max-width:440px) and (orientation:portrait){#dfcPointsResult[data-hand-result]{width:94%} #dfcPointsResult .dfc-hand-result-summary{grid-template-columns:1.16fr .94fr .76fr}}
  @media(max-width:440px) and (orientation:portrait){#dfcPointsResult .dfc-victory-grid{grid-template-columns:1fr}}
@@ -2389,18 +2407,22 @@
          await new Promise(resolve=>setTimeout(resolve,2200));
        }
        if(token!==epoch)return;
-       hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoTablePanel');
-       dominoStopPolling();await dominoStopRealtime();await dominoReleaseWakeLock();
-       window.DFC_Z15?.onExit();
-       dominoCurrentTableId=null;dominoViewAway=false;dominoResetTableEffects();dominoReleaseLandscape();
-       await loadMe();renderMe();
-       window.dfcZ37UI?.open('points');
+       await leaveFinishedPoints();
      }
    }catch(error){
      if(token===epoch){replayError=error.message||'No se pudo completar la revancha.';retryReplayAt=Date.now()+2500;refreshAfterClose();}
    }finally{
      if(token===epoch){confirming=false;drawReplay();}
    }
+ }
+ async function leaveFinishedPoints(){
+   hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoTablePanel');
+   dominoCurrentTableId=null;
+   dominoStopPolling();await dominoStopRealtime();await dominoReleaseWakeLock();
+   window.DFC_Z15?.onExit();
+   dominoViewAway=false;dominoResetTableEffects();dominoReleaseLandscape();
+   try{await loadMe();renderMe();}catch(error){console.warn('Saldo después de Por puntos:',error.message);}
+   window.dfcZ37UI?.open('points');
  }
  replayButton.onclick=()=>chooseReplay('confirm');
  exitButton.onclick=()=>{if(!confirming){playPanelSound('close');void chooseReplay('exit');}};
@@ -2558,7 +2580,6 @@
    button.onclick=async()=>{
      if(button.disabled||last?.match_id!==data.match_id)return;
      button.disabled=true;
-     if(phase==='victory')dismissedVictory=data.match_id;
      result.hidden=true;
      playPanelSound('close');
      const token=epoch;
@@ -2574,6 +2595,71 @@
        if(token===epoch&&current()===table)refreshAfterClose();
      }
    };
+ }
+ function celebrateVictory(){
+   if(reduce())return;
+   const layer=text('div','');
+   layer.className='dfc-victory-confetti';
+   layer.setAttribute('aria-hidden','true');
+   const colors=['#ffd56a','#58ddfc','#f19adb','#f9f6dc'];
+   for(let i=0;i<22;i++){
+     const spark=text('span','',layer);
+     const left=i%2===0;
+     spark.style.left=(left?2+i%5:93+i%5)+'%';
+     spark.style.background=colors[i%colors.length];
+     spark.animate([
+       {transform:'translateY(-12px) rotate(0deg)',opacity:0},
+       {opacity:1,offset:.2},
+       {transform:'translate('+((left?1:-1)*(4+i%11))+'px,'+(75+i%6*20)+'px) rotate(220deg)',opacity:0}
+     ],{duration:750+i%5*100,delay:i%7*30});
+   }
+   setTimeout(()=>layer.remove(),1500);
+ }
+ function flyVictoryPrize(card){
+   if(reduce())return;
+   const start=card.getBoundingClientRect();
+   const target=['dominoGlobalBalance','balanceTop'].map(id=>document.getElementById(id)).find(el=>el?.getClientRects().length);
+   if(!target||!start.width)return;
+   const end=target.getBoundingClientRect();
+   const left=start.left+start.width/2,top=start.top+start.height/2;
+   for(let i=0;i<6;i++){
+     const coin=text('span','🪙',document.body);
+     coin.className='dfc-victory-flying-coin';
+     coin.setAttribute('aria-hidden','true');
+     coin.style.left=left+'px';coin.style.top=top+'px';
+     const dx=end.left+end.width/2-left,dy=end.top+end.height/2-top;
+     const flight=coin.animate([
+       {transform:'scale(.65)',opacity:0},
+       {transform:'translate('+((i-2.5)*13)+'px,-28px) scale(1)',opacity:1,offset:.24},
+       {transform:'translate('+dx+'px,'+dy+'px) scale(.3)',opacity:0}
+     ],{duration:630,delay:i*45,easing:'ease-in-out'});
+     void flight.finished.then(()=>coin.remove(),()=>coin.remove());
+   }
+ }
+ function showVictoryStandings(data,champions){
+   const standings=text('section','');
+   standings.className='dfc-victory-standings';
+   const count=data.players.length;
+   text('h3',count+(count===1?' jugador':' jugadores'),standings);
+   const list=text('ol','',standings);
+   const players=[...data.players].sort((a,b)=>(a.place??99)-(b.place??99)||b.points-a.points||a.seat-b.seat);
+   const places=[...new Set(players.map(player=>player.points))];
+   for(const player of players){
+     const row=text('li','',list);
+     if(champions.some(champion=>champion.seat===player.seat))row.setAttribute('data-champion','');
+     text('span',(player.place??places.indexOf(player.points)+1)+'.º',row).className='dfc-victory-place';
+     const avatar=text('span','',row);
+     avatar.className='dfc-victory-avatar';
+     avatar.setAttribute('aria-hidden','true');
+     avatar.innerHTML=dominoAvatarHTML({avatar_url:player.avatar},player.name,player.mine);
+     const identity=text('div','',row);
+     identity.className='dfc-victory-player';
+     text('strong',player.name,identity);
+     text('small',format.format(player.points)+' puntos',identity);
+     if(player.final_table_balance!=null){
+       text('small','Saldo de mesa · '+money.format(player.final_table_balance)+' FC',identity);
+     }
+   }
  }
  function resultTiles(values,root){
    if(!values?.length)return;
@@ -2667,7 +2753,9 @@
    result.setAttribute('data-match-victory','');
    const won=champions.some(player=>player.mine);
    const names=champions.map(player=>player.name).join(' y ');
-   text('small','DOMINÓ FLASH COIN');
+   const trophy=text('span','🏆');
+   trophy.className='dfc-victory-trophy';
+   trophy.setAttribute('aria-hidden','true');
    text('h2',won?'¡Felicidades, ganaste!':champions.length===1?'Ganador de la partida':'Ganadores de la partida');
    text('p',names).className='dfc-victory-winner';
    const grid=text('div','');
@@ -2716,16 +2804,45 @@
          prize.redeemed=true;
          if(claim.ok && claim.balance_after != null){
            document.dispatchEvent(new CustomEvent('dfc:giftRedeemed',{detail:{balance:claim.balance_after}}));
+           const balance=document.getElementById('dominoGlobalBalance');
+           const main=document.getElementById('balanceTop');
+           if(balance&&main)balance.textContent=main.textContent;
+           flyVictoryPrize(card);
          }
          status.textContent='Acreditada al saldo principal';
        }catch(error){status.textContent=error.message;card.disabled=false;}
      };
    }
-   text('p','').className='dfc-victory-next';
-   addPanelClose(data,'victory','0');
+   showVictoryStandings(data,champions);
+   const status=text('p','');
+   status.setAttribute('role','status');
+   const next=text('button','Continuar');
+   next.type='button';
+   next.className='dfc-funding-confirm dfc-victory-continue';
+   next.onclick=async()=>{
+     if(next.disabled||last?.match_id!==data.match_id)return;
+     next.disabled=true;status.textContent='';
+     const token=epoch;
+     try{
+       const client=window.sb||window.dfcSupabase;
+       const {data:accepted,error}=await client.rpc('dfc_points_close_panel',{
+         p_match_id:data.match_id,p_hand_id:0,p_phase:'victory'
+       });
+       if(error||!accepted)throw Error(error?.message||'No se pudo abrir la revancha. Intenta de nuevo.');
+       if(token!==epoch||last?.match_id!==data.match_id)return;
+       dismissedVictory=data.match_id;
+       result.hidden=true;
+       playPanelSound('close');
+       refreshAfterClose();
+     }catch(error){
+       status.textContent=error.message;
+       next.disabled=false;
+     }
+   };
    result.scrollTop=0;
    result.hidden=false;
    playPanelSound('victory');
+   celebrateVictory();
  }
  function victoryOpens(data){
    const opens=Date.parse(data.victory_opens);
@@ -2743,14 +2860,10 @@
    const victoryEnds=Number.isFinite(replayOpens)?replayOpens:victoryStarts+panelDuration;
    const now=Date.now()+replayOffset;
    if(now<victoryStarts)return;
-   if(now>=victoryEnds||last.victory_closed||dismissedVictory===last.match_id){result.hidden=true;return;}
+   if(last.victory_auto||(!last.victory_manual&&now>=victoryEnds)||last.victory_closed||dismissedVictory===last.match_id){result.hidden=true;return;}
    const champions=last.winner_team==null?[]:last.players.filter(player=>player.team===last.winner_team);
    if(!champions.length){result.hidden=true;return;}
    if(!result.hasAttribute('data-match-victory'))showVictory(last,last.last_hand,champions);
-   const seconds=Math.ceil((victoryEnds-now)/1000);
-   const countdown=result.querySelector('.dfc-victory-next');
-   const label=(replayState?'Continuando en ':'Cerrando en ')+seconds+' s';
-   if(countdown.textContent!==label)countdown.textContent=label;
  }
  function sound(freq,length){
    if(typeof playOscTone==='function'&&(typeof dominoSoundIsEnabled!=='function'||dominoSoundIsEnabled()))
@@ -2796,12 +2909,18 @@
    pending=true;const token=epoch;
    const requestStarted=Date.now();
    try{
-     const {data,error}=await client.rpc('dfc_z37_points_scoreboard',{p_table_id:id});
+     const {data,error}=await client.rpc('dfc_points_scoreboard_victory',{p_table_id:id});
      if(token!==epoch||current()!==id||error)return;
      if(!data){
        window.dfcZ37UI?.syncSpectator(null,id);
        // An empty response can occur while seating or rotating a match.
        retryAfter=last?0:Date.now()+5000;
+       return;
+     }
+     if(data.victory_auto&&!window.dominoSpectatorMode){
+       result.hidden=true;
+       replay.hidden=true;
+       await leaveFinishedPoints();
        return;
      }
      if(last&&last.match_id!==data.match_id){
