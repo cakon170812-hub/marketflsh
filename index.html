@@ -6615,10 +6615,13 @@ function dominoRenderSeatsStable(st){
     if(!node){
       node=document.createElement('div');
       node.dataset.visualSeat=String(visualSeat);
-      node.innerHTML=`<div class="domino-avatar-wrap"><span class="domino-turn-ring" aria-hidden="true"></span><div class="domino-avatar"></div></div><div class="domino-seat-heading"><div class="domino-seat-name"></div><span class="domino-turn-seconds hidden"></span></div><div class="domino-seat-info"></div><span class="domino-tile-count" hidden></span><span class="seat-bal"></span><button type="button" class="domino-see-message hidden">Ver mensaje</button>`;
+      node.innerHTML=`<div class="domino-avatar-wrap"><span class="domino-turn-ring" aria-hidden="true"></span><div class="domino-avatar"></div></div><div class="domino-seat-heading"><div class="domino-seat-name"></div><span class="domino-turn-seconds hidden"></span></div><div class="domino-seat-info"></div><span class="domino-tile-count" hidden></span><div class="dfc-profile-currency-row"><span class="seat-bal"></span></div><button type="button" class="domino-see-message hidden">Ver mensaje</button>`;
       host.appendChild(node);
     }
     const seat=seats.find(x=>dominoVisualSeatForReal(x.seat_no)===visualSeat);
+    if(node.dataset.seatUser!==String(seat?.user_id??'')){
+      node.querySelector('.dfc-z163-guest-gems')?.remove();
+    }
     const avatar=node.querySelector('.domino-avatar');
     const secEl=node.querySelector('.domino-turn-seconds');
     const nameEl=node.querySelector('.domino-seat-name');
@@ -9431,7 +9434,29 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
      el.style.color='#ffd19d';
    }catch(e){el.textContent='No se pudo consultar el registro del motor: '+errText(e).slice(0,130);}
  }
- setInterval(showWorkerErrors,12000);
+ async function showPointsBotShortages(){
+   const el=q('mfPointsBotShortages');
+   if(!el||!leader()||!q('mfBots17Panel')?.classList.contains('active')||el.dataset.loading)return;
+   el.dataset.loading='true';
+   const format=new Intl.NumberFormat('es-DO',{maximumFractionDigits:3});
+   let message;
+   try{
+     const rows=await rpc('dfc_z37_admin_points_bot_shortages');
+     message=rows.map(row=>row.table_name+' #'+row.table_id+': faltan '+format.format(row.diamonds_missing)
+       +' diamantes para sentar al próximo bot ('+format.format(row.diamonds_available)+' disponibles de '
+       +format.format(row.diamonds_required)+' requeridos).').join(' ');
+   }catch(e){
+     message='No se pudo consultar el fondo de diamantes para bots de Por puntos.';
+   }finally{
+     delete el.dataset.loading;
+   }
+   if(el.textContent!==message)el.textContent=message;
+   el.hidden=!message;
+ }
+ setInterval(()=>{
+   void showWorkerErrors();
+   void showPointsBotShortages();
+ },12000);
  // Conserva acceso de administrador junto a PÓKER de 1.7.
  const poker=q('mfPokerTopBtn'),leaderBtn=q('leaderBtn'),top=q('appView')?.querySelector('.topbar');
  if(poker&&leaderBtn&&top&&!top.querySelector('.mf17-main-access')){
@@ -9443,6 +9468,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
  <h2>🤖 BOTS · Administración del dominó</h2><p class="tiny">Fondo compartido · robots por ID de mesa · versión 1.9.9</p>
  <div id="mf19ServerHealth" class="mf17-hint">⏳ Verificando motor automático de Supabase…</div>
  <div id="mf197WorkerErrors" class="mf17-hint" aria-live="polite"></div>
+ <div id="mfPointsBotShortages" class="mf17-hint danger" role="status" hidden></div>
  <section id="mf192MainScreen" class="mf192-main-screen">
   <div class="mf17-card">
    <b>💰 Fondo compartido</b><div id="mf18Balance">Consultando…</div>
@@ -9687,6 +9713,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
  async function loadAdmin(){
   if(!leader())return;
   status('Consultando fondo, mesas y servidor por separado…');
+  void showPointsBotShortages();
   // Una RPC faltante (por ejemplo salud v19) NO debe ocultar el ID ni los saldos del fondo.
   const calls=await Promise.allSettled([
     rpc('rf_domino_bot_admin_v18'),
@@ -16027,8 +16054,6 @@ setInterval(()=>{if(!inTable()||!dominoState?.last_result||!dominoState?.me||bus
  document.body.appendChild(version);
  let seatParent=null;
  const diamondChip=get('dfcZ16DiamondChip');
- // Anclar el botón en la foto real (no en el flujo de nombre/fichas/saldo).
- // No hay peticiones a Supabase ni movimientos de dinero en esta corrección.
  function seated(){
    const st=(typeof dominoState!=='undefined')?dominoState:null;
    const me=st?.me;
@@ -16050,7 +16075,8 @@ setInterval(()=>{if(!inTable()||!dominoState?.last_result||!dominoState?.me||bus
    if(hasOwnSeat){
      if(!seatNode.classList.contains('dfc-z161-self'))seatNode.classList.add('dfc-z161-self');
      seatParent=seatNode;
-     if(chip.parentElement!==seatNode)seatNode.appendChild(chip);
+     const balances=seatNode.querySelector('.dfc-profile-currency-row')||seatNode;
+     if(chip.parentElement!==balances)balances.appendChild(chip);
      chip.hidden=false;
    }else{
      seatParent=null;
@@ -16379,13 +16405,13 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
     setTimeout(()=>el.remove(),1050);
   }
  }
- function animateAmount(el,from,to){
+ function animateAmount(el,from,to,prefix){
   if(!el||!Number.isFinite(to))return;
-  if(!Number.isFinite(from)||Math.abs(to-from)<.0005){el.textContent=fmt(to);return}
+  if(!Number.isFinite(from)||Math.abs(to-from)<.0005){el.textContent=prefix+fmt(to);return}
   const started=performance.now(),duration=1080;
   function tick(t){if(!el.isConnected)return;
-   const f=Math.min(1,(t-started)/duration);el.textContent=fmt(from+(to-from)*f);
-   if(f<1)requestAnimationFrame(tick);else el.textContent=fmt(to);
+   const f=Math.min(1,(t-started)/duration);el.textContent=prefix+fmt(from+(to-from)*f);
+   if(f<1)requestAnimationFrame(tick);else el.textContent=prefix+fmt(to);
   }requestAnimationFrame(tick)
  }
  function attachSpectatorButtons(){
@@ -16404,12 +16430,13 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
     else{
       el=node.querySelector('.dfc-z163-guest-gems');
       if(!el){el=document.createElement('span');el.className='dfc-z163-guest-gems';
-        el.setAttribute('aria-label','Diamantes de mesa');node.appendChild(el)}
+        el.setAttribute('aria-label','Diamantes de mesa');
+        (node.querySelector('.dfc-profile-currency-row')||node).appendChild(el)}
     }
     if(!el)continue;
     const prev=oldBalances.get(id);
     if(prev===undefined){el.textContent=(id===userId()?'':'💎 ')+fmt(next)}
-    else if(Math.abs(next-prev)>.0005){animateAmount(el,prev,next)}
+    else if(Math.abs(next-prev)>.0005){animateAmount(el,prev,next,id===userId()?'':'💎 ')}
     else if(!el.textContent.trim())el.textContent=(id===userId()?'':'💎 ')+fmt(next);
     oldBalances.set(id,next);
   }
@@ -17056,39 +17083,6 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
   #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > *{padding:2px 2px!important;font-size:9px!important}
 }
 </style>
-<script id="dfc-z28-profile-balance-pair">
-(()=>{'use strict';
- const seats=document.getElementById('dominoSeats');
- const original=document.getElementById('dfcZ16DiamondChip');
- const ownAmount=document.getElementById('dfcZ16TableDiamondAmount');
- if(!seats)return;
- let pending=false;
- function sync(){
-  pending=false;
-  for(const seat of seats.querySelectorAll('.domino-seat')){
-   const fc=seat.querySelector('.seat-bal');if(!fc)continue;
-   let row=seat.querySelector('.dfc-profile-currency-row');
-   if(!row){row=document.createElement('div');row.className='dfc-profile-currency-row';seat.insertBefore(row,seat.querySelector('.domino-seat-heading')||fc);}
-   if(fc.parentElement!==row)row.insertBefore(fc,row.firstChild);
-   const mine=seat.classList.contains('mine')||seat.classList.contains('dfc-z161-self');
-   if(mine){
-    // Keep the original interactive diamond chip (and authoritative counter), not a duplicate.
-    row.querySelectorAll('.dfc-profile-diamonds').forEach(el=>el.remove());
-    if(original&&original.parentElement!==row)row.appendChild(original);
-   }else{
-    const gem=seat.querySelector('.dfc-z163-guest-gems');
-    if(gem&&gem.parentElement!==row)row.appendChild(gem);
-   }
-   const heading=seat.querySelector('.domino-seat-heading');
-   if(heading&&row.nextElementSibling!==heading)seat.insertBefore(row,heading);
-  }
- }
- function schedule(){if(pending)return;pending=true;requestAnimationFrame(sync)}
- new MutationObserver(schedule).observe(seats,{childList:true,subtree:true});
- if(ownAmount)new MutationObserver(schedule).observe(ownAmount,{childList:true,characterData:true,subtree:true});
- schedule();
-})();
-</script>
 
 <!-- 0.12Z.28: controles independientes y texto efímero de mesa; conserva numeración oficial. -->
 <style id="dfc-z28-chat-visual-safe">
@@ -17140,9 +17134,17 @@ function dfcZ28ShowTableText(row){
 <style id="dfc-z28-seat-balance-chat-corners-fix">
 #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row {
  grid-column:2!important;grid-row:1!important;align-self:center!important;
- display:flex!important;flex-wrap:nowrap!important;justify-content:flex-start!important;
- gap:3px!important;width:max-content!important;max-width:100%!important;
+ display:grid!important;grid-template-columns:max-content!important;
+ grid-template-areas:"flashcoin" "diamonds";justify-content:start!important;
+ row-gap:2px!important;column-gap:3px!important;width:max-content!important;max-width:100%!important;
  margin:0!important;z-index:160!important;overflow:visible!important;
+}
+#dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row:has(> .dfc-seat-points){
+ grid-template-columns:max-content max-content!important;
+ grid-template-areas:"points flashcoin" "points diamonds";
+}
+#dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > .dfc-seat-points{
+ grid-area:points;align-self:center;margin:0;
 }
 #dominoTablePanel #dominoSeats .domino-seat .domino-seat-heading {
  grid-column:2!important;grid-row:2!important;align-self:center!important;
@@ -17150,6 +17152,7 @@ function dfcZ28ShowTableText(row){
 #dominoTablePanel #dominoSeats .domino-seat .domino-seat-info {grid-column:2!important;grid-row:3!important}
 #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > #dfcZ16DiamondChip,
 #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > .dfc-z163-guest-gems {
+ grid-area:diamonds;justify-self:stretch;
  position:static!important;display:inline-flex!important;visibility:visible!important;
  transform:none!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
  margin:0!important;padding:2px 5px!important;min-height:20px!important;
@@ -17160,7 +17163,10 @@ function dfcZ28ShowTableText(row){
 #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > .seat-bal {
  position:static!important;display:inline-flex!important;white-space:nowrap!important;
  width:auto!important;min-width:0!important;padding:2px 5px!important;
- border-radius:999px!important;grid-column:auto!important;grid-row:auto!important;
+ border-radius:999px!important;grid-area:flashcoin!important;justify-self:stretch;
+}
+#dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > #dfcZ16DiamondChip[hidden]{
+ display:none!important;
 }
 #dominoTablePanel #dominoChatBtn, #dominoTablePanel #dominoEmojiBtn {
  display:inline-flex!important;visibility:visible!important;opacity:1!important;
@@ -17172,7 +17178,9 @@ function dfcZ28ShowTableText(row){
 #dominoTablePanel #dominoEmojiBtn {right:max(10px,env(safe-area-inset-right))!important;left:auto!important}
 @media(max-width:580px){
  #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row {gap:2px!important}
- #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > *{font-size:9px!important;padding:2px 3px!important}
+ #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > .seat-bal,
+ #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > #dfcZ16DiamondChip,
+ #dominoTablePanel #dominoSeats .domino-seat .dfc-profile-currency-row > .dfc-z163-guest-gems{font-size:9px!important;padding:2px 3px!important}
  #dominoTablePanel #dominoChatBtn,#dominoTablePanel #dominoEmojiBtn {min-width:72px!important;min-height:40px!important}
 }
 </style>
@@ -17196,19 +17204,19 @@ function dfcZ28ShowTableText(row){
 <script id="dfc-z28-shared-ledger-motion">
 (()=>{'use strict';
  const root=document.getElementById('dominoSeats'); if(!root)return;
- const last=new Map(); const running=new WeakMap();let scheduled=false;
+ const last=new Map(); const running=new WeakMap(); const lastGemBurst=new WeakMap();let scheduled=false;
  const amount=text=>{const match=String(text||'').replace(/,/g,'').match(/-?\d+(?:\.\d+)?/);return match?Number(match[0]):NaN};
- const display=(element,value,kind)=>`${kind==='gem'&&element.id!=='dfcZ16TableDiamondAmount'?'💎 ':''}${value.toFixed(3)}${kind==='coin'?' FC':''}`;
- function animate(element,from,to,kind){
+ const display=value=>value.toFixed(3)+' FC';
+ function animate(element,from,to){
    const old=running.get(element);if(old)cancelAnimationFrame(old.raf);
    const local={raf:0};running.set(element,local);
    const duration=900,start=performance.now();element.classList.add('dfc-z28-balance-moving');
    const tick=now=>{
      if(running.get(element)!==local||!element.isConnected)return;
      const ratio=Math.min(1,(now-start)/duration);const eased=1-Math.pow(1-ratio,3);
-     element.textContent=display(element,from+(to-from)*eased,kind);
+     element.textContent=display(from+(to-from)*eased);
      if(ratio<1)local.raf=requestAnimationFrame(tick);
-     else{element.textContent=display(element,to,kind);element.classList.remove('dfc-z28-balance-moving');running.delete(element);}
+     else{element.textContent=display(to);element.classList.remove('dfc-z28-balance-moving');running.delete(element);}
    };local.raf=requestAnimationFrame(tick);
  }
  function particles(element,kind,positive){
@@ -17238,8 +17246,19 @@ function dfcZ28ShowTableText(row){
        const previous=last.get(key);
        // Do not interpret our own frame updates as new server balances.
        if(running.has(el))continue;
-       if(previous!==undefined&&Math.abs(current-previous)>.0005){last.set(key,current);animate(el,previous,current,kind);particles(el,kind,current>previous)}
-       else last.set(key,current);
+       last.set(key,current);
+       if(previous!==undefined&&Math.abs(current-previous)>.0005){
+         if(kind==='coin'){
+           animate(el,previous,current);
+           particles(el,kind,current>previous);
+         }else{
+           const now=performance.now();
+           if(now-(lastGemBurst.get(el)??-Infinity)>1100){
+             lastGemBurst.set(el,now);
+             particles(el,kind,current>previous);
+           }
+         }
+       }
      }
    }
    for(const key of last.keys())if(!present.has(key))last.delete(key);
