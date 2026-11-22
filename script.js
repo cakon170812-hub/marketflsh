@@ -1168,7 +1168,7 @@
   const legacy=document.getElementById('dfc-z20-mode');
   legacy?.querySelectorAll('option[value="points"]').forEach(o=>o.remove());
   const oldTournament=document.getElementById('dfcTournamentAdminBtn');
-  if(oldTournament&&window.dfcZ37Admin){oldTournament.disabled=false;oldTournament.textContent='🏆 Mesas de torneo';oldTournament.title='';}
+  if(oldTournament&&window.dfcZ37Admin){oldTournament.disabled=false;if(!oldTournament.dataset.dfcAdminPlaced)oldTournament.textContent='🏆 Mesas de torneo';oldTournament.title='';}
   const select=document.getElementById('dfc-z20-mode');
   if(select?.value==='points')select.value='normal';
   render();

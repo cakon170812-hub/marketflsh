@@ -9085,7 +9085,7 @@ function mfShowVerifiedTieWin(result,key,uid){
     if(wallets)wallets.classList.add('hidden');
     const closeDashboard=()=>{hide('leaderPanel')};
     for(const [emoji,name,desc,key] of items){
-      const b=document.createElement('button');b.type='button';b.className='mf-admin-card';
+      const b=document.createElement('button');b.type='button';b.className='mf-admin-card';b.dataset.adminSection=key;
       const sym=document.createElement('span'),head=document.createElement('strong'),sm=document.createElement('small');
       sym.textContent=emoji;head.textContent=name;sm.textContent=desc;b.append(sym,head,sm);
       dashboard.append(b);
@@ -9811,7 +9811,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
  q('mf18Refresh').addEventListener('click',loadAdmin);
  overlay.querySelectorAll('[data-bot18-money]').forEach(b=>b.addEventListener('click',()=>moneyAction(b.dataset.bot18Money)));
  const dash=document.querySelector('#leaderPanel .mf-admin-grid');
- if(dash){const b=document.createElement('button');b.type='button';b.className='mf-admin-card';
+ if(dash){const b=document.createElement('button');b.type='button';b.className='mf-admin-card';b.id='dfc-admin-bots';
   b.innerHTML='<span>🤖</span><strong>BOTS</strong><small>Un fondo compartido · Mesas múltiples</small>';
   dash.append(b);b.addEventListener('click',()=>{if(!leader())return;hide('leaderPanel');mf192ShowPage(null);show('mfBots17Panel');loadAdmin();});
  }
@@ -14731,16 +14731,103 @@ body.dfc-z15-auto-active #dominoHand{pointer-events:none!important;opacity:.76!i
 </style>
 <!-- DOMINÓ FLASH COIN 0.12Z.15 · Controles enlazados a Supabase -->
 <button aria-live="polite" id="dfc-z15-control" type="button">VOLVER A SENTARME · TOMAR EL CONTROL</button>
-<section aria-label="Cartera administrativa de diamantes" aria-modal="true" id="dfc-z15-admin" role="dialog">
-<h3>Cartera administrativa de diamantes</h3>
-<p class="balance" id="dfc-z15-admin-balance">—</p>
-<label>ID del destinatario <input autocomplete="off" id="dfc-z15-target" placeholder="ID del usuario"/></label>
-<label>Diamantes a enviar <input id="dfc-z15-amount" max="2500" min="0.001" step="0.001" type="number"/></label>
-<button id="dfc-z15-send" type="button">Confirmar envío</button>
-<button id="dfc-z15-close" type="button">Cerrar</button>
-<div aria-live="polite" id="dfc-z15-result" role="status"></div>
-<div aria-label="Movimientos administrativos" id="dfc-z15-history"></div>
+<section aria-labelledby="dfc-z15-wallet-title" id="dfc-z15-admin">
+  <h3 id="dfc-z15-wallet-title">Cartera administrativa</h3>
+  <div class="dfc-admin-wallet-summary">
+    <div class="dfc-admin-wallet-balance">
+      <span>Diamantes disponibles</span>
+      <p class="balance" id="dfc-z15-admin-balance">—</p>
+    </div>
+    <div class="dfc-admin-wallet-actions">
+      <button type="button" data-diamond-action="recharge" aria-controls="dfc-z15-recharge" aria-expanded="false">Recargar diamantes</button>
+      <button type="button" data-diamond-action="send" aria-controls="dfc-z15-send-form" aria-expanded="false">Enviar</button>
+      <button type="button" data-diamond-action="history" aria-controls="dfc-z15-history" aria-expanded="false">Historial</button>
+    </div>
+  </div>
+  <form class="dfc-admin-wallet-form" id="dfc-z15-recharge" hidden>
+    <label>Diamantes desde mi saldo personal
+      <input name="amount" id="dfc-z15-recharge-amount" type="number" inputmode="decimal" min="0.001" max="1000000" step="0.001" required>
+    </label>
+    <p id="dfc-z15-recharge-preview" aria-live="polite"></p>
+    <button id="dfc-z15-recharge-confirm" type="submit" disabled>Confirmar recarga</button>
+  </form>
+  <div class="dfc-admin-wallet-form" id="dfc-z15-send-form" hidden>
+    <label>ID del destinatario <input autocomplete="off" id="dfc-z15-target" inputmode="numeric" maxlength="6" placeholder="ID del usuario"></label>
+    <label>Diamantes a enviar <input id="dfc-z15-amount" max="2500" min="0.001" step="0.001" type="number"></label>
+    <button id="dfc-z15-send" type="button">Confirmar envío</button>
+  </div>
+  <div aria-live="polite" id="dfc-z15-result" role="status"></div>
+  <div aria-label="Movimientos administrativos" id="dfc-z15-history" hidden></div>
 </section>
+<style id="dfc-admin-electric-style">
+#leaderPanel > .panel.dfc-admin-electric{
+  box-sizing:border-box;width:min(98vw,1000px)!important;max-width:1000px!important;
+  max-height:96dvh!important;padding:10px 12px!important;overflow:auto;
+  background:linear-gradient(155deg,#0c43b0,#100c66 48%,#070c36)!important;
+  color:#f5fcff;border:1px solid #459cff;border-radius:15px;
+}
+#leaderPanel .dfc-admin-electric h2{margin:0 42px 9px;text-align:center;font-size:clamp(19px,4.6vh,32px);line-height:1.05;color:#fff}
+#leaderPanel .dfc-admin-electric h2 small{display:block;margin-top:3px;font-size:9px;letter-spacing:.16em;color:#94e6ff}
+#leaderPanel .dfc-admin-electric > .close{width:36px;min-height:34px;top:7px;right:8px}
+#leaderPanel .dfc-admin-electric #dfcAdminReleaseActions:empty{display:none}
+#leaderPanel .dfc-admin-primary,.dfc-admin-electric .mf-admin-grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:0 0 8px;
+}
+html body #leaderPanel > .dfc-admin-electric :is(.dfc-admin-primary,.mf-admin-grid,.dfc-admin-wallet-actions,.dfc-admin-wallet-form) button,
+html body #leaderPanel > .dfc-admin-electric > .close{
+  box-sizing:border-box;width:100%;min-height:42px;min-width:0;margin:0!important;
+  padding:5px 7px!important;border:1px solid #459ef3!important;border-radius:9px!important;
+  color:#f5fbff!important;background:linear-gradient(148deg,#175dd4,#111a77)!important;
+  box-shadow:inset 0 1px #a0e6ff40,0 2px 4px #0005!important;
+  font:750 clamp(10px,1.9vw,15px)/1.15 system-ui,sans-serif!important;
+  text-align:center;overflow-wrap:anywhere;touch-action:manipulation;
+}
+html body #leaderPanel > .dfc-admin-electric > .close{width:36px;min-height:34px}
+#leaderPanel .dfc-admin-primary button,#leaderPanel .dfc-admin-electric .mf-admin-card{
+  display:flex;flex-direction:row;justify-content:center;align-items:center;gap:5px;
+}
+#leaderPanel .dfc-admin-primary button span{font-size:clamp(12px,2.3vw,19px)}
+#leaderPanel .dfc-admin-electric .mf-admin-grid small{display:none}
+#leaderPanel .dfc-admin-electric .mf-admin-grid strong{font-size:inherit}
+html body #leaderPanel > .dfc-admin-electric button[data-dfc-admin-selected],
+html body #leaderPanel > .dfc-admin-electric .dfc-admin-wallet-actions [data-diamond-action="recharge"],
+html body #leaderPanel > .dfc-admin-electric #dfc-z15-recharge-confirm{
+  background:linear-gradient(150deg,#54efff,#29b5ff)!important;color:#061742!important;
+  border-color:#a4fbff!important;
+}
+#leaderPanel .dfc-admin-electric button:focus-visible,#leaderPanel .dfc-admin-electric summary:focus-visible{
+  outline:2px solid #fff;outline-offset:2px;
+}
+#leaderPanel .dfc-admin-electric button[hidden],#leaderPanel #dfc-z15-admin [hidden]{display:none!important}
+#leaderPanel .dfc-admin-electric #dfc-z15-admin{
+  position:static;display:block;inset:auto;max-width:none;margin:0 0 7px;padding:8px 10px;
+  background:linear-gradient(155deg,#1737a3,#090d49)!important;
+  border:1px solid #36b8ff;border-radius:11px;box-shadow:none;overflow:visible;
+}
+#leaderPanel #dfc-z15-admin h3{margin:0 0 5px;color:#fff;font-size:clamp(15px,3.6vh,23px)}
+#leaderPanel #dfc-z15-admin .dfc-admin-wallet-summary{
+  display:grid;grid-template-columns:minmax(100px,1fr) minmax(0,2.3fr);gap:8px;align-items:center;
+}
+#leaderPanel #dfc-z15-admin .dfc-admin-wallet-balance span{display:block;color:#b1e9ff;font-size:11px}
+#leaderPanel #dfc-z15-admin .balance{
+  margin:2px 0;color:#fff;font-size:clamp(18px,5vh,32px);line-height:1.1;font-variant-numeric:tabular-nums;
+}
+#leaderPanel .dfc-admin-wallet-actions{display:grid;grid-template-columns:1.45fr 1fr 1fr;gap:6px}
+#leaderPanel .dfc-admin-wallet-form{display:grid;gap:6px;margin-top:8px}
+#leaderPanel .dfc-admin-wallet-form label{font-size:12px;color:#e0f5ff}
+#leaderPanel #dfc-z15-admin .dfc-admin-wallet-form input{
+  box-sizing:border-box;display:block;margin:2px 0 0;padding:6px 8px;font-size:16px;background:#061744;border-color:#508cde;
+}
+#leaderPanel .dfc-admin-wallet-form #dfc-z15-recharge-preview{margin:0;font-size:12px;color:#c5ebff}
+#leaderPanel #dfc-z15-result:not(:empty){margin-top:5px;font-size:12px;color:#d4f4ff}
+#leaderPanel #dfc-z15-history{max-height:180px;overflow:auto;margin-top:5px}
+#leaderPanel .dfc-admin-electric details > summary{cursor:pointer;padding:6px 2px;color:#d4f3ff;font-weight:700;font-size:12px}
+#leaderPanel .dfc-admin-electric details .stat-grid{margin:5px 0}
+@media (max-width:560px) and (orientation:portrait){
+  #leaderPanel .dfc-admin-primary,#leaderPanel .dfc-admin-electric .mf-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #leaderPanel #dfc-z15-admin .dfc-admin-wallet-summary{grid-template-columns:1fr}
+}
+</style>
 <script id="dfc-z15-real-integration">
 (function(){'use strict';
   const $ = id => document.getElementById(id);
@@ -14828,7 +14915,7 @@ body.dfc-z15-auto-active #dominoHand{pointer-events:none!important;opacity:.76!i
     async openAdmin(){
       // La autorización real reside en la RPC, no en el botón.
       if(typeof me==='undefined'||me?.role!=='leader')throw Error('Solo Administrador Líder');
-      panel.style.display='block';message.textContent='';await refreshAdmin();
+      await refreshAdmin();
     }
   };
   // Un aviso de cambio de visibilidad también conserva estado cuando el cliente nativo
@@ -14842,26 +14929,213 @@ body.dfc-z15-auto-active #dominoHand{pointer-events:none!important;opacity:.76!i
   const observer=new MutationObserver(update);
   if($('dominoTablePanel'))observer.observe($('dominoTablePanel'),{attributes:true,attributeFilter:['class']});
   async function refreshAdmin(){
+    const ticket=++reading;
     const r=await call('dfc_z15_admin_diamonds_status');
-    $('dfc-z15-admin-balance').textContent=Number(r?.balance||0).toFixed(3)+' 💎';
+    if(ticket!==reading)return;
+    if(r?.ok!==true||r.balance==null||r.personal_balance==null)throw Error('Saldos de diamantes sin confirmar.');
+    fund=Number(r.balance);
+    personal=Number(r.personal_balance);
+    $('dfc-z15-admin-balance').textContent='💎 '+formatDiamonds.format(fund);
+    paintRecharge();
     const history=$('dfc-z15-history');history.replaceChildren();
     for(const move of (Array.isArray(r?.history)?r.history:[]).slice(0,30)){
       const line=document.createElement('p');line.className='dfc-z15-movement';
       const when=move.created_at?new Date(move.created_at).toLocaleString('es-DO'):'';
-      line.textContent=when+' · '+String(move.movement_type||'Movimiento')+' · '+Number(move.delta||0).toFixed(3)+' 💎';
+      const title=move.movement_type==='RECARGA_ADMIN'?'Recarga de diamantes':String(move.movement_type||'Movimiento');
+      line.textContent=when+' · '+title+' · '+Number(move.delta||0).toFixed(3)+' 💎';
       history.appendChild(line);
     }
   }
-  // El acceso aparece exclusivamente dentro del panel del Administrador Líder.
-  const leader=$('leaderPanel')?.querySelector('.panel');
-  if(leader&&!$('dfc-z15-open-admin')){
-    const open=document.createElement('button');open.id='dfc-z15-open-admin';open.type='button';
-    open.textContent='💎 Cartera administrativa';open.className='action';
-    open.style.cssText='display:block;margin:12px;padding:10px 14px;border-radius:9px;background:#d7ac56;color:#21170a;font-weight:800';
-    open.onclick=()=>window.DFC_Z15.openAdmin().catch(e=>alert('Cartera de diamantes: '+(e.message||e)));
-    leader.appendChild(open);
+  const recharge = $('dfc-z15-recharge');
+  const amountInput = $('dfc-z15-recharge-amount');
+  const rechargeButton = $('dfc-z15-recharge-confirm');
+  const preview = $('dfc-z15-recharge-preview');
+  const formatDiamonds = new Intl.NumberFormat('es-DO', {maximumFractionDigits:3});
+  let fund = null, personal = null, reading = 0, recharging = false, pendingRecharge = null;
+  const rechargeKey = () => 'dfc-admin-diamond-recharge:' + me.id;
+
+  function restoreRecharge(){
+    const key = rechargeKey();
+    if(pendingRecharge?.key === key)return;
+    pendingRecharge = null;
+    try{
+      const saved = JSON.parse(localStorage.getItem(key) || 'null');
+      if(saved && typeof saved.reference === 'string' && Number.isFinite(saved.amount)){
+        pendingRecharge = {...saved, key};
+        amountInput.value = String(saved.amount);
+      }
+    }catch(_){}
   }
-  $('dfc-z15-close').addEventListener('click',()=>{panel.style.display='none'});
+  function saveRecharge(request){
+    pendingRecharge = request;
+    try{localStorage.setItem(request.key, JSON.stringify(request));}catch(_){}
+  }
+  function clearRecharge(request){
+    if(pendingRecharge === request)pendingRecharge = null;
+    try{localStorage.removeItem(request.key);}catch(_){}
+  }
+  function paintRecharge(){
+    amountInput.readOnly = !!pendingRecharge || recharging;
+    const amount = amountInput.valueAsNumber;
+    const valid = amountInput.validity.valid && Number.isFinite(amount);
+    rechargeButton.textContent = pendingRecharge ? 'Reintentar recarga' : 'Confirmar recarga';
+    rechargeButton.disabled = recharging || !valid || (!pendingRecharge && (personal == null || amount > personal));
+    if(pendingRecharge){
+      preview.textContent = 'Recarga pendiente de confirmar: '+formatDiamonds.format(pendingRecharge.amount)+' diamantes.';
+    }else if(personal == null || fund == null){
+      preview.textContent = 'Saldo sin confirmar.';
+    }else if(valid && amount <= personal){
+      preview.textContent = 'Saldo personal: '+formatDiamonds.format(personal)+' → '+formatDiamonds.format(personal-amount)
+        +' · Cartera administrativa: '+formatDiamonds.format(fund)+' → '+formatDiamonds.format(fund+amount);
+    }else{
+      preview.textContent = 'Saldo personal: '+formatDiamonds.format(personal)+' diamantes.'
+        +(valid && amount > personal ? ' Diamantes personales insuficientes.' : '');
+    }
+  }
+  amountInput.addEventListener('input',paintRecharge);
+  recharge.addEventListener('submit',async event=>{
+    event.preventDefault();
+    if(me?.role!=='leader'||rechargeButton.disabled||recharging)return;
+    const amount = amountInput.valueAsNumber;
+    if(!pendingRecharge){
+      if(!globalThis.crypto?.randomUUID){
+        message.textContent='La recarga requiere una conexión HTTPS.';
+        return;
+      }
+      saveRecharge({key:rechargeKey(), amount, reference:crypto.randomUUID()});
+    }
+    const request = pendingRecharge;
+    recharging = true;
+    paintRecharge();
+    message.textContent='Confirmando recarga…';
+    try{
+      const result = await call('dfc_z15_admin_recharge_diamonds',{p_amount:request.amount,p_request_id:request.reference});
+      if(result?.ok!==true)throw Error('Respuesta de recarga sin confirmar');
+      clearRecharge(request);
+      amountInput.value='';
+      message.textContent='Recarga confirmada: '+formatDiamonds.format(request.amount)+' diamantes.';
+      fund=personal=null;
+      $('dfc-z15-admin-balance').textContent='—';
+      try{await refreshAdmin();}catch(_){
+        message.textContent+=' Vuelve a abrir Diamantes para actualizar los saldos.';
+      }
+      Promise.resolve().then(()=>window.dfcZ9Refresh?.()).catch(()=>{});
+    }catch(error){
+      const rejected = ['22023','42501'].includes(error.code)
+        || (error.code==='P0001'&&error.message==='Diamantes personales insuficientes');
+      if(rejected){
+        clearRecharge(request);
+        message.textContent=error.message;
+        await refreshAdmin().catch(()=>{});
+      }else{
+        message.textContent='Recarga sin confirmar. Usa «Reintentar recarga» para comprobarla con la misma referencia.';
+      }
+    }finally{
+      recharging=false;
+      paintRecharge();
+    }
+  });
+
+  const walletSections = {
+    recharge, send:$('dfc-z15-send-form'), history:$('dfc-z15-history')
+  };
+  for(const button of panel.querySelectorAll('[data-diamond-action]')){
+    button.addEventListener('click',()=>{
+      const section=walletSections[button.dataset.diamondAction];
+      const expanded=section.hidden;
+      for(const [name,content] of Object.entries(walletSections)){
+        content.hidden=content!==section||!expanded;
+        panel.querySelector('[data-diamond-action="'+name+'"]').setAttribute('aria-expanded',String(!content.hidden));
+      }
+      if(expanded&&section===recharge){
+        restoreRecharge();
+        paintRecharge();
+        amountInput.focus();
+        refreshAdmin().catch(error=>{message.textContent=error.message;});
+      }else if(expanded&&section===walletSections.history){
+        refreshAdmin().catch(error=>{message.textContent=error.message;});
+      }else if(expanded){
+        $('dfc-z15-target').focus();
+      }
+    });
+  }
+
+  const leaderPanel=$('leaderPanel');
+  const dashboard=leaderPanel?.querySelector(':scope > .panel');
+  const secondary=dashboard?.querySelector('.mf-admin-grid');
+  if(dashboard && secondary){
+    dashboard.classList.add('dfc-admin-electric');
+    const heading=dashboard.querySelector(':scope > h2');
+    heading.textContent='Administración';
+    const brand=document.createElement('small');
+    brand.textContent='DOMINÓ FLASH COIN';
+    heading.append(brand);
+    const primary=document.createElement('nav');
+    primary.className='dfc-admin-primary';
+    primary.setAttribute('aria-label','Administración del juego');
+    heading.after(primary,panel);
+
+    const more=document.createElement('details');
+    const summary=document.createElement('summary');
+    summary.textContent='Más opciones';
+    more.append(summary);
+    panel.after(more);
+    more.append(secondary);
+    const stats=dashboard.querySelector(':scope > .stat-grid');
+    if(stats)more.append(stats);
+
+    const points=document.createElement('button');
+    points.type='button';
+    points.id='dfc-admin-points';
+    points.addEventListener('click',()=>{
+      if(window.dfcZ37Admin)void window.dfcZ37Admin.open('points');
+      else message.textContent='El módulo Por puntos todavía se está cargando.';
+    });
+    const diamonds=document.createElement('button');
+    diamonds.type='button';
+    diamonds.id='dfc-z15-open-admin';
+    diamonds.dataset.dfcAdminSelected='';
+    diamonds.setAttribute('aria-controls','dfc-z15-admin');
+    diamonds.addEventListener('click',()=>{
+      window.DFC_Z15.openAdmin().catch(error=>{message.textContent=error.message;});
+      panel.scrollIntoView({block:'nearest'});
+    });
+    primary.append(points,diamonds);
+    const launchers=[
+      ['[data-admin-section="domino"]','🁫','Mesas'],
+      ['#dfc-admin-bots','🤖','BOTS'],
+      ['#dfcTournamentAdminBtn','🏆','Torneos'],
+      ['#dfc-admin-points','✦','Por puntos'],
+      ['#dfcZ31AdminGiftsBtn','🎁','Tarjetas'],
+      ['#dfcOTAAdminLaunch','↻','Actualizaciones'],
+      ['[data-admin-section="wallet"]','⚡','FlashCoin'],
+      ['#dfc-z15-open-admin','💎','Diamantes']
+    ];
+    function organizeLaunchers(){
+      launchers.forEach(([selector,icon,label],index)=>{
+        const button=dashboard.querySelector(selector);
+        if(!button||button.dataset.dfcAdminPlaced)return;
+        button.dataset.dfcAdminPlaced='true';
+        button.style.order=String(index);
+        const symbol=document.createElement('span');
+        symbol.setAttribute('aria-hidden','true');
+        symbol.textContent=icon;
+        const title=document.createElement('strong');
+        title.textContent=label;
+        button.replaceChildren(symbol,title);
+        primary.append(button);
+      });
+      const legacy=dashboard.querySelector(':scope > #dfc-z37-admin-entry');
+      if(legacy)secondary.append(legacy);
+    }
+    organizeLaunchers();
+    new MutationObserver(organizeLaunchers).observe(dashboard,{childList:true,subtree:true});
+    function refreshWhenOpen(){
+      if(me?.role!=='leader'||!leaderPanel.classList.contains('active'))return;
+      refreshAdmin().catch(error=>{message.textContent=error.message;});
+    }
+    new MutationObserver(refreshWhenOpen).observe(leaderPanel,{attributes:true,attributeFilter:['class']});
+  }
   sendButton.addEventListener('click',async()=>{
     if(sending)return;
     const id=$('dfc-z15-target').value.trim();const amount=Number($('dfc-z15-amount').value);
@@ -16767,7 +17041,7 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 </script>
 <script id="dfc-z27-html-ready-signal">document.dispatchEvent(new Event("dfc-z27-html-ready"));</script>
 <link rel="stylesheet" href="./style.css?v=0.12Z.31">
-<script src="./script.js?v=0.12Z.32.5" defer></script>
+<script src="./script.js?v=0.12Z.32.6" defer></script>
 <script src="./native-bridge.js?v=0.12Z.31" type="module"></script>
 <style id="dfc-z27-shared-home-lobby-wallpaper">
 #appView.bg.dfc09-view,
