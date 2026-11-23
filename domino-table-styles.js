@@ -21,7 +21,7 @@
   const labels = new Map(styles);
   const original = 'navy-gold';
   const image = key => key === original
-    ? './images2/mesa-azul-salon-puntos.webp'
+    ? './images2/mesa-azul-salon.webp'
     : './images2/estilos-mesa/' + key + '.webp';
   const leader = () => typeof me !== 'undefined' && me?.role === 'leader';
   const modes = {normal:'Por gane', paid_pass:'Pintintín', points:'Por puntos', tournament:'Torneo'};
@@ -38,21 +38,27 @@
   }
 
   const art = document.getElementById('dfcNavyTableArt');
+  const room = new Image();
+  let roomLoaded = false;
+  function syncRoom() {
+    stage?.toggleAttribute('data-table-room', roomLoaded && (stage.dataset.tableStyle || original) === original);
+  }
   if (art && stage) {
-    const room = new Image();
     room.onload = () => {
       art.src = room.src;
       art.width = room.naturalWidth;
       art.height = room.naturalHeight;
+      roomLoaded = true;
+      syncRoom();
     };
-    // El tapete original sigue visible durante la carga y también sirve de respaldo.
     room.src = image(original);
   }
 
-  paint(stage, surface, original);
-  stage?.setAttribute('data-table-room', '');
   window.dfcTableStyles = {
-    paint(key) { paint(stage, surface, key); }
+    paint(key) {
+      paint(stage, surface, key);
+      syncRoom();
+    }
   };
 
   const seats = document.getElementById('dominoSeats');

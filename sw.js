@@ -21,16 +21,14 @@
 
 'use strict';
 
-const DFC_SW_REVISION = '0.12Z.37-web-table-styles-1';
+const DFC_SW_REVISION = '0.12Z.37-web-controls-1';
 
-// Solicita los recursos de interfaz actualizados aunque el HTML mantenga su versión.
-const DFC_WEB_ASSETS = new Set([
-  'script.js', 'z37-ui.js', 'z37-admin.js', 'domino-table-styles.js', 'domino-table-styles.css'
-].map(path=>new URL(path,self.registration.scope).pathname));
+// Solicita los scripts de interfaz actualizados aunque el HTML mantenga su versión.
+const DFC_WEB_SCRIPTS = new Set(['script.js', 'z37-ui.js', 'z37-admin.js'].map(path=>new URL(path,self.registration.scope).pathname));
 self.addEventListener('fetch', event=>{
   const request=event.request;
   const url=new URL(request.url);
-  if(request.method==='GET'&&url.origin===self.location.origin&&DFC_WEB_ASSETS.has(url.pathname)){
+  if(request.method==='GET'&&url.origin===self.location.origin&&DFC_WEB_SCRIPTS.has(url.pathname)){
     event.respondWith(fetch(request,{cache:'reload'}));
   }
 });
