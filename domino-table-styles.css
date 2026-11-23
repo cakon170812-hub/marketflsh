@@ -436,3 +436,66 @@
     width: 4cqw !important;
   }
 }
+
+/* Por puntos: el salón llega al borde físico, con los controles en el área segura. */
+#dominoTablePanel.overlay:has(#dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))) {
+  padding: 0 !important;
+  background:
+    url("./images2/mesa-azul-salon-puntos.webp") center / 100% 100% no-repeat,
+    #160e0a url("./images2/mesa-azul-salon.webp") center / 100% 100% no-repeat !important;
+}
+
+#dominoTablePanel.overlay:has(#dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))) > .panel.domino-game-panel,
+#dominoTablePanel.overlay #dominoStage.domino-stage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) {
+  background: transparent !important;
+}
+
+#dominoTablePanel.overlay #dominoStage.domino-stage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) {
+  max-height: none !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dfcNavyTableArt {
+  visibility: hidden;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoBoard {
+  top: 35% !important;
+  width: 58% !important;
+  height: 21% !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoHand {
+  --dfc-points-hand-height: min(clamp(26px, 13cqh, 90px), 13cqw);
+  --dfc-points-hand-gap: clamp(2px, .48cqw, 8px);
+  top: 60.5% !important;
+  width: min(76%, calc(3.92 * var(--dfc-points-hand-height) + 6 * var(--dfc-points-hand-gap))) !important;
+  height: var(--dfc-points-hand-height) !important;
+  max-height: none !important;
+  gap: var(--dfc-points-hand-gap) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoHand .domino-piece.hand-piece {
+  width: calc(.56 * var(--dfc-points-hand-height)) !important;
+  max-width: calc((100% - 6 * var(--dfc-points-hand-gap)) / 7) !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  background: linear-gradient(150deg, #fffdf5, #f5e9cf 58%, #e3cdaa) !important;
+  border-color: #c8b38c !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoSeats .domino-seat.s1 {
+  top: 72% !important;
+}
+
+#dominoTablePanel #dominoStage .domino-inside-pot[data-dfc-points-pot] {
+  display: block !important;
+}
+
+#dominoTablePanel #dfcPointsPots > b + b::before {
+  content: "💎";
+  background: none;
+  font-size: 16px;
+  line-height: 18px;
+  text-align: center;
+}
+
