@@ -16,7 +16,7 @@
   border-radius: 0 !important;
 }
 
-:where(#dominoStage, .dfc-table-preview-stage) {
+#dominoStage {
   --dfc-style-frame: #151f32;
   --dfc-style-rim: #70849d;
   --dfc-style-light: #84bdfb;
@@ -73,8 +73,7 @@
     0 3px 6px #000c;
 }
 
-#dominoTablePanel #dominoStage[data-table-style]:not([data-table-style="navy-gold"]) #dominoHand,
-.dfc-table-preview-stage[data-table-style]:not([data-table-style="navy-gold"]) .dfc-table-preview-hand {
+#dominoTablePanel #dominoStage[data-table-style]:not([data-table-style="navy-gold"]) #dominoHand {
   background: linear-gradient(180deg, #040912e0, var(--dfc-style-frame)) !important;
   border: 1px solid color-mix(in srgb, var(--dfc-style-rim) 75%, #101521) !important;
   border-bottom: 3px solid var(--dfc-style-rim) !important;
@@ -82,24 +81,24 @@
   box-shadow: 0 3px 8px #0009 !important;
 }
 
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style^="clasica-"] {
+#dominoStage[data-table-style^="clasica-"] {
   --dfc-rim-pattern: repeating-linear-gradient(2deg, #27100533 0 1px, transparent 2px 5px, #ffe5c022 6px 7px);
 }
 
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-1"] { --dfc-style-frame:#262b35; --dfc-style-rim:#536173; --dfc-style-light:#e9bf79; --dfc-style-felt:#07132b; }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-2"] { --dfc-style-frame:#0b234b; --dfc-style-rim:#4d70a2; --dfc-style-light:#389dff; --dfc-style-felt:#081937; --dfc-style-shape:5% / 11%; --dfc-style-cut:polygon(10% 0,90% 0,95% 4%,100% 86%,99% 94%,96% 100%,4% 100%,1% 94%,0 86%,5% 4%); --dfc-rim-pattern:linear-gradient(110deg, #e8be78 0 3%, transparent 7% 93%, #e8be78 97%); }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-3"] { --dfc-style-frame:#796249; --dfc-style-rim:#c1a68a; --dfc-style-light:#ffe9c4; --dfc-style-felt:#121d2b; --dfc-style-thickness:clamp(6px, 3vmin, 18px); }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-4"] { --dfc-style-frame:#142b35; --dfc-style-rim:#7299aa; --dfc-style-light:#8ee5ff; --dfc-style-felt:#062b3c; --dfc-style-shape:5% / 10%; }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-5"] { --dfc-style-frame:#222a3c; --dfc-style-rim:#696f81; --dfc-style-light:#f7d18f; --dfc-style-felt:#08235f; --dfc-style-shape:13% / 26%; }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-6"] { --dfc-style-frame:#16151e; --dfc-style-rim:#3a52ac; --dfc-style-light:#eee3ce; --dfc-style-felt:#171735; }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-1"] { --dfc-style-frame:#4c2817; --dfc-style-rim:#865a37; --dfc-style-light:#ffbe60; --dfc-style-felt:#142d1f; }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-2"] { --dfc-style-frame:#393f4a; --dfc-style-rim:#879197; --dfc-style-light:#69b5ff; --dfc-style-felt:#122857; --dfc-style-cut:polygon(3% 0,97% 0,100% 7%,100% 93%,97% 100%,3% 100%,0 93%,0 7%); --dfc-rim-pattern:repeating-linear-gradient(0deg, #fff2 0 1px, transparent 2px 4px); }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-3"] { --dfc-style-frame:#582d21; --dfc-style-rim:#a36c49; --dfc-style-light:#f5a573; --dfc-style-felt:#531522; --dfc-style-shape:7% / 14%; }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-4"] { --dfc-style-frame:#94633e; --dfc-style-rim:#c39661; --dfc-style-light:#ffe0a1; --dfc-style-felt:#235557; --dfc-style-shape:12% / 26%; }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-5"] { --dfc-style-frame:#957959; --dfc-style-rim:#c7af8d; --dfc-style-light:#f7d19a; --dfc-style-felt:#202148; --dfc-style-shape:7% / 14%; }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-6"] { --dfc-style-frame:#482b22; --dfc-style-rim:#815646; --dfc-style-light:#d89eed; --dfc-style-felt:#361736; --dfc-style-cut:polygon(6% 0,94% 0,100% 15%,100% 85%,94% 100%,6% 100%,0 85%,0 15%); }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-7"] { --dfc-style-frame:#68351d; --dfc-style-rim:#a27349; --dfc-style-light:#ffc67e; --dfc-style-felt:#723917; --dfc-style-cut:polygon(6% 0,99% 0,100% 89%,94% 100%,1% 100%,0 11%); }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-8"] { --dfc-style-frame:#482a27; --dfc-style-rim:#886262; --dfc-style-light:#f5ad9f; --dfc-style-felt:#363e4e; --dfc-style-shape:9% 7% 10% 13% / 18% 15% 23% 20%; }
+#dominoStage[data-table-style="moderna-1"] { --dfc-style-frame:#262b35; --dfc-style-rim:#536173; --dfc-style-light:#e9bf79; --dfc-style-felt:#07132b; }
+#dominoStage[data-table-style="moderna-2"] { --dfc-style-frame:#0b234b; --dfc-style-rim:#4d70a2; --dfc-style-light:#389dff; --dfc-style-felt:#081937; --dfc-style-shape:5% / 11%; --dfc-style-cut:polygon(10% 0,90% 0,95% 4%,100% 86%,99% 94%,96% 100%,4% 100%,1% 94%,0 86%,5% 4%); --dfc-rim-pattern:linear-gradient(110deg, #e8be78 0 3%, transparent 7% 93%, #e8be78 97%); }
+#dominoStage[data-table-style="moderna-3"] { --dfc-style-frame:#796249; --dfc-style-rim:#c1a68a; --dfc-style-light:#ffe9c4; --dfc-style-felt:#121d2b; --dfc-style-thickness:clamp(6px, 3vmin, 18px); }
+#dominoStage[data-table-style="moderna-4"] { --dfc-style-frame:#142b35; --dfc-style-rim:#7299aa; --dfc-style-light:#8ee5ff; --dfc-style-felt:#062b3c; --dfc-style-shape:5% / 10%; }
+#dominoStage[data-table-style="moderna-5"] { --dfc-style-frame:#222a3c; --dfc-style-rim:#696f81; --dfc-style-light:#f7d18f; --dfc-style-felt:#08235f; --dfc-style-shape:13% / 26%; }
+#dominoStage[data-table-style="moderna-6"] { --dfc-style-frame:#16151e; --dfc-style-rim:#3a52ac; --dfc-style-light:#eee3ce; --dfc-style-felt:#171735; }
+#dominoStage[data-table-style="clasica-1"] { --dfc-style-frame:#4c2817; --dfc-style-rim:#865a37; --dfc-style-light:#ffbe60; --dfc-style-felt:#142d1f; }
+#dominoStage[data-table-style="clasica-2"] { --dfc-style-frame:#393f4a; --dfc-style-rim:#879197; --dfc-style-light:#69b5ff; --dfc-style-felt:#122857; --dfc-style-cut:polygon(3% 0,97% 0,100% 7%,100% 93%,97% 100%,3% 100%,0 93%,0 7%); --dfc-rim-pattern:repeating-linear-gradient(0deg, #fff2 0 1px, transparent 2px 4px); }
+#dominoStage[data-table-style="clasica-3"] { --dfc-style-frame:#582d21; --dfc-style-rim:#a36c49; --dfc-style-light:#f5a573; --dfc-style-felt:#531522; --dfc-style-shape:7% / 14%; }
+#dominoStage[data-table-style="clasica-4"] { --dfc-style-frame:#94633e; --dfc-style-rim:#c39661; --dfc-style-light:#ffe0a1; --dfc-style-felt:#235557; --dfc-style-shape:12% / 26%; }
+#dominoStage[data-table-style="clasica-5"] { --dfc-style-frame:#957959; --dfc-style-rim:#c7af8d; --dfc-style-light:#f7d19a; --dfc-style-felt:#202148; --dfc-style-shape:7% / 14%; }
+#dominoStage[data-table-style="clasica-6"] { --dfc-style-frame:#482b22; --dfc-style-rim:#815646; --dfc-style-light:#d89eed; --dfc-style-felt:#361736; --dfc-style-cut:polygon(6% 0,94% 0,100% 15%,100% 85%,94% 100%,6% 100%,0 85%,0 15%); }
+#dominoStage[data-table-style="clasica-7"] { --dfc-style-frame:#68351d; --dfc-style-rim:#a27349; --dfc-style-light:#ffc67e; --dfc-style-felt:#723917; --dfc-style-cut:polygon(6% 0,99% 0,100% 89%,94% 100%,1% 100%,0 11%); }
+#dominoStage[data-table-style="clasica-8"] { --dfc-style-frame:#482a27; --dfc-style-rim:#886262; --dfc-style-light:#f5ad9f; --dfc-style-felt:#363e4e; --dfc-style-shape:9% 7% 10% 13% / 18% 15% 23% 20%; }
 
 #dfcTableStylesDialog {
   position: fixed;
@@ -152,47 +151,16 @@
   margin:12px 0;
 }
 #dfcTableStylesDialog figure { margin:0; }
-#dfcTableStylesDialog .dfc-table-preview-stage {
-  position: relative;
-  aspect-ratio: 2.15;
+#dfcTableStylesDialog .dfc-table-preview {
+  display: block;
   width: 100%;
-  overflow: hidden;
-  isolation: isolate;
-  container-type: size;
-  pointer-events: none;
-  background: #050b16;
+  max-height: 30dvh;
+  object-fit: contain;
 }
-.dfc-table-preview-stage[data-table-style="navy-gold"] {
-  background: #050b16 url("./images2/mesa-azul-marino-dorada.webp") center / cover;
-}
-.dfc-table-preview-stage :is(.dfc-table-preview-board, .dfc-table-preview-hand) {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-.dfc-table-preview-board { top: 39%; }
-.dfc-table-preview-hand { bottom: 9%; padding: 3px 5px; }
-.dfc-table-preview-stage .domino-piece {
-  pointer-events: none !important;
-  position: static !important;
-  width: 7cqw !important;
-  height: 4cqw !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  border-radius: 2px !important;
-}
-.dfc-table-preview-stage .dfc-table-preview-hand .domino-piece {
-  display: flex !important;
-  flex-direction: column !important;
-  width: 5cqw !important;
-  height: 8cqw !important;
-}
+#dfcTableStylesDialog .dfc-table-preview[hidden] { display: none; }
 #dfcTableStylesDialog figcaption { margin-top:4px; color:#ffdf9c; font-weight:700; }
 #dfcTableStylesDialog .dfc-table-style-details { display:grid; gap:8px; }
-#dfcTableStylesDialog [data-save] { background:#124681; border-color:#78bdff; justify-self:start; }
+#dfcTableStylesDialog .dfc-table-style-details p { margin:0; }
 #dfcTableStylesDialog fieldset { min-width:0; margin:8px 0; padding:7px 0 10px; border:0; }
 #dfcTableStylesDialog legend { color:#e1ecff; font-weight:700; }
 #dfcTableStylesDialog [data-gallery] {
@@ -207,24 +175,25 @@
   scroll-snap-type: x proximity;
   scrollbar-color: #7796b8 #0a1a2c;
 }
-#dfcTableStylesDialog [data-gallery] label { scroll-snap-align: start; }
 #dfcTableStylesDialog [data-gallery="original"] { grid-template-columns:minmax(130px, 180px); }
-#dfcTableStylesDialog [data-gallery] label {
-  position:relative;
-  display:grid;
-  align-content:start;
-  gap:5px;
-  padding:5px;
-  border:1px solid #475a78;
-  border-radius:8px;
-  color:#edf4ff;
-  background:#0d1c31;
-  cursor:pointer;
-  font-size:13px;
+#dfcTableStylesDialog [data-gallery] button {
+  scroll-snap-align: start;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid #475a78;
+  border-radius: 8px;
+  color: #edf4ff;
+  background: #0d1c31;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
 }
-#dfcTableStylesDialog [data-gallery] label:has(:checked) { border-color:#ffd78b; background:#21436a; }
-#dfcTableStylesDialog [data-gallery] label:focus-within { outline:2px solid #8ee6ff; outline-offset:2px; }
-#dfcTableStylesDialog [data-gallery] input { position:absolute; right:7px; top:7px; accent-color:#ffd78b; }
+#dfcTableStylesDialog [data-gallery] button[aria-pressed="true"] { border-color:#ffd78b; background:#21436a; }
+#dfcTableStylesDialog [data-gallery] button:focus-visible { outline:2px solid #8ee6ff; outline-offset:2px; }
+#dfcTableStylesDialog [data-gallery] button:disabled { cursor:wait; }
 #dfcTableStylesDialog [data-gallery] img { display:block; width:100%; aspect-ratio:2; object-fit:contain; background:#08101a; border-radius:5px; }
 @media (max-width:480px) {
   #dfcTableStylesDialog .dfc-table-style-preview { grid-template-columns:minmax(0,1fr); }
@@ -235,8 +204,8 @@
   background: #050b16 !important;
 }
 
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-1"] > .dfc-table-surface::after,
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-5"] > .dfc-table-surface::after {
+#dominoStage[data-table-style="moderna-1"] > .dfc-table-surface::after,
+#dominoStage[data-table-style="moderna-5"] > .dfc-table-surface::after {
   content: "";
   position: absolute;
   bottom: 2px;
@@ -247,13 +216,13 @@
   background: #5fbcff;
   box-shadow: 0 0 8px #1979fc;
 }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-5"] > .dfc-table-surface::after {
+#dominoStage[data-table-style="moderna-5"] > .dfc-table-surface::after {
   left: 17%;
   right: 17%;
   background: #ffddad;
   box-shadow: 0 0 8px #ffc16c;
 }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-2"] > .dfc-table-surface::after {
+#dominoStage[data-table-style="moderna-2"] > .dfc-table-surface::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -266,7 +235,7 @@
   background-repeat: no-repeat;
   background-size: clamp(14px, 5vmin, 36px) clamp(12px, 4vmin, 26px);
 }
-:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-6"] > .dfc-table-surface span {
+#dominoStage[data-table-style="moderna-6"] > .dfc-table-surface span {
   box-shadow: inset 0 0 4px #ffe6b2, 0 0 3px 2px #4891ff, 0 4px 8px #000d;
 }
 
@@ -414,14 +383,6 @@
   right: calc(var(--room-x) + var(--room-width) * .045) !important;
 }
 
-#dfcTableStylesDialog .dfc-table-preview-stage[data-table-style="navy-gold"] {
-  aspect-ratio: 1672 / 941;
-  background: #160e0a url("./images2/mesa-azul-salon.webp") center / contain no-repeat;
-}
-
-.dfc-table-preview-stage[data-table-style="navy-gold"] .dfc-table-preview-board { top: 32%; }
-.dfc-table-preview-stage[data-table-style="navy-gold"] .dfc-table-preview-hand { bottom: 44%; }
-
 @media (orientation: portrait) {
   #dominoTablePanel #dominoStage[data-table-room] #dominoBoard {
     width: 60cqw !important;
@@ -445,18 +406,11 @@
   height: 100dvh !important;
   max-height: none !important;
   padding: 0 !important;
-  --dfc-points-scene-size: cover;
   --dfc-points-scene:
-    url("./images2/mesa-azul-salon-puntos.webp") center 30% / var(--dfc-points-scene-size) no-repeat,
+    url("./images2/mesa-azul-salon-puntos.webp") center 30% / cover no-repeat,
     url("./images2/mesa-azul-salon.webp") center / cover no-repeat,
     radial-gradient(ellipse at 50% 44%, #173766 0%, #08172e 77%) #10264a;
   background: var(--dfc-points-scene) !important;
-}
-
-@media (orientation: landscape) {
-  #dominoTablePanel.overlay:has(#dominoStage[data-table-room].dfc012n-points-mode, #dominoStage[data-table-room] [data-dfc-points-pot]) {
-    --dfc-points-scene-size: max(100%, 294dvh) auto;
-  }
 }
 
 #dominoTablePanel.overlay:has(#dominoStage[data-table-room].dfc012n-points-mode, #dominoStage[data-table-room] [data-dfc-points-pot]) > .panel.domino-game-panel {
@@ -465,7 +419,7 @@
 
 #dominoTablePanel.overlay #dominoStage.domino-stage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) {
   --dfc-points-profile-bottom: 7%;
-  --dfc-points-hand-bottom: min(76%, calc(100% - var(--dfc-points-profile-bottom) - 53px));
+  --dfc-points-hand-bottom: min(65%, calc(100% - var(--dfc-points-profile-bottom) - 53px));
   --dfc-points-hand-height: min(clamp(29px, 13.6cqh, 88px), 15cqw);
   max-height: none !important;
   background: transparent !important;
@@ -499,7 +453,7 @@
 
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoHand {
   --dfc-points-hand-gap: clamp(2px, .48cqw, 8px);
-  top: var(--dfc-points-hand-bottom) !important;
+  top: var(--dfc-gallery-hand-bottom, var(--dfc-points-hand-bottom)) !important;
   left: 50% !important;
   box-sizing: border-box !important;
   padding: 0 !important;
@@ -571,11 +525,11 @@
 }
 
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) .dfc-real-rack[data-rack="4"] {
-  left: 15.5% !important;
+  left: 21.5% !important;
 }
 
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) .dfc-real-rack[data-rack="2"] {
-  right: 15.5% !important;
+  right: 21.5% !important;
 }
 
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) .dfc-real-rack:is([data-rack="2"], [data-rack="4"]) .dfc-standing-back {
@@ -645,4 +599,79 @@
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) .dfc-real-rack .dfc-standing-back {
   background: linear-gradient(135deg, #fff5dd, #dfc49d 78%, #b08964) !important;
   box-shadow: inset 1px 1px 0 #fff9, 0 1px 2px #090703ad !important;
+}
+
+
+/* The gallery artwork fills the background. Keep the entire table in view
+   inside the stage and reuse its own lighting beyond the artwork's edges. */
+.dfc-table-scene {
+  display: none;
+  pointer-events: none;
+}
+
+#dominoTablePanel.overlay #dominoStage[data-gallery-room] {
+  --dfc-points-scene: transparent;
+  background: #111a26 !important;
+}
+
+#dominoTablePanel.overlay #dominoStage.domino-stage[data-table-room][data-gallery-room]::before {
+  display: block !important;
+  content: "" !important;
+  background: linear-gradient(#111a265e, #111a269e), var(--dfc-scene-image) center / cover no-repeat !important;
+  filter: blur(20px);
+  transform: scale(1.1);
+  z-index: 0 !important;
+}
+
+#dominoTablePanel #dominoStage[data-gallery-room] > .dfc-table-surface {
+  display: none;
+}
+
+#dominoTablePanel #dominoStage[data-gallery-room] .dfc-table-scene {
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(100cqw, calc(100cqh * var(--dfc-scene-aspect)));
+  aspect-ratio: var(--dfc-scene-aspect);
+  transform: translate(-50%, -50%);
+  background: var(--dfc-scene-image) center / 100% 100% no-repeat;
+  z-index: 1;
+}
+
+.dfc-table-scene > span {
+  position: absolute;
+  background-image: var(--dfc-scene-image);
+  background-repeat: no-repeat;
+  --dfc-scene-patch-mask: linear-gradient(to right, transparent, #000 4% 96%, transparent),
+    linear-gradient(to bottom, transparent, #000 7% 93%, transparent);
+  -webkit-mask-image: var(--dfc-scene-patch-mask);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--dfc-scene-patch-mask);
+  mask-composite: intersect;
+}
+
+.dfc-table-scene > span:first-child {
+  --dfc-scene-patch-mask: linear-gradient(to right, #000 80%, transparent),
+    linear-gradient(to bottom, #000 80%, transparent);
+}
+
+#dominoTablePanel #dominoStage[data-gallery-room] #dominoHand {
+  top: var(--dfc-gallery-hand-bottom, 76%) !important;
+  background: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+
+@media (orientation: landscape) {
+  #dominoStage[data-table-style^="moderna-"][data-gallery-room] { --dfc-gallery-hand-bottom: 80%; }
+  #dominoStage[data-table-style^="clasica-"][data-gallery-room] { --dfc-gallery-hand-bottom: 74%; }
+
+  #dominoStage[data-gallery-room]:is([data-table-style="moderna-4"], [data-table-style="moderna-5"], [data-table-style="moderna-6"]) {
+    --dfc-gallery-hand-bottom: 83%;
+  }
+  #dominoStage[data-gallery-room]:is([data-table-style="clasica-5"], [data-table-style="clasica-6"], [data-table-style="clasica-7"], [data-table-style="clasica-8"]) {
+    --dfc-gallery-hand-bottom: 80%;
+  }
 }

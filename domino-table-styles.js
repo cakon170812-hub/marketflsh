@@ -29,37 +29,115 @@
   const surface = document.getElementById('dfcTableStyleSurface');
   surface?.classList.add('dfc-table-surface');
 
-  function paint(target, targetSurface, key) {
-    const style = labels.has(key) ? key : original;
-    if (!target || !targetSurface || target.dataset.tableStyle === style) return;
-    target.dataset.tableStyle = style;
-    if (style === original) targetSurface.style.removeProperty('--dfc-felt-image');
-    else targetSurface.style.setProperty('--dfc-felt-image', 'url("./images2/estilos-mesa/' + style + '-tapete.webp")');
-  }
+  // Percentages in the gallery artwork. Reuse nearby material from each
+  // photograph to cover the illustrated labels, players and example tiles.
+  // Each region is [left, top, width, height, source left, source top, source width, source height].
+  const modernFirst = [
+    [0, 0, 9, 17, 92, 0, 8, 17],
+    [45, 2, 10, 20, 32, 2],
+    [5, 28, 13, 25, 5, 53],
+    [83, 33, 11, 19, 83, 53],
+    [22, 31, 56, 21, 25, 52, 49, 12],
+    [31, 65, 38, 23, 71, 65, 12, 23]
+  ];
+  const modernLast = [
+    [0, 0, 9, 16, 92, 0, 8, 16],
+    [45, 1, 10, 21, 31, 1],
+    [2, 31, 12, 23, 2, 54],
+    [86, 31, 12, 23, 86, 54],
+    [27, 30, 45, 22, 27, 51, 17, 11],
+    [44, 54, 12, 20, 33, 54],
+    [29, 74, 42, 19, 72, 74, 11, 19]
+  ];
+  const classicFirst = [
+    [0, 0, 10, 17, 11, 0],
+    [45, 8, 11, 20, 31, 8],
+    [5, 32, 13, 21, 7, 53],
+    [83, 32, 13, 21, 81, 53],
+    [32, 33, 38, 16, 33, 49, 35, 9],
+    [34, 59, 33, 17, 67, 59, 16, 17],
+    [44, 73, 13, 20, 62, 73]
+  ];
+  const classicLast = [
+    [0, 0, 10, 18, 11, 0],
+    [45, 8, 11, 18, 33, 8],
+    [11, 31, 16, 23, 14, 54],
+    [74, 31, 17, 23, 74, 54],
+    [36, 34, 31, 16, 34, 49, 24, 8],
+    [45, 55, 12, 19, 33, 55],
+    [36, 72, 28, 16, 65, 72, 13, 16]
+  ];
+  const regions = {
+    'moderna-1': modernFirst,
+    'moderna-2': modernFirst,
+    'moderna-3': modernFirst,
+    'moderna-4': modernLast,
+    'moderna-5': modernLast,
+    'moderna-6': modernLast,
+    'clasica-1': classicFirst,
+    'clasica-2': classicFirst,
+    'clasica-3': classicFirst,
+    'clasica-4': classicFirst,
+    'clasica-5': classicLast,
+    'clasica-6': classicLast,
+    'clasica-7': classicLast,
+    'clasica-8': classicLast
+  };
 
   const art = document.getElementById('dfcNavyTableArt');
-  const room = new Image();
-  let roomLoaded = false;
-  function syncRoom() {
-    stage?.toggleAttribute('data-table-room', roomLoaded && (stage.dataset.tableStyle || original) === original);
-  }
-  if (art && stage) {
-    room.onload = () => {
-      art.src = room.src;
-      art.width = room.naturalWidth;
-      art.height = room.naturalHeight;
-      roomLoaded = true;
-      syncRoom();
-    };
-    room.src = image(original);
+  const scene = document.createElement('div');
+  scene.className = 'dfc-table-scene';
+  scene.setAttribute('aria-hidden', 'true');
+  stage?.prepend(scene);
+
+  function renderScene(key, artwork) {
+    if (!stage || stage.dataset.tableStyle !== key) return;
+    if (key === original) {
+      const {naturalWidth, naturalHeight} = artwork;
+      Object.assign(art, {src: artwork.src, width: naturalWidth, height: naturalHeight});
+    } else {
+      const artworkUrl = 'url("' + artwork.src + '")';
+      scene.style.setProperty('--dfc-scene-image', artworkUrl);
+      scene.style.setProperty('--dfc-scene-aspect', artwork.naturalWidth / artwork.naturalHeight);
+      stage.style.setProperty('--dfc-scene-image', artworkUrl);
+      const patches = regions[key].map(([x, y, width, height, sourceX, sourceY, sourceWidth = width, sourceHeight = height]) => {
+        const patch = document.createElement('span');
+        Object.assign(patch.style, {
+          left: x + '%', top: y + '%', width: width + '%', height: height + '%',
+          backgroundSize: (10000 / sourceWidth) + '% ' + (10000 / sourceHeight) + '%',
+          backgroundPosition: (100 * sourceX / (100 - sourceWidth)) + '% ' + (100 * sourceY / (100 - sourceHeight)) + '%'
+        });
+        return patch;
+      });
+      scene.replaceChildren(...patches);
+    }
+    stage.toggleAttribute('data-table-room', true);
+    stage.toggleAttribute('data-gallery-room', key !== original);
   }
 
-  window.dfcTableStyles = {
-    paint(key) {
-      paint(stage, surface, key);
-      syncRoom();
+  const artworkByStyle = new Map();
+  function paintStyle(key) {
+    const style = labels.has(key) ? key : original;
+    if (!stage || (stage.dataset.tableStyle === style && artworkByStyle.has(style))) return;
+    stage.dataset.tableStyle = style;
+    stage.removeAttribute('data-table-room');
+    stage.removeAttribute('data-gallery-room');
+    if (style === original) surface?.style.removeProperty('--dfc-felt-image');
+    else surface?.style.setProperty('--dfc-felt-image', 'url("./images2/estilos-mesa/' + style + '-tapete.webp")');
+
+    let artwork = artworkByStyle.get(style);
+    if (!artwork) {
+      artwork = new Image();
+      artworkByStyle.set(style, artwork);
+      artwork.addEventListener('load', () => renderScene(style, artwork), {once:true});
+      artwork.addEventListener('error', () => artworkByStyle.delete(style), {once:true});
+      artwork.src = image(style);
     }
-  };
+    if (artwork.complete && artwork.naturalWidth) renderScene(style, artwork);
+  }
+
+  window.dfcTableStyles = {paint:paintStyle};
+  paintStyle(original);
 
   const seats = document.getElementById('dominoSeats');
   if (stage && seats) {
@@ -70,7 +148,7 @@
     nearRack.style.display = 'none';
     stage.append(nearRack);
     let nearCount = 0;
-    new MutationObserver(() => {
+    const updateNearRack = () => {
       const count = seats.querySelector('.domino-seat.s1:not(.empty) .domino-tile-count:not([hidden])');
       const total = window.dominoSpectatorMode && stage.hasAttribute('data-table-room')
         ? count?.querySelectorAll('.domino-seat-back-tile').length || 0 : 0;
@@ -82,7 +160,9 @@
         return tile;
       }));
       nearRack.style.display = total ? 'flex' : 'none';
-    }).observe(seats, {childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});
+    };
+    new MutationObserver(updateNearRack).observe(seats, {childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});
+    new MutationObserver(updateNearRack).observe(stage, {attributes:true,attributeFilter:['data-table-room']});
   }
 
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -131,6 +211,7 @@
   if (!launcher || !title) return;
   launcher.removeAttribute('data-dfc-open-table-styles');
   launcher.id = 'dfcTableStylesLauncher';
+  launcher.textContent = 'Imágenes de mesa';
   launcher.setAttribute('aria-haspopup', 'dialog');
   title.after(launcher);
 
@@ -140,7 +221,7 @@
   dialog.setAttribute('aria-labelledby', 'dfcTableStylesHeading');
   dialog.innerHTML = `
     <header>
-      <h2 id="dfcTableStylesHeading">Cambiar estilo de mesa</h2>
+      <h2 id="dfcTableStylesHeading">Imágenes de mesa</h2>
       <button type="button" aria-label="Cerrar">×</button>
     </header>
     <fieldset class="dfc-table-style-scope">
@@ -157,18 +238,14 @@
     <div class="dfc-table-style-editor" hidden>
       <div class="dfc-table-style-preview">
         <figure>
-          <div class="dfc-table-preview-stage" aria-hidden="true">
-            <div class="dfc-table-surface"><span></span></div>
-            <div class="dfc-table-preview-board"></div>
-            <div class="dfc-table-preview-hand"></div>
-          </div>
+          <img class="dfc-table-preview" alt="">
           <figcaption></figcaption>
         </figure>
         <div class="dfc-table-style-details">
           <strong data-table-label></strong>
           <div data-current></div>
           <div data-pending></div>
-          <button type="button" data-save disabled>Guardar estilo</button>
+          <p>Toca una imagen para aplicar el diseño.</p>
         </div>
       </div>
       <fieldset><legend>Modernas</legend><div data-gallery="modern" tabindex="0" role="group" aria-label="Diseños modernos"></div></fieldset>
@@ -185,38 +262,32 @@
   const tableSelect = search.querySelector('select');
   const editor = dialog.querySelector('.dfc-table-style-editor');
   const status = dialog.querySelector('[role="status"]');
-  const save = dialog.querySelector('[data-save]');
-  const preview = dialog.querySelector('.dfc-table-preview-stage');
-  const previewSurface = preview.querySelector('.dfc-table-surface');
+  const preview = dialog.querySelector('.dfc-table-preview');
   const caption = dialog.querySelector('figcaption');
-  const radioInputs = new Map();
+  const cards = new Map();
   let tables = [];
   let table = null;
-  let selected = null;
   let request = 0;
   let saving = false;
 
-  preview.querySelector('.dfc-table-preview-board').innerHTML = [[6,6],[6,5],[5,3],[3,4]]
-    .map((tile, index) => dominoPiece(tile, index, false, true)).join('');
-  preview.querySelector('.dfc-table-preview-hand').innerHTML = [[6,3],[1,2],[1,4],[3,3],[1,5],[6,4],[2,2]]
-    .map((tile, index) => dominoPiece(tile, index, false, true)).join('');
+  const pointsImage = './images2/mesa-azul-salon-puntos.webp';
+  const galleryImage = (key, points) => points && key === original ? pointsImage : image(key);
 
   for (const [key, label] of styles) {
-    const card = document.createElement('label');
-    const radio = document.createElement('input');
-    radio.type = 'radio';
-    radio.name = 'dfc-table-style';
-    radio.value = key;
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.dataset.style = key;
+    card.setAttribute('aria-pressed', 'false');
     const thumbnail = document.createElement('img');
     thumbnail.loading = 'lazy';
     thumbnail.src = image(key);
     thumbnail.alt = '';
     const name = document.createElement('span');
     name.textContent = label;
-    card.append(radio, thumbnail, name);
+    card.append(thumbnail, name);
     const group = key === original ? 'original' : key.startsWith('moderna') ? 'modern' : 'classic';
     dialog.querySelector('[data-gallery="' + group + '"]').append(card);
-    radioInputs.set(key, radio);
+    cards.set(key, card);
   }
 
   const tableName = item => item.name + ' · Mesa #' + item.number + ' · ID ' + item.id;
@@ -241,13 +312,12 @@
   }
 
   function showSelection(key) {
-    selected = labels.has(key) ? key : null;
-    for (const [value, radio] of radioInputs) radio.checked = value === selected;
-    paint(preview, previewSurface, selected || original);
-    caption.textContent = selected ? labels.get(selected) : 'Elige un estilo para ver la vista previa';
-    save.disabled = saving || !selected || (all.checked
-      ? !tables.length || tables.every(item => item.selected_style === selected)
-      : !table || table.selected_style === selected);
+    const points = !all.checked && table?.mode === 'points';
+    cards.get(original).querySelector('img').src = galleryImage(original, points);
+    for (const [value, card] of cards) card.setAttribute('aria-pressed', String(key === value));
+    preview.hidden = !key;
+    if (key) preview.src = galleryImage(key, points);
+    caption.textContent = key ? labels.get(key) : '';
   }
 
   function showTarget() {
@@ -282,7 +352,8 @@
     try {
       const data = await call('dfc_domino_admin_table_style', {p_table_id:tableSelect.value});
       if (token !== request || !dialog.open) return;
-      table = data;
+      const item = tables.find(item => item.id === tableSelect.value);
+      table = {...item, ...data, mode:item?.mode || data.mode};
       showTarget();
       status.textContent = '';
     } catch (error) {
@@ -324,44 +395,49 @@
     listTables();
     if (previous !== tableSelect.value) void lookup();
   });
-  editor.addEventListener('change', event => {
-    if (!saving && radioInputs.has(event.target.value)) showSelection(event.target.value);
-  });
-
-  save.addEventListener('click', async () => {
-    if (!leader() || saving || save.disabled) return;
+  async function applyStyle(style) {
+    if (!leader() || saving || !cards.has(style)) return;
     const isAll = all.checked;
-    const style = selected;
     const tableId = table?.id;
+    if (isAll ? !tables.length || tables.every(item => item.selected_style === style)
+      : !tableId || table.selected_style === style) return;
+
     saving = true;
-    scope.disabled = query.disabled = tableSelect.disabled = save.disabled = true;
-    for (const radio of radioInputs.values()) radio.disabled = true;
-    status.textContent = 'Guardando estilo…';
+    scope.disabled = query.disabled = tableSelect.disabled = true;
+    editor.setAttribute('aria-busy', 'true');
+    for (const card of cards.values()) card.disabled = true;
+    status.textContent = 'Aplicando diseño…';
     try {
       if (isAll) {
         const result = await call('dfc_domino_admin_table_styles', {p_style_key:style});
         tables = result.tables;
         listTables();
-        showTarget();
-        status.textContent = 'Estilo guardado para ' + result.applied + (result.applied === 1 ? ' mesa.' : ' mesas.')
+        status.textContent = 'Diseño guardado para ' + result.applied + (result.applied === 1 ? ' mesa.' : ' mesas.')
           + (result.pending ? ' Mesas que lo verán en la próxima mano: ' + result.pending + '.' : '');
       } else {
-        table = await call('dfc_domino_admin_table_style', {p_table_id:tableId,p_style_key:style});
+        const result = await call('dfc_domino_admin_table_style', {p_table_id:tableId,p_style_key:style});
+        table = {...table, ...result, mode:table.mode};
         tables = tables.map(item => item.id === tableId ? {...item,selected_style:table.selected_style} : item);
-        showTarget();
         status.textContent = table.pending
-          ? 'Guardado. Se aplicará al comenzar la próxima mano.'
-          : 'Estilo guardado para la mesa ' + tableId + '.';
+          ? 'Diseño guardado. Se aplicará al comenzar la próxima mano.'
+          : 'Diseño aplicado a la mesa ' + tableId + '.';
       }
+      showTarget();
     } catch (error) {
-      status.textContent = error.message || 'No se pudo guardar el estilo.';
+      status.textContent = error.message || 'No se pudo guardar el diseño. Toca la imagen para reintentar.';
     } finally {
       saving = false;
+      editor.removeAttribute('aria-busy');
       scope.disabled = query.disabled = false;
       tableSelect.disabled = tableSelect.options.length === 1;
-      for (const radio of radioInputs.values()) radio.disabled = false;
-      showSelection(selected);
+      for (const card of cards.values()) card.disabled = false;
+      cards.get(style).focus({preventScroll:true});
     }
+  }
+
+  editor.addEventListener('click', event => {
+    const card = event.target.closest('button[data-style]');
+    if (card) void applyStyle(card.dataset.style);
   });
 
   dialog.querySelector('header button').addEventListener('click', () => {
