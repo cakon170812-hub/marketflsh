@@ -3195,6 +3195,7 @@ html.dfc-android-native #dominoTablePanel{
 <div class="domino-stage" id="dominoStage" data-table-look="navy-gold">
 
 <!-- DFC 0.11B: escenario sin fichas ni perfiles dibujados; todos los elementos interactivos son DOM real. -->
+<div id="dfcTableStyleSurface" aria-hidden="true"><span></span></div>
 <img id="dfcNavyTableArt" src="./images2/mesa-azul-marino-dorada.webp" alt="" aria-hidden="true" decoding="async" width="1440" height="810">
 
 
@@ -6732,6 +6733,7 @@ function dominoRenderSeatsStable(st){
 }
 
 function renderDominoState(st){
+  window.dfcTableStyles?.paint(st?.table_style);
   window.DFC_Z15?.onState(st);
   dominoState=st;window.dfcRefreshPointsOnClosure?.(st);setSoundSwitchUI();const h=st?.hand,c=st?.config||{},seats=st?.seats||[],uid=st?.me,effects=dominoHandleMoveEffects(st);
   const closure=st?.last_result;
@@ -6875,6 +6877,13 @@ function renderDominoState(st){
 let mfDominoStateLoading=false,mfDominoStateRefreshQueued=false;
 let dfcZ12LastQueuedRefresh=0;
 let dfcZ13TimeoutUntil=0,dfcZ13TimeoutCount=0;
+function dfcReadDominoState(tableId, spectator = false){
+  const legacy = spectator ? 'rf_domino_012z8_spectate_state' : 'rf_domino_get_state_v160';
+  return sb.rpc('dfc_domino_styled_state', {p_table_id:tableId, p_spectator:spectator})
+    .then(result => result.error?.code === 'PGRST202'
+      ? sb.rpc(legacy, {p_table_id:tableId})
+      : result);
+}
 async function loadDominoState(force,skipTick=false){
   if(!dominoCurrentTableId)return;
   // Evita que decenas de eventos de red creen una cola de renders mientras Supabase tarda.
@@ -6894,9 +6903,7 @@ async function loadDominoState(force,skipTick=false){
   // pg_cron y los workers existentes mantienen el progreso de las partidas.
   window.dfc012jTickFailed=false;
 
-  let stateResult=await sb.rpc('rf_domino_get_state_v160',{
-    p_table_id:dominoCurrentTableId
-  });
+  let stateResult=await dfcReadDominoState(dominoCurrentTableId);
 
   // Si la compactación movió el asiento, seguir la mesa nueva automáticamente.
   if(stateResult.error){
@@ -6908,9 +6915,7 @@ async function loadDominoState(force,skipTick=false){
         dominoCurrentTableId=movedTo;
         dominoResetTableEffects();
         await dominoStartRealtime();
-        stateResult=await sb.rpc('rf_domino_get_state_v160',{
-          p_table_id:dominoCurrentTableId
-        });
+        stateResult=await dfcReadDominoState(dominoCurrentTableId);
       }
     }catch(e){}
   }
@@ -6927,7 +6932,7 @@ async function loadDominoState(force,skipTick=false){
         dominoLobbyData=lobby.data||dominoLobbyData;
         dominoCurrentTableId=actual;dominoResetTableEffects();
         await dominoStartRealtime();
-        stateResult=await sb.rpc('rf_domino_get_state_v160',{p_table_id:actual});
+        stateResult=await dfcReadDominoState(actual);
         dominoSetSyncState('Asiento sincronizado con la mesa correcta','ok');
       }
     }catch(e){console.warn('Sincronizar asiento Dominó:',e)}
@@ -8568,7 +8573,7 @@ body.domino-spectating .domino-seat.mine{box-shadow:none!important}
 
   const spectatorRequest=async id=>{
     const res=await Promise.race([
-      sb.rpc('rf_domino_012z8_spectate_state',{p_table_id:Number(id)}),
+      dfcReadDominoState(Number(id),true),
       new Promise((_,reject)=>setTimeout(()=>reject(Error('La mesa tardó demasiado en responder. Pulsa Ver mesa otra vez.')),10000))
     ]);
     if(res.error)throw res.error;
@@ -9556,6 +9561,7 @@ button:active,button.mf195-touched,.num:active,.domino-piece.hand-piece:active,[
    <p class="mf17-hint">Copia el ID pequeño de una mesa en Juegos → Dominó, pégalo aquí y búscala. Después selecciona de 0 a 3 robots.</p>
    <p class="mf17-hint">Regla automática: al finalizar cada mano, sale un bot si entró otro jugador real. Siempre queda un asiento reservado para la próxima persona.</p>
    <div class="mf19-search"><label for="mf19TableFind">ID de la mesa</label><input id="mf19TableFind" type="text" inputmode="numeric" placeholder="Pegar ID de mesa" maxlength="18"><button type="button" id="mf19SearchBtn">🔎 Buscar</button><button type="button" id="mf19ShowAll">Limpiar</button></div>
+   <button type="button" class="action blue" data-dfc-open-table-styles="bots">Cambiar estilo de mesa</button>
    <div id="mf18Tables" aria-live="polite"><p class="mf192-table-hint">Pega el ID de la mesa y pulsa Buscar.</p></div>
   </div>
   <div class="mf192-nav" aria-label="Más opciones de robots y mesas">
@@ -21802,6 +21808,8 @@ html body #dfcLabGiftOverlay008 .dfc-z32-card-date{
   }
 }
 </style>
+<link rel="stylesheet" href="./domino-table-styles.css">
+<script src="./domino-table-styles.js" defer></script>
 </body>
 
 </html>
