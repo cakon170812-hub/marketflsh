@@ -448,9 +448,13 @@
 }
 
 #dominoTablePanel.overlay #dominoStage.domino-stage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) {
+  --dfc-points-pot-left: max(9px, 3.5cqw);
+  --dfc-points-pot-width: clamp(92px, 15cqw, 150px);
+  --dfc-points-pot-bottom: 7%;
+  --dfc-points-profile-left: calc(var(--dfc-points-pot-left) + var(--dfc-points-pot-width) + clamp(42px, 5cqw, 82px));
   max-height: none !important;
   background:
-    url("./images2/mesa-azul-salon-puntos.webp") center / 100% 100% no-repeat,
+    url("./images2/mesa-azul-salon-puntos.webp") center 30% / 112% 142% no-repeat,
     #07162d url("./images2/mesa-azul-salon.webp") center / 100% 100% no-repeat !important;
 }
 
@@ -467,7 +471,10 @@
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoHand {
   --dfc-points-hand-height: min(clamp(24px, 11.4cqh, 78px), 13cqw);
   --dfc-points-hand-gap: clamp(2px, .48cqw, 8px);
-  top: 60.5% !important;
+  top: min(72%, calc(100% - var(--dfc-points-pot-bottom) - 76px)) !important;
+  left: 50% !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
   width: min(76%, calc(3.92 * var(--dfc-points-hand-height) + 6 * var(--dfc-points-hand-gap))) !important;
   height: var(--dfc-points-hand-height) !important;
   max-height: none !important;
@@ -479,12 +486,44 @@
   max-width: calc((100% - 6 * var(--dfc-points-hand-gap)) / 7) !important;
   height: 100% !important;
   max-height: 100% !important;
+  min-width: 0 !important;
   rotate: x -8deg;
   transform-origin: center bottom;
 }
 
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoSeats .domino-seat.s1 {
   top: 72% !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) .domino-inside-pot[data-dfc-points-pot] {
+  box-sizing: border-box !important;
+  left: var(--dfc-points-pot-left) !important;
+  bottom: var(--dfc-points-pot-bottom) !important;
+  width: var(--dfc-points-pot-width) !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dfcPointsPots > b {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoSeats .domino-seat.s1:is(.mine, .dfc-z161-self) {
+  box-sizing: border-box !important;
+  left: var(--dfc-points-profile-left) !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: var(--dfc-points-pot-bottom) !important;
+  width: min(clamp(175px, 21cqw, 235px), calc(100% - var(--dfc-points-profile-left) - 8px)) !important;
+  max-width: none !important;
+  transform: none !important;
+}
+
+@media (max-width: 520px) and (orientation: portrait) {
+  #dominoTablePanel.overlay #dominoStage.domino-stage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) {
+    --dfc-points-pot-bottom: max(7%, 52px);
+  }
 }
 
 #dominoTablePanel #dominoStage .domino-inside-pot[data-dfc-points-pot] {
