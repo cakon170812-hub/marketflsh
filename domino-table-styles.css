@@ -438,7 +438,7 @@
 }
 
 /* El mismo fondo cubre el escenario y continúa hasta el borde de la ventana. */
-#dominoTablePanel.overlay:has(#dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))) {
+#dominoTablePanel.overlay:has(#dominoStage[data-table-room].dfc012n-points-mode, #dominoStage[data-table-room] [data-dfc-points-pot]) {
   position: fixed !important;
   inset: 0 !important;
   width: 100% !important;
@@ -454,12 +454,12 @@
 }
 
 @media (orientation: landscape) {
-  #dominoTablePanel.overlay:has(#dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))) {
+  #dominoTablePanel.overlay:has(#dominoStage[data-table-room].dfc012n-points-mode, #dominoStage[data-table-room] [data-dfc-points-pot]) {
     --dfc-points-scene-size: max(100%, 294dvh) auto;
   }
 }
 
-#dominoTablePanel.overlay:has(#dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))) > .panel.domino-game-panel {
+#dominoTablePanel.overlay:has(#dominoStage[data-table-room].dfc012n-points-mode, #dominoStage[data-table-room] [data-dfc-points-pot]) > .panel.domino-game-panel {
   background: transparent !important;
 }
 
