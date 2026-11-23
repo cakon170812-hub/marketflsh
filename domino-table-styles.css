@@ -1,19 +1,39 @@
-/* The decorative surface stays behind the live board, seats, and controls. */
-#dfcTableStyleSurface {
-  display: none;
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
+#dominoTablePanel.overlay,
+#dominoTablePanel.overlay > .panel.domino-game-panel {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
-#dominoStage:where([data-table-style]:not([data-table-style="navy-gold"])) {
+#dominoTablePanel.overlay #dominoStage.domino-stage[data-table-look="navy-gold"] {
+  inset: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+:where(#dominoStage, .dfc-table-preview-stage) {
   --dfc-style-frame: #151f32;
   --dfc-style-rim: #70849d;
   --dfc-style-light: #84bdfb;
   --dfc-style-felt: #08182e;
   --dfc-style-shape: 3.5% / 7%;
-  --dfc-style-thickness: clamp(5px, 2.4vmin, 16px);
+  --dfc-style-thickness: clamp(6px, 2.4cqh, 15px);
+  --dfc-style-cut: none;
+  --dfc-rim-pattern: linear-gradient(110deg, #fff2, transparent 32% 70%, #fff2);
+  --dfc-raised-edge: linear-gradient(0deg, #0009, transparent 40%, #fff4);
+}
+
+.dfc-table-surface {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
 }
 
 #dominoTablePanel.overlay #dominoStage[data-table-style]:not([data-table-style="navy-gold"])::before {
@@ -24,29 +44,37 @@
   visibility: hidden;
 }
 
-#dominoStage[data-table-style]:not([data-table-style="navy-gold"]) #dfcTableStyleSurface {
+[data-table-style]:not([data-table-style="navy-gold"]) > .dfc-table-surface {
   display: block;
   border-radius: var(--dfc-style-shape);
-  background: linear-gradient(174deg, var(--dfc-style-rim), var(--dfc-style-frame) 20%, #060a12 96%);
-  box-shadow: inset 0 1px 0 #fff7, inset 0 -2px 0 var(--dfc-style-light), 0 7px 18px #000b;
-  clip-path: var(--dfc-style-cut, none);
+  background:
+    var(--dfc-raised-edge),
+    var(--dfc-rim-pattern),
+    linear-gradient(168deg, var(--dfc-style-rim), var(--dfc-style-frame) 26%, var(--dfc-style-frame) 68%, var(--dfc-style-rim));
+  box-shadow: inset 0 1px 0 #fff8, inset 0 -4px 0 #0009;
+  clip-path: var(--dfc-style-cut);
 }
 
-#dfcTableStyleSurface span {
+.dfc-table-surface span {
   position: absolute;
-  inset: clamp(4px, 1.3vmin, 8px) clamp(6px, 2vmin, 13px) var(--dfc-style-thickness);
+  inset: clamp(4px, 1.5cqh, 9px) clamp(6px, 1.8cqw, 18px) var(--dfc-style-thickness);
   border: 1px solid var(--dfc-style-light);
   border-radius: inherit;
+  clip-path: var(--dfc-style-cut);
   background:
-    radial-gradient(ellipse at 49% 36%, #fff1, #0005 84%),
-    linear-gradient(135deg, var(--dfc-style-felt), transparent),
-    var(--dfc-felt-image) repeat,
+    radial-gradient(ellipse at 49% 36%, #fff1, #0007 88%),
+    linear-gradient(135deg, color-mix(in srgb, var(--dfc-style-felt) 72%, transparent), transparent),
+    var(--dfc-felt-image, none) repeat,
     var(--dfc-style-felt);
-  box-shadow: inset 0 0 16px color-mix(in srgb, var(--dfc-style-light) 36%, transparent),
-    0 0 5px var(--dfc-style-light), 0 3px 7px #000c;
+  box-shadow:
+    inset 0 0 8px #000b,
+    inset 0 0 18px color-mix(in srgb, var(--dfc-style-light) 26%, transparent),
+    0 0 6px var(--dfc-style-light),
+    0 3px 6px #000c;
 }
 
-#dominoTablePanel #dominoStage[data-table-style]:not([data-table-style="navy-gold"]) #dominoHand {
+#dominoTablePanel #dominoStage[data-table-style]:not([data-table-style="navy-gold"]) #dominoHand,
+.dfc-table-preview-stage[data-table-style]:not([data-table-style="navy-gold"]) .dfc-table-preview-hand {
   background: linear-gradient(180deg, #040912e0, var(--dfc-style-frame)) !important;
   border: 1px solid color-mix(in srgb, var(--dfc-style-rim) 75%, #101521) !important;
   border-bottom: 3px solid var(--dfc-style-rim) !important;
@@ -54,20 +82,24 @@
   box-shadow: 0 3px 8px #0009 !important;
 }
 
-#dominoStage[data-table-style="moderna-1"] { --dfc-style-frame:#262b35; --dfc-style-rim:#536173; --dfc-style-light:#e9bf79; --dfc-style-felt:#07132b; }
-#dominoStage[data-table-style="moderna-2"] { --dfc-style-frame:#0b234b; --dfc-style-rim:#4d70a2; --dfc-style-light:#389dff; --dfc-style-felt:#081937; --dfc-style-shape:5% / 11%; }
-#dominoStage[data-table-style="moderna-3"] { --dfc-style-frame:#796249; --dfc-style-rim:#c1a68a; --dfc-style-light:#ffe9c4; --dfc-style-felt:#121d2b; --dfc-style-thickness:clamp(6px, 3vmin, 18px); }
-#dominoStage[data-table-style="moderna-4"] { --dfc-style-frame:#142b35; --dfc-style-rim:#7299aa; --dfc-style-light:#8ee5ff; --dfc-style-felt:#062b3c; --dfc-style-shape:5% / 10%; }
-#dominoStage[data-table-style="moderna-5"] { --dfc-style-frame:#222a3c; --dfc-style-rim:#696f81; --dfc-style-light:#f7d18f; --dfc-style-felt:#08235f; --dfc-style-shape:13% / 26%; }
-#dominoStage[data-table-style="moderna-6"] { --dfc-style-frame:#16151e; --dfc-style-rim:#3a52ac; --dfc-style-light:#eee3ce; --dfc-style-felt:#171735; }
-#dominoStage[data-table-style="clasica-1"] { --dfc-style-frame:#4c2817; --dfc-style-rim:#865a37; --dfc-style-light:#ffbe60; --dfc-style-felt:#142d1f; }
-#dominoStage[data-table-style="clasica-2"] { --dfc-style-frame:#393f4a; --dfc-style-rim:#879197; --dfc-style-light:#69b5ff; --dfc-style-felt:#122857; --dfc-style-cut:polygon(3% 0,97% 0,100% 7%,100% 93%,97% 100%,3% 100%,0 93%,0 7%); }
-#dominoStage[data-table-style="clasica-3"] { --dfc-style-frame:#582d21; --dfc-style-rim:#a36c49; --dfc-style-light:#f5a573; --dfc-style-felt:#531522; --dfc-style-shape:7% / 14%; }
-#dominoStage[data-table-style="clasica-4"] { --dfc-style-frame:#94633e; --dfc-style-rim:#c39661; --dfc-style-light:#ffe0a1; --dfc-style-felt:#235557; --dfc-style-shape:12% / 26%; }
-#dominoStage[data-table-style="clasica-5"] { --dfc-style-frame:#957959; --dfc-style-rim:#c7af8d; --dfc-style-light:#f7d19a; --dfc-style-felt:#202148; --dfc-style-shape:7% / 14%; }
-#dominoStage[data-table-style="clasica-6"] { --dfc-style-frame:#482b22; --dfc-style-rim:#815646; --dfc-style-light:#d89eed; --dfc-style-felt:#361736; --dfc-style-cut:polygon(6% 0,94% 0,100% 15%,100% 85%,94% 100%,6% 100%,0 85%,0 15%); }
-#dominoStage[data-table-style="clasica-7"] { --dfc-style-frame:#68351d; --dfc-style-rim:#a27349; --dfc-style-light:#ffc67e; --dfc-style-felt:#723917; --dfc-style-cut:polygon(6% 0,99% 0,100% 89%,94% 100%,1% 100%,0 11%); }
-#dominoStage[data-table-style="clasica-8"] { --dfc-style-frame:#482a27; --dfc-style-rim:#886262; --dfc-style-light:#f5ad9f; --dfc-style-felt:#363e4e; --dfc-style-shape:9% 7% 10% 13% / 18% 15% 23% 20%; }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style^="clasica-"] {
+  --dfc-rim-pattern: repeating-linear-gradient(2deg, #27100533 0 1px, transparent 2px 5px, #ffe5c022 6px 7px);
+}
+
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-1"] { --dfc-style-frame:#262b35; --dfc-style-rim:#536173; --dfc-style-light:#e9bf79; --dfc-style-felt:#07132b; }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-2"] { --dfc-style-frame:#0b234b; --dfc-style-rim:#4d70a2; --dfc-style-light:#389dff; --dfc-style-felt:#081937; --dfc-style-shape:5% / 11%; --dfc-style-cut:polygon(10% 0,90% 0,95% 4%,100% 86%,99% 94%,96% 100%,4% 100%,1% 94%,0 86%,5% 4%); --dfc-rim-pattern:linear-gradient(110deg, #e8be78 0 3%, transparent 7% 93%, #e8be78 97%); }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-3"] { --dfc-style-frame:#796249; --dfc-style-rim:#c1a68a; --dfc-style-light:#ffe9c4; --dfc-style-felt:#121d2b; --dfc-style-thickness:clamp(6px, 3vmin, 18px); }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-4"] { --dfc-style-frame:#142b35; --dfc-style-rim:#7299aa; --dfc-style-light:#8ee5ff; --dfc-style-felt:#062b3c; --dfc-style-shape:5% / 10%; }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-5"] { --dfc-style-frame:#222a3c; --dfc-style-rim:#696f81; --dfc-style-light:#f7d18f; --dfc-style-felt:#08235f; --dfc-style-shape:13% / 26%; }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-6"] { --dfc-style-frame:#16151e; --dfc-style-rim:#3a52ac; --dfc-style-light:#eee3ce; --dfc-style-felt:#171735; }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-1"] { --dfc-style-frame:#4c2817; --dfc-style-rim:#865a37; --dfc-style-light:#ffbe60; --dfc-style-felt:#142d1f; }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-2"] { --dfc-style-frame:#393f4a; --dfc-style-rim:#879197; --dfc-style-light:#69b5ff; --dfc-style-felt:#122857; --dfc-style-cut:polygon(3% 0,97% 0,100% 7%,100% 93%,97% 100%,3% 100%,0 93%,0 7%); --dfc-rim-pattern:repeating-linear-gradient(0deg, #fff2 0 1px, transparent 2px 4px); }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-3"] { --dfc-style-frame:#582d21; --dfc-style-rim:#a36c49; --dfc-style-light:#f5a573; --dfc-style-felt:#531522; --dfc-style-shape:7% / 14%; }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-4"] { --dfc-style-frame:#94633e; --dfc-style-rim:#c39661; --dfc-style-light:#ffe0a1; --dfc-style-felt:#235557; --dfc-style-shape:12% / 26%; }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-5"] { --dfc-style-frame:#957959; --dfc-style-rim:#c7af8d; --dfc-style-light:#f7d19a; --dfc-style-felt:#202148; --dfc-style-shape:7% / 14%; }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-6"] { --dfc-style-frame:#482b22; --dfc-style-rim:#815646; --dfc-style-light:#d89eed; --dfc-style-felt:#361736; --dfc-style-cut:polygon(6% 0,94% 0,100% 15%,100% 85%,94% 100%,6% 100%,0 85%,0 15%); }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-7"] { --dfc-style-frame:#68351d; --dfc-style-rim:#a27349; --dfc-style-light:#ffc67e; --dfc-style-felt:#723917; --dfc-style-cut:polygon(6% 0,99% 0,100% 89%,94% 100%,1% 100%,0 11%); }
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="clasica-8"] { --dfc-style-frame:#482a27; --dfc-style-rim:#886262; --dfc-style-light:#f5ad9f; --dfc-style-felt:#363e4e; --dfc-style-shape:9% 7% 10% 13% / 18% 15% 23% 20%; }
 
 #dfcTableStylesDialog {
   position: fixed;
@@ -90,7 +122,7 @@
 #dfcTableStylesDialog header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; }
 #dfcTableStylesDialog h2 { font-size:clamp(17px, 3.5vw, 23px); margin:0; color:#fff2d1; }
 #dfcTableStylesDialog button,
-#dfcTableStylesDialog input[type="text"] {
+#dfcTableStylesDialog :is(input[type="search"], select) {
   min-height: 40px;
   background: #14345a;
   color: #fff;
@@ -102,9 +134,14 @@
 #dfcTableStylesDialog button { font-weight: 700; cursor: pointer; }
 #dfcTableStylesDialog button:disabled { opacity:.55; cursor:default; }
 #dfcTableStylesDialog header button { font-size:22px; min-width:42px; }
-#dfcTableStylesDialog form { display:grid; grid-template-columns:minmax(75px, 1fr) auto auto; gap:7px; }
-#dfcTableStylesDialog form label { grid-column:1/-1; }
-#dfcTableStylesDialog input[type="text"] { min-width:0; font-size:16px; }
+#dfcTableStylesLauncher { margin-bottom: 12px; }
+#dfcTableStylesDialog .dfc-table-style-scope { display: flex; flex-wrap: wrap; gap: 8px 18px; }
+#dfcTableStylesDialog .dfc-table-style-scope label { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; }
+#dfcTableStylesDialog .dfc-table-style-search { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 10px; align-items: center; }
+#dfcTableStylesDialog :is(input[type="search"], select) { min-width:0; width:100%; box-sizing:border-box; font-size:16px; }
+@media (max-width: 520px) {
+  #dfcTableStylesDialog .dfc-table-style-search { grid-template-columns: minmax(0, 1fr); }
+}
 #dfcTableStylesDialog [role="status"] { margin:8px 0 0; min-height:1.2em; color:#ffdb97; }
 #dfcTableStylesDialog .dfc-table-style-preview {
   display:grid;
@@ -114,13 +151,41 @@
   margin:12px 0;
 }
 #dfcTableStylesDialog figure { margin:0; }
-#dfcTableStylesDialog figure img {
-  display:block;
-  width:100%;
-  max-height: min(38dvh, 230px);
-  object-fit:contain;
-  background:#07101d;
-  border-radius:10px;
+#dfcTableStylesDialog .dfc-table-preview-stage {
+  position: relative;
+  aspect-ratio: 2.15;
+  width: 100%;
+  overflow: hidden;
+  isolation: isolate;
+  container-type: size;
+  background: #050b16;
+}
+.dfc-table-preview-stage[data-table-style="navy-gold"] {
+  background: #050b16 url("./images2/mesa-azul-marino-dorada.webp") center / cover;
+}
+.dfc-table-preview-stage :is(.dfc-table-preview-board, .dfc-table-preview-hand) {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.dfc-table-preview-board { top: 39%; }
+.dfc-table-preview-hand { bottom: 9%; padding: 3px 5px; }
+.dfc-table-preview-stage .domino-piece {
+  position: static !important;
+  width: 7cqw !important;
+  height: 4cqw !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border-radius: 2px !important;
+}
+.dfc-table-preview-stage .dfc-table-preview-hand .domino-piece {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 5cqw !important;
+  height: 8cqw !important;
 }
 #dfcTableStylesDialog figcaption { margin-top:4px; color:#ffdf9c; font-weight:700; }
 #dfcTableStylesDialog .dfc-table-style-details { display:grid; gap:8px; }
@@ -155,8 +220,8 @@
   background: #050b16 !important;
 }
 
-#dominoStage[data-table-style="moderna-1"] #dfcTableStyleSurface::after,
-#dominoStage[data-table-style="moderna-5"] #dfcTableStyleSurface::after {
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-1"] > .dfc-table-surface::after,
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-5"] > .dfc-table-surface::after {
   content: "";
   position: absolute;
   bottom: 2px;
@@ -167,13 +232,13 @@
   background: #5fbcff;
   box-shadow: 0 0 8px #1979fc;
 }
-#dominoStage[data-table-style="moderna-5"] #dfcTableStyleSurface::after {
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-5"] > .dfc-table-surface::after {
   left: 17%;
   right: 17%;
   background: #ffddad;
   box-shadow: 0 0 8px #ffc16c;
 }
-#dominoStage[data-table-style="moderna-2"] #dfcTableStyleSurface::after {
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-2"] > .dfc-table-surface::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -186,6 +251,6 @@
   background-repeat: no-repeat;
   background-size: clamp(14px, 5vmin, 36px) clamp(12px, 4vmin, 26px);
 }
-#dominoStage[data-table-style="moderna-6"] #dfcTableStyleSurface span {
+:where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-6"] > .dfc-table-surface span {
   box-shadow: inset 0 0 4px #ffe6b2, 0 0 3px 2px #4891ff, 0 4px 8px #000d;
 }
