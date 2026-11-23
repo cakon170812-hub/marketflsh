@@ -21694,6 +21694,7 @@ html body #dfcLabGiftOverlay008 .dfc-z32-card-date{
   --table-gold: #cda765;
   --table-ivory: #fff0ce;
   --table-edge: clamp(6px, 1.2vmin, 12px);
+  position: absolute !important;
   box-sizing: border-box !important;
   inset: max(var(--table-edge), env(safe-area-inset-top))
     max(var(--table-edge), env(safe-area-inset-right))
@@ -21769,6 +21770,11 @@ html body #dfcLabGiftOverlay008 .dfc-z32-card-date{
 }
 #dominoTablePanel #dominoStage[data-table-look="navy-gold"] :is(.domino-compact-balance, #dfcZ16DiamondChip) {
   font-variant-numeric: tabular-nums;
+}
+#dominoTablePanel #dominoStage[data-table-look="navy-gold"] #dominoSeats .domino-seat.s1 .domino-turn-seconds {
+  right: calc(100% + 4px) !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
 }
 #dominoTablePanel #dominoStage[data-table-look="navy-gold"] #dominoHand {
   top: auto !important;
