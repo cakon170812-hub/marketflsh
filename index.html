@@ -6689,6 +6689,12 @@ function dominoRenderSeatsStable(st){
 function renderDominoState(st){
   window.DFC_Z15?.onState(st);
   dominoState=st;window.dfcRefreshPointsOnClosure?.(st);setSoundSwitchUI();const h=st?.hand,c=st?.config||{},seats=st?.seats||[],uid=st?.me,effects=dominoHandleMoveEffects(st);
+  const closure=st?.last_result;
+  const age=mfDominoNow()-Date.parse(closure?.settled_at);
+  if(closure?.winner_reason==='ULTIMA_FICHA'&&age>=-3000&&age<7000&&String(h?.id)===String(closure.id)&&h.board?.length){
+    const tile=st?.last_move?.side==='left'?h.board[0]:h.board.at(-1);
+    window.dfcClosingPreview?.show(closure.id,tile,'domino');
+  }
   const tournament=dfcIsTournamentConfig(c);
   $('dominoStage')?.toggleAttribute('data-tournament',tournament);
   $('dominoTablePanel')?.toggleAttribute('data-tournament',tournament);
@@ -6762,7 +6768,7 @@ function renderDominoState(st){
   if($('dominoChatPanel')?.classList.contains('active'))loadDominoChat().catch(()=>{});
   // Una celebracion por mano y usuario, sin repetir un premio viejo al reconectar.
   const lr=st?.last_result;
-  if(lr && (String(lr.id)!==String(dominoLastWinnerHand) || (lr.winner_reason==='TRANQUE_MENOS_PUNTOS' && !(function(){try{return sessionStorage.getItem('mf-domino-victory-v15-'+String(uid)+'-'+String(lr.id))==='1'}catch(_){return false}})()))){
+  if(lr && !window.dfcClosingPreview?.delay(lr.id) && (String(lr.id)!==String(dominoLastWinnerHand) || (lr.winner_reason==='TRANQUE_MENOS_PUNTOS' && !(function(){try{return sessionStorage.getItem('mf-domino-victory-v15-'+String(uid)+'-'+String(lr.id))==='1'}catch(_){return false}})()))){
     dominoLastWinnerHand=lr.id;
     const mySeat=seats.find(x=>String(x.user_id)===String(uid));
     const winSeat=seats.find(x=>String(x.user_id)===String(lr.winner_user_id));
@@ -10015,6 +10021,11 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
  background:linear-gradient(155deg,rgba(41,34,8,.97),rgba(11,21,15,.96));
  box-shadow:0 0 65px #daa53788,0 12px 35px #000;color:#fff;}
 #mf110WinnerOverlay .mf110-winner-title{color:#ffdf6c;font-size:clamp(18px,4vw,28px);font-weight:1000}
+#dominoStage .dfc-closing-tile{position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:14500;pointer-events:none;filter:drop-shadow(0 0 10px #5deaff)}
+#dominoStage .dfc-closing-tile .domino-piece{width:clamp(32px,9vmin,64px)!important;height:clamp(56px,16vmin,112px)!important;opacity:1!important}
+#dominoStage[data-dfc-closing-preview] :is(#dominoVictory,#mf110WinnerOverlay,#dfcPointsResult){visibility:hidden!important}
+.dfc012j-winner-name .dfc-winner-avatar{display:block;margin:0 auto 5px;width:clamp(28px,9vmin,64px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#16365b;color:white}
+.dfc-winner-avatar img{width:100%;height:100%;object-fit:cover}
 #mf110WinnerOverlay .mf110-winner-photo{width:62px;height:62px;display:block;object-fit:cover;
  border-radius:50%;border:3px solid #ffdf6c;margin:9px auto 5px;background:#283325}
 #mf110WinnerOverlay .mf110-winner-names{font-size:clamp(14px,3vw,21px);font-weight:950;overflow-wrap:anywhere}
@@ -10066,7 +10077,8 @@ body.domino-spectating #dominoSpectatorBar{max-width:min(94%,490px)!important;fl
   if(!tableVisible())return;
   if(pending){
     // El tranque mantiene visibles las fichas seis segundos antes del anuncio.
-    if(!document.getElementById('mf196TranqueOverlay')?.classList.contains('show') &&
+    if(!window.dfcClosingPreview?.delay(pending.data.hand_id) &&
+       !document.getElementById('mf196TranqueOverlay')?.classList.contains('show') &&
        !document.getElementById('dominoVictory')?.classList.contains('show')){
       const {key,data}=pending;pending=null;lastShown=key;
       try{sessionStorage.setItem('mf110-win-'+key,'1')}catch(_){ }
@@ -12173,18 +12185,25 @@ function celebrate(scene){if($('dominoTablePanel')?.hasAttribute('data-dfc-point
  const final=board?.querySelector('.dfc012f-last')||board?.querySelector('.domino-piece.board-piece:last-child');if(final)final.classList.add('dfc012f-last');
  const isMine=String(latest?.me||dominoState?.me||'')===String(scene.winner_user_id||'');
  const isCapicua=/CAPIC[UÚ]A/i.test(reason);
- text((isCapicua?'¡CAPICÚA!':'¡DOMINÓ!')+' ¡FELICIDADES!'+(isMine?' ¡GANASTE!':''),'win-title');
- const winnerLabel=text('GANADOR: '+dfcWinnerName(scene),'dfc012j-winner-name');winnerLabel.setAttribute('aria-live','polite');
- const finTiles=Array.isArray(scene.board)?scene.board:(boards.get(hand)||[]);const finalTile=finTiles[rep.index]||finTiles[finTiles.length-1];
- if(finalTile){const a=finalTile.a??finalTile[0],b=finalTile.b??finalTile[1];if(a!==undefined&&b!==undefined){
-  const copy=document.createElement('div');copy.className='dfc012n-winning-tile';copy.textContent='🁫 '+a+' │ '+b;winnerLabel.append(copy);
- }}
- window.dfc012jSound?.('victory');
- scatter(scene);window.dfc012jSound?.('scatter');
- schedule(()=>window.dfc012jSound?.('gather'),2050);
- schedule(()=>window.dfc012jSound?.('credit'),3350);
+ const tiles=Array.isArray(scene.board)?scene.board:(boards.get(hand)||[]);
+ const finalTile=tiles[rep.index]||tiles.at(-1);
+ const delay=isCapicua?0:window.dfcClosingPreview?.show(hand,finalTile,scene.acceptedLocalPlay?null:'domino')||0;
+ function showWinner(){
+   if(winning?.id!==hand)return;
+   text((isCapicua?'¡CAPICÚA!':'¡DOMINÓ!')+' ¡FELICIDADES!'+(isMine?' ¡GANASTE!':''),'win-title');
+   const name=dfcWinnerName(scene);
+   const winnerLabel=text('','dfc012j-winner-name');winnerLabel.setAttribute('aria-live','polite');
+   const seat=(dominoState?.seats||latest?.seats||[]).find(entry=>String(entry.user_id)===String(scene.winner_user_id));
+   const avatar=document.createElement('span');avatar.className='dfc-winner-avatar';
+   avatar.innerHTML=dominoAvatarHTML({avatar_url:seat?.avatar_url||scene.winner_avatar_url},name,isMine);
+   winnerLabel.append(avatar,document.createTextNode(name+' ganó la mano'));
+   scatter(scene);window.dfc012jSound?.('scatter');
+   schedule(()=>window.dfc012jSound?.('gather'),850);
+   schedule(()=>window.dfc012jSound?.('credit'),1850);
+ }
+ if(delay)schedule(showWinner,delay);else showWinner();
  // Mantener la cadena intacta >= 3 segundos, hacer volar monedas y liberar a los 5,5 segundos.
- schedule(()=>{if(!winning||winning.id!==hand)return;winning=null;clear();current='';const b=$('dominoBoard');if(b)b.replaceChildren();if(typeof loadDominoState==='function')Promise.resolve(loadDominoState(false,true)).catch(()=>{})},6200);
+ schedule(()=>{if(!winning||winning.id!==hand)return;winning=null;clear();current='';if(typeof loadDominoState==='function')Promise.resolve(loadDominoState(false,true)).catch(()=>{})},6200);
  return true}
 function localBoard(pre,tile,side){const h=pre?.hand;if(!h)return null;const original=Array.isArray(h.board)?h.board.map(t=>({...t})):[];
  const a=Number(tile?.a??tile?.[0]),b=Number(tile?.b??tile?.[1]);if(!Number.isInteger(a)||!Number.isInteger(b))return null;
@@ -12194,7 +12213,7 @@ function localBoard(pre,tile,side){const h=pre?.hand;if(!h)return null;const ori
  return original}
 window.dfc012hAcceptedFinalPlay=function(pre,tile,side){const hand=String(pre?.hand?.id||'');if(!hand||pre?.hand?.my_tiles?.length!==1)return;
  const b=localBoard(pre,tile,side);if(!b)return;boards.set(hand,b);
- celebrate({hand_id:hand,winner_user_id:pre.me,winner_name:dfcWinnerName({winner_user_id:pre.me}),winner_reason:'ULTIMA_FICHA',board:b,move:{side:side||'right'}})};
+ celebrate({hand_id:hand,winner_user_id:pre.me,winner_name:dfcWinnerName({winner_user_id:pre.me}),winner_reason:'ULTIMA_FICHA',acceptedLocalPlay:true,board:b,move:{side:side||'right'}})};
 function fromState(st){const h=st?.hand,r=st?.last_result;if(r?.id&&!wins.has(String(r.id))){const age=Date.now()-parseTime(r.settled_at);if(age>=-3000&&age<24000&& !/TRANQUE/i.test(String(r.winner_reason||''))){
  const key=String(r.id),board=(h&&String(h.id)===key&&Array.isArray(h.board)&&h.board.length)?h.board:boards.get(key);
  if(board?.length)celebrate({...r,hand_id:key,board,move:st?.last_move})}}
@@ -12204,7 +12223,7 @@ async function fetchWin(){if($('dominoTablePanel')?.hasAttribute('data-dfc-point
  try{const {data,error}=await c.rpc('rf_domino_last_win_scene_v012f',{p_table_id:table});if(error){if(!window.dfc012fSceneRpcWarned){console.warn('La escena compartida necesita SQL 0.12F:',error.message);window.dfc012fSceneRpcWarned=true}return}
  if(table!==Number(dominoCurrentTableId)||!data?.ok)return;
  const id=String(data.hand_id||'');const age=Date.now()-parseTime(data.settled_at);
- if(id&&winning?.id===id&&data.winner_name){const label=surface()?.querySelector('.dfc012j-winner-name');if(label)label.textContent='GANADOR: '+dfcWinnerName(data)}
+ if(id&&winning?.id===id&&data.winner_name){const label=surface()?.querySelector('.dfc012j-winner-name');if(label?.lastChild?.nodeType===Node.TEXT_NODE)label.lastChild.textContent=dfcWinnerName(data)+' ganó la mano'}
  if(id&&!wins.has(id)&&age>=-3000&&age<24000)celebrate(data);
  }catch(e){console.warn('Escena ganadora',e)}finally{querying=false}}
 function onState(st){
@@ -13684,8 +13703,8 @@ window.dfc012jTranque=function(report){
 const prior=typeof dominoHandleMoveEffects==='function'?dominoHandleMoveEffects:null;
 if(prior){dominoHandleMoveEffects=function(st){
  const result=st?.last_result;const tid=Number(typeof dominoCurrentTableId==='undefined'?0:dominoCurrentTableId);
- if(result?.id&&tid&&result.winner_user_id&& !/TRANQUE/i.test(String(result.winner_reason||''))){
-   void play(/CAPIC[UÚ]A/i.test(String(result.winner_reason||''))?'capicua':'domino',tid+':win:'+result.id);
+ if(result?.id&&tid&&result.winner_user_id&&/CAPIC[UÚ]A/i.test(String(result.winner_reason||''))){
+   void play('capicua',tid+':win:'+result.id);
  }
  return prior.apply(this,arguments);
 };}
@@ -17119,7 +17138,7 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 </script>
 <script id="dfc-z27-html-ready-signal">document.dispatchEvent(new Event("dfc-z27-html-ready"));</script>
 <link rel="stylesheet" href="./style.css?v=0.12Z.31">
-<script src="./script.js?v=0.12Z.32.6" defer></script>
+<script src="./script.js?v=0.12Z.32.7" defer></script>
 <script src="./native-bridge.js?v=0.12Z.31" type="module"></script>
 <style id="dfc-z27-shared-home-lobby-wallpaper">
 #appView.bg.dfc09-view,
