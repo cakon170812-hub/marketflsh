@@ -2963,37 +2963,6 @@ html.dfc-android-native #dominoTablePanel{
 }
 </style>
 <style id="dfc-navy-table">
-#dominoTablePanel #dominoStage.domino-stage {
-  --dfc-navy-surface: radial-gradient(ellipse at 48% 51%, #142f55, #091a33 58%, #040b18);
-  background: var(--dfc-navy-surface) !important;
-  border: 0 !important;
-  border-radius: clamp(8px, 1.4vw, 18px) !important;
-  box-shadow: inset 0 0 0 1px #bc995455 !important;
-}
-#dominoTablePanel #dominoStage.domino-stage::before {
-  content: "" !important;
-  position: absolute !important;
-  inset: 0 !important;
-  background:
-    radial-gradient(ellipse 48% 35% at -2% 23%, transparent 98%, #e3b968 99%, transparent 100%),
-    radial-gradient(ellipse 48% 35% at 102% 80%, transparent 98%, #e3b968 99%, transparent 100%) !important;
-  border: 0 !important;
-  opacity: .55 !important;
-  pointer-events: none !important;
-}
-#dominoTablePanel #dominoStage.domino-stage::after,
-#dominoTablePanel #dominoStage .dfc11-scene,
-#dominoTablePanel #dominoStage .dfc11-table-light,
-#dominoTablePanel #dominoStage .domino-photo-veil,
-#dominoTablePanel #dominoStage :is(.dfc-photo-center-cover, .dfc-photo-top-controls-cover) {
-  display: none !important;
-}
-#dominoTablePanel #dominoStage :is(.domino-live-icon, .domino-live-action, .domino-compact-balance, #dfcZ16DiamondChip, #dfcLuxMesasBtn) {
-  background: linear-gradient(160deg, #192a43, #091426) !important;
-  border: 1px solid #b99b5b99 !important;
-  color: #fff3d8 !important;
-  box-shadow: 0 3px 12px #02050d80 !important;
-}
 #dominoTablePanel #dominoStage #dominoSeats .domino-seat .domino-avatar-wrap,
 #dominoTablePanel #dominoStage #dominoSeats .domino-seat .domino-avatar {
   border: 2px solid #000 !important;
@@ -3223,17 +3192,17 @@ html.dfc-android-native #dominoTablePanel{
 <div class="hidden" id="dominoTableSub">Mesa</div>
 <div class="hidden" id="dominoSyncState">Conectando…</div>
 <details aria-label="Tarifas y condiciones de esta mesa" class="dfc-z16-table-info" id="dfcZ16TableInfo"><summary aria-label="Abrir información de mesa y tarifas" title="Mesa y tarifas">ⓘ <span class="dfc-z161-accessible-price" id="dfcZ16QuickPrice">Consultar</span></summary><div class="dfc-z16-table-rates" id="dfcZ16TableRates">Cargando tarifas de la mesa…</div></details>
-<div class="domino-stage" id="dominoStage">
+<div class="domino-stage" id="dominoStage" data-table-look="navy-gold">
 
 <!-- DFC 0.11B: escenario sin fichas ni perfiles dibujados; todos los elementos interactivos son DOM real. -->
-<div aria-hidden="true" class="dfc11-scene"></div>
-<div aria-hidden="true" class="dfc11-table-light"></div>
-<div aria-hidden="true" class="dfc11-table-mark"><span class="dfc11-mark-crown">♛</span><b>DOMINOS</b><small>FLASH COIN</small></div>
-<div aria-hidden="true" class="dfc11-app-logo"><span class="dfc11-logo-crown">♛</span><strong>DOMINOS</strong><small>FLASH COIN</small></div>
+<img id="dfcNavyTableArt" src="./images2/mesa-azul-marino-dorada.webp" alt="" aria-hidden="true" decoding="async" width="1440" height="810">
+
+
+<div aria-hidden="true" class="dfc11-app-logo"><strong>DOMINÓ ⚡</strong><small>FLASH COIN</small></div>
 <div class="domino-table-brand">🁫 DOMINOS <b>FLASH COIN</b></div>
 <div class="domino-inside-status"><span class="domino-live-dot"></span>En línea · Tiempo real</div>
 <div class="domino-inside-pot"><span>Bote de la mesa</span><b id="dominoPotBadge">0.000 FC</b></div>
-<div aria-hidden="true" class="domino-photo-veil"></div>
+
 <div class="domino-live-top-controls">
 <div class="domino-compact-balance balance-chip" title="Saldo Flash Coin"><strong class="fc-balance" id="dominoGlobalBalance">0.000 FC</strong></div>
 <button aria-label="Consultar diamantes de mesa" class="dfc-z16-diamond-chip" id="dfcZ16DiamondChip" title="Diamantes en mesa y disponibles" type="button">💎 <b id="dfcZ16TableDiamondAmount">0.000</b></button>
@@ -3242,7 +3211,7 @@ html.dfc-android-native #dominoTablePanel{
 <button aria-label="Configuración de mesa" class="domino-live-icon" id="dominoGearBtn" title="Configuración" type="button">⚙️</button>
 <button class="domino-live-icon dfc-lux-exit" id="dominoSurrenderBtn" title="Salir de la mesa" type="button">🚪</button>
 </div>
-<div aria-hidden="true" class="dfc-photo-center-cover"></div><div aria-hidden="true" class="dfc-photo-top-controls-cover"></div>
+
 <button aria-label="Ver otras mesas de dominó" id="dfcLuxMesasBtn" title="Ver otras mesas de dominó" type="button">🁫 <span>Mesas</span> <span aria-hidden="true">›</span></button>
 <div id="dominoSeats"></div>
 <div class="domino-center-status" id="dominoCenterStatus">Esperando jugadores...</div>
@@ -16993,14 +16962,6 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 <style id="dfc-z27-responsive-lobby-and-table-background">
 #dfc-z27-loading-track{width:min(100%,300px);height:10px;margin:18px auto 9px;border-radius:20px;overflow:hidden;background:#ffffff26;border:1px solid #f8d57488}
 #dfc-z27-loading-fill{width:100%;height:100%;transform:scaleX(.01);transform-origin:left center;background:linear-gradient(90deg,#cf9228,#ffe39a);border-radius:inherit;will-change:transform}
-/* Escenario decorativo detrás de las fichas y de los controles existentes. */
-#dominoTablePanel.overlay,
-#dominoTablePanel.overlay>.panel.domino-game-panel,
-#dominoTablePanel.overlay #dominoStage {
- background-image:linear-gradient(180deg,rgba(0,8,24,.42),rgba(0,8,24,.62)),var(--dfc-z26-official-wallpaper)!important;
- background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important;
-}
-#dominoTablePanel.overlay #dominoStage .dfc11-scene{pointer-events:none!important}
 /* Contenedor con desplazamiento vertical y sin recorte de botones. */
 #dominoLobbyPanel.overlay {width:100%!important;height:100dvh!important;max-height:100dvh!important;padding:0!important;box-sizing:border-box!important;overflow:hidden!important}
 #dominoLobbyPanel.overlay>.panel.domino-panel.domino-lobby-shell {
@@ -17039,8 +17000,8 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 <script id="dfc-z30-surface-audit">
 /* 0.12Z.30: comprobación local de la superficie; no añade consultas ni temporizadores de red. */
 (()=>{'use strict';
- const image=document.getElementById('dfcApprovedTableArt');
- const surface=document.getElementById('dfcApprovedTableSurface');
+ const image=document.getElementById('dfcNavyTableArt');
+ const surface=document.getElementById('dominoStage');
  const panel=document.getElementById('dominoTablePanel');
  function sync(){
   if(!surface||!image)return;
@@ -17065,63 +17026,8 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 
 </script>
 
-<script id="dfc-z32-table-image-guard">
-/* Mantener la superficie visible aun cuando fallen modificaciones de clases previas. */
-(()=>{'use strict';
- const stage=document.getElementById('dominoStage');
- const surface=document.getElementById('dfcApprovedTableSurface');
- const art=document.getElementById('dfcApprovedTableArt');
- if(!stage||!surface||!art)return;
- const verify=()=>{
-   if(!stage.contains(surface)||!surface.contains(art))return;
-   const ok=art.complete&&art.naturalWidth>0;
-   surface.dataset.dfcImageVisible=ok?'loaded':'fallback';
-   stage.dataset.dfcVisualTable='0.12Z.33';
- };
- art.addEventListener('load',verify,{once:true});
- art.addEventListener('error',verify,{once:true});
- verify();
- window.DFC_Z32_TABLE_AUDIT=()=>{
-   const a=art.getBoundingClientRect(),b=surface.getBoundingClientRect();
-   const cs=getComputedStyle(surface);
-   return {version:'0.12Z.33',loaded:art.complete&&art.naturalWidth>0,
-      imageWidth:a.width,imageHeight:a.height,surfaceWidth:b.width,surfaceHeight:b.height,
-      display:cs.display,visibility:cs.visibility,opacity:cs.opacity,zIndex:cs.zIndex};
- };
-})();
-</script>
 <!-- 0.12Z.33: superficie original visible incluso con reglas de capas heredadas. No altera el motor de partidas. -->
 
-<script id="dfc-z33-mesa-audit">
-(function(){'use strict';
- const stage=document.getElementById('dominoStage');
- const surface=document.getElementById('dfcApprovedTableSurface');
- const art=document.getElementById('dfcApprovedTableArt');
- if(!stage||!surface||!art)return;
- function apply(){
-   // Respaldo doble: el mismo PNG se dibuja también como fondo del escenario.
-   // Esto evita depender exclusivamente de la composición de una capa hija.
-   const src=art.currentSrc||art.src;
-   if(src && art.complete && art.naturalWidth>0){
-     stage.style.setProperty('background-image','url("'+src.replace(/"/g,'%22')+'")','important');
-     stage.style.setProperty('background-size','94% 70%','important');
-     stage.style.setProperty('background-position','center 40%','important');
-     stage.style.setProperty('background-repeat','no-repeat','important');
-   }
-   stage.dataset.dfcVisibleMesa='0.12Z.33';
- }
- art.addEventListener('load',apply);
- apply();
- window.DFC_MESA_DIAGNOSTICO=function(){
-   const sr=stage.getBoundingClientRect(),fr=surface.getBoundingClientRect(),ir=art.getBoundingClientRect();
-   const c=getComputedStyle(surface),d=getComputedStyle(stage);
-   return {version:'0.12Z.33',mesaPNG:art.complete&&art.naturalWidth>0,
-      stagePx:[sr.width,sr.height],superficiePx:[fr.width,fr.height],imagenPx:[ir.width,ir.height],
-      superficieDisplay:c.display,superficieVisibilidad:c.visibility,superficieZ:c.zIndex,
-      fondoDirecto:d.backgroundImage.startsWith('url('),capaDelPanel:getComputedStyle(document.getElementById('dominoTablePanel')).display};
- };
-})();
-</script>
 <!-- Ajuste visual interno: conserva identificador público 0.12Z.33. Superficie como en 0.12Z.22. -->
 
 <script id="dfc-screen-awake-global">
@@ -21578,10 +21484,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </style>
 <style id="dfc-z32-tournament-style">
 :root{--dfc-tournament-art:url('data:image/webp;base64,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')}
-html body #dominoTablePanel #dominoStage[data-tournament] .dfc11-scene{
-  background:#270932 var(--dfc-tournament-art) center / 100% 100% no-repeat!important;
-}
-#dominoTablePanel[data-tournament] .domino-game-panel{background:#1b0926!important}
 #dominoTablePanel[data-tournament] #dominoTableTitle{color:#ffe2a0!important}
 html body.dfc-lab-visual #appView #dominoLobbyModes > .domino-choice-card.dfc-tournament-card,
 html body.dfc-lab-visual #appView #dominoLobbyModes > .dfc28-room.dfc-tournament-card{
@@ -21780,6 +21682,120 @@ html body #dfcLabGiftOverlay008 .dfc-z32-card-date{
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 </script>
+<style id="dfc-playing-table-navy-gold">
+/* Mesa azul marino. La superficie, su marco y cada control se dimensionan por separado. */
+#dominoTablePanel.overlay,
+#dominoTablePanel.overlay > .panel.domino-game-panel {
+  background: #050b16 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+#dominoTablePanel.overlay #dominoStage.domino-stage[data-table-look="navy-gold"] {
+  --table-gold: #cda765;
+  --table-ivory: #fff0ce;
+  --table-edge: clamp(6px, 1.2vmin, 12px);
+  box-sizing: border-box !important;
+  inset: max(var(--table-edge), env(safe-area-inset-top))
+    max(var(--table-edge), env(safe-area-inset-right))
+    max(var(--table-edge), env(safe-area-inset-bottom))
+    max(var(--table-edge), env(safe-area-inset-left)) !important;
+  width: auto !important;
+  height: auto !important;
+  max-width: none !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  transform: none !important;
+  background: radial-gradient(ellipse at 45% 48%, #123263, #051125 76%) !important;
+  border: 1px solid #cda765ad !important;
+  border-radius: clamp(13px, 3.5vmin, 28px) !important;
+  outline: none !important;
+  box-shadow: 0 12px 28px #000b !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+}
+#dominoTablePanel.overlay #dominoStage[data-table-look="navy-gold"]::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: none !important;
+  border-radius: inherit !important;
+  box-shadow: inset 0 0 0 2px #050c18, inset 0 0 0 3px #ae8a4b48, inset 0 0 24px #0007 !important;
+  opacity: 1 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+#dominoTablePanel.overlay #dominoStage[data-table-look="navy-gold"]::after {
+  content: none !important;
+}
+#dominoTablePanel #dfcNavyTableArt {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  z-index: 0;
+  pointer-events: none;
+}
+#dominoTablePanel #dominoStage[data-table-look="navy-gold"] .dfc11-app-logo {
+  position: absolute !important;
+  left: clamp(10px, 2.6%, 32px) !important;
+  top: clamp(7px, 2.1%, 18px) !important;
+  gap: 0 !important;
+  padding: 0 !important;
+  color: var(--table-ivory) !important;
+  background: transparent !important;
+  border: 0 !important;
+  text-shadow: 0 2px 8px #000a !important;
+}
+#dominoTablePanel #dominoStage[data-table-look="navy-gold"] .dfc11-app-logo strong {
+  font: italic 800 clamp(12px, 2.1cqw, 26px)/1.05 system-ui, sans-serif !important;
+}
+#dominoTablePanel #dominoStage[data-table-look="navy-gold"] .dfc11-app-logo small {
+  color: var(--table-ivory) !important;
+  font: 650 clamp(7px, .96cqw, 12px)/1.25 system-ui, sans-serif !important;
+  letter-spacing: .17em !important;
+}
+#dominoTablePanel #dominoStage[data-table-look="navy-gold"] :is(.domino-live-icon, .domino-live-action, .domino-compact-balance, .domino-inside-pot, #dfcZ16DiamondChip, #dfcLuxMesasBtn, #dfc012n-scoreboard) {
+  background: linear-gradient(155deg, #20314b, #091629) !important;
+  border-color: #c6a56880 !important;
+  color: var(--table-ivory) !important;
+  box-shadow: 0 3px 10px #0006 !important;
+}
+#dominoTablePanel #dominoStage[data-table-look="navy-gold"] :is(.domino-live-icon, .domino-live-action, #dfcLuxMesasBtn) {
+  border-radius: 10px !important;
+}
+#dominoTablePanel #dominoStage[data-table-look="navy-gold"] :is(.domino-compact-balance, #dfcZ16DiamondChip) {
+  font-variant-numeric: tabular-nums;
+}
+#dominoTablePanel #dominoStage[data-table-look="navy-gold"] #dominoHand {
+  top: auto !important;
+  bottom: clamp(6px, 3%, 24px) !important;
+  width: min(53%, 660px) !important;
+  height: 19% !important;
+  gap: clamp(3px, .72cqw, 9px) !important;
+}
+#dominoTablePanel #dominoStage[data-table-look="navy-gold"] #dominoHand .domino-piece.hand-piece {
+  width: clamp(18px, 5.1cqw, 64px) !important;
+  background: linear-gradient(175deg, #fff7e6, #e7cfa1) !important;
+  border-color: #dac19a !important;
+  border-radius: clamp(4px, .65cqw, 9px) !important;
+}
+#dominoTablePanel #dominoStage[data-table-look="navy-gold"] #dominoBoard .domino-piece.board-piece {
+  border-color: #dac19a !important;
+  background: linear-gradient(165deg, #fff7e6, #ead4ab) !important;
+}
+@media (orientation: portrait) {
+  #dominoTablePanel #dfcNavyTableArt { object-fit: fill; }
+  #dominoTablePanel #dominoStage[data-table-look="navy-gold"] #dominoHand {
+    width: 66% !important;
+    height: 12% !important;
+    bottom: 7% !important;
+  }
+}
+</style>
 </body>
 
 </html>
