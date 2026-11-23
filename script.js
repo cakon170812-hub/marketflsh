@@ -388,7 +388,7 @@
     const configured=target.dataset?.sound;
     effect(configured && !/^(music|effects|celebration)$/.test(configured) ? configured : classify(target));
   }
-  document.addEventListener('click',controlSound,{capture:true});
+  window.addEventListener('click',controlSound,{capture:true});
   // Detecta las animaciones Flash Coin ya existentes sin modificar su lógica.
   document.addEventListener('animationstart', (event) => {
     const target=event.target;
@@ -2702,6 +2702,14 @@
    const seat=typeof dominoState==='undefined'?null:dominoState?.seats?.find(entry=>Number(entry.seat_no)===Number(player.seat));
    avatar.innerHTML=dominoAvatarHTML({avatar_url:player.avatar||seat?.avatar_url},player.name,player.mine);
  }
+ function matchWinners(data){
+   if(data.state!=='settled'||data.winner_team==null)return [];
+   return data.players.filter(player=>player.team===data.winner_team);
+ }
+ function matchWinnerTitle(champions){
+   const names=new Intl.ListFormat('es-DO').format(champions.map(player=>player.name));
+   return names+(champions.length===1?' ganó la partida':' ganaron la partida');
+ }
  function showVictoryStandings(data,champions){
    const standings=text('section','');
    standings.className='dfc-victory-standings';
@@ -2746,6 +2754,13 @@
    result.setAttribute('data-hand-result','');
    const reason=hand.kind==='trancazo'?'Tranque':hand.kind==='capicua'?'Capicúa':'Dominó';
    text('h2',reason);
+   const champions=matchWinners(data);
+   if(champions.length){
+     const identity=text('div','');
+     identity.className='dfc-winner-identity dfc-victory-winner';
+     for(const champion of champions)resultAvatar(champion,identity);
+     text('strong',matchWinnerTitle(champions),identity);
+   }
    const remaining=new Map((hand.remaining||[]).map(row=>[row.seat,row]));
    const teams=Number(data.capacity)===4;
    const awarded=Number(hand.points);
@@ -2760,9 +2775,7 @@
    const player=text('div','',summary);
    player.className='dfc-winner-identity';
    resultAvatar(winner,player);
-   const identity=text('div','',player);
-   text('small','Ganó la mano',identity);
-   text('strong',winner.name,identity);
+   text('strong',winner.name+' ganó la mano',player);
    const gain=text('div','',summary);
    gain.className='dfc-hand-result-gain';
    text('small','Puntos acreditados',gain);
@@ -2820,18 +2833,13 @@
    result.replaceChildren();
    result.removeAttribute('data-hand-result');
    result.setAttribute('data-match-victory','');
-   const won=champions.some(player=>player.mine);
    const trophy=text('span','🏆');
    trophy.className='dfc-victory-trophy';
    trophy.setAttribute('aria-hidden','true');
-   text('h2',won?'¡Felicidades, ganaste!':champions.length===1?'Ganador de la partida':'Ganadores de la partida');
-   const winners=text('div','');
-   for(const champion of champions){
-     const identity=text('div','',winners);
-     identity.className='dfc-winner-identity dfc-victory-winner';
-     resultAvatar(champion,identity);
-     text('span',champion.name,identity);
-   }
+   const identity=text('div','');
+   identity.className='dfc-winner-identity dfc-victory-winner';
+   for(const champion of champions)resultAvatar(champion,identity);
+   text('h2',matchWinnerTitle(champions),identity);
    const grid=text('div','');
    grid.className='dfc-victory-grid';
    const facts=text('div','',grid);
@@ -2934,7 +2942,7 @@
    const now=Date.now()+replayOffset;
    if(now<victoryStarts||window.dfcClosingPreview?.delay(last.last_hand?.id)>0)return;
    if(last.victory_auto||(!last.victory_manual&&now>=victoryEnds)||last.victory_closed||dismissedVictory===last.match_id){result.hidden=true;return;}
-   const champions=last.winner_team==null?[]:last.players.filter(player=>player.team===last.winner_team);
+   const champions=matchWinners(last);
    if(!champions.length){result.hidden=true;return;}
    if(!result.hasAttribute('data-match-victory'))showVictory(last,last.last_hand,champions);
  }
