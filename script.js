@@ -2475,6 +2475,11 @@
  @media(max-width:440px) and (orientation:portrait){:is(#dfcPointsResult,#dfcStandardResult)[data-hand-result]{width:94%} :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary{grid-template-columns:1.16fr .94fr .76fr}}
  @media(max-width:440px) and (orientation:portrait){:is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-grid{grid-template-columns:1fr}}
 
+ .dfc-point-bonus-copy{margin:4px 0;color:#ffe5a4;font-weight:700}
+ #dfcRoundPassNotice{position:absolute;top:24%;left:50%;transform:translateX(-50%);z-index:24490;
+   display:grid;gap:3px;text-align:center;padding:8px 16px;border:1px solid #ffdf79;border-radius:14px;
+   background:#122954;color:#fff5d9;box-shadow:0 0 16px #edba5980;pointer-events:none;font:700 clamp(12px,3vmin,18px)/1.2 system-ui}
+ #dfcRoundPassNotice b{color:#ffdb7c;font-size:1.25em;white-space:nowrap}
  .dfc-point-coin {position:fixed;pointer-events:none;z-index:2147483646;color:#503100;background:radial-gradient(circle at 35% 26%,#fff5a3,#efb338 55%,#c58319);border:2px solid #ffdf79;border-radius:50%;width:25px;height:25px;display:grid;place-items:center;font:900 11px system-ui}
  `;
  document.head.append(style);
@@ -2744,6 +2749,7 @@
  },200);
  let table=0,epoch=0,pending=false,retryAfter=0,last=null;
  let shown='',observedClosure='',closureRefreshQueued=false;
+ const shownRoundPasses=new Set();
  const panelDuration=15000;
  let handResultTimer=0, closeHandResult=null;
  let dismissedVictory='',replaySoundMatch='';
@@ -2773,6 +2779,7 @@
    replayState=null;confirmedMatch='';confirming=false;replayError='';replay.hidden=true;
    resetFunding();
    document.querySelectorAll('.dfc-point-coin').forEach(coin=>coin.remove());
+   stage.querySelector('#dfcRoundPassNotice')?.remove();
  }
  function current(){
    return panel.classList.contains('active')&&typeof dominoCurrentTableId!=='undefined'?Number(dominoCurrentTableId)||0:0;
@@ -3037,11 +3044,80 @@
    },wait);
  }
  window.dfcShowStandardHandResult=showStandardHandResult;
+ function handKind(hand){
+   return ['target_reached','different_ends_required'].includes(hand?.bonus_reason)?'capicua':hand?.kind;
+ }
+ function describeHandBonus(hand,host){
+   if(hand?.bonus_points==null)return null;
+   const points=Number(hand.bonus_points);
+   const label=handKind(hand)==='trancazo'?'Pase corrido':'Capicúa';
+   const bonus=text('p',label+' · +'+format.format(points)+' puntos de bonificación',host);
+   bonus.className='dfc-point-bonus-copy';
+   const reasons={
+     target_reached:'La bonificación alcanzaría o superaría la meta de la mesa.',
+     different_ends_required:'La ficha final debe conectar dos extremos distintos.',
+     blocked_hand:'La mano terminó en tranque.'
+   };
+   if(points===0&&reasons[hand.bonus_reason])text('small',reasons[hand.bonus_reason],host);
+   return bonus;
+ }
+ function flyBonus(origin,seat,points){
+   if(!origin||points<=0||reduce()||typeof origin.animate!=='function')return;
+   const target=stage.querySelector('.dfc-seat-points[data-points-seat="'+seat+'"]');
+   if(!target?.getClientRects().length||!origin.getClientRects().length)return;
+   const from=origin.getBoundingClientRect();
+   const to=target.getBoundingClientRect();
+   const coin=text('span','+'+format.format(points),document.body);
+   coin.className='dfc-point-coin';
+   coin.setAttribute('aria-hidden','true');
+   coin.style.left=(from.left+from.width/2-12)+'px';
+   coin.style.top=(from.top+from.height/2-12)+'px';
+   const dx=to.left+to.width/2-from.left-from.width/2;
+   const dy=to.top+to.height/2-from.top-from.height/2;
+   const flight=coin.animate([
+     {transform:'scale(.7)',opacity:.85},
+     {transform:`translate(${dx*.5}px,${dy*.5-18}px) scale(1.1)`,opacity:1},
+     {transform:`translate(${dx}px,${dy}px) scale(.6)`,opacity:.8}
+   ],{duration:1100,delay:550,easing:'ease-in-out',fill:'both'});
+   const token=epoch;
+   void flight.finished.then(()=>{if(token===epoch)sound(620,.13);},()=>{}).finally(()=>coin.remove());
+ }
+ function announceRoundPasses(data){
+   for(const award of data.round_pass_awards||[]){
+     const key=data.match_id+':'+award.id;
+     if(shownRoundPasses.has(key)||award.points!==30)continue;
+     shownRoundPasses.add(key);
+     if(shownRoundPasses.size>128)shownRoundPasses.delete(shownRoundPasses.values().next().value);
+     const winner=data.players.find(player=>player.seat===award.seat);
+     if(!winner)continue;
+     stage.querySelector('#dfcRoundPassNotice')?.remove();
+     const notice=text('aside','',stage);
+     notice.id='dfcRoundPassNotice';
+     notice.setAttribute('role','status');
+     text('strong','¡Pase corrido!',notice);
+     const amount=text('b','+30 puntos',notice);
+     text('small',winner.name,notice);
+     if(dominoSoundIsEnabled()&&window.dfc012lAudioPrefs?.().celebration!==false){
+       sound(1047,.18);
+       if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
+         const voice=new SpeechSynthesisUtterance('Treinta, pase corrido');
+         voice.lang='es-DO';
+         const voices=speechSynthesis.getVoices();
+         const spanish=voices.find(item=>item.lang==='es-DO')||voices.find(item=>/^es[-_]/i.test(item.lang));
+         if(spanish)voice.voice=spanish;
+         speechSynthesis.speak(voice);
+       }
+     }
+     flyBonus(amount,award.seat,award.points);
+     setTimeout(()=>notice.remove(),3000);
+   }
+ }
  function showHand(data,hand,winner){
    result.replaceChildren();
    result.removeAttribute('data-match-victory');
    result.setAttribute('data-hand-result','');
-   const reason=hand.kind==='trancazo'?'Tranque':hand.kind==='capicua'?'Capicúa':'Dominó';
+   const kind=handKind(hand);
+   const reason=kind==='trancazo'?'Tranque':kind==='capicua'?'Capicúa':'Dominó';
    text('h2',reason);
    const champions=matchWinners(data);
    if(champions.length){
@@ -3054,7 +3130,7 @@
    const teams=Number(data.capacity)===4;
    const awarded=Number(hand.points);
    const handPoints=data.players
-     .filter(entry=>hand.kind==='trancazo'||!teams||entry.team!==winner.team)
+     .filter(entry=>kind==='trancazo'||(!teams?entry.seat!==winner.seat:entry.team!==winner.team))
      .map(entry=>remaining.get(entry.seat)?.points);
    const allKnown=handPoints.length>0&&handPoints.every(points=>Number.isFinite(points));
    const pipTotal=handPoints.reduce((sum,points)=>sum+(points??0),0);
@@ -3072,8 +3148,8 @@
    if(allKnown){
      const tally=handPoints.map(points=>format.format(points)).join(' + ')+' = '+format.format(pipTotal);
      text('p','Fichas que suman: '+tally,gain).className='dfc-hand-result-tally';
-     if(hand.kind==='capicua'&&awarded-pipTotal===30)text('small','Bono de Capicúa: +30',gain);
    }
+   const bonus=describeHandBonus(hand,gain);
    const total=text('div','',summary);
    total.className='dfc-hand-result-score';
    text('small',teams?'Marcador de la pareja ganadora':'Marcador del ganador',total);
@@ -3112,6 +3188,7 @@
    addPanelClose(data,String(hand.id),data.state==='settled'?5000:8000);
    result.scrollTop=0;
    result.hidden=false;
+   flyBonus(bonus,hand.seat,Number(hand.bonus_points)||0);
  }
  function showVictory(data,hand,champions){
    result.hidden=true;
@@ -3141,8 +3218,13 @@
      const row=text('div','',stats);
      row.className='dfc-victory-stat';
      text('dt',label,row);
-     text('dd',value,row);
+     const amount=text('dd',value,row);
+     if(label==='Diamantes ganados'&&Number(data.pot_fc)>0&&!reduce()){
+       amount.animate?.([{opacity:0},{opacity:1}],{delay:600,duration:250,fill:'backwards'});
+     }
    }
+   const bonus=describeHandBonus(hand,facts);
+   if(hand?.bonus_points!=null)text('small','Puntos de la mano: +'+format.format(hand.points),facts);
    if(hand?.deciding_tile){
      const tile=text('div','',facts);
      text('small','Ficha de cierre',tile);
@@ -3186,6 +3268,7 @@
    result.scrollTop=0;
    result.hidden=false;
    playPanelSound('victory');
+   flyBonus(bonus,hand?.seat,Number(hand?.bonus_points)||0);
    celebrateVictory();
  }
  function victoryOpens(data){
@@ -3216,10 +3299,11 @@
    const pointLabel=stage.querySelector('.dfc-seat-points[data-points-seat="'+hand.seat+'"]');
    if(!pointLabel)return;
    const destination=pointLabel.getBoundingClientRect();
-   const count=Math.min(hand.points,14);
+   const tilePoints=Math.max(0,hand.points-(Number(hand.bonus_points)||0));
+   const count=Math.min(tilePoints,14);
    await Promise.all(Array.from({length:count},async(_,index)=>{
-     const value=Math.floor(hand.points*(index+1)/count);
-     const batch=value-Math.floor(hand.points*index/count);
+     const value=Math.floor(tilePoints*(index+1)/count);
+     const batch=value-Math.floor(tilePoints*index/count);
      if(token!==epoch)return;
      const coin=document.createElement('span');coin.className='dfc-point-coin';coin.textContent=batch;coin.setAttribute('aria-hidden','true');
      coin.style.left=(destination.left+destination.width/2-12)+'px';
@@ -3281,6 +3365,7 @@
      last=data;
      panel.toggleAttribute('data-dfc-points-playing',data.state==='playing'&&!window.dominoSpectatorMode);
      drawScore(data);
+     if(!window.dominoSpectatorMode)announceRoundPasses(data);
      const hand=data.last_hand;
      const now=Date.now()+replayOffset;
      const settledAt=Date.parse(hand?.settled_at);
@@ -3291,9 +3376,10 @@
          const preview=window.dfcClosingPreview;
          if(preview&&shown!==String(hand.id)){
            const state=typeof dominoState==='undefined'?null:dominoState;
-           const source=await preview.loadFrame(state,hand.id,hand.kind);
+           const kind=handKind(hand);
+           const source=await preview.loadFrame(state,hand.id,kind);
            if(token!==epoch||current()!==id)return;
-           if(source)preview.show(hand.id,hand.deciding_tile,hand.kind,source);
+           if(source)preview.show(hand.id,hand.deciding_tile,kind,source);
          }
        }
      }

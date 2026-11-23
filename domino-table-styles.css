@@ -270,25 +270,25 @@
   box-shadow: inset 0 0 4px #ffe6b2, 0 0 3px 2px #4891ff, 0 4px 8px #000d;
 }
 
-/* Keep the full room in frame and align the live pieces to its photographed rails. */
+#dominoTablePanel.overlay:has(#dominoStage[data-table-room]) {
+  background: #160e0a url("./images2/mesa-azul-salon.webp") center / cover no-repeat !important;
+}
+
+/* Scale the scene and its gameplay anchors together to the available screen. */
 #dominoTablePanel #dominoStage[data-table-room] {
   container-type: size !important;
-  --room-width: min(100cqw, 177.68cqh);
-  --room-height: min(100cqh, 56.28cqw);
-  --room-x: calc((100cqw - var(--room-width)) / 2);
-  --room-y: calc((100cqh - var(--room-height)) / 2);
+  --room-width: 100cqw;
+  --room-height: 100cqh;
+  --room-x: 0px;
+  --room-y: 0px;
 }
 
 #dominoTablePanel.overlay #dominoStage[data-table-room]::before {
-  inset: 0 !important;
-  background: #160e0a url("./images2/mesa-azul-salon.webp") center / cover !important;
-  filter: blur(16px) brightness(.42);
-  box-shadow: none !important;
-  z-index: -1 !important;
+  display: none !important;
 }
 
 #dominoTablePanel #dominoStage[data-table-room] #dfcNavyTableArt {
-  object-fit: contain !important;
+  object-fit: fill !important;
 }
 
 #dominoTablePanel #dominoStage[data-table-room] #dominoHand {
@@ -314,7 +314,7 @@
   height: calc(var(--room-height) * .146) !important;
 }
 
-#dominoTablePanel #dominoStage[data-table-room] #dominoBoard .domino-board-path {
+#dominoTablePanel #dominoStage[data-table-room] :is(#dominoBoard, #dfcClosingBoard) .domino-board-path {
   position: absolute !important;
   left: 50% !important;
   top: 50% !important;
@@ -421,3 +421,18 @@
 
 .dfc-table-preview-stage[data-table-style="navy-gold"] .dfc-table-preview-board { top: 32%; }
 .dfc-table-preview-stage[data-table-style="navy-gold"] .dfc-table-preview-hand { bottom: 44%; }
+
+@media (orientation: portrait) {
+  #dominoTablePanel #dominoStage[data-table-room] #dominoBoard {
+    width: 60cqw !important;
+  }
+
+  #dominoTablePanel #dominoStage[data-table-room] #dominoHand {
+    width: 73cqw !important;
+    height: clamp(32px, 9cqw, 58px) !important;
+  }
+
+  #dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack:is([data-rack="2"], [data-rack="4"]) {
+    width: 4cqw !important;
+  }
+}
