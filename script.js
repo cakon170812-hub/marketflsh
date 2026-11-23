@@ -437,6 +437,7 @@
   document.head.append(style);
   const seen=new Map();
   const requestedScenes=new Map();
+  const pendingVoices=new Map();
   let active=null, frame=null, trackedTable='', closedHand='';
   function table(){return panel.classList.contains('active')?String(dominoCurrentTableId||''):'';}
   function stateFrame(state, handId){
@@ -477,7 +478,24 @@
   function reset(){
     if(trackedTable===table())return;
     clear();frame=null;closedHand='';trackedTable=table();
+    for(const timer of pendingVoices.values())clearTimeout(timer);
+    pendingVoices.clear();
     stage.removeAttribute('data-dfc-result-managed');
+  }
+  function announce(handId,kind,waitForPoints=false){
+    if(!kind||!handId||!table()||document.hidden)return;
+    const key=table()+':closure:'+handId;
+    if(!waitForPoints){
+      clearTimeout(pendingVoices.get(key));
+      pendingVoices.delete(key);
+      window.dfc012uPlay?.(kind,key);
+      return;
+    }
+    if(pendingVoices.has(key))return;
+    pendingVoices.set(key,setTimeout(()=>{
+      pendingVoices.delete(key);
+      if(key===table()+':closure:'+handId)window.dfc012uPlay?.(kind,key);
+    },2400));
   }
   const pips=tile=>[tile?.a??tile?.[0],tile?.b??tile?.[1]];
   function sideOf(tiles,tile,side){
@@ -522,14 +540,12 @@
       clear();
       if(table()===tableId)document.dispatchEvent(new Event('dfc:closing-preview-end'));
     },duration);
-    if(window.dfc012lAudioPrefs?.().celebration!==false)
-      void window.dfc012uPlay?.(kind,tableId+(kind==='trancazo'?':trancazo:':':win:')+handId);
     return duration;
   }
   const previous=window.renderDominoState;
   if(typeof previous==='function')window.renderDominoState=function(state){
     reset();
-    const hand=state?.hand, closure=state?.last_result;
+    const hand=state?.hand, closure=state?.last_result??(hand?.status==='settled'?hand:null);
     if(hand?.board?.length)frame={id:hand.id,tiles:hand.board,side:state.last_move?.side};
     const age=(typeof mfDominoNow==='function'?mfDominoNow():Date.now())-Date.parse(closure?.settled_at);
     const reason=String(closure?.winner_reason||'');
@@ -538,7 +554,8 @@
       window.dfcZ32UniversalGiftAnnouncement?.beginHand(table(),closure);
       const kind=/CAPIC[UÚ]A/i.test(reason)?'capicua':/TRANQUE/i.test(reason)?'trancazo':reason==='ULTIMA_FICHA'?'domino':'';
       const points=panel.hasAttribute('data-dfc-points-mode')||window.dfc012rIsPointTable?.(Number(table()))===true;
-      if(kind&&hand?.status!=='playing'&&!points){
+      announce(closure.id,kind,points&&!window.dominoSpectatorMode&&kind==='domino');
+      if(kind&&state.last_result&&hand?.status!=='playing'&&!points){
         const tableId=table();
         stage.setAttribute('data-dfc-result-managed','');
         void loadFrame(state,closure.id,kind).then(source=>{
@@ -561,7 +578,7 @@
     return result;
   };
   new MutationObserver(reset).observe(panel,{attributes:true,attributeFilter:['class']});
-  window.dfcClosingPreview=Object.freeze({show,delay,loadFrame});
+  window.dfcClosingPreview=Object.freeze({show,delay,loadFrame,announce});
 })();
 
 /* DOMINÓ FLASH COIN Z32 — Tarjetas de capicúa reclamables.
@@ -3342,6 +3359,13 @@
        retryAfter=last?0:Date.now()+5000;
        return;
      }
+     const hand=data.last_hand;
+     const serverTime=Date.parse(data.server_time);
+     const settledAt=Date.parse(hand?.settled_at);
+     const age=(Number.isFinite(serverTime)?serverTime:Date.now()+replayOffset)-settledAt;
+     if(hand?.id&&age>=-3000&&age<10000){
+       window.dfcClosingPreview?.announce(hand.id,handKind(hand));
+     }
      if(data.victory_auto&&!window.dominoSpectatorMode){
        result.hidden=true;
        replay.hidden=true;
@@ -3358,7 +3382,6 @@
      panel.toggleAttribute('data-dfc-points-mode',!window.dominoSpectatorMode);
      window.dfcZ37UI?.syncSpectator(data,id);
      replayState=!window.dominoSpectatorMode&&data.state==='settled'&&data.replay_deadline?data:null;
-     const serverTime=Date.parse(data.server_time);
      if(Number.isFinite(serverTime)&&(last?.match_id!==data.match_id||last.state!=='settled')){
        replayOffset=serverTime-(requestStarted+Date.now())/2;
      }
@@ -3366,9 +3389,7 @@
      panel.toggleAttribute('data-dfc-points-playing',data.state==='playing'&&!window.dominoSpectatorMode);
      drawScore(data);
      if(!window.dominoSpectatorMode)announceRoundPasses(data);
-     const hand=data.last_hand;
      const now=Date.now()+replayOffset;
-     const settledAt=Date.parse(hand?.settled_at);
      const freshClosure=now-settledAt<panelDuration-9000;
      if(hand?.id&&freshClosure&&data.victory_closed!==true){
        window.dfcZ32UniversalGiftAnnouncement?.beginHand(id,{id:hand.id,settled_at:hand.settled_at});
