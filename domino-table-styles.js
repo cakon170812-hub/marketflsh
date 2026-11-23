@@ -2,7 +2,7 @@
   'use strict';
 
   const styles = [
-    ['navy-gold', 'Estilo original'],
+    ['navy-gold', 'Azul marino y dorado'],
     ['moderna-1', 'Moderna 1 · Grafito y dorado'],
     ['moderna-2', 'Moderna 2 · Azul eléctrico'],
     ['moderna-3', 'Moderna 3 · Titanio champán'],
@@ -21,7 +21,7 @@
   const labels = new Map(styles);
   const original = 'navy-gold';
   const image = key => key === original
-    ? './images2/mesa-azul-marino-dorada.webp'
+    ? './images2/mesa-azul-salon.webp'
     : './images2/estilos-mesa/' + key + '.webp';
   const leader = () => typeof me !== 'undefined' && me?.role === 'leader';
   const modes = {normal:'Por gane', paid_pass:'Pintintín', points:'Por puntos', tournament:'Torneo'};
@@ -37,7 +37,94 @@
     else targetSurface.style.setProperty('--dfc-felt-image', 'url("./images2/estilos-mesa/' + style + '-tapete.webp")');
   }
 
-  window.dfcTableStyles = { paint: key => paint(stage, surface, key) };
+  const art = document.getElementById('dfcNavyTableArt');
+  const room = new Image();
+  let roomLoaded = false;
+  function syncRoom() {
+    stage?.toggleAttribute('data-table-room', roomLoaded && (stage.dataset.tableStyle || original) === original);
+  }
+  if (art && stage) {
+    room.onload = () => {
+      art.src = room.src;
+      art.width = room.naturalWidth;
+      art.height = room.naturalHeight;
+      roomLoaded = true;
+      syncRoom();
+    };
+    room.src = image(original);
+  }
+
+  window.dfcTableStyles = {
+    paint(key) {
+      paint(stage, surface, key);
+      syncRoom();
+    }
+  };
+
+  const seats = document.getElementById('dominoSeats');
+  if (stage && seats) {
+    const nearRack = document.createElement('div');
+    nearRack.className = 'dfc-real-rack';
+    nearRack.dataset.rack = '1';
+    nearRack.setAttribute('aria-hidden', 'true');
+    nearRack.style.display = 'none';
+    stage.append(nearRack);
+    let nearCount = 0;
+    new MutationObserver(() => {
+      const count = seats.querySelector('.domino-seat.s1:not(.empty) .domino-tile-count:not([hidden])');
+      const total = window.dominoSpectatorMode && stage.hasAttribute('data-table-room')
+        ? count?.querySelectorAll('.domino-seat-back-tile').length || 0 : 0;
+      if (total === nearCount) return;
+      nearCount = total;
+      nearRack.replaceChildren(...Array.from({length:total}, () => {
+        const tile = document.createElement('span');
+        tile.className = 'dfc-standing-back';
+        return tile;
+      }));
+      nearRack.style.display = total ? 'flex' : 'none';
+    }).observe(seats, {childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});
+  }
+
+  const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const playTile = dominoPlayTile;
+  dominoPlayTile = function(index, side, source) {
+    if (!source && Number.isInteger(index) && stage?.hasAttribute('data-table-room') && !reducedMotion.matches) {
+      source = stage.querySelector('#dominoHand [data-domino-tile="' + index + '"]');
+    }
+    return playTile.call(this, index, side, source);
+  };
+
+  const moveEffects = dominoHandleMoveEffects;
+  dominoHandleMoveEffects = function(state) {
+    const effects = moveEffects.apply(this, arguments);
+    const move = state?.last_move;
+    const hand = state?.hand;
+    if (!effects?.animate || !stage?.hasAttribute('data-table-room') ||
+        !hand || hand.board?.length !== stage.querySelectorAll('#dominoBoard .board-piece').length + 1 ||
+        reducedMotion.matches) return effects;
+    const seat = [...seats.querySelectorAll('[data-seat-user]')].find(item => item.dataset.seatUser === String(move.user_id));
+    const number = seat?.dataset.visualSeat;
+    const own = String(move.user_id) === String(state.me);
+    if (!number || (own && mfDominoPlayPending)) return effects;
+    const rack = own ? document.getElementById('dominoHand') : stage.querySelector('.dfc-real-rack[data-rack="' + number + '"]');
+    const from = rack?.getBoundingClientRect();
+    if (!from?.width || !from.height) return effects;
+    requestAnimationFrame(() => {
+      if (!stage.hasAttribute('data-table-room') || dominoState?.hand?.id !== hand.id ||
+          dominoState?.last_move?.id !== move.id) return;
+      const side = move.side === 'left' ? 'left' : 'right';
+      const tile = stage.querySelector('#dominoBoard .domino-end-' + side);
+      const to = tile?.getBoundingClientRect();
+      if (!to?.width || !to.height) return;
+      const scale = to.width / tile.offsetWidth || 1;
+      const x = (from.x + from.width / 2 - to.x - to.width / 2) / scale;
+      const y = (from.y + from.height / 2 - to.y - to.height / 2) / scale;
+      tile.animate([{translate:x + 'px ' + y + 'px'}, {translate:'0px 0px'}], {
+        duration:245, easing:'cubic-bezier(.19,.7,.4,1)'
+      });
+    });
+    return effects;
+  };
 
   const launcher = document.querySelector('[data-dfc-open-table-styles="bots"]');
   const title = document.querySelector('#mfAdmin16_domino .mf-admin-subpanel > h2');
@@ -49,6 +136,7 @@
 
   const dialog = document.createElement('dialog');
   dialog.id = 'dfcTableStylesDialog';
+  dialog.className = 'panel';
   dialog.setAttribute('aria-labelledby', 'dfcTableStylesHeading');
   dialog.innerHTML = `
     <header>
@@ -83,8 +171,8 @@
           <button type="button" data-save disabled>Guardar estilo</button>
         </div>
       </div>
-      <fieldset><legend>Modernas</legend><div data-gallery="modern"></div></fieldset>
-      <fieldset><legend>Clásicas</legend><div data-gallery="classic"></div></fieldset>
+      <fieldset><legend>Modernas</legend><div data-gallery="modern" tabindex="0" role="group" aria-label="Diseños modernos"></div></fieldset>
+      <fieldset><legend>Clásicas</legend><div data-gallery="classic" tabindex="0" role="group" aria-label="Diseños clásicos"></div></fieldset>
       <fieldset><legend>Estilo original</legend><div data-gallery="original"></div></fieldset>
     </div>
     <p role="status" aria-live="polite"></p>`;

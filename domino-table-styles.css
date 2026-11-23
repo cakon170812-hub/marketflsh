@@ -108,7 +108,8 @@
   width: min(930px, calc(100% - 20px));
   max-height: calc(100% - 20px);
   margin: auto;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: 14px clamp(12px, 3vw, 24px);
   color: #f0f5ff;
   background: linear-gradient(155deg, #112745, #091321 60%);
@@ -158,6 +159,7 @@
   overflow: hidden;
   isolation: isolate;
   container-type: size;
+  pointer-events: none;
   background: #050b16;
 }
 .dfc-table-preview-stage[data-table-style="navy-gold"] {
@@ -174,6 +176,7 @@
 .dfc-table-preview-board { top: 39%; }
 .dfc-table-preview-hand { bottom: 9%; padding: 3px 5px; }
 .dfc-table-preview-stage .domino-piece {
+  pointer-events: none !important;
   position: static !important;
   width: 7cqw !important;
   height: 4cqw !important;
@@ -192,7 +195,19 @@
 #dfcTableStylesDialog [data-save] { background:#124681; border-color:#78bdff; justify-self:start; }
 #dfcTableStylesDialog fieldset { min-width:0; margin:8px 0; padding:7px 0 10px; border:0; }
 #dfcTableStylesDialog legend { color:#e1ecff; font-weight:700; }
-#dfcTableStylesDialog [data-gallery] { display:grid; gap:8px; grid-template-columns:repeat(auto-fill, minmax(min(130px, 45%), 1fr)); }
+#dfcTableStylesDialog [data-gallery] {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: clamp(130px, 25%, 180px);
+  gap: 8px;
+  padding: 3px 3px 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-color: #7796b8 #0a1a2c;
+}
+#dfcTableStylesDialog [data-gallery] label { scroll-snap-align: start; }
 #dfcTableStylesDialog [data-gallery="original"] { grid-template-columns:minmax(130px, 180px); }
 #dfcTableStylesDialog [data-gallery] label {
   position:relative;
@@ -254,3 +269,155 @@
 :where(#dominoStage, .dfc-table-preview-stage)[data-table-style="moderna-6"] > .dfc-table-surface span {
   box-shadow: inset 0 0 4px #ffe6b2, 0 0 3px 2px #4891ff, 0 4px 8px #000d;
 }
+
+/* Keep the full room in frame and align the live pieces to its photographed rails. */
+#dominoTablePanel #dominoStage[data-table-room] {
+  container-type: size !important;
+  --room-width: min(100cqw, 177.68cqh);
+  --room-height: min(100cqh, 56.28cqw);
+  --room-x: calc((100cqw - var(--room-width)) / 2);
+  --room-y: calc((100cqh - var(--room-height)) / 2);
+}
+
+#dominoTablePanel.overlay #dominoStage[data-table-room]::before {
+  inset: 0 !important;
+  background: #160e0a url("./images2/mesa-azul-salon.webp") center / cover !important;
+  filter: blur(16px) brightness(.42);
+  box-shadow: none !important;
+  z-index: -1 !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dfcNavyTableArt {
+  object-fit: contain !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dominoHand {
+  top: calc(var(--room-y) + var(--room-height) * .55) !important;
+  bottom: auto !important;
+  width: calc(var(--room-width) * .42) !important;
+  height: clamp(33px, calc(var(--room-height) * .12), 84px) !important;
+  transform: translate(-50%, -100%) !important;
+  gap: clamp(2px, .6cqw, 8px) !important;
+  align-items: flex-end !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dominoHand .domino-piece.hand-piece {
+  height: 100% !important;
+  width: auto !important;
+  aspect-ratio: .56 !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dominoBoard {
+  left: 50% !important;
+  top: calc(var(--room-y) + var(--room-height) * .347) !important;
+  width: calc(var(--room-width) * .46) !important;
+  height: calc(var(--room-height) * .146) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dominoBoard .domino-board-path {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  translate: -50% -50%;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] .domino-inside-pot {
+  left: max(9px, calc(var(--room-x) + var(--room-width) * .035)) !important;
+  top: auto !important;
+  bottom: 7% !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dominoCenterStatus {
+  top: calc(var(--room-y) + var(--room-height) * .347) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack {
+  bottom: auto !important;
+  overflow: visible !important;
+  gap: clamp(1px, .25cqw, 4px) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack:is([data-rack="1"], [data-rack="3"]) {
+  left: 50% !important;
+  right: auto !important;
+  top: calc(var(--room-y) + var(--room-height) * .205) !important;
+  width: calc(var(--room-width) * .28) !important;
+  height: calc(var(--room-height) * .065) !important;
+  transform: translateX(-50%) !important;
+  flex-direction: row !important;
+  align-items: flex-end !important;
+}
+
+#dominoStage:not([data-table-room]) .dfc-real-rack[data-rack="1"] { display: none !important; }
+
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack[data-rack="1"] {
+  top: calc(var(--room-y) + var(--room-height) * .48) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack:is([data-rack="2"], [data-rack="4"]) {
+  top: calc(var(--room-y) + var(--room-height) * .277) !important;
+  width: calc(var(--room-width) * .032) !important;
+  height: calc(var(--room-height) * .22) !important;
+  align-items: center !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack[data-rack="4"] {
+  left: calc(var(--room-x) + var(--room-width) * .228) !important;
+  transform: rotate(7deg) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack[data-rack="2"] {
+  right: calc(var(--room-x) + var(--room-width) * .228) !important;
+  transform: rotate(-7deg) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack .dfc-standing-back {
+  background: linear-gradient(135deg, #fff3d7, #c6a47b) !important;
+  border-color: #9d7951 !important;
+  box-shadow: inset 1px 0 1px #fff8, 1px 2px 3px #000c !important;
+  margin: 0 !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack .dfc-standing-back::before,
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack .dfc-standing-back::after {
+  content: none !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack:is([data-rack="1"], [data-rack="3"]) .dfc-standing-back {
+  width: calc(var(--room-height) * .035) !important;
+  height: 100% !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] .dfc-real-rack:is([data-rack="2"], [data-rack="4"]) .dfc-standing-back {
+  width: 90% !important;
+  height: calc(var(--room-height) * .027) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dominoSeats .domino-seat.s1 {
+  top: calc(var(--room-y) + var(--room-height) * .675) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dominoSeats .domino-seat.s3 {
+  top: calc(var(--room-y) + var(--room-height) * .055) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dominoSeats :is(.domino-seat.s2, .domino-seat.s4) {
+  top: calc(var(--room-y) + var(--room-height) * .375) !important;
+  width: clamp(82px, calc(var(--room-width) * .16), 145px) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dominoSeats .domino-seat.s4 {
+  left: calc(var(--room-x) + var(--room-width) * .045) !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room] #dominoSeats .domino-seat.s2 {
+  right: calc(var(--room-x) + var(--room-width) * .045) !important;
+}
+
+#dfcTableStylesDialog .dfc-table-preview-stage[data-table-style="navy-gold"] {
+  aspect-ratio: 1672 / 941;
+  background: #160e0a url("./images2/mesa-azul-salon.webp") center / contain no-repeat;
+}
+
+.dfc-table-preview-stage[data-table-style="navy-gold"] .dfc-table-preview-board { top: 32%; }
+.dfc-table-preview-stage[data-table-style="navy-gold"] .dfc-table-preview-hand { bottom: 44%; }
