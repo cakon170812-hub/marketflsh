@@ -417,19 +417,59 @@
   });
 })();
 
-/* Presentar la ficha de cierre durante tres segundos antes de mostrar el resultado. */
+/* Secuencia visual para el cierre de mano. */
 (function dominoClosingPreview(){
   const stage=document.getElementById('dominoStage');
   const panel=document.getElementById('dominoTablePanel');
-  if(!stage||!panel)return;
-  const duration=3000;
+  const board=document.getElementById('dominoBoard');
+  if(!stage||!panel||!board)return;
+  const style=document.createElement('style');
+  style.textContent=`
+    #dominoStage #dfcClosingBoard{z-index:24500!important;pointer-events:none!important;visibility:visible!important}
+    #dfcClosingBoard .dfc-closing-glow{filter:brightness(1.35) drop-shadow(0 0 9px #ffcf52)!important;outline:2px solid #ffdf75;outline-offset:2px;z-index:2!important}
+    #dfcClosingBoard[data-capicua] :is(.domino-end-left,.domino-end-right){box-shadow:0 0 12px 3px #5cecff}
+    #dominoStage[data-dfc-closing-preview] #dominoBoard{visibility:hidden!important}
+    #dominoStage[data-dfc-closing-preview] :is(#dfc012c-scene,#dfcPointsResult,#dominoVictory,#mf110WinnerOverlay){visibility:hidden!important}
+    #dominoStage[data-dfc-result-managed] :is(#dominoVictory,#mf110WinnerOverlay,#dfc012c-scene .win-title,#dfc012c-scene .dfc012j-winner-name){display:none!important}
+    #dominoStage[data-dfc-result-managed][data-dfc-closing-preview] :is(#mf196TranqueOverlay,#dfc011v-layer,#dfc012m-tranque-near){visibility:hidden!important}
+    #dominoStage[data-dfc-result-managed]:not([data-dfc-closing-preview]) :is(#mf196TranqueOverlay,#dfc011v-layer,#dfc012m-tranque-near){display:none!important}
+    #dfcClosingBoard .dfc-tranque-remaining{position:absolute;top:100%;left:-12%;right:-12%;display:flex;justify-content:center;gap:8px;color:#fff;font:700 clamp(9px,2vmin,14px) system-ui;text-shadow:0 1px 3px #000}
+    #dfcClosingBoard .dfc-tranque-tiles{display:flex;flex-wrap:wrap;justify-content:center;gap:3px}
+    #dfcClosingBoard .dfc-tranque-tiles .domino-piece{width:clamp(16px,4vmin,27px)!important;height:clamp(11px,2.8vmin,19px)!important;margin:0!important}
+  `;
+  document.head.append(style);
   const seen=new Map();
-  let active=null;
+  const requestedScenes=new Map();
+  let active=null, frame=null, trackedTable='', closedHand='';
   function table(){return panel.classList.contains('active')?String(dominoCurrentTableId||''):'';}
+  function stateFrame(state, handId){
+    const hand=state?.hand, previous=frame;
+    if(String(hand?.id)===String(handId)&&hand.board?.length)return {tiles:hand.board,side:state.last_move?.side};
+    if(String(previous?.id)===String(handId))return previous;
+    return null;
+  }
+  async function loadFrame(state,handId,kind){
+    const source=stateFrame(state,handId);
+    if(String(state?.hand?.id)===String(handId)||kind==='trancazo')return source;
+    const tableId=table();
+    const key=tableId+':'+handId;
+    if(!requestedScenes.has(key)){
+      const client=window.sb||window.dfcSupabase;
+      if(!client)return null;
+      const request=client.rpc('rf_domino_last_win_scene_v012f',{p_table_id:Number(tableId)})
+        .then(({data,error})=>{
+          if(error||String(data?.hand_id)!==String(handId)||!data.board?.length)return null;
+          return {tiles:data.board,side:data.move?.side};
+        }).catch(()=>null);
+      requestedScenes.set(key,request);
+      if(requestedScenes.size>30)requestedScenes.delete(requestedScenes.keys().next().value);
+    }
+    return requestedScenes.get(key);
+  }
   function clear(){
     if(!active)return;
     clearTimeout(active.timer);
-    active.tile.remove();
+    active.snapshot.remove();
     stage.removeAttribute('data-dfc-closing-preview');
     active=null;
   }
@@ -437,51 +477,114 @@
     const entry=seen.get(table()+':'+handId);
     return entry?Math.max(0,entry.ends-performance.now()):0;
   }
-  function playClosingSound(kind,key,entry){
-    if(!kind||entry.soundPlayed||window.dfc012lAudioPrefs?.().celebration===false)return;
-    entry.soundPlayed=true;
-    void window.dfc012uPlay?.(kind,key);
+  function reset(){
+    if(trackedTable===table())return;
+    clear();frame=null;closedHand='';trackedTable=table();
+    stage.removeAttribute('data-dfc-result-managed');
   }
-  function show(handId,tile,kind){
-    const tableId=table();
-    const key=tableId+':'+handId;
-    if(!tableId||!handId||document.hidden)return 0;
-    const previous=seen.get(key);
-    if(previous){
-      const remaining=delay(handId);
-      if(remaining>0)playClosingSound(kind,tableId+':win:'+handId,previous);
-      return remaining;
+  const pips=tile=>[tile?.a??tile?.[0],tile?.b??tile?.[1]];
+  function sideOf(tiles,tile,side){
+    if(side==='left'||side==='right')return side;
+    const code=value=>pips(value).sort((a,b)=>a-b).join(':');
+    return code(tiles[0])===code(tile)?'left':'right';
+  }
+  function snapshotOf(source,tile,kind,remaining){
+    const snapshot=document.createElement('div');
+    snapshot.id='dfcClosingBoard';
+    snapshot.className='domino-board';
+    snapshot.setAttribute('aria-label','Tira de fichas al cierre');
+    const stageRect=stage.getBoundingClientRect(), rect=board.getBoundingClientRect();
+    if(rect.width&&rect.height){
+      snapshot.style.cssText='position:absolute;transform:none;left:'+(rect.left-stageRect.left)+'px;top:'+(rect.top-stageRect.top)+'px;width:'+rect.width+'px;height:'+rect.height+'px;';
     }
-    const pips=[tile?.a??tile?.[0],tile?.b??tile?.[1]];
-    if(!pips.every(n=>Number.isInteger(n)&&n>=0&&n<=6))return 0;
-    if(active?.tableId===tableId&&BigInt(active.handId)>BigInt(handId))return 0;
+    snapshot.innerHTML=dominoRows(source.tiles,null,false);
+    if(kind!=='trancazo'){
+      const side=sideOf(source.tiles,tile,source.side);
+      snapshot.querySelector('.domino-end-'+side)?.classList.add('dfc-closing-glow');
+    }
+    if(kind==='capicua')snapshot.setAttribute('data-capicua','');
+    if(kind==='trancazo'&&remaining?.length)renderRemaining(snapshot,remaining);
+    return snapshot;
+  }
+  function renderRemaining(snapshot,remaining){
+    if(!remaining?.length||snapshot.querySelector('.dfc-tranque-remaining'))return;
+    const labels=document.createElement('div');labels.className='dfc-tranque-remaining';
+    for(const player of remaining){
+      const group=document.createElement('div');
+      const name=document.createElement('span');
+      name.textContent=(player.full_name||player.name||'Asiento '+player.seat)+' · '+player.points+' puntos';
+      group.append(name);
+      const faces=document.createElement('div');
+      faces.className='dfc-tranque-tiles';
+      faces.innerHTML=(player.tiles||[]).map((tile,index)=>dominoPiece(tile,index,false,true)).join('');
+      group.append(faces);
+      labels.append(group);
+    }
+    snapshot.append(labels);
+  }
+  function showRemaining(handId,remaining){
+    if(active&&seen.get(table()+':'+handId)===active)renderRemaining(active.snapshot,remaining);
+  }
+  function show(handId,tile,kind,source=stateFrame(typeof dominoState==='undefined'?null:dominoState,handId),remaining){
+    reset();
+    const tableId=table(), key=tableId+':'+handId;
+    if(!tableId||!handId||document.hidden)return 0;
+    if(seen.has(key))return delay(handId);
+    if(!kind||!source?.tiles?.length)return 0;
     clear();
-    const preview=document.createElement('div');
-    preview.className='dfc-closing-tile';
-    preview.innerHTML=dominoPiece(pips,0,false,true,'');
-    preview.firstElementChild.classList.remove('board-piece','domino-double');
-    preview.firstElementChild.classList.add('hand-piece');
-    preview.setAttribute('role','img');
-    preview.setAttribute('aria-label','Ficha de cierre '+pips.join('–'));
-    stage.append(preview);
+    const duration=kind==='trancazo'?6000:5000;
+    const snapshot=snapshotOf(source,tile,kind,remaining);
+    stage.append(snapshot);
     stage.setAttribute('data-dfc-closing-preview','');
-    const entry={tableId,handId,tile:preview,ends:performance.now()+duration};
+    const entry={snapshot,ends:performance.now()+duration};
     active=entry;
-    const timing={ends:entry.ends,soundPlayed:false};
-    seen.set(key,timing);
+    seen.set(key,entry);
     if(seen.size>100)seen.delete(seen.keys().next().value);
     entry.timer=setTimeout(()=>{
       if(active!==entry)return;
       clear();
       if(table()===tableId)document.dispatchEvent(new Event('dfc:closing-preview-end'));
     },duration);
-    playClosingSound(kind,tableId+':win:'+handId,timing);
+    if(window.dfc012lAudioPrefs?.().celebration!==false)
+      void window.dfc012uPlay?.(kind,tableId+(kind==='trancazo'?':trancazo:':':win:')+handId);
     return duration;
   }
-  new MutationObserver(()=>{
-    if(active&&active.tableId!==table())clear();
-  }).observe(panel,{attributes:true,attributeFilter:['class']});
-  window.dfcClosingPreview=Object.freeze({show,delay});
+  const previous=window.renderDominoState;
+  if(typeof previous==='function')window.renderDominoState=function(state){
+    reset();
+    const hand=state?.hand, closure=state?.last_result;
+    if(hand?.board?.length)frame={id:hand.id,tiles:hand.board,side:state.last_move?.side};
+    const age=(typeof mfDominoNow==='function'?mfDominoNow():Date.now())-Date.parse(closure?.settled_at);
+    const reason=String(closure?.winner_reason||'');
+    if(table()&&closure?.id&&age>=-3000&&age<10000&&String(closure.id)!==closedHand){
+      closedHand=String(closure.id);
+      window.dfcZ32UniversalGiftAnnouncement?.beginHand(table(),closure);
+      const kind=/CAPIC[UÚ]A/i.test(reason)?'capicua':/TRANQUE/i.test(reason)?'trancazo':reason==='ULTIMA_FICHA'?'domino':'';
+      const points=panel.hasAttribute('data-dfc-points-mode')||window.dfc012rIsPointTable?.(Number(table()))===true;
+      if(kind&&hand?.status!=='playing'&&!points){
+        const tableId=table();
+        stage.setAttribute('data-dfc-result-managed','');
+        void loadFrame(state,closure.id,kind).then(source=>{
+          if(table()!==tableId||String(closure.id)!==closedHand||dominoState?.hand?.status==='playing')return;
+          const move=source?.side==='left'?source.tiles[0]:source?.tiles.at(-1);
+          const wait=source?show(closure.id,move,kind,source):0;
+          window.dfcShowStandardHandResult?.(state,kind,wait);
+        });
+      }
+    }
+    const result=previous.apply(this,arguments);
+    if(hand?.status==='shuffling'){
+      if(!active&&document.getElementById('dfcStandardResult')?.hidden)stage.removeAttribute('data-dfc-result-managed');
+      window.dfcZ32UniversalGiftAnnouncement?.onShuffle(table(),hand.id);
+    }else if(hand?.status==='playing'){
+      const standard=document.getElementById('dfcStandardResult');
+      if(String(hand.id)!==closedHand&&standard){standard.hidden=true;delete standard.dataset.handKey;}
+      window.dfcZ32UniversalGiftAnnouncement?.onPlaying(table(),hand.id);
+    }
+    return result;
+  };
+  new MutationObserver(reset).observe(panel,{attributes:true,attributeFilter:['class']});
+  window.dfcClosingPreview=Object.freeze({show,delay,showRemaining,loadFrame});
 })();
 
 /* DOMINÓ FLASH COIN Z32 — Tarjetas de capicúa reclamables.
@@ -584,7 +687,66 @@
   'use strict';
   if(window.dfcZ32UniversalGiftAnnouncement)return;
   let busy=false, presenting=false, lastUser='', current=null, queue=[], pollTimer=null;
-  const known=new Set();
+  const known=new Set(), origins=new Map();
+  let hand=null, closeTimedCard=null;
+  const tablePanel=()=>document.getElementById('dominoTablePanel');
+  function tableOpen(){return tablePanel()?.classList.contains('active');}
+  function isHandGift(card){
+    if(!hand)return false;
+    if(hand.prizeId===String(card.gift_id))return true;
+    const origin=origins.get(String(card.gift_id));
+    return /domin[oó]|capic[uú]a|tranque/i.test(origin?.origin_name||'')&&origin?.origin_detail==='Mano '+hand.id;
+  }
+  function showNext(){
+    if(presenting||document.hidden)return;
+    if(!tableOpen()){
+      hand=null;
+      if(queue.length)draw(queue.shift());
+      return;
+    }
+    if(!hand?.ready||hand.shown||hand.playing||performance.now()>hand.expires)return;
+    const prizeIndex=hand.prizeId?queue.findIndex(card=>String(card.gift_id)===hand.prizeId):-1;
+    const index=prizeIndex>=0?prizeIndex:queue.findIndex(isHandGift);
+    if(index<0)return;
+    hand.shown=true;
+    draw(queue.splice(index,1)[0],true);
+  }
+  function beginHand(tableId,result){
+    if(!tableId||!result?.id)return;
+    if(hand?.tableId===String(tableId)&&String(result.id)===hand.id)return;
+    closeTimedCard?.();
+    hand={tableId:String(tableId),id:String(result.id),settledAt:Date.parse(result.settled_at),ready:false,playing:false,shown:false,expires:0};
+    void refresh();
+  }
+  async function finishHand(tableId,handId,prizeId){
+    if(hand?.tableId!==String(tableId)||hand.id!==String(handId)||hand.playing||hand.ready)return;
+    const closing=hand;
+    hand.prizeId=String(prizeId||'');
+    hand.ready=true;
+    hand.expires=performance.now()+1200;
+    showNext();
+    if(!hand.shown){
+      void refresh();
+      await new Promise(resolve=>setTimeout(resolve,1200));
+    }
+    if(closing!==hand||!closing.shown||!closeTimedCard)return;
+    await new Promise(resolve=>{
+      const finish=closeTimedCard;
+      if(!finish)return resolve();
+      const stored=()=>resolve();
+      document.addEventListener('dfc:z32:gift-stored',stored,{once:true});
+      setTimeout(()=>{document.removeEventListener('dfc:z32:gift-stored',stored);resolve();},3000);
+    });
+  }
+  function onShuffle(tableId,nextId){
+    if(hand?.tableId!==String(tableId)||hand.id===String(nextId))return;
+    showNext();
+  }
+  function onPlaying(tableId,nextId){
+    if(hand?.tableId!==String(tableId)||hand.id===String(nextId))return;
+    hand.playing=true;
+    closeTimedCard?.();
+  }
   function client(){
     for(const k of ['sb','dfcSupabase','supabaseClient','rfSupabase']){
       const s=window[k];
@@ -605,8 +767,9 @@
     try{localStorage.setItem(seenKey(uid),JSON.stringify([...known].slice(-300)));}catch(e){}
   }
   function money(n){return Number(n).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:3})+' FC';}
-  function draw(card){
+  function draw(card,timed=false){
     if(document.hidden || presenting || !card)return;
+    const owner=lastUser;
     presenting=true;current=card;
     const overlay=document.createElement('div');
     overlay.id='dfcZ32GiftFullScreen';
@@ -648,6 +811,22 @@
     content.append(btn,help);overlay.append(content);document.body.append(overlay);
     const previouslyFocused=document.activeElement;
     btn.focus({preventScroll:true});
+    let timer;
+    function finish(){
+      if(current!==card)return;
+      clearTimeout(timer);
+      if(closeTimedCard===finish)closeTimedCard=null;
+      markSeen(owner,card.gift_id);
+      overlay.remove();
+      presenting=false;current=null;
+      document.dispatchEvent(new CustomEvent('dfc:z32:gift-stored',{detail:{gift_id:card.gift_id,amount:card.amount}}));
+      if(previouslyFocused?.isConnected)previouslyFocused.focus?.({preventScroll:true});
+      showNext();
+    }
+    if(timed){
+      closeTimedCard=finish;
+      timer=setTimeout(finish,3000);
+    }
     btn.addEventListener('click',async()=>{
       if(btn.disabled)return;
       btn.disabled=true;
@@ -655,12 +834,7 @@
       document.dispatchEvent(new CustomEvent('dfc:flashcoin:explode',{detail:{source:'z32-gift-announcement'}}));
       const animation=btn.animate?.([{transform:'scale(1)',opacity:1},{transform:'scale(1.12)',opacity:1,offset:.3},{transform:'scale(.15) translateY(-100px)',opacity:0}],{duration:550,easing:'ease-in',fill:'forwards'});
       if(animation)await animation.finished.catch(()=>{});
-      markSeen(lastUser,card.gift_id);
-      overlay.remove();
-      presenting=false;current=null;
-      document.dispatchEvent(new CustomEvent('dfc:z32:gift-stored',{detail:{gift_id:card.gift_id,amount:card.amount}}));
-      if(previouslyFocused?.isConnected)previouslyFocused.focus?.({preventScroll:true});
-      if(!document.hidden && queue.length)draw(queue.shift());
+      finish();
     },{once:true});
   }
   async function refresh(){
@@ -671,7 +845,7 @@
       const auth=await db.auth.getSession();
       const uid=auth?.data?.session?.user?.id;
       if(!uid){lastUser='';known.clear();queue=[];return;}
-      if(uid!==lastUser){lastUser=uid;readSeen(uid);queue=[];}
+      if(uid!==lastUser){lastUser=uid;readSeen(uid);queue=[];origins.clear();}
       const {data,error}=await db.rpc('dfc_z32_gift_pending_dates');
       if(error)throw error;
       if(!Array.isArray(data))return;
@@ -685,11 +859,28 @@
       const queuedIds=new Set(queue.map(x=>String(x.gift_id)));
       if(current)queuedIds.add(String(current.gift_id));
       pending.forEach(x=>{if(!queuedIds.has(String(x.gift_id))){queue.push(x);queuedIds.add(String(x.gift_id));}});
-      if(!presenting && queue.length)draw(queue.shift());
+      showNext();
+      if(tableOpen()&&hand){
+        const closure=hand;
+        await Promise.allSettled(queue.filter(card=>{
+          const created=Date.parse(card.created_at);
+          return !card.origin_name&&!origins.has(String(card.gift_id))&&created>=closure.settledAt-3000&&created<=closure.settledAt+30000;
+        }).slice(0,8).map(async card=>{
+          const {data:details,error:originError}=await db.rpc('dfc_gift_card_details_v1',{p_gift_id:card.gift_id});
+          if(!originError&&lastUser===uid)origins.set(String(card.gift_id),details?.[0]||null);
+        }));
+        if(closure===hand)showNext();
+      }
     }catch(e){console.warn('[DFC Z32 anuncio tarjetas]',String(e?.message||e));}
     finally{busy=false;}
   }
-  window.dfcZ32UniversalGiftAnnouncement=Object.freeze({refresh:()=>void refresh()});
+  window.dfcZ32UniversalGiftAnnouncement=Object.freeze({refresh:()=>void refresh(),beginHand,finishHand,onShuffle,onPlaying});
+  const panel=tablePanel();
+  if(panel)new MutationObserver(()=>{
+    if(tableOpen())return;
+    closeTimedCard?.();
+    showNext();
+  }).observe(panel,{attributes:true,attributeFilter:['class']});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh();});
   window.addEventListener('pageshow',()=>void refresh());
   document.addEventListener('dfc:z32:gift-sent',()=>void refresh());
@@ -2168,7 +2359,7 @@
  if(!panel||!controls)return;
  const style=document.createElement('style');
  style.textContent=`
- #dfcPointsScore,#dfcPointsResult {color:#fff;background:#101f3af5;border:1px solid #dabf70;border-radius:9px;font:700 clamp(10px,2vmin,15px)/1.22 system-ui}
+ #dfcPointsScore,:is(#dfcPointsResult,#dfcStandardResult) {color:#fff;background:#101f3af5;border:1px solid #dabf70;border-radius:9px;font:700 clamp(10px,2vmin,15px)/1.22 system-ui}
  #dfcPointsScore {display:grid;gap:2px;padding:4px 7px;max-width:min(42vw,270px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
  #dominoStage .domino-inside-pot[data-dfc-points-pot] > :not(#dfcPointsPots){display:none!important}
  #dfcPointsPots{display:grid;gap:3px;white-space:nowrap;font-variant-numeric:tabular-nums}
@@ -2177,6 +2368,21 @@
  body:has(#dominoTablePanel.active[data-dfc-points-playing]) #dominoExitBtn,
  #dominoTablePanel[data-dfc-points-replay] #dominoSurrenderBtn,
  body:has(#dominoTablePanel.active[data-dfc-points-replay]) #dominoExitBtn{display:none!important}
+ #dominoBuyinPanel .domino-buyin-card,#dominoTablePanel .dfc012j-dialog,#dominoTablePanel #dfc012z8-end-dialog .dfc012z8-card,#dfc012q-consent .dfc012q-confirm-card{
+   color:#eaf7ff!important;background:linear-gradient(155deg,#092c46,#031624 72%)!important;
+   border:2px solid #16bfff!important;border-radius:clamp(13px,2.6vmin,22px)!important;
+   box-shadow:0 0 19px #079fe867,inset 0 0 20px #0476b734,0 12px 42px #01121dbb!important;
+   max-height:90dvh;overflow:auto
+ }
+ #dominoBuyinPanel .domino-buyin-card h2,#dominoTablePanel .dfc012j-dialog h3{color:#eaf7ff!important;border-inline-start:4px solid #00c9f2;padding-inline-start:.45em}
+ #dominoBuyinPanel #dominoBuyinValue,#dominoTablePanel .dfc012j-dialog strong{color:#ffd36c!important}
+ #dominoTablePanel #dfc012z8-end-dialog.dfc012z8-open{
+   inset:auto 8px 8px auto!important;padding:0;background:none;backdrop-filter:none;
+ }
+ #dominoTablePanel #dfc012z8-end-dialog .dfc012z8-card{width:auto;max-width:min(42vw,300px);padding:6px 8px}
+ #dominoTablePanel #dfc012z8-end-dialog p,#dominoTablePanel #dfc012z8-end-dialog h2{display:none}
+ #dominoTablePanel #dfc012z8-seconds{font-size:clamp(13px,2.5vmin,20px)}
+ #dominoTablePanel #dfc012z8-end-dialog button{min-height:28px;font-size:clamp(9px,2vmin,13px);padding:4px 7px}
  #dominoSeats .dfc-seat-points{display:inline-grid;place-items:center;vertical-align:middle;margin-inline-start:.35em;min-width:2.9em;aspect-ratio:1;border-radius:50%;box-sizing:border-box;padding:.2em;color:#fff;border:1px solid #bc9ee7;background:linear-gradient(180deg,#7358a2,#50377f 45%,#2d224e 51%,#392d62);box-shadow:inset 0 1px 4px #fff5,0 2px 6px #160d2b99;font:800 clamp(9px,1.7vmin,14px)/1 system-ui;font-variant-numeric:tabular-nums}
  #dominoSeats .domino-seat.empty .dfc-seat-points{display:none}
  #dfcPointsReplay,#dfcPointsTopup{position:absolute;inset:50% auto auto 50%;transform:translate(-50%,-50%);z-index:182;width:min(94%,780px);max-height:95%;overflow:auto;box-sizing:border-box;display:grid;gap:clamp(3px,1.5vmin,12px);padding:clamp(6px,2vmin,18px);text-align:center;background:radial-gradient(ellipse at 50% 0,#103d72,#06152d 65%);color:#edf8ff;border:2px solid #1bd5ff;border-radius:clamp(10px,3vmin,22px);box-shadow:0 0 22px #0bb7ee66,0 10px 30px #000a;font:700 clamp(10px,2.6vmin,17px)/1.2 system-ui}
@@ -2212,85 +2418,85 @@
  #dfcPointsReplay progress::-webkit-progress-value{background:#10d8f3}
  #dfcPointsReplay progress::-moz-progress-bar{background:#10d8f3}
  #dfcPointsAddBalance{border:1px solid #71d7ff;border-radius:9px;padding:4px 7px;background:#092c50;color:#f1faff;font:700 clamp(9px,1.9vmin,13px) system-ui;cursor:pointer}
- #dfcPointsResult .dfc-panel-close,#dfcPointsReplay .dfc-panel-close,#dfcPointsTopup .dfc-panel-close{min-height:32px;padding:4px 12px;border:1px solid #71d7ff;border-radius:10px;background:linear-gradient(#1b4a74,#061f3b);box-shadow:inset 0 1px 0 #a0e4ff48;color:#f1faff;font:inherit;cursor:pointer}
- #dfcPointsResult .dfc-panel-close{margin:7px auto 0;display:block}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-panel-close,#dfcPointsReplay .dfc-panel-close,#dfcPointsTopup .dfc-panel-close{min-height:32px;padding:4px 12px;border:1px solid #71d7ff;border-radius:10px;background:linear-gradient(#1b4a74,#061f3b);box-shadow:inset 0 1px 0 #a0e4ff48;color:#f1faff;font:inherit;cursor:pointer}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-panel-close{margin:7px auto 0;display:block}
  .dfc-funding-confirm{min-height:32px;padding:4px 12px;border:1px solid #ffe6a0;border-radius:10px;background:linear-gradient(#ffe293,#e8a825);color:#142947;font:inherit;cursor:pointer}
- #dfcPointsResult .dfc-panel-close:focus-visible,#dfcPointsReplay button:focus-visible{outline:2px solid #e9f8ff;outline-offset:3px}
- #dfcPointsReplay [hidden],#dfcPointsReplay[hidden],#dfcPointsTopup[hidden],#dfcPointsAddBalance[hidden],#dfcPointsScore[hidden],#dfcPointsResult[hidden]{display:none!important}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-panel-close:focus-visible,#dfcPointsReplay button:focus-visible{outline:2px solid #e9f8ff;outline-offset:3px}
+ #dfcPointsReplay [hidden],#dfcPointsReplay[hidden],#dfcPointsTopup[hidden],#dfcPointsAddBalance[hidden],#dfcPointsScore[hidden],:is(#dfcPointsResult,#dfcStandardResult)[hidden]{display:none!important}
  @media(max-width:480px) and (orientation:portrait){.dfc-funding-grid{grid-template-columns:1fr}.dfc-funding-right{border-inline-start:0;padding-inline-start:0}}
- #dfcPointsResult {position:absolute;inset:12% auto auto 50%;transform:translateX(-50%);width:min(84%,570px);max-height:76%;box-sizing:border-box;overflow:auto;z-index:180;padding:10px;text-align:center;box-shadow:0 8px 25px #0009}
- #dfcPointsResult .dfc-points-prize{display:block;position:relative;container-type:inline-size;width:min(100%,260px);aspect-ratio:3/2;margin:10px auto 4px;padding:0;border:0;border-radius:14px;background:var(--dfc-official-fc-card) center/contain no-repeat;filter:drop-shadow(0 5px 16px #1187f9a8);cursor:pointer}
- #dfcPointsResult .dfc-points-prize:disabled{opacity:1;cursor:default}
- #dfcPointsResult .dfc-points-prize-amount{position:absolute;box-sizing:border-box;left:25%;right:13%;top:48%;height:31%;display:grid;place-items:center;border:2px solid #00e6ff;border-radius:13px;background:radial-gradient(ellipse at 50% 20%,#006acb 0%,#001956 70%);box-shadow:0 0 20px #00d2fa;color:#ffd65d;white-space:nowrap;font-weight:1000;font-size:clamp(12px,10cqi,26px);text-shadow:1px 3px 2px #714300,0 0 10px #f6b843}
- #dfcPointsResult .dfc-points-prize-status{display:block;color:#c3f0ff;text-align:center}
- #dfcPointsResult p{margin:4px 0}
- #dfcPointsResult h2{font-size:1.4em;margin:4px 0 7px}
- #dfcPointsResult .dfc-points-tiles {display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+ :is(#dfcPointsResult,#dfcStandardResult) {position:absolute;inset:12% auto auto 50%;transform:translateX(-50%);width:min(84%,570px);max-height:76%;box-sizing:border-box;overflow:auto;z-index:180;padding:10px;text-align:center;box-shadow:0 8px 25px #0009}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-points-prize{display:block;position:relative;container-type:inline-size;width:min(100%,260px);aspect-ratio:3/2;margin:10px auto 4px;padding:0;border:0;border-radius:14px;background:var(--dfc-official-fc-card) center/contain no-repeat;filter:drop-shadow(0 5px 16px #1187f9a8);cursor:pointer}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-points-prize:disabled{opacity:1;cursor:default}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-points-prize-amount{position:absolute;box-sizing:border-box;left:25%;right:13%;top:48%;height:31%;display:grid;place-items:center;border:2px solid #00e6ff;border-radius:13px;background:radial-gradient(ellipse at 50% 20%,#006acb 0%,#001956 70%);box-shadow:0 0 20px #00d2fa;color:#ffd65d;white-space:nowrap;font-weight:1000;font-size:clamp(12px,10cqi,26px);text-shadow:1px 3px 2px #714300,0 0 10px #f6b843}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-points-prize-status{display:block;color:#c3f0ff;text-align:center}
+ :is(#dfcPointsResult,#dfcStandardResult) p{margin:4px 0}
+ :is(#dfcPointsResult,#dfcStandardResult) h2{font-size:1.4em;margin:4px 0 7px}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-points-tiles {display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
  #dominoTablePanel.active[data-dfc-points-mode] #dominoStage :is(#mf196TranqueOverlay,#dfc012m-tranque-near,#dfc011v-layer,#dfc012j-tranque-coins,#dfc011-last,#mf110WinnerOverlay,#dominoVictory){display:none!important;visibility:hidden!important}
- #dfcPointsResult[data-hand-result]{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(74%,980px);max-height:87%;padding:clamp(9px,2.3vmin,23px) clamp(12px,3.1vmin,30px);border:2px solid #16bfff;border-radius:clamp(13px,2.6vmin,22px);background:linear-gradient(155deg,#092c46,#031624 72%);box-shadow:0 0 19px #079fe867,inset 0 0 20px #0476b734,0 12px 42px #01121dbb;font-size:clamp(10px,2.35vmin,19px);z-index:181}
- #dfcPointsResult[data-hand-result] h2{font-size:clamp(18px,5.7vmin,46px);line-height:1.05;text-align:left;margin:0 0 clamp(6px,1.6vmin,13px);padding-inline-start:.45em;border-inline-start:.2em solid #00c9f2}
- #dfcPointsResult .dfc-hand-result-summary{display:grid;grid-template-columns:1.24fr 1.05fr .75fr;align-items:center;padding:clamp(4px,1.6vmin,14px) 0;min-width:0;border-top:1px solid #4b9ac746}
- #dfcPointsResult .dfc-hand-result-summary>div{min-width:0;padding:0 clamp(4px,1.5vmin,14px)}
- #dfcPointsResult .dfc-hand-result-summary>div:first-child{text-align:left;padding-inline-start:0}
- #dfcPointsResult .dfc-hand-result-summary>div+div{border-inline-start:1px solid #4b9ac77a}
- #dfcPointsResult .dfc-hand-result-summary small{display:block;color:#b8d3e6;font-size:clamp(9px,2.4vmin,20px)}
- #dfcPointsResult .dfc-hand-result-summary strong{display:block;margin-top:2px;font-size:clamp(13px,4.3vmin,40px);line-height:1.15;overflow-wrap:anywhere}
- #dfcPointsResult .dfc-hand-result-summary .dfc-hand-result-gain strong{color:#ffd36c;white-space:nowrap;font-size:clamp(13px,5.1vmin,47px);text-shadow:0 2px 8px #8b451252}
- #dfcPointsResult .dfc-hand-result-summary .dfc-hand-result-score strong{font-size:clamp(13px,3.6vmin,33px);font-variant-numeric:tabular-nums}
- #dfcPointsResult .dfc-hand-result-badge{display:inline-block;color:#ffe086;border:1px solid #eab854;border-radius:12px;padding:.1em .45em;font-size:.78em;vertical-align:middle;white-space:nowrap}
- #dfcPointsResult .dfc-hand-result-tally{font-variant-numeric:tabular-nums;color:#bad3e6}
- #dfcPointsResult .dfc-hand-result-details .dfc-hand-result-player-score{color:#fff;font-variant-numeric:tabular-nums}
- #dfcPointsResult .dfc-hand-result-details [data-winner] .dfc-hand-result-player-score{color:#ffe086}
- #dfcPointsResult .dfc-hand-result-progress{appearance:none;display:block;width:100%;height:clamp(5px,1.35vmin,11px);margin:2px 0 0;overflow:hidden;border:0;border-radius:999px;background:#22394e;color:#00d2e9}
- #dfcPointsResult .dfc-hand-result-progress::-webkit-progress-bar{background:#22394e}
- #dfcPointsResult .dfc-hand-result-progress::-webkit-progress-value{background:linear-gradient(90deg,#05b9fb,#00ddec);border-radius:999px}
- #dfcPointsResult .dfc-hand-result-progress::-moz-progress-bar{background:#00cbee;border-radius:999px}
- #dfcPointsResult .dfc-hand-result-details{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,86px),1fr));gap:5px;margin-top:clamp(7px,2vmin,16px);padding-top:clamp(6px,1.8vmin,15px);border-top:1px solid #4b9ac77a}
- #dfcPointsResult .dfc-hand-result-details>div{min-width:0;padding:0 4px}
- #dfcPointsResult .dfc-hand-result-details>div+div{border-inline-start:1px solid #4b9ac756}
- #dfcPointsResult .dfc-hand-result-details p{margin:0 0 2px;overflow-wrap:anywhere;color:#bad3e6}
- #dfcPointsResult .dfc-hand-result-details strong{color:#fff}
- #dfcPointsResult .dfc-hand-result-details .dfc-points-tiles{margin-top:clamp(5px,1.3vmin,12px)}
- #dominoTablePanel #dfcPointsResult .dfc-hand-result-tile.hand-piece{width:clamp(20px,5.8vmin,46px)!important;height:clamp(35px,10.3vmin,82px)!important;border-radius:6px!important;background:#f8f5ec!important;border:1px solid #aec3d9!important;box-shadow:0 4px 8px #0009!important;opacity:1!important;filter:none!important;pointer-events:none}
- #dfcPointsResult .dfc-hand-result-tile.hand-piece .domino-pip{width:clamp(2px,.78vmin,6px)!important;height:clamp(2px,.78vmin,6px)!important}
- #dfcPointsResult[data-match-victory]{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(92%,980px);max-height:90%;padding:clamp(10px,3vmin,28px);border:2px solid #16bfff;border-radius:20px;background:radial-gradient(ellipse at 90% 12%,#11417d,#06152d 68%);}
- #dfcPointsResult[data-match-victory] h2{color:#ffda78;font-size:clamp(21px,6vmin,52px);margin:0;line-height:1.05}
- #dfcPointsResult .dfc-victory-winner{font-size:clamp(16px,4.2vmin,34px);color:#eef7ff;overflow-wrap:anywhere}
- #dfcPointsResult .dfc-victory-trophy{display:block;margin:0 auto 4px;font-size:clamp(26px,8vmin,62px);line-height:1.1;animation:dfc-victory-bounce .7s ease-out both}
- #dfcPointsResult .dfc-victory-grid,#dfcPointsResult .dfc-victory-standings,#dfcPointsResult .dfc-victory-continue{position:relative;z-index:1}
- #dfcPointsResult .dfc-victory-standings{margin:8px 0;font-size:clamp(12px,3vmin,20px)}
- #dfcPointsResult .dfc-victory-standings h3{margin:2px 0 6px}
- #dfcPointsResult .dfc-victory-standings ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,215px),1fr));gap:6px;list-style:none;margin:0;padding:0;text-align:left}
- #dfcPointsResult .dfc-victory-standings li{display:flex;align-items:center;gap:7px;padding:5px 8px;border:1px solid #2876a0;border-radius:10px;background:#0b2544;color:#fff}
- #dfcPointsResult .dfc-victory-standings li[data-champion]{border-color:#e7b950;color:#ffe69a}
- #dfcPointsResult .dfc-victory-avatar{display:grid;place-items:center;flex:0 0 auto;width:clamp(26px,7vmin,50px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#205783;color:white}
- #dfcPointsResult .dfc-winner-identity{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
- #dfcPointsResult .dfc-hand-result-summary .dfc-winner-identity{justify-content:flex-start}
- #dfcPointsResult .dfc-victory-avatar img{width:100%;height:100%;object-fit:cover}
- #dfcPointsResult .dfc-victory-place{white-space:nowrap;color:#ffdf81;font-weight:800}
- #dfcPointsResult .dfc-victory-player{flex:1;min-width:0;overflow-wrap:anywhere}
- #dfcPointsResult .dfc-victory-player small{display:block;color:#cae9fd}
- #dfcPointsResult .dfc-victory-continue{display:block;margin:8px auto 0;min-height:36px;padding:5px 26px;font-size:clamp(13px,3.4vmin,21px)}
+ :is(#dfcPointsResult,#dfcStandardResult)[data-hand-result]{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(74%,980px);max-height:87%;padding:clamp(9px,2.3vmin,23px) clamp(12px,3.1vmin,30px);border:2px solid #16bfff;border-radius:clamp(13px,2.6vmin,22px);background:linear-gradient(155deg,#092c46,#031624 72%);box-shadow:0 0 19px #079fe867,inset 0 0 20px #0476b734,0 12px 42px #01121dbb;font-size:clamp(10px,2.35vmin,19px);z-index:181}
+ :is(#dfcPointsResult,#dfcStandardResult)[data-hand-result] h2{font-size:clamp(18px,5.7vmin,46px);line-height:1.05;text-align:left;margin:0 0 clamp(6px,1.6vmin,13px);padding-inline-start:.45em;border-inline-start:.2em solid #00c9f2}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary{display:grid;grid-template-columns:1.24fr 1.05fr .75fr;align-items:center;padding:clamp(4px,1.6vmin,14px) 0;min-width:0;border-top:1px solid #4b9ac746}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary>div{min-width:0;padding:0 clamp(4px,1.5vmin,14px)}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary>div:first-child{text-align:left;padding-inline-start:0}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary>div+div{border-inline-start:1px solid #4b9ac77a}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary small{display:block;color:#b8d3e6;font-size:clamp(9px,2.4vmin,20px)}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary strong{display:block;margin-top:2px;font-size:clamp(13px,4.3vmin,40px);line-height:1.15;overflow-wrap:anywhere}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary .dfc-hand-result-gain strong{color:#ffd36c;white-space:nowrap;font-size:clamp(13px,5.1vmin,47px);text-shadow:0 2px 8px #8b451252}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary .dfc-hand-result-score strong{font-size:clamp(13px,3.6vmin,33px);font-variant-numeric:tabular-nums}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-badge{display:inline-block;color:#ffe086;border:1px solid #eab854;border-radius:12px;padding:.1em .45em;font-size:.78em;vertical-align:middle;white-space:nowrap}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-tally{font-variant-numeric:tabular-nums;color:#bad3e6}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-details .dfc-hand-result-player-score{color:#fff;font-variant-numeric:tabular-nums}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-details [data-winner] .dfc-hand-result-player-score{color:#ffe086}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-progress{appearance:none;display:block;width:100%;height:clamp(5px,1.35vmin,11px);margin:2px 0 0;overflow:hidden;border:0;border-radius:999px;background:#22394e;color:#00d2e9}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-progress::-webkit-progress-bar{background:#22394e}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-progress::-webkit-progress-value{background:linear-gradient(90deg,#05b9fb,#00ddec);border-radius:999px}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-progress::-moz-progress-bar{background:#00cbee;border-radius:999px}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-details{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,86px),1fr));gap:5px;margin-top:clamp(7px,2vmin,16px);padding-top:clamp(6px,1.8vmin,15px);border-top:1px solid #4b9ac77a}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-details>div{min-width:0;padding:0 4px}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-details>div+div{border-inline-start:1px solid #4b9ac756}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-details p{margin:0 0 2px;overflow-wrap:anywhere;color:#bad3e6}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-details strong{color:#fff}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-details .dfc-points-tiles{margin-top:clamp(5px,1.3vmin,12px)}
+ #dominoTablePanel :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-tile.hand-piece{width:clamp(20px,5.8vmin,46px)!important;height:clamp(35px,10.3vmin,82px)!important;border-radius:6px!important;background:#f8f5ec!important;border:1px solid #aec3d9!important;box-shadow:0 4px 8px #0009!important;opacity:1!important;filter:none!important;pointer-events:none}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-tile.hand-piece .domino-pip{width:clamp(2px,.78vmin,6px)!important;height:clamp(2px,.78vmin,6px)!important}
+ :is(#dfcPointsResult,#dfcStandardResult)[data-match-victory]{inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(92%,980px);max-height:90%;padding:clamp(10px,3vmin,28px);border:2px solid #16bfff;border-radius:20px;background:radial-gradient(ellipse at 90% 12%,#11417d,#06152d 68%);}
+ :is(#dfcPointsResult,#dfcStandardResult)[data-match-victory] h2{color:#ffda78;font-size:clamp(21px,6vmin,52px);margin:0;line-height:1.05}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-winner{font-size:clamp(16px,4.2vmin,34px);color:#eef7ff;overflow-wrap:anywhere}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-trophy{display:block;margin:0 auto 4px;font-size:clamp(26px,8vmin,62px);line-height:1.1;animation:dfc-victory-bounce .7s ease-out both}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-grid,:is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-standings,:is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-continue{position:relative;z-index:1}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-standings{margin:8px 0;font-size:clamp(12px,3vmin,20px)}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-standings h3{margin:2px 0 6px}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-standings ol{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,215px),1fr));gap:6px;list-style:none;margin:0;padding:0;text-align:left}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-standings li{display:flex;align-items:center;gap:7px;padding:5px 8px;border:1px solid #2876a0;border-radius:10px;background:#0b2544;color:#fff}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-standings li[data-champion]{border-color:#e7b950;color:#ffe69a}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-avatar{display:grid;place-items:center;flex:0 0 auto;width:clamp(26px,7vmin,50px);aspect-ratio:1;border-radius:50%;overflow:hidden;background:#205783;color:white}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-winner-identity{display:flex;align-items:center;justify-content:center;gap:8px;min-width:0}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary .dfc-winner-identity{justify-content:flex-start}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-avatar img{width:100%;height:100%;object-fit:cover}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-place{white-space:nowrap;color:#ffdf81;font-weight:800}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-player{flex:1;min-width:0;overflow-wrap:anywhere}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-player small{display:block;color:#cae9fd}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-continue{display:block;margin:8px auto 0;min-height:36px;padding:5px 26px;font-size:clamp(13px,3.4vmin,21px)}
  .dfc-victory-confetti,.dfc-victory-confetti span,.dfc-victory-flying-coin{pointer-events:none}
  .dfc-victory-confetti{position:absolute;inset:0;overflow:hidden}
  .dfc-victory-confetti span{position:absolute;top:6%;width:6px;height:9px;border-radius:1px}
  .dfc-victory-flying-coin{position:fixed;z-index:2147483000;font-size:21px;color:#ffda74;filter:drop-shadow(0 0 5px #ffad35)}
  @keyframes dfc-victory-bounce{0%,78%,100%{transform:translateY(0)} 48%{transform:translateY(-9px) rotate(-5deg)}}
- @media(prefers-reduced-motion:reduce){#dfcPointsResult .dfc-victory-trophy{animation:none}}
- #dfcPointsResult .dfc-victory-grid{display:grid;grid-template-columns:1.4fr 1fr;align-items:center;gap:clamp(6px,2vmin,18px);margin:8px 0}
- #dfcPointsResult .dfc-victory-facts{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:8px;border:1px solid #17a8da;border-radius:12px}
- #dfcPointsResult .dfc-victory-stats{min-width:0;margin:0}
- #dfcPointsResult .dfc-victory-stat{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:5px 0;text-align:left}
- #dfcPointsResult .dfc-victory-stat+.dfc-victory-stat{border-top:1px solid #4b9ac746}
- #dfcPointsResult .dfc-victory-stat dd{margin:0;color:#ffdb7c;text-align:right;white-space:nowrap}
- #dfcPointsResult .dfc-victory-facts .dfc-points-tiles{margin-top:5px}
- #dfcPointsResult .dfc-victory-facts:not(:has(.dfc-points-tiles)){grid-template-columns:1fr}
- #dfcPointsResult .dfc-victory-grid:not(:has(.dfc-victory-prize)){grid-template-columns:1fr}
- #dfcPointsResult .dfc-victory-prize{min-width:0}
- #dfcPointsResult .dfc-victory-prize .dfc-points-prize{width:min(100%,clamp(105px,40vmin,260px));margin:0 auto 4px}
- @media(max-height:480px){#dfcPointsResult[data-hand-result]{width:min(82%,980px)}}
- @media(max-width:440px) and (orientation:portrait){#dfcPointsResult[data-hand-result]{width:94%} #dfcPointsResult .dfc-hand-result-summary{grid-template-columns:1.16fr .94fr .76fr}}
- @media(max-width:440px) and (orientation:portrait){#dfcPointsResult .dfc-victory-grid{grid-template-columns:1fr}}
+ @media(prefers-reduced-motion:reduce){:is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-trophy{animation:none}}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-grid{display:grid;grid-template-columns:1.4fr 1fr;align-items:center;gap:clamp(6px,2vmin,18px);margin:8px 0}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-facts{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;padding:8px;border:1px solid #17a8da;border-radius:12px}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-stats{min-width:0;margin:0}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-stat{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:5px 0;text-align:left}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-stat+.dfc-victory-stat{border-top:1px solid #4b9ac746}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-stat dd{margin:0;color:#ffdb7c;text-align:right;white-space:nowrap}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-facts .dfc-points-tiles{margin-top:5px}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-facts:not(:has(.dfc-points-tiles)){grid-template-columns:1fr}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-grid:not(:has(.dfc-victory-prize)){grid-template-columns:1fr}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-prize{min-width:0}
+ :is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-prize .dfc-points-prize{width:min(100%,clamp(105px,40vmin,260px));margin:0 auto 4px}
+ @media(max-height:480px){:is(#dfcPointsResult,#dfcStandardResult)[data-hand-result]{width:min(82%,980px)}}
+ @media(max-width:440px) and (orientation:portrait){:is(#dfcPointsResult,#dfcStandardResult)[data-hand-result]{width:94%} :is(#dfcPointsResult,#dfcStandardResult) .dfc-hand-result-summary{grid-template-columns:1.16fr .94fr .76fr}}
+ @media(max-width:440px) and (orientation:portrait){:is(#dfcPointsResult,#dfcStandardResult) .dfc-victory-grid{grid-template-columns:1fr}}
 
  .dfc-point-coin {position:fixed;pointer-events:none;z-index:2147483646;color:#503100;background:radial-gradient(circle at 35% 26%,#fff5a3,#efb338 55%,#c58319);border:2px solid #ffdf79;border-radius:50%;width:25px;height:25px;display:grid;place-items:center;font:900 11px system-ui}
  `;
@@ -2308,6 +2514,17 @@
  const result=document.createElement('section');
  result.id='dfcPointsResult';result.hidden=true;result.setAttribute('role','region');result.setAttribute('aria-label','Resultado de mano');
  stage.append(result);
+ const standardResult=document.createElement('section');
+ standardResult.id='dfcStandardResult';standardResult.hidden=true;
+ standardResult.setAttribute('data-hand-result','');standardResult.setAttribute('role','region');
+ standardResult.setAttribute('aria-label','Resultado de mano');
+ stage.append(standardResult);
+ new MutationObserver(()=>{
+   if(!panel.classList.contains('active')){
+     standardResult.hidden=true;
+     delete standardResult.dataset.handKey;
+   }
+ }).observe(panel,{attributes:true,attributeFilter:['class']});
  const replay=document.createElement('div');
  replay.id='dfcPointsReplay';replay.hidden=true;
  replay.setAttribute('role','region');replay.setAttribute('aria-label','Nuevo aporte');
@@ -2550,11 +2767,10 @@
  },200);
  let table=0,epoch=0,pending=false,retryAfter=0,last=null;
  let shown='',observedClosure='',closureRefreshQueued=false;
- const panelDuration=10000;
- let handResultUntil=0;
+ const panelDuration=15000;
+ let handResultTimer=0, closeHandResult=null;
  let dismissedVictory='',replaySoundMatch='';
  const panelNotes={
-   trancazo:[392,523,659],
    victory:[523,659,784,1047],
    replay:[587,784]
  };
@@ -2568,7 +2784,8 @@
    delete panel.dataset.dfcPointsPlaying;
    delete panel.dataset.dfcPointsReplay;
    delete panel.dataset.dfcPointsMode;
-   handResultUntil=0;
+   clearTimeout(handResultTimer);
+   closeHandResult=null;
    dismissedVictory='';replaySoundMatch='';
    result.removeAttribute('data-hand-result');
    result.removeAttribute('data-match-victory');
@@ -2633,27 +2850,47 @@
    retryAfter=0;
    void update();
  }
- function addPanelClose(data,phase,handId){
+ function addPanelClose(data,handId,duration){
    const button=text('button','Cerrar');
+   const status=text('p','');
+   status.setAttribute('role','status');
    button.type='button';
    button.className='dfc-panel-close';
-   button.onclick=async()=>{
-     if(button.disabled||last?.match_id!==data.match_id)return;
+   const close=async automatic=>{
+     if(button.disabled||last?.match_id!==data.match_id||closeHandResult!==close)return;
      button.disabled=true;
-     result.hidden=true;
+     clearTimeout(handResultTimer);
      const token=epoch;
+     if(automatic)result.hidden=true;
+     if(data.state!=='settled'){
+       result.hidden=true;
+       await window.dfcZ32UniversalGiftAnnouncement?.finishHand(table,handId);
+     }
+     if(token!==epoch||last?.match_id!==data.match_id)return;
      try{
        const client=window.sb||window.dfcSupabase;
-       const {error}=await client.rpc('dfc_points_close_panel',{
-         p_match_id:data.match_id,p_hand_id:handId,p_phase:phase
+       const {data:accepted,error}=await client.rpc('dfc_points_close_panel',{
+         p_match_id:data.match_id,p_hand_id:handId,p_phase:'hand'
        });
-       if(error)console.warn('Cierre del panel Por puntos:',error.message);
+       if(error||!accepted)throw Error(error?.message||'No se pudo cerrar el importe.');
+       result.hidden=true;
+       closeHandResult=null;
      }catch(error){
-       console.warn('Cierre del panel Por puntos:',error.message);
+       if(token!==epoch||last?.match_id!==data.match_id)return;
+       closeHandResult=null;
+       if(!automatic){
+         status.textContent=error.message+' Intenta de nuevo.';
+         button.disabled=false;
+         result.hidden=false;
+         closeHandResult=close;
+       }
      }finally{
        if(token===epoch&&current()===table)refreshAfterClose();
      }
    };
+   closeHandResult=close;
+   button.onclick=()=>void close(false);
+   handResultTimer=setTimeout(()=>void close(true),duration);
  }
  function celebrateVictory(){
    if(reduce())return;
@@ -2673,27 +2910,6 @@
      ],{duration:750+i%5*100,delay:i%7*30});
    }
    setTimeout(()=>layer.remove(),1500);
- }
- function flyVictoryPrize(card){
-   if(reduce())return;
-   const start=card.getBoundingClientRect();
-   const target=['dominoGlobalBalance','balanceTop'].map(id=>document.getElementById(id)).find(el=>el?.getClientRects().length);
-   if(!target||!start.width)return;
-   const end=target.getBoundingClientRect();
-   const left=start.left+start.width/2,top=start.top+start.height/2;
-   for(let i=0;i<6;i++){
-     const coin=text('span','🪙',document.body);
-     coin.className='dfc-victory-flying-coin';
-     coin.setAttribute('aria-hidden','true');
-     coin.style.left=left+'px';coin.style.top=top+'px';
-     const dx=end.left+end.width/2-left,dy=end.top+end.height/2-top;
-     const flight=coin.animate([
-       {transform:'scale(.65)',opacity:0},
-       {transform:'translate('+((i-2.5)*13)+'px,-28px) scale(1)',opacity:1,offset:.24},
-       {transform:'translate('+dx+'px,'+dy+'px) scale(.3)',opacity:0}
-     ],{duration:630,delay:i*45,easing:'ease-in-out'});
-     void flight.finished.then(()=>coin.remove(),()=>coin.remove());
-   }
  }
  function resultAvatar(player,root){
    const avatar=text('span','',root);
@@ -2748,6 +2964,76 @@
      row.append(piece);
    }
  }
+ function showStandardHandResult(state,kind,wait){
+   const hand=state.last_result;
+   const tableId=current();
+   const winner=state.seats?.find(seat=>String(seat.user_id)===String(hand.winner_user_id));
+   const name=winner?.full_name||winner?.name||hand.winner_name||'Jugador ganador';
+   const title=kind==='capicua'?'Capicúa':kind==='trancazo'?'Tranque':'Dominó';
+   const amount=Math.max(0,Number(hand.pot)-Number(hand.commission||0));
+   const share=Number(hand.player_count)===4?Math.round(amount*500)/1000:amount;
+   const resultKey=tableId+':'+hand.id;
+   standardResult.dataset.handKey=resultKey;
+   let remaining=null, verifiedAmount=null;
+   if(kind==='trancazo'){
+     const client=window.sb||window.dfcSupabase;
+     if(client&&!window.dominoSpectatorMode)void client.rpc('rf_domino_tranque_user_award_v16',{p_hand_id:Number(hand.id)})
+       .then(({data,error})=>{if(!error&&Number(data?.amount)>0)verifiedAmount=Number(data.amount);}).catch(()=>{});
+     if(client)void client.rpc('rf_domino_tranque_reveal_v196',{p_table_id:tableId})
+       .then(({data,error})=>{
+         if(error||String(data?.hand_id)!==String(hand.id)||current()!==tableId)return;
+         remaining=data.players;
+         window.dfcClosingPreview?.showRemaining(hand.id,remaining);
+       }).catch(()=>{});
+   }
+   function display(details=false){
+     if(current()!==tableId||standardResult.dataset.handKey!==resultKey||
+        panel.hasAttribute('data-dfc-points-mode'))return;
+     standardResult.replaceChildren();
+     text('h2',title,standardResult);
+     const summary=text('div','',standardResult);
+     summary.className='dfc-hand-result-summary';
+     const identity=text('div','',summary);
+     identity.className='dfc-winner-identity';
+     resultAvatar({name,seat:winner?.seat_no,avatar:winner?.avatar_url,mine:state.me===hand.winner_user_id},identity);
+     text('strong',name+' ganó la mano',identity);
+     const shownAward=kind==='trancazo'?verifiedAmount:share;
+     if(Number.isFinite(shownAward)){
+       const gain=text('div','',summary);
+       gain.className='dfc-hand-result-gain';
+       const label=kind==='trancazo'?'Tu premio':Number(hand.player_count)===4?'Premio por jugador de la pareja':'Premio de la mano';
+       text('small',label,gain);
+       text('strong',money.format(shownAward)+' FC',gain);
+     }
+     if(details){
+       const detail=text('div','',standardResult);
+       detail.className='dfc-hand-result-details';
+       for(const player of remaining){
+         const seat=text('div','',detail);
+         const name=player.full_name||player.name||'Jugador';
+         resultAvatar({name,avatar:player.avatar_url},seat);
+         text('strong',name,seat);
+         text('p',format.format(player.points)+' puntos',seat);
+         resultTiles(player.tiles,seat);
+       }
+     }
+     const button=text('button','Cerrar',standardResult);
+     button.type='button';button.className='dfc-panel-close';
+     let timer;
+     function close(){
+       if(current()!==tableId||standardResult.dataset.handKey!==resultKey)return;
+       clearTimeout(timer);
+       if(!details&&remaining?.length){display(true);return;}
+       standardResult.hidden=true;
+       void window.dfcZ32UniversalGiftAnnouncement?.finishHand(tableId,hand.id);
+     }
+     button.onclick=close;
+     standardResult.scrollTop=0;standardResult.hidden=false;
+     timer=setTimeout(close,details?8000:remaining?.length?5000:7000);
+   }
+   setTimeout(display,wait);
+ }
+ window.dfcShowStandardHandResult=showStandardHandResult;
  function showHand(data,hand,winner){
    result.replaceChildren();
    result.removeAttribute('data-match-victory');
@@ -2818,15 +3104,9 @@
      text('p',label+scoreLine(entry,receivesPoints?awarded:0),holder).className='dfc-hand-result-player-score';
      resultTiles(row?.tiles,holder);
    }
-   const settled=Date.parse(hand.settled_at);
-   handResultUntil=Number.isFinite(settled)?settled+panelDuration-replayOffset:Date.now()+panelDuration;
-   addPanelClose(data,'hand',String(hand.id));
+   addPanelClose(data,String(hand.id),data.state==='settled'?5000:8000);
    result.scrollTop=0;
    result.hidden=false;
-   if(hand.kind==='trancazo')playPanelSound('trancazo');
-   if(hand.kind==='capicua'&&window.dfc012lAudioPrefs?.().celebration!==false){
-     void window.dfc012uPlay?.('capicua',table+':win:'+hand.id);
-   }
  }
  function showVictory(data,hand,champions){
    result.hidden=true;
@@ -2863,38 +3143,6 @@
      text('small','Ficha de cierre',tile);
      resultTiles([hand.deciding_tile],tile);
    }
-   if(data.my_prize){
-     const prize=data.my_prize;
-     const reward=text('div','',grid);
-     reward.className='dfc-victory-prize';
-     const card=text('button','',reward);
-     card.type='button';card.className='dfc-points-prize';
-     const amount='$'+money.format(prize.amount);
-     text('strong',amount,card).className='dfc-points-prize-amount';
-     card.setAttribute('aria-label','Tarjeta FlashCoin '+amount);
-     text('p','Premio por partida',reward);
-     const status=text('small',prize.redeemed?'Tarjeta acreditada':'Toca para acreditar al saldo principal',reward);
-     status.className='dfc-points-prize-status';
-     status.setAttribute('role','status');
-     card.disabled=prize.redeemed;
-     card.onclick=async()=>{
-       card.disabled=true;
-       try{
-         const client=window.sb||window.dfcSupabase;
-         const {data:claim,error}=await client.rpc('dfc_lab_gift_redeem_v008',{p_gift_id:prize.id});
-         if(error||!(claim?.ok||claim?.already_redeemed))throw Error(error?.message||claim?.message||'No se pudo acreditar.');
-         prize.redeemed=true;
-         if(claim.ok && claim.balance_after != null){
-           document.dispatchEvent(new CustomEvent('dfc:giftRedeemed',{detail:{balance:claim.balance_after}}));
-           const balance=document.getElementById('dominoGlobalBalance');
-           const main=document.getElementById('balanceTop');
-           if(balance&&main)balance.textContent=main.textContent;
-           flyVictoryPrize(card);
-         }
-         status.textContent='Acreditada al saldo principal';
-       }catch(error){status.textContent=error.message;card.disabled=false;}
-     };
-   }
    showVictoryStandings(data,champions);
    const status=text('p','');
    status.setAttribute('role','status');
@@ -2906,6 +3154,9 @@
      next.disabled=true;status.textContent='';
      const token=epoch;
      try{
+       result.hidden=true;
+       await window.dfcZ32UniversalGiftAnnouncement?.finishHand(table,hand?.id,data.my_prize?.redeemed?null:data.my_prize?.id);
+       if(token!==epoch||last?.match_id!==data.match_id)return;
        const client=window.sb||window.dfcSupabase;
        const {data:accepted,error}=await client.rpc('dfc_points_close_panel',{
          p_match_id:data.match_id,p_hand_id:0,p_phase:'victory'
@@ -2916,6 +3167,8 @@
        result.hidden=true;
        refreshAfterClose();
      }catch(error){
+       if(token!==epoch||last?.match_id!==data.match_id)return;
+       result.hidden=false;
        status.textContent=error.message;
        next.disabled=false;
      }
@@ -2932,10 +3185,7 @@
  function drawConclusion(){
    if(window.dominoSpectatorMode){result.hidden=true;return;}
    const settled=Date.parse(last.match_settled_at);
-   if(last.state!=='settled'||!Number.isFinite(settled)){
-     if(handResultUntil&&Date.now()>=handResultUntil)result.hidden=true;
-     return;
-   }
+   if(last.state!=='settled'||!Number.isFinite(settled)||closeHandResult)return;
    const victoryStarts=victoryOpens(last);
    const replayOpens=Date.parse(replayState?.replay_opens);
    const victoryEnds=Number.isFinite(replayOpens)?replayOpens:victoryStarts+panelDuration;
@@ -3005,7 +3255,8 @@
        return;
      }
      if(last&&last.match_id!==data.match_id){
-       shown='';replayError='';handResultUntil=0;
+       shown='';replayError='';
+       clearTimeout(handResultTimer);closeHandResult=null;
        result.hidden=true;
        result.removeAttribute('data-match-victory');
        resetFunding();
@@ -3023,26 +3274,40 @@
      const hand=data.last_hand;
      const now=Date.now()+replayOffset;
      const settledAt=Date.parse(hand?.settled_at);
-     const freshClosure=now-settledAt<panelDuration-3000;
-     if(hand?.kind==='domino'&&!hand.closed&&freshClosure&&data.victory_closed!==true){
-       window.dfcClosingPreview?.show(hand.id,hand.deciding_tile,'domino');
+     const freshClosure=now-settledAt<panelDuration-9000;
+     if(hand?.id&&freshClosure&&data.victory_closed!==true){
+       window.dfcZ32UniversalGiftAnnouncement?.beginHand(id,{id:hand.id,settled_at:hand.settled_at});
+       if(!hand.closed){
+         const remaining=hand.remaining?.map(row=>({...row,name:data.players.find(player=>player.seat===row.seat)?.name}));
+         const preview=window.dfcClosingPreview;
+         if(preview&&shown!==String(hand.id)){
+           const state=typeof dominoState==='undefined'?null:dominoState;
+           const source=await preview.loadFrame(state,hand.id,hand.kind);
+           if(token!==epoch||current()!==id)return;
+           if(source)preview.show(hand.id,hand.deciding_tile,hand.kind,source,remaining);
+         }
+         if(hand.kind==='trancazo')preview?.showRemaining(hand.id,remaining);
+       }
      }
      drawConclusion();
      drawReplay();
      drawTopup();
-     if(data.state==='settled'&&Date.now()+replayOffset>=victoryOpens(data))return;
+     if(data.state==='settled'&&result.hasAttribute('data-match-victory'))return;
      if(!hand||window.dominoSpectatorMode){result.hidden=true;return;}
      const handId=String(hand.id);
      // Una lectura en curso puede contener todavía el resultado de la mano anterior.
      if(observedClosure&&BigInt(handId)<BigInt(observedClosure))return;
-     if(hand.closed){shown=handId;result.hidden=true;return;}
+     if(hand.closed){
+       if(shown===handId&&closeHandResult){clearTimeout(handResultTimer);closeHandResult=null;}
+       shown=handId;result.hidden=true;return;
+     }
      const live=typeof dominoState==='undefined'?null:dominoState?.hand;
      if(data.state!=='settled'&&live?.id&&['shuffling','playing'].includes(live.status)&&BigInt(live.id)>BigInt(handId)){
        shown=handId;
        result.hidden=true;
        return;
      }
-     if(handId===shown||window.dfcClosingPreview?.delay(handId)>0)return;
+     if(handId===shown||window.dfcClosingPreview?.delay(handId)>0||closeHandResult)return;
      const winner=data.players.find(player=>player.seat===hand.seat);
      if(!winner)return;
      shown=handId;
