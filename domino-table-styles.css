@@ -437,7 +437,7 @@
   }
 }
 
-/* Una sola imagen cubre toda la ventana. El tablero conserva el área segura. */
+/* El mismo fondo cubre el escenario y continúa hasta el borde de la ventana. */
 #dominoTablePanel.overlay:has(#dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))) {
   position: fixed !important;
   inset: 0 !important;
@@ -445,14 +445,17 @@
   height: 100dvh !important;
   max-height: none !important;
   padding: 0 !important;
-  background:
-    url("./images2/mesa-azul-salon-puntos.webp") center 30% / cover no-repeat,
-    #07162d url("./images2/mesa-azul-salon.webp") center / cover no-repeat !important;
+  --dfc-points-scene-size: cover;
+  --dfc-points-scene:
+    url("./images2/mesa-azul-salon-puntos.webp") center 30% / var(--dfc-points-scene-size) no-repeat,
+    url("./images2/mesa-azul-salon.webp") center / cover no-repeat,
+    radial-gradient(ellipse at 50% 44%, #173766 0%, #08172e 77%) #10264a;
+  background: var(--dfc-points-scene) !important;
 }
 
 @media (orientation: landscape) {
   #dominoTablePanel.overlay:has(#dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))) {
-    background-size: max(100%, 294dvh) auto, cover !important;
+    --dfc-points-scene-size: max(100%, 294dvh) auto;
   }
 }
 
@@ -467,6 +470,21 @@
   max-height: none !important;
   background: transparent !important;
   box-shadow: none !important;
+}
+
+/* Dibuja el fondo dentro del tablero, por encima de los fondos heredados.
+   Amplía la misma imagen hasta el área segura para que no se vea un corte. */
+#dominoTablePanel.overlay #dominoStage.domino-stage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: calc(-1 * env(safe-area-inset-top)) calc(-1 * env(safe-area-inset-right))
+    calc(-1 * env(safe-area-inset-bottom)) calc(-1 * env(safe-area-inset-left)) !important;
+  background: var(--dfc-points-scene, #14315a) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
 }
 
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dfcNavyTableArt {
