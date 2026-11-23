@@ -7,7 +7,7 @@
   pointer-events: none;
 }
 
-#dominoStage[data-table-style]:not([data-table-style="navy-gold"]) {
+#dominoStage:where([data-table-style]:not([data-table-style="navy-gold"])) {
   --dfc-style-frame: #151f32;
   --dfc-style-rim: #70849d;
   --dfc-style-light: #84bdfb;
