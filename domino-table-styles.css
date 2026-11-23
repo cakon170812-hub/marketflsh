@@ -459,13 +459,13 @@
 }
 
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoBoard {
-  top: 35% !important;
+  top: 36% !important;
   width: 58% !important;
-  height: 21% !important;
+  height: 22% !important;
 }
 
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoHand {
-  --dfc-points-hand-height: min(clamp(26px, 13cqh, 90px), 13cqw);
+  --dfc-points-hand-height: min(clamp(24px, 11.4cqh, 78px), 13cqw);
   --dfc-points-hand-gap: clamp(2px, .48cqw, 8px);
   top: 60.5% !important;
   width: min(76%, calc(3.92 * var(--dfc-points-hand-height) + 6 * var(--dfc-points-hand-gap))) !important;
@@ -479,8 +479,8 @@
   max-width: calc((100% - 6 * var(--dfc-points-hand-gap)) / 7) !important;
   height: 100% !important;
   max-height: 100% !important;
-  background: linear-gradient(150deg, #fffdf5, #f5e9cf 58%, #e3cdaa) !important;
-  border-color: #c8b38c !important;
+  rotate: x -8deg;
+  transform-origin: center bottom;
 }
 
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoSeats .domino-seat.s1 {
@@ -499,3 +499,35 @@
   text-align: center;
 }
 
+/* La tira conserva sus uniones: la inclinación se aplica al recorrido completo. */
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoBoard .domino-board-path {
+  rotate: x 13deg;
+  scale: 1 !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) :is(#dominoHand .hand-piece, #dominoBoard .board-piece) {
+  background: linear-gradient(155deg, #fffdf3, #f3e7cd 58%, #e3cda7) !important;
+  border-color: #bba47d !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) :is(#dominoHand .hand-piece, #dominoBoard .board-piece) .domino-pip {
+  background: radial-gradient(circle at 35% 28%, #36302b, #15110e 56%, #090807) !important;
+  box-shadow: inset 0 1px 1px #0009 !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoBoard .board-piece {
+  box-shadow: inset 0 1px 0 #fff9, 0 1px 1px #000b, 0 2px 3px #02071470 !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoHand .hand-piece:not(.reorder-dragging) {
+  box-shadow: inset 0 1px 1px #fff, inset 0 -2px 0 #a5784b63, 0 2px 1px #06070ab0, 0 3px 6px #02050b91 !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoHand .hand-piece:is(:active, :focus-visible, .reorder-dragging) {
+  box-shadow: inset 0 1px 1px #fff, 0 0 0 1px #f2cc7d, 0 3px 8px #ffc76f55, 0 5px 8px #02050b9c !important;
+}
+
+#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) .dfc-real-rack .dfc-standing-back {
+  background: linear-gradient(135deg, #fff5dd, #dfc49d 78%, #b08964) !important;
+  box-shadow: inset 1px 1px 0 #fff9, 0 1px 2px #090703ad !important;
+}
