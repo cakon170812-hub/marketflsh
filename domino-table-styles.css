@@ -445,17 +445,26 @@
     #160e0a url("./images2/mesa-azul-salon.webp") center / 100% 100% no-repeat !important;
 }
 
-#dominoTablePanel.overlay:has(#dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))) > .panel.domino-game-panel,
-#dominoTablePanel.overlay #dominoStage.domino-stage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) {
+#dominoTablePanel.overlay:has(#dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))) > .panel.domino-game-panel {
   background: transparent !important;
 }
 
 #dominoTablePanel.overlay #dominoStage.domino-stage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) {
   max-height: none !important;
+  background: radial-gradient(ellipse at 45% 48%, #143971, #07162d 80%) !important;
 }
 
-#dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dfcNavyTableArt {
-  visibility: hidden;
+/* Dibujar el salón dentro del tablero. La imagen original sigue debajo como respaldo. */
+#dominoTablePanel.overlay #dominoStage.domino-stage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot]))::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  background: url("./images2/mesa-azul-salon-puntos.webp") center / 100% 100% no-repeat !important;
+  box-shadow: none !important;
 }
 
 #dominoTablePanel #dominoStage[data-table-room]:is(.dfc012n-points-mode, :has([data-dfc-points-pot])) #dominoBoard {
