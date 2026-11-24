@@ -426,6 +426,14 @@
   const style=document.createElement('style');
   style.textContent=`
     #dominoStage #dfcClosingBoard{z-index:24500!important;pointer-events:none!important;visibility:visible!important}
+    .dfc-domino-diamond-burst{position:fixed;inset:0;z-index:2147483000;pointer-events:none;overflow:hidden}
+    .dfc-domino-diamond-burst span{position:absolute;width:clamp(9px,3vmin,20px);aspect-ratio:1;display:block;clip-path:polygon(22% 0,78% 0,100% 33%,50% 100%,0 33%);background:conic-gradient(from 45deg,#c9ffff,#20b4fa,#e6ffff,#0875db,#c9ffff);filter:drop-shadow(0 0 5px #9beeff);animation:dfc-domino-diamond-scatter 850ms cubic-bezier(.14,.68,.31,1) both}
+    @keyframes dfc-domino-diamond-scatter{0%{opacity:1;transform:translate(-50%,-50%) scale(.25)}28%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) rotate(var(--rot)) scale(.75)}}
+    #dominoStage :is(#dfcPointsResult,#dfcStandardResult) .dfc-domino-winning-tile{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;filter:drop-shadow(0 0 5px #8eefff)}
+    #dominoStage :is(#dfcPointsResult,#dfcStandardResult) .dfc-domino-winning-tile .dfc-points-tiles{margin:0}
+    #dominoStage :is(#dfcPointsResult,#dfcStandardResult) .dfc-domino-winning-tile .hand-piece{width:clamp(15px,4.4vmin,32px)!important;height:clamp(27px,7.8vmin,56px)!important}
+    #dominoStage :is(#dfcPointsResult,#dfcStandardResult) .dfc-winner-identity:has(.dfc-domino-winning-tile){flex-wrap:wrap}
+    @media(prefers-reduced-motion:reduce){.dfc-domino-diamond-burst{display:none!important}}
     #dfcClosingBoard .dfc-closing-glow{filter:brightness(1.35) drop-shadow(0 0 9px #ffcf52)!important;outline:2px solid #ffdf75;outline-offset:2px;z-index:2!important}
     #dfcClosingBoard[data-capicua] :is(.domino-end-left,.domino-end-right){box-shadow:0 0 12px 3px #5cecff}
     #dominoStage[data-dfc-closing-preview] #dominoBoard{visibility:hidden!important}
@@ -437,6 +445,40 @@
   document.head.append(style);
   const seen=new Map();
   const requestedScenes=new Map();
+  const celebrated=new Set();
+  let burstLayer=null,burstTimer=0;
+  function clearBurst(){
+    clearTimeout(burstTimer);
+    burstLayer?.remove();
+    burstLayer=null;
+  }
+  function burst(handId,target){
+    const tableId=table(),key=tableId+':'+handId;
+    if(!tableId||!handId||document.hidden||celebrated.has(key)||!target?.isConnected)return false;
+    const r=target.getBoundingClientRect();
+    if(!r.width||!r.height)return false;
+    celebrated.add(key);
+    if(celebrated.size>120)celebrated.delete(celebrated.values().next().value);
+    if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return true;
+    clearBurst();
+    const layer=document.createElement('div');
+    layer.className='dfc-domino-diamond-burst';
+    layer.setAttribute('aria-hidden','true');
+    const radius=Math.min(125,Math.max(42,Math.min(innerWidth,innerHeight)*.24));
+    for(let i=0;i<18;i++){
+      const p=document.createElement('span'),angle=i*Math.PI*2/18,d=radius*(.6+(i%3)*.2);
+      p.style.left=(r.left+r.width/2)+'px';
+      p.style.top=(r.top+r.height/2)+'px';
+      p.style.setProperty('--dx',Math.round(Math.cos(angle)*d)+'px');
+      p.style.setProperty('--dy',Math.round(Math.sin(angle)*d)+'px');
+      p.style.setProperty('--rot',(i*41)+'deg');
+      layer.append(p);
+    }
+    document.body.append(layer);
+    burstLayer=layer;
+    burstTimer=setTimeout(clearBurst,1000);
+    return true;
+  }
   let active=null, frame=null, trackedTable='', closedHand='';
   function table(){return panel.classList.contains('active')?String(dominoCurrentTableId||''):'';}
   function stateFrame(state, handId){
@@ -476,7 +518,7 @@
   }
   function reset(){
     if(trackedTable===table())return;
-    clear();frame=null;closedHand='';trackedTable=table();
+    clear();clearBurst();frame=null;closedHand='';trackedTable=table();
     stage.removeAttribute('data-dfc-result-managed');
   }
   const pips=tile=>[tile?.a??tile?.[0],tile?.b??tile?.[1]];
@@ -513,6 +555,7 @@
     const snapshot=snapshotOf(source,tile,kind);
     stage.append(snapshot);
     stage.setAttribute('data-dfc-closing-preview','');
+    if(kind==='domino')burst(handId,snapshot.querySelector('.dfc-closing-glow'));
     const entry={snapshot,ends:performance.now()+duration};
     active=entry;
     seen.set(key,entry);
@@ -569,7 +612,19 @@
     seen.set(key,{ends:0});
     if(seen.size>100)seen.delete(seen.keys().next().value);
   }
-  window.dfcClosingPreview=Object.freeze({show,delay,loadFrame,finish});
+  function settledBurst(handId,tile,fallback){
+    const state=typeof dominoState==='undefined'?null:dominoState;
+    const same=String(state?.hand?.id)===String(handId);
+    const side=state?.last_move?.side;
+    const code=value=>pips(value).sort((a,b)=>a-b).join(':');
+    const end=same&&side==='left'?state.hand.board?.[0]:same&&side==='right'?state.hand.board?.at(-1):null;
+    const origin=end&&tile&&code(end)===code(tile)?board.querySelector('.domino-end-'+side):null;
+    if(burst(handId,origin)||burst(handId,fallback)){
+      if(window.dfc012lAudioPrefs?.().celebration!==false)
+        void window.dfc012uPlay?.('domino',table()+':win:'+handId);
+    }
+  }
+  window.dfcClosingPreview=Object.freeze({show,delay,loadFrame,finish,settledBurst});
 })();
 
 /* DOMINÓ FLASH COIN Z32 — Tarjetas de capicúa reclamables.
@@ -2972,6 +3027,15 @@
      row.append(piece);
    }
  }
+ function winningTile(tile,root){
+   if(!tile)return null;
+   const holder=text('span','',root);
+   holder.className='dfc-domino-winning-tile';
+   resultTiles([tile],holder);
+   const piece=holder.querySelector('.hand-piece');
+   if(!piece)holder.remove();
+   return piece;
+ }
  function showRemainingPlayers(players,root,{countPoints=false}={}){
    if(!players?.length)return;
    const detail=text('div','',root);
@@ -3038,6 +3102,7 @@
      const winnerProfile=remaining.find(player=>String(player.user_id)===String(hand.winner_user_id));
      resultAvatar({name,seat:winner?.seat_no,avatar:winner?.avatar_url||winnerProfile?.avatar_url,mine:state.me===hand.winner_user_id},identity);
      text('strong',(winnerProfile?.full_name||name)+' ganó la mano',identity);
+     if(kind==='domino')winningTile(closingTile,identity);
      const shownAward=kind==='trancazo'?verifiedAmount:share;
      if(Number.isFinite(shownAward)){
        const gain=text('div','',summary);
@@ -3046,7 +3111,7 @@
        text('small',label,gain);
        text('strong',money.format(shownAward)+' FC',gain);
      }
-     if(closingTile&&kind!=='trancazo'){
+     if(closingTile&&kind!=='trancazo'&&kind!=='domino'){
        const holder=text('div','',summary);
        text('small','Ficha de cierre',holder);
        resultTiles([closingTile],holder);
@@ -3164,6 +3229,7 @@
    player.className='dfc-winner-identity';
    resultAvatar(winner,player);
    text('strong',winner.name+' ganó la mano',player);
+   const winnerTile=kind==='domino'?winningTile(hand.deciding_tile,player):null;
    const gain=text('div','',summary);
    gain.className='dfc-hand-result-gain';
    text('small','Puntos acreditados',gain);
@@ -3186,7 +3252,7 @@
 
    const details=text('div','');
    details.className='dfc-hand-result-details';
-   if(hand.deciding_tile){
+   if(hand.deciding_tile&&kind!=='domino'){
      const finalTile=text('div','',details);
      text('p','Última ficha jugada',finalTile);
      resultTiles([hand.deciding_tile],finalTile);
@@ -3211,6 +3277,8 @@
    addPanelClose(data,String(hand.id),data.state==='settled'?5000:8000);
    result.scrollTop=0;
    result.hidden=false;
+   if(kind==='domino'&&data.state==='settled'&&Date.now()+replayOffset-Date.parse(hand.settled_at)<10000)
+     window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile);
    flyBonus(bonus,hand.seat,Number(hand.bonus_points)||0);
  }
  function showVictory(data,hand,champions){
@@ -3248,10 +3316,19 @@
    }
    const bonus=describeHandBonus(hand,facts);
    if(hand?.bonus_points!=null)text('small','Puntos de la mano: +'+format.format(hand.points),facts);
+   let winnerTile=null;
    if(hand?.deciding_tile){
      const tile=text('div','',facts);
-     text('small','Ficha de cierre',tile);
-     resultTiles([hand.deciding_tile],tile);
+     const finisher=data.players.find(player=>player.seat===hand.seat);
+     if(handKind(hand)==='domino'&&finisher){
+       tile.className='dfc-winner-identity';
+       resultAvatar(finisher,tile);
+       text('strong',finisher.name+' hizo dominó',tile);
+       winnerTile=winningTile(hand.deciding_tile,tile);
+     }else{
+       text('small','Ficha de cierre',tile);
+       resultTiles([hand.deciding_tile],tile);
+     }
    }
    if(hand?.remaining?.length){
      const playersBySeat=new Map(data.players.map(player=>[player.seat,player]));
@@ -3290,6 +3367,8 @@
    };
    result.scrollTop=0;
    result.hidden=false;
+   if(handKind(hand)==='domino'&&hand?.id&&winnerTile&&Date.now()+replayOffset-Date.parse(hand.settled_at)<10000)
+     window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile);
    playPanelSound('victory');
    if(data.victory_auto){
      next.remove();
