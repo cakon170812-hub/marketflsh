@@ -2920,7 +2920,116 @@
  const format=new Intl.NumberFormat('es-DO',{maximumFractionDigits:2});
  const money=new Intl.NumberFormat('es-DO',{minimumFractionDigits:2,maximumFractionDigits:3});
  const reduce=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+ /* Información de partidas y celebración: exclusivamente presentación de datos confirmados. */
+ const infoHistory=new Map();
+ const bonusPlayed=new Set();
+ let infoTable=0, bonusLayer=null, activeSpeech=null, speechTimer=0;
+ const infoButton=document.createElement('button');
+ infoButton.type='button';infoButton.textContent='ⓘ Partidas';infoButton.setAttribute('aria-label','Información de partidas');
+ infoButton.style.cssText='font:700 11px system-ui;color:white;background:#152843;border:1px solid #dabf70;border-radius:7px;padding:5px 7px;white-space:nowrap';
+ controls.append(infoButton);
+ const infoPanel=document.createElement('section');
+ infoPanel.hidden=true;infoPanel.setAttribute('role','dialog');infoPanel.setAttribute('aria-label','Información de partidas');
+ infoPanel.style.cssText='position:absolute;inset:8% 12%;z-index:2147483000;background:rgba(13,25,44,.96);color:white;border:1px solid #dabf70;border-radius:12px;padding:12px;overflow:auto;font:14px system-ui;box-shadow:0 6px 30px #0008';
+ stage.append(infoPanel);
+ function stopBonusVisual(){
+   bonusLayer?.remove();bonusLayer=null;
+   clearTimeout(speechTimer);
+   if(activeSpeech){try{window.speechSynthesis?.cancel();}catch(_){}activeSpeech=null;}
+ }
+ function recordInfo(id,match,hand,players,kind,winner,details){
+   if(!id)return;
+   const key=String(id);
+   let entry=infoHistory.get(key);
+   if(!entry){entry={hands:new Map(),players:[],match:null};infoHistory.set(key,entry);}
+   if(match!=null)entry.match=match;
+   if(players?.length)entry.players=players.map(p=>({name:p.name||p.full_name||'Jugador',avatar:p.avatar||p.avatar_url||'',points:p.points}));
+   if(hand?.id){
+     const handKey=String(hand.id);
+     const previous=entry.hands.get(handKey)||{};
+     entry.hands.set(handKey,{...previous,id:handKey,date:hand.settled_at||previous.date,kind:kind||previous.kind,winner:winner?.name||winner?.full_name||previous.winner,avatar:winner?.avatar||winner?.avatar_url||previous.avatar,...details});
+     if(entry.hands.size>100)entry.hands.delete(entry.hands.keys().next().value);
+   }
+   if(!infoPanel.hidden&&infoTable===Number(id))drawInfo();
+ }
+ function drawInfo(){
+   const entry=infoHistory.get(String(infoTable));
+   infoPanel.replaceChildren();
+   const close=text('button','Cerrar ×',infoPanel);close.type='button';close.style.cssText='float:right;padding:6px;background:#254361;color:white;border:1px solid #dabf70;border-radius:6px';
+   close.onclick=()=>{sound(660,.07);infoPanel.hidden=true;};
+   text('h3','Información de partidas · Mesa '+infoTable,infoPanel);
+   if(entry?.match!=null)text('p','Partida '+entry.match,infoPanel);
+   text('small','Manos confirmadas observadas durante esta sesión; no es un historial completo de la cuenta.',infoPanel);
+   if(entry?.players.length){
+     text('h4','Jugadores y marcador',infoPanel);
+     for(const p of entry.players){const row=text('div','',infoPanel);row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px';
+       resultAvatar(p,row);text('span',p.name+(p.points!=null?' · '+p.points+' puntos':''),row);}
+   }
+   text('h4','Manos jugadas',infoPanel);
+   if(!entry?.hands.size)text('p','Todavía no hay manos confirmadas disponibles.',infoPanel);
+   for(const h of [...(entry?.hands.values()||[])].reverse()){
+     const row=text('div','',infoPanel);row.style.cssText='border-top:1px solid #57708a;padding:6px 0';
+     const name=h.winner||'Ganador no disponible';
+     resultAvatar({name,avatar:h.avatar},row);
+     text('strong',name+' · '+(h.kind||'Mano terminada'),row);
+     text('small',' Mano #'+h.id+(h.date&&Number.isFinite(Date.parse(h.date))?' · '+new Date(h.date).toLocaleString('es-DO'):''),row);
+     if(h.points!=null)text('p','Puntos acreditados: '+h.points,row);
+     if(h.bonus!=null)text('p','Bonificación: '+h.bonus+' puntos',row);
+     if(h.fc!=null)text('p','Premio confirmado: '+money.format(h.fc)+' FC',row);
+     if(h.diamonds!=null)text('p','Diamantes del bote: '+h.diamonds,row);
+   }
+ }
+ infoButton.onclick=()=>{
+   const id=current();if(!id)return;
+   sound(660,.07);
+   if(!infoPanel.hidden){infoPanel.hidden=true;return;}
+   infoTable=id;
+   const state=typeof dominoState==='undefined'?null:dominoState;
+   if(!panel.hasAttribute('data-dfc-points-mode'))recordInfo(id,null,null,state?.seats||[]);
+   drawInfo();infoPanel.hidden=false;
+ };
+ function celebrateThirty(key,kind){
+   if(document.hidden||!current()||bonusPlayed.has(key))return;
+   try{if(sessionStorage.getItem('dfc30:'+key)==='1')return;sessionStorage.setItem('dfc30:'+key,'1');}catch(_){}
+   bonusPlayed.add(key);
+   if(bonusPlayed.size>256)bonusPlayed.delete(bonusPlayed.values().next().value);
+   stopBonusVisual();
+   const layer=document.createElement('div');bonusLayer=layer;
+   layer.setAttribute('aria-hidden','true');
+   layer.style.cssText='position:fixed;inset:0;z-index:2147483001;pointer-events:none;overflow:hidden;display:grid;place-items:center';
+   document.body.append(layer);
+   const label=document.createElement('strong');label.textContent='+30 PUNTOS';
+   label.style.cssText='color:#ffe58a;font:900 clamp(24px,7vmin,55px) system-ui;text-shadow:0 2px 6px #111,0 0 18px #f4b933';layer.append(label);
+   if(!reduce()&&typeof label.animate==='function'){
+     label.animate([{opacity:0,transform:'scale(.4)'},{opacity:1,transform:'scale(1.1)',offset:.25},{opacity:1,transform:'scale(1)',offset:.75},{opacity:0,transform:'scale(.7)'}],{duration:2500,fill:'both'});
+     for(let i=0;i<42;i++){
+       const gem=document.createElement('span');gem.textContent='💎';gem.style.cssText='position:absolute;left:50%;top:50%;font-size:'+ (12+i%4*5)+'px;filter:drop-shadow(0 0 7px #6ce8ff)';
+       layer.append(gem);const angle=i*2.39996,dx=Math.cos(angle)*innerWidth*.47,dy=Math.sin(angle)*innerHeight*.45;
+       gem.animate([{transform:'translate(-50%,-50%) scale(.1)',opacity:0},{transform:'translate('+dx+'px,'+dy+'px) scale(1.15)',opacity:1,offset:.38},{transform:'translate('+dx*.8+'px,'+dy*.8+'px) scale(.8)',opacity:1,offset:.68},{transform:'translate(-50%,-50%) scale(.1)',opacity:0}],{duration:2300,delay:i%5*35,easing:'ease-in-out',fill:'both'});
+     }
+   }
+   setTimeout(()=>{layer.remove();if(bonusLayer===layer)bonusLayer=null;},2500);
+   if(typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled()&&window.dfc012lAudioPrefs?.().celebration!==false){
+     sound(1047,.18);
+     if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
+       try{
+         const voice=new SpeechSynthesisUtterance(kind==='capicua'?'¡Treinta, capicúa!':'¡Treinta, pase redondo!');
+         voice.lang='es-DO';voice.volume=1;voice.rate=1.03;voice.pitch=1.24;
+         const voices=speechSynthesis.getVoices();const selected=voices.find(v=>v.lang==='es-DO')||voices.find(v=>/^es[-_]/i.test(v.lang));
+         if(selected)voice.voice=selected;
+         activeSpeech=voice;
+         voice.onend=voice.onerror=()=>{if(activeSpeech===voice){activeSpeech=null;clearTimeout(speechTimer);}};
+         speechSynthesis.speak(voice);
+         speechTimer=setTimeout(()=>{if(activeSpeech===voice){speechSynthesis.cancel();activeSpeech=null;}},4500);
+       }catch(_){}
+     }
+   }
+ }
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){stopBonusVisual();infoPanel.hidden=true;}});
+
  function reset(id){
+   infoPanel.hidden=true;stopBonusVisual();
    table=id;epoch++;last=null;pending=false;retryAfter=0;shown='';observedClosure='';
    closureRefreshQueued=false;
    window.dfcZ37UI?.syncSpectator(null,id);
@@ -3155,6 +3264,7 @@
    const title=kind==='capicua'?'Capicúa':kind==='trancazo'?'Tranque':'Dominó';
    const amount=Math.max(0,Number(hand.pot)-Number(hand.commission||0));
    const share=Number(hand.player_count)===4?Math.round(amount*500)/1000:amount;
+   recordInfo(tableId,null,hand,state.seats||[],title,{...winner,name},kind!=='trancazo'&&Number.isFinite(share)?{fc:share}:{});
    const client=window.sb||window.dfcSupabase;
    let remaining=preloadedRows||[],verifiedAmount=null,ready=false,closed=false;
    const stillCurrent=()=>current()===tableId&&standardResult.dataset.handKey===resultKey&&
@@ -3267,7 +3377,7 @@
  function announceRoundPasses(data){
    for(const award of data.round_pass_awards||[]){
      const key=data.match_id+':'+award.id;
-     if(shownRoundPasses.has(key)||award.points!==30)continue;
+     if(shownRoundPasses.has(key)||Number(award.points)!==30)continue;
      shownRoundPasses.add(key);
      if(shownRoundPasses.size>128)shownRoundPasses.delete(shownRoundPasses.values().next().value);
      const winner=data.players.find(player=>player.seat===award.seat);
@@ -3276,20 +3386,10 @@
      const notice=text('aside','',stage);
      notice.id='dfcRoundPassNotice';
      notice.setAttribute('role','status');
-     text('strong','¡Pase corrido!',notice);
+     text('strong','¡Pase redondo!',notice);
      const amount=text('b','+30 puntos',notice);
      text('small',winner.name,notice);
-     if(dominoSoundIsEnabled()&&window.dfc012lAudioPrefs?.().celebration!==false){
-       sound(1047,.18);
-       if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
-         const voice=new SpeechSynthesisUtterance('Treinta, pase corrido');
-         voice.lang='es-DO';
-         const voices=speechSynthesis.getVoices();
-         const spanish=voices.find(item=>item.lang==='es-DO')||voices.find(item=>/^es[-_]/i.test(item.lang));
-         if(spanish)voice.voice=spanish;
-         speechSynthesis.speak(voice);
-       }
-     }
+     celebrateThirty('pass:'+key,'pass');
      flyBonus(amount,award.seat,award.points);
      setTimeout(()=>notice.remove(),3000);
    }
@@ -3373,6 +3473,7 @@
    result.hidden=false;
    if((kind==='domino'||kind==='capicua')&&data.state==='settled'&&Date.now()+replayOffset-Date.parse(hand.settled_at)<10000)
      window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile,kind);
+   if(kind==='capicua'&&Number(hand.bonus_points)===30&&Date.now()+replayOffset-Date.parse(hand.settled_at)<20000)celebrateThirty('cap:'+data.match_id+':'+hand.id,'capicua');
    flyBonus(bonus,hand.seat,Number(hand.bonus_points)||0);
  }
  function showVictory(data,hand,champions){
@@ -3409,6 +3510,7 @@
      }
    }
    const bonus=describeHandBonus(hand,facts);
+   if(hand?.id&&handKind(hand)==='capicua'&&Number(hand.bonus_points)===30&&Date.now()+replayOffset-Date.parse(hand.settled_at)<20000)celebrateThirty('cap:'+data.match_id+':'+hand.id,'capicua');
    if(hand?.bonus_points!=null)text('small','Puntos de la mano: +'+format.format(hand.points),facts);
    let winnerTile=null;
    if(hand?.deciding_tile){
@@ -3566,6 +3668,8 @@
      drawScore(data);
      if(!window.dominoSpectatorMode)announceRoundPasses(data);
      const hand=data.last_hand;
+     const historyWinner=hand&&data.players.find(player=>player.seat===hand.seat);
+     recordInfo(id,data.match_id,hand,data.players,hand?({domino:'Dominó',capicua:'Capicúa',trancazo:'Tranque'}[handKind(hand)]||'Mano terminada'):null,historyWinner,hand?{points:hand.points,bonus:hand.bonus_points,...(data.state==='settled'?{diamonds:data.pot_diamonds}: {})}:{});
      if(data.state==='settled'&&!window.dominoSpectatorMode){
        const preview=window.dfcClosingPreview;
        if(!data.victory_closed&&!data.victory_auto&&hand?.id&&Date.now()+replayOffset-Date.parse(hand.settled_at)<6000){
