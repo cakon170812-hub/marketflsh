@@ -501,17 +501,17 @@
   }
   async function loadFrame(state,handId,kind){
     const source=stateFrame(state,handId);
-    if(String(state?.hand?.id)===String(handId)||kind==='trancazo')return source;
+    if(kind!=='trancazo'&&String(state?.hand?.id)===String(handId))return source;
     const tableId=table();
     const key=tableId+':'+handId;
     if(!requestedScenes.has(key)){
       const client=window.sb||window.dfcSupabase;
       if(!client)return null;
-      const request=client.rpc('rf_domino_last_win_scene_v012f',{p_table_id:Number(tableId)})
+      const request=(kind==='trancazo'?client.rpc('dfc_domino_closed_blocked_scene',{p_table_id:Number(tableId),p_hand_id:Number(handId)}):client.rpc('rf_domino_last_win_scene_v012f',{p_table_id:Number(tableId)}))
         .then(({data,error})=>{
-          if(error||String(data?.hand_id)!==String(handId)||!data.board?.length)return null;
-          return {tiles:data.board,side:data.move?.side};
-        }).catch(()=>null);
+          if(error||String(data?.hand_id)!==String(handId)||!data.board?.length)return kind==='trancazo'?source:null;
+          return {tiles:data.board,side:data.move?.side,rows:data.rows,nextSeat:data.next_turn_seat,winnerUserId:data.winner_user_id};
+        }).catch(()=>kind==='trancazo'?source:null);
       requestedScenes.set(key,request);
       if(requestedScenes.size>30)requestedScenes.delete(requestedScenes.keys().next().value);
     }
@@ -673,14 +673,14 @@
           const move=source?.side==='left'?source.tiles[0]:source?.tiles.at(-1);
           const winner=state.seats?.find(seat=>String(seat.user_id)===String(closure.winner_user_id));
           const identity={...winner,name:winner?.full_name||winner?.name||closure.winner_name,mine:String(state.me)===String(closure.winner_user_id)};
-          let rows=null;
-          if(kind==='trancazo'&&source){
+          let rows=source?.rows??null;
+          if(kind==='trancazo'&&source&&!rows){
             const client=window.sb||window.dfcSupabase;
             if(client)try{const response=await client.rpc('dfc_domino_closed_hand_tiles',{p_table_id:Number(tableId),p_hand_id:Number(closure.id)});if(!response.error&&Array.isArray(response.data))rows=response.data;}catch{}
             if(table()!==tableId||String(closure.id)!==closedHand||dominoState?.hand?.status==='playing')return;
             if(rows)rows=rows.map(row=>{const seat=state.seats?.find(entry=>String(entry.user_id)===String(row.user_id));return {...seat,...row,seat:row.seat??row.seat_no??seat?.seat_no,name:row.name||row.full_name||seat?.full_name||seat?.name};});
           }
-          const nextSeat=closure.next_turn_seat??closure.turn_seat;
+          const nextSeat=source?.nextSeat??closure.next_turn_seat??closure.turn_seat;
           const wait=source?show(closure.id,move,kind,source,identity,{rows,nextSeat}):0;
           window.dfcShowStandardHandResult?.(state,kind,wait,move,rows);
         });
@@ -3573,9 +3573,9 @@
          const kind=handKind(hand);
          const source=await preview?.loadFrame(state,hand.id,kind);
          if(token!==epoch||current()!==id)return;
-         const winner=data.players.find(player=>player.seat===hand.seat);
-         const rows=(hand.remaining||[]).map(row=>({...data.players.find(player=>player.seat===row.seat),...row}));
-         const nextSeat=hand.next_turn_seat??hand.turn_seat;
+         const winner=kind==='trancazo'&&source?.rows?.length?source.rows.find(row=>String(row.user_id)===String(source.winnerUserId)):data.players.find(player=>player.seat===hand.seat);
+         const rows=source?.rows??(hand.remaining||[]).map(row=>({...data.players.find(player=>player.seat===row.seat),...row}));
+         const nextSeat=source?.nextSeat??hand.next_turn_seat??hand.turn_seat;
          if(source&&winner)preview.show(hand.id,hand.deciding_tile,kind,source,winner,{rows,nextSeat});
        }
        if(preview?.delay(hand?.id)>0){drawReplay();drawTopup();return;}
@@ -3616,9 +3616,9 @@
            const kind=handKind(hand);
            const source=await preview.loadFrame(state,hand.id,kind);
            if(token!==epoch||current()!==id)return;
-           const winner=data.players.find(player=>player.seat===hand.seat);
-           const rows=(hand.remaining||[]).map(row=>({...data.players.find(player=>player.seat===row.seat),...row}));
-           const nextSeat=hand.next_turn_seat??hand.turn_seat;
+           const winner=kind==='trancazo'&&source?.rows?.length?source.rows.find(row=>String(row.user_id)===String(source.winnerUserId)):data.players.find(player=>player.seat===hand.seat);
+           const rows=source?.rows??(hand.remaining||[]).map(row=>({...data.players.find(player=>player.seat===row.seat),...row}));
+           const nextSeat=source?.nextSeat??hand.next_turn_seat??hand.turn_seat;
            if(source)preview.show(hand.id,hand.deciding_tile,kind,source,winner,{rows,nextSeat});
          }
        }
