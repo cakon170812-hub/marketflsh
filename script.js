@@ -2925,6 +2925,7 @@
  const infoHistory=new Map();
  const bonusPlayed=new Set();
  let infoTable=0, bonusLayer=null, activeSpeech=null, speechTimer=0;
+ const roundPassBaseline=new Set();
  const infoButton=document.createElement('button');
  infoButton.type='button';infoButton.textContent='ⓘ Partidas';infoButton.setAttribute('aria-label','Información de partidas');
  infoButton.style.cssText='font:700 11px system-ui;color:white;background:#152843;border:1px solid #dabf70;border-radius:7px;padding:5px 7px;white-space:nowrap';
@@ -2942,7 +2943,7 @@
    if(!id)return;
    const key=String(id);
    let entry=infoHistory.get(key);
-   if(!entry){entry={hands:new Map(),players:[],match:null};infoHistory.set(key,entry);}
+   if(!entry){entry={hands:new Map(),players:[],match:null};infoHistory.set(key,entry);if(infoHistory.size>30)infoHistory.delete(infoHistory.keys().next().value);}
    if(match!=null)entry.match=match;
    if(players?.length)entry.players=players.map(p=>({name:p.name||p.full_name||'Jugador',avatar:p.avatar||p.avatar_url||'',points:p.points}));
    if(hand?.id){
@@ -2951,7 +2952,7 @@
      entry.hands.set(handKey,{...previous,id:handKey,date:hand.settled_at||previous.date,kind:kind||previous.kind,winner:winner?.name||winner?.full_name||previous.winner,avatar:winner?.avatar||winner?.avatar_url||previous.avatar,...details});
      if(entry.hands.size>100)entry.hands.delete(entry.hands.keys().next().value);
    }
-   if(!infoPanel.hidden&&infoTable===Number(id))drawInfo();
+   if(!infoPanel.hidden&&infoTable===Number(id)){const offset=infoPanel.scrollTop;drawInfo();infoPanel.scrollTop=offset;}
  }
  function drawInfo(){
    const entry=infoHistory.get(String(infoTable));
@@ -3027,6 +3028,18 @@
    }
  }
  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopBonusVisual();infoPanel.hidden=true;}});
+ // El volumen multimedia del sistema actúa en la salida final; no se añade un control interno.
+ // Mantener las ganancias relativas de cada efecto para evitar saturación.
+ function useSystemMediaVolume(){
+   try{
+     if(typeof audioMasterGain!=='undefined'&&audioMasterGain&&audioMasterGain.gain.value!==1)audioMasterGain.gain.value=1;
+     if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';
+   }catch(_){}
+ }
+ document.addEventListener('pointerdown',useSystemMediaVolume,{passive:true});
+ document.addEventListener('click',useSystemMediaVolume,{passive:true});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)useSystemMediaVolume();});
+ useSystemMediaVolume();
 
  function reset(id){
    infoPanel.hidden=true;stopBonusVisual();
@@ -3375,11 +3388,17 @@
    void flight.finished.then(()=>{if(token===epoch)sound(620,.13);},()=>{}).finally(()=>coin.remove());
  }
  function announceRoundPasses(data){
+   const matchKey=String(data.match_id);
+   const initial=!roundPassBaseline.has(matchKey);
+   roundPassBaseline.add(matchKey);
+   if(roundPassBaseline.size>128)roundPassBaseline.delete(roundPassBaseline.values().next().value);
    for(const award of data.round_pass_awards||[]){
      const key=data.match_id+':'+award.id;
      if(shownRoundPasses.has(key)||Number(award.points)!==30)continue;
      shownRoundPasses.add(key);
      if(shownRoundPasses.size>128)shownRoundPasses.delete(shownRoundPasses.values().next().value);
+     const occurred=Date.parse(award.created_at||award.awarded_at||award.settled_at||'');
+     if(initial&&(!Number.isFinite(occurred)||Math.abs(Date.now()+replayOffset-occurred)>8000))continue;
      const winner=data.players.find(player=>player.seat===award.seat);
      if(!winner)continue;
      stage.querySelector('#dfcRoundPassNotice')?.remove();
