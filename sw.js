@@ -21,10 +21,10 @@
 
 'use strict';
 
-const DFC_SW_REVISION = '0.12Z.37-web-table-gallery-1';
+const DFC_SW_REVISION = '0.12Z.37-web-table-conclusion-1';
 
 // Solicita los recursos de interfaz actualizados aunque el HTML mantenga su versión.
-const DFC_WEB_REVALIDATE = new Set(['script.js', 'z37-ui.js', 'z37-admin.js', 'domino-table-styles.css', 'domino-table-styles.js'].map(path=>new URL(path,self.registration.scope).pathname));
+const DFC_WEB_REVALIDATE = new Set(['script.js', 'z37-ui.js', 'z37-admin.js', 'domino-table-styles.css', 'domino-table-styles.js', 'domino-table-chat.js'].map(path=>new URL(path,self.registration.scope).pathname));
 self.addEventListener('fetch', event=>{
   const request=event.request;
   const url=new URL(request.url);

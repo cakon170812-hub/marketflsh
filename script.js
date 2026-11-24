@@ -561,7 +561,15 @@
     return result;
   };
   new MutationObserver(reset).observe(panel,{attributes:true,attributeFilter:['class']});
-  window.dfcClosingPreview=Object.freeze({show,delay,loadFrame});
+  function finish(handId){
+    if(!handId)return;
+    const key=table()+':'+handId;
+    const entry=seen.get(key);
+    if(entry?.snapshot===active?.snapshot)clear();
+    seen.set(key,{ends:0});
+    if(seen.size>100)seen.delete(seen.keys().next().value);
+  }
+  window.dfcClosingPreview=Object.freeze({show,delay,loadFrame,finish});
 })();
 
 /* DOMINÓ FLASH COIN Z32 — Tarjetas de capicúa reclamables.
@@ -2485,7 +2493,7 @@
  document.head.append(style);
  const score=document.createElement('div');
  score.id='dfcPointsScore';score.hidden=true;score.setAttribute('aria-label','Marcador por puntos');
- controls.prepend(score);
+ stage.append(score);
  const basePot=stage.querySelector('.domino-inside-pot');
  const pots=document.createElement('div');
  pots.id='dfcPointsPots';pots.hidden=true;pots.setAttribute('aria-label','Botes de la mesa');
@@ -2656,7 +2664,10 @@
      if(error)throw error;
      if(token!==epoch)return;
      if(data?.state==='confirmed'){confirmedMatch=match;refreshAfterClose();}
-     if(data?.state==='pending')retryReplayAt=Date.now()+1800;
+     if(data?.state==='pending'){
+       retryReplayAt=Date.now()+1800;
+       if(choice==='exit')replayError='El asiento sigue ocupado. Toca Cerrar para volver a intentar.';
+     }
      if(data?.state==='insufficient')replayError=data.message||'Saldo insuficiente para la revancha.';
      if(data?.state==='topup_required'){
        replayExtra=Math.max(replayExtra,units(data.missing_fc));
@@ -2751,7 +2762,7 @@
  let shown='',observedClosure='',closureRefreshQueued=false;
  const shownRoundPasses=new Set();
  const panelDuration=15000;
- let handResultTimer=0, closeHandResult=null;
+ let handResultTimer=0, victoryExitTimer=0, closeHandResult=null;
  let dismissedVictory='',replaySoundMatch='';
  const panelNotes={
    victory:[523,659,784,1047],
@@ -2767,7 +2778,8 @@
    delete panel.dataset.dfcPointsPlaying;
    delete panel.dataset.dfcPointsReplay;
    delete panel.dataset.dfcPointsMode;
-   clearTimeout(handResultTimer);
+   clearTimeout(handResultTimer);clearTimeout(victoryExitTimer);
+   stage.removeAttribute('data-dfc-points-closing');
    closeHandResult=null;
    dismissedVictory='';replaySoundMatch='';
    result.removeAttribute('data-hand-result');
@@ -2835,6 +2847,17 @@
    void update();
  }
  function addPanelClose(data,handId,duration){
+   if(data.victory_auto){
+     const advance=()=>{
+       if(last?.match_id!==data.match_id||closeHandResult!==advance)return;
+       closeHandResult=null;
+       result.hidden=true;
+       drawConclusion();
+     };
+     closeHandResult=advance;
+     handResultTimer=setTimeout(advance,duration);
+     return;
+   }
    const button=text('button','Cerrar');
    const status=text('p','');
    status.setAttribute('role','status');
@@ -3268,23 +3291,23 @@
    result.scrollTop=0;
    result.hidden=false;
    playPanelSound('victory');
+   if(data.victory_auto){
+     next.remove();
+     clearTimeout(victoryExitTimer);
+     const token=epoch;
+     victoryExitTimer=setTimeout(()=>{
+       if(token!==epoch||last?.match_id!==data.match_id||current()!==table)return;
+       result.hidden=true;
+       void leaveFinishedPoints();
+     },panelDuration);
+   }
    flyBonus(bonus,hand?.seat,Number(hand?.bonus_points)||0);
    celebrateVictory();
  }
- function victoryOpens(data){
-   const opens=Date.parse(data.victory_opens);
-   return Number.isFinite(opens)?opens:Date.parse(data.match_settled_at)+panelDuration;
- }
  function drawConclusion(){
    if(window.dominoSpectatorMode){result.hidden=true;return;}
-   const settled=Date.parse(last.match_settled_at);
-   if(last.state!=='settled'||!Number.isFinite(settled)||closeHandResult)return;
-   const victoryStarts=victoryOpens(last);
-   const replayOpens=Date.parse(replayState?.replay_opens);
-   const victoryEnds=Number.isFinite(replayOpens)?replayOpens:victoryStarts+panelDuration;
-   const now=Date.now()+replayOffset;
-   if(now<victoryStarts||window.dfcClosingPreview?.delay(last.last_hand?.id)>0)return;
-   if(last.victory_auto||(!last.victory_manual&&now>=victoryEnds)||last.victory_closed||dismissedVictory===last.match_id){result.hidden=true;return;}
+   if(last.state!=='settled'||!last.match_settled_at||closeHandResult)return;
+   if(last.victory_closed||dismissedVictory===last.match_id){result.hidden=true;return;}
    const champions=matchWinners(last);
    if(!champions.length){result.hidden=true;return;}
    if(!result.hasAttribute('data-match-victory'))showVictory(last,last.last_hand,champions);
@@ -3329,6 +3352,7 @@
      reset(id);
    }
    if(!id||pending||Date.now()<retryAfter||document.hidden)return;
+   if(last?.state==='settled'&&last.victory_auto&&!window.dominoSpectatorMode)return;
    const client=window.sb||window.dfcSupabase;
    if(!client?.rpc)return;
    pending=true;const token=epoch;
@@ -3342,12 +3366,6 @@
        retryAfter=last?0:Date.now()+5000;
        return;
      }
-     if(data.victory_auto&&!window.dominoSpectatorMode){
-       result.hidden=true;
-       replay.hidden=true;
-       await leaveFinishedPoints();
-       return;
-     }
      if(last&&last.match_id!==data.match_id){
        shown='';replayError='';
        clearTimeout(handResultTimer);closeHandResult=null;
@@ -3357,7 +3375,7 @@
      }
      panel.toggleAttribute('data-dfc-points-mode',!window.dominoSpectatorMode);
      window.dfcZ37UI?.syncSpectator(data,id);
-     replayState=!window.dominoSpectatorMode&&data.state==='settled'&&data.replay_deadline?data:null;
+     replayState=!window.dominoSpectatorMode&&!data.victory_auto&&data.state==='settled'&&data.replay_deadline?data:null;
      const serverTime=Date.parse(data.server_time);
      if(Number.isFinite(serverTime)&&(last?.match_id!==data.match_id||last.state!=='settled')){
        replayOffset=serverTime-(requestStarted+Date.now())/2;
@@ -3367,6 +3385,32 @@
      drawScore(data);
      if(!window.dominoSpectatorMode)announceRoundPasses(data);
      const hand=data.last_hand;
+     if(data.state==='settled'&&!window.dominoSpectatorMode){
+       window.dfcClosingPreview?.finish(hand?.id);
+       if(hand?.id&&!data.victory_closed){
+         window.dfcZ32UniversalGiftAnnouncement?.beginHand(id,{id:hand.id,settled_at:hand.settled_at});
+       }
+       const winner=hand&&data.players.find(player=>player.seat===hand.seat);
+       if(data.victory_auto&&winner){
+         dominoStopPolling();
+         if(shown!==String(hand.id)||!closeHandResult){
+           clearTimeout(handResultTimer);
+           shown=String(hand.id);
+           showHand(data,hand,winner);
+           void animateHandPoints(hand,token);
+         }
+       }else{
+         clearTimeout(handResultTimer);
+         closeHandResult=null;
+         drawConclusion();
+       }
+       drawReplay();
+       drawTopup();
+       return;
+     }
+     if(!observedClosure||(hand?.id&&BigInt(hand.id)>=BigInt(observedClosure))){
+       stage.removeAttribute('data-dfc-points-closing');
+     }
      const now=Date.now()+replayOffset;
      const settledAt=Date.parse(hand?.settled_at);
      const freshClosure=now-settledAt<panelDuration-9000;
@@ -3383,10 +3427,8 @@
          }
        }
      }
-     drawConclusion();
      drawReplay();
      drawTopup();
-     if(data.state==='settled')return;
      if(!hand||window.dominoSpectatorMode){result.hidden=true;return;}
      const handId=String(hand.id);
      // Una lectura en curso puede contener todavía el resultado de la mano anterior.
@@ -3427,6 +3469,9 @@
    const closure=(state?.hand?.status==='settled'?state.hand.id:null)??state?.last_result?.id;
    if(closure==null||(observedClosure&&BigInt(closure)<=BigInt(observedClosure)))return;
    observedClosure=String(closure);
+   if(panel.hasAttribute('data-dfc-points-mode')||window.dfc012rIsPointTable?.(id)===true){
+     stage.setAttribute('data-dfc-points-closing','');
+   }
    retryAfter=0;
    if(pending){
      closureRefreshQueued=true;

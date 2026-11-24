@@ -451,3 +451,51 @@
     launcher.focus();
   });
 })();
+
+(() => {
+  'use strict';
+  const previous = window.dominoTurnRingUpdate;
+  if (typeof previous === 'function') {
+    // Keep the authoritative timing and the seconds label used by the table.
+    window.dominoTurnRingUpdate = function(seat, deadline, totalMs) {
+      cancelAnimationFrame(dominoTurnRingFrame);
+      if (!seat) return;
+      const fullTurn = 360;
+      const draw = () => {
+        if (!seat.isConnected || !seat.classList.contains('turn')) return;
+        const remaining = Math.max(0, deadline - mfDominoNow());
+        const angle = Math.min(fullTurn, remaining / totalMs * fullTurn);
+        seat.style.setProperty('--turn-angle', angle.toFixed(2) + 'deg');
+        const seconds = String(Math.ceil(remaining / 1000));
+        const label = seat.querySelector('.domino-turn-seconds');
+        if (label && label.textContent !== seconds) label.textContent = seconds;
+        if (remaining > 0) dominoTurnRingFrame = requestAnimationFrame(draw);
+      };
+      draw();
+    };
+  }
+
+  // Pass notifications already have a server-confirmed sender and recipient.
+  // An increase by itself has no source, so it must not start a second flight.
+  if (window.DFC_Z161?.flyDiamond) window.DFC_Z161.flyDiamond = () => {};
+
+  if (window.DFC_Z163?.onSync) {
+    const syncDiamonds = window.DFC_Z163.onSync;
+    window.DFC_Z163.onSync = function(data, tableId) {
+      const serverTime = Date.parse(data?.server_time);
+      if (Number.isFinite(serverTime) && Array.isArray(data.passes)) {
+        const localNow = Date.now();
+        const passes = data.passes.map(pass => ({
+          ...pass,
+          created_at: new Date(localNow - Math.max(0, serverTime - Date.parse(pass.created_at))).toISOString()
+        }));
+        return syncDiamonds.call(this, {...data, passes}, tableId);
+      }
+      return syncDiamonds.call(this, data, tableId);
+    };
+  }
+
+  const chat = document.createElement('script');
+  chat.src = './domino-table-chat.js?v=20261124-1';
+  document.head.append(chat);
+})();
