@@ -94,9 +94,10 @@
     if (!stage || stage.dataset.tableStyle !== key) return;
     if (key === original) {
       const {naturalWidth, naturalHeight} = artwork;
-      Object.assign(art, {src: artwork.src, width: naturalWidth, height: naturalHeight});
+      if (art) Object.assign(art, {src: artwork.src, width: naturalWidth, height: naturalHeight});
     } else {
       const artworkUrl = 'url("' + artwork.src + '")';
+      surface?.style.setProperty('--dfc-felt-image', 'url("./images2/estilos-mesa/' + key + '-tapete.webp")');
       scene.style.setProperty('--dfc-scene-image', artworkUrl);
       scene.style.setProperty('--dfc-scene-aspect', artwork.naturalWidth / artwork.naturalHeight);
       stage.style.setProperty('--dfc-scene-image', artworkUrl);
@@ -116,23 +117,43 @@
   }
 
   const artworkByStyle = new Map();
+  const artworkRetryAfter = new Map();
   function paintStyle(key) {
     const style = labels.has(key) ? key : original;
-    if (!stage || (stage.dataset.tableStyle === style && artworkByStyle.has(style))) return;
-    stage.dataset.tableStyle = style;
-    stage.removeAttribute('data-table-room');
-    stage.removeAttribute('data-gallery-room');
-    if (style === original) surface?.style.removeProperty('--dfc-felt-image');
-    else surface?.style.setProperty('--dfc-felt-image', 'url("./images2/estilos-mesa/' + style + '-tapete.webp")');
-
-    let artwork = artworkByStyle.get(style);
-    if (!artwork) {
-      artwork = new Image();
-      artworkByStyle.set(style, artwork);
-      artwork.addEventListener('load', () => renderScene(style, artwork), {once:true});
-      artwork.addEventListener('error', () => artworkByStyle.delete(style), {once:true});
-      artwork.src = image(style);
+    if (!stage) return;
+    const changed = stage.dataset.tableStyle !== style;
+    if (changed || !stage.hasAttribute('data-table-room')) {
+      stage.dataset.tableStyle = style;
+      // Keep the shared points-table geometry and CSS fallback active,
+      // even on first entry, a slow connection or a missing gallery image.
+      stage.setAttribute('data-table-room', '');
+      stage.removeAttribute('data-gallery-room');
+      stage.style.removeProperty('--dfc-scene-image');
+      surface?.style.removeProperty('--dfc-felt-image');
     }
+    let artwork = artworkByStyle.get(style);
+    if (artwork) {
+      if (changed && artwork.complete && artwork.naturalWidth) renderScene(style, artwork);
+      return;
+    }
+    if (Date.now() < (artworkRetryAfter.get(style) || 0)) return;
+    artwork = new Image();
+    artworkByStyle.set(style, artwork);
+    artwork.addEventListener('load', () => {
+      artworkRetryAfter.delete(style);
+      renderScene(style, artwork);
+    }, {once:true});
+    artwork.addEventListener('error', () => {
+      if (artworkByStyle.get(style) !== artwork) return;
+      artworkByStyle.delete(style);
+      artworkRetryAfter.set(style, Date.now() + 30000);
+      // A failed image cannot disable the shared table or its controls.
+      if (stage.dataset.tableStyle === style) {
+        stage.removeAttribute('data-gallery-room');
+        stage.setAttribute('data-table-room', '');
+      }
+    }, {once:true});
+    artwork.src = image(style);
     if (artwork.complete && artwork.naturalWidth) renderScene(style, artwork);
   }
 
