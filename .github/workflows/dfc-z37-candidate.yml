@@ -6,8 +6,7 @@ on:
       - '.github/workflows/dfc-z37-candidate.yml'
   workflow_dispatch:
 permissions:
-  contents: write
-  actions: read
+  contents: read
 concurrency:
   group: dfc-z37-review-candidate
   cancel-in-progress: false
@@ -26,31 +25,44 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Incorporar artefacto de voz verificado a la rama de revisión
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Validar decodificador fijado en Git y HTML del candidato
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git branch --show-current)" = review/20261124-history-voice-exit
-          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/15037601529/zip" > "$RUNNER_TEMP/decoder.zip"
-          printf '%s  %s\n' 'd516f5bf103a672694db2b1ce4292a20f84a6bc4bcb46fe16ebd9bb5c2cff978' "$RUNNER_TEMP/decoder.zip" | sha256sum -c -
-          python3 - <<'PY'
-          import pathlib, zipfile
-          from os import environ
-          dest = pathlib.Path('vendor/ogv-1.9.0')
-          with zipfile.ZipFile(pathlib.Path(environ['RUNNER_TEMP']) / 'decoder.zip') as z:
-              assert all(pathlib.PurePosixPath(x).name == x for x in z.namelist()), 'Unexpected artifact path'
-              assert len(z.namelist()) == len(set(z.namelist()))
-              dest.mkdir(parents=True, exist_ok=True)
-              z.extractall(dest)
-          PY
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           (cd vendor/ogv-1.9.0 && sha256sum -c SHA256SUMS && node --check ogv.js)
-          git add vendor/ogv-1.9.0/
-          if ! git diff --cached --quiet; then
-            git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Z37 review: bundle verified OGV 1.9.0 assets'
-            git push origin HEAD:refs/heads/review/20261124-history-voice-exit
-          fi
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import subprocess
+          class InlineScripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.active = False
+                  self.mode = None
+                  self.source = []
+              def handle_starttag(self, tag, attrs):
+                  if tag != 'script':
+                      return
+                  a = dict(attrs)
+                  kind = (a.get('type') or '').strip().lower()
+                  self.active = 'src' not in a and kind in ('', 'text/javascript', 'application/javascript', 'module')
+                  self.mode = 'module' if kind == 'module' else 'commonjs'
+                  self.source = []
+              def handle_data(self, data):
+                  if self.active:
+                      self.source.append(data)
+              def handle_endtag(self, tag):
+                  if tag == 'script' and self.active:
+                      subprocess.run(['node', '--input-type='+self.mode, '--check'], input=''.join(self.source), text=True, check=True)
+                      self.active = False
+          html = Path('index.html').read_text(encoding='utf-8')
+          if not html.strip():
+              raise SystemExit('HTML vacío')
+          parser = InlineScripts()
+          parser.feed(html)
+          parser.close()
+          PY
           echo "DFC_APPROVED_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
       - name: Compilar puente Android y validar candidato sin publicar
         shell: bash
