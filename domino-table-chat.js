@@ -90,8 +90,13 @@
     if (!active) {clearInterval(clockTimer);clockTimer=0;voiceButton.textContent='🎙';}
   }
 
+  function setVoiceCapture(active) {
+    window.dfcVoiceRecording=active;
+    try { if(navigator.audioSession) navigator.audioSession.type=active?'play-and-record':'playback'; } catch(_){}
+    document.dispatchEvent(new CustomEvent('dfc:voice-capture',{detail:{active}}));
+  }
   function releaseMic() {
-    window.dfcVoiceRecording=false;
+    setVoiceCapture(false);
     clearTimeout(recordingTimer);
     stream?.getTracks().forEach(track => track.stop());
     stream = null;
@@ -248,6 +253,7 @@
     }
 
     requesting = true;
+    setVoiceCapture(true);
     removeAudio();voiceHistory.querySelectorAll('audio').forEach(p=>p.pause());
     let microphone;
     try {
@@ -282,7 +288,6 @@
         if (recording.sendOnStop) void sendVoice(blob,noteId,version);
         else setRecording(false);
       };
-      window.dfcVoiceRecording=true;
       recording.start();
       setRecording(true,'Grabando, suelta para enviar (máximo 5 minutos)');
       startedAt=Date.now();
@@ -299,7 +304,7 @@
         ? 'Permite el acceso al micrófono para grabar.' : 'No se pudo abrir el micrófono.');
     } finally {
       requesting = false;
-      if (!recorder) void showVoice();
+      if (!recorder) {setVoiceCapture(false);void showVoice();}
     }
   }
   function finishRecording(send) {
