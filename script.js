@@ -311,7 +311,7 @@
     } catch (_) { return false; }
   }
   function tone(freq, duration, volume, shape='sine', delay=0) {
-    if (!enabled || !startAudio() || !ctx) return;
+    if (window.dfcVoiceRecording || !enabled || !startAudio() || !ctx) return;
     try {
       const at = ctx.currentTime + delay;
       const oscillator=ctx.createOscillator(), gain=ctx.createGain();
@@ -324,7 +324,7 @@
     } catch (_) {}
   }
   function effect(kind='tap') {
-    if (!enabled || (typeof dominoSoundPreferenceEnabled === 'function' && !dominoSoundPreferenceEnabled())) return;
+    if (window.dfcVoiceRecording || !enabled || (typeof dominoSoundPreferenceEnabled === 'function' && !dominoSoundPreferenceEnabled())) return;
     const now=Date.now();
     if (now-(lastEffect[kind]||0)<110) return;
     lastEffect[kind]=now;
@@ -1922,7 +1922,7 @@
   if (typeof originalContext === 'function') {
     window.getAudioContext = function () {
       const context = originalContext.apply(this, arguments);
-      if (typeof audioMasterGain !== 'undefined' && audioMasterGain) audioMasterGain.gain.value = 1;
+      if (typeof audioMasterGain !== 'undefined' && audioMasterGain) audioMasterGain.gain.value = window.dfcVoiceRecording?0:1;
       return context;
     };
     if (typeof audioMasterGain !== 'undefined' && audioMasterGain) audioMasterGain.gain.value = 1;
@@ -1950,6 +1950,7 @@
   let animationId = 0;
 
   function sound(impact) {
+    if(window.dfcVoiceRecording)return;
     if (typeof dominoSoundIsEnabled === 'function' && !dominoSoundIsEnabled()) return;
     const ctx = window.getAudioContext?.();
     if (!ctx || ctx.state !== 'running') return;
@@ -2933,7 +2934,7 @@
  let historyLoaded=false,historyLoading=false,historyError='',historyGeneration=0,lastHistoryFetch=0;
  function historyRedraw(){
    if(infoPanel.hidden)return;
-   const offset=infoPanel.scrollTop;drawInfo();infoPanel.scrollTop=offset;
+   const offset=infoPanel.scrollTop,opened=new Set([...infoPanel.querySelectorAll('details[open][data-history-hand]')].map(e=>e.dataset.historyHand));drawInfo();for(const e of infoPanel.querySelectorAll('details[data-history-hand]'))e.open=opened.has(e.dataset.historyHand);infoPanel.scrollTop=offset;
  }
  async function loadHistory(){
    const account=pruneInfo();
@@ -2973,6 +2974,7 @@
    const account=typeof me==='undefined'?'':String(me?.id||'');
    if(account!==infoAccount){infoHistory.clear();infoVisits.clear();serverHistory.clear();historyLoaded=false;historyLoading=false;historyError='';lastHistoryFetch=0;historyGeneration++;infoAccount=account;}
    const cutoff=Date.now()-infoTTL;
+   for(const [key,hands] of serverHistory){const remaining=hands.map(h=>({...h,moves:(h.moves||[]).filter(m=>Date.parse(m.created_at)>cutoff)})).filter(h=>Date.parse(h.created_at)>cutoff||Date.parse(h.settled_at)>cutoff||h.moves.length);if(remaining.length)serverHistory.set(key,remaining);else serverHistory.delete(key);}
    for(const [key,entry] of infoHistory){
      for(const [id,hand] of entry.hands)if((hand.observedAt||0)<cutoff)entry.hands.delete(id);
      if(!entry.hands.size&&(entry.observedAt||0)<cutoff)infoHistory.delete(key);
@@ -3049,7 +3051,7 @@
        if(local?.points!=null)text('p','Puntos acreditados: '+local.points,row);
        if(local?.bonus!=null)text('p','Bonificación: '+local.bonus+' puntos',row);
        if(local?.diamonds!=null)text('p','Diamantes del bote: '+local.diamonds,row);
-       const list=text('details','',row);const moves=Array.isArray(h.moves)?h.moves:[];
+       const list=text('details','',row);list.dataset.historyHand=String(h.id);const moves=Array.isArray(h.moves)?h.moves:[];
        text('summary','Movimientos ('+moves.length+')',list);
        for(const mv of moves){
          const action={PLAY:'Ficha',AUTO_PLAY:'Ficha automática',PASS:'Pase',AUTO_PASS:'Pase automático',WIN:'Victoria'}[mv.action]||mv.action;
@@ -3140,7 +3142,7 @@
      }
    }
    setTimeout(()=>{layer.remove();if(bonusLayer===layer)bonusLayer=null;},2500);
-   if(typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled()&&window.dfc012lAudioPrefs?.().celebration!==false){
+   if(!window.dfcVoiceRecording&&typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled()&&window.dfc012lAudioPrefs?.().celebration!==false){
      sound(1047,.18);
      if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
        try{
@@ -3161,10 +3163,12 @@
  // Mantener las ganancias relativas de cada efecto para evitar saturación.
  function useSystemMediaVolume(){
    try{
-     if(typeof audioMasterGain!=='undefined'&&audioMasterGain&&audioMasterGain.gain.value!==1)audioMasterGain.gain.value=1;
-     if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';
+     const capture=Boolean(window.dfcVoiceRecording),gain=capture?0:1,mode=capture?'play-and-record':'playback';
+     if(typeof audioMasterGain!=='undefined'&&audioMasterGain&&audioMasterGain.gain.value!==gain)audioMasterGain.gain.value=gain;
+     if(navigator.audioSession&&navigator.audioSession.type!==mode)navigator.audioSession.type=mode;
    }catch(_){}
  }
+ document.addEventListener('dfc:voice-capture',useSystemMediaVolume);
  document.addEventListener('pointerdown',useSystemMediaVolume,{passive:true});
  document.addEventListener('click',useSystemMediaVolume,{passive:true});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)useSystemMediaVolume();});
@@ -3239,7 +3243,7 @@
    const item=document.createElement(tag);item.textContent=value;root.append(item);return item;
  }
  function playPanelSound(kind){
-   if(typeof playOscTone!=='function'||(typeof dominoSoundIsEnabled==='function'&&!dominoSoundIsEnabled()))return;
+   if(window.dfcVoiceRecording||typeof playOscTone!=='function'||(typeof dominoSoundIsEnabled==='function'&&!dominoSoundIsEnabled()))return;
    panelNotes[kind].forEach((note,index)=>playOscTone(note,.19,.075,index===0?'triangle':'sine',null,index*.065,'domino'));
  }
  function refreshAfterClose(){
@@ -3745,7 +3749,7 @@
    if(!result.hasAttribute('data-match-victory'))showVictory(last,last.last_hand,champions);
  }
  function sound(freq,length){
-   if(typeof playOscTone==='function'&&(typeof dominoSoundIsEnabled!=='function'||dominoSoundIsEnabled()))
+   if(!window.dfcVoiceRecording&&typeof playOscTone==='function'&&(typeof dominoSoundIsEnabled!=='function'||dominoSoundIsEnabled()))
      playOscTone(freq,length,.06,'triangle',freq*.67,0,'domino');
  }
  async function animateHandPoints(hand,token){
