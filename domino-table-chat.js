@@ -34,9 +34,11 @@
     player.controls = true; player.preload = 'metadata'; player.src = url;
     player.style.cssText = 'max-width:100%;height:36px';
     player.addEventListener('play', () => {
+      if (recorder || requesting) {player.pause();return;}
       removeAudio();
       voiceHistory.querySelectorAll('audio').forEach(other => { if (other !== player) other.pause(); });
     });
+    player.addEventListener('ended',()=>void showVoice());
     row.append(who,player); voiceHistory.append(row);
     voiceHistory.hidden = false;voiceHistory.style.display = 'block';
   }
@@ -89,6 +91,7 @@
   }
 
   function releaseMic() {
+    window.dfcVoiceRecording=false;
     clearTimeout(recordingTimer);
     stream?.getTracks().forEach(track => track.stop());
     stream = null;
@@ -164,13 +167,15 @@
   }
 
   async function showVoice() {
-    if (!room || loadingVoice || audio || !voiceQueue.length || [...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused)) return;
+    if (!room || requesting || recorder || loadingVoice || audio || !voiceQueue.length || [...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused)) return;
     const row = voiceQueue.shift();
     const version = roomVersion;
     loadingVoice = true;
     try {
       const {data, error} = await sb.rpc('dfc_domino_read_voice', {p_table_id:room, p_note_id:row.id});
-      if (version !== roomVersion || room !== currentRoom() || error || !data) return;
+      if (version !== roomVersion || room !== currentRoom()) return;
+      if (requesting || recorder) {voiceQueue.unshift(row);return;}
+      if (error || !data) {seen.delete('voice:'+row.id);return;}
       const bytes = Uint8Array.from(atob(data.audio), char => char.charCodeAt(0));
       const blob = new Blob([bytes], {type:data.mime});
       rememberClip(row.id,row.sender_name,blob);
@@ -183,14 +188,14 @@
       voiceCard.hidden = false;
       void playVoice(clip);
     } catch (error) {
-      if (version === roomVersion) console.debug('Nota de voz de la mesa', error);
+      if (version === roomVersion) {seen.delete('voice:'+row.id);console.debug('Nota de voz de la mesa', error);}
     } finally {
       loadingVoice = false;
       if (!audio && voiceQueue.length) void showVoice();
     }
   }
 
-  voiceCard.onclick = () => { if (audio?.paused) void playVoice(audio); };
+  voiceCard.onclick = () => { if (!recorder && !requesting && audio?.paused) void playVoice(audio); };
 
   async function sendVoice(blob, noteId, version) {
     if (version !== roomVersion || room !== currentRoom()) return;
@@ -243,6 +248,7 @@
     }
 
     requesting = true;
+    removeAudio();voiceHistory.querySelectorAll('audio').forEach(p=>p.pause());
     let microphone;
     try {
       microphone = await navigator.mediaDevices.getUserMedia({audio:{channelCount:{ideal:1},sampleRate:{ideal:48000},echoCancellation:{ideal:true},noiseSuppression:{ideal:true},autoGainControl:{ideal:true}}});
@@ -270,11 +276,13 @@
         recorder = null;
         releaseMic();
         if (version !== roomVersion || room !== currentRoom()) return;
+        void showVoice();
         const blob = new Blob(chunks, {type:recording.mimeType || chunks[0]?.type});
         const noteId = crypto.randomUUID();
         if (recording.sendOnStop) void sendVoice(blob,noteId,version);
         else setRecording(false);
       };
+      window.dfcVoiceRecording=true;
       recording.start();
       setRecording(true,'Grabando, suelta para enviar (máximo 5 minutos)');
       startedAt=Date.now();
@@ -291,6 +299,7 @@
         ? 'Permite el acceso al micrófono para grabar.' : 'No se pudo abrir el micrófono.');
     } finally {
       requesting = false;
+      if (!recorder) void showVoice();
     }
   }
   function finishRecording(send) {
