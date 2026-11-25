@@ -1,0 +1,39 @@
+name: DFC - validar decodificador de voz (sin publicar)
+on:
+  push:
+    branches: ['review/20261124-history-voice-exit']
+    paths:
+      - 'review/prepare-voice-decoder.sh'
+      - '.github/workflows/dfc-voice-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    if: github.ref == 'refs/heads/review/20261124-history-voice-exit'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verificar y preparar decodificador
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash -n review/prepare-voice-decoder.sh
+          bash review/prepare-voice-decoder.sh
+          node --check domino-table-chat.js
+          cd vendor/ogv-1.9.0
+          sha256sum -c SHA256SUMS
+          node --check ogv.js
+      - name: Guardar solo artefacto de revisión
+        uses: actions/upload-artifact@v4
+        with:
+          name: dfc-voice-decoder-review
+          path: vendor/ogv-1.9.0/
+          if-no-files-found: error
+          retention-days: 7
