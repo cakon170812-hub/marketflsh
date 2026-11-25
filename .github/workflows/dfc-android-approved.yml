@@ -118,7 +118,23 @@ jobs:
           updated_chat = git('show', f'{approved}:domino-table-chat.js')
           visual_paths = ['domino-table-styles.js', 'domino-table-styles.css']
           visual_paths += [p for p in git('ls-tree', '-r', '--name-only', approved, '--', 'images2/').decode().splitlines() if p.lower().endswith(('.webp','.png','.jpg','.jpeg','.svg','.gif'))]
+          # The reviewed voice decoder must be locally bundled before an OTA is published.
+          decoder_root = 'vendor/ogv-1.9.0/'
+          decoder_paths = git('ls-tree', '-r', '--name-only', approved, '--', decoder_root).decode().splitlines()
+          required_decoder = {decoder_root + p for p in (
+              'ogv.js', 'ogv-worker-audio.js', 'ogv-demuxer-webm-wasm.js',
+              'ogv-demuxer-webm-wasm.wasm', 'ogv-demuxer-ogg-wasm.js',
+              'ogv-demuxer-ogg-wasm.wasm', 'ogv-decoder-audio-opus-wasm.js',
+              'ogv-decoder-audio-opus-wasm.wasm', 'SHA256SUMS', 'COPYING')}
+          if not required_decoder <= set(decoder_paths):
+              stop('Falta integrar el decodificador local de notas de voz; no publicar.')
+          visual_paths += decoder_paths
           visual_assets = {p: git('show', f'{approved}:{p}') for p in visual_paths}
+          for line in visual_assets[decoder_root+'SHA256SUMS'].decode().splitlines():
+              digest, relpath = line.split('  ', 1)
+              path = decoder_root + relpath.removeprefix('./')
+              if path not in visual_assets or hashlib.sha256(visual_assets[path]).hexdigest() != digest:
+                  stop('El decodificador de voz no coincide con su checksum.')
           subprocess.run(['node', '--check'], input=visual_assets['domino-table-styles.js'], check=True)
           for label, js in [('script.js', updated_script), ('domino-table-chat.js', updated_chat)]:
               print(f'Checking {label}')
