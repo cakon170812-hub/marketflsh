@@ -2841,7 +2841,7 @@
  async function leaveFinishedPoints(){
    const client=window.sb||window.dfcSupabase;
    const {data:seat,error}=await client.rpc('rf_domino_012r_my_seat');
-   if(error||!seat||Number(seat.table_id||0)||Number(seat.waiting_table_id||0))throw Error(error?.message||'El servidor todavía indica un asiento ocupado. Reintenta Cerrar.');
+   if(error||seat?.ok!==true||seat.state!=='free'||Number(seat.table_id||0)||Number(seat.waiting_table_id||0))throw Error(error?.message||'El servidor aún no confirma el asiento libre. Reintenta Cerrar.');
    hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoChatPanel');hide('dominoTablePanel');hide('dominoLobbyPanel');hide('gamesPanel');
    dominoCurrentTableId=null;
    dominoStopPolling();await dominoStopRealtime();await dominoReleaseWakeLock();
@@ -2929,9 +2929,49 @@
  const infoVisits=new Map();
  const infoTTL=86400000;
  let infoAccount='';
+ const serverHistory=new Map();
+ let historyLoaded=false,historyLoading=false,historyError='',historyGeneration=0,lastHistoryFetch=0;
+ function historyRedraw(){
+   if(infoPanel.hidden)return;
+   const offset=infoPanel.scrollTop;drawInfo();infoPanel.scrollTop=offset;
+ }
+ async function loadHistory(){
+   const account=pruneInfo();
+   if(!account||historyLoading)return;
+   const client=window.sb||window.dfcSupabase;
+   if(!client?.rpc)return;
+   const generation=++historyGeneration;
+   historyLoading=true;historyError='';lastHistoryFetch=Date.now();historyRedraw();
+   const collected=new Map();let cursor=null;
+   try{
+     for(;;){
+       const {data,error}=await client.rpc('dfc_domino_history_24h',{p_before_hand:cursor});
+       if(generation!==historyGeneration||pruneInfo()!==account)return;
+       if(error||!Array.isArray(data))throw Error(error?.message||'Respuesta de historial inválida');
+       for(const hand of data){
+         if(!hand?.id||!hand.table_id)continue;
+         const key=String(hand.table_id);
+         if(!collected.has(key))collected.set(key,[]);
+         collected.get(key).push(hand);
+       }
+       if(data.length<50)break;
+       const next=String(data.at(-1)?.id||'');
+       if(!/^\d+$/.test(next)||next===cursor)throw Error('No se pudo continuar el historial');
+       cursor=next;
+     }
+     if(generation!==historyGeneration||pruneInfo()!==account)return;
+     serverHistory.clear();for(const [id,hands] of collected)serverHistory.set(id,hands);
+     historyLoaded=true;
+     if(!infoTable||(!serverHistory.has(String(infoTable))&&!infoHistory.has(String(infoTable))))infoTable=Number(serverHistory.keys().next().value||0);
+   }catch(error){
+     if(generation===historyGeneration)historyError='No se pudo actualizar el historial. Reintenta cuando tengas conexión.';
+   }finally{
+     if(generation===historyGeneration){historyLoading=false;historyRedraw();}
+   }
+ }
  function pruneInfo(){
    const account=typeof me==='undefined'?'':String(me?.id||'');
-   if(account!==infoAccount){infoHistory.clear();infoVisits.clear();infoAccount=account;}
+   if(account!==infoAccount){infoHistory.clear();infoVisits.clear();serverHistory.clear();historyLoaded=false;historyLoading=false;historyError='';lastHistoryFetch=0;historyGeneration++;infoAccount=account;}
    const cutoff=Date.now()-infoTTL;
    for(const [key,entry] of infoHistory){
      for(const [id,hand] of entry.hands)if((hand.observedAt||0)<cutoff)entry.hands.delete(id);
@@ -2942,7 +2982,8 @@
  const homeInfo=document.createElement('button');
  homeInfo.type='button';homeInfo.className='action dark';homeInfo.textContent='ⓘ Historial de partidas';
  homeInfo.hidden=true;
- document.getElementById('dfcHomeAction')?.after(homeInfo);
+ const historyAnchor=document.getElementById('dfcHomeAction');
+ if(historyAnchor)historyAnchor.after(homeInfo);else document.getElementById('appView')?.prepend(homeInfo);
  const bonusPlayed=new Set();
  let infoTable=0, bonusLayer=null, activeSpeech=null, speechTimer=0;
  const roundPassBaseline=new Set();
@@ -2978,7 +3019,7 @@
      const previous=entry.hands.get(handKey)||{};
      entry.hands.set(handKey,{...previous,id:handKey,observedAt:previous.observedAt||Date.now(),date:hand.settled_at||previous.date,kind:kind||previous.kind,winner:winner?.name||winner?.full_name||previous.winner,avatar:winner?.avatar||winner?.avatar_url||previous.avatar,...details});
    }
-   if(!infoPanel.hidden&&infoTable===Number(id)){const offset=infoPanel.scrollTop;drawInfo();infoPanel.scrollTop=offset;}
+   if(!historyLoaded&&!historyLoading&&!infoPanel.hidden&&infoTable===Number(id))historyRedraw();
  }
  function drawInfo(){
    pruneInfo();
@@ -2989,30 +3030,52 @@
    text('h3',infoTable?'Información de partidas · Mesa '+infoTable:'Historial de partidas',infoPanel);
    const selector=document.createElement('select');selector.setAttribute('aria-label','Elegir mesa');
    selector.style.cssText='max-width:100%;padding:6px;background:#152843;color:white;border:1px solid #dabf70';
-   for(const id of infoHistory.keys()){const opt=document.createElement('option');opt.value=id;opt.textContent='Mesa '+id;selector.append(opt);}
+   const ids=new Set([...serverHistory.keys(),...infoHistory.keys()]);
+   for(const id of ids){const opt=document.createElement('option');opt.value=id;opt.textContent='Mesa '+id;selector.append(opt);}
    if(selector.options.length){selector.value=String(infoTable);selector.onchange=()=>{infoTable=Number(selector.value);drawInfo();};infoPanel.append(selector);}
+   const refresh=text('button',historyLoading?'Actualizando…':'Actualizar historial',infoPanel);refresh.type='button';refresh.disabled=historyLoading;refresh.onclick=()=>void loadHistory();
+   text('p',historyError||(historyLoading?'Recuperando jugadas confirmadas…':historyLoaded?'Historial personal confirmado por el servidor · últimas 24 horas.':'Historial local provisional · últimas 24 horas.'),infoPanel);
+   if(historyLoaded){
+     const hands=serverHistory.get(String(infoTable))||[];
+     text('h4','Manos y movimientos confirmados',infoPanel);
+     if(!hands.length)text('p','No hay manos disponibles de esta mesa en las últimas 24 horas.',infoPanel);
+     const reasons={domino:'Dominó',capicua:'Capicúa',trancazo:'Tranque',tranque:'Tranque',blocked:'Tranque'};
+     for(const h of hands){
+       const row=text('div','',infoPanel);row.style.cssText='border-top:1px solid #57708a;padding:6px 0';
+       const reason=String(h.reason||'').toLowerCase();
+       text('strong',h.winner?h.winner+' · '+(reasons[reason]||'Mano terminada'):'Mano '+(h.settled_at?'terminada':'en juego'),row);
+       text('p','Mano #'+h.id+' · '+new Date(h.settled_at||h.created_at).toLocaleString('es-DO'),row);
+       const local=entry?.hands.get(String(h.id));
+       if(local?.points!=null)text('p','Puntos acreditados: '+local.points,row);
+       if(local?.bonus!=null)text('p','Bonificación: '+local.bonus+' puntos',row);
+       if(local?.diamonds!=null)text('p','Diamantes del bote: '+local.diamonds,row);
+       const list=text('details','',row);const moves=Array.isArray(h.moves)?h.moves:[];
+       text('summary','Movimientos ('+moves.length+')',list);
+       for(const mv of moves){
+         const action={PLAY:'Ficha',AUTO_PLAY:'Ficha automática',PASS:'Pase',AUTO_PASS:'Pase automático',WIN:'Victoria'}[mv.action]||mv.action;
+         const tile=Array.isArray(mv.tile)&&mv.tile.length===2?mv.tile.join('–'):'';
+         text('p',new Date(mv.created_at).toLocaleTimeString('es-DO')+' · '+mv.name+' · '+action+(tile?' · '+tile:'')+(Number(mv.amount)>0?' · '+mv.amount+' FC':''),list);
+       }
+     }
+     return;
+   }
    if(entry?.match!=null)text('p','Partida '+entry.match,infoPanel);
-   text('small','Historial personal de esta sesión. Caduca a las 24 horas. Los movimientos mostrados son los observados por esta aplicación.',infoPanel);
    if(entry?.players.length){
      text('h4','Jugadores y marcador',infoPanel);
-     for(const p of entry.players){const row=text('div','',infoPanel);row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px';
-       resultAvatar(p,row);text('span',p.name+(p.points!=null?' · '+p.points+' puntos':''),row);}
+     for(const p of entry.players){const row=text('div','',infoPanel);row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px';resultAvatar(p,row);text('span',p.name+(p.points!=null?' · '+p.points+' puntos':''),row);}
    }
-   text('h4','Manos jugadas',infoPanel);
+   text('h4','Manos observadas localmente',infoPanel);
    if(!entry?.hands.size)text('p','Todavía no hay manos confirmadas disponibles.',infoPanel);
    for(const h of [...(entry?.hands.values()||[])].reverse()){
      const row=text('div','',infoPanel);row.style.cssText='border-top:1px solid #57708a;padding:6px 0';
-     const name=h.winner||'Ganador no disponible';
-     resultAvatar({name,avatar:h.avatar},row);
+     const name=h.winner||'Ganador no disponible';resultAvatar({name,avatar:h.avatar},row);
      text('strong',name+' · '+(h.kind||'Mano terminada'),row);
      text('small',' Mano #'+h.id+(h.date&&Number.isFinite(Date.parse(h.date))?' · '+new Date(h.date).toLocaleString('es-DO'):''),row);
      if(h.points!=null)text('p','Puntos acreditados: '+h.points,row);
      if(h.bonus!=null)text('p','Bonificación: '+h.bonus+' puntos',row);
      if(h.fc!=null)text('p','Premio confirmado: '+money.format(h.fc)+' FC',row);
      if(h.diamonds!=null)text('p','Diamantes del bote: '+h.diamonds,row);
-     if(h.moves?.size){const list=text('details','',row);text('summary','Movimientos observados ('+h.moves.size+')',list);
-       for(const mv of h.moves.values())text('p',mv.name+' · '+mv.action+(mv.tile?' · '+mv.tile:'')+(mv.amount!=null?' · '+mv.amount+' FC':''),list);
-     }
+     if(h.moves?.size){const list=text('details','',row);text('summary','Movimientos observados ('+h.moves.size+')',list);for(const mv of h.moves.values())text('p',mv.name+' · '+mv.action+(mv.tile?' · '+mv.tile:'')+(mv.amount!=null?' · '+mv.amount+' FC':''),list);}
    }
  }
  infoButton.onclick=()=>{
@@ -3023,12 +3086,12 @@
    stage.append(infoPanel);infoPanel.style.position='absolute';
    const state=typeof dominoState==='undefined'?null:dominoState;
    if(!panel.hasAttribute('data-dfc-points-mode'))recordInfo(id,null,null,state?.seats||[]);
-   drawInfo();infoPanel.hidden=false;
+   drawInfo();infoPanel.hidden=false;void loadHistory();
  };
  homeInfo.onclick=()=>{
-   pruneInfo();if(!infoHistory.size)return;
-   infoTable=Number([...infoHistory.keys()].at(-1));
-   document.body.append(infoPanel);infoPanel.style.position='fixed';drawInfo();infoPanel.hidden=false;
+   if(!pruneInfo())return;
+   infoTable=Number(serverHistory.keys().next().value||[...infoHistory.keys()].at(-1)||0);
+   document.body.append(infoPanel);infoPanel.style.position='fixed';drawInfo();infoPanel.hidden=false;void loadHistory();
  };
  function captureHistoryMove(st){
    const id=current(),account=pruneInfo();
@@ -3045,7 +3108,7 @@
    if(!hand.moves.has(String(mv.id))){
      const seat=st.seats.find(p=>String(p.user_id)===String(mv.user_id));
      const action=String(mv.action||'').toUpperCase();
-     const x=mv.a??mv.tile_a,y=mv.b??mv.tile_b;
+     const x=mv.a??mv.tile_a??mv.tile?.[0],y=mv.b??mv.tile_b??mv.tile?.[1];
      if(action.includes('PLAY')||action.includes('PASS'))hand.moves.set(String(mv.id),{name:seat?.full_name||seat?.name||'Jugador',action:action.includes('PASS')?'Pase':'Ficha',tile:x!=null&&y!=null?x+'–'+y:'',amount:action.includes('PASS')&&mv.amount!=null?mv.amount:null});
    }
    entry.hands.set(hk,hand);
@@ -3054,7 +3117,8 @@
    const renderHistoryOriginal=renderDominoState;
    renderDominoState=function(st){const value=renderHistoryOriginal.apply(this,arguments);captureHistoryMove(st);return value;};
  }
- setInterval(()=>{const account=pruneInfo();homeInfo.hidden=!account||!infoHistory.size||Boolean(current());},1000);
+ setInterval(()=>{const account=pruneInfo();homeInfo.hidden=!account||Boolean(current());if(!account){infoPanel.hidden=true;return;}if(!infoPanel.hidden&&Date.now()-lastHistoryFetch>30000)void loadHistory();},1000);
+ window.addEventListener('online',()=>{if(!infoPanel.hidden)void loadHistory();});
  function celebrateThirty(key,kind){
    if(document.hidden||!current()||bonusPlayed.has(key))return;
    try{if(sessionStorage.getItem('dfc30:'+key)==='1')return;sessionStorage.setItem('dfc30:'+key,'1');}catch(_){}
