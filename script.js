@@ -2953,27 +2953,28 @@
    if(!client?.rpc)return;
    const generation=++historyGeneration;
    historyLoading=true;historyError='';lastHistoryFetch=Date.now();historyRedraw();
-   const collected=new Map();let cursor=null;
+   const collected=new Map(), collectedIds=new Set();let cursor=null;
    try{
      for(;;){
        const {data,error}=await client.rpc('dfc_domino_history_24h',{p_before_hand:cursor});
        if(generation!==historyGeneration||pruneInfo()!==account)return;
        if(error||!Array.isArray(data))throw Error(error?.message||'Respuesta de historial inválida');
        for(const hand of data){
-         if(!hand?.id||!hand.table_id)continue;
+         if(!hand?.id||!hand.table_id||collectedIds.has(String(hand.id)))continue;
+         collectedIds.add(String(hand.id));
          const key=String(hand.table_id);
          if(!collected.has(key))collected.set(key,[]);
          collected.get(key).push(hand);
        }
        if(data.length<50)break;
        const next=String(data.at(-1)?.id||'');
-       if(!/^\d+$/.test(next)||next===cursor)throw Error('No se pudo continuar el historial');
+       if(!/^\d+$/.test(next)||(cursor!==null&&BigInt(next)>=BigInt(cursor)))throw Error('No se pudo continuar el historial');
        cursor=next;
      }
      if(generation!==historyGeneration||pruneInfo()!==account)return;
      serverHistory.clear();for(const [id,hands] of collected)serverHistory.set(id,hands);
      historyLoaded=true;
-     if(!infoTable||(!serverHistory.has(String(infoTable))&&!infoHistory.has(String(infoTable))))infoTable=Number(serverHistory.keys().next().value||0);
+     if(!infoTable||(!serverHistory.has(String(infoTable))&&!infoHistory.has(String(infoTable))))infoTable=Number(serverHistory.keys().next().value||infoHistory.keys().next().value||0);
    }catch(error){
      if(generation===historyGeneration)historyError='No se pudo actualizar el historial. Reintenta cuando tengas conexión.';
    }finally{
@@ -2987,7 +2988,7 @@
    for(const [key,hands] of serverHistory){const remaining=hands.map(h=>({...h,moves:(h.moves||[]).filter(m=>Date.parse(m.created_at)>cutoff)})).filter(h=>Date.parse(h.created_at)>cutoff||Date.parse(h.settled_at)>cutoff||h.moves.length);if(remaining.length)serverHistory.set(key,remaining);else serverHistory.delete(key);}
    for(const [key,entry] of infoHistory){
      for(const [id,hand] of entry.hands)if((hand.observedAt||0)<cutoff)entry.hands.delete(id);
-     if(!entry.hands.size&&(entry.observedAt||0)<cutoff)infoHistory.delete(key);
+     if(!entry.hands.size&&(entry.observedAt||0)<cutoff){infoHistory.delete(key);infoVisits.delete(key);}
    }
    return account;
  }
@@ -3039,6 +3040,9 @@
  }
  function drawInfo(){
    pruneInfo();
+   const available=new Set([...serverHistory.keys(),...infoHistory.keys()]);
+   if(!available.has(String(infoTable))&&available.size)infoTable=Number(available.values().next().value);
+   if(!available.size&&!current())infoTable=0;
    const entry=infoHistory.get(String(infoTable));
    infoPanel.replaceChildren();
    const close=text('button','Cerrar ×',infoPanel);close.type='button';close.style.cssText='float:right;padding:6px;background:#254361;color:white;border:1px solid #dabf70;border-radius:6px';
@@ -3046,19 +3050,20 @@
    text('h3',infoTable?'Información de partidas · Mesa '+infoTable:'Historial de partidas',infoPanel);
    const selector=document.createElement('select');selector.setAttribute('aria-label','Elegir mesa');
    selector.style.cssText='max-width:100%;padding:6px;background:#152843;color:white;border:1px solid #dabf70';
-   const ids=new Set([...serverHistory.keys(),...infoHistory.keys()]);
+   const ids=available;
    for(const id of ids){const opt=document.createElement('option');opt.value=id;opt.textContent='Mesa '+id;selector.append(opt);}
    if(selector.options.length){selector.value=String(infoTable);selector.onchange=()=>{infoTable=Number(selector.value);drawInfo();};infoPanel.append(selector);}
    const refresh=text('button',historyLoading?'Actualizando…':'Actualizar historial',infoPanel);refresh.type='button';refresh.disabled=historyLoading;refresh.onclick=()=>void loadHistory();
-   text('p',historyError||(historyLoading?'Recuperando jugadas confirmadas…':historyLoaded?'Historial personal confirmado por el servidor · últimas 24 horas.':'Historial local provisional · últimas 24 horas.'),infoPanel);
-   if(historyLoaded){
+   const hasConfirmed=historyLoaded&&serverHistory.has(String(infoTable));
+   text('p',historyError||(historyLoading?'Recuperando jugadas confirmadas…':hasConfirmed?'Historial personal confirmado por el servidor · últimas 24 horas.':entry?.hands.size?'Historial local provisional · últimas 24 horas.':historyLoaded?'No hay registros confirmados de esta mesa en las últimas 24 horas.':'Historial local provisional · últimas 24 horas.'),infoPanel);
+   if(hasConfirmed){
      const hands=serverHistory.get(String(infoTable))||[];
      text('h4','Manos y movimientos confirmados',infoPanel);
      if(!hands.length)text('p','No hay manos disponibles de esta mesa en las últimas 24 horas.',infoPanel);
-     const reasons={domino:'Dominó',capicua:'Capicúa',trancazo:'Tranque',tranque:'Tranque',blocked:'Tranque'};
+     const reasons={domino:'Dominó',ultima_ficha:'Dominó',capicua:'Capicúa','capicúa':'Capicúa',trancazo:'Tranque',tranque:'Tranque',blocked:'Tranque'};
      for(const h of hands){
        const row=text('div','',infoPanel);row.style.cssText='border-top:1px solid #57708a;padding:6px 0';
-       const reason=String(h.reason||'').toLowerCase();
+       const reason=String(h.reason||'').trim().toLowerCase();
        text('strong',h.winner?h.winner+' · '+(reasons[reason]||'Mano terminada'):'Mano '+(h.settled_at?'terminada':'en juego'),row);
        text('p','Mano #'+h.id+' · '+new Date(h.settled_at||h.created_at).toLocaleString('es-DO'),row);
        const local=entry?.hands.get(String(h.id));
@@ -3085,7 +3090,7 @@
    for(const h of [...(entry?.hands.values()||[])].reverse()){
      const row=text('div','',infoPanel);row.style.cssText='border-top:1px solid #57708a;padding:6px 0';
      const name=h.winner||'Ganador no disponible';resultAvatar({name,avatar:h.avatar},row);
-     text('strong',name+' · '+(h.kind||'Mano terminada'),row);
+     text('strong',name+' · '+(h.kind||(h.date?'Mano terminada':'Mano observada')),row);
      text('small',' Mano #'+h.id+(h.date&&Number.isFinite(Date.parse(h.date))?' · '+new Date(h.date).toLocaleString('es-DO'):''),row);
      if(h.points!=null)text('p','Puntos acreditados: '+h.points,row);
      if(h.bonus!=null)text('p','Bonificación: '+h.bonus+' puntos',row);
@@ -3128,6 +3133,7 @@
      if(action.includes('PLAY')||action.includes('PASS'))hand.moves.set(String(mv.id),{name:seat?.full_name||seat?.name||'Jugador',action:action.includes('PASS')?'Pase':'Ficha',tile:x!=null&&y!=null?x+'–'+y:'',amount:action.includes('PASS')&&mv.amount!=null?mv.amount:null});
    }
    entry.hands.set(hk,hand);
+   if(!infoPanel.hidden&&infoTable===Number(id)&&!serverHistory.has(key))historyRedraw();
  }
  if(typeof renderDominoState==='function'){
    const renderHistoryOriginal=renderDominoState;
