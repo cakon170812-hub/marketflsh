@@ -18,43 +18,149 @@
   chat.after(voiceButton);
   const chatList = document.getElementById('dominoChatList');
   const voiceHistory = document.createElement('section');
+  voiceHistory.className = 'dfc-voice-history';
   voiceHistory.hidden = true;
-  voiceHistory.style.cssText = 'max-height:30vh;overflow:auto;display:none;flex:none;padding:4px;color:inherit';
-  chatList?.after(voiceHistory);
-  const clips = new Map();
-  function rememberClip(id, name, blob) {
-    if (clips.has(id)) return;
-    const url = URL.createObjectURL(blob);
-    clips.set(id,url);
-    const row = document.createElement('div');
-    row.className = 'domino-chat-line';
-    const who = document.createElement('strong');
-    who.textContent = name;
-    const player = document.createElement('audio');
-    player.controls = true; player.preload = 'metadata'; player.src = url;
-    player.style.cssText = 'max-width:100%;height:36px';
-    player.addEventListener('play', () => {
-      if (recorder || requesting) {player.pause();return;}
-      removeAudio();
-      voiceHistory.querySelectorAll('audio').forEach(other => { if (other !== player) other.pause(); });
-    });
-    player.addEventListener('ended',()=>void showVoice());
-    row.append(who,player); voiceHistory.append(row);
-    voiceHistory.hidden = false;voiceHistory.style.display = 'block';
+  function attachHistory(){
+    if(chatList && voiceHistory.parentNode!==chatList)chatList.append(voiceHistory);
   }
-  function clearClips() {
-    voiceHistory.querySelectorAll('audio').forEach(p => {p.pause();p.removeAttribute('src');p.load();});
-    clips.forEach(url => URL.revokeObjectURL(url));clips.clear();
-    voiceHistory.replaceChildren();voiceHistory.hidden = true;voiceHistory.style.display = 'none';
+  attachHistory();
+  if(chatList)new MutationObserver(attachHistory).observe(chatList,{childList:true});
+  const voiceStyle=document.createElement('style');
+  voiceStyle.textContent=`
+    .dfc-voice-history{display:grid;gap:7px;padding:4px;min-width:0}
+    .dfc-voice-history[hidden]{display:none!important}
+    .dfc-voice-note{min-width:0;display:block}
+    .dfc-voice-ui,#dominoTablePanel #dominoVoiceCard.dfc-voice-ui{
+      box-sizing:border-box;display:flex;align-items:center;gap:9px;padding:9px 11px;
+      border:1px solid #d7e3dc;border-radius:18px;background:#fff!important;
+      color:#17271e!important;text-align:left;font:600 12px/1.25 system-ui,sans-serif;
+      min-width:0;box-shadow:0 2px 10px #0003
+    }
+    .dfc-voice-note .dfc-voice-ui{width:100%;max-width:100%;margin:0}
+    #dominoTablePanel #dominoVoiceCard.dfc-voice-ui{width:min(360px,56vw);max-width:calc(100% - 20px);min-width:0}
+    #dominoTablePanel #dominoVoiceCard.dfc-voice-ui[hidden]{display:none!important}
+    .dfc-voice-ui .dfc-voice-icon{display:grid;place-items:center;width:32px;height:32px;flex:0 0 32px;
+      background:#e3f8e9;color:#137b39!important;border-radius:50%;font-size:19px!important;animation:none!important}
+    .dfc-voice-ui .dfc-voice-body{display:grid;flex:1;min-width:0;gap:5px;white-space:normal!important}
+    .dfc-voice-ui .dfc-voice-meta{display:flex;justify-content:space-between;align-items:center;gap:6px;min-width:0}
+    .dfc-voice-ui .dfc-voice-sender{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;font-size:12px!important}
+    .dfc-voice-ui .dfc-voice-time,.dfc-voice-ui .dfc-voice-duration{font:500 10px/1.25 system-ui,sans-serif;color:#45534b!important;white-space:nowrap}
+    .dfc-voice-ui .dfc-voice-track{display:block;height:7px;background:#e0e7e2;border-radius:10px;overflow:hidden;width:100%}
+    .dfc-voice-ui .dfc-voice-fill{display:block;height:100%;width:100%;background:#22c55e;border-radius:10px;transition:width 120ms linear}
+    .dfc-voice-ui:focus-visible{outline:2px solid #169347;outline-offset:2px}
+    @media(prefers-reduced-motion:reduce){.dfc-voice-fill{transition:none!important}}
+  `;
+  document.head.append(voiceStyle);
+  const clips = new Map();
+  let manualGeneration=0;
+  function formatServerTime(value){
+    const date=new Date(value||'');
+    if(!Number.isFinite(date.getTime()))return 'Hora pendiente';
+    const opts={hour:'numeric',minute:'2-digit'};
+    if(date.toDateString()!==new Date().toDateString())Object.assign(opts,{day:'numeric',month:'short',year:'numeric'});
+    return new Intl.DateTimeFormat('es-DO',opts).format(date);
+  }
+  function formatDuration(seconds){
+    if(!Number.isFinite(seconds)||seconds<0)return '–:––';
+    const whole=Math.floor(seconds);
+    return Math.floor(whole/60)+':'+String(whole%60).padStart(2,'0');
+  }
+  function makeVoiceView(button){
+    button.classList.add('dfc-voice-ui');
+    const icon=document.createElement('span');icon.className='dfc-voice-icon';icon.textContent='▶';
+    const body=document.createElement('span');body.className='dfc-voice-body';
+    const meta=document.createElement('span');meta.className='dfc-voice-meta';
+    const name=document.createElement('strong');name.className='dfc-voice-sender';
+    const time=document.createElement('time');time.className='dfc-voice-time';
+    const track=document.createElement('span');track.className='dfc-voice-track';
+    const fill=document.createElement('span');fill.className='dfc-voice-fill';track.append(fill);
+    const duration=document.createElement('span');duration.className='dfc-voice-duration';duration.textContent='0:00 / –:––';
+    meta.append(name,time);body.append(meta,track,duration);button.append(icon,body);
+    return {button,icon,name,time,fill,duration};
+  }
+  function setVoiceMeta(view,meta){
+    view.name.textContent=meta.mine?'Tú':(meta.sender_name||'Jugador');
+    view.time.textContent=formatServerTime(meta.created_at);
+    if(meta.created_at)view.time.dateTime=meta.created_at;else view.time.removeAttribute('datetime');
+    view.button.setAttribute('aria-label','Reproducir nota de voz de '+view.name.textContent);
+  }
+  function drawVoiceProgress(view,player){
+    const duration=player?.duration;
+    const position=Number(player?.currentTime)||0;
+    const valid=Number.isFinite(duration)&&duration>0;
+    const playing=Boolean(player&&!player.paused&&!player.ended);
+    view.icon.textContent=playing?'Ⅱ':'▶';
+    view.button.setAttribute('aria-pressed',String(playing));
+    view.fill.style.width=(valid?Math.max(0,Math.min(100,(1-position/duration)*100)):100)+'%';
+    view.duration.textContent=formatDuration(position)+' / '+formatDuration(duration);
+  }
+  function installBlob(entry,blob){
+    if(!entry.url){
+      entry.url=URL.createObjectURL(blob);
+      entry.player.src=entry.url;
+      entry.player.load();
+    }
+  }
+  function rememberClip(meta,blob){
+    const id=String(meta.id);
+    let entry=clips.get(id);
+    if(!entry){
+      const row=document.createElement('div');row.className='dfc-voice-note';
+      const button=document.createElement('button');button.type='button';
+      const view=makeVoiceView(button);
+      const player=document.createElement('audio');player.preload='metadata';player.hidden=true;
+      entry={id,row,view,player,url:'',meta:{...meta}};
+      clips.set(id,entry);
+      for(const event of ['loadedmetadata','durationchange','timeupdate','play','pause','ended','error'])
+        player.addEventListener(event,()=>drawVoiceProgress(view,player));
+      player.addEventListener('play',()=>{
+        if(recorder||requesting||document.hidden){player.pause();return;}
+        removeAudio();
+        voiceHistory.querySelectorAll('audio').forEach(other=>{if(other!==player)other.pause();});
+      });
+      player.addEventListener('ended',()=>void showVoice());
+      button.onclick=()=>void replayClip(entry);
+      row.append(button,player);voiceHistory.append(row);voiceHistory.hidden=false;attachHistory();
+    }else entry.meta={...entry.meta,...meta,created_at:meta.created_at||entry.meta.created_at};
+    setVoiceMeta(entry.view,entry.meta);
+    if(blob)installBlob(entry,blob);
+    return entry;
+  }
+  async function getClipBlob(id,tableId){
+    const {data,error}=await sb.rpc('dfc_domino_read_voice',{p_table_id:tableId,p_note_id:id});
+    if(error||!data)throw Error(error?.message||'La nota ya no está disponible');
+    const bytes=Uint8Array.from(atob(data.audio),char=>char.charCodeAt(0));
+    return new Blob([bytes],{type:data.mime});
+  }
+  async function replayClip(entry){
+    if(recorder||requesting||document.hidden||!room)return;
+    if(!entry.player.paused){entry.player.pause();return;}
+    const version=roomVersion,token=++manualGeneration,tableId=room;
+    try{
+      if(!entry.url){
+        entry.view.duration.textContent='Cargando…';
+        const blob=await getClipBlob(entry.id,tableId);
+        if(version!==roomVersion||token!==manualGeneration||room!==currentRoom()||recorder||requesting||document.hidden)return;
+        installBlob(entry,blob);
+      }
+      if(version!==roomVersion||token!==manualGeneration||recorder||requesting||document.hidden)return;
+      removeAudio();
+      voiceHistory.querySelectorAll('audio').forEach(other=>{if(other!==entry.player)other.pause();});
+      if(entry.player.ended)entry.player.currentTime=0;
+      await entry.player.play();
+    }catch(error){
+      if(version===roomVersion&&token===manualGeneration){entry.view.duration.textContent='Toca para reintentar';dominoShowToast(error.message||'No se pudo reproducir la nota');}
+    }
+  }
+  function clearClips(){
+    manualGeneration++;
+    clips.forEach(entry=>{entry.player.pause();entry.player.removeAttribute('src');entry.player.load();if(entry.url)URL.revokeObjectURL(entry.url);});
+    clips.clear();voiceHistory.replaceChildren();voiceHistory.hidden=true;
   }
 
-  const voiceCard = document.createElement('button');
-  voiceCard.type = 'button';
-  voiceCard.id = 'dominoVoiceCard';
-  voiceCard.hidden = true;
-  const speaker = document.createElement('span');
-  const sender = document.createElement('span');
-  voiceCard.append(speaker, sender);
+  const voiceCard=document.createElement('button');
+  voiceCard.type='button';voiceCard.id='dominoVoiceCard';voiceCard.hidden=true;
+  const floatingView=makeVoiceView(voiceCard);
   stage.append(voiceCard);
 
   const maxRecordingMs = 300000;
@@ -157,54 +263,52 @@
     void showVoice();
   }
 
-  async function playVoice(clip) {
-    try {
+  async function playVoice(clip){
+    try{
       await clip.play();
-      if (audio !== clip) return;
-      speaker.textContent = '🔊';
-      voiceCard.setAttribute('data-playing', '');
-      voiceCard.setAttribute('aria-label', 'Nota de voz de ' + sender.textContent + ' en reproducción');
-    } catch (error) {
-      if (audio !== clip) return;
-      if (error.name !== 'NotAllowedError') {
-        finishVoice();
-        return;
+      if(audio!==clip)return;
+      voiceCard.setAttribute('data-playing','');
+      drawVoiceProgress(floatingView,clip);
+    }catch(error){
+      if(audio!==clip)return;
+      if(error.name!=='NotAllowedError'){finishVoice();return;}
+      drawVoiceProgress(floatingView,clip);
+    }
+  }
+
+  async function showVoice(){
+    if(!room||document.hidden||requesting||recorder||loadingVoice||audio||!voiceQueue.length||[...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused))return;
+    const row=voiceQueue.shift(),version=roomVersion,tableId=room;
+    loadingVoice=true;
+    try{
+      const entry=rememberClip(row);
+      if(!entry.url){
+        const blob=await getClipBlob(row.id,tableId);
+        if(version!==roomVersion||room!==currentRoom())return;
+        installBlob(entry,blob);
       }
-      speaker.textContent = '▶';
-      voiceCard.setAttribute('aria-label', 'Escuchar a ' + sender.textContent);
-    }
-  }
-
-  async function showVoice() {
-    if (!room || document.hidden || requesting || recorder || loadingVoice || audio || !voiceQueue.length || [...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused)) return;
-    const row = voiceQueue.shift();
-    const version = roomVersion;
-    loadingVoice = true;
-    try {
-      const {data, error} = await sb.rpc('dfc_domino_read_voice', {p_table_id:room, p_note_id:row.id});
-      if (version !== roomVersion || room !== currentRoom()) return;
-      if (document.hidden || requesting || recorder || [...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused)) {voiceQueue.unshift(row);return;}
-      if (error || !data) {seen.delete('voice:'+row.id);return;}
-      const bytes = Uint8Array.from(atob(data.audio), char => char.charCodeAt(0));
-      const blob = new Blob([bytes], {type:data.mime});
-      rememberClip(row.id,row.sender_name,blob);
-      soundUrl = URL.createObjectURL(blob);
-      const clip = new Audio(soundUrl);
-      audio = clip;
-      clip.onended = clip.onerror = finishVoice;
-      sender.textContent = row.sender_name;
-      speaker.textContent = '▶';
-      voiceCard.hidden = false;
+      if(document.hidden||requesting||recorder||[...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused)){voiceQueue.unshift(row);return;}
+      const clip=new Audio(entry.url);
+      audio=clip;
+      clip.onended=clip.onerror=()=>{if(audio===clip)finishVoice();};
+      for(const event of ['loadedmetadata','durationchange','timeupdate','play','pause'])
+        clip.addEventListener(event,()=>{if(audio===clip)drawVoiceProgress(floatingView,clip);});
+      setVoiceMeta(floatingView,entry.meta);drawVoiceProgress(floatingView,clip);
+      voiceCard.hidden=false;
       void playVoice(clip);
-    } catch (error) {
-      if (version === roomVersion) {seen.delete('voice:'+row.id);console.debug('Nota de voz de la mesa', error);}
-    } finally {
-      loadingVoice = false;
-      if (!audio && voiceQueue.length && !document.hidden && !requesting && !recorder) void showVoice();
+    }catch(error){
+      if(version===roomVersion){seen.delete('voice:'+row.id);console.debug('Nota de voz de la mesa',error);}
+    }finally{
+      loadingVoice=false;
+      if(!audio&&voiceQueue.length&&!document.hidden&&!requesting&&!recorder)void showVoice();
     }
   }
 
-  voiceCard.onclick = () => { if (!recorder && !requesting && audio?.paused) void playVoice(audio); };
+  voiceCard.onclick=()=>{
+    if(recorder||requesting||!audio)return;
+    if(audio.paused)void playVoice(audio);
+    else{audio.pause();voiceCard.removeAttribute('data-playing');}
+  };
 
   async function sendVoice(blob, noteId, version) {
     if (version !== roomVersion || room !== currentRoom()) return;
@@ -232,7 +336,8 @@
       if (String(data) !== String(noteId)) throw Error('El servidor no confirmó la nota');
       if (version !== roomVersion || room !== currentRoom()) return;
       pendingNote = null;
-      rememberClip(noteId,'Tú',blob);
+      rememberClip({id:noteId,sender_name:'Tú',mine:true},blob);
+      void window.syncDominoTableMessages(true).catch(()=>{});
       setRecording(false);
       dominoShowToast('Nota de voz enviada.');
     } catch (error) {
@@ -259,6 +364,7 @@
     }
 
     requesting = true;
+    manualGeneration++;
     setVoiceCapture(true);
     removeAudio();voiceHistory.querySelectorAll('audio').forEach(p=>p.pause());
     let microphone;
@@ -346,15 +452,19 @@
     try {
       const [chatResult, voiceResult] = await Promise.allSettled([
         sb.rpc('rf_domino_chat_list_v150',{p_table_id:tableId,p_limit:40}),
-        sb.rpc('dfc_domino_list_voice',{p_table_id:tableId})
+        sb.rpc('dfc_domino_voice_history',{p_table_id:tableId}).then(result=>result.error?sb.rpc('dfc_domino_list_voice',{p_table_id:tableId}):result)
       ]);
       if (version !== roomVersion || currentRoom() !== tableId) return;
       const notes = voiceResult.status === 'fulfilled' ? voiceResult.value.data : null;
       for (const note of Array.isArray(notes) ? notes : []) {
-        const key = 'voice:' + note.id;
-        if (seen.has(key) || clips.has(note.id)) continue;
+        if(!note?.id)continue;
+        const key='voice:'+note.id;
+        const previouslyKnown=clips.has(String(note.id));
+        rememberClip(note);
+        if(note.mine||seen.has(key)||previouslyKnown)continue;
         seen.add(key);
-        voiceQueue.push(note);
+        const age=mfDominoNow()-Date.parse(note.created_at);
+        if(Number.isFinite(age)&&age>=-3000&&age<120000)voiceQueue.push(note);
       }
       void showVoice();
 
@@ -364,6 +474,7 @@
       if (version !== roomVersion || currentRoom() !== tableId) return;
       const rows = dfcZ28ActiveMessages(dfcVisibleMessages(conversation.data || []));
       renderDominoMiniChat(rows);
+      attachHistory();
       for (const row of rows) {
         const type = String(row.kind || 'text');
         if (type === 'text' && row.message?.trim()) dominoUserMessageCache.set(String(row.user_id),row);
