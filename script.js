@@ -457,6 +457,17 @@
   const seen=new Map();
   const requestedScenes=new Map();
   const celebrated=new Set();
+  // Un anuncio por mano, independiente de que el tablero o la ficha estén visibles.
+  const announcedClosures=new Set();
+  function announceClosure(handId,kind){
+    const tableId=table();
+    if(!tableId||!handId||!['domino','capicua','trancazo'].includes(kind)||document.hidden||window.dfcVoiceRecording||window.dfc012lAudioPrefs?.().celebration===false||typeof window.dfc012uPlay!=='function')return;
+    const key=tableId+(kind==='trancazo'?':trancazo:':':win:')+handId;
+    if(announcedClosures.has(key))return;
+    announcedClosures.add(key);
+    if(announcedClosures.size>256)announcedClosures.delete(announcedClosures.values().next().value);
+    try{Promise.resolve(window.dfc012uPlay(kind,key)).catch(error=>console.debug('Audio de cierre',error));}catch(error){console.debug('Audio de cierre',error);}
+  }
   let burstLayer=null,burstTimer=0;
   function clearBurst(){
     clearTimeout(burstTimer);
@@ -649,8 +660,7 @@
       clear();
       if(table()===tableId)document.dispatchEvent(new Event('dfc:closing-preview-end'));
     },duration);
-    if(window.dfc012lAudioPrefs?.().celebration!==false)
-      void window.dfc012uPlay?.(kind,tableId+(kind==='trancazo'?':trancazo:':':win:')+handId);
+    announceClosure(handId,kind);
     return duration;
   }
   const previous=window.renderDominoState;
@@ -682,6 +692,7 @@
           }
           const nextSeat=source?.nextSeat??closure.next_turn_seat??closure.turn_seat;
           const wait=source?show(closure.id,move,kind,source,identity,{rows,nextSeat}):0;
+          announceClosure(closure.id,kind);
           window.dfcShowStandardHandResult?.(state,kind,wait,move,rows);
         });
       }
@@ -713,12 +724,11 @@
     const code=value=>pips(value).sort((a,b)=>a-b).join(':');
     const end=same&&side==='left'?state.hand.board?.[0]:same&&side==='right'?state.hand.board?.at(-1):null;
     const origin=end&&tile&&code(end)===code(tile)?board.querySelector('.domino-end-'+side):null;
-    if(burst(handId,origin)||burst(handId,fallback)){
-      if(window.dfc012lAudioPrefs?.().celebration!==false)
-        void window.dfc012uPlay?.(kind,table()+':win:'+handId);
-    }
+    burst(handId,origin)||burst(handId,fallback);
+    announceClosure(handId,kind);
   }
-  window.dfcClosingPreview=Object.freeze({show,delay,loadFrame,finish,settledBurst});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)clearBurst();});
+  window.dfcClosingPreview=Object.freeze({show,delay,loadFrame,finish,settledBurst,announceClosure});
 })();
 
 /* DOMINÓ FLASH COIN Z32 — Tarjetas de capicúa reclamables.
@@ -2997,11 +3007,15 @@
  infoPanel.hidden=true;infoPanel.setAttribute('role','dialog');infoPanel.setAttribute('aria-label','Información de partidas');
  infoPanel.style.cssText='position:absolute;inset:8% 12%;z-index:2147483000;background:rgba(13,25,44,.96);color:white;border:1px solid #dabf70;border-radius:12px;padding:12px;overflow:auto;font:14px system-ui;box-shadow:0 6px 30px #0008';
  stage.append(infoPanel);
+ function stopBonusSpeech(){
+   clearTimeout(speechTimer);speechTimer=0;
+   if(activeSpeech){activeSpeech=null;try{window.speechSynthesis?.cancel();}catch(_){}}
+ }
  function stopBonusVisual(){
    bonusLayer?.remove();bonusLayer=null;
-   clearTimeout(speechTimer);
-   if(activeSpeech){try{window.speechSynthesis?.cancel();}catch(_){}activeSpeech=null;}
+   stopBonusSpeech();
  }
+ document.addEventListener('dfc:voice-capture',event=>{if(event.detail?.active)stopBonusSpeech();});
  function recordInfo(id,match,hand,players,kind,winner,details){
    const account=pruneInfo();
    if(!id||!account||window.dominoSpectatorMode)return;
@@ -3624,8 +3638,12 @@
    addPanelClose(data,String(hand.id),data.state==='settled'?5000:8000);
    result.scrollTop=0;
    result.hidden=false;
-   if((kind==='domino'||kind==='capicua')&&data.state==='settled'&&Date.now()+replayOffset-Date.parse(hand.settled_at)<10000)
-     window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile,kind);
+   const closureAge=Date.now()+replayOffset-Date.parse(hand.settled_at);
+   if(closureAge>=-3000&&closureAge<20000){
+     window.dfcClosingPreview?.announceClosure(hand.id,kind);
+     if((kind==='domino'||kind==='capicua')&&data.state==='settled'&&closureAge<10000)
+       window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile,kind);
+   }
    if(kind==='capicua'&&Number(hand.bonus_points)===30&&Date.now()+replayOffset-Date.parse(hand.settled_at)<20000)celebrateThirty('cap:'+data.match_id+':'+hand.id,'capicua');
    flyBonus(bonus,hand.seat,Number(hand.bonus_points)||0);
  }
@@ -3724,8 +3742,12 @@
    };
    result.scrollTop=0;
    result.hidden=false;
-   if(['domino','capicua'].includes(handKind(hand))&&hand?.id&&winnerTile&&Date.now()+replayOffset-Date.parse(hand.settled_at)<10000)
-     window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile,handKind(hand));
+   const closureAge=Date.now()+replayOffset-Date.parse(hand?.settled_at);
+   if(hand?.id&&closureAge>=-3000&&closureAge<20000){
+     window.dfcClosingPreview?.announceClosure(hand.id,handKind(hand));
+     if(['domino','capicua'].includes(handKind(hand))&&winnerTile&&closureAge<10000)
+       window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile,handKind(hand));
+   }
    if(victorySoundMatch!==data.match_id){victorySoundMatch=data.match_id;playPanelSound('victory');}
    if(data.victory_auto){
      next.remove();
