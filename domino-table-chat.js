@@ -55,7 +55,9 @@
   voiceCard.append(speaker, sender);
   stage.append(voiceCard);
 
-  const maxRecordingMs = 60000;
+  const maxRecordingMs = 300000;
+  const maxVoiceBytes = 5 * 1024 * 1024;
+  const voiceBitrate = 96000;
   let held = false, requesting = false, clockTimer = 0, startedAt = 0;
   let room = 0;
   let roomVersion = 0;
@@ -192,7 +194,7 @@
 
   async function sendVoice(blob, noteId, version) {
     if (version !== roomVersion || room !== currentRoom()) return;
-    if (!blob.size || blob.size > 524288) {
+    if (!blob.size || blob.size > maxVoiceBytes) {
       setRecording(false);
       dominoShowToast('La nota está vacía o supera el tamaño permitido.');
       return;
@@ -243,7 +245,7 @@
     requesting = true;
     let microphone;
     try {
-      microphone = await navigator.mediaDevices.getUserMedia({audio:true});
+      microphone = await navigator.mediaDevices.getUserMedia({audio:{channelCount:{ideal:1},sampleRate:{ideal:48000},echoCancellation:{ideal:true},noiseSuppression:{ideal:true},autoGainControl:{ideal:true}}});
       if (!held || version !== roomVersion || room !== currentRoom()) {
         microphone.getTracks().forEach(track => track.stop());
         return;
@@ -251,7 +253,7 @@
       stream = microphone;
       const mime = ['audio/mp4','audio/webm;codecs=opus','audio/ogg;codecs=opus']
         .find(type => MediaRecorder.isTypeSupported(type));
-      const options = mime ? {mimeType:mime, audioBitsPerSecond:48000} : {audioBitsPerSecond:48000};
+      const options = mime ? {mimeType:mime, audioBitsPerSecond:voiceBitrate} : {audioBitsPerSecond:voiceBitrate};
       const recording = new MediaRecorder(stream, options);
       recorder = recording;
       const chunks = [];
@@ -274,9 +276,9 @@
         else setRecording(false);
       };
       recording.start();
-      setRecording(true,'Grabando, suelta para enviar');
+      setRecording(true,'Grabando, suelta para enviar (máximo 5 minutos)');
       startedAt=Date.now();
-      const tick=()=>{const seconds=Math.floor((Date.now()-startedAt)/1000);voiceButton.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');};
+      const tick=()=>{const seconds=Math.min(maxRecordingMs/1000,Math.floor((Date.now()-startedAt)/1000));voiceButton.textContent=String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');};
       tick();clockTimer=setInterval(tick,200);
       recordingTimer = setTimeout(() => {
         if (recorder === recording && recording.state === 'recording') {held=false;recording.sendOnStop=true;recording.stop();}
@@ -307,6 +309,12 @@
   voiceButton.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();finishRecording(true);}});
   document.addEventListener('visibilitychange',()=>{if(document.hidden)finishRecording(false);});
   window.addEventListener('pagehide',()=>finishRecording(false));
+  window.addEventListener('online',()=>{
+    syncRoom();
+    if (room && pendingNote && !voiceButton.disabled && !recorder && !requesting) {
+      void sendVoice(pendingNote.blob,pendingNote.noteId,roomVersion);
+    }
+  });
 
   window.syncDominoTableMessages = async function(force = false) {
     syncRoom();
