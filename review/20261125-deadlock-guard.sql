@@ -11,6 +11,20 @@
 -- bot cycle, watchdog, human joins/plays/exits, settlements and sweep.
 -- Verify no duplicate ledger movements, no missing turns, and no starvation.
 BEGIN;
+-- Verify the exact production baseline examined in correction 15.
+-- Abort rather than overwrite an intervening fix.
+DO $guard$
+BEGIN
+  IF md5(pg_get_functiondef('public.dfc_z11_turn_watchdog()'::regprocedure))
+    IS DISTINCT FROM 'b3fda9d8bd0082199543afb7c179957b' THEN
+    RAISE EXCEPTION 'Watchdog baseline changed; re-review before deploying';
+  END IF;
+  IF md5(pg_get_functiondef('public.rf_domino_bot_server_cycle_v19()'::regprocedure))
+    IS DISTINCT FROM '21b970cd9ebf1029b19068aac9f4bf2d' THEN
+    RAISE EXCEPTION 'Bot cycle baseline changed; re-review before deploying';
+  END IF;
+END
+$guard$;
 CREATE OR REPLACE FUNCTION public.dfc_z11_turn_watchdog()
  RETURNS integer
  LANGUAGE plpgsql
