@@ -3,7 +3,7 @@
   const panel = document.getElementById('dominoTablePanel');
   const stage = document.getElementById('dominoStage');
   const chat = document.getElementById('dominoChatBtn');
-  if (!panel || !stage || !chat) return;
+  if (!panel || !stage || !chat || document.getElementById('dominoVoiceBtn')) return;
 
   const voiceButton = document.createElement('button');
   voiceButton.type = 'button';
@@ -62,6 +62,7 @@
   const voiceBitrate = 96000;
   let held = false, requesting = false, clockTimer = 0, startedAt = 0;
   let room = 0;
+  let roomAccount = '';
   let roomVersion = 0;
   let lastPoll = 0;
   let readingRoom = 0;
@@ -118,8 +119,10 @@
 
   function syncRoom() {
     const nextRoom = currentRoom();
-    if (nextRoom === room) return;
+    const account = typeof me === 'undefined' ? '' : String(me?.id || '');
+    if (nextRoom === room && account === roomAccount) return;
     room = nextRoom;
+    roomAccount = account;
     roomVersion++;
     lastPoll = 0;
     seen.clear();
@@ -132,6 +135,7 @@
     if (recording?.state === 'recording') recording.stop();
     releaseMic();
     pendingNote = null;held = false;
+    voiceButton.disabled = false;
     setRecording(false);
     removeAudio();clearClips();
     document.getElementById('dominoChatList')?.replaceChildren();
@@ -172,14 +176,14 @@
   }
 
   async function showVoice() {
-    if (!room || requesting || recorder || loadingVoice || audio || !voiceQueue.length || [...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused)) return;
+    if (!room || document.hidden || requesting || recorder || loadingVoice || audio || !voiceQueue.length || [...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused)) return;
     const row = voiceQueue.shift();
     const version = roomVersion;
     loadingVoice = true;
     try {
       const {data, error} = await sb.rpc('dfc_domino_read_voice', {p_table_id:room, p_note_id:row.id});
       if (version !== roomVersion || room !== currentRoom()) return;
-      if (requesting || recorder) {voiceQueue.unshift(row);return;}
+      if (document.hidden || requesting || recorder || [...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused)) {voiceQueue.unshift(row);return;}
       if (error || !data) {seen.delete('voice:'+row.id);return;}
       const bytes = Uint8Array.from(atob(data.audio), char => char.charCodeAt(0));
       const blob = new Blob([bytes], {type:data.mime});
@@ -196,7 +200,7 @@
       if (version === roomVersion) {seen.delete('voice:'+row.id);console.debug('Nota de voz de la mesa', error);}
     } finally {
       loadingVoice = false;
-      if (!audio && voiceQueue.length) void showVoice();
+      if (!audio && voiceQueue.length && !document.hidden && !requesting && !recorder) void showVoice();
     }
   }
 
@@ -204,9 +208,10 @@
 
   async function sendVoice(blob, noteId, version) {
     if (version !== roomVersion || room !== currentRoom()) return;
-    if (!blob.size || blob.size > maxVoiceBytes) {
+    if (!blob.size || blob.size > maxVoiceBytes || !['audio/webm','audio/ogg','audio/mp4'].includes(blob.type.split(';')[0])) {
       setRecording(false);
-      dominoShowToast('La nota está vacía o supera el tamaño permitido.');
+      pendingNote = null;
+      dominoShowToast('La nota está vacía, tiene un formato incompatible o supera el tamaño permitido.');
       return;
     }
     pendingNote = {blob, noteId};
@@ -219,12 +224,13 @@
         parts.push(String.fromCharCode(...bytes.subarray(offset, offset + 8192)));
       }
       if (version !== roomVersion || room !== currentRoom()) return;
-      const {error} = await sb.rpc('dfc_domino_send_voice', {
+      const {data, error} = await sb.rpc('dfc_domino_send_voice', {
         p_table_id:room, p_note_id:noteId, p_mime:blob.type.split(';')[0],
         p_audio:btoa(parts.join(''))
       });
       if (error) throw error;
-      if (version !== roomVersion) return;
+      if (String(data) !== String(noteId)) throw Error('El servidor no confirmó la nota');
+      if (version !== roomVersion || room !== currentRoom()) return;
       pendingNote = null;
       rememberClip(noteId,'Tú',blob);
       setRecording(false);
@@ -234,13 +240,13 @@
       setRecording(false, 'Reintentar envío de la nota de voz');
       dominoShowToast((error.message || 'Falló el envío de audio') + '. Toca el micrófono para reintentar.');
     } finally {
-      voiceButton.disabled = false;
+      if (version === roomVersion) voiceButton.disabled = false;
     }
   }
 
   async function beginRecording() {
     syncRoom();
-    if (!room || voiceButton.disabled || requesting || recorder) return;
+    if (!room || !roomAccount || document.hidden || voiceButton.disabled || requesting || recorder) return;
     held = true;
     const version = roomVersion;
     if (pendingNote) {
@@ -313,7 +319,7 @@
   }
   voiceButton.addEventListener('pointerdown',e=>{
     if(e.button!==0||!e.isPrimary)return;
-    e.preventDefault();voiceButton.setPointerCapture(e.pointerId);void beginRecording();
+    e.preventDefault();try{voiceButton.setPointerCapture(e.pointerId);}catch(_){}void beginRecording();
   });
   voiceButton.addEventListener('pointerup',()=>finishRecording(true));
   voiceButton.addEventListener('pointercancel',()=>finishRecording(false));
@@ -321,7 +327,7 @@
   voiceButton.addEventListener('contextmenu',e=>e.preventDefault());
   voiceButton.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();void beginRecording();}});
   voiceButton.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();finishRecording(true);}});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)finishRecording(false);});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){finishRecording(false);removeAudio();voiceHistory.querySelectorAll('audio').forEach(p=>p.pause());}else{syncRoom();void window.syncDominoTableMessages(true).catch(()=>{});}});
   window.addEventListener('pagehide',()=>finishRecording(false));
   window.addEventListener('online',()=>{
     syncRoom();
@@ -346,7 +352,7 @@
       const notes = voiceResult.status === 'fulfilled' ? voiceResult.value.data : null;
       for (const note of Array.isArray(notes) ? notes : []) {
         const key = 'voice:' + note.id;
-        if (seen.has(key)) continue;
+        if (seen.has(key) || clips.has(note.id)) continue;
         seen.add(key);
         voiceQueue.push(note);
       }
