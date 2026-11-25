@@ -1,7 +1,7 @@
 name: DFC Z37 - preparar paquete candidato (sin publicar)
 on:
   push:
-    branches: ['review/20261124-history-voice-exit']
+    branches: ['main', 'review/20261124-history-voice-exit']
     paths:
       - '.github/workflows/dfc-z37-candidate.yml'
   workflow_dispatch:
@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   candidate:
-    if: github.ref == 'refs/heads/review/20261124-history-voice-exit'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/review/20261124-history-voice-exit'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
