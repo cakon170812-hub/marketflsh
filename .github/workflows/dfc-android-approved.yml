@@ -116,7 +116,9 @@ jobs:
           updated_script = git('show', f'{approved}:script.js')
           updated_style = git('show', f'{approved}:style.css')
           updated_chat = git('show', f'{approved}:domino-table-chat.js')
-          visual_paths = ['domino-table-styles.js', 'domino-table-styles.css']
+          visual_paths = ['domino-table-styles.js', 'domino-table-styles.css',
+                          'z37-admin.js', 'z37-ui.js', 'torneo-z32.svg',
+                          'manifest.webmanifest', 'sw.js', 'privacidad.html']
           visual_paths += [p for p in git('ls-tree', '-r', '--name-only', approved, '--', 'images2/').decode().splitlines() if p.lower().endswith(('.webp','.png','.jpg','.jpeg','.svg','.gif'))]
           # The reviewed voice decoder must be locally bundled before an OTA is published.
           decoder_root = 'vendor/ogv-1.9.0/'
@@ -130,12 +132,17 @@ jobs:
               stop('Falta integrar el decodificador local de notas de voz; no publicar.')
           visual_paths += decoder_paths
           visual_assets = {p: git('show', f'{approved}:{p}') for p in visual_paths}
+          verified_decoder = set()
           for line in visual_assets[decoder_root+'SHA256SUMS'].decode().splitlines():
               digest, relpath = line.split('  ', 1)
               path = decoder_root + relpath.removeprefix('./')
-              if path not in visual_assets or hashlib.sha256(visual_assets[path]).hexdigest() != digest:
+              if path in verified_decoder or path not in visual_assets or hashlib.sha256(visual_assets[path]).hexdigest() != digest:
                   stop('El decodificador de voz no coincide con su checksum.')
-          subprocess.run(['node', '--check'], input=visual_assets['domino-table-styles.js'], check=True)
+              verified_decoder.add(path)
+          if verified_decoder != set(decoder_paths) - {decoder_root+'SHA256SUMS'}:
+              stop('El inventario de checksums del decodificador está incompleto.')
+          for name in ('domino-table-styles.js', 'z37-admin.js', 'z37-ui.js', 'sw.js'):
+              subprocess.run(['node', '--check'], input=visual_assets[name], check=True)
           for label, js in [('script.js', updated_script), ('domino-table-chat.js', updated_chat)]:
               print(f'Checking {label}')
               subprocess.run(['node', '--check'], input=js, check=True)
@@ -147,6 +154,8 @@ jobs:
               stop('El puente aprobado no incluye el actualizador Android.')
           parser = AppVersion()
           parser.feed(html.decode('utf-8'))
+          if not html.strip():
+              stop('HTML vacío; no publicar.')
           # Z34, Z35 y Z36 usan la interfaz web Z32; las mejoras Z36 van en script.js.
           expected_html_version = '0.12Z.32' if version in {'0.12Z.34', '0.12Z.35', '0.12Z.36'} else version
           if parser.values != [expected_html_version] or not parser.has_native_bridge:
@@ -195,6 +204,8 @@ jobs:
                           if name not in names:
                               new_zip.writestr(name, contents)
               with zipfile.ZipFile(bundle) as new_zip:
+                  if len(new_zip.namelist()) != len(set(new_zip.namelist())):
+                      stop('El paquete contiene rutas duplicadas.')
                   if any(new_zip.read(p) != data for p, data in visual_assets.items()):
                       stop('Faltan los recursos visuales aprobados.')
                   if new_zip.testzip() is not None or new_zip.read('index.html') != html or new_zip.read('native-bridge.js') != updated_bridge or new_zip.read('script.js') != updated_script or new_zip.read('style.css') != updated_style or new_zip.read('domino-table-chat.js') != updated_chat:
