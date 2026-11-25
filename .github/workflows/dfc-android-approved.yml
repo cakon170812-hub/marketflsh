@@ -115,6 +115,10 @@ jobs:
           updated_bridge = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'dfc-bridge-build' / 'native-bridge-bundled.js').read_bytes()
           updated_script = git('show', f'{approved}:script.js')
           updated_style = git('show', f'{approved}:style.css')
+          updated_chat = git('show', f'{approved}:domino-table-chat.js')
+          for label, js in [('script.js', updated_script), ('domino-table-chat.js', updated_chat)]:
+              print(f'Checking {label}')
+              subprocess.run(['node', '--check'], input=js, check=True)
           if b'#dfcOTAUserButton' not in updated_style:
               stop('Faltan los estilos actuales del botón Android.')
           if b'dfc_z32_admin_reward_settings' not in updated_script:
@@ -158,11 +162,15 @@ jobs:
                               contents = updated_script
                           elif name == 'style.css':
                               contents = updated_style
+                          elif name == 'domino-table-chat.js':
+                              contents = updated_chat
                           else:
                               contents = old_zip.read(name)
                           new_zip.writestr(name, contents)
+                      if 'domino-table-chat.js' not in names:
+                          new_zip.writestr('domino-table-chat.js', updated_chat)
               with zipfile.ZipFile(bundle) as new_zip:
-                  if new_zip.testzip() is not None or new_zip.read('index.html') != html or new_zip.read('native-bridge.js') != updated_bridge or new_zip.read('script.js') != updated_script or new_zip.read('style.css') != updated_style:
+                  if new_zip.testzip() is not None or new_zip.read('index.html') != html or new_zip.read('native-bridge.js') != updated_bridge or new_zip.read('script.js') != updated_script or new_zip.read('style.css') != updated_style or new_zip.read('domino-table-chat.js') != updated_chat:
                       stop('El ZIP nuevo no contiene el HTML aprobado o está dañado.')
               manifest = {
                   'version': version,
