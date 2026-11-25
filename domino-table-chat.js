@@ -53,6 +53,76 @@
   document.head.append(voiceStyle);
   const clips = new Map();
   let manualGeneration=0;
+  // Do not transcode the recorded bytes. AAC-LC in MP4 is preferred at capture;
+  // unsupported Opus containers use a local decoder, not a lower-quality copy.
+  const captureFormats=['audio/mp4;codecs=mp4a.40.2','audio/webm;codecs=opus','audio/ogg;codecs=opus','audio/mp4'];
+  function chooseCaptureFormat(supports){return captureFormats.find(type=>supports(type));}
+  function isOpusContainer(mime){return /^(audio\/(webm|ogg))$/i.test(String(mime||'').split(';')[0]);}
+  let decoderLoading=null;
+  const decoderBase=new URL('./vendor/ogv-1.9.0/',document.baseURI).href;
+  function loadVoiceDecoder(){
+    if(typeof window.OGVPlayer==='function')return Promise.resolve();
+    if(!decoderLoading)decoderLoading=new Promise((resolve,reject)=>{
+      const script=document.createElement('script');
+      script.src=new URL('ogv.js',decoderBase).href;script.async=true;
+      const timer=setTimeout(()=>finish(Error('El decodificador no respondió')),12000);
+      function finish(error){
+        clearTimeout(timer);script.onload=script.onerror=null;
+        if(error){script.remove();decoderLoading=null;reject(error);}else resolve();
+      }
+      script.onload=()=>{
+        if(typeof window.OGVPlayer!=='function'){finish(Error('Decodificador de voz no disponible'));return;}
+        if(window.OGVLoader)window.OGVLoader.base=decoderBase.replace(/\/$/,'');
+        finish();
+      };
+      script.onerror=()=>finish(Error('Falta el decodificador local de voz'));
+      document.head.append(script);
+    });
+    return decoderLoading;
+  }
+  function historyPlayers(){return [...clips.values()].map(entry=>entry.player);}
+  function historyPlaying(){return historyPlayers().some(player=>!player.paused&&!player.ended);}
+  function pauseHistory(except){historyPlayers().forEach(player=>{if(player!==except)player.pause();});}
+  function disposeVoicePlayer(player){
+    if(!player)return;
+    try{player.pause();player.src='';player.removeAttribute('src');player.load();}catch(_){}
+    player.remove();
+  }
+  function nativeAccepts(mime){
+    const probe=document.createElement('audio');
+    return Boolean(probe.canPlayType(mime));
+  }
+  async function prepareEntryPlayer(entry,force=false){
+    if(entry.decoder||!isOpusContainer(entry.mime)||(!force&&nativeAccepts(entry.mime)))return;
+    const version=roomVersion;
+    await loadVoiceDecoder();
+    if(version!==roomVersion||!clips.has(entry.id))throw Error('La mesa cambió');
+    if(entry.decoder)return;
+    const next=new window.OGVPlayer({worker:true});
+    next.hidden=true;next.setAttribute('aria-hidden','true');next.style.display='none';
+    const old=entry.player;
+    entry.decoder=true;entry.player=next;
+    bindHistoryPlayer(entry,next);entry.row.append(next);
+    next.src=entry.url;
+    disposeVoicePlayer(old);
+  }
+  function bindHistoryPlayer(entry,player){
+    for(const event of ['loadedmetadata','durationchange','timeupdate','play','pause','ended','error'])
+      player.addEventListener(event,()=>{if(entry.player===player)drawVoiceProgress(entry.view,player);});
+    player.addEventListener('play',()=>{
+      if(entry.player!==player)return;
+      if(recorder||requesting||document.hidden){player.pause();return;}
+      removeAudio();pauseHistory(player);
+    });
+    player.addEventListener('ended',()=>{if(entry.player===player)void showVoice();});
+    player.addEventListener('error',()=>{
+      if(entry.player!==player||!entry.url)return;
+      if(!entry.decoder&&isOpusContainer(entry.mime)){
+        entry.forceDecoder=true;
+        entry.view.duration.textContent='Toca para escuchar en modo compatible';
+      }else entry.view.duration.textContent='No se pudo reproducir. Toca para reintentar';
+    });
+  }
   function formatServerTime(value){
     const date=new Date(value||'');
     if(!Number.isFinite(date.getTime()))return 'Hora pendiente';
@@ -96,6 +166,7 @@
   }
   function installBlob(entry,blob){
     if(!entry.url){
+      entry.mime=blob.type.split(';')[0];
       entry.url=URL.createObjectURL(blob);
       entry.player.src=entry.url;
       entry.player.load();
@@ -109,16 +180,9 @@
       const button=document.createElement('button');button.type='button';
       const view=makeVoiceView(button);
       const player=document.createElement('audio');player.preload='metadata';player.hidden=true;
-      entry={id,row,view,player,url:'',meta:{...meta}};
+      entry={id,row,view,player,url:'',mime:'',decoder:false,forceDecoder:false,meta:{...meta}};
       clips.set(id,entry);
-      for(const event of ['loadedmetadata','durationchange','timeupdate','play','pause','ended','error'])
-        player.addEventListener(event,()=>drawVoiceProgress(view,player));
-      player.addEventListener('play',()=>{
-        if(recorder||requesting||document.hidden){player.pause();return;}
-        removeAudio();
-        voiceHistory.querySelectorAll('audio').forEach(other=>{if(other!==player)other.pause();});
-      });
-      player.addEventListener('ended',()=>void showVoice());
+      bindHistoryPlayer(entry,player);
       button.onclick=()=>void replayClip(entry);
       row.append(button,player);voiceHistory.append(row);voiceHistory.hidden=false;attachHistory();
     }else entry.meta={...entry.meta,...meta,created_at:meta.created_at||entry.meta.created_at};
@@ -144,8 +208,16 @@
         installBlob(entry,blob);
       }
       if(version!==roomVersion||token!==manualGeneration||recorder||requesting||document.hidden)return;
+      const needsDecoder=!entry.decoder&&isOpusContainer(entry.mime)&&(entry.forceDecoder||!nativeAccepts(entry.mime));
+      if(needsDecoder){
+        entry.view.duration.textContent='Preparando audio compatible…';
+        await prepareEntryPlayer(entry,entry.forceDecoder);
+        if(version!==roomVersion||token!==manualGeneration)return;
+        entry.view.duration.textContent='Toca para escuchar';
+        return; // iOS requires a fresh direct user gesture after asynchronous setup.
+      }
       removeAudio();
-      voiceHistory.querySelectorAll('audio').forEach(other=>{if(other!==entry.player)other.pause();});
+      pauseHistory(entry.player);
       if(entry.player.ended)entry.player.currentTime=0;
       await entry.player.play();
     }catch(error){
@@ -154,7 +226,7 @@
   }
   function clearClips(){
     manualGeneration++;
-    clips.forEach(entry=>{entry.player.pause();entry.player.removeAttribute('src');entry.player.load();if(entry.url)URL.revokeObjectURL(entry.url);});
+    clips.forEach(entry=>{disposeVoicePlayer(entry.player);if(entry.url)URL.revokeObjectURL(entry.url);});
     clips.clear();voiceHistory.replaceChildren();voiceHistory.hidden=true;
   }
 
@@ -212,9 +284,7 @@
   function removeAudio() {
     if (audio) {
       audio.onended = audio.onerror = null;
-      audio.pause();
-      audio.removeAttribute('src');
-      audio.load();
+      disposeVoicePlayer(audio);
       audio = null;
     }
     if (soundUrl) URL.revokeObjectURL(soundUrl);
@@ -271,13 +341,13 @@
       drawVoiceProgress(floatingView,clip);
     }catch(error){
       if(audio!==clip)return;
-      if(error.name!=='NotAllowedError'){finishVoice();return;}
+      if(error.name!=='NotAllowedError'){if(clip.error&&typeof clip.onerror==='function')clip.onerror();else finishVoice();return;}
       drawVoiceProgress(floatingView,clip);
     }
   }
 
   async function showVoice(){
-    if(!room||document.hidden||requesting||recorder||loadingVoice||audio||!voiceQueue.length||[...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused))return;
+    if(!room||document.hidden||requesting||recorder||loadingVoice||audio||!voiceQueue.length||historyPlaying())return;
     const row=voiceQueue.shift(),version=roomVersion,tableId=room;
     loadingVoice=true;
     try{
@@ -287,10 +357,39 @@
         if(version!==roomVersion||room!==currentRoom())return;
         installBlob(entry,blob);
       }
-      if(document.hidden||requesting||recorder||[...voiceHistory.querySelectorAll('audio')].some(p=>!p.paused)){voiceQueue.unshift(row);return;}
+      if(document.hidden||requesting||recorder||historyPlaying()){voiceQueue.unshift(row);return;}
+      const useDecoder=isOpusContainer(entry.mime)&&(entry.forceDecoder||!nativeAccepts(entry.mime));
+      if(useDecoder){
+        setVoiceMeta(floatingView,entry.meta);
+        floatingView.duration.textContent='Preparando audio compatible…';
+        voiceCard.hidden=false;
+        try{await prepareEntryPlayer(entry,entry.forceDecoder);}catch(error){
+          if(version===roomVersion){entry.view.duration.textContent='Audio compatible pendiente';dominoShowToast(error.message);}
+          return;
+        }
+        if(version!==roomVersion||room!==currentRoom()||requesting||recorder||document.hidden)return;
+        const fallback=new window.OGVPlayer({worker:true});
+        fallback.hidden=true;fallback.style.display='none';stage.append(fallback);
+        fallback.src=entry.url;
+        audio=fallback;
+        for(const event of ['loadedmetadata','durationchange','timeupdate','play','pause'])
+          fallback.addEventListener(event,()=>{if(audio===fallback)drawVoiceProgress(floatingView,fallback);});
+        fallback.addEventListener('ended',()=>{if(audio===fallback)finishVoice();});
+        fallback.addEventListener('error',()=>{if(audio===fallback){entry.view.duration.textContent='No se pudo reproducir';finishVoice();}});
+        floatingView.duration.textContent='Toca para escuchar';
+        return; // Do not attempt untrusted autoplay in older iOS.
+      }
       const clip=new Audio(entry.url);
       audio=clip;
-      clip.onended=clip.onerror=()=>{if(audio===clip)finishVoice();};
+      clip.onended=()=>{if(audio===clip)finishVoice();};
+      clip.onerror=()=>{
+        if(audio!==clip)return;
+        if(isOpusContainer(entry.mime)&&!entry.forceDecoder){
+          entry.forceDecoder=true;
+          voiceQueue.unshift(row);
+        }
+        finishVoice();
+      };
       for(const event of ['loadedmetadata','durationchange','timeupdate','play','pause'])
         clip.addEventListener(event,()=>{if(audio===clip)drawVoiceProgress(floatingView,clip);});
       setVoiceMeta(floatingView,entry.meta);drawVoiceProgress(floatingView,clip);
@@ -366,7 +465,7 @@
     requesting = true;
     manualGeneration++;
     setVoiceCapture(true);
-    removeAudio();voiceHistory.querySelectorAll('audio').forEach(p=>p.pause());
+    removeAudio();pauseHistory();
     let microphone;
     try {
       microphone = await navigator.mediaDevices.getUserMedia({audio:{channelCount:{ideal:1},sampleRate:{ideal:48000},echoCancellation:{ideal:true},noiseSuppression:{ideal:true},autoGainControl:{ideal:true}}});
@@ -375,8 +474,7 @@
         return;
       }
       stream = microphone;
-      const mime = ['audio/mp4','audio/webm;codecs=opus','audio/ogg;codecs=opus']
-        .find(type => MediaRecorder.isTypeSupported(type));
+      const mime = chooseCaptureFormat(type=>MediaRecorder.isTypeSupported(type));
       const options = mime ? {mimeType:mime, audioBitsPerSecond:voiceBitrate} : {audioBitsPerSecond:voiceBitrate};
       const recording = new MediaRecorder(stream, options);
       recorder = recording;
@@ -433,7 +531,7 @@
   voiceButton.addEventListener('contextmenu',e=>e.preventDefault());
   voiceButton.addEventListener('keydown',e=>{if((e.key===' '||e.key==='Enter')&&!e.repeat){e.preventDefault();void beginRecording();}});
   voiceButton.addEventListener('keyup',e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();finishRecording(true);}});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){finishRecording(false);removeAudio();voiceHistory.querySelectorAll('audio').forEach(p=>p.pause());}else{syncRoom();void window.syncDominoTableMessages(true).catch(()=>{});}});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){finishRecording(false);removeAudio();pauseHistory();}else{syncRoom();void window.syncDominoTableMessages(true).catch(()=>{});}});
   window.addEventListener('pagehide',()=>finishRecording(false));
   window.addEventListener('online',()=>{
     syncRoom();
