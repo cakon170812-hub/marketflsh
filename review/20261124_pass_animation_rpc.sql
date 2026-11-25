@@ -22,13 +22,7 @@ AS $function$
         ON r.event_key=left(t.event_key,-6)||'recipient'
         AND r.table_id=t.table_id AND r.category='PASS_TRANSFER' AND r.delta>0
       LEFT JOIN public.rf_domino_moves m
-        ON m.id=CASE WHEN t.event_key ~ '^z15-pass:[0-9]+:table:sender(wallet.payload->>'table_id')::bigint
-        AND t.category='PASS_TRANSFER' AND t.delta<0 AND right(t.event_key,7)=':sender'
-        AND t.created_at>statement_timestamp()-interval '25 seconds'
-    ),'[]'::jsonb))
-  FROM wallet;
-$function$
-
+        ON m.id=CASE WHEN t.event_key ~ '^z15-pass:[0-9]+:table:sender$'
           THEN split_part(t.event_key,':',2)::bigint END
         AND m.user_id=t.user_id
         AND m.action IN ('PASS','AUTO_PASS','BOT_PASS')
@@ -37,5 +31,4 @@ $function$
         AND t.created_at>statement_timestamp()-interval '25 seconds'
     ),'[]'::jsonb))
   FROM wallet;
-$function$
-;
+$function$;
