@@ -38,7 +38,7 @@ body{background-image:var(--dfc-z26-official-wallpaper)!important;background-siz
 <meta content="no-cache, no-store, must-revalidate" http-equiv="Cache-Control"/>
 <meta content="no-cache" http-equiv="Pragma"/>
 <meta content="0" http-equiv="Expires"/>
-<meta content="0.12Z.32" name="application-version"/>
+<meta content="0.12Z.37" name="application-version"/>
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no" name="viewport"/>
 <meta content="#081b39" name="theme-color"/>
 <meta content="yes" name="mobile-web-app-capable"/>
@@ -14262,7 +14262,7 @@ const dfcFitAdminViewport=(()=>{
 (()=>{'use strict';
  let preview=null,processing=false;
  const id='dfcOTAAdminSection';
- const htmlVersion=()=> '0.12Z.36'; // Versión OTA Z36; base de interfaz HTML Z32.
+ const htmlVersion=()=> '0.12Z.37'; // Candidata de revisión; no publicar sin validación.
  const root=()=>document.querySelector('#leaderPanel > .panel');
  function render(){
    const panel=root();
@@ -16524,6 +16524,7 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
  }
  window.DFC_Z163Audio=sound;
  let trackedTable=null,initialized=false,seen=new Set(),oldBalances=new Map(),lastTableBal=null;
+ let passRoomEpoch=0;
  let armedExit=false,lastKnownChipRect=null,pendingClose=false;
  const seenClosings=new Set();
  function seatNode(id){return [...document.querySelectorAll('#dominoSeats .domino-seat[data-seat-user]')]
@@ -16590,15 +16591,28 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
  }
  function onSync(data,tid){
   if(!data||!tid)return;
-  if(trackedTable!==tid){trackedTable=tid;initialized=false;seen.clear();oldBalances.clear();lastTableBal=null}
+  if(trackedTable!==tid){trackedTable=tid;passRoomEpoch++;initialized=false;seen.clear();oldBalances.clear();lastTableBal=null}
   attachSpectatorButtons();
   const passes=Array.isArray(data.passes)?data.passes:[];
   // No animar movimientos antiguos al entrar o reconectar.
   if(!initialized){for(const p of passes)seen.add(String(p.key));initialized=true}
   else for(const p of passes){
     const key=String(p.key||'');if(!key||seen.has(key))continue;seen.add(key);
-    const age=Date.now()-Date.parse(p.created_at||'');
-    if(age>=0&&age<25000)flyBetween(target(String(p.sender)),target(String(p.recipient)),'gem',6);
+    const serverTime=Date.parse(data.server_time||'');
+    const age=(Number.isFinite(serverTime)?serverTime:Date.now())-Date.parse(p.created_at||'');
+    if(!(age>=0&&age<25000))continue;
+    const sender=String(p.sender),recipient=String(p.recipient),epoch=passRoomEpoch;
+    const showGem=()=>{
+      if(document.hidden||epoch!==passRoomEpoch||String(trackedTable)!==String(tid))return;
+      if(typeof dominoCurrentTableId==='undefined'||String(dominoCurrentTableId)!==String(tid))return;
+      if(!$('dominoTablePanel')?.classList.contains('active'))return;
+      flyBetween(target(sender),target(recipient),'gem',6);
+    };
+    if(Number(p.flashcoin_amount)>0){
+      const fcTarget=id=>seatNode(id)?.querySelector('.seat-bal');
+      flyBetween(fcTarget(sender),fcTarget(recipient),'coin',6);
+      setTimeout(showGem,2500);
+    }else showGem();
   }
   if(seen.size>150){const a=[...seen];seen=new Set(a.slice(-80))}
   const nowBal=Number(data.table_balance);
@@ -16914,8 +16928,8 @@ body.domino-spectating #dominoTablePanel #dominoSpectatorNext{display:flex!impor
 </script>
 <script id="dfc-z27-html-ready-signal">document.dispatchEvent(new Event("dfc-z27-html-ready"));</script>
 <link rel="stylesheet" href="./style.css?v=0.12Z.31">
-<script src="./script.js?v=0.12Z.32.8" defer></script>
-<script src="./native-bridge.js?v=0.12Z.31" type="module"></script>
+<script src="./script.js?v=0.12Z.37" defer></script>
+<script src="./native-bridge.js?v=0.12Z.37" type="module"></script>
 <style id="dfc-z27-shared-home-lobby-wallpaper">
 #appView.bg.dfc09-view,
 #gamesPanel.overlay,
@@ -17320,7 +17334,8 @@ function dfcZ28ShowTableText(row){
          const now=performance.now();
          if(now-(lastGemBurst.get(el)??-Infinity)>1100){
            lastGemBurst.set(el,now);
-           particles(el,kind,current>previous);
+           // Direct pass transfers are rendered from their authoritative events; never infer a pot route from a diamond balance change.
+           if(!window.DFC_Z163?.onSync)particles(el,kind,current>previous);
          }
        }
      }

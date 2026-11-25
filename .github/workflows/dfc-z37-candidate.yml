@@ -1,0 +1,99 @@
+name: DFC Z37 - preparar paquete candidato (sin publicar)
+on:
+  push:
+    branches: ['review/20261124-history-voice-exit']
+    paths:
+      - '.github/workflows/dfc-z37-candidate.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: dfc-z37-review-candidate
+  cancel-in-progress: false
+jobs:
+  candidate:
+    if: github.ref == 'refs/heads/review/20261124-history-voice-exit'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DFC_VERSION: '0.12Z.37'
+      DFC_PUBLIC_BASE: https://cakon170812-hub.github.io/marketflsh/android-approved
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validar decodificador fijado en Git y HTML del candidato
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          (cd vendor/ogv-1.9.0 && sha256sum -c SHA256SUMS && node --check ogv.js)
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import subprocess
+          class InlineScripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.active = False
+                  self.mode = None
+                  self.source = []
+              def handle_starttag(self, tag, attrs):
+                  if tag != 'script':
+                      return
+                  a = dict(attrs)
+                  kind = (a.get('type') or '').strip().lower()
+                  self.active = 'src' not in a and kind in ('', 'text/javascript', 'application/javascript', 'module')
+                  self.mode = 'module' if kind == 'module' else 'commonjs'
+                  self.source = []
+              def handle_data(self, data):
+                  if self.active:
+                      self.source.append(data)
+              def handle_endtag(self, tag):
+                  if tag == 'script' and self.active:
+                      subprocess.run(['node', '--input-type='+self.mode, '--check'], input=''.join(self.source), text=True, check=True)
+                      self.active = False
+          html = Path('index.html').read_text(encoding='utf-8')
+          if not html.strip():
+              raise SystemExit('HTML vacío')
+          parser = InlineScripts()
+          parser.feed(html)
+          parser.close()
+          PY
+          echo "DFC_APPROVED_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+      - name: Compilar puente Android y validar candidato sin publicar
+        shell: bash
+        run: |
+          set -euo pipefail
+          stage="$RUNNER_TEMP/dfc-bridge-build"
+          mkdir -p "$stage"
+          git show "$DFC_APPROVED_SHA:native-bridge.js" > "$stage/native-bridge.js"
+          npm install --prefix "$stage" --no-audit --no-fund --no-save \
+            esbuild@0.25.12 @capacitor/core@7.6.10 @capacitor/app@7.1.2 \
+            @capacitor/screen-orientation@7.0.4 @capacitor/status-bar@7.0.6 \
+            @capgo/capacitor-updater@7.53.0
+          "$stage/node_modules/.bin/esbuild" "$stage/native-bridge.js" --bundle --platform=browser --format=iife --target=es2020 --outfile="$stage/native-bridge-bundled.js"
+          node --check "$stage/native-bridge-bundled.js"
+          # Reuse exact publication packaging logic, but never execute the publish steps.
+          python3 - <<'PY'
+          import pathlib
+          text=pathlib.Path('.github/workflows/dfc-android-approved.yml').read_text()
+          start="          python3 - <<'PY'\n"
+          end="\n          PY\n"
+          assert text.count(start)==1
+          source=text.split(start,1)[1].split(end,1)[0]
+          pathlib.Path('/tmp/dfc-package-review.py').write_text('\n'.join(line[10:] for line in source.splitlines())+'\n')
+          PY
+          GITHUB_SHA="$DFC_APPROVED_SHA" GITHUB_OUTPUT="$RUNNER_TEMP/candidate-output" python3 /tmp/dfc-package-review.py
+          mkdir -p "$RUNNER_TEMP/dfc-z37-candidate"
+          cp android-approved/bundles/0.12Z.37.zip android-approved/manifest.json "$RUNNER_TEMP/dfc-z37-candidate/"
+          # Candidate manifest is NOT pushed; main and Pages are never modified.
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dfc-z37-candidate-unpublished
+          path: ${{ runner.temp }}/dfc-z37-candidate/
+          if-no-files-found: error
+          retention-days: 7

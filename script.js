@@ -299,6 +299,14 @@
   if (window.dfcZ32Audio) return;
   let ctx = null, enabled = true, musicTimer = null, melodyIndex = 0;
   let lastEffect = Object.create(null);
+  const scheduledTones=new Set();
+  function stopScheduledTones(){
+    for(const node of scheduledTones){try{node.stop();}catch(_){}}
+    scheduledTones.clear();
+  }
+  document.addEventListener('dfc:voice-capture',event=>{if(event.detail?.active)stopScheduledTones();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopScheduledTones();});
+  window.addEventListener('pagehide',stopScheduledTones);
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   const melody = [392, 493.88, 587.33, 493.88, 440, 392, 329.63, 392,
                   523.25, 587.33, 659.25, 587.33, 493.88, 440, 392, 329.63];
@@ -311,7 +319,7 @@
     } catch (_) { return false; }
   }
   function tone(freq, duration, volume, shape='sine', delay=0) {
-    if (!enabled || !startAudio() || !ctx) return;
+    if (document.hidden || window.dfcVoiceRecording || !enabled || !startAudio() || !ctx) return;
     try {
       const at = ctx.currentTime + delay;
       const oscillator=ctx.createOscillator(), gain=ctx.createGain();
@@ -320,11 +328,13 @@
       gain.gain.exponentialRampToValueAtTime(Math.max(volume,0.00002),at+0.012);
       gain.gain.exponentialRampToValueAtTime(0.00001,at+duration);
       oscillator.connect(gain); gain.connect(ctx.destination);
+      scheduledTones.add(oscillator);
+      oscillator.onended=()=>{scheduledTones.delete(oscillator);try{oscillator.disconnect();gain.disconnect();}catch(_){}};
       oscillator.start(at); oscillator.stop(at+duration+0.02);
     } catch (_) {}
   }
   function effect(kind='tap') {
-    if (!enabled || (typeof dominoSoundPreferenceEnabled === 'function' && !dominoSoundPreferenceEnabled())) return;
+    if (window.dfcVoiceRecording || !enabled || (typeof dominoSoundPreferenceEnabled === 'function' && !dominoSoundPreferenceEnabled())) return;
     const now=Date.now();
     if (now-(lastEffect[kind]||0)<110) return;
     lastEffect[kind]=now;
@@ -382,7 +392,7 @@
   const controls='button,[role="button"],[role="tab"],[role="menuitem"],[role="switch"],a[href],summary,input[type="button"],input[type="submit"],input[type="checkbox"],input[type="radio"],select,[onclick],[data-action],[data-sound],[data-nav],[data-screen],.dfc-card,.flashcoin-card,.dfc-lab-gift-card,.clickable,.btn';
   document.addEventListener('pointerdown', bootMusic, {passive:true,capture:true});
   function controlSound(event) {
-    if (!event.isTrusted || event.target?.closest?.('#dominoHand,#dominoBoard,#dominoSoundBtn')) return;
+    if (!event.isTrusted || event.target?.closest?.('#dominoHand,#dominoBoard,#dominoSoundBtn,#dominoVoiceBtn,#dominoVoiceCard,.dfc-voice-ui')) return;
     const target=event.target?.closest?.(controls);
     if (!target || target.disabled || target.getAttribute('aria-disabled')==='true') return;
     const configured=target.dataset?.sound;
@@ -411,7 +421,7 @@
   document.addEventListener('dfc:sound',(event)=>{bootMusic();effect(event.detail?.kind||'tap');});
   window.dfcZ32Audio=Object.freeze({
     play:effect,
-    enable(value){enabled=!!value;if(enabled)bootMusic();},
+    enable(value){enabled=!!value;if(enabled)bootMusic();else stopScheduledTones();},
     get enabled(){return enabled;},
     get requiresInteraction(){return !ctx || ctx.state!=='running';}
   });
@@ -457,6 +467,17 @@
   const seen=new Map();
   const requestedScenes=new Map();
   const celebrated=new Set();
+  // Un anuncio por mano, independiente de que el tablero o la ficha estén visibles.
+  const announcedClosures=new Set();
+  function announceClosure(handId,kind){
+    const tableId=table();
+    if(!tableId||!handId||!['domino','capicua','trancazo'].includes(kind)||document.hidden||window.dfcVoiceRecording||window.dfc012lAudioPrefs?.().celebration===false||typeof window.dfc012uPlay!=='function')return;
+    const key=tableId+(kind==='trancazo'?':trancazo:':':win:')+handId;
+    if(announcedClosures.has(key))return;
+    announcedClosures.add(key);
+    if(announcedClosures.size>256)announcedClosures.delete(announcedClosures.values().next().value);
+    try{Promise.resolve(window.dfc012uPlay(kind,key)).catch(error=>console.debug('Audio de cierre',error));}catch(error){console.debug('Audio de cierre',error);}
+  }
   let burstLayer=null,burstTimer=0;
   function clearBurst(){
     clearTimeout(burstTimer);
@@ -649,8 +670,7 @@
       clear();
       if(table()===tableId)document.dispatchEvent(new Event('dfc:closing-preview-end'));
     },duration);
-    if(window.dfc012lAudioPrefs?.().celebration!==false)
-      void window.dfc012uPlay?.(kind,tableId+(kind==='trancazo'?':trancazo:':':win:')+handId);
+    announceClosure(handId,kind);
     return duration;
   }
   const previous=window.renderDominoState;
@@ -668,6 +688,7 @@
       if(kind&&hand?.status!=='playing'&&!points){
         const tableId=table();
         stage.setAttribute('data-dfc-result-managed','');
+        announceClosure(closure.id,kind);
         void loadFrame(state,closure.id,kind).then(async source=>{
           if(table()!==tableId||String(closure.id)!==closedHand||dominoState?.hand?.status==='playing')return;
           const move=source?.side==='left'?source.tiles[0]:source?.tiles.at(-1);
@@ -682,6 +703,7 @@
           }
           const nextSeat=source?.nextSeat??closure.next_turn_seat??closure.turn_seat;
           const wait=source?show(closure.id,move,kind,source,identity,{rows,nextSeat}):0;
+          announceClosure(closure.id,kind);
           window.dfcShowStandardHandResult?.(state,kind,wait,move,rows);
         });
       }
@@ -713,12 +735,11 @@
     const code=value=>pips(value).sort((a,b)=>a-b).join(':');
     const end=same&&side==='left'?state.hand.board?.[0]:same&&side==='right'?state.hand.board?.at(-1):null;
     const origin=end&&tile&&code(end)===code(tile)?board.querySelector('.domino-end-'+side):null;
-    if(burst(handId,origin)||burst(handId,fallback)){
-      if(window.dfc012lAudioPrefs?.().celebration!==false)
-        void window.dfc012uPlay?.(kind,table()+':win:'+handId);
-    }
+    burst(handId,origin)||burst(handId,fallback);
+    announceClosure(handId,kind);
   }
-  window.dfcClosingPreview=Object.freeze({show,delay,loadFrame,finish,settledBurst});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)clearBurst();});
+  window.dfcClosingPreview=Object.freeze({show,delay,loadFrame,finish,settledBurst,announceClosure});
 })();
 
 /* DOMINÓ FLASH COIN Z32 — Tarjetas de capicúa reclamables.
@@ -1922,7 +1943,7 @@
   if (typeof originalContext === 'function') {
     window.getAudioContext = function () {
       const context = originalContext.apply(this, arguments);
-      if (typeof audioMasterGain !== 'undefined' && audioMasterGain) audioMasterGain.gain.value = 1;
+      if (typeof audioMasterGain !== 'undefined' && audioMasterGain) audioMasterGain.gain.value = window.dfcVoiceRecording?0:1;
       return context;
     };
     if (typeof audioMasterGain !== 'undefined' && audioMasterGain) audioMasterGain.gain.value = 1;
@@ -1950,6 +1971,7 @@
   let animationId = 0;
 
   function sound(impact) {
+    if(window.dfcVoiceRecording)return;
     if (typeof dominoSoundIsEnabled === 'function' && !dominoSoundIsEnabled()) return;
     const ctx = window.getAudioContext?.();
     if (!ctx || ctx.state !== 'running') return;
@@ -2839,13 +2861,16 @@
    }
  }
  async function leaveFinishedPoints(){
-   hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoTablePanel');
+   const client=window.sb||window.dfcSupabase;
+   const {data:seat,error}=await client.rpc('rf_domino_012r_my_seat');
+   if(error||seat?.ok!==true||seat.state!=='free'||Number(seat.table_id||0)||Number(seat.waiting_table_id||0))throw Error(error?.message||'El servidor aún no confirma el asiento libre. Reintenta Cerrar.');
+   hide('dominoMenuPanel');hide('dominoExitConfirmPanel');hide('dominoChatPanel');hide('dominoTablePanel');hide('dominoLobbyPanel');hide('gamesPanel');
    dominoCurrentTableId=null;
    dominoStopPolling();await dominoStopRealtime();await dominoReleaseWakeLock();
    window.DFC_Z15?.onExit();
    dominoViewAway=false;dominoResetTableEffects();dominoReleaseLandscape();
    try{await loadMe();renderMe();}catch(error){console.warn('Saldo después de Por puntos:',error.message);}
-   window.dfcZ37UI?.open('points');
+   document.getElementById('appView')?.scrollTo({top:0});
  }
  replayButton.onclick=()=>chooseReplay('confirm');
  exitButton.onclick=()=>{if(!confirming)void chooseReplay('exit');};
@@ -2923,6 +2948,66 @@
 
  /* Información de partidas y celebración: exclusivamente presentación de datos confirmados. */
  const infoHistory=new Map();
+ const infoVisits=new Map();
+ const infoTTL=86400000;
+ let infoAccount='';
+ const serverHistory=new Map();
+ let historyLoaded=false,historyLoading=false,historyError='',historyGeneration=0,lastHistoryFetch=0;
+ function historyRedraw(){
+   if(infoPanel.hidden)return;
+   const offset=infoPanel.scrollTop,opened=new Set([...infoPanel.querySelectorAll('details[open][data-history-hand]')].map(e=>e.dataset.historyHand));drawInfo();for(const e of infoPanel.querySelectorAll('details[data-history-hand]'))e.open=opened.has(e.dataset.historyHand);infoPanel.scrollTop=offset;
+ }
+ async function loadHistory(){
+   const account=pruneInfo();
+   if(!account||historyLoading)return;
+   const client=window.sb||window.dfcSupabase;
+   if(!client?.rpc)return;
+   const generation=++historyGeneration;
+   historyLoading=true;historyError='';lastHistoryFetch=Date.now();historyRedraw();
+   const collected=new Map(), collectedIds=new Set();let cursor=null;
+   try{
+     for(;;){
+       const {data,error}=await client.rpc('dfc_domino_history_24h',{p_before_hand:cursor});
+       if(generation!==historyGeneration||pruneInfo()!==account)return;
+       if(error||!Array.isArray(data))throw Error(error?.message||'Respuesta de historial inválida');
+       for(const hand of data){
+         if(!hand?.id||!hand.table_id||collectedIds.has(String(hand.id)))continue;
+         collectedIds.add(String(hand.id));
+         const key=String(hand.table_id);
+         if(!collected.has(key))collected.set(key,[]);
+         collected.get(key).push(hand);
+       }
+       if(data.length<50)break;
+       const next=String(data.at(-1)?.id||'');
+       if(!/^\d+$/.test(next)||(cursor!==null&&BigInt(next)>=BigInt(cursor)))throw Error('No se pudo continuar el historial');
+       cursor=next;
+     }
+     if(generation!==historyGeneration||pruneInfo()!==account)return;
+     serverHistory.clear();for(const [id,hands] of collected)serverHistory.set(id,hands);
+     historyLoaded=true;
+     if(!infoTable||(!serverHistory.has(String(infoTable))&&!infoHistory.has(String(infoTable))))infoTable=Number(serverHistory.keys().next().value||infoHistory.keys().next().value||0);
+   }catch(error){
+     if(generation===historyGeneration)historyError='No se pudo actualizar el historial. Reintenta cuando tengas conexión.';
+   }finally{
+     if(generation===historyGeneration){historyLoading=false;historyRedraw();}
+   }
+ }
+ function pruneInfo(){
+   const account=typeof me==='undefined'?'':String(me?.id||'');
+   if(account!==infoAccount){infoHistory.clear();infoVisits.clear();serverHistory.clear();historyLoaded=false;historyLoading=false;historyError='';lastHistoryFetch=0;historyGeneration++;infoAccount=account;}
+   const cutoff=Date.now()-infoTTL;
+   for(const [key,hands] of serverHistory){const remaining=hands.map(h=>({...h,moves:(h.moves||[]).filter(m=>Date.parse(m.created_at)>cutoff)})).filter(h=>Date.parse(h.created_at)>cutoff||Date.parse(h.settled_at)>cutoff||h.moves.length);if(remaining.length)serverHistory.set(key,remaining);else serverHistory.delete(key);}
+   for(const [key,entry] of infoHistory){
+     for(const [id,hand] of entry.hands)if((hand.observedAt||0)<cutoff)entry.hands.delete(id);
+     if(!entry.hands.size&&(entry.observedAt||0)<cutoff){infoHistory.delete(key);infoVisits.delete(key);}
+   }
+   return account;
+ }
+ const homeInfo=document.createElement('button');
+ homeInfo.type='button';homeInfo.className='action dark';homeInfo.textContent='ⓘ Historial de partidas';
+ homeInfo.hidden=true;
+ const historyAnchor=document.getElementById('dfcHomeAction');
+ if(historyAnchor)historyAnchor.after(homeInfo);else document.getElementById('appView')?.prepend(homeInfo);
  const bonusPlayed=new Set();
  let infoTable=0, bonusLayer=null, activeSpeech=null, speechTimer=0;
  const roundPassBaseline=new Set();
@@ -2934,51 +3019,95 @@
  infoPanel.hidden=true;infoPanel.setAttribute('role','dialog');infoPanel.setAttribute('aria-label','Información de partidas');
  infoPanel.style.cssText='position:absolute;inset:8% 12%;z-index:2147483000;background:rgba(13,25,44,.96);color:white;border:1px solid #dabf70;border-radius:12px;padding:12px;overflow:auto;font:14px system-ui;box-shadow:0 6px 30px #0008';
  stage.append(infoPanel);
+ function stopBonusSpeech(){
+   clearTimeout(speechTimer);speechTimer=0;
+   if(activeSpeech){activeSpeech=null;try{window.speechSynthesis?.cancel();}catch(_){}}
+ }
  function stopBonusVisual(){
    bonusLayer?.remove();bonusLayer=null;
-   clearTimeout(speechTimer);
-   if(activeSpeech){try{window.speechSynthesis?.cancel();}catch(_){}activeSpeech=null;}
+   stopBonusSpeech();
  }
+ document.addEventListener('dfc:voice-capture',event=>{if(event.detail?.active)stopBonusSpeech();});
  function recordInfo(id,match,hand,players,kind,winner,details){
-   if(!id)return;
+   const account=pruneInfo();
+   if(!id||!account||window.dominoSpectatorMode)return;
+   const state=typeof dominoState==='undefined'?null:dominoState;
+   if(!state?.seats?.some(p=>String(p.user_id)===account))return;
    const key=String(id);
    let entry=infoHistory.get(key);
-   if(!entry){entry={hands:new Map(),players:[],match:null};infoHistory.set(key,entry);if(infoHistory.size>30)infoHistory.delete(infoHistory.keys().next().value);}
+   if(!entry){entry={hands:new Map(),players:[],match:null,observedAt:Date.now()};infoHistory.set(key,entry);}
+   entry.observedAt=Date.now();
+   if(!infoVisits.has(key))infoVisits.set(key,Date.now());
    if(match!=null)entry.match=match;
    if(players?.length)entry.players=players.map(p=>({name:p.name||p.full_name||'Jugador',avatar:p.avatar||p.avatar_url||'',points:p.points}));
    if(hand?.id){
+     const settled=Date.parse(hand.settled_at);
+     if(Number.isFinite(settled)&&settled<infoVisits.get(key)-3000&&!entry.hands.has(String(hand.id)))return;
      const handKey=String(hand.id);
      const previous=entry.hands.get(handKey)||{};
-     entry.hands.set(handKey,{...previous,id:handKey,date:hand.settled_at||previous.date,kind:kind||previous.kind,winner:winner?.name||winner?.full_name||previous.winner,avatar:winner?.avatar||winner?.avatar_url||previous.avatar,...details});
-     if(entry.hands.size>100)entry.hands.delete(entry.hands.keys().next().value);
+     entry.hands.set(handKey,{...previous,id:handKey,observedAt:previous.observedAt||Date.now(),date:hand.settled_at||previous.date,kind:kind||previous.kind,winner:winner?.name||winner?.full_name||previous.winner,avatar:winner?.avatar||winner?.avatar_url||previous.avatar,...details});
    }
-   if(!infoPanel.hidden&&infoTable===Number(id)){const offset=infoPanel.scrollTop;drawInfo();infoPanel.scrollTop=offset;}
+   if(!historyLoaded&&!historyLoading&&!infoPanel.hidden&&infoTable===Number(id))historyRedraw();
  }
  function drawInfo(){
+   pruneInfo();
+   const available=new Set([...serverHistory.keys(),...infoHistory.keys()]);
+   if(!available.has(String(infoTable))&&available.size)infoTable=Number(available.values().next().value);
+   if(!available.size&&!current())infoTable=0;
    const entry=infoHistory.get(String(infoTable));
    infoPanel.replaceChildren();
    const close=text('button','Cerrar ×',infoPanel);close.type='button';close.style.cssText='float:right;padding:6px;background:#254361;color:white;border:1px solid #dabf70;border-radius:6px';
    close.onclick=()=>{sound(660,.07);infoPanel.hidden=true;};
-   text('h3','Información de partidas · Mesa '+infoTable,infoPanel);
+   text('h3',infoTable?'Información de partidas · Mesa '+infoTable:'Historial de partidas',infoPanel);
+   const selector=document.createElement('select');selector.setAttribute('aria-label','Elegir mesa');
+   selector.style.cssText='max-width:100%;padding:6px;background:#152843;color:white;border:1px solid #dabf70';
+   const ids=available;
+   for(const id of ids){const opt=document.createElement('option');opt.value=id;opt.textContent='Mesa '+id;selector.append(opt);}
+   if(selector.options.length){selector.value=String(infoTable);selector.onchange=()=>{infoTable=Number(selector.value);drawInfo();};infoPanel.append(selector);}
+   const refresh=text('button',historyLoading?'Actualizando…':'Actualizar historial',infoPanel);refresh.type='button';refresh.disabled=historyLoading;refresh.onclick=()=>void loadHistory();
+   const hasConfirmed=historyLoaded&&serverHistory.has(String(infoTable));
+   text('p',historyError||(historyLoading?'Recuperando jugadas confirmadas…':hasConfirmed?'Historial personal confirmado por el servidor · últimas 24 horas.':entry?.hands.size?'Historial local provisional · últimas 24 horas.':historyLoaded?'No hay registros confirmados de esta mesa en las últimas 24 horas.':'Historial local provisional · últimas 24 horas.'),infoPanel);
+   if(hasConfirmed){
+     const hands=serverHistory.get(String(infoTable))||[];
+     text('h4','Manos y movimientos confirmados',infoPanel);
+     if(!hands.length)text('p','No hay manos disponibles de esta mesa en las últimas 24 horas.',infoPanel);
+     const reasons={domino:'Dominó',ultima_ficha:'Dominó',capicua:'Capicúa','capicúa':'Capicúa',trancazo:'Tranque',tranque:'Tranque',blocked:'Tranque'};
+     for(const h of hands){
+       const row=text('div','',infoPanel);row.style.cssText='border-top:1px solid #57708a;padding:6px 0';
+       const reason=String(h.reason||'').trim().toLowerCase();
+       text('strong',h.winner?h.winner+' · '+(reasons[reason]||'Mano terminada'):'Mano '+(h.settled_at?'terminada':'en juego'),row);
+       text('p','Mano #'+h.id+' · '+new Date(h.settled_at||h.created_at).toLocaleString('es-DO'),row);
+       const local=entry?.hands.get(String(h.id));
+       if(local?.points!=null)text('p','Puntos acreditados: '+local.points,row);
+       if(local?.bonus!=null)text('p','Bonificación: '+local.bonus+' puntos',row);
+       if(local?.diamonds!=null)text('p','Diamantes del bote: '+local.diamonds,row);
+       const list=text('details','',row);list.dataset.historyHand=String(h.id);const moves=Array.isArray(h.moves)?h.moves:[];
+       text('summary','Movimientos ('+moves.length+')',list);
+       for(const mv of moves){
+         const action={PLAY:'Ficha',AUTO_PLAY:'Ficha automática',PASS:'Pase',AUTO_PASS:'Pase automático',WIN:'Victoria'}[mv.action]||mv.action;
+         const tile=Array.isArray(mv.tile)&&mv.tile.length===2?mv.tile.join('–'):'';
+         text('p',new Date(mv.created_at).toLocaleTimeString('es-DO')+' · '+mv.name+' · '+action+(tile?' · '+tile:'')+(Number(mv.amount)>0?' · '+mv.amount+' FC':''),list);
+       }
+     }
+     return;
+   }
    if(entry?.match!=null)text('p','Partida '+entry.match,infoPanel);
-   text('small','Manos confirmadas observadas durante esta sesión; no es un historial completo de la cuenta.',infoPanel);
    if(entry?.players.length){
      text('h4','Jugadores y marcador',infoPanel);
-     for(const p of entry.players){const row=text('div','',infoPanel);row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px';
-       resultAvatar(p,row);text('span',p.name+(p.points!=null?' · '+p.points+' puntos':''),row);}
+     for(const p of entry.players){const row=text('div','',infoPanel);row.style.cssText='display:flex;align-items:center;gap:6px;padding:4px';resultAvatar(p,row);text('span',p.name+(p.points!=null?' · '+p.points+' puntos':''),row);}
    }
-   text('h4','Manos jugadas',infoPanel);
+   text('h4','Manos observadas localmente',infoPanel);
    if(!entry?.hands.size)text('p','Todavía no hay manos confirmadas disponibles.',infoPanel);
    for(const h of [...(entry?.hands.values()||[])].reverse()){
      const row=text('div','',infoPanel);row.style.cssText='border-top:1px solid #57708a;padding:6px 0';
-     const name=h.winner||'Ganador no disponible';
-     resultAvatar({name,avatar:h.avatar},row);
-     text('strong',name+' · '+(h.kind||'Mano terminada'),row);
+     const name=h.winner||'Ganador no disponible';resultAvatar({name,avatar:h.avatar},row);
+     text('strong',name+' · '+(h.kind||(h.date?'Mano terminada':'Mano observada')),row);
      text('small',' Mano #'+h.id+(h.date&&Number.isFinite(Date.parse(h.date))?' · '+new Date(h.date).toLocaleString('es-DO'):''),row);
      if(h.points!=null)text('p','Puntos acreditados: '+h.points,row);
      if(h.bonus!=null)text('p','Bonificación: '+h.bonus+' puntos',row);
      if(h.fc!=null)text('p','Premio confirmado: '+money.format(h.fc)+' FC',row);
      if(h.diamonds!=null)text('p','Diamantes del bote: '+h.diamonds,row);
+     if(h.moves?.size){const list=text('details','',row);text('summary','Movimientos observados ('+h.moves.size+')',list);for(const mv of h.moves.values())text('p',mv.name+' · '+mv.action+(mv.tile?' · '+mv.tile:'')+(mv.amount!=null?' · '+mv.amount+' FC':''),list);}
    }
  }
  infoButton.onclick=()=>{
@@ -2986,10 +3115,43 @@
    sound(660,.07);
    if(!infoPanel.hidden){infoPanel.hidden=true;return;}
    infoTable=id;
+   stage.append(infoPanel);infoPanel.style.position='absolute';
    const state=typeof dominoState==='undefined'?null:dominoState;
    if(!panel.hasAttribute('data-dfc-points-mode'))recordInfo(id,null,null,state?.seats||[]);
-   drawInfo();infoPanel.hidden=false;
+   drawInfo();infoPanel.hidden=false;void loadHistory();
  };
+ homeInfo.onclick=()=>{
+   if(!pruneInfo())return;
+   infoTable=Number(serverHistory.keys().next().value||[...infoHistory.keys()].at(-1)||0);
+   document.body.append(infoPanel);infoPanel.style.position='fixed';drawInfo();infoPanel.hidden=false;void loadHistory();
+ };
+ function captureHistoryMove(st){
+   const id=current(),account=pruneInfo();
+   if(!id||!account||window.dominoSpectatorMode||!st?.seats?.some(p=>String(p.user_id)===account))return;
+   const key=String(id);if(!infoVisits.has(key))infoVisits.set(key,Date.now());
+   const mv=st.last_move,handId=mv?.hand_id??st.hand?.id;
+   if(!mv?.id||!handId||!st.hand)return;
+   const age=Date.parse(mv.created_at);
+   if(!Number.isFinite(age)||age<infoVisits.get(key)-3000)return;
+   recordInfo(id,null,null,st.seats);
+   const entry=infoHistory.get(key);if(!entry)return;
+   const hk=String(handId),hand=entry.hands.get(hk)||{id:hk,observedAt:Date.now(),moves:new Map()};
+   hand.moves??=new Map();
+   if(!hand.moves.has(String(mv.id))){
+     const seat=st.seats.find(p=>String(p.user_id)===String(mv.user_id));
+     const action=String(mv.action||'').toUpperCase();
+     const x=mv.a??mv.tile_a??mv.tile?.[0],y=mv.b??mv.tile_b??mv.tile?.[1];
+     if(action.includes('PLAY')||action.includes('PASS'))hand.moves.set(String(mv.id),{name:seat?.full_name||seat?.name||'Jugador',action:action.includes('PASS')?'Pase':'Ficha',tile:x!=null&&y!=null?x+'–'+y:'',amount:action.includes('PASS')&&mv.amount!=null?mv.amount:null});
+   }
+   entry.hands.set(hk,hand);
+   if(!infoPanel.hidden&&infoTable===Number(id)&&!serverHistory.has(key))historyRedraw();
+ }
+ if(typeof renderDominoState==='function'){
+   const renderHistoryOriginal=renderDominoState;
+   renderDominoState=function(st){const value=renderHistoryOriginal.apply(this,arguments);captureHistoryMove(st);return value;};
+ }
+ setInterval(()=>{const account=pruneInfo();homeInfo.hidden=!account||Boolean(current());if(!account){infoPanel.hidden=true;return;}if(!infoPanel.hidden&&Date.now()-lastHistoryFetch>30000)void loadHistory();},1000);
+ window.addEventListener('online',()=>{if(!infoPanel.hidden)void loadHistory();});
  function celebrateThirty(key,kind){
    if(document.hidden||!current()||bonusPlayed.has(key))return;
    try{if(sessionStorage.getItem('dfc30:'+key)==='1')return;sessionStorage.setItem('dfc30:'+key,'1');}catch(_){}
@@ -3011,7 +3173,7 @@
      }
    }
    setTimeout(()=>{layer.remove();if(bonusLayer===layer)bonusLayer=null;},2500);
-   if(typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled()&&window.dfc012lAudioPrefs?.().celebration!==false){
+   if(!window.dfcVoiceRecording&&typeof dominoSoundIsEnabled==='function'&&dominoSoundIsEnabled()&&window.dfc012lAudioPrefs?.().celebration!==false){
      sound(1047,.18);
      if(window.speechSynthesis&&window.SpeechSynthesisUtterance){
        try{
@@ -3028,14 +3190,17 @@
    }
  }
  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopBonusVisual();infoPanel.hidden=true;}});
+ window.addEventListener('pagehide',stopBonusVisual);
  // El volumen multimedia del sistema actúa en la salida final; no se añade un control interno.
  // Mantener las ganancias relativas de cada efecto para evitar saturación.
  function useSystemMediaVolume(){
    try{
-     if(typeof audioMasterGain!=='undefined'&&audioMasterGain&&audioMasterGain.gain.value!==1)audioMasterGain.gain.value=1;
-     if(navigator.audioSession&&navigator.audioSession.type!=='playback')navigator.audioSession.type='playback';
+     const capture=Boolean(window.dfcVoiceRecording),gain=capture?0:1,mode=capture?'play-and-record':'playback';
+     if(typeof audioMasterGain!=='undefined'&&audioMasterGain&&audioMasterGain.gain.value!==gain)audioMasterGain.gain.value=gain;
+     if(navigator.audioSession&&navigator.audioSession.type!==mode)navigator.audioSession.type=mode;
    }catch(_){}
  }
+ document.addEventListener('dfc:voice-capture',useSystemMediaVolume);
  document.addEventListener('pointerdown',useSystemMediaVolume,{passive:true});
  document.addEventListener('click',useSystemMediaVolume,{passive:true});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)useSystemMediaVolume();});
@@ -3043,6 +3208,7 @@
 
  function reset(id){
    infoPanel.hidden=true;stopBonusVisual();
+   if(table!==id)infoVisits.delete(String(table));
    table=id;epoch++;last=null;pending=false;retryAfter=0;shown='';observedClosure='';
    closureRefreshQueued=false;
    window.dfcZ37UI?.syncSpectator(null,id);
@@ -3109,7 +3275,7 @@
    const item=document.createElement(tag);item.textContent=value;root.append(item);return item;
  }
  function playPanelSound(kind){
-   if(typeof playOscTone!=='function'||(typeof dominoSoundIsEnabled==='function'&&!dominoSoundIsEnabled()))return;
+   if(window.dfcVoiceRecording||typeof playOscTone!=='function'||(typeof dominoSoundIsEnabled==='function'&&!dominoSoundIsEnabled()))return;
    panelNotes[kind].forEach((note,index)=>playOscTone(note,.19,.075,index===0?'triangle':'sine',null,index*.065,'domino'));
  }
  function refreshAfterClose(){
@@ -3490,8 +3656,12 @@
    addPanelClose(data,String(hand.id),data.state==='settled'?5000:8000);
    result.scrollTop=0;
    result.hidden=false;
-   if((kind==='domino'||kind==='capicua')&&data.state==='settled'&&Date.now()+replayOffset-Date.parse(hand.settled_at)<10000)
-     window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile,kind);
+   const closureAge=Date.now()+replayOffset-Date.parse(hand.settled_at);
+   if(closureAge>=-3000&&closureAge<20000){
+     window.dfcClosingPreview?.announceClosure(hand.id,kind);
+     if((kind==='domino'||kind==='capicua')&&data.state==='settled'&&closureAge<10000)
+       window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile,kind);
+   }
    if(kind==='capicua'&&Number(hand.bonus_points)===30&&Date.now()+replayOffset-Date.parse(hand.settled_at)<20000)celebrateThirty('cap:'+data.match_id+':'+hand.id,'capicua');
    flyBonus(bonus,hand.seat,Number(hand.bonus_points)||0);
  }
@@ -3590,8 +3760,12 @@
    };
    result.scrollTop=0;
    result.hidden=false;
-   if(['domino','capicua'].includes(handKind(hand))&&hand?.id&&winnerTile&&Date.now()+replayOffset-Date.parse(hand.settled_at)<10000)
-     window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile,handKind(hand));
+   const closureAge=Date.now()+replayOffset-Date.parse(hand?.settled_at);
+   if(hand?.id&&closureAge>=-3000&&closureAge<20000){
+     window.dfcClosingPreview?.announceClosure(hand.id,handKind(hand));
+     if(['domino','capicua'].includes(handKind(hand))&&winnerTile&&closureAge<10000)
+       window.dfcClosingPreview?.settledBurst(hand.id,hand.deciding_tile,winnerTile,handKind(hand));
+   }
    if(victorySoundMatch!==data.match_id){victorySoundMatch=data.match_id;playPanelSound('victory');}
    if(data.victory_auto){
      next.remove();
@@ -3615,7 +3789,7 @@
    if(!result.hasAttribute('data-match-victory'))showVictory(last,last.last_hand,champions);
  }
  function sound(freq,length){
-   if(typeof playOscTone==='function'&&(typeof dominoSoundIsEnabled!=='function'||dominoSoundIsEnabled()))
+   if(!window.dfcVoiceRecording&&typeof playOscTone==='function'&&(typeof dominoSoundIsEnabled!=='function'||dominoSoundIsEnabled()))
      playOscTone(freq,length,.06,'triangle',freq*.67,0,'domino');
  }
  async function animateHandPoints(hand,token){
@@ -3898,3 +4072,6 @@ document.addEventListener('dfc:giftRedeemed', event => {
   if (typeof me !== 'undefined' && me) me.balance = balance;
   if (typeof setBalanceDisplay === 'function') setBalanceDisplay(balance);
 });
+
+/* Cargar el módulo de mensajes de mesa en la revisión web. */
+(function(){if(document.getElementById('dominoVoiceBtn')||document.querySelector('script[data-dfc-table-chat]'))return;const script=document.createElement('script');script.dataset.dfcTableChat='';script.src='./domino-table-chat.js?v=20261124-review2';script.async=false;document.head.append(script);})();
