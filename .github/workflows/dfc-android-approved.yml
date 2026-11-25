@@ -116,6 +116,10 @@ jobs:
           updated_script = git('show', f'{approved}:script.js')
           updated_style = git('show', f'{approved}:style.css')
           updated_chat = git('show', f'{approved}:domino-table-chat.js')
+          visual_paths = ['domino-table-styles.js', 'domino-table-styles.css']
+          visual_paths += [p for p in git('ls-tree', '-r', '--name-only', approved, '--', 'images2/').decode().splitlines() if p.lower().endswith(('.webp','.png','.jpg','.jpeg','.svg','.gif'))]
+          visual_assets = {p: git('show', f'{approved}:{p}') for p in visual_paths}
+          subprocess.run(['node', '--check'], input=visual_assets['domino-table-styles.js'], check=True)
           for label, js in [('script.js', updated_script), ('domino-table-chat.js', updated_chat)]:
               print(f'Checking {label}')
               subprocess.run(['node', '--check'], input=js, check=True)
@@ -164,12 +168,19 @@ jobs:
                               contents = updated_style
                           elif name == 'domino-table-chat.js':
                               contents = updated_chat
+                          elif name in visual_assets:
+                              contents = visual_assets[name]
                           else:
                               contents = old_zip.read(name)
                           new_zip.writestr(name, contents)
                       if 'domino-table-chat.js' not in names:
                           new_zip.writestr('domino-table-chat.js', updated_chat)
+                      for name, contents in visual_assets.items():
+                          if name not in names:
+                              new_zip.writestr(name, contents)
               with zipfile.ZipFile(bundle) as new_zip:
+                  if any(new_zip.read(p) != data for p, data in visual_assets.items()):
+                      stop('Faltan los recursos visuales aprobados.')
                   if new_zip.testzip() is not None or new_zip.read('index.html') != html or new_zip.read('native-bridge.js') != updated_bridge or new_zip.read('script.js') != updated_script or new_zip.read('style.css') != updated_style or new_zip.read('domino-table-chat.js') != updated_chat:
                       stop('El ZIP nuevo no contiene el HTML aprobado o está dañado.')
               manifest = {
