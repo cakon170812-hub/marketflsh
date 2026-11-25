@@ -299,6 +299,14 @@
   if (window.dfcZ32Audio) return;
   let ctx = null, enabled = true, musicTimer = null, melodyIndex = 0;
   let lastEffect = Object.create(null);
+  const scheduledTones=new Set();
+  function stopScheduledTones(){
+    for(const node of scheduledTones){try{node.stop();}catch(_){}}
+    scheduledTones.clear();
+  }
+  document.addEventListener('dfc:voice-capture',event=>{if(event.detail?.active)stopScheduledTones();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopScheduledTones();});
+  window.addEventListener('pagehide',stopScheduledTones);
   const AudioContextClass = window.AudioContext || window.webkitAudioContext;
   const melody = [392, 493.88, 587.33, 493.88, 440, 392, 329.63, 392,
                   523.25, 587.33, 659.25, 587.33, 493.88, 440, 392, 329.63];
@@ -311,7 +319,7 @@
     } catch (_) { return false; }
   }
   function tone(freq, duration, volume, shape='sine', delay=0) {
-    if (window.dfcVoiceRecording || !enabled || !startAudio() || !ctx) return;
+    if (document.hidden || window.dfcVoiceRecording || !enabled || !startAudio() || !ctx) return;
     try {
       const at = ctx.currentTime + delay;
       const oscillator=ctx.createOscillator(), gain=ctx.createGain();
@@ -320,6 +328,8 @@
       gain.gain.exponentialRampToValueAtTime(Math.max(volume,0.00002),at+0.012);
       gain.gain.exponentialRampToValueAtTime(0.00001,at+duration);
       oscillator.connect(gain); gain.connect(ctx.destination);
+      scheduledTones.add(oscillator);
+      oscillator.onended=()=>{scheduledTones.delete(oscillator);try{oscillator.disconnect();gain.disconnect();}catch(_){}};
       oscillator.start(at); oscillator.stop(at+duration+0.02);
     } catch (_) {}
   }
@@ -382,7 +392,7 @@
   const controls='button,[role="button"],[role="tab"],[role="menuitem"],[role="switch"],a[href],summary,input[type="button"],input[type="submit"],input[type="checkbox"],input[type="radio"],select,[onclick],[data-action],[data-sound],[data-nav],[data-screen],.dfc-card,.flashcoin-card,.dfc-lab-gift-card,.clickable,.btn';
   document.addEventListener('pointerdown', bootMusic, {passive:true,capture:true});
   function controlSound(event) {
-    if (!event.isTrusted || event.target?.closest?.('#dominoHand,#dominoBoard,#dominoSoundBtn')) return;
+    if (!event.isTrusted || event.target?.closest?.('#dominoHand,#dominoBoard,#dominoSoundBtn,#dominoVoiceBtn,#dominoVoiceCard,.dfc-voice-ui')) return;
     const target=event.target?.closest?.(controls);
     if (!target || target.disabled || target.getAttribute('aria-disabled')==='true') return;
     const configured=target.dataset?.sound;
@@ -411,7 +421,7 @@
   document.addEventListener('dfc:sound',(event)=>{bootMusic();effect(event.detail?.kind||'tap');});
   window.dfcZ32Audio=Object.freeze({
     play:effect,
-    enable(value){enabled=!!value;if(enabled)bootMusic();},
+    enable(value){enabled=!!value;if(enabled)bootMusic();else stopScheduledTones();},
     get enabled(){return enabled;},
     get requiresInteraction(){return !ctx || ctx.state!=='running';}
   });
@@ -678,6 +688,7 @@
       if(kind&&hand?.status!=='playing'&&!points){
         const tableId=table();
         stage.setAttribute('data-dfc-result-managed','');
+        announceClosure(closure.id,kind);
         void loadFrame(state,closure.id,kind).then(async source=>{
           if(table()!==tableId||String(closure.id)!==closedHand||dominoState?.hand?.status==='playing')return;
           const move=source?.side==='left'?source.tiles[0]:source?.tiles.at(-1);
@@ -3179,6 +3190,7 @@
    }
  }
  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopBonusVisual();infoPanel.hidden=true;}});
+ window.addEventListener('pagehide',stopBonusVisual);
  // El volumen multimedia del sistema actúa en la salida final; no se añade un control interno.
  // Mantener las ganancias relativas de cada efecto para evitar saturación.
  function useSystemMediaVolume(){
